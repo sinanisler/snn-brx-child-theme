@@ -1,16 +1,24 @@
 
 gsap.registerPlugin(ScrollTrigger);
+
 const animateElements = document.querySelectorAll('[data-animate]');
+
 animateElements.forEach(element => {
   const options = element.getAttribute('data-animate').split(',').reduce((acc, option) => {
     const [key, value] = option.split(':').map(item => item.trim());
     acc[key] = value;
     return acc;
   }, {});
+
   const defaultStart = 'top 50%';
   const defaultEnd = 'bottom 50%';
+
+  const text = element.innerText;
+  const chars = text.split('');
+  element.innerHTML = chars.map(char => `<span>${char}</span>`).join('');
+
   gsap.fromTo(
-    element,
+    element.children,
     {
       x: options.x ? parseInt(options.x) : 0,
       y: options.y ? parseInt(options.y) : 0,
@@ -33,7 +41,8 @@ animateElements.forEach(element => {
         markers: options.markers === 'true',
         toggleClass: options.toggleClass || null,
         pinSpacing: options.pinSpacing || 'margin'
-      }
+      },
+      stagger: 0.1 // Adjust the stagger value as needed
     }
   );
 });
