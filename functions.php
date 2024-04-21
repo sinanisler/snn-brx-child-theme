@@ -8,7 +8,7 @@
 // Add a new menu item under the Settings page
 function snn_add_submenu_page() {
     add_submenu_page(
-        'themes.php',
+        'options-general.php',
         'SNN Settings',
         'SNN Settings',
         'manage_options',
