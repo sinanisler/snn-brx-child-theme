@@ -6,6 +6,12 @@
 
 
 
+
+
+
+
+
+
 // Add a new menu item under the Settings page
 function snn_add_submenu_page() {
   add_submenu_page(
@@ -85,6 +91,14 @@ function snn_register_settings() {
       'snn-settings',
       'snn_general_section'
   );
+
+  add_settings_field(
+      'snn_enqueue_gsap',
+      'Enable GSAP',
+      'snn_enqueue_gsap_callback',
+      'snn-settings',
+      'snn_general_section'
+  );
 }
 add_action('admin_init', 'snn_register_settings');
 
@@ -125,6 +139,13 @@ function snn_auto_update_bricks_callback() {
   $options = get_option('snn_settings');
   ?>
   <input type="checkbox" name="snn_settings[auto_update_bricks]" value="1" <?php checked(isset($options['auto_update_bricks']), 1); ?>>
+  <?php
+}
+
+function snn_enqueue_gsap_callback() {
+  $options = get_option('snn_settings');
+  ?>
+  <input type="checkbox" name="snn_settings[enqueue_gsap]" value="1" <?php checked(isset($options['enqueue_gsap']), 1); ?>>
   <?php
 }
 
@@ -174,12 +195,16 @@ function auto_update_bricks_theme($update, $item) {
 }
 add_filter('auto_update_theme', 'auto_update_bricks_theme', 10, 2);
 
-
-
-
-
-
-
+// Enqueue GSAP scripts
+function enqueue_gsap_scripts() {
+  $options = get_option('snn_settings');
+  if (isset($options['enqueue_gsap'])) {
+      wp_enqueue_script('gsap-js', get_stylesheet_directory_uri() . '/js/gsap.min.js', array(), false, true);
+      wp_enqueue_script('gsap-st-js', get_stylesheet_directory_uri() . '/js/ScrollTrigger.min.js', array('gsap-js'), false, true);
+      wp_enqueue_script('gsap-data-js', get_stylesheet_directory_uri() . '/js/gsap-data-animate.js', array(), false, true);
+  }
+}
+add_action('wp_enqueue_scripts', 'enqueue_gsap_scripts');
 
 
 
@@ -219,43 +244,6 @@ function custom_menu_order($menu_ord) {
 }
 add_filter('menu_order', 'custom_menu_order');
 add_filter('custom_menu_order', function(){ return true; }); // Activate custom_menu_order
-
-
-
-
-
-
-
-
-// enqueue GSAP script in WordPress (child theme)
-// wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer );
-function theme_gsap_script() {
-  wp_enqueue_script( 'gsap-js', site_url() . '/wp-content/themes/snn-brx-child-theme/js/gsap.min.js', array(), false, true );
-  wp_enqueue_script( 'gsap-st-js', site_url() . '/wp-content/themes/snn-brx-child-theme/js/ScrollTrigger.min.js', array('gsap-js'), false, true );
-  wp_enqueue_script( 'gsap-data-js', site_url() . '/wp-content/themes/snn-brx-child-theme/js/gsap-data-animate.js', array(), false, true );
-}
-add_action( 'wp_enqueue_scripts', 'theme_gsap_script' );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
