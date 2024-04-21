@@ -4,6 +4,8 @@
 
 
 
+
+
 // Add a new menu item under the Settings page
 function snn_add_submenu_page() {
   add_submenu_page(
@@ -75,6 +77,14 @@ function snn_register_settings() {
       'snn-settings',
       'snn_general_section'
   );
+
+  add_settings_field(
+      'snn_auto_update_bricks',
+      'Auto Update Bricks Theme',
+      'snn_auto_update_bricks_callback',
+      'snn-settings',
+      'snn_general_section'
+  );
 }
 add_action('admin_init', 'snn_register_settings');
 
@@ -108,6 +118,13 @@ function snn_login_error_message_callback() {
   $options = get_option('snn_settings');
   ?>
   <input type="text" name="snn_settings[login_error_message]" value="<?php echo esc_attr($options['login_error_message'] ?? ''); ?>">
+  <?php
+}
+
+function snn_auto_update_bricks_callback() {
+  $options = get_option('snn_settings');
+  ?>
+  <input type="checkbox" name="snn_settings[auto_update_bricks]" value="1" <?php checked(isset($options['auto_update_bricks']), 1); ?>>
   <?php
 }
 
@@ -146,6 +163,23 @@ function failed_login_message() {
   return $message;
 }
 add_filter('login_errors', 'failed_login_message');
+
+// Auto Update Bricks Theme
+function auto_update_bricks_theme($update, $item) {
+  $options = get_option('snn_settings');
+  if (isset($options['auto_update_bricks']) && $item->theme == 'bricks') {
+      return true;
+  }
+  return $update;
+}
+add_filter('auto_update_theme', 'auto_update_bricks_theme', 10, 2);
+
+
+
+
+
+
+
 
 
 
@@ -193,20 +227,14 @@ add_filter('custom_menu_order', function(){ return true; }); // Activate custom_
 
 
 
-// enqueue GSAP script in WordPress
+// enqueue GSAP script in WordPress (child theme)
 // wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer );
-function theme_gsap_script(){
-    // The core GSAP library
-    wp_enqueue_script( 'gsap-js', 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js', array(), false, true );
-    // ScrollTrigger - with gsap.js passed as a dependency
-    wp_enqueue_script( 'gsap-st', 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js', array('gsap-js'), false, true );
-    // Your animation code file - with gsap.js passed as a dependency
-    wp_enqueue_script( 'gsap-js2', get_template_directory_uri() . 'js/app.js', array('gsap-js'), false, true );
+function theme_gsap_script() {
+  wp_enqueue_script( 'gsap-js', site_url() . '/wp-content/themes/snn-brx-child-theme/js/gsap.min.js', array(), false, true );
+  wp_enqueue_script( 'gsap-st-js', site_url() . '/wp-content/themes/snn-brx-child-theme/js/ScrollTrigger.min.js', array('gsap-js'), false, true );
+  wp_enqueue_script( 'gsap-data-js', site_url() . '/wp-content/themes/snn-brx-child-theme/js/gsap-data-animate.js', array(), false, true );
 }
-
 add_action( 'wp_enqueue_scripts', 'theme_gsap_script' );
-
-
 
 
 
