@@ -3,6 +3,75 @@
 
 
 
+
+
+// Add a new menu item under the Settings page
+function snn_add_submenu_page() {
+    add_submenu_page(
+        'themes.php',
+        'SNN Settings',
+        'SNN Settings',
+        'manage_options',
+        'snn-settings',
+        'snn_settings_page_callback'
+    );
+}
+add_action('admin_menu', 'snn_add_submenu_page');
+
+// Callback function for the SNN Settings page
+function snn_settings_page_callback() {
+    ?>
+    <div class="wrap">
+        <h1>SNN Settings</h1>
+        <p>Add your SNN settings content here.</p>
+    </div>
+    <?php
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Move Bricks Menu to End of the wp-admin menu list
+function custom_menu_order($menu_ord) {
+  if (!$menu_ord) return true;
+  // Identify the index of 'bricks'
+  foreach ($menu_ord as $index => $item) {
+      if ($item == 'bricks') {
+          $bricks_menu = $item;
+          unset($menu_ord[$index]);
+          break;
+      }
+  }
+  // Append 'bricks' to the end
+  if (isset($bricks_menu)) {
+      $menu_ord[] = $bricks_menu;
+  }
+  return $menu_ord;
+}
+add_filter('menu_order', 'custom_menu_order');
+add_filter('custom_menu_order', function(){ return true; }); // Activate custom_menu_order
+
+
+
+
+
+
+
+
+
+
+
+
 // enqueue GSAP script in WordPress
 // wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer );
 function theme_gsap_script(){
