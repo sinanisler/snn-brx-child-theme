@@ -19,7 +19,7 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
   // Set builder control groups
   public function set_control_groups() {
     $this->control_groups['settings'] = [
-      'title' => esc_html__( 'Settings', 'bricks' ),
+      'title' => 'Settings',
       'tab' => 'content',
     ];
   }
@@ -29,9 +29,16 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
     $this->controls['content'] = [
       'tab' => 'content',
       'group' => 'settings',
-      'label' => esc_html__( 'Custom Code', 'bricks' ),
+      'label' => 'Custom HTML Code',
       'type' => 'textarea',
-      'default' => '<div>Your HTML here</div>',
+      'default' => '<div>Your HTML here</div>
+
+<h1 class="redme">Title</h1>
+
+<style>
+.redme{color:red}
+</style>
+      ',
     ];
   }
 
