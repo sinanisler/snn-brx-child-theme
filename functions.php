@@ -23,7 +23,28 @@ require_once get_stylesheet_directory() . '/dynamic_data_tags/custom_dynamic_dat
 
 
 
-// Custom Elementors
-// https://academy.bricksbuilder.io/article/dynamic-data/
+// Custom Elements
+// https://academy.bricksbuilder.io/article/create-your-own-elements/
 
-require_once get_stylesheet_directory() . '/custom_elements/title.php';
+add_action( 'init', function() {
+    $element_files = [
+      __DIR__ . '/custom_elements/custom-html-css-script.php', 
+    ];
+  
+    foreach ( $element_files as $file ) {
+      if (file_exists($file)) {
+        require_once $file;
+        $element_class = 'Custom_HTML_CSS_Script'; 
+        \Bricks\Elements::register_element($file, 'custom-html-css-script', $element_class); 
+      }
+    }
+  }, 11 );
+  
+
+
+
+
+
+
+
+
