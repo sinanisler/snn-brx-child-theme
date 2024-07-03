@@ -1,9 +1,9 @@
 <?php
 
-// Include settings page
+// Settings Page
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 
-// Include features & settings (each with its own settings)
+// Features & Settings (each with its own settings)
 require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
 require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
 require_once get_stylesheet_directory() . '/includes/remove-rss.php';
@@ -20,3 +20,10 @@ require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
 // Custom Dynamic Data Tags
 // https://academy.bricksbuilder.io/article/dynamic-data/
 require_once get_stylesheet_directory() . '/dynamic_data_tags/custom_dynamic_data_tags.php';
+
+
+
+// Custom Elementors
+// https://academy.bricksbuilder.io/article/dynamic-data/
+
+require_once get_stylesheet_directory() . '/custom_elements/title.php';
