@@ -25,8 +25,11 @@ Enabling this setting will enqueue the GSAP library and its associated scripts o
 After you enable the GSAP feature you can use this animation library with data-animate attribues with any bricks dom and any bricks element.
 
 example data-animate usage: 
+
 ``` <h1 data-animate="x:-50, o:0, start:top 80%, end:bottom 20%">Welcome to my website!</h1>```
+
 ``` <div data-animate="s:0.5, r:180, start:top 60%, end:bottom 40%, scrub:true">Lorem ipsum dolor sit amet.</div> ```
+
 
 Tutorial:
 https://www.youtube.com/watch?v=plJpgqtFpg0
