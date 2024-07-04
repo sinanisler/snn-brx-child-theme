@@ -20,7 +20,7 @@ function snn_custom_css_callback() {
     // Output a textarea for custom CSS input
     echo '<textarea name="snn_custom_css" id="snn_custom_css" class="large-text code" rows="10">' . esc_textarea($css) . '</textarea>';
     echo '<p>Enter custom CSS for the block editor and front-end. This CSS will be applied site-wide.</p>';
-    echo '<a href="https://github.com/uhub/awesome-css" target="_blank">Some Native CSS Libraries</a> stay away from .js required ones.';
+    echo '<a href="https://github.com/uhub/awesome-css" target="_blank">Some Good CSS Libraries</a>.';
 }
 
 

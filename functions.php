@@ -13,6 +13,9 @@ require_once get_stylesheet_directory() . '/includes/auto-update-bricks.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
 require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
 require_once get_stylesheet_directory() . '/includes/snn_custom_css_setting.php';
+require_once get_stylesheet_directory() . '/includes/snn_custom_css_js_cdn.php';
+
+
 
 // Include script enqueuing
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';

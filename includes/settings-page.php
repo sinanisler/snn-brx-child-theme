@@ -27,6 +27,8 @@ function snn_settings_page_callback() {
     </div>
 
     <style>
+        .wrap{
+         }
         .tt1  {
             width: 880px;
             height: 40px;
@@ -40,6 +42,10 @@ function snn_settings_page_callback() {
             height: 20px !important;
             float: left;
             margin-right: 10px !important;
+        }
+        #snn_custom_css{
+            width: 880px;
+            height:330px ;
         }
     </style>
     <?php
