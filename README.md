@@ -1,7 +1,8 @@
 # SNN BRX - Bricks Builder Child Theme
 
 
-[https://www.youtube.com/watch?v=kwKpiAVWBn8](https://www.youtube.com/watch?v=kwKpiAVWBn8)
+
+(https://img.youtube.com/vi/kwKpiAVWBn8/0.jpg)](https://www.youtube.com/watch?v=kwKpiAVWBn8)
 
 
 ## Theme Settings
@@ -34,8 +35,8 @@ example data-animate usage:
 
 Tutorial:
 
-[https://www.youtube.com/watch?v=plJpgqtFpg0](https://www.youtube.com/watch?v=plJpgqtFpg0)
 
+(https://img.youtube.com/vi/plJpgqtFpg0/0.jpg)](https://www.youtube.com/watch?v=plJpgqtFpg0)
 
 
 
