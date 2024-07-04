@@ -53,6 +53,9 @@ function render_current_author_id_in_content( $content, $post, $context = 'text'
 
 
 
+
+
+
 // {taxonomy_term_slug:taxonomy}
 // Use {taxonomy_term_slug:category} to insert slugs of categories assigned to the post.
 // Adds a new dynamic tag 'taxonomy_term_slug' to the Bricks Builder tags list.
@@ -351,3 +354,14 @@ function render_estimated_post_read_time_in_content( $content, $post, $context =
     }
     return $content;
 }
+
+
+
+
+
+
+
+
+
+
+

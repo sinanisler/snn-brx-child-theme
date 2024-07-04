@@ -18,42 +18,109 @@
 		"typography": {
 			"fontFamilies": [
 				{
-					"fontFamily": "Arial",
-					"name": "Arial",
-					"slug": "Arial"
+					"fontFace": [
+						{
+							"fontFamily": "Poppins",
+							"fontStyle": "normal",
+							"fontWeight": "100",
+							"src": [
+								"file:./assets/fonts/pxiGyp8kv8JHgFVrLPTecnFBGPaTSQ.woff2"
+							]
+						},
+						{
+							"fontFamily": "Poppins",
+							"fontStyle": "normal",
+							"fontWeight": "300",
+							"src": [
+								"file:./assets/fonts/pxiByp8kv8JHgFVrLDz8V15vFP-KUEg.woff2"
+							]
+						},
+						{
+							"fontFamily": "Poppins",
+							"fontStyle": "normal",
+							"fontWeight": "400",
+							"src": [
+								"file:./assets/fonts/pxiEyp8kv8JHgFVrFJXUc1NECPY.woff2"
+							]
+						},
+						{
+							"fontFamily": "Poppins",
+							"fontStyle": "normal",
+							"fontWeight": "600",
+							"src": [
+								"file:./assets/fonts/pxiByp8kv8JHgFVrLEj6V15vFP-KUEg.woff2"
+							]
+						},
+						{
+							"fontFamily": "Poppins",
+							"fontStyle": "normal",
+							"fontWeight": "800",
+							"src": [
+								"file:./assets/fonts/pxiByp8kv8JHgFVrLDD4V15vFP-KUEg.woff2"
+							]
+						},
+						{
+							"fontFamily": "Poppins",
+							"fontStyle": "normal",
+							"fontWeight": "900",
+							"src": [
+								"file:./assets/fonts/pxiByp8kv8JHgFVrLBT5V15vFP-KUEg.woff2"
+							]
+						}
+					],
+					"fontFamily": "Poppins, sans-serif",
+					"name": "Poppins",
+					"slug": "poppins"
 				}
 			]
 		},
 		"useRootPaddingAwareAlignments": true
 	},
 	"styles": {
+		"blocks": {
+			"core/heading": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--Arial)"
+				}
+			},
+			"core/list": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--Arial)"
+				}
+			},
+			"core/paragraph": {
+				"typography": {
+					"fontFamily": "var(--wp--preset--font-family--Arial)"
+				}
+			}
+		},
 		"color": {
 			"background": "#ffffff"
 		},
 		"elements": {
 			"button": {
 				"typography": {
-					"fontFamily": "var(--wp--preset--font-family--Arial)"
+					"fontFamily": "var(--wp--preset--font-family--poppins)"
 				}
 			},
 			"caption": {
 				"typography": {
-					"fontFamily": "var(--wp--preset--font-family--Arial)"
+					"fontFamily": "var(--wp--preset--font-family--poppins)"
 				}
 			},
 			"heading": {
 				"typography": {
-					"fontFamily": "var(--wp--preset--font-family--Arial)"
+					"fontFamily": "var(--wp--preset--font-family--poppins)"
 				}
 			},
 			"link": {
 				"typography": {
-					"fontFamily": "var(--wp--preset--font-family--Arial)"
+					"fontFamily": "var(--wp--preset--font-family--poppins)"
 				}
 			}
 		},
 		"typography": {
-			"fontFamily": "var(--wp--preset--font-family--Arial)"
+			"fontFamily": "var(--wp--preset--font-family--poppins)"
 		}
 	},
 	"templateParts": [
