@@ -6,14 +6,15 @@ require_once get_stylesheet_directory() . '/includes/settings-page.php';
 // Features & Settings (each with its own settings)
 require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
 require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
+require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
 require_once get_stylesheet_directory() . '/includes/remove-rss.php';
 require_once get_stylesheet_directory() . '/includes/login-error-message.php';
 require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
 require_once get_stylesheet_directory() . '/includes/auto-update-bricks.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
 require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
-require_once get_stylesheet_directory() . '/includes/snn_custom_css_setting.php';
-require_once get_stylesheet_directory() . '/includes/snn_custom_css_js_cdn.php';
+require_once get_stylesheet_directory() . '/includes/snn-custom-css-setting.php';
+require_once get_stylesheet_directory() . '/includes/snn-custom-css-js-cdn.php';
 
 
 

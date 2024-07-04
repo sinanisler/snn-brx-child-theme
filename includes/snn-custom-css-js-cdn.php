@@ -2,7 +2,7 @@
 
 // Functions to add settings fields and register CSS URLs
 function snn_register_css_fields() {
-    for ($i = 1; $i <= 4; $i++) {
+    for ($i = 1; $i <= 2; $i++) {
         add_settings_field(
             'snn_css_url_' . $i,
             'Custom CSS CDN URL ' . $i,
@@ -37,7 +37,7 @@ add_action('wp_footer', 'snn_load_css_editor_and_footer');
 
 // Functions to add settings fields and register JavaScript URLs
 function snn_register_js_fields() {
-    for ($i = 1; $i <= 4; $i++) {
+    for ($i = 1; $i <= 2; $i++) {
         add_settings_field(
             'snn_js_url_' . $i,
             'Custom JavaScript CDN URL ' . $i,
