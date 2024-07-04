@@ -8,6 +8,8 @@
 
 // {current_author_id}
 // Adds a new dynamic tag 'current_author_id' to Bricks Builder for displaying current author ID.
+// checks if the current page is an author archive page using is_author() and retrieves the author ID 
+// with get_queried_object_id() if it is. Otherwise, it returns an empty string.
 add_filter( 'bricks/dynamic_tags_list', 'add_current_author_id_tag_to_builder' );
 
 function add_current_author_id_tag_to_builder( $tags ) {
@@ -57,7 +59,7 @@ function render_current_author_id_in_content( $content, $post, $context = 'text'
 add_filter( 'bricks/dynamic_tags_list', 'add_taxonomy_term_slug_tag_to_builder' );
 function add_taxonomy_term_slug_tag_to_builder( $tags ) {
     $tags[] = [
-        'name'  => '{taxonomy_term_slug}',
+        'name'  => '{taxonomy_term_slug:category}',
         'label' => 'Taxonomy Term Slug',
         'group' => 'SNN BRX',
     ];
