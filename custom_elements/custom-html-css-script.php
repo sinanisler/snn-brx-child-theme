@@ -9,7 +9,7 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
   public $category     = 'general';
   public $name         = 'custom-html-css-script';
   public $icon         = 'fas fa-code'; // Assuming you use FontAwesome
-  public $css_selector = '.custom-html-css-script-wrapper';
+  public $css_selector = '.snn-brx-html-css-script-wrapper';
 
   // Return localized element label
   public function get_label() {
