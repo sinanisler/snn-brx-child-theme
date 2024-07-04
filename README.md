@@ -21,7 +21,8 @@ SNN BRX theme adds theme settings and lots of features with it.
 
 Enabling this setting will enqueue the GSAP library and its associated scripts on your website.
 
-example usage '''<h1 data-animate="x:-50, o:0, start:top 80%, end:bottom 20%">Welcome to my website!</h1>'''
+example data-animate usage ``` <h1 data-animate="x:-50, o:0, start:top 80%, end:bottom 20%">Welcome to my website!</h1>```
+
 
 
 
