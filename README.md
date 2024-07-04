@@ -1,7 +1,19 @@
 # SNN BRX - Bricks Builder Child Theme
 
 
-## Features
+## Custom Elements
+
+### Custom Code HTML
+
+Custom Code HTML Element. With this you can add simple html css script codes to the page easily. It only allows html tags so it is more less secure.
+
+I added this element because bricks builder added signature for every code for every change and it locks on the domain so when you move from staging to live it resets its signatures and your codes stop working. 
+
+With this element I solved that problem.
+
+Just write or paste your html code and forget about it.
+
+
 
 ## Loop Dynamic Data Tags
 
