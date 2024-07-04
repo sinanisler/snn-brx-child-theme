@@ -1,15 +1,26 @@
-# SNN - Bricks Builder Child Theme Extra Tools, Settings, GSAP
+# SNN BRX - Bricks Builder Child Theme
 
 
 ## Features
 
-### Loop Dynamic Data Tags
+## Loop Dynamic Data Tags
+
+### {taxonomy_term_slug:category}
+
+Use {taxonomy_term_slug:category} to insert slugs of categories assigned to the post.
+Adds a new dynamic tag 'taxonomy_term_slug' to the Bricks Builder tags list.
 
 
+### {taxonomy_color_tag:category}
+Taxonomy "color" custom field
+The tag can be used with any taxonomy, e.g., {taxonomy_color_tag:category} or  {taxonomy_color_tag:custom_taxonomy_name}, to fetch the color.
+Adds the new tag 'taxonomy_color_tag' to the Bricks Builder dynamic tags list with dynamic term support.
+
+### {estimated_post_read_time}
+Adds a new dynamic tag 'estimated_post_read_time' to Bricks Builder for displaying estimated post read time as estimated minutes.
 
 
-
-### Site Dynamic Data Tags
+## Site Dynamic Data Tags
 
 This tags are used usualy outside of the custom loops.
 
@@ -26,7 +37,9 @@ Without current author id check we can not create profile editing for current au
 With this tag we can get post count for specific post types or specific post types with taxonomies.
 
 
-
+### {current_user_first_name}
+Get current user first_name or get user_login name as default
+Adds a new tag 'current_user_first_name' to the Bricks Builder dynamic tags list.
 
 
 
