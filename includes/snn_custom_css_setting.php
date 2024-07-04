@@ -4,7 +4,7 @@
 function snn_custom_css_setting_field() {
     add_settings_field(
         'snn_custom_css',                 // ID of the field
-        'Custom CSS for Block Editor',    // Label of the field
+        'Custom CSS for Bricks and Block Editor',    // Label of the field
         'snn_custom_css_callback',        // Callback function to render the field
         'snn-settings',                   // Page on which to display this field
         'snn_general_section'             // Section to which this field belongs

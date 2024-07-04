@@ -20,7 +20,7 @@ SNN BRX theme adds theme settings and lots of features with it.
 - Enabling Auto Update Bricks Theme	
 
 
-### Enable GSAP	
+### GSAP Animation Library
 
 Enabling this setting will enqueue the GSAP library and its associated scripts on your website.
 
@@ -37,6 +37,23 @@ Tutorial:
 
 
 [![youtube](https://img.youtube.com/vi/plJpgqtFpg0/0.jpg)](https://www.youtube.com/watch?v=plJpgqtFpg0)
+
+
+### Move Bricks Menu to End	
+
+Enabling this setting will move the Bricks menu item to the end of the WordPress admin menu.
+
+
+
+### Custom CSS for Bricks and Block Editor	
+
+Enter custom CSS for the block editor and front-end. This CSS will be applied site-wide.
+
+Some Native CSS Libraries https://github.com/uhub/awesome-css stay away from .js required ones.
+
+[![youtube](https://img.youtube.com/vi/kwKpiAVWBn8/0.jpg)](https://www.youtube.com/watch?v=kwKpiAVWBn8)
+
+
 
 
 ## Custom Elements
