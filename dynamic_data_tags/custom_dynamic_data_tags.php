@@ -14,7 +14,7 @@ function add_current_author_id_tag_to_builder( $tags ) {
     $tags[] = [
         'name'  => 'current_author_id',
         'label' => 'Current Author ID',
-        'group' => 'Author Data',
+        'group' => 'SNN BRX',
     ];
 
     return $tags;
@@ -59,7 +59,7 @@ function add_taxonomy_term_slug_tag_to_builder( $tags ) {
     $tags[] = [
         'name'  => 'taxonomy_term_slug',
         'label' => 'Taxonomy Term Slug',
-        'group' => 'Posts Data',
+        'group' => 'SNN BRX',
     ];
 
     return $tags;
@@ -122,7 +122,7 @@ function add_taxonomy_color_tag_to_builder( $tags ) {
     $tags[] = [
         'name'  => 'taxonomy_color_tag',
         'label' => 'Taxonomy Color Tag',
-        'group' => 'Custom Data',
+        'group' => 'SNN BRX',
     ];
     return $tags;
 }
@@ -177,7 +177,7 @@ function add_current_user_first_name_tag_to_builder( $tags ) {
     $tags[] = [
         'name'  => 'current_user_first_name',
         'label' => 'Current User First Name',
-        'group' => 'User Data',
+        'group' => 'SNN BRX',
     ];
 
     return $tags;
@@ -238,7 +238,7 @@ function add_post_count_tag_to_builder($tags) {
     $tags[] = [
         'name'  => 'post_count',
         'label' => 'Post Count',
-        'group' => 'Custom Data',
+        'group' => 'SNN BRX',
     ];
     return $tags;
 }
