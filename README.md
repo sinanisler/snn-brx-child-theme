@@ -2,7 +2,7 @@
 
 
 
-(https://img.youtube.com/vi/kwKpiAVWBn8/0.jpg)](https://www.youtube.com/watch?v=kwKpiAVWBn8)
+[![youtube](https://img.youtube.com/vi/kwKpiAVWBn8/0.jpg)](https://www.youtube.com/watch?v=kwKpiAVWBn8)
 
 
 ## Theme Settings
@@ -36,8 +36,7 @@ example data-animate usage:
 Tutorial:
 
 
-(https://img.youtube.com/vi/plJpgqtFpg0/0.jpg)](https://www.youtube.com/watch?v=plJpgqtFpg0)
-
+[![youtube](https://img.youtube.com/vi/plJpgqtFpg0/0.jpg)](https://www.youtube.com/watch?v=plJpgqtFpg0)
 
 
 ## Custom Elements
