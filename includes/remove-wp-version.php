@@ -11,7 +11,7 @@ add_filter('the_generator', 'snn_remove_wp_version');
 function snn_remove_wp_version_setting_field() {
   add_settings_field(
     'snn_remove_wp_version',
-    'Remove WP Version',
+    'Remove/Hide WP Version',
     'snn_remove_wp_version_callback',
     'snn-settings',
     'snn_general_section'

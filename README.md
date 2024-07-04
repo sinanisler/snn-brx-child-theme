@@ -10,14 +10,18 @@
 SNN BRX theme adds theme settings and lots of features with it. 
 
 
-### Security Features & Settings
+### SNN Settings & Features
 
-- Remove WP Version	
+- Remove/Hide WP Version	
 - Disable XML-RPC	
-- Remove RSS	
-- Change Login Error Message
+- Disable Theme/Plugin File Editing 
+- Disable Remove RSS	
+- Login Error Message
 - Disable JSON API for Guests
-- Enabling Auto Update Bricks Theme	
+- Enable Auto Update Theme
+- Custom CSS for Bricks and Block Editor	
+- Custom CSS CDN URL Loader
+- Custom JavaScript CDN URL Loader
 
 
 ### GSAP Animation Library

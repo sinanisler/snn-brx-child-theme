@@ -14,7 +14,7 @@ add_action('init', 'snn_remove_rss');
 function snn_remove_rss_setting_field() {
   add_settings_field(
     'snn_remove_rss',
-    'Remove RSS',
+    'Disable Remove RSS',
     'snn_remove_rss_callback',
     'snn-settings',
     'snn_general_section'
