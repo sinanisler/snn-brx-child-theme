@@ -36,6 +36,23 @@ example data-animate usage:
 
 ``` <div data-animate="s:0.5, r:180, start:top 60%, end:bottom 40%, scrub:true">Lorem ipsum dolor sit amet.</div> ```
 
+<ul>
+    <li><b>x</b>: Horizontal position (e.g., <b>x: 100</b>).</li>
+    <li><b>y</b>: Vertical position (e.g., <b>y: -50</b>).</li>
+    <li><b>o</b>: Opacity (e.g., <b>o: 0.5</b>).</li>
+    <li><b>r</b>: Rotation angle (e.g., <b>r: 45</b>).</li>
+    <li><b>s</b>: Scale (e.g., <b>s: 0.8</b>).</li>
+    <li><b>start</b>: Scroll trigger start position (e.g., <b>start: top 20%</b>).</li>
+    <li><b>end</b>: Scroll trigger end position (e.g., <b>end: bottom 80%</b>).</li>
+    <li><b>scrub</b>: Scrubbing behavior (e.g., <b>scrub: true</b>).</li>
+    <li><b>pin</b>: Pin element during scroll (e.g., <b>pin: true</b>).</li>
+    <li><b>markers</b>: Display scroll trigger markers (e.g., <b>markers: true</b>).</li>
+    <li><b>toggleClass</b>: Toggle CSS class (e.g., <b>toggleClass: active</b>).</li>
+    <li><b>pinSpacing</b>: Spacing behavior when pinning (e.g., <b>pinSpacing: margin</b>).</li>
+    <li><b>splittext</b>: Split text into characters (e.g., <b>splittext: true</b>).</li>
+    <li><b>stagger</b>: Stagger delay between characters (e.g., <b>stagger: 0.05</b>).</li>
+  </ul>
+
 
 Tutorial:
 
