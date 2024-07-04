@@ -12,7 +12,7 @@ add_filter( 'bricks/dynamic_tags_list', 'add_current_author_id_tag_to_builder' )
 
 function add_current_author_id_tag_to_builder( $tags ) {
     $tags[] = [
-        'name'  => 'current_author_id',
+        'name'  => '{current_author_id}',
         'label' => 'Current Author ID',
         'group' => 'SNN BRX',
     ];
@@ -57,7 +57,7 @@ function render_current_author_id_in_content( $content, $post, $context = 'text'
 add_filter( 'bricks/dynamic_tags_list', 'add_taxonomy_term_slug_tag_to_builder' );
 function add_taxonomy_term_slug_tag_to_builder( $tags ) {
     $tags[] = [
-        'name'  => 'taxonomy_term_slug',
+        'name'  => '{taxonomy_term_slug}',
         'label' => 'Taxonomy Term Slug',
         'group' => 'SNN BRX',
     ];
@@ -120,7 +120,7 @@ function render_taxonomy_term_slug_in_content( $content, $post, $context = 'text
 add_filter( 'bricks/dynamic_tags_list', 'add_taxonomy_color_tag_to_builder' );
 function add_taxonomy_color_tag_to_builder( $tags ) {
     $tags[] = [
-        'name'  => 'taxonomy_color_tag',
+        'name'  => '{taxonomy_color_tag}',
         'label' => 'Taxonomy Color Tag',
         'group' => 'SNN BRX',
     ];
@@ -175,7 +175,7 @@ function render_taxonomy_color_in_content( $content, $post, $context = 'text' ) 
 add_filter( 'bricks/dynamic_tags_list', 'add_current_user_first_name_tag_to_builder' );
 function add_current_user_first_name_tag_to_builder( $tags ) {
     $tags[] = [
-        'name'  => 'current_user_first_name',
+        'name'  => '{current_user_first_name}',
         'label' => 'Current User First Name',
         'group' => 'SNN BRX',
     ];
@@ -236,7 +236,7 @@ function render_current_user_first_name_in_content( $content, $post, $context = 
 add_filter('bricks/dynamic_tags_list', 'add_post_count_tag_to_builder');
 function add_post_count_tag_to_builder($tags) {
     $tags[] = [
-        'name'  => 'post_count',
+        'name'  => '{post_count:post_type_name}',
         'label' => 'Post Count',
         'group' => 'SNN BRX',
     ];
