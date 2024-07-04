@@ -13,7 +13,7 @@
 
 This tags are used usualy outside of the custom loops.
 
-### {current_author_id}**
+### {current_author_id}
 
 This is used in the author.php archive page. I added this tag for using in the conditions.
 With this we can create  advanced current author loops or current author related profile editing page.
