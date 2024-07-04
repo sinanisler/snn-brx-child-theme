@@ -1,6 +1,32 @@
 # SNN BRX - Bricks Builder Child Theme
 
 
+
+## Theme Settings
+
+SNN BRX theme adds theme settings and lots of features with it. 
+
+
+### Security Features & Settings
+
+- Remove WP Version	
+- Disable XML-RPC	
+- Remove RSS	
+- Change Login Error Message
+- Disable JSON API for Guests
+- Enabling Auto Update Bricks Theme	
+
+
+### Enable GSAP	
+
+Enabling this setting will enqueue the GSAP library and its associated scripts on your website.
+
+example usage '''<h1 data-animate="x:-50, o:0, start:top 80%, end:bottom 20%">Welcome to my website!</h1>'''
+
+
+
+
+
 ## Custom Elements
 
 ### Custom Code HTML
