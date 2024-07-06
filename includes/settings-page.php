@@ -66,4 +66,53 @@ add_action('admin_init', 'snn_register_settings');
 function snn_general_section_callback() {
     echo '<br><br>';
 }
+
+
+
+
+
+
+
+
+
+
+
+// Customizer Activator - Empty Setting
+function mytheme_customize_register( $wp_customize ) {
+    $wp_customize->add_setting( 'footer_custom_css', array(
+        'default'           => '',
+        'sanitize_callback' => 'wp_kses_post',
+    ) );
+
+    $wp_customize->add_control( 'footer_custom_css', array(
+        'label'       => ' ',
+        'section'     => 'custom_css', // You may need to create a custom section
+        'settings'    => 'footer_custom_css',
+        'type'        => 'checkbox',
+        'description' => ' ',
+    ) );
+}
+add_action( 'customize_register', 'mytheme_customize_register' );
+
+function mytheme_footer_custom_css() {
+    $custom_css = get_theme_mod( 'footer_custom_css' );
+    if ( ! empty( $custom_css ) ) {
+        // echo '<style type="text/css">' . wp_kses_post( $custom_css ) . '</style>';
+    }
+}
+add_action( 'wp_footer', 'mytheme_footer_custom_css' );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ?>
