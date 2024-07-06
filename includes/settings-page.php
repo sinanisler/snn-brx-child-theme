@@ -86,7 +86,7 @@ function mytheme_customize_register( $wp_customize ) {
 
     $wp_customize->add_control( 'footer_custom_css', array(
         'label'       => ' ',
-        'section'     => 'custom_css', // You may need to create a custom section
+        'section'     => 'custom_css', 
         'settings'    => 'footer_custom_css',
         'type'        => 'checkbox',
         'description' => ' ',
@@ -95,10 +95,7 @@ function mytheme_customize_register( $wp_customize ) {
 add_action( 'customize_register', 'mytheme_customize_register' );
 
 function mytheme_footer_custom_css() {
-    $custom_css = get_theme_mod( 'footer_custom_css' );
-    if ( ! empty( $custom_css ) ) {
-        // echo '<style type="text/css">' . wp_kses_post( $custom_css ) . '</style>';
-    }
+    // Empty
 }
 add_action( 'wp_footer', 'mytheme_footer_custom_css' );
 
