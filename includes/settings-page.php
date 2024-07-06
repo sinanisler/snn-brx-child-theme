@@ -33,7 +33,7 @@ function snn_settings_page_callback() {
             width: 880px;
             height: 40px;
         }
-        .style_css {
+        .style_css , .head-css {
             width: 880px;
             height: 140px;
         }
