@@ -15,22 +15,26 @@ jobs:
         fetch-depth: '0'
 
     - name: Display current style.css before update
-      if: env.RELEASE_TRIGGER == 'true'
       run: cat style.css
 
     - name: Bump version in style.css
-      if: env.RELEASE_TRIGGER == 'true'
       id: bump_version
       run: |
+        # Read the current version from style.css
         current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
         echo "Current version: $current_version"
         
+        # Split the version into an array
         IFS='.' read -r -a version_parts <<< "$current_version"
+        
+        # Increment the last part of the version
         version_parts[-1]=$((version_parts[-1] + 1))
         
+        # Join the parts back into a new version string
         new_version="${version_parts[*]}"
         new_version="${new_version// /.}"
         
+        # Update the version in style.css using awk
         awk -v new_version="$new_version" '{
           if ($1 == "Version:") {
             $2 = new_version
@@ -38,6 +42,7 @@ jobs:
           print
         }' style.css > style.css.tmp && mv style.css.tmp style.css
         
+        # Verify the update
         updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
         echo "Updated version: $updated_version"
         
@@ -46,14 +51,13 @@ jobs:
           exit 1
         fi
         
+        # Output the new version
         echo "new_version=$new_version" >> $GITHUB_ENV
 
     - name: Display current style.css after update
-      if: env.RELEASE_TRIGGER == 'true'
       run: cat style.css
 
     - name: Commit changes
-      if: env.RELEASE_TRIGGER == 'true'
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -62,22 +66,22 @@ jobs:
         git push
 
     - name: Create new GitHub tag
-      if: env.RELEASE_TRIGGER == 'true'
       run: |
         git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
         git push origin "v${{ env.new_version }}"
 
     - name: Create zip file of the repository
-      if: env.RELEASE_TRIGGER == 'true'
       run: |
-        shopt -s extglob
+        shopt -s extglob    # Enable extended globbing
         mkdir snn-brx-child-theme
         mv !(.git|*.github*|snn-brx-child-theme) snn-brx-child-theme/
         zip -r snn-brx-child-theme.zip snn-brx-child-theme -x "*.git*" "*.github*"
       shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        new_version: ${{ env.new_version }}
 
     - name: Create GitHub release
-      if: env.RELEASE_TRIGGER == 'true'
       uses: softprops/action-gh-release@v1
       with:
         files: snn-brx-child-theme.zip
