@@ -11,6 +11,7 @@ require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
 require_once get_stylesheet_directory() . '/includes/remove-rss.php';
 require_once get_stylesheet_directory() . '/includes/login-error-message.php';
 require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
+require_once get_stylesheet_directory() . '/includes/login-math-captcha.php';
 require_once get_stylesheet_directory() . '/includes/auto-update-bricks.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
 require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
