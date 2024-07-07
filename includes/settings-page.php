@@ -38,8 +38,8 @@ function snn_settings_page_callback() {
             height: 220px;
         }
         [type="checkbox"] {
-            width: 20px !important;
-            height: 20px !important;
+            width: 16px !important;
+            height: 16px !important;
             float: left;
             margin-right: 10px !important;
         }

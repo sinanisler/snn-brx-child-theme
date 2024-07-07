@@ -23,6 +23,9 @@ require_once get_stylesheet_directory() . '/includes/wp-footer-html-frontend.php
 
 // Include script enqueuing
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
+require_once get_stylesheet_directory() . '/includes/visible-viewport-height.php';
+
+
 
 // Custom Dynamic Data Tags
 // https://academy.bricksbuilder.io/article/dynamic-data/
