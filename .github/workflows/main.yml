@@ -64,28 +64,26 @@ jobs:
         git add style.css
         git commit -m "Bump version to ${{ env.new_version }}"
         git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create new GitHub tag
       run: |
         git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
         git push origin "v${{ env.new_version }}"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create zip file of the repository
       run: |
-        zip -r repository-${{ env.new_version }}.zip .
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        zip -r snn-brx-child-theme.zip . -x "*.git*" "*.github*"
+        mkdir snn-brx-child-theme
+        mv snn-brx-child-theme.zip snn-brx-child-theme/
+        zip -r snn-brx-child-theme.zip snn-brx-child-theme
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v1
       with:
-        files: repository-${{ env.new_version }}.zip
+        files: snn-brx-child-theme.zip
         tag_name: ${{ env.new_version }}
         release_name: Release ${{ env.new_version }}
         body: "Version ${{ env.new_version }} release of the project."
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
