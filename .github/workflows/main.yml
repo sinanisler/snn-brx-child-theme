@@ -1,4 +1,4 @@
-name: Bump version
+name: Bump version and Release
 
 on:
   push:
@@ -71,5 +71,21 @@ jobs:
       run: |
         git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
         git push origin "v${{ env.new_version }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create zip file of the repository
+      run: |
+        zip -r repository-${{ env.new_version }}.zip .
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create GitHub release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: repository-${{ env.new_version }}.zip
+        tag_name: ${{ env.new_version }}
+        release_name: Release ${{ env.new_version }}
+        body: "Version ${{ env.new_version }} release of the project."
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
