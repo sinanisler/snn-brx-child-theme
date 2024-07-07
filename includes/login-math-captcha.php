@@ -61,3 +61,26 @@ function validate_login_captcha($user, $password) {
     return $user;
 }
 add_filter('authenticate', 'validate_login_captcha', 10, 3);
+
+
+
+// Settings for enabling the math captcha
+function snn_math_captcha_setting_field() {
+    add_settings_field(
+        'enable_math_captcha',
+        'Enable Math Captcha for Login',
+        'snn_math_captcha_callback',
+        'snn-settings',
+        'snn_general_section'
+    );
+}
+
+add_action('admin_init', 'snn_math_captcha_setting_field');
+
+function snn_math_captcha_callback() {
+    $options = get_option('snn_settings');
+    ?>
+    <input type="checkbox" name="snn_settings[enable_math_captcha]" value="1" <?php checked(isset($options['enable_math_captcha']), 1); ?>>
+    <p>Enable this setting to add a math captcha challenge on the login page to improve security.</p>
+    <?php
+}
