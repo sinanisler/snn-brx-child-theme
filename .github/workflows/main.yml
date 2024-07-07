@@ -72,9 +72,10 @@ jobs:
 
     - name: Create zip file of the repository
       run: |
-        mkdir snn-brx-child-theme
-        cp -r !(snn-brx-child-theme) snn-brx-child-theme
-        zip -r snn-brx-child-theme.zip snn-brx-child-theme -x "*.git*" "*.github*"
+        zip -r snn-brx-child-theme.zip . -x "*.git*" "*.github*" -d snn-brx-child-theme
+      shell: /bin/bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v1
