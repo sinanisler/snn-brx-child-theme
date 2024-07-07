@@ -21,8 +21,8 @@ jobs:
           echo "RELEASE_TRIGGER=true" >> $GITHUB_ENV
         else
           echo "RELEASE_TRIGGER=false" >> $GITHUB_ENV
-          exit 78  # Optional: This exits the workflow early if 'release' is not in the commit message
-        fi
+          echo "::error::Release not requested in commit message. Workflow and Rlease stopped."
+          exit 1  # This will stop the workflow and show the error in the logs
 
     - name: Display current style.css before update
       if: env.RELEASE_TRIGGER == 'true'
