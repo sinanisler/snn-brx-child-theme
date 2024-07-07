@@ -34,8 +34,13 @@ jobs:
         new_version="${version_parts[*]}"
         new_version="${new_version// /.}"
         
-        # Update the version in style.css
-        sed -i "s/Version: $current_version/Version: $new_version/" style.css
+        # Update the version in style.css using awk
+        awk -v new_version="$new_version" '{
+          if ($1 == "Version:") {
+            $2 = new_version
+          }
+          print
+        }' style.css > style.css.tmp && mv style.css.tmp style.css
         
         # Verify the update
         updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
