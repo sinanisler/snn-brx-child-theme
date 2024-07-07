@@ -34,6 +34,24 @@ function snn_enqueue_gsap_callback() {
     <li><code>gsap-data-animate.js</code>: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.</li>
   </ul>
 
+<pre>
+  Supported Features;
+  x: Horizontal position (e.g., x: 100).
+  y: Vertical position (e.g., y: -50).
+  o: Opacity (e.g., o: 0.5).
+  r: Rotation angle (e.g., r: 45).
+  s: Scale (e.g., s: 0.8).
+  start: Scroll trigger start position (e.g., start: top 20%).
+  end: Scroll trigger end position (e.g., end: bottom 80%).
+  scrub: Scrubbing behavior (e.g., scrub: true).
+  pin: Pin element during scroll (e.g., pin: true).
+  markers: Display scroll trigger markers (e.g., markers: true).
+  toggleClass: Toggle CSS class (e.g., toggleClass: active).
+  pinSpacing: Spacing behavior when pinning (e.g., pinSpacing: margin).
+  splittext: Split text into characters (e.g., splittext: true).
+  stagger: Stagger delay between characters (e.g., stagger: 0.05).
+</pre>
+
 
   <br><br>
   <p>This example will animate the element by fading it in from the left. The element will start with an x-offset of -50 pixels and an opacity of 0.</p>
