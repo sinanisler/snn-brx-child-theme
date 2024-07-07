@@ -14,11 +14,15 @@ jobs:
       with:
         fetch-depth: '0'
 
+    - name: Display current style.css before update
+      run: cat style.css
+
     - name: Bump version in style.css
       id: bump_version
       run: |
         # Read the current version from style.css
         current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+        echo "Current version: $current_version"
         
         # Split the version into an array
         IFS='.' read -r -a version_parts <<< "$current_version"
@@ -33,8 +37,20 @@ jobs:
         # Update the version in style.css
         sed -i "s/Version: $current_version/Version: $new_version/" style.css
         
+        # Verify the update
+        updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+        echo "Updated version: $updated_version"
+        
+        if [ "$updated_version" != "$new_version" ]; then
+          echo "Version update failed"
+          exit 1
+        fi
+        
         # Output the new version
         echo "new_version=$new_version" >> $GITHUB_ENV
+
+    - name: Display current style.css after update
+      run: cat style.css
 
     - name: Commit changes
       run: |
@@ -43,6 +59,8 @@ jobs:
         git add style.css
         git commit -m "Bump version to ${{ env.new_version }}"
         git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create new GitHub tag
       run: |
