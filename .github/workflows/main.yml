@@ -1,0 +1,52 @@
+name: Bump version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
+
+    - name: Bump version in style.css
+      id: bump_version
+      run: |
+        # Read the current version from style.css
+        current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+        
+        # Split the version into an array
+        IFS='.' read -r -a version_parts <<< "$current_version"
+        
+        # Increment the last part of the version
+        version_parts[-1]=$((version_parts[-1] + 1))
+        
+        # Join the parts back into a new version string
+        new_version="${version_parts[*]}"
+        new_version="${new_version// /.}"
+        
+        # Update the version in style.css
+        sed -i "s/Version: $current_version/Version: $new_version/" style.css
+        
+        # Output the new version
+        echo "new_version=$new_version" >> $GITHUB_ENV
+
+    - name: Commit changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add style.css
+        git commit -m "Bump version to ${{ env.new_version }}"
+        git push
+
+    - name: Create new GitHub tag
+      run: |
+        git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
+        git push origin "v${{ env.new_version }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
