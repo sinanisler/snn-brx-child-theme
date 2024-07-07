@@ -17,7 +17,7 @@ jobs:
     - name: Check commit message for 'release'
       run: |
         echo "Commit message: ${{ github.event.head_commit.message }}"
-        if echo "${{ github.event.head_commit.message }}" | grep -q "release"; then
+        if echo "${{ github.event.head_commit.message }}" | grep -qE '\brelease\b'; then
           echo "RELEASE_TRIGGER=true" >> $GITHUB_ENV
         else
           echo "RELEASE_TRIGGER=false" >> $GITHUB_ENV
