@@ -4,7 +4,7 @@
 function wp_head_css_frontend_setting_field() {
     add_settings_field(
         'wp_head_css_frontend',                  // ID of the field
-        'Custom CSS for WP Head',                // Label of the field
+        'Custom CSS for WP Head (Frontend Only)',                // Label of the field
         'wp_head_css_frontend_callback',         // Callback function to render the field
         'snn-settings',                          // Page on which to display this field
         'snn_general_section'                    // Section to which this field belongs

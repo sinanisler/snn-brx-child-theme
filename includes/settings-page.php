@@ -33,9 +33,9 @@ function snn_settings_page_callback() {
             width: 880px;
             height: 40px;
         }
-        .style_css , .head-css {
+        .style_css , .head-css , #wp_head_css_frontend , #wp_footer_html_frontend {
             width: 880px;
-            height: 140px;
+            height: 220px;
         }
         [type="checkbox"] {
             width: 20px !important;

@@ -2,7 +2,7 @@
 
 // Functions to add settings fields and register CSS URLs
 function snn_register_css_fields() {
-    for ($i = 1; $i <= 2; $i++) {
+    for ($i = 1; $i <= 3; $i++) {
         add_settings_field(
             'snn_css_url_' . $i,
             'Custom CSS CDN URL ' . $i,
@@ -24,7 +24,7 @@ function snn_css_url_callback($args) {
 
 // Load CSS in both the block editor and frontend
 function snn_load_css_editor_and_footer() {
-    for ($i = 1; $i <= 4; $i++) {
+    for ($i = 1; $i <= 3; $i++) {
         $css_url = get_option('snn_css_url_' . $i);
         if (!empty($css_url)) {
             echo '<link rel="stylesheet" href="' . esc_url($css_url) . '">';
@@ -37,7 +37,7 @@ add_action('wp_footer', 'snn_load_css_editor_and_footer');
 
 // Functions to add settings fields and register JavaScript URLs
 function snn_register_js_fields() {
-    for ($i = 1; $i <= 2; $i++) {
+    for ($i = 1; $i <= 3; $i++) {
         add_settings_field(
             'snn_js_url_' . $i,
             'Custom JavaScript CDN URL ' . $i,
@@ -59,7 +59,7 @@ function snn_js_url_callback($args) {
 
 // Load JS in both the block editor and frontend footer
 function snn_load_js_editor_and_footer() {
-    for ($i = 1; $i <= 4; $i++) {
+    for ($i = 1; $i <= 3; $i++) {
         $js_url = get_option('snn_js_url_' . $i);
         if (!empty($js_url)) {
             echo '<script src="' . esc_url($js_url) . '"></script>';

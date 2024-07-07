@@ -16,8 +16,10 @@ function add_login_math_captcha() {
         <p>
             <label for="math_captcha"><?php echo $_SESSION['captcha_number1'] . " + " . $_SESSION['captcha_number2']; ?> = ?</label>
             <input type="text" name="math_captcha" id="math_captcha" class="input" value="" size="20" autocomplete="off" required />
+            <input type="hidden" name="js_enabled" value="no" id="js_enabled">
         </p>
         <script type="text/javascript">
+            document.getElementById('js_enabled').value = 'yes'; // Only executes if JavaScript is enabled
             document.addEventListener('DOMContentLoaded', function () {
                 var submitButton = document.getElementById('wp-submit');
                 var captchaInput = document.getElementById('math_captcha');
@@ -38,6 +40,13 @@ function add_login_math_captcha() {
 add_action('login_form', 'add_login_math_captcha');
 
 function validate_login_captcha($user, $password) {
+    // Check if 'js_enabled' is set and has the value 'yes'
+    if (!isset($_POST['js_enabled']) || $_POST['js_enabled'] !== 'yes') {
+        // If 'js_enabled' field is not set to 'yes', block the login attempt silently
+        return new WP_Error('authentication_failed', __('Authentication failed.', 'my_textdomain'));
+    }
+
+    // Continue with the captcha check if JavaScript is enabled
     if (isset($_POST['math_captcha'], $_SESSION['captcha_number1'], $_SESSION['captcha_number2'])) {
         $user_captcha_response = trim($_POST['math_captcha']);
         $correct_answer = $_SESSION['captcha_number1'] + $_SESSION['captcha_number2'];
@@ -60,6 +69,7 @@ function snn_math_captcha_setting_field() {
         'snn_general_section'
     );
 }
+
 add_action('admin_init', 'snn_math_captcha_setting_field');
 
 function snn_math_captcha_callback() {
