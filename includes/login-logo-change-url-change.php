@@ -47,7 +47,7 @@ function snn_login_enqueue_scripts() {
             background-image: url('<?php echo esc_url($logo_url); ?>');
             height: 85px;
             width: 320px;
-            background-size: 100%;
+            background-size: contain;
             background-repeat: no-repeat;
             background-position:center center;
             padding-bottom: 10px;
