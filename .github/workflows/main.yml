@@ -14,16 +14,6 @@ jobs:
       with:
         fetch-depth: '0'
 
-    - name: Check commit message for 'release'
-      run: |
-        echo "Commit message: ${{ github.event.head_commit.message }}"
-        if echo "${{ github.event.head_commit.message }}" | grep -qE '\brelease\b'; then
-          echo "RELEASE_TRIGGER=true" >> $GITHUB_ENV
-        else
-          echo "RELEASE_TRIGGER=false" >> $GITHUB_ENV
-          echo "::error::Release not requested in commit message. Workflow and Rlease stopped."
-          exit 98  # This will stop the workflow and show the error in the logs
-
     - name: Display current style.css before update
       if: env.RELEASE_TRIGGER == 'true'
       run: cat style.css
