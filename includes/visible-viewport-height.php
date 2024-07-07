@@ -3,24 +3,26 @@
 function add_inline_viewport_script() {
     $script = <<<SCRIPT
 <script>
-// Get the height of the window
-let visibleViewportHeight = window.innerHeight;
+document.addEventListener('DOMContentLoaded', function () {
+    // Get the height of the window
+    let visibleViewportHeight = window.innerHeight;
 
-// Create a new style tag
-let styleTag = document.createElement('style');
+    // Create a new style tag
+    let styleTag = document.createElement('style');
 
-// Create CSS content using the visible viewport height
-let cssContent = `
-  :root {
-    --visible-viewport-height: ${visibleViewportHeight}px;
-  }
-`;
+    // Create CSS content using the visible viewport height
+    let cssContent = `
+      :root {
+        --visible-viewport-height: ${visibleViewportHeight}px;
+      }
+    `;
 
-// Append the CSS content to the style tag
-styleTag.innerHTML = cssContent;
+    // Append the CSS content to the style tag
+    styleTag.innerHTML = cssContent;
 
-// Append the style tag to the document head
-document.head.appendChild(styleTag);
+    // Append the style tag to the document head
+    document.head.appendChild(styleTag);
+});
 </script>
 SCRIPT;
 
