@@ -75,10 +75,10 @@ jobs:
         mkdir snn-brx-child-theme
         mv !(.git|*.github*|snn-brx-child-theme) snn-brx-child-theme/
         zip -r snn-brx-child-theme.zip snn-brx-child-theme -x "*.git*" "*.github*"
-      shell: /bin/bash
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        new_version: 0.6
+        new_version: ${{ env.new_version }}
 
     - name: Create GitHub release
       uses: softprops/action-gh-release@v1
