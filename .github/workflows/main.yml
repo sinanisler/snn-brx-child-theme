@@ -72,10 +72,11 @@ jobs:
 
     - name: Create zip file of the repository
       run: |
+        shopt -s extglob    # Enable extended globbing
         mkdir snn-brx-child-theme
         mv !(.git|*.github*|snn-brx-child-theme) snn-brx-child-theme/
         zip -r snn-brx-child-theme.zip snn-brx-child-theme -x "*.git*" "*.github*"
-      shell: bash
+      shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         new_version: ${{ env.new_version }}
