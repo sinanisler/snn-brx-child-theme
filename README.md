@@ -17,6 +17,7 @@ SNN BRX theme adds theme settings and lots of features with it.
 - Disable Theme/Plugin File Editing 
 - Disable Remove RSS	
 - Login Error Message
+- Login Math Captcha Validation
 - Disable JSON API for Guests
 - Enable Auto Update Theme
 - Custom CSS for Bricks and Block Editor	
