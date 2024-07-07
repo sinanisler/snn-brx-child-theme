@@ -40,7 +40,7 @@ add_action('admin_init', 'snn_add_logo_settings');
 
 function snn_login_enqueue_scripts() {
     $options = get_option('snn_settings');
-    $logo_url = $options['login_logo_url'] ?? 'images/w-logo-blue.png'; 
+    $logo_url = $options['login_logo_url'] ?? '/wp-admin/images/w-logo-blue.png'; 
     ?>
     <style type="text/css">
         #login h1 a, .login h1 a {
