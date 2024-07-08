@@ -20,7 +20,7 @@ function wp_head_css_frontend_callback() {
     // Output a textarea for custom CSS input
     echo '<textarea name="wp_head_css_frontend" id="wp_head_css_frontend" class="large-text code" rows="10">' . esc_textarea($css) . '</textarea>';
     echo '<p>Enter custom CSS for the front-end. This CSS will be applied site-wide and will appear in the head section.</p>';
-    echo '<a href="https://patorjk.com/software/taag/#p=display&f=ANSI%20Regular&t=Hello%20World" target="_blank">Text to ASCI ART</a>.';
+    echo '<a href="https://patorjk.com/software/taag/#p=display&f=ANSI%20Regular&t=Hello%20World" target="_blank">Text to ASCI ART</a>. If you want to add this asci art dont forget to wrap comment it like this /*   */ ';
 }
 
 // Print the custom CSS in the head of the site
