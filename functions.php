@@ -55,4 +55,9 @@ add_action( 'init', function() {
 
 
 
+// number of post revisions to keep
+function custom_revisions_limit($num, $post) {
+  return 100;
+}
+add_filter('wp_revisions_to_keep', 'custom_revisions_limit', 10, 2);
 
