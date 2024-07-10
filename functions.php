@@ -13,12 +13,14 @@ require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logg
 require_once get_stylesheet_directory() . '/includes/login-math-captcha.php';
 require_once get_stylesheet_directory() . '/includes/login-logo-change-url-change.php';
 require_once get_stylesheet_directory() . '/includes/auto-update-bricks.php';
+require_once get_stylesheet_directory() . '/includes/wp-revision-limit.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
 require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
 require_once get_stylesheet_directory() . '/includes/snn-custom-css-setting.php';
 require_once get_stylesheet_directory() . '/includes/snn-custom-css-js-cdn.php';
 require_once get_stylesheet_directory() . '/includes/wp-head-css-frontend.php';
 require_once get_stylesheet_directory() . '/includes/wp-footer-html-frontend.php';
+
 
 
 
@@ -52,12 +54,4 @@ add_action( 'init', function() {
   
 
 
-
-
-
-// number of post revisions to keep
-function custom_revisions_limit($num, $post) {
-  return 100;
-}
-add_filter('wp_revisions_to_keep', 'custom_revisions_limit', 10, 2);
 
