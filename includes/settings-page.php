@@ -33,7 +33,7 @@ function snn_settings_page_callback() {
             width: 880px;
             height: 40px;
         }
-        .style_css , .head-css , #wp_head_css_frontend , #wp_footer_html_frontend {
+        .style_css , .head-css , #wp_head_css_frontend , #wp_footer_html_frontend , #wp_head_html_frontend {
             width: 880px;
             height: 220px;
         }

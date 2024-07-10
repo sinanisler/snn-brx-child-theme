@@ -18,7 +18,7 @@ require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
 require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
 require_once get_stylesheet_directory() . '/includes/snn-custom-css-setting.php';
 require_once get_stylesheet_directory() . '/includes/snn-custom-css-js-cdn.php';
-require_once get_stylesheet_directory() . '/includes/wp-head-css-frontend.php';
+require_once get_stylesheet_directory() . '/includes/wp-head-html-frontend.php';
 require_once get_stylesheet_directory() . '/includes/wp-footer-html-frontend.php';
 
 
