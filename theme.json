@@ -115,7 +115,8 @@
 			},
 			"link": {
 				"typography": {
-					"fontFamily": "var(--wp--preset--font-family--poppins)"
+					"fontFamily": "var(--wp--preset--font-family--poppins)",
+					"textDecoration": "none"
 				}
 			}
 		},
