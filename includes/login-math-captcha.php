@@ -1,10 +1,16 @@
 <?php
+// Ensure session_start() is called at the beginning of the script
+if (!session_id()) {
+    session_start();
+}
 
 // PHP function to add math captcha on the login form
 function add_login_math_captcha() {
+    // Check if session is already started
     if (!session_id()) {
         session_start();
     }
+    
     $_SESSION['captcha_number1'] = rand(1, 6);
     $_SESSION['captcha_number2'] = rand(1, 6);
     $sum = $_SESSION['captcha_number1'] + $_SESSION['captcha_number2'];
@@ -43,6 +49,11 @@ function add_login_math_captcha() {
 add_action('login_form', 'add_login_math_captcha');
 
 function validate_login_captcha($user, $password) {
+    // Ensure session is started
+    if (!session_id()) {
+        session_start();
+    }
+    
     if (!isset($_POST['js_enabled']) || $_POST['js_enabled'] !== 'yes') {
         if (empty($_POST['math_captcha'])) {
             // Block the login attempt if math captcha is empty when JS is disabled
@@ -61,8 +72,6 @@ function validate_login_captcha($user, $password) {
     return $user;
 }
 add_filter('authenticate', 'validate_login_captcha', 10, 3);
-
-
 
 // Settings for enabling the math captcha
 function snn_math_captcha_setting_field() {
@@ -84,3 +93,4 @@ function snn_math_captcha_callback() {
     <p>Enable this setting to add a math captcha challenge on the login page to improve security.</p>
     <?php
 }
+?>
