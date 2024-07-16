@@ -4,7 +4,7 @@
 WooCommerce Template Problem Temporary Fix
 
 If WooCommerce Templates Creates a problem just remove this comments
-remove and / * * / signs too and run the function below.
+and remove / * * / signs too and run the function below.
 this is a temporary fix need to investigate for a better fix later
 
  
