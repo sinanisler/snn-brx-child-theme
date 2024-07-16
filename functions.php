@@ -19,7 +19,6 @@ add_action('init', 'disable_full_site_editing');
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 
 // Features & Settings (each with its own settings)
-require_once get_stylesheet_directory() . '/includes/enable-disable-site-editor.php';
 require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
 require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
 require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
