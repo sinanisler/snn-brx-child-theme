@@ -1,11 +1,13 @@
 <?php
 
 /*
-WooCommerce Template page Setting Problem Temporary Fix
-*/
+WooCommerce Template Problem Temporary Fix
 
+If WooCommerce Templates Creates a problem just remove this comments
+remove and / * * / signs too and run the function below.
+this is a temporary fix need to investigate for a better fix later
 
-/*  
+ 
 function disable_full_site_editing() {
     remove_theme_support('block-templates');
 }
