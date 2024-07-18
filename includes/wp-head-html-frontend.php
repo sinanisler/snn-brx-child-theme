@@ -9,9 +9,7 @@ function wp_head_html_frontend_setting_field() {
         'snn-settings',                           // Page on which to display this field
         'snn_general_section'                     // Section to which this field belongs
     );
-    register_setting('snn_settings_group', 'wp_head_html_frontend', array(
-        'sanitize_callback' => 'wp_kses_post'     // Register the settings group and option with HTML sanitization
-    ));
+    register_setting('snn_settings_group', 'wp_head_html_frontend');
 }
 add_action('admin_init', 'wp_head_html_frontend_setting_field');
 

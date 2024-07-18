@@ -4,7 +4,7 @@
 function wp_footer_html_frontend_setting_field() {
     add_settings_field(
         'wp_footer_html_frontend',               // ID of the field
-        'Custom HTML Scripts/Styles for WP Footer (Frontend Only)',             // Label of the field
+        'Custom HTML for WP Footer (Frontend Only)',             // Label of the field
         'wp_footer_html_frontend_callback',      // Callback function to render the field
         'snn-settings',                          // Page on which to display this field
         'snn_general_section'                    // Section to which this field belongs
