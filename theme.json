@@ -1,6 +1,15 @@
 {
 	"settings": {
 		"appearanceTools": true,
+		"color": {
+			"palette": [
+				{
+					"color": "#ff0000",
+					"name": "RED",
+					"slug": "custom-red"
+				}
+			]
+		},
 		"layout": {
 			"contentSize": "1100px",
 			"wideSize": "1100px"
