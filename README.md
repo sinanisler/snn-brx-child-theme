@@ -4,6 +4,34 @@
 > Dont use it with WooCommerce yet it has bugs related to the WooCommerce. I am working on it. #3
 
 
+```geojson
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "properties": {
+        "ID": 0
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+              [-90,35],
+              [-90,30],
+              [-85,30],
+              [-85,35],
+              [-90,35]
+          ]
+        ]
+      }
+    }
+  ]
+}
+```
+
+
 
 [![youtube](https://img.youtube.com/vi/kwKpiAVWBn8/0.jpg)](https://www.youtube.com/watch?v=kwKpiAVWBn8)
 
