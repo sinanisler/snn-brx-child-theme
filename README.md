@@ -1,6 +1,6 @@
 # SNN BRX - Bricks Builder Child Theme
 
-> !WARNING
+> [!NOTE]
 > Dont use it with WooCommerce yet it has bugs related to the WooCommerce. I am working on it.
 
 
