@@ -3,7 +3,6 @@
 
 
 
-
 // Settings Page
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 
