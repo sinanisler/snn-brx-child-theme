@@ -2,7 +2,7 @@
 
 # SNN BRX - Bricks Builder Child Theme
 
-> [!NOTE]
+> [!NOTE DO NOT USE IT ON PRODUCTION!]
 > With version 0.46 site editor support dropped. It was creating problem with WooCommerce sites. I will come back to this later.
 
 
