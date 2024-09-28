@@ -1,8 +1,6 @@
 <?php
 
 
-
-
 // Settings Page
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 
@@ -19,10 +17,6 @@ require_once get_stylesheet_directory() . '/includes/login-error-message.php';
 require_once get_stylesheet_directory() . '/includes/login-logo-change-url-change.php';
 require_once get_stylesheet_directory() . '/includes/wp-revision-limit.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
-require_once get_stylesheet_directory() . '/includes/snn-custom-css-setting.php';
-require_once get_stylesheet_directory() . '/includes/snn-custom-css-js-cdn.php';
-require_once get_stylesheet_directory() . '/includes/wp-head-html-frontend.php';
-require_once get_stylesheet_directory() . '/includes/wp-footer-html-frontend.php';
 
 
 
