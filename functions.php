@@ -3,6 +3,7 @@
 
 // Settings Page
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
+require_once get_stylesheet_directory() . '/includes/documentation-settings-page.php';
 
 // Features & Settings (each with its own settings)
 require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';

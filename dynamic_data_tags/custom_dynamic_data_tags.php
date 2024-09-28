@@ -177,6 +177,92 @@ function render_current_user_first_name_in_content( $content, $post, $context = 
 
 
 
+
+
+
+
+
+// This code adds a dynamic tag '{current_user_fields}' in the Bricks Builder. 
+// It fetches and displays various fields of the current user like name, first name, last name, email, and custom fields.
+// It replaces placeholders like '{current_user_fields:name}', '{current_user_fields:firstname}', '{current_user_fields:lastname}', etc., in the content.
+
+// Adds a new tag 'current_user_fields' to the Bricks Builder dynamic tags list.
+add_filter( 'bricks/dynamic_tags_list', 'add_current_user_fields_tag_to_builder' );
+function add_current_user_fields_tag_to_builder( $tags ) {
+    $tags[] = [
+        'name'  => '{current_user_fields}',
+        'label' => 'Current User Fields',
+        'group' => 'SNN BRX',
+    ];
+
+    return $tags;
+}
+
+// Retrieves the current user's specified field.
+function get_current_user_field($field) {
+    $current_user = wp_get_current_user();
+    if ( $current_user->ID !== 0 ) {
+        switch ( $field ) {
+            case 'name':
+                return $current_user->display_name;
+            case 'firstname':
+                return get_user_meta( $current_user->ID, 'first_name', true );
+            case 'lastname':
+                return get_user_meta( $current_user->ID, 'last_name', true );
+            case 'email':
+                return $current_user->user_email;
+            default:
+                // Handle custom fields, return an empty string if the field is not set
+                return get_user_meta( $current_user->ID, $field, true ) ?: '';
+        }
+    }
+    return '';
+}
+
+// Renders the 'current_user_fields' tag by fetching the relevant user field.
+add_filter( 'bricks/dynamic_data/render_tag', 'render_current_user_fields_tag', 10, 3 );
+function render_current_user_fields_tag( $tag, $post, $context = 'text' ) {
+    if ( strpos( $tag, 'current_user_fields:' ) !== false ) {
+        // Extract the field name after 'current_user_fields:'
+        $field = str_replace( 'current_user_fields:', '', $tag );
+        return get_current_user_field($field);
+    }
+    return $tag;
+}
+
+// Replaces the '{current_user_fields:field}' placeholder in content with the current user's field value.
+add_filter( 'bricks/dynamic_data/render_content', 'render_current_user_fields_in_content', 10, 3 );
+add_filter( 'bricks/frontend/render_data', 'render_current_user_fields_in_content', 10, 2 );
+function render_current_user_fields_in_content( $content, $post, $context = 'text' ) {
+    // Find all occurrences of '{current_user_fields:field}'
+    if ( preg_match_all( '/{current_user_fields:([^}]+)}/', $content, $matches ) ) {
+        foreach ( $matches[1] as $field ) {
+            $field_value = get_current_user_field($field);
+            // Replace the placeholder with the actual user field value
+            $content = str_replace( "{current_user_fields:$field}", $field_value, $content );
+        }
+    }
+    return $content;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // {estimated_post_read_time}
 // Adds a new dynamic tag 'estimated_post_read_time' to Bricks Builder for displaying estimated post read time.
 add_filter( 'bricks/dynamic_tags_list', 'add_estimated_post_read_time_tag_to_builder' );
@@ -375,3 +461,64 @@ function render_post_count_in_content($content, $post, $context = 'text') {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// {parent_link} paste this wherever you want to display the current 
+// post/page parent’s title and link on a child page or post.
+
+add_filter( 'bricks/dynamic_tags_list', 'register_parent_link_tag' );
+function register_parent_link_tag( $tags ) {
+    $tags[] = [
+        'name'  => '{parent_link}',
+        'label' => 'Parent Title and Link',
+        'group' => 'Custom Tags',
+    ];
+
+    return $tags;
+}
+
+add_filter( 'bricks/dynamic_data/render_tag', 'render_parent_link_tag', 10, 3 );
+function render_parent_link_tag( $tag, $post, $context = 'text' ) {
+    if ( $tag !== 'parent_link' ) {
+        return $tag;
+    }
+
+    if ( $post->post_parent ) {
+        $parent_post = get_post( $post->post_parent );
+
+        if ( $parent_post ) {
+            $parent_title = get_the_title( $parent_post );
+            $parent_link  = get_permalink( $parent_post );
+
+            return '<a href="' . esc_url( $parent_link ) . '">' . esc_html( $parent_title ) . '</a>';
+        }
+    }
+
+    return 'No Parent Found';
+}
+
+add_filter( 'bricks/dynamic_data/render_content', 'render_parent_link_tag_in_content', 10, 3 );
+function render_parent_link_tag_in_content( $content, $post, $context = 'text' ) {
+    if ( strpos( $content, '{parent_link}' ) !== false ) {
+        $parent_link = render_parent_link_tag( 'parent_link', $post, $context );
+        $content = str_replace( '{parent_link}', $parent_link, $content );
+    }
+
+    return $content;
+}
