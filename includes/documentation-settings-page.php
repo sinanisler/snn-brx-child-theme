@@ -2,28 +2,27 @@
 
 // Add the Documentation Submenu
 function snn_add_documentation_submenu() {
-    add_submenu_page(
-        'snn-settings', // Parent slug (main menu slug)
-        'Documentation', // Page title
-        'Documentation', // Submenu title
-        'manage_options', // Capability
-        'snn-documentation', // Submenu slug
-        'snn_documentation_page_callback' // Function to display the page
-    );
+add_submenu_page(
+'snn-settings', // Parent slug (main menu slug)
+'Documentation', // Page title
+'Documentation', // Submenu title
+'manage_options', // Capability
+'snn-documentation', // Submenu slug
+'snn_documentation_page_callback' // Function to display the page
+);
 }
 add_action('admin_menu', 'snn_add_documentation_submenu');
 
 // Callback function for the Documentation page content
 function snn_documentation_page_callback() {
-    ?>
+?>
 
 
 
 <div class="wrap" style="max-width:800px; line-height:30px; font-size:18px">
- <h1>SNN Bricks Builder Documentation</h1>
-    
 
- <h2>Site Dynamic Data Tags</h2>
+
+<h2>Site Dynamic Data Tags</h2>
 <p>This tags are used usualy outside of the custom loops.</p>
 
 <b>{current_author_id}</b>
@@ -85,7 +84,7 @@ function snn_documentation_page_callback() {
 
 
 
-    <?php
+<?php
 }
 
 
