@@ -28,9 +28,6 @@ SNN BRX theme adds theme settings and lots of features with it.
 - Login Math Captcha Validation
 - Disable JSON API for Guests
 - Enable Auto Update Theme
-- Custom CSS for Bricks and Block Editor	
-- Custom CSS CDN URL Loader
-- Custom JavaScript CDN URL Loader
 
 
 ### GSAP Animation Library
