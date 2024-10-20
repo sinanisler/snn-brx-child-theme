@@ -8,6 +8,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 require_once get_stylesheet_directory() . '/includes/documentation-settings-page.php';
 
+// Include Block Editor Settings
+include_once get_stylesheet_directory() . '/includes/block-editor-settings.php';
+
+
 // Include Feature Files
 $includes = [
     'remove-wp-version.php',
