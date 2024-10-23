@@ -93,22 +93,28 @@ function snn_block_editor_settings_page_callback() {
 
 // Disable selected blocks in the editor
 function snn_disable_selected_blocks($allowed_block_types, $post) {
-    // Ensure $allowed_block_types is an array
-    if (!is_array($allowed_block_types)) {
+    // Get the options for disabled blocks
+    $options = get_option('snn_block_editor_settings');
+
+    // If no blocks are disabled, return the original allowed block types
+    if (!$options || empty($options)) {
+        return $allowed_block_types;
+    }
+
+    // If all blocks are allowed (true), get all registered block names
+    if ($allowed_block_types === true) {
+        $allowed_block_types = array_keys(WP_Block_Type_Registry::get_instance()->get_all_registered());
+    } elseif (!is_array($allowed_block_types)) {
+        // If $allowed_block_types is not an array, set it to an empty array
         $allowed_block_types = [];
     }
 
-    // Get the options for disabled blocks
-    $options = get_option('snn_block_editor_settings');
-    
-    if ($options) {
-        foreach ($options as $block_name => $value) {
-            // If the block is selected to be disabled, remove it
-            if (isset($options[$block_name]) && $options[$block_name] == 1) {
-                $key = array_search($block_name, $allowed_block_types);
-                if ($key !== false) {
-                    unset($allowed_block_types[$key]);
-                }
+    // Remove the disabled blocks from the allowed block types
+    foreach ($options as $block_name => $value) {
+        if (isset($options[$block_name]) && $value == 1) {
+            $key = array_search($block_name, $allowed_block_types);
+            if ($key !== false) {
+                unset($allowed_block_types[$key]);
             }
         }
     }
@@ -116,4 +122,5 @@ function snn_disable_selected_blocks($allowed_block_types, $post) {
     return $allowed_block_types;
 }
 add_filter('allowed_block_types_all', 'snn_disable_selected_blocks', 10, 2);
-?>
+
+
