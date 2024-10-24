@@ -91,6 +91,7 @@ invalidateOnRefresh: Ensures scroll positions are recalculated on page reload or
 immediateRender: Prevents animation from rendering before the user scrolls (always set to false).
 100ms Load Delay: Adds a short delay (100ms) before initializing animations to ensure proper layout rendering on page load.
 
+You can use the style_start and style_end properties to animate various CSS properties
 </pre>
 
 <br>
@@ -102,12 +103,22 @@ immediateRender: Prevents animation from rendering before the user scrolls (alwa
 <p>In this example, the div element will scale up from 0.5 to 1 and rotate by 180 degrees. The animation will start when the element is 60% from the top of the viewport and end when it reaches 40% from the bottom.</p>
 <textarea class="tt1" style="width:100%"><div data-animate="s:0.5, r:180, start:top 60%, end:bottom 40%, scrub:true">Lorem ipsum dolor sit amet.</div></textarea>
 
+
+
+<br><br>
+<p>style_start and style_end</p>
+<textarea class="tt1" style="width:100%"><div data-animate="style_start-color:red, style_end-color:blue"></div></textarea><br>
+<textarea class="tt1" style="width:100%"><div data-animate="style_start-padding:10px, style_end-padding:50px"></div></textarea><br>
+<textarea class="tt1" style="width:100%"><div data-animate="style_start-background-color:white, style_end-background-color:black"></div></textarea><br>
+<textarea class="tt1" style="width:100%"><div data-animate="style_start-scale:0.5, style_end-scale:1"></div></textarea><br>
+<textarea class="tt1" style="width:100%"><div data-animate="style_start-rotateY:180deg, style_end-rotateY:0deg"></div></textarea>
+
+
+
 <br><br>
 <p>Full example for each available feature.</p>
 
-<textarea class="tt1" style="width:100%"><div data-animate="x: 100,y: -50, o: 0.5, r: 45, s: 0.8, axis: X, start: top 20%, end: bottom 80%, scrub: true, pin: true, markers: true, toggleClass: active, pinSpacing: margin, splittext: true, stagger: 0.05">Lorem ipsum dolor sit amet.</div></textarea>
-
-
+<textarea class="tt1" style="width:100%"><div data-animate="x: 100,y: -50, o: 0.5, r: 45, s: 0.8, axis: X, start: top 20%, end: bottom 80%, scrub: true, pin: true, markers: true, toggleClass: active, pinSpacing: margin, splittext: true, stagger: 0.05"></div></textarea>
 
 
 

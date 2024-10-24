@@ -7,9 +7,19 @@ window.onload = function() {
     animateElements.forEach(element => {
       const options = element.getAttribute('data-animate').split(',').reduce((acc, option) => {
         const [key, value] = option.split(':').map(item => item.trim());
-        acc[key] = value;
+        
+        if (key.startsWith('style_start-')) {
+          const cssProp = key.replace('style_start-', '');
+          acc.startStyles[cssProp] = value;
+        } else if (key.startsWith('style_end-')) {
+          const cssProp = key.replace('style_end-', '');
+          acc.endStyles[cssProp] = value;
+        } else {
+          acc[key] = value;
+        }
+
         return acc;
-      }, {});
+      }, { startStyles: {}, endStyles: {} });
 
       const defaultStart = 'top 80%';
       const defaultEnd = 'bottom 20%';
@@ -33,12 +43,14 @@ window.onload = function() {
           y: options.y ? parseInt(options.y) : 0,
           opacity: options.o ? parseFloat(options.o) : 1,
           scale: options.s ? parseFloat(options.s) : 1,
-        },
+          ...options.startStyles 
+        }, 
         {
           x: 0,
           y: 0,
           opacity: 1,
           scale: 1,
+          ...options.endStyles,
           scrollTrigger: {
             trigger: element,
             start: options.start || defaultStart,
@@ -49,7 +61,7 @@ window.onload = function() {
             toggleClass: options.toggleClass || null,
             pinSpacing: options.pinSpacing || 'margin',
             invalidateOnRefresh: true,
-            immediateRender: false, 
+            immediateRender: false,
           },
           stagger: splitText ? staggerValue : 0,
         }
@@ -71,5 +83,5 @@ window.onload = function() {
         });
       }
     });
-  }, 100); 
+  }, 100);
 };
