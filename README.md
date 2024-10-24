@@ -70,17 +70,7 @@ Tutorial:
 
 Enabling this setting will move the Bricks menu item to the end of the WordPress admin menu.
 
-
-
-### Custom CSS for Bricks and Block Editor	
-
-Enter custom CSS for the block editor and front-end. This CSS will be applied site-wide.
-
-Some Native CSS Libraries https://github.com/uhub/awesome-css stay away from .js required ones.
-
-[![youtube](https://img.youtube.com/vi/kwKpiAVWBn8/0.jpg)](https://www.youtube.com/watch?v=kwKpiAVWBn8)
-
-
+	
 
 
 ## Custom Elements
