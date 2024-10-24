@@ -63,6 +63,35 @@ function snn_documentation_page_callback() {
 
 
 
+<br>
+
+
+<h2>SNN GSAP data-animate Features</h2>
+
+
+
+<pre>
+x: Horizontal position (e.g., x: 100).
+y: Vertical position (e.g., y: -50).
+o: Opacity (e.g., o: 0.5).
+r: Rotation angle (e.g., r: 45). Supports rotation on specified axis (use axis to define the axis).
+s: Scale (e.g., s: 0.8).
+start: Scroll trigger start position (e.g., start: top 20%).
+end: Scroll trigger end position (e.g., end: bottom 80%).
+scrub: Scrubbing behavior for smoother animations (e.g., scrub: true).
+pin: Pin element during scroll (e.g., pin: true).
+markers: Display scroll trigger markers for debugging (e.g., markers: true).
+toggleClass: Toggle a CSS class when the animation is triggered (e.g., toggleClass: active).
+pinSpacing: Adjust spacing behavior when an element is pinned (e.g., pinSpacing: margin).
+splittext: Split text into individual characters for staggered animations (e.g., splittext: true).
+stagger: Delay between animations for individual characters when splittext is enabled (e.g., stagger: 0.05).
+axis: Rotation axis when rotating elements (e.g., axis: X). Default is Z.
+invalidateOnRefresh: Ensures scroll positions are recalculated on page reload or resizing (always enabled).
+immediateRender: Prevents animation from rendering before the user scrolls (always set to false).
+100ms Load Delay: Adds a short delay (100ms) before initializing animations to ensure proper layout rendering on page load.
+
+</pre>
+
 
 
 
