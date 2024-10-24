@@ -8,10 +8,11 @@ add_submenu_page(
 'Documentation', // Submenu title
 'manage_options', // Capability
 'snn-documentation', // Submenu slug
-'snn_documentation_page_callback' // Function to display the page
+'snn_documentation_page_callback', // Function to display the page
+6
 );
 }
-add_action('admin_menu', 'snn_add_documentation_submenu');
+add_action('admin_menu', 'snn_add_documentation_submenu' , 99);
 
 // Callback function for the Documentation page content
 function snn_documentation_page_callback() {
@@ -70,7 +71,7 @@ function snn_documentation_page_callback() {
 
 
 
-<pre>
+<pre style="font-size:15px">
 x: Horizontal position (e.g., x: 100).
 y: Vertical position (e.g., y: -50).
 o: Opacity (e.g., o: 0.5).
@@ -92,7 +93,19 @@ immediateRender: Prevents animation from rendering before the user scrolls (alwa
 
 </pre>
 
+<br>
+<p>This example will animate the element by fading it in from the left. The element will start with an x-offset of -50 pixels and an opacity of 0.</p>
+<textarea class="tt1" style="width:100%"><h1 data-animate="x:-50, o:0, start:top 80%, end:bottom 20%">Welcome to my website!</h1></textarea>
 
+
+<br><br>
+<p>In this example, the div element will scale up from 0.5 to 1 and rotate by 180 degrees. The animation will start when the element is 60% from the top of the viewport and end when it reaches 40% from the bottom.</p>
+<textarea class="tt1" style="width:100%"><div data-animate="s:0.5, r:180, start:top 60%, end:bottom 40%, scrub:true">Lorem ipsum dolor sit amet.</div></textarea>
+
+<br><br>
+<p>Full example for each available feature.</p>
+
+<textarea class="tt1" style="width:100%"><div data-animate="x: 100,y: -50, o: 0.5, r: 45, s: 0.8, axis: X, start: top 20%, end: bottom 80%, scrub: true, pin: true, markers: true, toggleClass: active, pinSpacing: margin, splittext: true, stagger: 0.05">Lorem ipsum dolor sit amet.</div></textarea>
 
 
 
