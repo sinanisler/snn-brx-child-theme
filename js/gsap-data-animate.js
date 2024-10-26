@@ -1,4 +1,3 @@
-// Registers the ScrollTrigger plugin with GSAP and animates elements based on data attributes.
 gsap.registerPlugin(ScrollTrigger);
 
 window.onload = function() {
@@ -6,11 +5,9 @@ window.onload = function() {
     const animateElements = document.querySelectorAll('[data-animate]');
 
     animateElements.forEach(element => {
-      // Extract options from data-animate attribute
       const options = element.getAttribute('data-animate').split(',').reduce((acc, option) => {
         const [key, value] = option.split(':').map(item => item.trim());
         
-        // Convert "style_start-X" and "style_end-X" to proper format for gsap
         if (key.startsWith('style_start-')) {
           const cssProp = key.replace('style_start-', '');
           acc.startStyles[cssProp] = value;
@@ -27,7 +24,6 @@ window.onload = function() {
       const defaultStart = 'top 80%';
       const defaultEnd = 'bottom 20%';
 
-      // Handle split text if needed
       const splitText = options.splittext === 'true';
       const staggerValue = parseFloat(options.stagger || 0.1);
 
@@ -40,28 +36,25 @@ window.onload = function() {
       const rotationAxis = options.axis || 'Z';
       const rotationProp = `rotate${rotationAxis.toUpperCase()}`;
 
-      // Check if the trigger is set to 'body' in data-animate
       const isBodyTrigger = options.trigger === 'body';
 
-      // General GSAP animation for all elements with data-animate attribute
       gsap.fromTo(
         splitText ? element.children : element,
         {
-          // Use the dynamic start styles extracted from data-animate
           x: options.x ? parseInt(options.x) : 0,
           y: options.y ? parseInt(options.y) : 0,
           opacity: options.o ? parseFloat(options.o) : 1,
           scale: options.s ? parseFloat(options.s) : 1,
-          ...options.startStyles // Add any custom start styles
+          ...options.startStyles 
         },
         {
           x: 0,
           y: 0,
           opacity: 1,
           scale: 1,
-          ...options.endStyles, // Add any custom end styles
+          ...options.endStyles, 
           scrollTrigger: {
-            trigger: isBodyTrigger ? document.body : element, // Use 'body' if specified
+            trigger: isBodyTrigger ? document.body : element, 
             start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
             end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
             scrub: options.scrub === 'true' ? true : (parseFloat(options.scrub) || 1),
@@ -76,7 +69,6 @@ window.onload = function() {
         }
       );
 
-      // Apply rotation if specified
       if (options.r) {
         gsap.to(element, {
           [rotationProp]: parseInt(options.r) || 360, 
