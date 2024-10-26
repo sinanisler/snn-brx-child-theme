@@ -113,6 +113,10 @@ You can use the style_start and style_end properties to animate various CSS prop
 <textarea class="tt1" style="width:100%"><div data-animate="style_start-scale:0.5, style_end-scale:1"></div></textarea><br>
 <textarea class="tt1" style="width:100%"><div data-animate="style_start-rotateY:180deg, style_end-rotateY:0deg"></div></textarea>
 
+<br><br>
+<p>start & end</p>
+<textarea class="tt1" style="width:100%"><div data-animate="style_start-width:0%,style_end-width:100%,trigger:body,start:top top,end:bottom bottom,scrub:true,markers:true"></div></textarea><br>
+
 
 
 <br><br>
