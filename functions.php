@@ -22,7 +22,7 @@ require_once get_stylesheet_directory() . '/includes/wp-revision-limit.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
 require_once get_stylesheet_directory() . '/includes/custom-field-settings.php';
-
+require_once get_stylesheet_directory() . '/includes/command-center.php';
 
 
 // Include Custom Dynamic Data Tags

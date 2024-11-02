@@ -1,0 +1,51 @@
+/* command-center.css */
+/* Basic styling for the command center */
+
+.command-center {
+    position: fixed;
+    bottom: -100%; /* Hidden off-screen */
+    left: 0;
+    right: 0;
+    background: #333;
+    color: #fff;
+    padding: 20px;
+    transition: bottom 0.3s ease;
+    z-index: 10000;
+}
+
+.command-center.visible {
+    bottom: 0; /* Slide up into view */
+}
+
+.command-center-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.command-center-header h3 {
+    color:White
+}
+
+.command-center-close {
+    background: none;
+    color: #fff;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.command-center-button {
+    display: block;
+    background-color: #444;
+    color: #fff;
+    padding: 10px;
+    margin: 10px 0;
+    text-align: left;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+}
+
+.command-center-dynamic-content {
+    margin-top: 20px;
+}
