@@ -7,34 +7,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Include Settings Pages
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 require_once get_stylesheet_directory() . '/includes/documentation-settings-page.php';
+require_once get_stylesheet_directory() . '/includes/block-editor-settings.php';
+require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
+require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
+require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
+require_once get_stylesheet_directory() . '/includes/remove-rss.php';
+require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
+require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
+require_once get_stylesheet_directory() . '/includes/auto-update-bricks.php';
+require_once get_stylesheet_directory() . '/includes/login-math-captcha.php';
+require_once get_stylesheet_directory() . '/includes/login-error-message.php';
+require_once get_stylesheet_directory() . '/includes/login-logo-change-url-change.php';
+require_once get_stylesheet_directory() . '/includes/wp-revision-limit.php';
+require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
+require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
+require_once get_stylesheet_directory() . '/includes/custom-field-settings.php';
 
-// Include Block Editor Settings
-include_once get_stylesheet_directory() . '/includes/block-editor-settings.php';
 
-
-// Include Feature Files
-$includes = [
-    'remove-wp-version.php',
-    'disable-xmlrpc.php',
-    'disable-file-editing.php',
-    'remove-rss.php',
-    'disable-wp-json-if-not-logged-in.php',
-    'move-bricks-menu.php',
-    'auto-update-bricks.php',
-    'login-math-captcha.php',
-    'login-error-message.php',
-    'login-logo-change-url-change.php',
-    'wp-revision-limit.php',
-    'enqueue-gsap.php',
-    'enqueue-scripts.php',
-];
-
-foreach ( $includes as $file ) {
-    $filepath = get_stylesheet_directory() . '/includes/' . $file;
-    if ( file_exists( $filepath ) ) {
-        require_once $filepath;
-    }
-}
 
 // Include Custom Dynamic Data Tags
 require_once get_stylesheet_directory() . '/dynamic_data_tags/custom_dynamic_data_tags.php';
