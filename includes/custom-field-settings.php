@@ -1,224 +1,437 @@
 <?php
 // Add a submenu page for custom fields under the main settings menu
 function snn_add_custom_fields_submenu() {
-    add_submenu_page(
-        'snn-settings',
-        'Custom Fields',
-        'Custom Fields',
-        'manage_options',
-        'snn-custom-fields',
-        'snn_custom_fields_page_callback'
-    );
+add_submenu_page(
+    'snn-settings',
+    'Custom Fields',
+    'Custom Fields',
+    'manage_options',
+    'snn-custom-fields',
+    'snn_custom_fields_page_callback'
+);
 }
 add_action('admin_menu', 'snn_add_custom_fields_submenu', 89);
 
-// Display the Custom Fields page with group name, field name, type, and post type
+// Display the Custom Fields page with support for repeater fields
 function snn_custom_fields_page_callback() {
-    $custom_fields = get_option('snn_custom_fields', []);
-    $post_types = get_post_types(['public' => true], 'objects'); // Get public post types
+$custom_fields = get_option('snn_custom_fields', []);
+$post_types = get_post_types(['public' => true], 'objects'); // Get public post types
 
-    if (isset($_POST['snn_custom_fields_nonce']) && wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_custom_fields_save')) {
-        $new_fields = [];
-        if (!empty($_POST['custom_fields'])) {
-            foreach ($_POST['custom_fields'] as $field) {
-                if (!empty($field['name']) && !empty($field['type']) && !empty($field['post_type']) && !empty($field['group_name'])) {
-                    $new_fields[] = [
-                        'group_name' => sanitize_text_field($field['group_name']),
-                        'name' => sanitize_text_field($field['name']),
-                        'type' => sanitize_text_field($field['type']),
-                        'post_type' => sanitize_text_field($field['post_type']),
-                    ];
-                }
+if (isset($_POST['snn_custom_fields_nonce']) && wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_custom_fields_save')) {
+    $new_fields = [];
+    if (!empty($_POST['custom_fields'])) {
+        foreach ($_POST['custom_fields'] as $field) {
+            if (!empty($field['name']) && !empty($field['type']) && !empty($field['post_type']) && !empty($field['group_name'])) {
+                $new_fields[] = [
+                    'group_name' => sanitize_text_field($field['group_name']),
+                    'name' => sanitize_text_field($field['name']),
+                    'type' => sanitize_text_field($field['type']),
+                    'post_type' => sanitize_text_field($field['post_type']),
+                    'repeater' => !empty($field['repeater']) ? 1 : 0, // Add repeater flag
+                ];
             }
         }
-        update_option('snn_custom_fields', $new_fields);
-        $custom_fields = $new_fields;
-        echo '<div class="updated"><p>Custom fields saved successfully.</p></div>';
     }
+    update_option('snn_custom_fields', $new_fields);
+    $custom_fields = $new_fields;
+    echo '<div class="updated"><p>Custom fields saved successfully.</p></div>';
+}
 
-    ?>
-    <div class="wrap">
-        <h1>Manage Custom Fields</h1>
-        <form method="post">
-            <?php wp_nonce_field('snn_custom_fields_save', 'snn_custom_fields_nonce'); ?>
-            
-            <div id="custom-field-settings">
-                <p>Define custom fields with group name, field name, field type, and post type:</p>
-                <?php
-                if (!empty($custom_fields) && is_array($custom_fields)) {
-                    foreach ($custom_fields as $index => $field) {
-                        ?>
-                        <div class="custom-field-row">
-                            <label>Group Name</label>
-                            <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" value="<?php echo isset($field['group_name']) ? esc_attr($field['group_name']) : ''; ?>" />
-                            
-                            <label>Field Name</label>
-                            <input type="text" name="custom_fields[<?php echo $index; ?>][name]" placeholder="Field Name" value="<?php echo esc_attr($field['name']); ?>" />
-                            
-                            <label>Field Type</label>
-                            <select name="custom_fields[<?php echo $index; ?>][type]">
-                                <option value="text" <?php selected($field['type'], 'text'); ?>>Text</option>
-                                <option value="number" <?php selected($field['type'], 'number'); ?>>Number</option>
-                                <option value="textarea" <?php selected($field['type'], 'textarea'); ?>>Textarea</option>
-                                <option value="rich_text" <?php selected($field['type'], 'rich_text'); ?>>Rich Text</option>
-                                <option value="media" <?php selected($field['type'], 'media'); ?>>Media</option>
-                                <option value="date" <?php selected($field['type'], 'date'); ?>>Date</option>
-                                <option value="color" <?php selected($field['type'], 'color'); ?>>Color</option>
-                            </select>
-                            
-                            <label>Post Type</label>
-                            <select name="custom_fields[<?php echo $index; ?>][post_type]">
-                                <?php foreach ($post_types as $post_type) : ?>
-                                    <option value="<?php echo esc_attr($post_type->name); ?>" <?php selected($field['post_type'], $post_type->name); ?>>
-                                        <?php echo esc_html($post_type->label); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <button type="button" class="remove-field">Remove</button>
-                        </div>
-                        <?php
-                    }
-                } else {
+?>
+<div class="wrap">
+    <h1>Manage Custom Fields</h1>
+    <form method="post">
+        <?php wp_nonce_field('snn_custom_fields_save', 'snn_custom_fields_nonce'); ?>
+        
+        <div id="custom-field-settings">
+            <p>Define custom fields with group name, field name, field type, and post type:</p>
+            <?php
+            if (!empty($custom_fields) && is_array($custom_fields)) {
+                foreach ($custom_fields as $index => $field) {
                     ?>
                     <div class="custom-field-row">
                         <label>Group Name</label>
-                        <input type="text" name="custom_fields[0][group_name]" placeholder="Group Name" />
+                        <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" value="<?php echo isset($field['group_name']) ? esc_attr($field['group_name']) : ''; ?>" />
                         
                         <label>Field Name</label>
-                        <input type="text" name="custom_fields[0][name]" placeholder="Field Name" />
+                        <input type="text" name="custom_fields[<?php echo $index; ?>][name]" placeholder="Field Name" value="<?php echo esc_attr($field['name']); ?>" />
                         
                         <label>Field Type</label>
-                        <select name="custom_fields[0][type]">
-                            <option value="text">Text</option>
-                            <option value="number">Number</option>
-                            <option value="textarea">Textarea</option>
-                            <option value="rich_text">Rich Text</option>
-                            <option value="media">Media</option>
-                            <option value="date">Date</option>
-                            <option value="color">Color</option>
+                        <select name="custom_fields[<?php echo $index; ?>][type]">
+                            <option value="text" <?php selected($field['type'], 'text'); ?>>Text</option>
+                            <option value="number" <?php selected($field['type'], 'number'); ?>>Number</option>
+                            <option value="textarea" <?php selected($field['type'], 'textarea'); ?>>Textarea</option>
+                            <option value="rich_text" <?php selected($field['type'], 'rich_text'); ?>>Rich Text</option>
+                            <option value="media" <?php selected($field['type'], 'media'); ?>>Media</option>
+                            <option value="date" <?php selected($field['type'], 'date'); ?>>Date</option>
+                            <option value="color" <?php selected($field['type'], 'color'); ?>>Color</option>
                         </select>
                         
                         <label>Post Type</label>
-                        <select name="custom_fields[0][post_type]">
+                        <select name="custom_fields[<?php echo $index; ?>][post_type]">
                             <?php foreach ($post_types as $post_type) : ?>
-                                <option value="<?php echo esc_attr($post_type->name); ?>">
+                                <option value="<?php echo esc_attr($post_type->name); ?>" <?php selected($field['post_type'], $post_type->name); ?>>
                                     <?php echo esc_html($post_type->label); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        
+                        <label>Repeater</label>
+                        <input type="checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" <?php checked(!empty($field['repeater'])); ?> />
+                        
                         <button type="button" class="remove-field">Remove</button>
                     </div>
                     <?php
                 }
+            } else {
                 ?>
-            </div>
-            <button type="button" id="add-custom-field-row">Add New Field</button>
-            <br><br>
-            <?php submit_button('Save Custom Fields'); ?>
-        </form>
+                <div class="custom-field-row">
+                    <label>Group Name</label>
+                    <input type="text" name="custom_fields[0][group_name]" placeholder="Group Name" />
+                    
+                    <label>Field Name</label>
+                    <input type="text" name="custom_fields[0][name]" placeholder="Field Name" />
+                    
+                    <label>Field Type</label>
+                    <select name="custom_fields[0][type]">
+                        <option value="text">Text</option>
+                        <option value="number">Number</option>
+                        <option value="textarea">Textarea</option>
+                        <option value="rich_text">Rich Text</option>
+                        <option value="media">Media</option>
+                        <option value="date">Date</option>
+                        <option value="color">Color</option>
+                    </select>
+                    
+                    <label>Post Type</label>
+                    <select name="custom_fields[0][post_type]">
+                        <?php foreach ($post_types as $post_type) : ?>
+                            <option value="<?php echo esc_attr($post_type->name); ?>">
+                                <?php echo esc_html($post_type->label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    
+                    <label>Repeater</label>
+                    <input type="checkbox" name="custom_fields[0][repeater]" />
+                    
+                    <button type="button" class="remove-field">Remove</button>
+                </div>
+                <?php
+            }
+            ?>
+        </div>
+        <button type="button" id="add-custom-field-row">Add New Field</button>
+        <br><br>
+        <?php submit_button('Save Custom Fields'); ?>
+    </form>
 
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const fieldContainer = document.getElementById('custom-field-settings');
-            const addFieldButton = document.getElementById('add-custom-field-row');
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fieldContainer = document.getElementById('custom-field-settings');
+        const addFieldButton = document.getElementById('add-custom-field-row');
 
-            addFieldButton.addEventListener('click', function() {
-                const newIndex = fieldContainer.querySelectorAll('.custom-field-row').length;
-                const newRow = document.createElement('div');
-                newRow.classList.add('custom-field-row');
-                newRow.innerHTML = '<label>Group Name</label>' +
-                                   '<input type="text" name="custom_fields[' + newIndex + '][group_name]" placeholder="Group Name" />' +
-                                   '<label>Field Name</label>' +
-                                   '<input type="text" name="custom_fields[' + newIndex + '][name]" placeholder="Field Name" />' +
-                                   '<label>Field Type</label>' +
-                                   '<select name="custom_fields[' + newIndex + '][type]">' +
-                                   '<option value="text">Text</option>' +
-                                   '<option value="number">Number</option>' +
-                                   '<option value="textarea">Textarea</option>' +
-                                   '<option value="rich_text">Rich Text</option>' +
-                                   '<option value="media">Media</option>' +
-                                   '<option value="date">Date</option>' +
-                                   '<option value="color">Color</option>' +
-                                   '</select>' +
-                                   '<label>Post Type</label>' +
-                                   '<select name="custom_fields[' + newIndex + '][post_type]">' +
-                                   <?php foreach ($post_types as $post_type) : ?>
-                                       '<option value="<?php echo esc_js($post_type->name); ?>"><?php echo esc_js($post_type->label); ?></option>' +
-                                   <?php endforeach; ?>
-                                   '</select>' +
-                                   '<button type="button" class="remove-field">Remove</button>';
-                fieldContainer.appendChild(newRow);
-            });
-
-            fieldContainer.addEventListener('click', function(event) {
-                if (event.target.classList.contains('remove-field')) {
-                    event.target.closest('.custom-field-row').remove();
-                }
-            });
+        addFieldButton.addEventListener('click', function() {
+            const newIndex = fieldContainer.querySelectorAll('.custom-field-row').length;
+            const newRow = document.createElement('div');
+            newRow.classList.add('custom-field-row');
+            newRow.innerHTML = '<label>Group Name</label>' +
+                                '<input type="text" name="custom_fields[' + newIndex + '][group_name]" placeholder="Group Name" />' +
+                                '<label>Field Name</label>' +
+                                '<input type="text" name="custom_fields[' + newIndex + '][name]" placeholder="Field Name" />' +
+                                '<label>Field Type</label>' +
+                                '<select name="custom_fields[' + newIndex + '][type]">' +
+                                '<option value="text">Text</option>' +
+                                '<option value="number">Number</option>' +
+                                '<option value="textarea">Textarea</option>' +
+                                '<option value="rich_text">Rich Text</option>' +
+                                '<option value="media">Media</option>' +
+                                '<option value="date">Date</option>' +
+                                '<option value="color">Color</option>' +
+                                '</select>' +
+                                '<label>Post Type</label>' +
+                                '<select name="custom_fields[' + newIndex + '][post_type]">' +
+                                <?php foreach ($post_types as $post_type) : ?>
+                                    '<option value="<?php echo esc_js($post_type->name); ?>"><?php echo esc_js($post_type->label); ?></option>' +
+                                <?php endforeach; ?>
+                                '</select>' +
+                                '<label>Repeater</label>' +
+                                '<input type="checkbox" name="custom_fields[' + newIndex + '][repeater]" />' +
+                                '<button type="button" class="remove-field">Remove</button>';
+            fieldContainer.appendChild(newRow);
         });
-        </script>
-    </div>
-    <?php
+
+        fieldContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-field')) {
+                event.target.closest('.custom-field-row').remove();
+            }
+        });
+    });
+    </script>
+</div>
+<?php
 }
 
-// Dynamically register metaboxes with grouped fields
+// Dynamically register metaboxes with grouped and repeater fields
 function snn_register_dynamic_metaboxes() {
-    $custom_fields = get_option('snn_custom_fields', []);
-    $grouped_fields = [];
+$custom_fields = get_option('snn_custom_fields', []);
+$grouped_fields = [];
+global $snn_repeater_fields_exist;
+$snn_repeater_fields_exist = false;
+global $snn_media_fields_exist;
+$snn_media_fields_exist = false;
 
-    foreach ($custom_fields as $field) {
-        $group_name = $field['group_name'] ?? 'default';
-        $grouped_fields[$field['post_type']][$group_name][] = $field;
+foreach ($custom_fields as $field) {
+    $group_name = $field['group_name'] ?? 'default';
+    $grouped_fields[$field['post_type']][$group_name][] = $field;
+    if ($field['type'] === 'media') {
+        $snn_media_fields_exist = true;
     }
+}
 
-    foreach ($grouped_fields as $post_type => $groups) {
-        foreach ($groups as $group_name => $fields) {
-            add_meta_box(
-                'custom_field_group_' . sanitize_title($group_name),
-                $group_name,
-                function($post) use ($fields) {
-                    foreach ($fields as $field) {
-                        $value = get_post_meta($post->ID, $field['name'], true);
-                        echo '<p><label>' . esc_html($field['name']) . '</label>';
+foreach ($grouped_fields as $post_type => $groups) {
+    foreach ($groups as $group_name => $fields) {
+        add_meta_box(
+            'custom_field_group_' . sanitize_title($group_name),
+            $group_name,
+            function($post) use ($fields) {
+                global $snn_repeater_fields_exist;
+                wp_nonce_field('snn_save_custom_fields', 'snn_custom_fields_nonce');
+                foreach ($fields as $field) {
+                    $field_name = $field['name'];
+                    $field_value = get_post_meta($post->ID, $field_name, true);
 
-                        if ($field['type'] === 'text') {
-                            echo '<input type="text" name="custom_fields[' . esc_attr($field['name']) . ']" value="' . esc_attr($value) . '" />';
-                        } elseif ($field['type'] === 'number') {
-                            echo '<input type="number" name="custom_fields[' . esc_attr($field['name']) . ']" value="' . esc_attr($value) . '" />';
-                        } elseif ($field['type'] === 'textarea') {
-                            echo '<textarea name="custom_fields[' . esc_attr($field['name']) . ']">' . esc_textarea($value) . '</textarea>';
-                        } elseif ($field['type'] === 'rich_text') {
-                            wp_editor($value, 'custom_fields_' . esc_attr($field['name']), [
-                                'textarea_name' => 'custom_fields[' . esc_attr($field['name']) . ']',
-                                'media_buttons' => true,
-                                'tinymce'       => true,
-                            ]);
-                        } elseif ($field['type'] === 'media') {
-                            echo '<input type="text" name="custom_fields[' . esc_attr($field['name']) . ']" value="' . esc_attr($value) . '" />';
-                        } elseif ($field['type'] === 'date') {
-                            echo '<input type="date" name="custom_fields[' . esc_attr($field['name']) . ']" value="' . esc_attr($value) . '" />';
-                        } elseif ($field['type'] === 'color') {
-                            echo '<input type="color" name="custom_fields[' . esc_attr($field['name']) . ']" value="' . esc_attr($value) . '" />';
+                    echo '<div class="custom-field">';
+                    echo '<label>' . esc_html($field_name) . '</label>';
+
+                    if (!empty($field['repeater'])) {
+                        $snn_repeater_fields_exist = true;
+                        // Repeater Field
+                        $values = is_array($field_value) ? $field_value : [''];
+                        echo '<div class="repeater-container" data-field-name="' . esc_attr($field_name) . '" data-field-type="' . esc_attr($field['type']) . '">';
+                        foreach ($values as $index => $value) {
+                            echo '<div class="repeater-item">';
+                            snn_render_field_input($field, $value, $index);
+                            echo '<button type="button" class="remove-repeater-item">Remove</button>';
+                            echo '</div>';
                         }
-                        echo '</p>';
+                        echo '<button type="button" class="add-repeater-item">Add More</button>';
+                        echo '</div>';
+                    } else {
+                        // Single Field
+                        snn_render_field_input($field, $field_value);
                     }
-                },
-                $post_type
-            );
-        }
+                    echo '</div>';
+                    ?>
+
+<style>
+/*    SNN Custom Field Editor Styles     */
+
+.custom-field{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</style>
+
+                    <?php
+                }
+            },
+            $post_type
+        );
     }
+}
+
+// Hook into admin_footer to output JavaScript code if needed
+add_action('admin_footer', 'snn_output_repeater_field_js');
 }
 add_action('add_meta_boxes', 'snn_register_dynamic_metaboxes');
 
+// Helper function to render field inputs
+function snn_render_field_input($field, $value = '', $index = '') {
+$field_name = $field['name'];
+if ($index !== '') {
+    $name_attribute = 'custom_fields[' . esc_attr($field_name) . '][' . esc_attr($index) . ']';
+} else {
+    $name_attribute = 'custom_fields[' . esc_attr($field_name) . ']';
+}
+
+switch ($field['type']) {
+    case 'text':
+        echo '<input type="text" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+        break;
+    case 'number':
+        echo '<input type="number" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+        break;
+    case 'textarea':
+        echo '<textarea name="' . $name_attribute . '">' . esc_textarea($value) . '</textarea>';
+        break;
+    case 'rich_text':
+        $editor_id = str_replace(['[', ']'], '_', $name_attribute);
+        wp_editor($value, $editor_id, [
+            'textarea_name' => $name_attribute,
+            'media_buttons' => true,
+            'tinymce'       => true,
+        ]);
+        break;
+    case 'media':
+        echo '<div class="media-uploader">';
+        echo '<input type="hidden" name="' . $name_attribute . '" value="' . esc_attr($value) . '" class="media-url-field" />';
+        if ($value) {
+            $image = wp_get_attachment_image_src($value, 'thumbnail');
+            if ($image) {
+                echo '<img src="' . esc_url($image[0]) . '" class="media-preview" style="max-width: 100px; max-height: 100px;" />';
+            } else {
+                echo '<img src="" class="media-preview" style="display: none; max-width: 100px; max-height: 100px;" />';
+            }
+        } else {
+            echo '<img src="" class="media-preview" style="display: none; max-width: 100px; max-height: 100px;" />';
+        }
+        echo '<button type="button" class="button media-upload-button">Select Media</button>';
+        echo '</div>';
+        break;
+    case 'date':
+        echo '<input type="date" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+        break;
+    case 'color':
+        echo '<input type="color" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+        break;
+    default:
+        echo '<input type="text" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+        break;
+}
+}
+
+// Output JavaScript code for repeater fields and media uploader
+function snn_output_repeater_field_js() {
+global $snn_repeater_fields_exist, $snn_media_fields_exist;
+if (!$snn_repeater_fields_exist && !$snn_media_fields_exist) {
+    return;
+}
+
+// Generate templates for each field type
+$field_types = ['text', 'number', 'textarea', 'media', 'date', 'color'];
+$templates = [];
+
+foreach ($field_types as $field_type) {
+    ob_start();
+    snn_render_field_input(['type' => $field_type, 'name' => '{{field_name}}'], '', '{{index}}');
+    $templates[$field_type] = str_replace(["\n", "\r", "'"], ["", "", "\\'"], ob_get_clean());
+}
+
+?>
+<script>
+(function($){
+    $(document).ready(function(){
+        const templates = <?php echo json_encode($templates); ?>;
+        $('body').on('click', '.add-repeater-item', function(e){
+            e.preventDefault();
+            const container = $(this).closest('.repeater-container');
+            const fieldName = container.data('field-name');
+            const fieldType = container.data('field-type') || 'text';
+            const index = container.find('.repeater-item').length;
+            const repeaterItem = $('<div class="repeater-item"></div>');
+
+            if (templates[fieldType]) {
+                repeaterItem.html(templates[fieldType]
+                    .replace(/{{field_name}}/g, fieldName)
+                    .replace(/{{index}}/g, index));
+                repeaterItem.append('<button type="button" class="remove-repeater-item">Remove</button>');
+                $(this).before(repeaterItem);
+            } else {
+                alert('Unsupported field type: ' + fieldType);
+            }
+        });
+
+        $('body').on('click', '.remove-repeater-item', function(e){
+            e.preventDefault();
+            $(this).closest('.repeater-item').remove();
+        });
+
+        // Media uploader code
+        $('body').on('click', '.media-upload-button', function(e){
+            e.preventDefault();
+            var button = $(this);
+            var custom_uploader = wp.media({
+                title: 'Select Media',
+                button: {
+                    text: 'Use this media'
+                },
+                multiple: false
+            })
+            .on('select', function(){
+                var attachment = custom_uploader.state().get('selection').first().toJSON();
+                button.siblings('.media-url-field').val(attachment.id);
+                button.siblings('.media-preview').attr('src', attachment.url).show();
+            })
+            .open();
+        });
+    });
+})(jQuery);
+</script>
+<?php
+}
+
+// Enqueue media uploader scripts
+function snn_enqueue_admin_scripts($hook) {
+global $snn_media_fields_exist;
+if ($snn_media_fields_exist && ('post.php' == $hook || 'post-new.php' == $hook)) {
+    wp_enqueue_media();
+}
+}
+add_action('admin_enqueue_scripts', 'snn_enqueue_admin_scripts');
+
 // Save dynamically created metabox data
 function snn_save_dynamic_metabox_data($post_id) {
-    if (!isset($_POST['custom_fields']) || !is_array($_POST['custom_fields'])) {
-        return;
-    }
+if (!isset($_POST['snn_custom_fields_nonce']) || !wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_save_custom_fields')) {
+    return;
+}
 
-    foreach ($_POST['custom_fields'] as $field_name => $value) {
-        update_post_meta($post_id, sanitize_text_field($field_name), sanitize_text_field($value));
+if (!isset($_POST['custom_fields']) || !is_array($_POST['custom_fields'])) {
+    return;
+}
+
+$custom_fields = get_option('snn_custom_fields', []);
+
+foreach ($custom_fields as $field) {
+    $field_name = $field['name'];
+    if (!empty($field['repeater'])) {
+        // Repeater Field
+        if (isset($_POST['custom_fields'][$field_name]) && is_array($_POST['custom_fields'][$field_name])) {
+            $values = array_map('sanitize_text_field', $_POST['custom_fields'][$field_name]);
+            update_post_meta($post_id, $field_name, $values);
+        } else {
+            delete_post_meta($post_id, $field_name);
+        }
+    } else {
+        // Single Field
+        if (isset($_POST['custom_fields'][$field_name])) {
+            $value = $_POST['custom_fields'][$field_name];
+            if ($field['type'] == 'rich_text') {
+                $value = wp_kses_post($value);
+            } else {
+                $value = sanitize_text_field($value);
+            }
+            update_post_meta($post_id, $field_name, $value);
+        } else {
+            delete_post_meta($post_id, $field_name);
+        }
     }
+}
 }
 add_action('save_post', 'snn_save_dynamic_metabox_data');
 ?>
