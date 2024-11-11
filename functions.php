@@ -25,8 +25,15 @@ require_once get_stylesheet_directory() . '/includes/custom-field-settings.php';
 // require_once get_stylesheet_directory() . '/includes/command-center.php';
 
 
+// Feature 
+require_once get_stylesheet_directory() . '/includes/file-size-column-media.php';
+require_once get_stylesheet_directory() . '/includes/wp-admin-css-style-footer-inline.php';
+
+
+
 // Include Custom Dynamic Data Tags
 require_once get_stylesheet_directory() . '/dynamic_data_tags/custom_dynamic_data_tags.php';
+
 
 // Register Custom Elements
 add_action( 'init', function() {
