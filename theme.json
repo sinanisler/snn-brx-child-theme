@@ -11,8 +11,8 @@
             ]
         },
         "layout": {
-            "contentSize": "1100px", 
-            "wideSize": "1100px"
+            "contentSize": "1200px",
+            "wideSize": "1200px"
         },
         "spacing": {
             "units": [
@@ -43,7 +43,10 @@
                 }
             ]
         },
-        "useRootPaddingAwareAlignments": true
+        "useRootPaddingAwareAlignments": true,
+        "editor": {
+            "useThemeStyles": true
+        }
     },
     "styles": {
         "blocks": {
@@ -95,4 +98,4 @@
     },
     "version": 3,
     "$schema": "https://schemas.wp.org/wp/6.6/theme.json"
-}            
+}
