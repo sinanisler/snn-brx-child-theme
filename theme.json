@@ -2,13 +2,134 @@
     "settings": {
         "appearanceTools": true,
         "color": {
-            "palette": [
+            "palette": 
+            
+
+            [
                 {
-                    "color": "#00ff00",
-                    "name": "green",
-                    "slug": "custom-green"
+                    "color": "#FF6F61",
+                    "name": "Vivid Coral",
+                    "slug": "vivid-coral"
+                },
+                {
+                    "color": "#FFB74D",
+                    "name": "Bright Tangerine",
+                    "slug": "bright-tangerine"
+                },
+                {
+                    "color": "#FF8A80",
+                    "name": "Hot Pink",
+                    "slug": "hot-pink"
+                },
+                {
+                    "color": "#FFD700",
+                    "name": "Sunshine Yellow",
+                    "slug": "sunshine-yellow"
+                },
+                {
+                    "color": "#4CAF50",
+                    "name": "Vivid Green",
+                    "slug": "vivid-green"
+                },
+                {
+                    "color": "#1E88E5",
+                    "name": "Bright Blue",
+                    "slug": "bright-blue"
+                },
+                {
+                    "color": "#E040FB",
+                    "name": "Neon Purple",
+                    "slug": "neon-purple"
+                },
+                {
+                    "color": "#FF5722",
+                    "name": "Flaming Orange",
+                    "slug": "flaming-orange"
+                },
+                {
+                    "color": "#FDCBBA",
+                    "name": "Blush Pink",
+                    "slug": "blush-pink"
+                },
+                {
+                    "color": "#A0D2DB",
+                    "name": "Soft Teal",
+                    "slug": "soft-teal"
+                },
+                {
+                    "color": "#F5E4C3",
+                    "name": "Pale Sand",
+                    "slug": "pale-sand"
+                },
+                {
+                    "color": "#E8C8FF",
+                    "name": "Lavender Bloom",
+                    "slug": "lavender-bloom"
+                },
+                {
+                    "color": "#FFDDC1",
+                    "name": "Peach Cream",
+                    "slug": "peach-cream"
+                },
+                {
+                    "color": "#B5EAD7",
+                    "name": "Mint Frost",
+                    "slug": "mint-frost"
+                },
+                {
+                    "color": "#F2B8A2",
+                    "name": "Coral Mist",
+                    "slug": "coral-mist"
+                },
+                {
+                    "color": "#C2E4FF",
+                    "name": "Sky Pastel",
+                    "slug": "sky-pastel"
+                },
+                {
+                    "color": "#F4D1AE",
+                    "name": "Sunset Glow",
+                    "slug": "sunset-glow"
+                },
+                {
+                    "color": "#FFE5F1",
+                    "name": "Rose Quartz",
+                    "slug": "rose-quartz"
+                },
+                {
+                    "color": "#FF0000",
+                    "name": "Red",
+                    "slug": "red"
+                },
+                {
+                    "color": "#00FF00",
+                    "name": "Green",
+                    "slug": "green"
+                },
+                {
+                    "color": "#0000FF",
+                    "name": "Blue",
+                    "slug": "blue"
+                },
+                {
+                    "color": "#FFFF00",
+                    "name": "Yellow",
+                    "slug": "yellow"
+                },
+                {
+                    "color": "#00FFFF",
+                    "name": "Cyan",
+                    "slug": "cyan"
+                },
+                {
+                    "color": "#FF00FF",
+                    "name": "Magenta",
+                    "slug": "magenta"
                 }
             ]
+            
+
+
         },
         "layout": {
             "contentSize": "1200px",
@@ -27,42 +148,29 @@
         "typography": {
             "fontFamilies": [
                 {
-                    "fontFace": [
-                        {
-                            "fontFamily": "Poppins",
-                            "fontStyle": "normal",
-                            "fontWeight": "400",
-                            "src": [
-                                "file:./assets/fonts/pxiEyp8kv8JHgFVrFJXUc1NECPY.woff2"
-                            ]
-                        }
-                    ],
-                    "fontFamily": "Poppins, sans-serif",
-                    "name": "Poppins",
-                    "slug": "poppins"
+                    "name": "Arial",
+                    "slug": "arial",
+                    "fontFamily": "Arial, sans-serif"
                 }
             ]
         },
-        "useRootPaddingAwareAlignments": true,
-        "editor": {
-            "useThemeStyles": true
-        }
+        "useRootPaddingAwareAlignments": true
     },
     "styles": {
         "blocks": {
             "core/heading": {
                 "typography": {
-                    "fontFamily": "var(--wp--preset--font-family--poppins)"
+                    "fontFamily": "var(--wp--preset--font-family--arial)"
                 }
             },
             "core/list": {
                 "typography": {
-                    "fontFamily": "var(--wp--preset--font-family--poppins)"
+                    "fontFamily": "var(--wp--preset--font-family--arial)"
                 }
             },
             "core/paragraph": {
                 "typography": {
-                    "fontFamily": "var(--wp--preset--font-family--poppins)"
+                    "fontFamily": "var(--wp--preset--font-family--arial)"
                 }
             }
         },
@@ -72,28 +180,28 @@
         "elements": {
             "button": {
                 "typography": {
-                    "fontFamily": "var(--wp--preset--font-family--poppins)"
+                    "fontFamily": "var(--wp--preset--font-family--arial)"
                 }
             },
             "caption": {
                 "typography": {
-                    "fontFamily": "var(--wp--preset--font-family--poppins)"
+                    "fontFamily": "var(--wp--preset--font-family--arial)"
                 }
             },
             "heading": {
                 "typography": {
-                    "fontFamily": "var(--wp--preset--font-family--poppins)"
+                    "fontFamily": "var(--wp--preset--font-family--arial)"
                 }
             },
             "link": {
                 "typography": {
-                    "fontFamily": "var(--wp--preset--font-family--poppins)",
+                    "fontFamily": "var(--wp--preset--font-family--arial)",
                     "textDecoration": "none"
                 }
             }
         },
         "typography": {
-            "fontFamily": "var(--wp--preset--font-family--poppins)"
+            "fontFamily": "var(--wp--preset--font-family--arial)"
         }
     },
     "version": 3,
