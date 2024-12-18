@@ -3,7 +3,7 @@
 # SNN BRX - Bricks Builder Child Theme
 
 > [!NOTE]
-> Almost readt for PRODUCTION!
+> Almost ready for PRODUCTION!
 
 
 
