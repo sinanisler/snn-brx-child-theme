@@ -1,9 +1,9 @@
-# BETA version.
+# BETA
 
 # SNN BRX - Bricks Builder Child Theme
 
 > [!NOTE]
-> Almost ready for PRODUCTION!
+> Getting production ready for 2025.
 
 
 
