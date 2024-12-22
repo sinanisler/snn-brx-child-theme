@@ -2,8 +2,7 @@
 
 
 // Frontend Head ınline JS and CSS
-function snn_custom_inline_frontend_head_code() {
-    ?>
+function snn_custom_inline_frontend_head_code() {    ?>
 <style type="text/css">
 
 
@@ -12,10 +11,7 @@ function snn_custom_inline_frontend_head_code() {
 
 
 </script>
-<?php
-}
-add_action( 'wp_head', 'snn_custom_inline_frontend_head_code', 1 );
-
+<?php }
 
 
 
@@ -29,10 +25,12 @@ function snn_custom_footer_inline() { ?>
 
 
 </script>
-<?php
-}
-add_action('wp_footer', 'snn_custom_footer_inline');
+<?php }
 
+
+
+add_action('wp_footer', 'snn_custom_footer_inline');
+add_action( 'wp_head', 'snn_custom_inline_frontend_head_code', 1 );
 
 
 
