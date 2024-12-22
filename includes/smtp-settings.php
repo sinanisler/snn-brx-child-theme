@@ -203,30 +203,7 @@ function custom_smtp_smtp_password_render() {
     <?php
 }
 
-// Remove Password Button
-function custom_smtp_remove_password_render() {
-    ?>
-    <button type="button" class="button" onclick="removeSMTPPassword()">Remove Password</button>
-    <script>
-        function removeSMTPPassword() {
-            if (confirm('<?php echo esc_js(__('Are you sure you want to remove the SMTP password?', 'textdomain')); ?>')) {
-                var data = {
-                    'action': 'remove_smtp_password',
-                    'nonce': '<?php echo wp_create_nonce("remove_smtp_password_nonce"); ?>'
-                };
-                jQuery.post(ajaxurl, data, function(response) {
-                    if (response.success) {
-                        alert('<?php echo esc_js(__('SMTP password removed successfully.', 'textdomain')); ?>');
-                        location.reload();
-                    } else {
-                        alert('<?php echo esc_js(__('Failed to remove SMTP password.', 'textdomain')); ?>');
-                    }
-                });
-            }
-        }
-    </script>
-    <?php
-}
+
 
 // 6. Handle AJAX Request to Remove Password
 add_action('wp_ajax_remove_smtp_password', 'custom_smtp_remove_password_callback');
