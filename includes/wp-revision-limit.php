@@ -22,8 +22,8 @@ function custom_revisions_limit($num, $post) {
   function snn_revisions_limit_callback() {
     $options = get_option('snn_settings');
     ?>
-    <input type="number" name="snn_settings[revisions_limit]" value="<?php echo isset($options['revisions_limit']) ? esc_attr($options['revisions_limit']) : 100; ?>" min="0">
-    <p>Set the maximum number of revisions to keep for each post. Default is 100.</p>
+    <input type="number" name="snn_settings[revisions_limit]" value="<?php echo isset($options['revisions_limit']) ? esc_attr($options['revisions_limit']) : 500; ?>" min="0">
+    <p>Set the maximum number of revisions to keep for each post. Default is Unlimited.</p>
     <?php
   }
   

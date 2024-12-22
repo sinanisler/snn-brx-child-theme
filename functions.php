@@ -48,6 +48,8 @@ require_once get_stylesheet_directory() . '/includes/settings-page.php';
 
 require_once get_stylesheet_directory() . '/includes/security-page.php';
 require_once get_stylesheet_directory() . '/includes/post-types-settings.php';
+require_once get_stylesheet_directory() . '/includes/custom-field-settings.php';
+require_once get_stylesheet_directory() . '/includes/taxonomy-settings.php';
 
 require_once get_stylesheet_directory() . '/includes/documentation-settings-page.php';
 require_once get_stylesheet_directory() . '/includes/block-editor-settings.php';
@@ -64,7 +66,6 @@ require_once get_stylesheet_directory() . '/includes/login-logo-change-url-chang
 require_once get_stylesheet_directory() . '/includes/wp-revision-limit.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
-require_once get_stylesheet_directory() . '/includes/custom-field-settings.php';
 // require_once get_stylesheet_directory() . '/includes/command-center.php';
 require_once get_stylesheet_directory() . '/includes/color-sync-bricks-and-block-editor.php';
 require_once get_stylesheet_directory() . '/includes/theme-json-styles.php';

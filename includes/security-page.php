@@ -20,7 +20,7 @@ function snn_add_security_submenu() {
     add_submenu_page(
         'snn-settings',                // Parent slug (SNN Settings menu)
         'Security Settings',          // Page title
-        'Security',                   // Menu title
+        'Security Settings',                   // Menu title
         'manage_options',             // Capability required to access the page
         'snn-security',               // Menu slug
         'snn_security_page_callback'  // Callback function to render the page
