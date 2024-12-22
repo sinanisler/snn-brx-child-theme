@@ -310,7 +310,7 @@ function snn_custom_fields_page_callback() {
 
 .custom-field-row input[type="text"],
 .custom-field-row select {
-    flex: 1 1 200px;
+     
     padding: 8px 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -339,14 +339,11 @@ function snn_custom_fields_page_callback() {
 }
 
 .submit input[type="submit"] {
-    padding: 10px 20px;
-    background-color: #0073aa;
+    background: #2271b1;
+    border-color: #2271b1;
     color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+    text-decoration: none;
+    text-shadow: none;
 }
 
 .submit input[type="submit"]:hover {

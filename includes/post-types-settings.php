@@ -175,6 +175,7 @@ function snn_render_custom_post_types_page() {
                 padding: 10px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
+                background-color: #f9f9f9;
             }
             .custom-post-type-row label { 
                 width: auto;
@@ -188,17 +189,12 @@ function snn_render_custom_post_types_page() {
                 border-radius: 3px;
             }
             .custom-post-type-row .buttons {
-                display: flex;
+                 
                 flex-direction: column;
                 gap: 5px;
             }
             .custom-post-type-row button {
-                padding: 5px 10px;
-                border: none;
-                background-color: #0073aa;
-                color: #fff;
-                border-radius: 3px;
-                cursor: pointer;
+                 
             }
             .custom-post-type-row button:hover {
                 background-color: #005177;
