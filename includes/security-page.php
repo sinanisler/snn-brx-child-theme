@@ -20,7 +20,7 @@ function snn_add_security_submenu() {
     add_submenu_page(
         'snn-settings',                // Parent slug (SNN Settings menu)
         'Security Settings',          // Page title
-        'Security Settings',                   // Menu title
+        'Security Settings',          // Menu title
         'manage_options',             // Capability required to access the page
         'snn-security',               // Menu slug
         'snn_security_page_callback'  // Callback function to render the page
@@ -35,6 +35,12 @@ function snn_security_page_callback() {
     ?>
     <div class="wrap">
         <h1><?php esc_html_e( 'Security Settings', 'snn' ); ?></h1>
+        
+        <?php
+            // Display settings errors and success messages
+            settings_errors(); // Removed the parameter
+        ?>
+        
         <form method="post" action="options.php">
             <?php
                 // Output security fields for the registered setting
@@ -48,14 +54,6 @@ function snn_security_page_callback() {
             ?>
         </form>
     </div>
-    <style>
-    [type="checkbox"] {
-        width: 18px !important;
-        height: 18px !important;
-        float: left;
-        margin-right: 10px !important;
-    }
-    </style>
     <?php
 }
 
@@ -74,7 +72,7 @@ function snn_security_settings_init() {
         'snn_security_main_section',      // ID
         __( 'Main Settings', 'snn' ),     // Title
         'snn_security_section_callback',  // Callback
-        'snn-security'                     // Page
+        'snn-security'                    // Page
     );
 
     // Add the math captcha settings field
@@ -101,7 +99,7 @@ function snn_security_section_callback() {
 function snn_math_captcha_callback() {
     $options = get_option('snn_security_options');
     ?>
-    <input type="checkbox" name="snn_security_options[enable_math_captcha]" value="1" <?php checked(isset($options['enable_math_captcha']), 1); ?>>
+    <input type="checkbox" name="snn_security_options[enable_math_captcha]" value="1" <?php checked(isset($options['enable_math_captcha']) && $options['enable_math_captcha'], 1); ?>>
     <p><?php esc_html_e( 'Enable this setting to add a math captcha challenge on the login page to improve security.', 'snn' ); ?></p>
     <?php
 }

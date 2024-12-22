@@ -24,7 +24,7 @@ function snn_login_logo_url_callback() {
     $options = get_option('snn_settings');
     ?>
     <input type="text" name="snn_settings[login_logo_url]" value="<?php echo esc_attr($options['login_logo_url'] ?? ''); ?>" placeholder="https://website.com/image.png" style="width:300px">
-    <p>Enter the URL for the login page logo image.</p>
+    <p>Enter the URL for the login page logo image. (.png, .jpg)</p>
     <?php
 }
 
