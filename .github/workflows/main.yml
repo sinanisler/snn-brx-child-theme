@@ -27,12 +27,23 @@ jobs:
         # Split the version into an array
         IFS='.' read -r -a version_parts <<< "$current_version"
         
-        # Increment the last part of the version
-        version_parts[-1]=$((version_parts[-1] + 1))
+        MAJOR=${version_parts[0]}
+        MINOR=${version_parts[1]}
         
-        # Join the parts back into a new version string
-        new_version="${version_parts[*]}"
-        new_version="${new_version// /.}"
+        # Define the threshold for minor version
+        THRESHOLD=99
+        
+        if [ "$MINOR" -ge "$THRESHOLD" ]; then
+          # Reset minor to 0 and increment major
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+        else
+          # Increment minor
+          MINOR=$((MINOR + 1))
+        fi
+        
+        # Construct the new version
+        new_version="${MAJOR}.${MINOR}"
         
         # Update the version in style.css using awk
         awk -v new_version="$new_version" '{
