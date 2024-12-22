@@ -90,7 +90,7 @@ function snn_render_taxonomies_page() {
                             <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][hierarchical]" <?php checked( $taxonomy['hierarchical'], 1 ); ?> />
                         </div>
 
-                        <label>Associated Post Types</label>
+                        <label>Link Post Types</label>
                         <select name="taxonomies[<?php echo esc_attr( $index ); ?>][post_types][]" multiple>
                             <?php foreach ( $registered_post_types as $post_type ) : ?>
                                 <option value="<?php echo esc_attr( $post_type->name ); ?>" <?php echo in_array( $post_type->name, $taxonomy['post_types'] ) ? 'selected' : ''; ?>>
@@ -203,7 +203,7 @@ function snn_render_taxonomies_page() {
                 gap: 10px;
                 margin-bottom: 10px;
                 align-items: center;
-                padding: 10px;
+                padding: 20px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
                 background-color: #f9f9f9;

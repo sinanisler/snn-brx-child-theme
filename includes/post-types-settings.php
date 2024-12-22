@@ -172,7 +172,7 @@ function snn_render_custom_post_types_page() {
                 gap: 10px;
                 margin-bottom: 10px;
                 align-items: center;
-                padding: 10px;
+                padding: 20px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
                 background-color: #f9f9f9;

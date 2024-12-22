@@ -48,6 +48,14 @@ function snn_security_page_callback() {
             ?>
         </form>
     </div>
+    <style>
+    [type="checkbox"] {
+        width: 18px !important;
+        height: 18px !important;
+        float: left;
+        margin-right: 10px !important;
+    }
+    </style>
     <?php
 }
 

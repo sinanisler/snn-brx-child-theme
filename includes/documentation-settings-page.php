@@ -4,7 +4,7 @@ function snn_add_external_documentation_submenu() {
     global $submenu;
 
     $parent_slug = 'snn-settings'; // Replace with your actual parent menu slug
-    $menu_title = 'Documentation';  // The text to be displayed for the submenu
+    $menu_title = 'Documentation ➤';  // The text to be displayed for the submenu
     $capability = 'manage_options'; // Capability required to access this submenu
     $external_url = 'https://github.com/sinanisler/snn-brx-child-theme/wiki'; // Replace with your external URL
 
@@ -28,7 +28,7 @@ function snn_add_inline_admin_script() {
     jQuery(document).ready(function($) {
         // Replace 'Documentation' with the exact submenu title
         $('#adminmenu a').filter(function() {
-            return $(this).text().trim() === 'Documentation';
+            return $(this).text().trim() === 'Documentation ➤';
         }).attr('target', '_blank');
     });
     </script>
