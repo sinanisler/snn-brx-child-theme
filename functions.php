@@ -1,8 +1,47 @@
 <?php
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+
+
+// Frontend Head ınline JS and CSS
+function snn_custom_inline_frontend_head_code() {
+    ?>
+<style type="text/css">
+
+
+</style>
+<script>
+
+
+</script>
+<?php
 }
+add_action( 'wp_head', 'snn_custom_inline_frontend_head_code', 1 );
+
+
+
+
+// Frontend Footer Inline JS and CSS
+function snn_custom_footer_inline() { ?>
+<style>
+
+
+</style>
+<script>
+
+
+</script>
+<?php
+}
+add_action('wp_footer', 'snn_custom_footer_inline');
+
+
+
+
+
+
+
+
+
+
 
 // Include Settings Pages
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
