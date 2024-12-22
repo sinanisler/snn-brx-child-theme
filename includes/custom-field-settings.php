@@ -64,7 +64,7 @@ function snn_custom_fields_page_callback() {
                             <input type="text" name="custom_fields[<?php echo $index; ?>][name]" placeholder="Field Name" value="<?php echo esc_attr($field['name']); ?>" />
                             
                             <label>Field Type</label>
-                            <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select">
+                            <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
                                 <option value="text" <?php selected($field['type'], 'text'); ?>>Text</option>
                                 <option value="number" <?php selected($field['type'], 'number'); ?>>Number</option>
                                 <option value="textarea" <?php selected($field['type'], 'textarea'); ?>>Textarea</option>
@@ -560,7 +560,41 @@ function snn_output_repeater_field_js() {
 
     ?>
     <style>
-        
+    [data-field-type="media"]{
+        display:flex;
+        gap:10px;
+        flex-wrap: wrap;
+    }
+    [data-field-type="media"] .repeater-item{
+        float:left;
+    }
+
+    [data-field-type="media"] .media-uploader{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+    }
+
+    [data-field-type="media"] .media-uploader img{
+        aspect-ratio:1;
+        object-fit:cover;
+    }
+
+    [class="remove-repeater-item"] {
+        color: #2271b1;
+        background: #f6f7f7;
+        vertical-align: top;
+        border:solid 1px  #2271b1;
+        border-radius:3px;
+        cursor:pointer;
+        padding:6px 12px;
+        margin-top:8px;
+    }
+
+    .snn-custom-field{
+    margin-bottom:20px;
+    }
+
 
     </style>
 
