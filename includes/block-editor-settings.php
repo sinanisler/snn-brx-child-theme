@@ -10,7 +10,7 @@ function snn_add_block_editor_settings_submenu() {
         'snn_block_editor_settings_page_callback' // Function
     );
 }
-add_action('admin_menu', 'snn_add_block_editor_settings_submenu');
+add_action('admin_menu', 'snn_add_block_editor_settings_submenu' , 11);
 
 // Register the settings
 function snn_register_block_editor_settings() {

@@ -6,6 +6,11 @@ if (!defined('ABSPATH')) {
 
 // Include dependent security files
 require_once get_stylesheet_directory() . '/includes/login-math-captcha.php';
+require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
+require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
+require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
+require_once get_stylesheet_directory() . '/includes/remove-rss.php';
+require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
 // Include other security-related files as needed
 
 /**

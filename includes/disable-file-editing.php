@@ -1,30 +1,36 @@
 <?php
 
-function snn_disable_file_edit($enabled) {
-  $options = get_option('snn_settings');
-  if (isset($options['disable_file_edit'])) {
-    define('DISALLOW_FILE_EDIT', true);
-    return false;
-  }
-  return $enabled;
+// Disable File Editing functionality
+function snn_disable_file_edit() {
+    $options = get_option('snn_security_options');
+    if (isset($options['disable_file_edit'])) {
+        define('DISALLOW_FILE_EDIT', true);
+    }
 }
-add_filter('admin_init', 'snn_disable_file_edit');
+add_action('init', 'snn_disable_file_edit');
 
+/**
+ * Add File Editing settings field
+ */
 function snn_disable_file_edit_setting_field() {
-  add_settings_field(
-    'snn_disable_file_edit',
-    'Disable File Editing',
-    'snn_disable_file_edit_callback',
-    'snn-settings',
-    'snn_general_section'
-  );
+    add_settings_field(
+        'disable_file_edit',
+        __('Disable File Editing', 'snn'),
+        'snn_disable_file_edit_callback',
+        'snn-security',
+        'snn_security_main_section'
+    );
 }
 add_action('admin_init', 'snn_disable_file_edit_setting_field');
 
+/**
+ * Callback for File Editing settings field
+ */
 function snn_disable_file_edit_callback() {
-  $options = get_option('snn_settings');
-  ?>
-  <input type="checkbox" name="snn_settings[disable_file_edit]" value="1" <?php checked(isset($options['disable_file_edit']), 1); ?>>
-  <p>Enabling this setting will disable file editing from the WordPress dashboard.</p>
-  <?php
+    $options = get_option('snn_security_options');
+    ?>
+    <input type="checkbox" name="snn_security_options[disable_file_edit]" value="1" <?php checked(isset($options['disable_file_edit']), 1); ?>>
+    <p><?php esc_html_e('Enabling this setting will disable file editing from the WordPress dashboard.', 'snn'); ?></p>
+    <?php
 }
+?>

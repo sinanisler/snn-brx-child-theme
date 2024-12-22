@@ -10,7 +10,7 @@ function snn_add_custom_fields_submenu() {
         'snn_custom_fields_page_callback'
     );
 }
-add_action('admin_menu', 'snn_add_custom_fields_submenu', 89);
+add_action('admin_menu', 'snn_add_custom_fields_submenu', 10);
 
 // Display the Custom Fields page with support for reorder functionality
 function snn_custom_fields_page_callback() {

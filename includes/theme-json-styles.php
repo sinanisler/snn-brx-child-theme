@@ -15,7 +15,7 @@ function snn_add_block_theme_json_submenu() {
         'snn_block_theme_json_page_callback' // Function
     );
 }
-add_action('admin_menu', 'snn_add_block_theme_json_submenu');
+add_action('admin_menu', 'snn_add_block_theme_json_submenu' , 11);
 
 // Callback function for displaying the settings page
 function snn_block_theme_json_page_callback() {

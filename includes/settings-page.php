@@ -44,8 +44,8 @@ function snn_settings_page_callback() {
             height: 220px;
         }
         [type="checkbox"] {
-            width: 16px !important;
-            height: 16px !important;
+            width: 18px !important;
+            height: 18px !important;
             float: left;
             margin-right: 10px !important;
         }
@@ -62,7 +62,7 @@ function snn_register_settings() {
 
     add_settings_section(
         'snn_general_section',
-        'Enable or Disable Settings Depending on Your Project Needs and Requirements',
+        ' ',
         'snn_general_section_callback',
         'snn-settings'
     );
