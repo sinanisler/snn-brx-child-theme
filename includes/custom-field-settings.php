@@ -1,5 +1,5 @@
 <?php
-// Add a submenu page for custom fields under the main settings menu
+// Add a submenu page for custom fields under the main settings menu 
 function snn_add_custom_fields_submenu() {
     add_submenu_page(
         'snn-settings',
