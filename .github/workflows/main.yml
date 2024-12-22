@@ -10,95 +10,120 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: '0'
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
 
-    - name: Display current style.css before update
-      run: cat style.css
+      - name: Display current style.css before update
+        run: cat style.css
 
-    - name: Bump version in style.css
-      id: bump_version
-      run: |
-        # Read the current version from style.css
-        current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
-        echo "Current version: $current_version"
-        
-        # Split the version into an array
-        IFS='.' read -r -a version_parts <<< "$current_version"
-        
-        MAJOR=${version_parts[0]}
-        MINOR=${version_parts[1]}
-        
-        # Define the threshold for minor version
-        THRESHOLD=99
-        
-        if [ "$MINOR" -ge "$THRESHOLD" ]; then
-          # Reset minor to 0 and increment major
-          MAJOR=$((MAJOR + 1))
-          MINOR=0
-        else
-          # Increment minor
-          MINOR=$((MINOR + 1))
-        fi
-        
-        # Construct the new version
-        new_version="${MAJOR}.${MINOR}"
-        
-        # Update the version in style.css using awk
-        awk -v new_version="$new_version" '{
-          if ($1 == "Version:") {
-            $2 = new_version
-          }
-          print
-        }' style.css > style.css.tmp && mv style.css.tmp style.css
-        
-        # Verify the update
-        updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
-        echo "Updated version: $updated_version"
-        
-        if [ "$updated_version" != "$new_version" ]; then
-          echo "Version update failed"
-          exit 1
-        fi
-        
-        # Output the new version
-        echo "new_version=$new_version" >> $GITHUB_ENV
+      - name: Bump version in style.css
+        id: bump_version
+        run: |
+          # Read the current version from style.css
+          current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+          echo "Current version: $current_version"
+          
+          # Split the version into an array
+          IFS='.' read -r -a version_parts <<< "$current_version"
+          
+          MAJOR=${version_parts[0]}
+          MINOR=${version_parts[1]}
+          
+          # Define the threshold for minor version
+          THRESHOLD=99
+          
+          if [ "$MINOR" -ge "$THRESHOLD" ]; then
+            # Reset minor to 0 and increment major
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+          else
+            # Increment minor
+            MINOR=$((MINOR + 1))
+          fi
+          
+          # Construct the new version
+          new_version="${MAJOR}.${MINOR}"
+          
+          # Update the version in style.css using awk
+          awk -v new_version="$new_version" '{
+            if ($1 == "Version:") {
+              $2 = new_version
+            }
+            print
+          }' style.css > style.css.tmp && mv style.css.tmp style.css
+          
+          # Verify the update
+          updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+          echo "Updated version: $updated_version"
+          
+          if [ "$updated_version" != "$new_version" ]; then
+            echo "Version update failed"
+            exit 1
+          fi
+          
+          # Output the current and new version
+          echo "current_version=$current_version" >> $GITHUB_ENV
+          echo "new_version=$new_version" >> $GITHUB_ENV
 
-    - name: Display current style.css after update
-      run: cat style.css
+      - name: Get commit messages since last release
+        id: get_commits
+        run: |
+          last_tag="v${{ env.current_version }}"
+          echo "Last tag: $last_tag"
 
-    - name: Commit changes
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git add style.css
-        git commit -m "Bump version to ${{ env.new_version }}"
-        git push
+          if git rev-parse "$last_tag" >/dev/null 2>&1; then
+            commits=$(git log "$last_tag"..HEAD --pretty=format:"- %s")
+          else
+            commits=$(git log --pretty=format:"- %s")
+          fi
 
-    - name: Create new GitHub tag
-      run: |
-        git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
-        git push origin "v${{ env.new_version }}"
+          if [ -z "$commits" ]; then
+            commits="No changes."
+          fi
 
-    - name: Create zip file of the repository
-      run: |
-        shopt -s extglob    # Enable extended globbing
-        mkdir snn-brx-child-theme
-        mv !(.git|*.github*|snn-brx-child-theme) snn-brx-child-theme/
-        zip -r snn-brx-child-theme.zip snn-brx-child-theme -x "*.git*" "*.github*"
-      shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        new_version: ${{ env.new_version }}
+          echo "commit_messages<<EOF" >> $GITHUB_ENV
+          echo "$commits" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-    - name: Create GitHub release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: snn-brx-child-theme.zip
-        tag_name: ${{ env.new_version }}
-        release_name: Release ${{ env.new_version }}
-        body: "Version ${{ env.new_version }} release of the project."
+      - name: Display current style.css after update
+        run: cat style.css
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add style.css
+          git commit -m "Bump version to ${{ env.new_version }}"
+          git push
+
+      - name: Create new GitHub tag
+        run: |
+          git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
+          git push origin "v${{ env.new_version }}"
+
+      - name: Create zip file of the repository
+        run: |
+          shopt -s extglob    # Enable extended globbing
+          mkdir snn-brx-child-theme
+          mv !(.git|*.github*|snn-brx-child-theme) snn-brx-child-theme/
+          zip -r snn-brx-child-theme.zip snn-brx-child-theme -x "*.git*" "*.github*"
+        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          new_version: ${{ env.new_version }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: snn-brx-child-theme.zip
+          tag_name: "v${{ env.new_version }}"
+          release_name: "Release v${{ env.new_version }}"
+          body: |
+            Version ${{ env.new_version }} release of the project.
+
+            ## Changes
+            ${{ env.commit_messages }}
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
