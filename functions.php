@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 
 require_once get_stylesheet_directory() . '/includes/security-page.php';
-
+require_once get_stylesheet_directory() . '/includes/post-types-settings.php';
 
 require_once get_stylesheet_directory() . '/includes/documentation-settings-page.php';
 require_once get_stylesheet_directory() . '/includes/block-editor-settings.php';

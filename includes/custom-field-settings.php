@@ -260,6 +260,135 @@ function snn_custom_fields_page_callback() {
             .custom-field-row button {
                 margin-left: 5px;
             }
+
+
+
+
+
+
+/* Styles for Custom Fields Management Page */
+.custom-field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.custom-field-row .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-right: 10px;
+}
+
+.custom-field-row .buttons button {
+    padding: 5px 10px;
+    border: none;
+    background-color: #0073aa;
+    color: #fff;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.custom-field-row .buttons button:hover {
+    background-color: #005177;
+}
+
+.custom-field-row label { 
+    
+    font-weight: bold;
+    margin-right: 10px;
+    font-size: 14px;
+}
+
+.custom-field-row input[type="text"],
+.custom-field-row select {
+    flex: 1 1 200px;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.custom-field-row input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+#add-custom-field-row {
+    color: #2271b1;
+    border-color: #2271b1;
+    background: #f6f7f7;
+    vertical-align: top;
+    padding:5px 20px;
+    border:solid 1px;
+    cursor:pointer;
+    border-radius:3px;
+}
+
+#add-custom-field-row:hover {
+    background:rgb(242, 242, 242);
+}
+
+.submit input[type="submit"] {
+    padding: 10px 20px;
+    background-color: #0073aa;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.submit input[type="submit"]:hover {
+    background-color: #005177;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .custom-field-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .custom-field-row label {
+        flex: none;
+        margin-bottom: 5px;
+    }
+
+    .custom-field-row input[type="text"],
+    .custom-field-row select {
+        flex: none;
+        width: 100%;
+    }
+
+    .custom-field-row .buttons {
+        flex-direction: row;
+        gap: 10px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
         </style>
     </div>
 <?php
@@ -433,6 +562,11 @@ function snn_output_repeater_field_js() {
     }
 
     ?>
+    <style>
+        
+
+    </style>
+
     <script>
     (function($){
         $(document).ready(function(){
