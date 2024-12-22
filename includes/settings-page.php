@@ -2,16 +2,22 @@
 
 function snn_add_menu_page() {
     add_menu_page(
-        'SNN Settings', // Page title
-        'SNN Settings', // Menu title
-        'manage_options', // Capability
-        'snn-settings', // Menu slug
-        'snn_settings_page_callback', // Function
-        '', // Icon URL (optional)
-        99 // Position (optional, set to a high number to make it the last item)
+        'SNN Settings', 
+        'SNN Settings', 
+        'manage_options', 
+        'snn-settings', 
+        'snn_settings_page_callback', 
+        '', 
+        99 
     );
+
+
 }
 add_action('admin_menu', 'snn_add_menu_page');
+
+
+
+
 
 function snn_settings_page_callback() {
     ?>

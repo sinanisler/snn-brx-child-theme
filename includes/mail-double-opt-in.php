@@ -5,6 +5,9 @@
 // 
 //  Confirmation Mail Setup : 	/example-page/?verify-my-mail={{f12de2}}&hash=y2u6ı8b2d6js3
 //
+//  {{f12de2}}   this tag id changes depending on your mail field
+//
+//
 //  SETUP
 //
 //  Put your form wherevre you want.

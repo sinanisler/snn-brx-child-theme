@@ -2,134 +2,73 @@
     "settings": {
         "appearanceTools": true,
         "color": {
-            "palette": 
-            
-
-            [
+            "palette": [
                 {
-                    "color": "#FF6F61",
-                    "name": "Vivid Coral",
-                    "slug": "vivid-coral"
+                    "color": "#ffd64f",
+                    "name": "Primary",
+                    "slug": "primary"
                 },
                 {
-                    "color": "#FFB74D",
-                    "name": "Bright Tangerine",
-                    "slug": "bright-tangerine"
+                    "color": "#fc5778",
+                    "name": "Secondary",
+                    "slug": "secondary"
                 },
                 {
-                    "color": "#FF8A80",
-                    "name": "Hot Pink",
-                    "slug": "hot-pink"
+                    "color": "#9e9e9e",
+                    "name": "Text Light",
+                    "slug": "text-light"
                 },
                 {
-                    "color": "#FFD700",
-                    "name": "Sunshine Yellow",
-                    "slug": "sunshine-yellow"
+                    "color": "#212121",
+                    "name": "Text Dark",
+                    "slug": "text-dark"
                 },
                 {
-                    "color": "#4CAF50",
-                    "name": "Vivid Green",
-                    "slug": "vivid-green"
+                    "color": "#616161",
+                    "name": "Text Medium",
+                    "slug": "text-medium"
                 },
                 {
-                    "color": "#1E88E5",
-                    "name": "Bright Blue",
-                    "slug": "bright-blue"
+                    "color": "#00b0f4",
+                    "name": "Text Info",
+                    "slug": "text-info"
                 },
                 {
-                    "color": "#E040FB",
-                    "name": "Neon Purple",
-                    "slug": "neon-purple"
+                    "color": "#11b76b",
+                    "name": "Text Success",
+                    "slug": "text-success"
                 },
                 {
-                    "color": "#FF5722",
-                    "name": "Flaming Orange",
-                    "slug": "flaming-orange"
+                    "color": "#ffa100",
+                    "name": "Text Warning",
+                    "slug": "text-warning"
                 },
                 {
-                    "color": "#FDCBBA",
-                    "name": "Blush Pink",
-                    "slug": "blush-pink"
+                    "color": "#fa4362",
+                    "name": "Text Danger",
+                    "slug": "text-danger"
                 },
                 {
-                    "color": "#A0D2DB",
-                    "name": "Soft Teal",
-                    "slug": "soft-teal"
+                    "color": "#e5f3ff",
+                    "name": "Background Info",
+                    "slug": "bg-info"
                 },
                 {
-                    "color": "#F5E4C3",
-                    "name": "Pale Sand",
-                    "slug": "pale-sand"
+                    "color": "#e6f6ed",
+                    "name": "Background Success",
+                    "slug": "bg-success"
                 },
                 {
-                    "color": "#E8C8FF",
-                    "name": "Lavender Bloom",
-                    "slug": "lavender-bloom"
+                    "color": "#fff2d7",
+                    "name": "Background Warning",
+                    "slug": "bg-warning"
                 },
                 {
-                    "color": "#FFDDC1",
-                    "name": "Peach Cream",
-                    "slug": "peach-cream"
-                },
-                {
-                    "color": "#B5EAD7",
-                    "name": "Mint Frost",
-                    "slug": "mint-frost"
-                },
-                {
-                    "color": "#F2B8A2",
-                    "name": "Coral Mist",
-                    "slug": "coral-mist"
-                },
-                {
-                    "color": "#C2E4FF",
-                    "name": "Sky Pastel",
-                    "slug": "sky-pastel"
-                },
-                {
-                    "color": "#F4D1AE",
-                    "name": "Sunset Glow",
-                    "slug": "sunset-glow"
-                },
-                {
-                    "color": "#FFE5F1",
-                    "name": "Rose Quartz",
-                    "slug": "rose-quartz"
-                },
-                {
-                    "color": "#FF0000",
-                    "name": "Red",
-                    "slug": "red"
-                },
-                {
-                    "color": "#00FF00",
-                    "name": "Green",
-                    "slug": "green"
-                },
-                {
-                    "color": "#0000FF",
-                    "name": "Blue",
-                    "slug": "blue"
-                },
-                {
-                    "color": "#FFFF00",
-                    "name": "Yellow",
-                    "slug": "yellow"
-                },
-                {
-                    "color": "#00FFFF",
-                    "name": "Cyan",
-                    "slug": "cyan"
-                },
-                {
-                    "color": "#FF00FF",
-                    "name": "Magenta",
-                    "slug": "magenta"
+                    "color": "#ffe6ec",
+                    "name": "Background Danger",
+                    "slug": "bg-danger"
                 }
             ]
-            
-
-
         },
         "layout": {
             "contentSize": "1200px",

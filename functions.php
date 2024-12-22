@@ -6,6 +6,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Include Settings Pages
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
+
+require_once get_stylesheet_directory() . '/includes/security-page.php';
+
+
 require_once get_stylesheet_directory() . '/includes/documentation-settings-page.php';
 require_once get_stylesheet_directory() . '/includes/block-editor-settings.php';
 require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
@@ -15,7 +19,7 @@ require_once get_stylesheet_directory() . '/includes/remove-rss.php';
 require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
 require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
 require_once get_stylesheet_directory() . '/includes/auto-update-bricks.php';
-require_once get_stylesheet_directory() . '/includes/login-math-captcha.php';
+
 require_once get_stylesheet_directory() . '/includes/login-error-message.php';
 require_once get_stylesheet_directory() . '/includes/login-logo-change-url-change.php';
 require_once get_stylesheet_directory() . '/includes/wp-revision-limit.php';
