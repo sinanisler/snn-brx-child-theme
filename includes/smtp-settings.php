@@ -117,7 +117,7 @@ function custom_smtp_settings_sanitize($input) {
 
 // 4. Section Callback
 function custom_smtp_settings_section_callback() {
-    echo '<p>' . __('After implementing, thoroughly test the SMTP settings to ensure that emails are sent correctly using the configured SMTP server ', 'textdomain') . '</p>';
+    echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues. ', 'textdomain') . '</p>';
     
 }
 
