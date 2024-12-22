@@ -13,8 +13,8 @@ add_action( 'admin_menu', 'snn_add_custom_post_types_submenu' );
 function snn_add_custom_post_types_submenu() {
     add_submenu_page(
         'snn-settings',                   // Parent slug
-        'Manage Custom Post Types',      // Page title
-        'Custom Post Types',             // Menu title
+        'Register Post Types',      // Page title
+        'Register Post Types',             // Menu title
         'manage_options',                // Capability
         'snn-custom-post-types',         // Menu slug
         'snn_render_custom_post_types_page' // Callback function
