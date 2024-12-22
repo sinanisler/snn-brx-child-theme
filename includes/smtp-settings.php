@@ -82,14 +82,7 @@ function custom_smtp_settings_init() {
         'custom_smtp_settings_section'
     );
 
-    // Remove Password Button
-    add_settings_field(
-        'remove_password',
-        __('', 'textdomain'),
-        'custom_smtp_remove_password_render',
-        'smtp-settings',
-        'custom_smtp_settings_section'
-    );
+
 }
 
 // 3. Sanitize and Validate Settings
