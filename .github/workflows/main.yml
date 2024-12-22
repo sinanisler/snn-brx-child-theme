@@ -31,7 +31,7 @@ jobs:
           MINOR=${version_parts[1]}
           
           # Define the threshold for minor version
-          THRESHOLD=99
+          THRESHOLD=999
           
           if [ "$MINOR" -ge "$THRESHOLD" ]; then
             # Reset minor to 0 and increment major
