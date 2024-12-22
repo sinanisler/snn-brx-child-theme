@@ -1,5 +1,3 @@
-# BETA
-
 # SNN BRX - Bricks Builder Child Theme
 
 
