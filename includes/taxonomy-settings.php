@@ -220,21 +220,11 @@ function snn_render_taxonomies_page() {
                 border-radius: 3px;
             }
             .taxonomy-row .buttons {
-                display: flex;
+                
                 flex-direction: column;
                 gap: 5px;
             }
-            .taxonomy-row button {
-                padding: 5px 10px;
-                background-color: #0073aa;
-                color: #fff;
-                border: none;
-                border-radius: 3px;
-                cursor: pointer;
-            }
-            .taxonomy-row button:hover {
-                background-color: #005177;
-            }
+
             #add-taxonomy-row {
                 margin-top: 10px;
             }
