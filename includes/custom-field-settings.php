@@ -4,7 +4,7 @@ function snn_add_custom_fields_submenu() {
     add_submenu_page(
         'snn-settings',
         'Register Custom Fields',
-        'Register Custom Fields',
+        'Custom Fields',
         'manage_options',
         'snn-custom-fields',
         'snn_custom_fields_page_callback'

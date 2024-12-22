@@ -21,7 +21,7 @@ function snn_add_taxonomy_submenu() {
     add_submenu_page(
         'snn-settings',                   // Parent slug
         'Register Taxonomies',           // Page title
-        'Register Taxonomies',           // Menu title
+        'Taxonomies',           // Menu title
         'manage_options',                 // Capability
         'snn-taxonomies',                 // Menu slug
         'snn_render_taxonomies_page'      // Callback function
