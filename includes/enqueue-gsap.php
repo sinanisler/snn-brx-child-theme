@@ -33,7 +33,7 @@ function snn_enqueue_gsap_callback() {
     <li><code>gsap.min.js</code>: The core GSAP library.</li>
     <li><code>ScrollTrigger.min.js</code>: A GSAP plugin that enables scroll-based animations.</li>
     <li><code>gsap-data-animate.js</code>: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.</li>
-    <li>Read <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank">Documentation</a> for more details and examples.</li>
+    <li>Read <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki/GSAP-ScrollTrigger-Animations" target="_blank">Documentation</a> for more details and examples.</li>
   </ul>
 
 

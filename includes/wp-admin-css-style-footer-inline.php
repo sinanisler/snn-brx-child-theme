@@ -4,9 +4,7 @@
 function admin_footer_custom_footer_inline_css() {
 ?>
 <style>
-    .column-file_size {
-        width:90px
-    }
+     
 
 </style>
 <?php
