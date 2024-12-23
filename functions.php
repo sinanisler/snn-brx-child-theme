@@ -1,7 +1,7 @@
 <?php
 
 
-// Frontend Head Inline JS and CSS
+// Frontend Head Inline JS and CSS, This will load in the <head>
 function snn_custom_inline_frontend_head_code() {    ?>
 <style type="text/css">
 
@@ -12,13 +12,14 @@ function snn_custom_inline_frontend_head_code() {    ?>
 
 </script>
 <?php }
+add_action( 'wp_head', 'snn_custom_inline_frontend_head_code', 1 );
 
 
 
-// Frontend Footer Inline JS and CSS
+// Frontend Footer Inline JS and CSS,  This will load just before the </body>
 function snn_custom_footer_inline() { ?>
 <style>
-
+test
 
 </style>
 <script>
@@ -26,11 +27,8 @@ function snn_custom_footer_inline() { ?>
 
 </script>
 <?php }
+add_action('wp_footer', 'snn_custom_footer_inline', 9999);
 
-
-
-add_action('wp_footer', 'snn_custom_footer_inline');
-add_action( 'wp_head', 'snn_custom_inline_frontend_head_code', 1 );
 
 
 
