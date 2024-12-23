@@ -92,7 +92,7 @@ function ls_render_login_settings() {
     ?>
     <div class="wrap">
         <h1>Login Settings</h1>
-        <form method="post" action="options.php">
+        <form method="post" action="options.php" style="max-width:800px">
             <?php
                 settings_fields('ls_login_settings_group');
                 do_settings_sections('login-settings');
@@ -164,7 +164,7 @@ function ls_add_custom_login_footer() {
         padding-left:5px;
         padding-right:5px;
         margin-top:30px;
-        margin-left:14%;
+        margin-left:14%;        
     }
 
     .ls-snn{

@@ -99,6 +99,14 @@ function snn_security_section_callback() {
 function snn_math_captcha_callback() {
     $options = get_option('snn_security_options');
     ?>
+    <style> 
+    [type="checkbox"]{
+        width: 18px !important;
+        height: 18px !important;
+        float: left;
+        margin-right: 10px !important;
+    }
+    </style>
     <input type="checkbox" name="snn_security_options[enable_math_captcha]" value="1" <?php checked(isset($options['enable_math_captcha']) && $options['enable_math_captcha'], 1); ?>>
     <p><?php esc_html_e( 'Enable this setting to add a math captcha challenge on the login page to improve security.', 'snn' ); ?></p>
     <?php

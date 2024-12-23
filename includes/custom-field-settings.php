@@ -30,14 +30,16 @@ function snn_custom_fields_page_callback() {
 
     if (isset($_POST['snn_custom_fields_nonce']) && wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_custom_fields_save')) {
         $new_fields = [];
-        if (!empty($_POST['custom_fields'])) {
+        if (!empty($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
             foreach ($_POST['custom_fields'] as $field) {
+                // Ensure 'post_type' is an array
                 if (!empty($field['name']) && !empty($field['type']) && !empty($field['post_type']) && !empty($field['group_name'])) {
+                    $post_types_selected = array_map('sanitize_text_field', $field['post_type']);
                     $new_fields[] = [
                         'group_name' => sanitize_text_field($field['group_name']),
                         'name' => sanitize_text_field($field['name']),
                         'type' => sanitize_text_field($field['type']),
-                        'post_type' => sanitize_text_field($field['post_type']),
+                        'post_type' => $post_types_selected, // Save as array
                         'repeater' => !empty($field['repeater']) ? 1 : 0, // Add repeater flag
                     ];
                 }
@@ -86,9 +88,9 @@ function snn_custom_fields_page_callback() {
                             </select>
                             
                             <label>Post Type</label>
-                            <select name="custom_fields[<?php echo $index; ?>][post_type]">
+                            <select name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
                                 <?php foreach ($post_types as $post_type) : ?>
-                                    <option value="<?php echo esc_attr($post_type->name); ?>" <?php selected($field['post_type'], $post_type->name); ?>>
+                                    <option value="<?php echo esc_attr($post_type->name); ?>" <?php echo (is_array($field['post_type']) && in_array($post_type->name, $field['post_type'])) ? 'selected' : ''; ?>>
                                         <?php echo esc_html($post_type->label); ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -128,7 +130,7 @@ function snn_custom_fields_page_callback() {
                         </select>
                         
                         <label>Post Type</label>
-                        <select name="custom_fields[0][post_type]">
+                        <select name="custom_fields[0][post_type][]" multiple>
                             <?php foreach ($post_types as $post_type) : ?>
                                 <option value="<?php echo esc_attr($post_type->name); ?>">
                                     <?php echo esc_html($post_type->label); ?>
@@ -196,7 +198,7 @@ function snn_custom_fields_page_callback() {
                         <option value="color">Color</option>
                     </select>
                     <label>Post Type</label>
-                    <select name="custom_fields[${newIndex}][post_type]">
+                    <select name="custom_fields[${newIndex}][post_type][]" multiple>
                         <?php foreach ($post_types as $post_type) : ?>
                             <option value="<?php echo esc_js($post_type->name); ?>"><?php echo esc_js($post_type->label); ?></option>
                         <?php endforeach; ?>
@@ -382,31 +384,30 @@ function snn_register_dynamic_metaboxes() {
     global $snn_media_fields_exist;
     $snn_media_fields_exist = false;
 
-
-    
     foreach ($custom_fields as $field) {
         // Ensure group_name is set, otherwise use 'default'
         $group_name = isset($field['group_name']) ? $field['group_name'] : 'default';
     
-        // Ensure post_type is set
-        if (isset($field['post_type']) && isset($group_name)) {
-            // Ensure the arrays are initialized before setting values
-            if (!isset($grouped_fields[$field['post_type']])) {
-                $grouped_fields[$field['post_type']] = [];
-            }
-            if (!isset($grouped_fields[$field['post_type']][$group_name])) {
-                $grouped_fields[$field['post_type']][$group_name] = [];
-            }
-    
-            // Add field to the group
-            $grouped_fields[$field['post_type']][$group_name][] = $field;
-            
-            if ($field['type'] === 'media') {
-                $snn_media_fields_exist = true;
+        // Ensure post_type is set and is an array
+        if (isset($field['post_type']) && is_array($field['post_type']) && isset($group_name)) {
+            foreach ($field['post_type'] as $post_type) {
+                // Ensure the arrays are initialized before setting values
+                if (!isset($grouped_fields[$post_type])) {
+                    $grouped_fields[$post_type] = [];
+                }
+                if (!isset($grouped_fields[$post_type][$group_name])) {
+                    $grouped_fields[$post_type][$group_name] = [];
+                }
+        
+                // Add field to the group
+                $grouped_fields[$post_type][$group_name][] = $field;
+                
+                if ($field['type'] === 'media') {
+                    $snn_media_fields_exist = true;
+                }
             }
         }
     }
-
 
     foreach ($grouped_fields as $post_type => $groups) {
         foreach ($groups as $group_name => $fields) {
@@ -472,6 +473,7 @@ add_action('add_meta_boxes', 'snn_register_dynamic_metaboxes');
 function snn_render_field_input($field, $value = '', $index = '') {
     $field_name = $field['name'];
     if ($index !== '') {
+        // For repeater fields, use array notation
         $name_attribute = 'custom_fields[' . esc_attr($field_name) . '][' . esc_attr($index) . ']';
     } else {
         $name_attribute = 'custom_fields[' . esc_attr($field_name) . ']';
@@ -479,13 +481,13 @@ function snn_render_field_input($field, $value = '', $index = '') {
 
     switch ($field['type']) {
         case 'text':
-            echo '<input type="text" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+            echo '<input type="text" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
         case 'number':
-            echo '<input type="number" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+            echo '<input type="number" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
         case 'textarea':
-            echo '<textarea name="' . $name_attribute . '">' . esc_textarea($value) . '</textarea>';
+            echo '<textarea name="' . esc_attr($name_attribute) . '">' . esc_textarea($value) . '</textarea>';
             break;
         case 'rich_text':
             $editor_id = str_replace(['[', ']'], '_', $name_attribute);
@@ -497,7 +499,7 @@ function snn_render_field_input($field, $value = '', $index = '') {
             break;
         case 'media':
             echo '<div class="media-uploader">';
-            echo '<input type="hidden" name="' . $name_attribute . '" value="' . esc_attr($value) . '" class="media-url-field" />';
+            echo '<input type="hidden" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" class="media-url-field" />';
             if ($value) {
                 $image = wp_get_attachment_image_src($value, 'thumbnail');
                 if ($image) {
@@ -512,13 +514,13 @@ function snn_render_field_input($field, $value = '', $index = '') {
             echo '</div>';
             break;
         case 'date':
-            echo '<input type="date" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+            echo '<input type="date" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
         case 'color':
-            echo '<input type="color" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+            echo '<input type="color" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
         default:
-            echo '<input type="text" name="' . $name_attribute . '" value="' . esc_attr($value) . '" />';
+            echo '<input type="text" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
     }
 }
@@ -641,8 +643,25 @@ add_action('admin_enqueue_scripts', 'snn_enqueue_admin_scripts');
 
 // Save dynamically created metabox data
 function snn_save_dynamic_metabox_data($post_id) {
+    // Check if our nonce is set.
     if (!isset($_POST['snn_custom_fields_nonce']) || !wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_save_custom_fields')) {
         return;
+    }
+
+    // Check if not an autosave
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Check user permissions
+    if (isset($_POST['post_type']) && 'page' == $_POST['post_type']) {
+        if (!current_user_can('edit_page', $post_id)) {
+            return;
+        }
+    } else {
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
     }
 
     if (!isset($_POST['custom_fields']) || !is_array($_POST['custom_fields'])) {
@@ -656,7 +675,24 @@ function snn_save_dynamic_metabox_data($post_id) {
         if (!empty($field['repeater'])) {
             // Repeater Field
             if (isset($_POST['custom_fields'][$field_name]) && is_array($_POST['custom_fields'][$field_name])) {
-                $values = array_map('sanitize_text_field', $_POST['custom_fields'][$field_name]);
+                // Sanitize each value based on field type
+                $values = array_map(function($value) use ($field) {
+                    switch ($field['type']) {
+                        case 'text':
+                        case 'number':
+                        case 'date':
+                        case 'color':
+                            return sanitize_text_field($value);
+                        case 'textarea':
+                            return sanitize_textarea_field($value);
+                        case 'rich_text':
+                            return wp_kses_post($value);
+                        case 'media':
+                            return intval($value); // Assuming media is saved as attachment ID
+                        default:
+                            return sanitize_text_field($value);
+                    }
+                }, $_POST['custom_fields'][$field_name]);
                 update_post_meta($post_id, $field_name, $values);
             } else {
                 delete_post_meta($post_id, $field_name);
@@ -665,10 +701,28 @@ function snn_save_dynamic_metabox_data($post_id) {
             // Single Field
             if (isset($_POST['custom_fields'][$field_name])) {
                 $value = $_POST['custom_fields'][$field_name];
-                if ($field['type'] == 'rich_text') {
-                    $value = wp_kses_post($value);
-                } else {
-                    $value = sanitize_text_field($value);
+                switch ($field['type']) {
+                    case 'rich_text':
+                        $value = wp_kses_post($value);
+                        break;
+                    case 'media':
+                        $value = intval($value); // Assuming media is saved as attachment ID
+                        break;
+                    case 'textarea':
+                        $value = sanitize_textarea_field($value);
+                        break;
+                    case 'number':
+                        $value = floatval($value);
+                        break;
+                    case 'date':
+                        $value = sanitize_text_field($value);
+                        break;
+                    case 'color':
+                        $value = sanitize_hex_color($value);
+                        break;
+                    default:
+                        $value = sanitize_text_field($value);
+                        break;
                 }
                 update_post_meta($post_id, $field_name, $value);
             } else {
