@@ -12,6 +12,17 @@ function snn_add_custom_fields_submenu() {
 }
 add_action('admin_menu', 'snn_add_custom_fields_submenu', 10);
 
+// === Temporary Workaround Start ===
+// Set wp-editor in the 'Text' (HTML) mode by default.
+// This helps in initializing the Rich Text Editor properly.
+add_filter(
+    'wp_default_editor',
+    function () {
+        return 'html';
+    }
+);
+// === Temporary Workaround End ===
+
 // Display the Custom Fields page with support for reorder functionality
 function snn_custom_fields_page_callback() {
     $custom_fields = get_option('snn_custom_fields', []);
@@ -51,10 +62,10 @@ function snn_custom_fields_page_callback() {
                         ?>
                         <div class="custom-field-row" data-index="<?php echo $index; ?>">
 
-                            <div>
-                            <button type="button" class="move-up">▲</button>
-                            <button type="button" class="move-down">▼</button>
-                            <button type="button" class="remove-field">Remove</button>
+                            <div class="buttons">
+                                <button type="button" class="move-up">▲</button>
+                                <button type="button" class="move-down">▼</button>
+                                <button type="button" class="remove-field">Remove</button>
                             </div>
 
                             <label>Group Name</label>
@@ -93,11 +104,11 @@ function snn_custom_fields_page_callback() {
                     ?>
                     <div class="custom-field-row" data-index="0">
 
-                        <button type="button" class="move-up">▲</button>
-                        <button type="button" class="move-down">▼</button>
-                        <button type="button" class="remove-field">Remove</button>
-
-
+                        <div class="buttons">
+                            <button type="button" class="move-up">▲</button>
+                            <button type="button" class="move-down">▼</button>
+                            <button type="button" class="remove-field">Remove</button>
+                        </div>
 
                         <label>Group Name</label>
                         <input type="text" name="custom_fields[0][group_name]" placeholder="Group Name" />
@@ -164,10 +175,11 @@ function snn_custom_fields_page_callback() {
                 newRow.dataset.index = newIndex;
                 newRow.innerHTML = `
 
-                    <button type="button" class="move-up">▲</button>
-                    <button type="button" class="move-down">▼</button>
-                    <button type="button" class="remove-field">Remove</button>
-
+                    <div class="buttons">
+                        <button type="button" class="move-up">▲</button>
+                        <button type="button" class="move-down">▼</button>
+                        <button type="button" class="remove-field">Remove</button>
+                    </div>
 
                     <label>Group Name</label>
                     <input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name" />
@@ -261,131 +273,101 @@ function snn_custom_fields_page_callback() {
                 margin-left: 5px;
             }
 
-
-
-
-
-
-/* Styles for Custom Fields Management Page */
-.custom-field-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 15px;
-    align-items: center;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
-
-.custom-field-row .buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-right: 10px;
-}
-
-.custom-field-row .buttons button {
-    padding: 5px 10px;
-    border: none;
-    background-color: #0073aa;
-    color: #fff;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-}
-
-.custom-field-row .buttons button:hover {
-    background-color: #005177;
-}
-
-.custom-field-row label { 
-    
-    font-weight: bold;
-    margin-right: 10px;
-    font-size: 14px;
-}
-
-.custom-field-row input[type="text"],
-.custom-field-row select {
-     
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.custom-field-row input[type="checkbox"] {
-    transform: scale(1.2);
-    margin-left: 5px;
-    cursor: pointer;
-}
-
-#add-custom-field-row {
-    color: #2271b1;
-    border-color: #2271b1;
-    background: #f6f7f7;
-    vertical-align: top;
-    padding:5px 20px;
-    border:solid 1px;
-    cursor:pointer;
-    border-radius:3px;
-}
-
-#add-custom-field-row:hover {
-    background:rgb(242, 242, 242);
-}
-
-.submit input[type="submit"] {
-    background: #2271b1;
-    border-color: #2271b1;
-    color: #fff;
-    text-decoration: none;
-    text-shadow: none;
-}
-
-.submit input[type="submit"]:hover {
-    background-color: #005177;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .custom-field-row {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .custom-field-row label {
-        flex: none;
-        margin-bottom: 5px;
-    }
-
-    .custom-field-row input[type="text"],
-    .custom-field-row select {
-        flex: none;
-        width: 100%;
-    }
-
-    .custom-field-row .buttons {
-        flex-direction: row;
-        gap: 10px;
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
+            /* Styles for Custom Fields Management Page */
+            .custom-field-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                margin-bottom: 15px;
+                align-items: center;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+            
+            .custom-field-row .buttons {
+                 
+            }
+            
+            .custom-field-row .buttons button {
+                 
+            }
+            
+            .custom-field-row .buttons button:hover {
+                 
+            }
+            
+            .custom-field-row label { 
+                font-weight: bold;
+                margin-right: 10px;
+                font-size: 14px;
+            }
+            
+            .custom-field-row input[type="text"],
+            .custom-field-row select {
+                padding: 8px 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            
+            .custom-field-row input[type="checkbox"] {
+                transform: scale(1.2);
+                margin-left: 5px;
+                cursor: pointer;
+            }
+            
+            #add-custom-field-row {
+                color: #2271b1;
+                border-color: #2271b1;
+                background: #f6f7f7;
+                vertical-align: top;
+                padding:5px 20px;
+                border:solid 1px;
+                cursor:pointer;
+                border-radius:3px;
+            }
+            
+            #add-custom-field-row:hover {
+                background:rgb(242, 242, 242);
+            }
+            
+            .submit input[type="submit"] {
+                background: #2271b1;
+                border-color: #2271b1;
+                color: #fff;
+                text-decoration: none;
+                text-shadow: none;
+            }
+            
+            .submit input[type="submit"]:hover {
+                background-color: #005177;
+            }
+            
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .custom-field-row {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            
+                .custom-field-row label {
+                    flex: none;
+                    margin-bottom: 5px;
+                }
+            
+                .custom-field-row input[type="text"],
+                .custom-field-row select {
+                    flex: none;
+                    width: 100%;
+                }
+            
+                .custom-field-row .buttons {
+                    flex-direction: row;
+                    gap: 10px;
+                }
+            }
         </style>
     </div>
 <?php
@@ -462,7 +444,7 @@ function snn_register_dynamic_metaboxes() {
                         ?>
 
                         <style>
-                            /*    SNN Custom Field Editor Styles     */
+                            /* SNN Custom Field Editor Styles */
                             .snn-custom-field {
                                 display: grid;
                                 grid-template-columns: 1fr;
@@ -594,8 +576,6 @@ function snn_output_repeater_field_js() {
     .snn-custom-field{
     margin-bottom:20px;
     }
-
-
     </style>
 
     <script>
