@@ -1,7 +1,7 @@
 <?php
 
 
-// Frontend Head ınline JS and CSS
+// Frontend Head Inline JS and CSS
 function snn_custom_inline_frontend_head_code() {    ?>
 <style type="text/css">
 
