@@ -85,7 +85,7 @@ function snn_block_theme_json_page_callback() {
 
     ?>
     <div class="wrap">
-        <h1>Block Theme JSON Editor</h1>
+        <h1>Block Theme JSON Editor (BETA)</h1>
         <p>
             Use the interface below to dynamically edit the values in your <code>theme.json</code> file. All changes are reflected in the JSON textarea at the bottom. You can edit values using the fields, or directly edit the JSON. Clicking "Save Changes" will update the file.
         </p>
