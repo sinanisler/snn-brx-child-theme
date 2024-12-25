@@ -1,30 +1,31 @@
 <?php 
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 
-
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 class Custom_HTML_CSS_Script extends \Bricks\Element {
-  // Element properties
-  public $category     = 'SNN';
+  public $category     = 'snn';
   public $name         = 'custom-html-css-script';
-  public $icon         = 'fas fa-code'; // Assuming you use FontAwesome
+  public $icon         = 'fas fa-code'; 
   public $css_selector = '.snn-brx-html-css-script-wrapper';
 
-  // Return localized element label
   public function get_label() {
-    return 'Custom Code HTML';
+    return 'Custom Code HTML -SNN';
   }
 
   // Set builder control groups
   public function set_control_groups() {
-    //
+    $this->control_groups['settings'] = [
+      'title' => 'Settings',
+      'tab' => 'content',
+    ];
   }
 
   // Set builder controls
   public function set_controls() {
     $this->controls['content'] = [
       'tab' => 'content',
+      'group' => 'settings',
       'label' => 'Custom HTML Code',
       'type' => 'textarea',
       'default' => '<div>Your HTML here</div>

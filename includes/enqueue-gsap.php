@@ -5,6 +5,7 @@ function snn_enqueue_gsap_scripts() {
   if (isset($options['enqueue_gsap'])) {
     wp_enqueue_script('gsap-js', get_stylesheet_directory_uri() . '/js/gsap.min.js', array(), false, true);
     wp_enqueue_script('gsap-st-js', get_stylesheet_directory_uri() . '/js/ScrollTrigger.min.js', array('gsap-js'), false, true);
+    // wp_enqueue_script('gsap-tm-js', get_stylesheet_directory_uri() . '/js/TweenMax.min.js', array('gsap-js'), false, true);
     wp_enqueue_script('gsap-data-js', get_stylesheet_directory_uri() . '/js/gsap-data-animate.js?v0.01', array(), false, true);
   }
 }
