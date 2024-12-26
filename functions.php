@@ -31,12 +31,6 @@ add_action('wp_footer', 'snn_custom_footer_inline', 9999);
 
 
 
-
-
-
-
-
-// Include Settings Pages
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 require_once get_stylesheet_directory() . '/includes/other-settings.php';
 require_once get_stylesheet_directory() . '/includes/security-page.php';
@@ -61,11 +55,10 @@ require_once get_stylesheet_directory() . '/includes/301-redirect.php';
 
 
 
-// Include Custom Dynamic Data Tags
 require_once get_stylesheet_directory() . '/dynamic_data_tags/custom_dynamic_data_tags.php';
 
 
-// Register Custom Elements
+
 add_action( 'init', function() {
     $elements = [
         [
