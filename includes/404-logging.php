@@ -151,7 +151,7 @@ function snn_render_404_logs_page() {
                     <?php
                     $args = array(
                         'post_type' => 'snn_404_logs',
-                        'posts_per_page' => 50,
+                        'posts_per_page' => 100,
                         'orderby' => 'date',
                         'order' => 'DESC'
                     );
