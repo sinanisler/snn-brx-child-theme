@@ -45,7 +45,6 @@ require_once get_stylesheet_directory() . '/includes/custom-field-settings.php';
 require_once get_stylesheet_directory() . '/includes/taxonomy-settings.php';
 require_once get_stylesheet_directory() . '/includes/smtp-settings.php';
 require_once get_stylesheet_directory() . '/includes/login-settings.php';
-require_once get_stylesheet_directory() . '/includes/documentation-settings-page.php';
 require_once get_stylesheet_directory() . '/includes/block-editor-settings.php';
 require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
 require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
