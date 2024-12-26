@@ -36,11 +36,13 @@ function snn_handle_404_logs_actions() {
         return;
     }
 
-    // Enable or disable logging
-    if (isset($_POST['snn_404_logging_enabled'])) {
-        update_option('snn_404_logging_enabled', '1');
-    } else if (isset($_POST['snn_404_logging_submit'])) {
-        update_option('snn_404_logging_enabled', '0');
+    // Enable or disable logging (only act if the user clicked "Save Changes")
+    if (isset($_POST['snn_404_logging_submit'])) {
+        if (isset($_POST['snn_404_logging_enabled'])) {
+            update_option('snn_404_logging_enabled', '1');
+        } else {
+            update_option('snn_404_logging_enabled', '0');
+        }
     }
 
     // Set maximum number of logs to keep
@@ -185,9 +187,9 @@ function snn_render_404_logs_page() {
 
         <form method="post" action="">
             <label>
+                <!-- Removed the onclick submission so user can check/uncheck freely -->
                 <input type="checkbox" name="snn_404_logging_enabled" 
-                       <?php checked($logging_enabled); ?>
-                       onclick="this.form.submit()">
+                       <?php checked($logging_enabled); ?>>
                 Enable 404 Logging
             </label>
             <br><br>
