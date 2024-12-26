@@ -27,7 +27,7 @@ function snn_settings_page_callback() {
             everything is straightforward and ready for you to use. If you need guidance,  
             the Wiki has all the details. Enjoy building your site.
         </p>
-        <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" >Documentation ➤</a>
+        <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" >Wiki Documentation ➤</a>
         </div>
 
         <form method="post" action="options.php">
