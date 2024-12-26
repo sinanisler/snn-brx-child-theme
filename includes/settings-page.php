@@ -69,7 +69,7 @@ function snn_register_settings() {
 
     add_settings_section(
         'snn_general_section',
-        'General Settings',
+        'General Setting',
         'snn_general_section_callback',
         'snn-settings'
     );
@@ -85,7 +85,7 @@ function snn_register_settings() {
 add_action('admin_init', 'snn_register_settings');
 
 function snn_general_section_callback() {
-    echo '<p>General settings for the SNN menu page.</p>';
+    echo '<p>General setting for the SNN menu page.</p>';
 }
 
 function snn_menu_title_field_callback() {
