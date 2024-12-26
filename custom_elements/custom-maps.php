@@ -181,6 +181,19 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     .leaflet-marker-icon {
                         height:auto !important;
                     }
+                    .leaflet-container a.leaflet-popup-close-button{
+                        font-size:20px !important;
+                    }
+                    .leaflet-control-attribution{
+                    font-size:11px;
+                    color:gray !important;
+                    }
+                    .leaflet-control-attribution a{
+                    display:none
+                    }
+                    .leaflet-control-attribution span{
+                    display:none
+                    }
                 </style>
             ";
         }
@@ -194,7 +207,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         } elseif ( $map_style === 'topology' ) {
             $tile_url = 'https://b.tile.opentopomap.org/{z}/{x}/{y}.png';
         }
-        $tile_attribution = '©OpenStreetMap';
+        $tile_attribution = '©OpenStreetMap, ©Fastly, ©OpenTopoMap';
         ?>
         
         <!-- Map container -->
