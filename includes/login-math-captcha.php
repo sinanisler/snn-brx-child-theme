@@ -37,35 +37,22 @@ function add_login_math_captcha() {
                 var captchaContainer = document.getElementById('math_captcha_container');
                 captchaContainer.style.display = 'block'; 
                 document.getElementById('js_enabled').value = 'yes';
-
                 var captchaLabel = document.getElementById('captcha_label');
                 var submitButton = document.getElementById('wp-submit');
                 var captchaInput = document.getElementById('math_captcha');
-
                 submitButton.disabled = true;
-
-                // Retrieve our Base64-encoded numbers
                 var b64Number1 = "<?php echo esc_js($encodedNumber1); ?>";
                 var b64Number2 = "<?php echo esc_js($encodedNumber2); ?>";
                 var b64Sum     = "<?php echo esc_js($encodedSum); ?>";
-
-                // Decode the numbers
                 var number1 = parseInt(window.atob(b64Number1), 10);
                 var number2 = parseInt(window.atob(b64Number2), 10);
                 var correctSum = parseInt(window.atob(b64Sum), 10);
-
-                // Instead of textContent = "X + Y = ?", we draw it on a canvas
-                // so the numbers are not directly parsable as text in the DOM.
                 captchaLabel.innerHTML = "<canvas id='captchaCanvas' width='150' height='40'></canvas>";
                 var canvas = document.getElementById('captchaCanvas');
                 var ctx    = canvas.getContext('2d');
-                
-                // Some basic styling
                 ctx.font = "24px Arial";
                 ctx.fillStyle = "#333";
                 ctx.fillText(number1 + ' + ' + number2 + ' = ?', 10, 28);
-
-                // Function to validate user input
                 function validateCaptcha() {
                     var userCaptcha = parseInt(captchaInput.value.trim(), 10);
                     if (isNaN(userCaptcha) || userCaptcha !== correctSum) {

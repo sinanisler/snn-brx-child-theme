@@ -20,6 +20,16 @@ function snn_settings_page_callback() {
     ?>
     <div class="wrap">
         <h1>SNN Bricks Builder Child Theme Settings</h1>
+        <div style="max-width:600px; margin-bottom:80px ">
+        <p  style="line-height:24px !important;  ">
+            This theme is designed to give you the tools and flexibility you need to build and customize your site effortlessly. 
+            From managing post types and fields to enhancing security and design,  
+            everything is straightforward and ready for you to use. If you need guidance,  
+            the Wiki has all the details. Enjoy building your site.
+        </p>
+        <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" >Documentation ➤</a>
+        </div>
+
         <form method="post" action="options.php">
             <?php
             settings_fields('snn_settings_group');
@@ -66,7 +76,7 @@ function snn_register_settings() {
 
     add_settings_field(
         'snn_menu_title_field',
-        'Menu Title',
+        'White Label Name',
         'snn_menu_title_field_callback',
         'snn-settings',
         'snn_general_section'
@@ -81,6 +91,7 @@ function snn_general_section_callback() {
 function snn_menu_title_field_callback() {
     $menu_title = get_option('snn_menu_title', 'SNN Settings');
     echo '<input type="text" name="snn_menu_title" value="' . esc_attr($menu_title) . '" class="regular-text">';
+    echo '<p>You can rename SNN Settings whatever you want. <br>It is all yours ❤</p>';
 }
 
 // Customizer Activator - Empty Setting
