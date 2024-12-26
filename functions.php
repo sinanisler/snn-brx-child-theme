@@ -56,6 +56,7 @@ require_once get_stylesheet_directory() . '/includes/login-logo-change-url-chang
 require_once get_stylesheet_directory() . '/includes/theme-json-styles.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
 require_once get_stylesheet_directory() . '/includes/file-size-column-media.php';
+require_once get_stylesheet_directory() . '/includes/404-logging.php';
 
 
 
