@@ -147,7 +147,14 @@ function ls_add_custom_login_footer() {
             margin:0;
             margin-left:14%;
             padding-top:150px
-        }     ';
+        }     
+        ';
+    } else{
+        echo '
+        .ls-terms{
+            margin:auto !important
+        }
+        ';
     }
     
 
@@ -164,7 +171,7 @@ function ls_add_custom_login_footer() {
         padding-left:5px;
         padding-right:5px;
         margin-top:30px;
-        margin-left:14%;        
+        margin-left:14%;    
     }
 
     .ls-snn{
