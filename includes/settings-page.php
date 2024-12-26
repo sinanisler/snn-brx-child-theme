@@ -17,9 +17,10 @@ function snn_add_menu_page() {
 add_action('admin_menu', 'snn_add_menu_page');
 
 function snn_settings_page_callback() {
+    $dynamic_title = get_option('snn_menu_title', 'SNN Settings');
     ?>
     <div class="wrap">
-        <h1>SNN Bricks Builder Child Theme Settings</h1>
+        <h1><?php echo $dynamic_title; ?> - Bricks Builder Child Theme Settings</h1>
         <div style="max-width:600px; margin-bottom:80px ">
         <p  style="line-height:24px !important;  ">
             This theme is designed to give you the tools and flexibility you need to build and customize your site effortlessly. 
@@ -91,7 +92,7 @@ function snn_general_section_callback() {
 function snn_menu_title_field_callback() {
     $menu_title = get_option('snn_menu_title', 'SNN Settings');
     echo '<input type="text" name="snn_menu_title" value="' . esc_attr($menu_title) . '" class="regular-text">';
-    echo '<p>You can rename SNN Settings with this input.</p>';
+    echo '<p>You can rename SNN Settings title.</p>';
 }
 
 
