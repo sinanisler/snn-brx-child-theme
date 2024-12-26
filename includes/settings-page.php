@@ -22,13 +22,17 @@ function snn_settings_page_callback() {
     <div class="wrap">
         <h1><?php echo $dynamic_title; ?> - Bricks Builder Child Theme Settings</h1>
         <div style="max-width:600px; margin-bottom:80px ">
-        <p  style="line-height:24px !important;  ">
-            This theme is designed to give you the tools and flexibility you need to build and customize your site effortlessly. 
+        <p  style="font-size:16px; line-height:30px !important;  ">
+            This theme is designed to give you the tools and flexibility you need to build and customize your site effortlessly.
             From managing post types and fields to enhancing security and design,  
-            everything is straightforward and ready for you to use. If you need guidance,  
-            the Wiki has all the details. Enjoy building your site.
+            everything is straightforward and ready for you to use. <br>
+
+            If you need guidance, the docs has all the details.<br>
+            <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" >Docs for SNN-BRX ➤</a>
+            <br><br>
+             Enjoy building your site.
         </p>
-        <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" >Wiki Documentation ➤</a>
+        
         </div>
 
         <form method="post" action="options.php">
