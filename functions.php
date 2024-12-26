@@ -53,7 +53,6 @@ require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
 require_once get_stylesheet_directory() . '/includes/remove-rss.php';
 require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
 require_once get_stylesheet_directory() . '/includes/login-logo-change-url-change.php';
-require_once get_stylesheet_directory() . '/includes/color-sync-bricks-and-block-editor.php';
 require_once get_stylesheet_directory() . '/includes/theme-json-styles.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
 require_once get_stylesheet_directory() . '/includes/file-size-column-media.php';
