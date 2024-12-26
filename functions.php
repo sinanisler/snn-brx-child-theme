@@ -60,7 +60,6 @@ require_once get_stylesheet_directory() . '/includes/color-sync-bricks-and-block
 require_once get_stylesheet_directory() . '/includes/theme-json-styles.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
 require_once get_stylesheet_directory() . '/includes/file-size-column-media.php';
-require_once get_stylesheet_directory() . '/includes/wp-admin-css-style-footer-inline.php';
 
 
 
