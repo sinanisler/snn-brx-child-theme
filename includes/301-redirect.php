@@ -1,23 +1,24 @@
 <?php
 
-
-// 1) REGISTER THE CUSTOM POST TYPE
 function snn_register_301_redirects_post_type() {
-    register_post_type('snn_301_redirects', array(
-        'public'             => false,
-        'show_ui'           => false,
-        'publicly_queryable' => false,
-        'rewrite'           => false,
-        'label'             => 'SNN 301 Redirects'
-    ));
+    register_post_type(
+        'snn_301_redirects',
+        array(
+            'public'             => false,
+            'show_ui'            => false,
+            'publicly_queryable' => false,
+            'rewrite'            => false,
+            'label'              => 'SNN 301 Redirects'
+        )
+    );
 }
 add_action('init', 'snn_register_301_redirects_post_type');
 
-// 2) ADD THE ADMIN PAGE (SUBMENU)
+
 function snn_add_301_redirects_page() {
-    // NOTE: Change 'snn-settings' below to 'options-general.php' or another valid parent slug if needed.
+
     add_submenu_page(
-        'snn-settings',               // <-- Change this if you don’t actually have a parent menu with this slug
+        'snn-settings',               // Parent slug
         '301 Redirects',             // Page title
         '301 Redirects',             // Menu title
         'manage_options',            // Capability
@@ -27,10 +28,11 @@ function snn_add_301_redirects_page() {
 }
 add_action('admin_menu', 'snn_add_301_redirects_page');
 
-// 3) HELPER FUNCTIONS FOR NORMALIZING AND VALIDATING
+
 function snn_normalize_path($url) {
     // Remove protocol and domain if present
     $url = preg_replace('/^https?:\/\/[^\/]+/i', '', $url);
+
     // Ensure leading slash
     if (substr($url, 0, 1) !== '/') {
         $url = '/' . $url;
@@ -92,6 +94,10 @@ function snn_render_301_redirects_page() {
                     update_post_meta($post_id, 'redirect_from', $redirect_from);
                     update_post_meta($post_id, 'redirect_to', $redirect_to);
                     update_post_meta($post_id, 'created_date', current_time('mysql'));
+
+                    // Flush rewrite rules right after creation
+                    flush_rewrite_rules();
+
                     echo '<div class="notice notice-success"><p>Redirect added successfully!</p></div>';
                 }
             }
@@ -102,6 +108,9 @@ function snn_render_301_redirects_page() {
     if (isset($_POST['delete_redirect']) && check_admin_referer('snn_301_redirect_delete_nonce')) {
         $post_id = intval($_POST['redirect_id']);
         if (wp_delete_post($post_id, true)) {
+            // Flush rewrite rules right after deletion
+            flush_rewrite_rules();
+
             echo '<div class="notice notice-success"><p>Redirect deleted successfully!</p></div>';
         }
     }
