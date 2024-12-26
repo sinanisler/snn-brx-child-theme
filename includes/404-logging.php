@@ -230,7 +230,7 @@ function snn_render_404_logs_page() {
                             <td><?php echo esc_html(get_post_meta($log->ID, 'url', true)); ?></td>
                             <td><?php echo esc_html(get_post_meta($log->ID, 'referrer', true)); ?></td>
                             <td>
-                                <a href="https://whatismyipaddress.com/ip/<?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>" 
+                                <a href="https://radar.cloudflare.com/ip/<?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>" 
                                    target="_blank">
                                     <?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>
                                 </a>
