@@ -1,5 +1,5 @@
 <?php
-// Register the custom post type for 404 logs
+
 function snn_register_404_logs_post_type() {
     register_post_type('snn_404_logs', array(
         'public' => false,
@@ -8,7 +8,7 @@ function snn_register_404_logs_post_type() {
 }
 add_action('init', 'snn_register_404_logs_post_type');
 
-// Add submenu page
+
 function snn_add_404_logs_page() {
     add_submenu_page(
         'snn-settings',
@@ -21,7 +21,7 @@ function snn_add_404_logs_page() {
 }
 add_action('admin_menu', 'snn_add_404_logs_page');
 
-// Handle form submissions
+
 function snn_handle_404_logs_actions() {
     if (!current_user_can('manage_options')) {
         return;
@@ -33,11 +33,11 @@ function snn_handle_404_logs_actions() {
         update_option('snn_404_logging_enabled', '0');
     }
 
-    // Handle log size limit setting
+
     if (isset($_POST['snn_404_log_size_limit'])) {
         $size_limit = intval($_POST['snn_404_log_size_limit']);
         if ($size_limit < 1) {
-            $size_limit = 100; // Minimum size of 1
+            $size_limit = 100; 
         }
         update_option('snn_404_log_size_limit', $size_limit);
     }
@@ -57,13 +57,13 @@ function snn_handle_404_logs_actions() {
 }
 add_action('admin_init', 'snn_handle_404_logs_actions');
 
-// Function to cleanup old logs when limit is reached
+
 function snn_cleanup_old_logs($limit) {
     $args = array(
         'post_type' => 'snn_404_logs',
         'posts_per_page' => -1,
         'orderby' => 'date',
-        'order' => 'ASC', // Get oldest first
+        'order' => 'ASC', 
         'post_status' => 'any'
     );
     
@@ -78,13 +78,13 @@ function snn_cleanup_old_logs($limit) {
     }
 }
 
-// Log 404 errors
+
 function snn_log_404_error() {
     if (is_404() && get_option('snn_404_logging_enabled') === '1') {
-        // Get size limit (default 100)
+
         $size_limit = get_option('snn_404_log_size_limit', 100);
         
-        // Cleanup old logs if necessary
+
         snn_cleanup_old_logs($size_limit);
         
         $post_data = array(
@@ -106,7 +106,7 @@ function snn_log_404_error() {
 }
 add_action('template_redirect', 'snn_log_404_error');
 
-// Render the admin page
+
 function snn_render_404_logs_page() {
     $logging_enabled = get_option('snn_404_logging_enabled') === '1';
     $log_size_limit = get_option('snn_404_log_size_limit', 100);

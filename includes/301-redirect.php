@@ -1,11 +1,5 @@
 <?php
-/**
- * WordPress 301 Redirects Plugin
- * 
- * Handles 301 redirects with proper security and caching controls
- */
 
-// Register the custom post type for 301 redirects
 function snn_register_301_redirects_post_type() {
     register_post_type('snn_301_redirects', array(
         'public' => false,
@@ -14,7 +8,7 @@ function snn_register_301_redirects_post_type() {
 }
 add_action('init', 'snn_register_301_redirects_post_type');
 
-// Add submenu page
+
 function snn_add_301_redirects_page() {
     add_submenu_page(
         'snn-settings',
@@ -27,33 +21,33 @@ function snn_add_301_redirects_page() {
 }
 add_action('admin_menu', 'snn_add_301_redirects_page');
 
-// Sanitize and normalize URL paths
+
 function snn_normalize_path($url) {
-    // Remove domain if full URL is provided
+
     $url = preg_replace('/^https?:\/\/[^\/]+/i', '', $url);
     
-    // Ensure path starts with /
+
     if (substr($url, 0, 1) !== '/') {
         $url = '/' . $url;
     }
     
-    // Remove trailing slash except for homepage
+
     if ($url !== '/' && substr($url, -1) === '/') {
         $url = rtrim($url, '/');
     }
     
-    // Convert to lowercase for consistent matching
+
     return strtolower($url);
 }
 
-// Validate URL
+
 function snn_validate_url($url) {
-    // Allow relative URLs
+
     if (substr($url, 0, 1) === '/') {
         return true;
     }
     
-    // Validate absolute URLs
+
     if (filter_var($url, FILTER_VALIDATE_URL)) {
         return true;
     }
@@ -61,20 +55,20 @@ function snn_validate_url($url) {
     return false;
 }
 
-// Render the admin page content
+
 function snn_render_301_redirects_page() {
     global $wpdb;
     
-    // Handle form submission
+
     if (isset($_POST['submit_redirect']) && check_admin_referer('snn_301_redirect_nonce')) {
         $redirect_from = snn_normalize_path(sanitize_text_field($_POST['redirect_from']));
         $redirect_to = sanitize_text_field($_POST['redirect_to']);
         
-        // Validate URLs
+
         if (!snn_validate_url($redirect_to)) {
             echo '<div class="notice notice-error"><p>Invalid redirect destination URL!</p></div>';
         } else {
-            // Check if redirect already exists
+
             $existing_redirect = get_posts(array(
                 'post_type' => 'snn_301_redirects',
                 'posts_per_page' => 1,
@@ -107,7 +101,7 @@ function snn_render_301_redirects_page() {
         }
     }
 
-    // Handle delete action
+
     if (isset($_POST['delete_redirect']) && check_admin_referer('snn_301_redirect_delete_nonce')) {
         $post_id = intval($_POST['redirect_id']);
         if (wp_delete_post($post_id, true)) {
@@ -119,7 +113,7 @@ function snn_render_301_redirects_page() {
     <div class="wrap">
         <h1>301 Redirect Rules</h1>
 
-        <!-- Add New Redirect Form -->
+
         <div class="postbox">
             <div class="inside">
                 <form method="post" action="">
@@ -147,7 +141,7 @@ function snn_render_301_redirects_page() {
             </div>
         </div>
 
-        <!-- List Existing Redirects -->
+
         <?php
         $redirects = get_posts(array(
             'post_type' => 'snn_301_redirects',
@@ -190,17 +184,17 @@ function snn_render_301_redirects_page() {
     <?php
 }
 
-// Handle redirects on frontend
+
 function snn_handle_301_redirects() {
     if (is_admin()) return;
 
-    // Get current path and normalize it
+
     $current_path = snn_normalize_path($_SERVER['REQUEST_URI']);
     
-    // Remove query string for matching
+
     $path_without_query = strtok($current_path, '?');
     
-    // Get all redirects matching this path
+
     $redirects = get_posts(array(
         'post_type' => 'snn_301_redirects',
         'posts_per_page' => 1,
@@ -217,35 +211,35 @@ function snn_handle_301_redirects() {
         $redirect_to = get_post_meta($redirects[0]->ID, 'redirect_to', true);
         
         if ($redirect_to) {
-            // Preserve query string if present
+
             $query_string = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
             if ($query_string) {
-                // Check if target URL already has a query string
+
                 $redirect_to .= (strpos($redirect_to, '?') !== false) ? '&' : '?';
                 $redirect_to .= $query_string;
             }
             
-            // Handle relative URLs
+
             if (strpos($redirect_to, 'http') !== 0 && strpos($redirect_to, '//') !== 0) {
                 $redirect_to = home_url($redirect_to);
             }
             
-            // Prevent redirect loops
+
             $redirect_to_path = snn_normalize_path($redirect_to);
             if ($redirect_to_path !== $current_path) {
-                // Prevent caching of redirect
+
                 nocache_headers();
                 
-                // Determine if this is an external redirect
+
                 $is_external = strpos($redirect_to, home_url()) !== 0;
                 
                 if ($is_external) {
-                    // For external redirects, use wp_redirect with validation
+
                     if (wp_redirect($redirect_to, 301, 'SNN 301 Redirects')) {
                         exit;
                     }
                 } else {
-                    // For internal redirects, use wp_safe_redirect
+
                     if (wp_safe_redirect($redirect_to, 301, 'SNN 301 Redirects')) {
                         exit;
                     }
@@ -256,14 +250,14 @@ function snn_handle_301_redirects() {
 }
 add_action('template_redirect', 'snn_handle_301_redirects');
 
-// Activation hook to flush rewrite rules
+
 function snn_activate_301_redirects() {
     snn_register_301_redirects_post_type();
     flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'snn_activate_301_redirects');
 
-// Deactivation hook
+
 function snn_deactivate_301_redirects() {
     flush_rewrite_rules();
 }
