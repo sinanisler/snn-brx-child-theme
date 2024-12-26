@@ -41,6 +41,7 @@ add_action('wp_footer', 'snn_custom_footer_inline', 9999);
 
 // Include Settings Pages
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
+require_once get_stylesheet_directory() . '/includes/other-settings.php';
 require_once get_stylesheet_directory() . '/includes/security-page.php';
 require_once get_stylesheet_directory() . '/includes/post-types-settings.php';
 require_once get_stylesheet_directory() . '/includes/custom-field-settings.php';
@@ -54,16 +55,13 @@ require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
 require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
 require_once get_stylesheet_directory() . '/includes/remove-rss.php';
 require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
-require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
-require_once get_stylesheet_directory() . '/includes/auto-update-bricks.php';
 require_once get_stylesheet_directory() . '/includes/login-logo-change-url-change.php';
-require_once get_stylesheet_directory() . '/includes/wp-revision-limit.php';
 require_once get_stylesheet_directory() . '/includes/color-sync-bricks-and-block-editor.php';
 require_once get_stylesheet_directory() . '/includes/theme-json-styles.php';
-require_once get_stylesheet_directory() . '/includes/enqueue-gsap.php';
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
 require_once get_stylesheet_directory() . '/includes/file-size-column-media.php';
 require_once get_stylesheet_directory() . '/includes/wp-admin-css-style-footer-inline.php';
+
 
 
 
