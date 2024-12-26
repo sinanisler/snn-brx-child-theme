@@ -91,7 +91,7 @@ function snn_general_section_callback() {
 function snn_menu_title_field_callback() {
     $menu_title = get_option('snn_menu_title', 'SNN Settings');
     echo '<input type="text" name="snn_menu_title" value="' . esc_attr($menu_title) . '" class="regular-text">';
-    echo '<p>You can rename SNN Settings whatever you want. <br>It is all yours ♥</p>';
+    echo '<p>You can rename SNN Settings with this input.</p>';
 }
 
 
