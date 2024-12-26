@@ -56,7 +56,6 @@ require_once get_stylesheet_directory() . '/includes/remove-rss.php';
 require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
 require_once get_stylesheet_directory() . '/includes/move-bricks-menu.php';
 require_once get_stylesheet_directory() . '/includes/auto-update-bricks.php';
-require_once get_stylesheet_directory() . '/includes/login-error-message.php';
 require_once get_stylesheet_directory() . '/includes/login-logo-change-url-change.php';
 require_once get_stylesheet_directory() . '/includes/wp-revision-limit.php';
 require_once get_stylesheet_directory() . '/includes/color-sync-bricks-and-block-editor.php';
