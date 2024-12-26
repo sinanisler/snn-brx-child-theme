@@ -1,12 +1,12 @@
 <?php
 
 function snn_add_menu_page() {
-    // Fetch the dynamic title from the database
+    
     $dynamic_title = get_option('snn_menu_title', 'SNN Settings');
 
     add_menu_page(
         'SNN Settings', 
-        $dynamic_title, // Dynamic title for the menu
+        $dynamic_title, 
         'manage_options', 
         'snn-settings', 
         'snn_settings_page_callback', 
@@ -65,7 +65,7 @@ function snn_settings_page_callback() {
 }
 
 function snn_register_settings() {
-    register_setting('snn_settings_group', 'snn_menu_title'); // Registering the dynamic title setting
+    register_setting('snn_settings_group', 'snn_menu_title'); 
 
     add_settings_section(
         'snn_general_section',
@@ -94,7 +94,7 @@ function snn_menu_title_field_callback() {
     echo '<p>You can rename SNN Settings whatever you want. <br>It is all yours ♥</p>';
 }
 
-// Customizer Activator - Empty Setting
+
 function mytheme_customize_register( $wp_customize ) {
     $wp_customize->add_setting( 'footer_custom_css', array(
         'default'           => '',
@@ -111,9 +111,6 @@ function mytheme_customize_register( $wp_customize ) {
 }
 add_action( 'customize_register', 'mytheme_customize_register' );
 
-function mytheme_footer_custom_css() {
-    // Empty
-}
-add_action( 'wp_footer', 'mytheme_footer_custom_css' );
+
 
 ?>

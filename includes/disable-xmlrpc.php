@@ -1,6 +1,5 @@
 <?php
 
-// Disable XML-RPC functionality
 function snn_disable_xmlrpc($enabled) {
     $options = get_option('snn_security_options');
     if (isset($options['disable_xmlrpc'])) {
@@ -10,7 +9,6 @@ function snn_disable_xmlrpc($enabled) {
 }
 add_filter('xmlrpc_enabled', 'snn_disable_xmlrpc');
 
-// Add XML-RPC settings field
 function snn_disable_xmlrpc_setting_field() {
     add_settings_field(
         'disable_xmlrpc',
@@ -22,7 +20,6 @@ function snn_disable_xmlrpc_setting_field() {
 }
 add_action('admin_init', 'snn_disable_xmlrpc_setting_field');
 
-// Callback for XML-RPC settings field
 function snn_disable_xmlrpc_callback() {
     $options = get_option('snn_security_options');
     ?>

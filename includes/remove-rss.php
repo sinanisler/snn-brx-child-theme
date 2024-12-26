@@ -1,6 +1,6 @@
 <?php
 
-// Remove RSS feed links from the head
+
 function snn_remove_rss() {
     $options = get_option('snn_security_options');
     if (isset($options['remove_rss'])) {
@@ -12,9 +12,9 @@ function snn_remove_rss() {
 }
 add_action('init', 'snn_remove_rss');
 
-/**
- * Add Remove RSS settings field
- */
+
+
+
 function snn_remove_rss_setting_field() {
     add_settings_field(
         'remove_rss',
@@ -26,9 +26,9 @@ function snn_remove_rss_setting_field() {
 }
 add_action('admin_init', 'snn_remove_rss_setting_field');
 
-/**
- * Callback for Remove RSS settings field
- */
+
+
+
 function snn_remove_rss_callback() {
     $options = get_option('snn_security_options');
     ?>

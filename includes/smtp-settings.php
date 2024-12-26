@@ -1,26 +1,21 @@
 <?php
-// Ensure this code is added to your theme's functions.php file or a custom plugin.
 
-// 1. Add SMTP Settings Submenu
 add_action('admin_menu', 'custom_smtp_add_admin_menu');
 function custom_smtp_add_admin_menu() {
     add_submenu_page(
-        'snn-settings',              // Parent slug
-        'SMTP Settings',             // Page title
-        'SMTP Settings',             // Menu title
-        'manage_options',            // Capability
-        'smtp-settings',             // Menu slug
-        'custom_smtp_settings_page'  // Callback function
+        'snn-settings',
+        'SMTP Settings',
+        'SMTP Settings',
+        'manage_options',
+        'smtp-settings',
+        'custom_smtp_settings_page'
     );
 }
 
-// 2. Register Settings
 add_action('admin_init', 'custom_smtp_settings_init');
 function custom_smtp_settings_init() {
-    // Register a new setting for SMTP
     register_setting('custom_smtp_settings_group', 'custom_smtp_settings', 'custom_smtp_settings_sanitize');
 
-    // Add a new section in the settings page
     add_settings_section(
         'custom_smtp_settings_section',
         __('SMTP Settings', 'textdomain'),
@@ -28,7 +23,6 @@ function custom_smtp_settings_init() {
         'smtp-settings'
     );
 
-    // Enable SMTP Checkbox
     add_settings_field(
         'enable_smtp',
         __('Enable SMTP', 'textdomain'),
@@ -37,7 +31,6 @@ function custom_smtp_settings_init() {
         'custom_smtp_settings_section'
     );
 
-    // SMTP Host
     add_settings_field(
         'smtp_host',
         __('SMTP Host', 'textdomain'),
@@ -46,7 +39,6 @@ function custom_smtp_settings_init() {
         'custom_smtp_settings_section'
     );
 
-    // Encryption
     add_settings_field(
         'smtp_encryption',
         __('Encryption', 'textdomain'),
@@ -55,7 +47,6 @@ function custom_smtp_settings_init() {
         'custom_smtp_settings_section'
     );
 
-    // SMTP Port
     add_settings_field(
         'smtp_port',
         __('SMTP Port', 'textdomain'),
@@ -64,7 +55,6 @@ function custom_smtp_settings_init() {
         'custom_smtp_settings_section'
     );
 
-    // SMTP Username
     add_settings_field(
         'smtp_username',
         __('SMTP Username', 'textdomain'),
@@ -73,7 +63,6 @@ function custom_smtp_settings_init() {
         'custom_smtp_settings_section'
     );
 
-    // SMTP Password
     add_settings_field(
         'smtp_password',
         __('SMTP Password', 'textdomain'),
@@ -81,11 +70,8 @@ function custom_smtp_settings_init() {
         'smtp-settings',
         'custom_smtp_settings_section'
     );
-
-
 }
 
-// 3. Sanitize and Validate Settings
 function custom_smtp_settings_sanitize($input) {
     $sanitized = array();
 
@@ -93,7 +79,6 @@ function custom_smtp_settings_sanitize($input) {
     $sanitized['smtp_host'] = sanitize_text_field($input['smtp_host'] ?? '');
     $sanitized['smtp_encryption'] = sanitize_text_field($input['smtp_encryption'] ?? '');
 
-    // Auto-set SMTP Port based on Encryption if not manually set
     if (!empty($sanitized['smtp_encryption'])) {
         switch (strtolower($sanitized['smtp_encryption'])) {
             case 'ssl':
@@ -115,15 +100,10 @@ function custom_smtp_settings_sanitize($input) {
     return $sanitized;
 }
 
-// 4. Section Callback
 function custom_smtp_settings_section_callback() {
     echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues. ', 'textdomain') . '</p>';
-    
 }
 
-// 5. Render Functions for Each Field
-
-// Enable SMTP Checkbox
 function custom_smtp_enable_smtp_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
@@ -131,7 +111,6 @@ function custom_smtp_enable_smtp_render() {
     <?php
 }
 
-// SMTP Host
 function custom_smtp_smtp_host_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
@@ -139,7 +118,6 @@ function custom_smtp_smtp_host_render() {
     <?php
 }
 
-// Encryption
 function custom_smtp_smtp_encryption_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
@@ -170,7 +148,6 @@ function custom_smtp_smtp_encryption_render() {
     <?php
 }
 
-// SMTP Port
 function custom_smtp_smtp_port_render() {
     $options = get_option('custom_smtp_settings', array());
     $encryption = strtolower($options['smtp_encryption'] ?? 'none');
@@ -180,7 +157,6 @@ function custom_smtp_smtp_port_render() {
     <?php
 }
 
-// SMTP Username
 function custom_smtp_smtp_username_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
@@ -188,7 +164,6 @@ function custom_smtp_smtp_username_render() {
     <?php
 }
 
-// SMTP Password
 function custom_smtp_smtp_password_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
@@ -196,9 +171,6 @@ function custom_smtp_smtp_password_render() {
     <?php
 }
 
-
-
-// 6. Handle AJAX Request to Remove Password
 add_action('wp_ajax_remove_smtp_password', 'custom_smtp_remove_password_callback');
 function custom_smtp_remove_password_callback() {
     check_ajax_referer('remove_smtp_password_nonce', 'nonce');
@@ -213,7 +185,6 @@ function custom_smtp_remove_password_callback() {
     }
 }
 
-// 7. Settings Page HTML
 function custom_smtp_settings_page() {
     ?>
     <div class="wrap">
@@ -229,7 +200,6 @@ function custom_smtp_settings_page() {
     <?php
 }
 
-// 8. Override wp_mail with SMTP Settings
 add_action('phpmailer_init', 'custom_smtp_phpmailer_init');
 function custom_smtp_phpmailer_init($phpmailer) {
     $options = get_option('custom_smtp_settings', array());
@@ -237,7 +207,7 @@ function custom_smtp_phpmailer_init($phpmailer) {
     if (isset($options['enable_smtp']) && $options['enable_smtp']) {
         $phpmailer->isSMTP();
         $phpmailer->Host       = $options['smtp_host'] ?? '';
-        $phpmailer->SMTPAuth   = true; // Enable SMTP authentication
+        $phpmailer->SMTPAuth   = true;
         $phpmailer->Port       = $options['smtp_port'] ?? 25;
         $phpmailer->Username   = $options['smtp_username'] ?? '';
         $phpmailer->Password   = $options['smtp_password'] ?? '';
@@ -247,7 +217,6 @@ function custom_smtp_phpmailer_init($phpmailer) {
     }
 }
 
-// 9. Enqueue jQuery for AJAX (if not already enqueued)
 add_action('admin_enqueue_scripts', 'custom_smtp_enqueue_scripts');
 function custom_smtp_enqueue_scripts($hook) {
     if ($hook !== 'snn-settings_page_smtp-settings') {

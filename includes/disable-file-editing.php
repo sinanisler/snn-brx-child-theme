@@ -1,6 +1,5 @@
 <?php
 
-// Disable File Editing functionality
 function snn_disable_file_edit() {
     $options = get_option('snn_security_options');
     if (isset($options['disable_file_edit'])) {
@@ -9,9 +8,6 @@ function snn_disable_file_edit() {
 }
 add_action('init', 'snn_disable_file_edit');
 
-/**
- * Add File Editing settings field
- */
 function snn_disable_file_edit_setting_field() {
     add_settings_field(
         'disable_file_edit',
@@ -23,9 +19,6 @@ function snn_disable_file_edit_setting_field() {
 }
 add_action('admin_init', 'snn_disable_file_edit_setting_field');
 
-/**
- * Callback for File Editing settings field
- */
 function snn_disable_file_edit_callback() {
     $options = get_option('snn_security_options');
     ?>

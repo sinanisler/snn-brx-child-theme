@@ -1,6 +1,5 @@
 <?php
 
-// Disable JSON API for guests
 function snn_setup_json_disable_field() {
     add_settings_field(
         'disable_json',
@@ -20,7 +19,6 @@ function snn_json_disable_callback() {
     <?php
 }
 
-// Modifying REST API behavior with updated function naming
 add_filter('rest_authentication_errors', function($result) {
     if (!is_user_logged_in()) {
         $options = get_option('snn_security_options');
@@ -28,6 +26,6 @@ add_filter('rest_authentication_errors', function($result) {
             return new WP_Error('rest_not_logged_in', __('You are not logged in.', 'snn'), array('status' => 401));
         }
     }
-    return $result; // Return the original result if the user is logged in or the setting is not enabled
+    return $result;
 });
 ?>

@@ -1,29 +1,21 @@
 <?php
-// Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Ensure session_start() is called at the beginning of the script
 if (!session_id()) {
     session_start();
 }
 
-/**
- * Add math captcha to the login form
- */
 function add_login_math_captcha() {
-    // Generate random numbers and store in session
     $_SESSION['captcha_number1'] = rand(1, 6);
     $_SESSION['captcha_number2'] = rand(1, 6);
     $sum = $_SESSION['captcha_number1'] + $_SESSION['captcha_number2'];
 
-    // Encode them in Base64 (to pass to JS without revealing raw numbers)
     $encodedNumber1 = base64_encode($_SESSION['captcha_number1']);
     $encodedNumber2 = base64_encode($_SESSION['captcha_number2']);
     $encodedSum     = base64_encode($sum);
 
-    // Check if captcha is enabled in settings
     $options = get_option('snn_security_options');
     if (isset($options['enable_math_captcha']) && $options['enable_math_captcha']) {
         ?>
@@ -70,19 +62,13 @@ function add_login_math_captcha() {
 }
 add_action('login_form', 'add_login_math_captcha');
 
-/**
- * Validate the math captcha during authentication
- */
 function validate_login_captcha($user, $password) {
-    // Ensure session is started
     if (!session_id()) {
         session_start();
     }
     
-    // Check if JavaScript was disabled
     if (!isset($_POST['js_enabled']) || $_POST['js_enabled'] !== 'yes') {
         if (empty($_POST['math_captcha'])) {
-            // If JS is disabled, user must still fill out the math captcha
             return new WP_Error('authentication_failed', __('No JavaScript detected and math captcha is empty.', 'snn'));
         }
     }

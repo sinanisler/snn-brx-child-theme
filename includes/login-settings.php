@@ -1,34 +1,29 @@
 <?php
 
-// 1. Add the submenu page
 add_action('admin_menu', 'ls_add_login_settings_submenu');
 
 function ls_add_login_settings_submenu() {
     add_submenu_page(
-        'snn-settings',             // Parent slug
-        'Login Settings',          // Page title
-        'Login Settings',          // Menu title
-        'manage_options',          // Capability
-        'login-settings',          // Menu slug
-        'ls_render_login_settings' // Callback function
+        'snn-settings',
+        'Login Settings',
+        'Login Settings',
+        'manage_options',
+        'login-settings',
+        'ls_render_login_settings'
     );
 }
 
-// 2. Register settings
 add_action('admin_init', 'ls_register_login_settings');
 
 function ls_register_login_settings() {
-    // Register a setting for the background image URL
     register_setting('ls_login_settings_group', 'ls_login_background_image_url', [
         'sanitize_callback' => 'esc_url_raw',
     ]);
 
-    // Register a setting for the custom text
     register_setting('ls_login_settings_group', 'ls_login_custom_text', [
         'sanitize_callback' => 'wp_kses_post',
     ]);
 
-    // Add settings sections and fields
     add_settings_section(
         'ls_login_settings_section',
         'Login Page Customizations',
@@ -36,7 +31,6 @@ function ls_register_login_settings() {
         'login-settings'
     );
 
-    // Background Image URL Field
     add_settings_field(
         'ls_login_background_image_url',
         'Background Image URL',
@@ -45,7 +39,6 @@ function ls_register_login_settings() {
         'ls_login_settings_section'
     );
 
-    // Custom Text Field
     add_settings_field(
         'ls_login_custom_text',
         'Custom Text',
@@ -75,19 +68,15 @@ function ls_login_custom_text_callback() {
     <?php
 }
 
-// 3. Render the settings page
 function ls_render_login_settings() {
-    // Check user capabilities
     if (!current_user_can('manage_options')) {
         return;
     }
 
-    // Add error/update messages
     if (isset($_GET['settings-updated'])) {
         add_settings_error('ls_messages', 'ls_message', 'Settings Saved', 'updated');
     }
 
-    // Show error/update messages
     settings_errors('ls_messages');
     ?>
     <div class="wrap">
@@ -103,15 +92,12 @@ function ls_render_login_settings() {
     <?php
 }
 
-// 4. Update the custom login footer
 add_action('login_footer', 'ls_add_custom_login_footer');
 
 function ls_add_custom_login_footer() {
-    // Retrieve settings
     $background_image_url = get_option('ls_login_background_image_url', '');
     $custom_text = get_option('ls_login_custom_text', '');
 
-    // Sanitize the custom text for output
     $custom_text = wp_kses_post($custom_text);
 
     echo '

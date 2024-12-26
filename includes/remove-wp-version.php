@@ -1,6 +1,6 @@
 <?php
 
-// Remove/Hide WordPress version
+
 function snn_remove_wp_version() {
     $options = get_option('snn_security_options');
     if (isset($options['remove_wp_version'])) {
@@ -10,9 +10,7 @@ function snn_remove_wp_version() {
 }
 add_filter('the_generator', 'snn_remove_wp_version');
 
-/**
- * Add Remove WP Version settings field
- */
+
 function snn_remove_wp_version_setting_field() {
     add_settings_field(
         'remove_wp_version',
@@ -24,9 +22,7 @@ function snn_remove_wp_version_setting_field() {
 }
 add_action('admin_init', 'snn_remove_wp_version_setting_field');
 
-/**
- * Callback for Remove WP Version settings field
- */
+
 function snn_remove_wp_version_callback() {
     $options = get_option('snn_security_options');
     ?>
