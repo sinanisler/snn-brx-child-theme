@@ -1,8 +1,7 @@
 <?php
 
-/**
- * 1) REGISTER CUSTOM POST TYPE FOR 404 LOGS
- */
+
+
 function snn_register_404_logs_post_type() {
     register_post_type('snn_404_logs', array(
         'public'  => false,
@@ -12,9 +11,8 @@ function snn_register_404_logs_post_type() {
 add_action('init', 'snn_register_404_logs_post_type');
 
 
-/**
- * 2) ADD 404 LOGS SUBMENU PAGE
- */
+
+
 function snn_add_404_logs_page() {
     add_submenu_page(
         'snn-settings',
@@ -28,15 +26,14 @@ function snn_add_404_logs_page() {
 add_action('admin_menu', 'snn_add_404_logs_page');
 
 
-/**
- * 3) HANDLE LOGGING ENABLE/DISABLE, CLEAR LOGS, ETC.
- */
+
+
 function snn_handle_404_logs_actions() {
     if (!current_user_can('manage_options')) {
         return;
     }
 
-    // Enable or disable logging (only act if the user clicked "Save Changes")
+
     if (isset($_POST['snn_404_logging_submit'])) {
         if (isset($_POST['snn_404_logging_enabled'])) {
             update_option('snn_404_logging_enabled', '1');
@@ -45,7 +42,7 @@ function snn_handle_404_logs_actions() {
         }
     }
 
-    // Set maximum number of logs to keep
+
     if (isset($_POST['snn_404_log_size_limit'])) {
         $size_limit = intval($_POST['snn_404_log_size_limit']);
         if ($size_limit < 1) {
@@ -54,7 +51,7 @@ function snn_handle_404_logs_actions() {
         update_option('snn_404_log_size_limit', $size_limit);
     }
 
-    // Clear all logs
+
     if (isset($_POST['snn_clear_404_logs'])) {
         $args = array(
             'post_type'      => 'snn_404_logs',
@@ -71,18 +68,17 @@ function snn_handle_404_logs_actions() {
 add_action('admin_init', 'snn_handle_404_logs_actions');
 
 
-/**
- * 4) HELPER FUNCTION TO NORMALIZE PATH (SAME AS IN 301-REDIRECT.PHP)
- */
+
+
 function snn_404_normalize_path($url) {
-    // Remove protocol and domain if present
+
     $url = preg_replace('/^https?:\/\/[^\/]+/i', '', $url);
 
-    // Ensure leading slash
+
     if (substr($url, 0, 1) !== '/') {
         $url = '/' . $url;
     }
-    // Remove trailing slash if not the root
+
     if ($url !== '/' && substr($url, -1) === '/') {
         $url = rtrim($url, '/');
     }
@@ -90,15 +86,14 @@ function snn_404_normalize_path($url) {
 }
 
 
-/**
- * 5) CHECK IF A GIVEN REQUEST URI HAS A 301 REDIRECT
- */
+
+
 function snn_has_301_redirect($request_uri) {
-    // Normalize the request just like in 301-redirect.php
+
     $normalized_path = snn_404_normalize_path($request_uri);
     $path_without_query = strtok($normalized_path, '?');
 
-    // Look up if there's a 301 redirect for this path
+
     $redirects = get_posts(array(
         'post_type'      => 'snn_301_redirects',
         'posts_per_page' => 1,
@@ -115,9 +110,8 @@ function snn_has_301_redirect($request_uri) {
 }
 
 
-/**
- * 6) CLEANUP OLD LOGS TO MAINTAIN A SPECIFIC LIMIT
- */
+
+
 function snn_cleanup_old_logs($limit) {
     $args = array(
         'post_type'      => 'snn_404_logs',
@@ -139,19 +133,18 @@ function snn_cleanup_old_logs($limit) {
 }
 
 
-/**
- * 7) LOG 404 ERRORS (SKIP IF THERE IS A 301 REDIRECT)
- */
+
+
 function snn_log_404_error() {
-    // Only log if we actually have a 404 AND logging is enabled
+
     if (is_404() && get_option('snn_404_logging_enabled') === '1') {
 
-        // FIRST CHECK: if the current request matches a 301 redirect, skip logging.
+
         if (snn_has_301_redirect($_SERVER['REQUEST_URI'])) {
             return;
         }
 
-        // If we made it here, let's log the 404.
+
         $size_limit = get_option('snn_404_log_size_limit', 100);
         snn_cleanup_old_logs($size_limit);
 
@@ -175,9 +168,8 @@ function snn_log_404_error() {
 add_action('template_redirect', 'snn_log_404_error');
 
 
-/**
- * 8) RENDER ADMIN PAGE WITH LOGS
- */
+
+
 function snn_render_404_logs_page() {
     $logging_enabled = get_option('snn_404_logging_enabled') === '1';
     $log_size_limit  = get_option('snn_404_log_size_limit', 100);
@@ -187,8 +179,8 @@ function snn_render_404_logs_page() {
 
         <form method="post" action="">
             <label>
-                <!-- Removed the onclick submission so user can check/uncheck freely -->
-                <input type="checkbox" name="snn_404_logging_enabled" 
+
+            <input type="checkbox" name="snn_404_logging_enabled" 
                        <?php checked($logging_enabled); ?>>
                 Enable 404 Logging
             </label>
