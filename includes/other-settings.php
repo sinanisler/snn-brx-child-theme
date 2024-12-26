@@ -1,5 +1,4 @@
 <?php
-// Ensure this code is placed in your theme's functions.php or a custom plugin
 
 // 1. Add "Other Settings" Submenu Under "snn-settings"
 function snn_add_other_settings_submenu() {
