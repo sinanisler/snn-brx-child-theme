@@ -1,23 +1,20 @@
 <?php
 
 function snn_add_menu_page() {
+    // Fetch the dynamic title from the database
+    $dynamic_title = get_option('snn_menu_title', 'SNN Settings');
+
     add_menu_page(
         'SNN Settings', 
-        'SNN Settings', 
+        $dynamic_title, // Dynamic title for the menu
         'manage_options', 
         'snn-settings', 
         'snn_settings_page_callback', 
         '', 
         99 
     );
-
-
 }
 add_action('admin_menu', 'snn_add_menu_page');
-
-
-
-
 
 function snn_settings_page_callback() {
     ?>
@@ -33,13 +30,13 @@ function snn_settings_page_callback() {
     </div>
 
     <style>
-        .wrap{
-         }
-        .tt1  {
+        .wrap {
+        }
+        .tt1 {
             width: 880px;
             height: 40px;
         }
-        .style_css , .head-css , #wp_head_css_frontend , #wp_footer_html_frontend , #wp_head_html_frontend {
+        .style_css, .head-css, #wp_head_css_frontend, #wp_footer_html_frontend, #wp_head_html_frontend {
             width: 880px;
             height: 220px;
         }
@@ -49,39 +46,42 @@ function snn_settings_page_callback() {
             float: left;
             margin-right: 10px !important;
         }
-        #snn_custom_css{
+        #snn_custom_css {
             width: 880px;
-            height:330px ;
+            height: 330px;
         }
     </style>
     <?php
 }
 
 function snn_register_settings() {
-    register_setting('snn_settings_group', 'snn_settings');
+    register_setting('snn_settings_group', 'snn_menu_title'); // Registering the dynamic title setting
 
     add_settings_section(
         'snn_general_section',
-        ' ',
+        'General Settings',
         'snn_general_section_callback',
         'snn-settings'
+    );
+
+    add_settings_field(
+        'snn_menu_title_field',
+        'Menu Title',
+        'snn_menu_title_field_callback',
+        'snn-settings',
+        'snn_general_section'
     );
 }
 add_action('admin_init', 'snn_register_settings');
 
 function snn_general_section_callback() {
-    echo '<br><br>';
+    echo '<p>General settings for the SNN menu page.</p>';
 }
 
-
-
-
-
-
-
-
-
-
+function snn_menu_title_field_callback() {
+    $menu_title = get_option('snn_menu_title', 'SNN Settings');
+    echo '<input type="text" name="snn_menu_title" value="' . esc_attr($menu_title) . '" class="regular-text">';
+}
 
 // Customizer Activator - Empty Setting
 function mytheme_customize_register( $wp_customize ) {
@@ -104,18 +104,5 @@ function mytheme_footer_custom_css() {
     // Empty
 }
 add_action( 'wp_footer', 'mytheme_footer_custom_css' );
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ?>
