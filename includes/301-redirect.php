@@ -1,5 +1,6 @@
 <?php
 
+
 function snn_register_301_redirects_post_type() {
     register_post_type(
         'snn_301_redirects',
@@ -16,14 +17,13 @@ add_action('init', 'snn_register_301_redirects_post_type');
 
 
 function snn_add_301_redirects_page() {
-
     add_submenu_page(
-        'snn-settings',               // Parent slug
-        '301 Redirects',             // Page title
-        '301 Redirects',             // Menu title
-        'manage_options',            // Capability
-        'snn-301-redirects',         // Menu slug
-        'snn_render_301_redirects_page' // Callback
+        'snn-settings',               
+        '301 Redirects',            
+        '301 Redirects',            
+        'manage_options',           
+        'snn-301-redirects',        
+        'snn_render_301_redirects_page' 
     );
 }
 add_action('admin_menu', 'snn_add_301_redirects_page');
@@ -95,6 +95,9 @@ function snn_render_301_redirects_page() {
                     update_post_meta($post_id, 'redirect_to', $redirect_to);
                     update_post_meta($post_id, 'created_date', current_time('mysql'));
 
+                    // Initialize clicks to 0
+                    update_post_meta($post_id, 'redirect_clicks', 0);
+
                     // Flush rewrite rules right after creation
                     flush_rewrite_rules();
 
@@ -161,11 +164,14 @@ function snn_render_301_redirects_page() {
                         <th>Redirect From</th>
                         <th>Redirect To</th>
                         <th>Added Date</th>
+                        <th>Clicks</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($redirects as $redirect) : ?>
+                    <?php foreach ($redirects as $redirect) : 
+                        $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
+                    ?>
                         <tr>
                             <td>
                                 <a href="<?php echo esc_url(home_url(get_post_meta($redirect->ID, 'redirect_from', true))); ?>" target="_blank">
@@ -178,6 +184,7 @@ function snn_render_301_redirects_page() {
                                 </a>
                             </td>
                             <td><?php echo esc_html(get_post_meta($redirect->ID, 'created_date', true)); ?></td>
+                            <td><?php echo esc_html($clicks); ?></td>
                             <td>
                                 <form method="post" action="" style="display:inline;">
                                     <?php wp_nonce_field('snn_301_redirect_delete_nonce'); ?>
@@ -222,9 +229,15 @@ function snn_handle_301_redirects() {
 
     // If we have a matching redirect, do the 301
     if (!empty($redirects)) {
-        $redirect_to = get_post_meta($redirects[0]->ID, 'redirect_to', true);
+        $redirect_id = $redirects[0]->ID;
+        $redirect_to = get_post_meta($redirect_id, 'redirect_to', true);
 
         if ($redirect_to) {
+            // Increment the clicks count
+            $clicks = (int) get_post_meta($redirect_id, 'redirect_clicks', true);
+            $clicks++;
+            update_post_meta($redirect_id, 'redirect_clicks', $clicks);
+
             // Preserve any query string from the original request
             $query_string = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
             if ($query_string) {
@@ -233,7 +246,7 @@ function snn_handle_301_redirects() {
                 $redirect_to .= $query_string;
             }
 
-            // If redirect_to is a relative path, convert it to full URL
+            // If redirect_to is a relative path, convert it to a full URL
             if (strpos($redirect_to, 'http') !== 0 && strpos($redirect_to, '//') !== 0) {
                 $redirect_to = home_url($redirect_to);
             }
