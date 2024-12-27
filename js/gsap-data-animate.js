@@ -43,14 +43,14 @@ window.onload = function() {
         {
           x: options.x ? parseInt(options.x) : 0,
           y: options.y ? parseInt(options.y) : 0,
-          opacity: 0, // Ensure initial opacity is 0
+          opacity: 0, 
           scale: options.s ? parseFloat(options.s) : 1,
           ...options.startStyles
         },
         {
           x: 0,
           y: 0,
-          opacity: 1, // Animate to full opacity
+          opacity: 1, 
           scale: 1,
           ...options.endStyles,
           scrollTrigger: {
@@ -63,7 +63,7 @@ window.onload = function() {
             toggleClass: options.toggleClass || null,
             pinSpacing: options.pinSpacing || 'margin',
             invalidateOnRefresh: true,
-            immediateRender: true, // Apply starting styles immediately
+            immediateRender: true, 
           },
           stagger: splitText ? staggerValue : 0,
         }
