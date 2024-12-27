@@ -23,7 +23,7 @@ function snn_settings_page_callback() {
         <h1><?php echo $dynamic_title; ?> - Bricks Builder Child Theme Settings</h1>
         <div style="max-width:600px; margin-bottom:80px ">
         <p  style="font-size:16px; line-height:30px !important;  ">
-            This theme is designed to give you the tools and flexibility you need to build and customize your site effortlessly.
+            SNN-BRX Child theme is designed to give you the tools and solutions for Bricks Builder.  
             From managing post types and fields to enhancing security and design,  
             everything is straightforward and ready for you to use. <br>
 

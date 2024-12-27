@@ -12,7 +12,7 @@ add_filter('auto_update_theme', 'snn_auto_update_bricks_theme', 10, 2);
 function snn_auto_update_bricks_setting_field() {
   add_settings_field(
     'snn_auto_update_bricks',
-    'Auto Update Bricks Theme (Main Theme Only)',
+    'Auto Update Bricks Theme (Bricks Builder Only)',
     'snn_auto_update_bricks_callback',
     'snn-settings',
     'snn_general_section'
