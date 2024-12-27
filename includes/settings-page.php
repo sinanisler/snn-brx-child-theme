@@ -24,10 +24,11 @@ function snn_settings_page_callback() {
         <div style="max-width:600px; margin-bottom:80px ">
         <p  style="font-size:16px; line-height:30px !important;  ">
             SNN-BRX Child theme is designed to give you the tools and solutions for Bricks Builder.  
-            From managing post types and fields to enhancing security and design,  
-            everything is straightforward and ready for you to use. <br>
+            Post Types, Custom Fields, Taxonomies, SMTP Mail Setting, Custom Login Design, 
+            Math Chaptcha for Login/Register, Security Features, 404 Logs, 301 Redirects and some Block Editor Features
+            Everything is straightforward and ready for you to use. <br>
 
-            If you need guidance, the docs has all the details.<br>
+            Check the docs for more details.<br>
             <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" 
             style="font-size:22px; text-decoration:none; line-height:60px " >Docs for SNN-BRX ➤</a>
             <br><br>
