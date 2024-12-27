@@ -1,5 +1,5 @@
 <?php
-// Add a submenu page for custom fields under the main settings menu  
+
 function snn_add_custom_fields_submenu() {
     add_submenu_page(
         'snn-settings',
@@ -12,18 +12,16 @@ function snn_add_custom_fields_submenu() {
 }
 add_action('admin_menu', 'snn_add_custom_fields_submenu', 10);
 
-// === Temporary Workaround Start ===
-// Set wp-editor in the 'Text' (HTML) mode by default.
-// This helps in initializing the Rich Text Editor properly.
+
 add_filter(
     'wp_default_editor',
     function () {
         return 'html';
     }
 );
-// === Temporary Workaround End ===
 
-// Display the Custom Fields page with support for reorder functionality
+
+
 function snn_custom_fields_page_callback() {
     $custom_fields = get_option('snn_custom_fields', []);
     $post_types = get_post_types(['public' => true], 'objects'); // Get public post types

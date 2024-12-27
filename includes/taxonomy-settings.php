@@ -1,43 +1,34 @@
 <?php
-/**
- * Plugin Name: SNN Taxonomy Register
- * Description: A settings page for registering custom taxonomies.
- * Version: 1.0
- * Author: Your Name
- */
 
-// Exit if accessed directly
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Hook to add submenu page
 add_action( 'admin_menu', 'snn_add_taxonomy_submenu' );
 
-/**
- * Adds a submenu page under 'snn-settings'.
- */
+
+
 function snn_add_taxonomy_submenu() {
     add_submenu_page(
-        'snn-settings',                   // Parent slug
-        'Register Taxonomies',           // Page title
-        'Taxonomies',           // Menu title
-        'manage_options',                 // Capability
-        'snn-taxonomies',                 // Menu slug
-        'snn_render_taxonomies_page'      // Callback function
+        'snn-settings',                   
+        'Register Taxonomies',           
+        'Taxonomies',          
+        'manage_options',                 
+        'snn-taxonomies',                 
+        'snn_render_taxonomies_page'      
     );
 }
 
-/**
- * Renders the Taxonomies management page.
- */
+
+
 function snn_render_taxonomies_page() {
-    // Verify user permissions
+
     if ( ! current_user_can( 'manage_options' ) ) {
         return;
     }
 
-    // Handle form submission
+
     if ( isset( $_POST['snn_taxonomies_nonce'] ) && wp_verify_nonce( $_POST['snn_taxonomies_nonce'], 'snn_save_taxonomies' ) ) {
         if ( isset( $_POST['taxonomies'] ) && is_array( $_POST['taxonomies'] ) ) {
             $taxonomies = array();
@@ -111,9 +102,7 @@ function snn_render_taxonomies_page() {
             const fieldContainer = document.getElementById('taxonomy-settings');
             const addFieldButton = document.getElementById('add-taxonomy-row');
 
-            /**
-             * Updates the index of each taxonomy row.
-             */
+            
             function updateFieldIndexes() {
                 const rows = fieldContainer.querySelectorAll('.taxonomy-row');
                 rows.forEach((row, index) => {

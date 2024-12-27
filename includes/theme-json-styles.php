@@ -1,23 +1,23 @@
 <?php
-// Prevent direct access
+
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Register the submenu for Block Theme JSON
+
 function snn_add_block_theme_json_submenu() {
     add_submenu_page(
-        'snn-settings', // Parent slug (SNN Settings menu)
-        'Block Theme JSON', // Page title
-        'Block Theme JSON', // Menu title
-        'manage_options', // Capability
-        'snn-block-theme-json', // Menu slug
-        'snn_block_theme_json_page_callback' // Function
+        'snn-settings',
+        'Block Theme JSON', 
+        'Block Theme JSON', 
+        'manage_options', 
+        'snn-block-theme-json', 
+        'snn_block_theme_json_page_callback'
     );
 }
 add_action('admin_menu', 'snn_add_block_theme_json_submenu' , 11);
 
-// Callback function for displaying the settings page
+
 function snn_block_theme_json_page_callback() {
     // Get the path to the child theme's theme.json file
     $theme_json_path = get_stylesheet_directory() . '/theme.json';
