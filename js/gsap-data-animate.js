@@ -21,8 +21,8 @@
           return acc;
         }, { startStyles: {}, endStyles: {} });
 
-        const defaultStart = 'top 80%';
-        const defaultEnd = 'bottom 20%';
+        const defaultStart = 'top 90%';
+        const defaultEnd = 'bottom 50%';
 
         const splitText = options.splittext === 'true';
         const staggerValue = parseFloat(options.stagger || 0.1);
