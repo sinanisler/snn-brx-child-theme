@@ -13,9 +13,17 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: '0'
-
+      
       - name: Display current style.css before update
         run: cat style.css
+
+      # Step to read the LAST (most recent) commit message
+      - name: Check last commit message
+        id: check_last_commit
+        run: |
+          last_commit_message=$(git log -1 --pretty=format:"%s")
+          echo "Last commit message: $last_commit_message"
+          echo "last_commit_message=$last_commit_message" >> $GITHUB_OUTPUT
 
       - name: Get commit messages since last release
         id: get_commits
@@ -40,7 +48,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
       - name: Bump version in style.css
-        if: contains(env.commit_messages, 'release')
+        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
         id: bump_version
         run: |
           # Read the current version from style.css
@@ -93,7 +101,7 @@ jobs:
         run: cat style.css
 
       - name: Commit changes
-        if: contains(env.commit_messages, 'release')
+        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -102,13 +110,13 @@ jobs:
           git push
 
       - name: Create new GitHub tag
-        if: contains(env.commit_messages, 'release')
+        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
         run: |
           git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
           git push origin "v${{ env.new_version }}"
 
       - name: Create zip file of the repository
-        if: contains(env.commit_messages, 'release')
+        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
         run: |
           shopt -s extglob    # Enable extended globbing
           mkdir snn-brx-child-theme
@@ -120,7 +128,7 @@ jobs:
           new_version: ${{ env.new_version }}
 
       - name: Create GitHub release
-        if: contains(env.commit_messages, 'release')
+        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
         uses: softprops/action-gh-release@v1
         with:
           files: snn-brx-child-theme.zip
