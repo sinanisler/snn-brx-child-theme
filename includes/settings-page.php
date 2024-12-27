@@ -28,7 +28,8 @@ function snn_settings_page_callback() {
             everything is straightforward and ready for you to use. <br>
 
             If you need guidance, the docs has all the details.<br>
-            <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" >Docs for SNN-BRX ➤</a>
+            <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" 
+            style="font-size:22px; text-decoration:none; line-height:60px " >Docs for SNN-BRX ➤</a>
             <br><br>
              Enjoy building your site.
         </p>
