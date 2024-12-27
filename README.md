@@ -1,7 +1,9 @@
 # SNN BRX - Bricks Builder Child Theme
 
 
-![Download_Latest_Release](https://img.shields.io/badge/downloads-13k%2Fmonth-brightgreen)
+
+[![Gmail Badge](https://img.shields.io/badge/-Download_Latest_Release-29903b?style=flat&logo=Download&logoColor=white)](https://sinanisler.com/snn-brx-download)
+
 
 
 SNN BRX theme adds theme settings, security settings and lots of plugin eliminating features with it. 
