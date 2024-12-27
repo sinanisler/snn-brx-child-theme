@@ -17,7 +17,30 @@ jobs:
       - name: Display current style.css before update
         run: cat style.css
 
+      - name: Get commit messages since last release
+        id: get_commits
+        run: |
+          # Read the current version from style.css for last_tag reference
+          current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+          last_tag="v${current_version}"
+          echo "Last tag: $last_tag"
+
+          if git rev-parse "$last_tag" >/dev/null 2>&1; then
+            commits=$(git log "$last_tag"..HEAD --pretty=format:"- %s")
+          else
+            commits=$(git log --pretty=format:"- %s")
+          fi
+
+          if [ -z "$commits" ]; then
+            commits="No changes."
+          fi
+
+          echo "commit_messages<<EOF" >> $GITHUB_ENV
+          echo "$commits" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Bump version in style.css
+        if: contains(env.commit_messages, 'release')
         id: bump_version
         run: |
           # Read the current version from style.css
@@ -66,30 +89,11 @@ jobs:
           echo "current_version=$current_version" >> $GITHUB_ENV
           echo "new_version=$new_version" >> $GITHUB_ENV
 
-      - name: Get commit messages since last release
-        id: get_commits
-        run: |
-          last_tag="v${{ env.current_version }}"
-          echo "Last tag: $last_tag"
-
-          if git rev-parse "$last_tag" >/dev/null 2>&1; then
-            commits=$(git log "$last_tag"..HEAD --pretty=format:"- %s")
-          else
-            commits=$(git log --pretty=format:"- %s")
-          fi
-
-          if [ -z "$commits" ]; then
-            commits="No changes."
-          fi
-
-          echo "commit_messages<<EOF" >> $GITHUB_ENV
-          echo "$commits" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
       - name: Display current style.css after update
         run: cat style.css
 
       - name: Commit changes
+        if: contains(env.commit_messages, 'release')
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -98,11 +102,13 @@ jobs:
           git push
 
       - name: Create new GitHub tag
+        if: contains(env.commit_messages, 'release')
         run: |
           git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
           git push origin "v${{ env.new_version }}"
 
       - name: Create zip file of the repository
+        if: contains(env.commit_messages, 'release')
         run: |
           shopt -s extglob    # Enable extended globbing
           mkdir snn-brx-child-theme
@@ -114,6 +120,7 @@ jobs:
           new_version: ${{ env.new_version }}
 
       - name: Create GitHub release
+        if: contains(env.commit_messages, 'release')
         uses: softprops/action-gh-release@v1
         with:
           files: snn-brx-child-theme.zip
@@ -124,6 +131,5 @@ jobs:
 
             ## Changes
             ${{ env.commit_messages }}
-
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
