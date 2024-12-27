@@ -30,7 +30,7 @@ window.onload = function() {
       if (splitText) {
         const text = element.innerText;
         const chars = text.split('');
-        element.innerHTML = chars.map(char => `<span>${char}</span>`).join('');
+        element.innerHTML = chars.map(char => `<span style="opacity: 0;">${char}</span>`).join('');
       }
 
       const rotationAxis = options.axis || 'Z';
@@ -43,18 +43,18 @@ window.onload = function() {
         {
           x: options.x ? parseInt(options.x) : 0,
           y: options.y ? parseInt(options.y) : 0,
-          opacity: options.o ? parseFloat(options.o) : 1,
+          opacity: 0, // Ensure initial opacity is 0
           scale: options.s ? parseFloat(options.s) : 1,
-          ...options.startStyles 
+          ...options.startStyles
         },
         {
           x: 0,
           y: 0,
-          opacity: 1,
+          opacity: 1, // Animate to full opacity
           scale: 1,
-          ...options.endStyles, 
+          ...options.endStyles,
           scrollTrigger: {
-            trigger: isBodyTrigger ? document.body : element, 
+            trigger: isBodyTrigger ? document.body : element,
             start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
             end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
             scrub: options.scrub === 'true' ? true : (parseFloat(options.scrub) || 1),
@@ -63,7 +63,7 @@ window.onload = function() {
             toggleClass: options.toggleClass || null,
             pinSpacing: options.pinSpacing || 'margin',
             invalidateOnRefresh: true,
-            immediateRender: false,
+            immediateRender: true, // Apply starting styles immediately
           },
           stagger: splitText ? staggerValue : 0,
         }
@@ -71,16 +71,16 @@ window.onload = function() {
 
       if (options.r) {
         gsap.to(element, {
-          [rotationProp]: parseInt(options.r) || 360, 
+          [rotationProp]: parseInt(options.r) || 360,
           scrollTrigger: {
             trigger: isBodyTrigger ? document.body : element,
             start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
             end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
             scrub: true,
-            markers: options.markers === 'true', 
+            markers: options.markers === 'true',
             pin: options.pin ? (options.pin === 'true' ? true : options.pin) : false,
-            invalidateOnRefresh: true, 
-            immediateRender: false, 
+            invalidateOnRefresh: true,
+            immediateRender: false,
           }
         });
       }
