@@ -38,19 +38,22 @@ window.onload = function() {
 
       const isBodyTrigger = options.trigger === 'body';
 
+      // Check if opacity is explicitly defined in the options
+      const hasOpacity = 'o' in options;
+
       gsap.fromTo(
         splitText ? element.children : element,
         {
           x: options.x ? parseInt(options.x) : 0,
           y: options.y ? parseInt(options.y) : 0,
-          opacity: 0, 
+          ...(hasOpacity ? { opacity: parseFloat(options.o) } : {}), // Apply opacity only if defined
           scale: options.s ? parseFloat(options.s) : 1,
           ...options.startStyles
         },
         {
           x: 0,
           y: 0,
-          opacity: 1, 
+          ...(hasOpacity ? { opacity: 1 } : {}), // Animate to opacity: 1 only if defined
           scale: 1,
           ...options.endStyles,
           scrollTrigger: {
@@ -63,7 +66,7 @@ window.onload = function() {
             toggleClass: options.toggleClass || null,
             pinSpacing: options.pinSpacing || 'margin',
             invalidateOnRefresh: true,
-            immediateRender: true, 
+            immediateRender: true, // Apply starting styles immediately
           },
           stagger: splitText ? staggerValue : 0,
         }
