@@ -24,11 +24,6 @@ function snn_render_media_settings() {
                 submit_button();
             ?>
         </form>
-        <?php if (!$redirect_enabled): ?>
-            <div class="notice notice-warning">
-                <p><strong>Warning:</strong> To enable Media Categories, you must first enable the "Redirect Media Library Grid View to List View" setting.</p>
-            </div>
-        <?php endif; ?>
     </div>
     <?php
 }
@@ -68,12 +63,7 @@ add_action('admin_init', 'snn_register_media_settings');
 function snn_sanitize_media_settings($input) {
     $sanitized = array();
     $sanitized['redirect_media_library'] = isset($input['redirect_media_library']) && $input['redirect_media_library'] ? 1 : 0;
-    // Only sanitize media_categories if redirect_media_library is enabled
-    if (isset($input['redirect_media_library']) && $input['redirect_media_library']) {
-        $sanitized['media_categories'] = isset($input['media_categories']) && $input['media_categories'] ? 1 : 0;
-    } else {
-        $sanitized['media_categories'] = 0;
-    }
+    $sanitized['media_categories'] = isset($input['media_categories']) && $input['media_categories'] ? 1 : 0;
     return $sanitized;
 }
 
@@ -91,9 +81,9 @@ function snn_redirect_media_library_callback() {
 
 function snn_media_categories_callback() {
     $options = get_option('snn_media_settings');
-    $redirect_enabled = isset($options['redirect_media_library']) && $options['redirect_media_library'];
+    
     ?>
-    <input type="checkbox" name="snn_media_settings[media_categories]" value="1" <?php checked(1, isset($options['media_categories']) ? $options['media_categories'] : 0); ?> <?php disabled(!$redirect_enabled); ?>>
+    <input type="checkbox" name="snn_media_settings[media_categories]" value="1" <?php checked(1, isset($options['media_categories']) ? $options['media_categories'] : 0); ?> >
     <p>Enable Media Categories with drag-and-drop functionality.</p>
     <?php
 }
@@ -162,8 +152,6 @@ function snn_add_custom_css_js_to_media_page() {
 
     $options = get_option('snn_media_settings');
 
-    // Hide Grid View if "redirect to list" is enabled
-    if (isset($options['redirect_media_library']) && $options['redirect_media_library']) {
         ?>
         <style>
         #view-switch-grid {
@@ -185,7 +173,7 @@ function snn_add_custom_css_js_to_media_page() {
         }
         </style>
         <?php
-    }
+    
 
     // If media categories are enabled, add the manager markup and JS
     if (isset($options['media_categories']) && $options['media_categories']) {
@@ -279,6 +267,10 @@ function snn_add_custom_css_js_to_media_page() {
                 border-radius:4px;
                 line-height:1;
             }
+            #the-list .title{
+                cursor:grab
+            }
+
         </style>
 
         <!-- Enable rows to be draggable -->
@@ -288,16 +280,21 @@ function snn_add_custom_css_js_to_media_page() {
                 rows.forEach(function(row) {
                     row.setAttribute('draggable', 'true');
                 });
+
             });
+
+
         </script>
 
         <div id="media-categories-manager">
             <div class="media-categories-wrapper">
                 <h2>Media Categories</h2>
+
+
                 <ul id="media-categories-list">
                     <li>
                         <span class="category-name" style="cursor:pointer;">
-                            <a href="<?php echo admin_url('upload.php'); ?>">All Media Files</a>
+                            <a href="<?php echo admin_url('upload.php?mode=list'); ?>">All Media Files</a>
                         </span>
                         <span class="category-count"><?php echo number_format_i18n($total_media); ?></span>
                         <span class="delete-category" style="display:none">&#10006;</span>
@@ -312,10 +309,12 @@ function snn_add_custom_css_js_to_media_page() {
                             $term_id   = esc_attr($term->term_id);
                             $term_name = esc_html($term->name);
                             $count     = intval($term->count);
+                            $link_url  = admin_url('upload.php?mode=list&media_taxonomy_categories=' . $term_id); // Force list mode
+
                             echo '<li data-id="' . $term_id . '">';
-                            echo '<span class="category-name" data-id="' . $term_id . '" style="cursor:pointer;">' 
-                                 . $term_name 
-                                 . '</span>';
+                            echo '<span class="category-name" style="cursor:pointer;">';
+                            echo '<a href="' . esc_url($link_url) . '">' . $term_name . '</a>';
+                            echo '</span>';
                             echo '<span class="category-count">' . $count . '</span>';
                             echo '<span class="delete-category" data-id="' . $term_id . '">&#10006;</span>';
                             echo '</li>';
@@ -323,6 +322,9 @@ function snn_add_custom_css_js_to_media_page() {
                     }
                     ?>
                 </ul>
+
+
+
                 <form id="add-category-form">
                     <input type="text" id="new-category-name" placeholder="New Category Name" required>
                     <input type="submit" value="Add Category" class="button">
