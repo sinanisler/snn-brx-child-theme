@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
-    public $category     = 'general';
+    public $category     = 'snn';
     public $name         = 'openstreetmap';
     public $icon         = 'fas fa-map';
     public $css_selector = '.custom-openstreetmap-wrapper';
@@ -14,10 +14,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         return 'OpenStreetMap';
     }
 
-    // Define your controls
     public function set_controls() {
 
-        // Repeater for Markers
         $this->controls['markers'] = [
             'tab'           => 'content',
             'label'         => 'Location',
@@ -28,7 +26,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 'lat' => [
                     'label'   => __( 'Latitude', 'bricks' ),
                     'type'    => 'number',
-                    'default' => 51.5,
+                    'default' => 51.5238,
                     'step'    => 0.0001,
                     'min'     => -90,
                     'max'     => 90,
@@ -36,7 +34,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 'lng' => [
                     'label'   => __( 'Longitude', 'bricks' ),
                     'type'    => 'number',
-                    'default' => -0.09,
+                    'default' => -0.1583,
                     'step'    => 0.0001,
                     'min'     => -180,
                     'max'     => 180,
@@ -79,7 +77,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'tab'     => 'content',
             'label'   => __( 'Map Center Latitude', 'bricks' ),
             'type'    => 'number',
-            'default' => 51.5,
+            'default' => 51.5238,
             'step'    => 0.0001,
             'min'     => -90,
             'max'     => 90,
@@ -90,7 +88,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'tab'     => 'content',
             'label'   => __( 'Map Center Longitude', 'bricks' ),
             'type'    => 'number',
-            'default' => -0.09,
+            'default' => -0.1583,
             'step'    => 0.0001,
             'min'     => -180,
             'max'     => 180,
@@ -101,9 +99,9 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'tab'     => 'content',
             'label'   => __( 'Zoom Level', 'bricks' ),
             'type'    => 'number',
-            'default' => 13,
+            'default' => 18,
             'min'     => 1,
-            'max'     => 19,
+            'max'     => 20,
             'step'    => 1,
         ];
 
