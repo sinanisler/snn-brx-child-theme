@@ -26,7 +26,7 @@ function snn_render_media_settings() {
         </form>
         <?php if (!$redirect_enabled): ?>
             <div class="notice notice-warning">
-                <p><strong>Warning:</strong> To enable Media Categories (BETA), you must first enable the "Redirect Media Library Grid View to List View" setting.</p>
+                <p><strong>Warning:</strong> To enable Media Categories, you must first enable the "Redirect Media Library Grid View to List View" setting.</p>
             </div>
         <?php endif; ?>
     </div>
@@ -57,7 +57,7 @@ function snn_register_media_settings() {
 
     add_settings_field(
         'media_categories',
-        'Enable Media Categories (BETA)',
+        'Enable Media Categories',
         'snn_media_categories_callback',
         'snn-media-settings',
         'snn_media_settings_section'
