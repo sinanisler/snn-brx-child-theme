@@ -173,7 +173,7 @@ function snn_add_custom_css_js_to_media_page() {
     .row-actions {
         margin-left:0px !important;
     }
-    #the-list tr, .attachments .attachment {
+    #the-list .title img {
         cursor: grab;
     }
     #custom-context-menu {
@@ -400,7 +400,7 @@ function snn_add_custom_css_js_to_media_page() {
                 line-height:1;
             }
             #the-list .title, .attachments .attachment .attachment-details {
-                cursor:grab;
+                
             }
         </style>
 
@@ -478,7 +478,9 @@ function snn_add_custom_css_js_to_media_page() {
                                 if (response.success) {
                                     const li = deleteSpan.parentElement;
                                     li.parentElement.removeChild(li);
-                                    alert('Category deleted successfully.');
+                                    // alert('Category deleted successfully.');
+
+                                    location.reload(); 
                                 } else {
                                     alert(response.data);
                                 }
