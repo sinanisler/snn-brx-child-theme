@@ -106,7 +106,6 @@ function snn_sanitize_other_settings($input) {
 
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
 
-    // ** Sanitize New Setting **
     $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
 
     return $sanitized;
@@ -165,7 +164,6 @@ function snn_disable_comments_callback() {
     <?php
 }
 
-// ** New Callback Function: Hide Element Icons **
 function snn_hide_element_icons_callback() {
     $options = get_option('snn_other_settings');
     ?>
@@ -239,11 +237,9 @@ function snn_hide_comments_section() {
 }
 add_action('admin_head', 'snn_hide_comments_section');
 
-// ** New Function: Add Inline CSS When Setting is Enabled and URL Contains '/?bricks=run' **
 function snn_add_inline_css_if_bricks_run() {
     $options = get_option('snn_other_settings');
     if (isset($options['hide_element_icons']) && $options['hide_element_icons']) {
-        // Check if the URL contains '/?bricks=run'
         if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
             echo '<style>
                 #bricks-panel-elements .sortable-wrapper{
