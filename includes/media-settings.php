@@ -277,7 +277,6 @@ function snn_add_custom_css_js_to_media_page() {
 
         </style>
 
-        <!-- Enable rows to be draggable -->
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const rows = document.querySelectorAll('#the-list tr');
@@ -292,19 +291,17 @@ function snn_add_custom_css_js_to_media_page() {
 
             
 
+            
+
 
 
 
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Disable default browser right-click menu globally if needed
-    // Comment out the following lines if you want the default menu in other parts of the site
     document.addEventListener('contextmenu', (e) => {
-        // Optional: Disable right-click globally
         // e.preventDefault();
     });
 
-    // Define the custom context menu container
     const menu = document.createElement('div');
     menu.id = 'custom-context-menu';
     Object.assign(menu.style, {
@@ -322,12 +319,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.body.appendChild(menu);
 
-    // Function to load taxonomy items into the menu
     function loadTaxonomy() {
         menu.innerHTML = '';
 
         <?php
-        // Fetch taxonomy items using WordPress get_terms
         $taxonomyItems = get_terms([
             'taxonomy' => 'media_taxonomy_categories',
             'hide_empty' => false,
@@ -335,7 +330,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!empty($taxonomyItems) && !is_wp_error($taxonomyItems)) {
             foreach ($taxonomyItems as $term) {
-                // Sanitize term name for JavaScript
                 $item = esc_js($term->name);
                 echo "menu.innerHTML += '<div class=\"context-menu-item\">$item</div>';\n";
             }
@@ -344,7 +338,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         ?>
 
-        // Add event listeners to menu items
         const menuItems = menu.querySelectorAll('.context-menu-item');
         menuItems.forEach(item => {
             item.style.padding = '5px 10px';
@@ -354,7 +347,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 menu.style.display = 'none';
             });
 
-            // Optional: Add hover effect
             item.addEventListener('mouseover', () => {
                 item.style.backgroundColor = '#f0f0f0';
             });
@@ -364,46 +356,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Event delegation: Attach contextmenu listener to the document
     document.addEventListener('contextmenu', function (e) {
-        // Check if the right-clicked element or any of its parents has the class 'attachment'
         const attachmentElement = e.target.closest('li.attachment');
 
         if (attachmentElement) {
-            e.preventDefault(); // Prevent the default context menu
+            e.preventDefault(); 
 
-            // Load taxonomy items into the custom menu
             loadTaxonomy();
 
-            // Position and display the custom menu
             menu.style.display = 'block';
             menu.style.left = `${e.pageX}px`;
             menu.style.top = `${e.pageY}px`;
         }
     });
 
-    // Hide the custom context menu when clicking outside
     document.addEventListener('click', function (e) {
-        // Only hide if the click is outside the menu
         if (!menu.contains(e.target)) {
             menu.style.display = 'none';
         }
     });
 
-    // Optional: Hide the menu when pressing the Esc key
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             menu.style.display = 'none';
         }
     });
 
-    // Optional: Adjust menu position if it overflows the viewport
     window.addEventListener('resize', () => {
         menu.style.display = 'none';
     });
 });
-
-
 
 
 
@@ -465,7 +447,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // ADD NEW CATEGORY
             document.getElementById('add-category-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const categoryName = document.getElementById('new-category-name').value.trim();
@@ -522,10 +503,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             });
 
-            // DELETE CATEGORY (with confirmation)
             document.getElementById('media-categories-list').addEventListener('click', function(e) {
                 if (e.target && (e.target.classList.contains('delete-category') || e.target.closest('.delete-category'))) {
-                    // If the clicked element is inside the delete-category span
                     const deleteSpan = e.target.classList.contains('delete-category') ? e.target : e.target.closest('.delete-category');
                     const termId = deleteSpan.getAttribute('data-id');
                     if (!confirm('Are you sure you want to delete this category?')) return;
@@ -557,7 +536,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            // CLICK ON CATEGORY NAME -> FILTER MEDIA
             document.getElementById('media-categories-list').addEventListener('click', function(e) {
                 if (e.target && e.target.classList.contains('category-name')) {
                     const termId = e.target.getAttribute('data-id');
@@ -567,7 +545,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            // DRAG & DROP (ASSIGN OR REMOVE)
             const categories = document.querySelectorAll('#media-categories-list li');
             const mediaRows = document.querySelectorAll('#the-list tr');
 
@@ -625,7 +602,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             });
 
-            // Make rows draggable
             mediaRows.forEach(function(row) {
                 row.addEventListener('dragstart', function(e) {
                     const mediaId = row.getAttribute('id').replace('post-', '');
@@ -715,11 +691,8 @@ function snn_delete_media_category() {
 }
 add_action('wp_ajax_snn_delete_media_category', 'snn_delete_media_category');
 
-/**
- * Toggle the media category:
- * - If media is already in that category, remove it.
- * - Otherwise, add it.
- */
+
+
 function snn_assign_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
@@ -737,14 +710,12 @@ function snn_assign_media_category() {
     $existing_terms = wp_get_post_terms($media_id, 'media_taxonomy_categories', array('fields' => 'ids'));
     
     if (in_array($term_id, $existing_terms)) {
-        // If the media is already assigned to this category, remove it
         $result = wp_remove_object_terms($media_id, $term_id, 'media_taxonomy_categories');
         if (is_wp_error($result)) {
             wp_send_json_error($result->get_error_message());
         }
         wp_send_json_success(array('action_type' => 'removed'));
     } else {
-        // Otherwise add the category
         $result = wp_set_object_terms($media_id, array($term_id), 'media_taxonomy_categories', true);
         if (is_wp_error($result)) {
             wp_send_json_error($result->get_error_message());
