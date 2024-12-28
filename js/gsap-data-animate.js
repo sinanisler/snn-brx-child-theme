@@ -15,7 +15,6 @@ window.onload = function() {
           const cssProp = key.replace('style_end-', '');
           acc.endStyles[cssProp] = value;
         } else if (key === 'duration' || key === 'delay') {
-          // Remove 's' if present and parse to float
           acc[key] = parseFloat(value.replace('s', ''));
         } else {
           acc[key] = value;
@@ -45,14 +44,11 @@ window.onload = function() {
       const hasScale = ('s' in options) || ('scale' in options);
       const hasRotate = ('r' in options) || ('rotate' in options);
 
-      // Determine if ScrollTrigger should be used (default is true)
       const useScrollTrigger = options.scroll !== 'false';
 
-      // Parse duration and delay
-      const duration = options.duration !== undefined ? options.duration : 1; // Default duration 1s
-      const delay = options.delay !== undefined ? options.delay : 0; // Default delay 0s
+      const duration = options.duration !== undefined ? options.duration : 1; 
+      const delay = options.delay !== undefined ? options.delay : 0;
 
-      // Configure ScrollTrigger based on the scroll option
       const scrollTriggerConfig = useScrollTrigger ? {
         trigger: isBodyTrigger ? document.body : element,
         start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
@@ -67,8 +63,7 @@ window.onload = function() {
       } : {
         trigger: isBodyTrigger ? document.body : element,
         start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
-        // Use only start to trigger the animation on enter
-        end: '+=0', // No end
+        end: '+=0', 
         toggleActions: 'play none none none',
         markers: options.markers === 'true',
         onEnter: () => animation.play(),
@@ -76,7 +71,6 @@ window.onload = function() {
         immediateRender: false,
       };
 
-      // Create the animation but pause it if ScrollTrigger is not controlling it
       const animation = gsap.fromTo(
         splitText ? element.children : element,
         {
@@ -96,12 +90,11 @@ window.onload = function() {
           stagger: splitText ? staggerValue : 0,
           duration: duration,
           delay: delay,
-          paused: !useScrollTrigger, // Pause if not using ScrollTrigger
+          paused: !useScrollTrigger, 
         }
       );
 
       if (!useScrollTrigger) {
-        // If not using ScrollTrigger, play the animation when it enters the viewport
         ScrollTrigger.create({
           trigger: isBodyTrigger ? document.body : element,
           start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
@@ -111,9 +104,8 @@ window.onload = function() {
       }
 
       if (hasRotate) {
-        // Parse duration and delay for rotation if provided
-        const rotateDuration = options.duration !== undefined ? options.duration : 1; // Default duration 1s
-        const rotateDelay = options.delay !== undefined ? options.delay : 0; // Default delay 0s
+        const rotateDuration = options.duration !== undefined ? options.duration : 1; 
+        const rotateDelay = options.delay !== undefined ? options.delay : 0; 
 
         gsap.to(element, {
           [rotationProp]: parseInt(options.r || options.rotate) || 360,
@@ -145,7 +137,6 @@ window.onload = function() {
         });
 
         if (!useScrollTrigger && hasRotate) {
-          // Additional handling if rotation is needed without ScrollTrigger
           ScrollTrigger.create({
             trigger: isBodyTrigger ? document.body : element,
             start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
