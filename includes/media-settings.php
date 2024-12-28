@@ -67,9 +67,7 @@ function snn_register_media_settings() {
 }
 add_action('admin_init', 'snn_register_media_settings');
 
-/**
- * Sanitize Media Settings
- */
+
 function snn_sanitize_media_settings($input) {
     $sanitized = array();
     $sanitized['redirect_media_library'] = isset($input['redirect_media_library']) && $input['redirect_media_library'] ? 1 : 0;
@@ -77,16 +75,11 @@ function snn_sanitize_media_settings($input) {
     return $sanitized;
 }
 
-/**
- * Media Settings Section Callback
- */
+
 function snn_media_settings_section_callback() {
     echo '<p>Configure media-related settings below.</p>';
 }
 
-/**
- * Redirect Media Library Callback
- */
 function snn_redirect_media_library_callback() {
     $options = get_option('snn_media_settings');
     ?>
@@ -95,9 +88,6 @@ function snn_redirect_media_library_callback() {
     <?php
 }
 
-/**
- * Media Categories Callback
- */
 function snn_media_categories_callback() {
     $options = get_option('snn_media_settings');
     ?>
@@ -106,9 +96,6 @@ function snn_media_categories_callback() {
     <?php
 }
 
-/**
- * Redirect Media Library Grid to List View
- */
 function snn_redirect_media_library_grid_to_list() {
     $options = get_option('snn_media_settings');
     if (
@@ -128,9 +115,6 @@ function snn_redirect_media_library_grid_to_list() {
 }
 add_action('admin_init', 'snn_redirect_media_library_grid_to_list');
 
-/**
- * Register Media Taxonomy Categories
- */
 function snn_register_media_taxonomy_categories() {
     $options = get_option('snn_media_settings');
     if (isset($options['media_categories']) && $options['media_categories']) {
@@ -165,9 +149,6 @@ function snn_register_media_taxonomy_categories() {
 }
 add_action('init', 'snn_register_media_taxonomy_categories');
 
-/**
- * Add Custom CSS and JS to Media Page
- */
 function snn_add_custom_css_js_to_media_page() {
     if (!function_exists('get_current_screen')) {
         return;
@@ -181,7 +162,6 @@ function snn_add_custom_css_js_to_media_page() {
 
     ?>
     <style>
-    /* Styles for Media Categories Manager */
     table.media .column-title .media-icon img {
         max-width: 100px;
         width: 100%;
@@ -196,7 +176,6 @@ function snn_add_custom_css_js_to_media_page() {
     #the-list tr, .attachments .attachment {
         cursor: grab;
     }
-    /* Context Menu Styles */
     #custom-context-menu {
         position: absolute;
         z-index: 10000;
@@ -220,12 +199,10 @@ function snn_add_custom_css_js_to_media_page() {
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Create Context Menu
         const menu = document.createElement('div');
         menu.id = 'custom-context-menu';
         document.body.appendChild(menu);
 
-        // Function to Load Taxonomy Categories into Context Menu
         function loadTaxonomy() {
             menu.innerHTML = '';
 
@@ -245,7 +222,6 @@ function snn_add_custom_css_js_to_media_page() {
             }
             ?>
 
-            // Add Event Listeners to Menu Items
             const menuItems = menu.querySelectorAll('.context-menu-item');
             menuItems.forEach(item => {
                 item.addEventListener('click', () => {
@@ -254,7 +230,6 @@ function snn_add_custom_css_js_to_media_page() {
 
                     if (!currentMediaId) return;
 
-                    // AJAX Request to Assign Category
                     const xhr = new XMLHttpRequest();
                     xhr.open('POST', ajaxurl, true);
                     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -263,7 +238,6 @@ function snn_add_custom_css_js_to_media_page() {
                             try {
                                 const response = JSON.parse(xhr.responseText);
                                 if (response.success) {
-                                    // Update UI elements dynamically
                                     const categoryCountSpan = document.querySelector(`li[data-id="${termId}"] .category-count`);
                                     if (categoryCountSpan) {
                                         if (response.data.action_type === 'added') {
@@ -296,14 +270,12 @@ function snn_add_custom_css_js_to_media_page() {
 
         let currentMediaId = null;
 
-        // Handle Context Menu Display
         document.addEventListener('contextmenu', function (e) {
             const attachmentElement = e.target.closest('li.attachment, div.attachment');
 
             if (attachmentElement) {
                 e.preventDefault(); 
 
-                // Determine Media ID
                 if (attachmentElement.dataset.id) {
                     currentMediaId = attachmentElement.dataset.id;
                 } else if (attachmentElement.id) {
@@ -317,28 +289,24 @@ function snn_add_custom_css_js_to_media_page() {
 
                 loadTaxonomy();
 
-                // Position and Display Context Menu
                 menu.style.display = 'block';
                 menu.style.left = `${e.pageX}px`;
                 menu.style.top = `${e.pageY}px`;
             }
         });
 
-        // Hide Context Menu on Click Outside
         document.addEventListener('click', function (e) {
             if (!menu.contains(e.target)) {
                 menu.style.display = 'none';
             }
         });
 
-        // Hide Context Menu on Escape Key
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 menu.style.display = 'none';
             }
         });
 
-        // Hide Context Menu on Window Resize
         window.addEventListener('resize', () => {
             menu.style.display = 'none';
         });
@@ -350,7 +318,6 @@ function snn_add_custom_css_js_to_media_page() {
     if (isset($options['media_categories']) && $options['media_categories']) {
         ?>
         <style>
-            /* Styles for Media Categories Manager */
             #media-categories-manager {
                 padding-right: 10px;
                 padding-top:25px;
@@ -439,7 +406,6 @@ function snn_add_custom_css_js_to_media_page() {
 
         <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Add Category Form Submission
             document.getElementById('add-category-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const categoryName = document.getElementById('new-category-name').value.trim();
@@ -480,7 +446,7 @@ function snn_add_custom_css_js_to_media_page() {
                                 document.getElementById('new-category-name').value = '';
 
                                 // alert('Category added successfully.');
-                                location.reload(); // Reload to reflect changes
+                                location.reload(); 
                             } else {
                                 alert(response.data);
                             }
@@ -496,7 +462,6 @@ function snn_add_custom_css_js_to_media_page() {
                 );
             });
 
-            // Delete Category
             document.getElementById('media-categories-list').addEventListener('click', function(e) {
                 if (e.target && (e.target.classList.contains('delete-category') || e.target.closest('.delete-category'))) {
                     const deleteSpan = e.target.classList.contains('delete-category') ? e.target : e.target.closest('.delete-category');
@@ -530,7 +495,6 @@ function snn_add_custom_css_js_to_media_page() {
                 }
             });
 
-            // Drag and Drop Functionality
             const categories = document.querySelectorAll('#media-categories-list li');
             const mediaRows = document.querySelectorAll('#the-list tr, .attachments .attachment');
 
@@ -608,7 +572,6 @@ function snn_add_custom_css_js_to_media_page() {
                             <a href="<?php echo admin_url('upload.php?mode=list'); ?>">All Media Files</a>
                         </span>
                         <span class="category-count"><?php
-                            // Correctly calculate total media
                             $count_posts = wp_count_attachments();
                             $total_media = 0;
                             if ( is_object( $count_posts ) ) {
@@ -655,9 +618,6 @@ function snn_add_custom_css_js_to_media_page() {
 }
 add_action('admin_head', 'snn_add_custom_css_js_to_media_page');
 
-/**
- * Add Media Categories Manager to DOM
- */
 function snn_add_media_categories_manager_dom() {
     if (!function_exists('get_current_screen')) {
         return;
@@ -684,9 +644,6 @@ function snn_add_media_categories_manager_dom() {
 }
 add_action('admin_footer', 'snn_add_media_categories_manager_dom');
 
-/**
- * AJAX Handler to Add Media Category
- */
 function snn_add_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
@@ -716,9 +673,6 @@ function snn_add_media_category() {
 }
 add_action('wp_ajax_snn_add_media_category', 'snn_add_media_category');
 
-/**
- * AJAX Handler to Delete Media Category
- */
 function snn_delete_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
@@ -740,9 +694,6 @@ function snn_delete_media_category() {
 }
 add_action('wp_ajax_snn_delete_media_category', 'snn_delete_media_category');
 
-/**
- * AJAX Handler to Assign Media Category
- */
 function snn_assign_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
@@ -757,18 +708,15 @@ function snn_assign_media_category() {
         wp_send_json_error('Invalid media ID or term ID');
     }
 
-    // Check if the media already has the term
     $existing_terms = wp_get_post_terms($media_id, 'media_taxonomy_categories', array('fields' => 'ids'));
     
     if (in_array($term_id, $existing_terms)) {
-        // Remove the term
         $result = wp_remove_object_terms($media_id, $term_id, 'media_taxonomy_categories');
         if (is_wp_error($result)) {
             wp_send_json_error($result->get_error_message());
         }
         wp_send_json_success(array('action_type' => 'removed'));
     } else {
-        // Assign the term
         $result = wp_set_object_terms($media_id, array($term_id), 'media_taxonomy_categories', true);
         if (is_wp_error($result)) {
             wp_send_json_error($result->get_error_message());
@@ -778,9 +726,6 @@ function snn_assign_media_category() {
 }
 add_action('wp_ajax_snn_assign_media_category', 'snn_assign_media_category');
 
-/**
- * Filter Media by Taxonomy
- */
 function snn_filter_media_by_taxonomy($query) {
     global $pagenow;
 
