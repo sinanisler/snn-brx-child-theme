@@ -1,93 +1,163 @@
-  gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger);
 
-  window.onload = function() {
-    setTimeout(() => {
-      const animateElements = document.querySelectorAll('[data-animate]');
+window.onload = function() {
+  setTimeout(() => {
+    const animateElements = document.querySelectorAll('[data-animate]');
 
-      animateElements.forEach(element => {
-        const options = element.getAttribute('data-animate').split(',').reduce((acc, option) => {
-          const [key, value] = option.split(':').map(item => item.trim());
-          
-          if (key.startsWith('style_start-')) {
-            const cssProp = key.replace('style_start-', '');
-            acc.startStyles[cssProp] = value;
-          } else if (key.startsWith('style_end-')) {
-            const cssProp = key.replace('style_end-', '');
-            acc.endStyles[cssProp] = value;
-          } else {
-            acc[key] = value;
-          }
+    animateElements.forEach(element => {
+      const options = element.getAttribute('data-animate').split(',').reduce((acc, option) => {
+        const [key, value] = option.split(':').map(item => item.trim());
 
-          return acc;
-        }, { startStyles: {}, endStyles: {} });
-
-        const defaultStart = 'top 90%';
-        const defaultEnd = 'bottom 50%';
-
-        const splitText = options.splittext === 'true';
-        const staggerValue = parseFloat(options.stagger || 0.1);
-
-        if (splitText) {
-          const text = element.innerText;
-          const chars = text.split('');
-          element.innerHTML = chars.map(char => `<span style="opacity: 0;">${char}</span>`).join('');
+        if (key.startsWith('style_start-')) {
+          const cssProp = key.replace('style_start-', '');
+          acc.startStyles[cssProp] = value;
+        } else if (key.startsWith('style_end-')) {
+          const cssProp = key.replace('style_end-', '');
+          acc.endStyles[cssProp] = value;
+        } else if (key === 'duration' || key === 'delay') {
+          // Remove 's' if present and parse to float
+          acc[key] = parseFloat(value.replace('s', ''));
+        } else {
+          acc[key] = value;
         }
 
-        const rotationAxis = options.axis || 'Z';
-        const rotationProp = `rotate${rotationAxis.toUpperCase()}`;
+        return acc;
+      }, { startStyles: {}, endStyles: {} });
 
-        const isBodyTrigger = options.trigger === 'body';
+      const defaultStart = 'top 90%';
+      const defaultEnd = 'bottom 50%';
 
-        const hasOpacity = ('o' in options) || ('opacity' in options);
-        const hasScale = ('s' in options) || ('scale' in options);
-        const hasRotate = ('r' in options) || ('rotate' in options);
+      const splitText = options.splittext === 'true';
+      const staggerValue = parseFloat(options.stagger || 0.1);
 
-        gsap.fromTo(
-          splitText ? element.children : element,
-          {
-            x: options.x ? parseInt(options.x) : 0,
-            y: options.y ? parseInt(options.y) : 0,
-            ...(hasOpacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
-            ...(hasScale ? { scale: parseFloat(options.s || options.scale) } : { scale: 1 }),
-            ...options.startStyles
+      if (splitText) {
+        const text = element.innerText;
+        const chars = text.split('');
+        element.innerHTML = chars.map(char => `<span style="opacity: 0;">${char}</span>`).join('');
+      }
+
+      const rotationAxis = options.axis || 'Z';
+      const rotationProp = `rotate${rotationAxis.toUpperCase()}`;
+
+      const isBodyTrigger = options.trigger === 'body';
+
+      const hasOpacity = ('o' in options) || ('opacity' in options);
+      const hasScale = ('s' in options) || ('scale' in options);
+      const hasRotate = ('r' in options) || ('rotate' in options);
+
+      // Determine if ScrollTrigger should be used (default is true)
+      const useScrollTrigger = options.scroll !== 'false';
+
+      // Parse duration and delay
+      const duration = options.duration !== undefined ? options.duration : 1; // Default duration 1s
+      const delay = options.delay !== undefined ? options.delay : 0; // Default delay 0s
+
+      // Configure ScrollTrigger based on the scroll option
+      const scrollTriggerConfig = useScrollTrigger ? {
+        trigger: isBodyTrigger ? document.body : element,
+        start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
+        end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
+        scrub: options.scrub === 'true' ? true : (parseFloat(options.scrub) || 1),
+        pin: options.pin ? (options.pin === 'true' ? true : options.pin) : false,
+        markers: options.markers === 'true',
+        toggleClass: options.toggleClass || null,
+        pinSpacing: options.pinSpacing || 'margin',
+        invalidateOnRefresh: true,
+        immediateRender: true,
+      } : {
+        trigger: isBodyTrigger ? document.body : element,
+        start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
+        // Use only start to trigger the animation on enter
+        end: '+=0', // No end
+        toggleActions: 'play none none none',
+        markers: options.markers === 'true',
+        onEnter: () => animation.play(),
+        invalidateOnRefresh: true,
+        immediateRender: false,
+      };
+
+      // Create the animation but pause it if ScrollTrigger is not controlling it
+      const animation = gsap.fromTo(
+        splitText ? element.children : element,
+        {
+          x: options.x ? parseInt(options.x) : 0,
+          y: options.y ? parseInt(options.y) : 0,
+          ...(hasOpacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
+          ...(hasScale ? { scale: parseFloat(options.s || options.scale) } : { scale: 1 }),
+          ...options.startStyles
+        },
+        {
+          x: 0,
+          y: 0,
+          ...(hasOpacity ? { opacity: 1 } : {}),
+          ...(hasScale ? { scale: 1 } : {}),
+          ...options.endStyles,
+          scrollTrigger: useScrollTrigger ? scrollTriggerConfig : false,
+          stagger: splitText ? staggerValue : 0,
+          duration: duration,
+          delay: delay,
+          paused: !useScrollTrigger, // Pause if not using ScrollTrigger
+        }
+      );
+
+      if (!useScrollTrigger) {
+        // If not using ScrollTrigger, play the animation when it enters the viewport
+        ScrollTrigger.create({
+          trigger: isBodyTrigger ? document.body : element,
+          start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
+          onEnter: () => animation.play(),
+          markers: options.markers === 'true',
+        });
+      }
+
+      if (hasRotate) {
+        // Parse duration and delay for rotation if provided
+        const rotateDuration = options.duration !== undefined ? options.duration : 1; // Default duration 1s
+        const rotateDelay = options.delay !== undefined ? options.delay : 0; // Default delay 0s
+
+        gsap.to(element, {
+          [rotationProp]: parseInt(options.r || options.rotate) || 360,
+          scrollTrigger: useScrollTrigger ? {
+            trigger: isBodyTrigger ? document.body : element,
+            start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
+            end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
+            scrub: true,
+            markers: options.markers === 'true',
+            pin: options.pin ? (options.pin === 'true' ? true : options.pin) : false,
+            invalidateOnRefresh: true,
+            immediateRender: false,
+          } : {
+            trigger: isBodyTrigger ? document.body : element,
+            start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
+            end: '+=0',
+            toggleActions: 'play none none none',
+            markers: options.markers === 'true',
+            onEnter: () => gsap.to(element, {
+              [rotationProp]: parseInt(options.r || options.rotate) || 360,
+              duration: rotateDuration,
+              delay: rotateDelay,
+            }),
+            invalidateOnRefresh: true,
+            immediateRender: false,
           },
-          {
-            x: 0,
-            y: 0,
-            ...(hasOpacity ? { opacity: 1 } : {}),
-            ...(hasScale ? { scale: 1 } : {}),
-            ...options.endStyles,
-            scrollTrigger: {
-              trigger: isBodyTrigger ? document.body : element,
-              start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
-              end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
-              scrub: options.scrub === 'true' ? true : (parseFloat(options.scrub) || 1),
-              pin: options.pin ? (options.pin === 'true' ? true : options.pin) : false,
-              markers: options.markers === 'true',
-              toggleClass: options.toggleClass || null,
-              pinSpacing: options.pinSpacing || 'margin',
-              invalidateOnRefresh: true,
-              immediateRender: true,
-            },
-            stagger: splitText ? staggerValue : 0,
-          }
-        );
+          duration: rotateDuration,
+          delay: rotateDelay,
+        });
 
-        if (hasRotate) {
-          gsap.to(element, {
-            [rotationProp]: parseInt(options.r || options.rotate) || 360,
-            scrollTrigger: {
-              trigger: isBodyTrigger ? document.body : element,
-              start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
-              end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
-              scrub: true,
-              markers: options.markers === 'true',
-              pin: options.pin ? (options.pin === 'true' ? true : options.pin) : false,
-              invalidateOnRefresh: true,
-              immediateRender: false,
-            }
+        if (!useScrollTrigger && hasRotate) {
+          // Additional handling if rotation is needed without ScrollTrigger
+          ScrollTrigger.create({
+            trigger: isBodyTrigger ? document.body : element,
+            start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
+            onEnter: () => gsap.to(element, {
+              [rotationProp]: parseInt(options.r || options.rotate) || 360,
+              duration: rotateDuration,
+              delay: rotateDelay,
+            }),
+            markers: options.markers === 'true',
           });
         }
-      });
-    }, 100);
-  };
+      }
+    });
+  }, 10);
+};
