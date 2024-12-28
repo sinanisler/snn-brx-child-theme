@@ -80,14 +80,6 @@ function snn_register_other_settings() {
         'snn-other-settings',
         'snn_other_settings_section'
     );
-
-    add_settings_field(
-        'redirect_media_library',
-        'Gallery List View Default',
-        'snn_redirect_media_library_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -96,15 +88,15 @@ function snn_sanitize_other_settings($input) {
 
     $sanitized['enqueue_gsap'] = isset($input['enqueue_gsap']) && $input['enqueue_gsap'] ? 1 : 0;
 
-    $sanitized['revisions_limit'] = isset($input['revisions_limit']) ? intval($input['revisions_limit']) : '';
+    if (isset($input['revisions_limit'])) {
+        $sanitized['revisions_limit'] = intval($input['revisions_limit']);
+    }
 
     $sanitized['auto_update_bricks'] = isset($input['auto_update_bricks']) && $input['auto_update_bricks'] ? 1 : 0;
 
     $sanitized['move_bricks_menu'] = isset($input['move_bricks_menu']) && $input['move_bricks_menu'] ? 1 : 0;
 
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
-
-    $sanitized['redirect_media_library'] = isset($input['redirect_media_library']) && $input['redirect_media_library'] ? 1 : 0;
 
     return $sanitized;
 }
@@ -157,18 +149,8 @@ function snn_disable_comments_callback() {
     ?>
     <label>
         <input type="checkbox" name="snn_other_settings[disable_comments]" value="1" <?php checked(1, isset($options['disable_comments']) ? $options['disable_comments'] : 0); ?> >
-        
+        Disable all comments on the site
     </label>
-    <?php
-}
-
-function snn_redirect_media_library_callback() {
-    $options = get_option('snn_other_settings');
-    ?>
-    <input type="checkbox" name="snn_other_settings[redirect_media_library]" value="1" <?php checked(1, isset($options['redirect_media_library']) ? $options['redirect_media_library'] : 0); ?>>
-    <p>
-        
-    </p>
     <?php
 }
 
@@ -234,25 +216,5 @@ function snn_hide_comments_section() {
     }
 }
 add_action('admin_head', 'snn_hide_comments_section');
-
-function snn_redirect_media_library_grid_to_list() {
-    $options = get_option('snn_other_settings');
-    if (
-        isset($options['redirect_media_library']) &&
-        $options['redirect_media_library'] &&
-        is_admin() &&
-        strpos($_SERVER['REQUEST_URI'], 'upload.php') !== false
-    ) {
-        $current_mode = isset($_GET['mode']) ? $_GET['mode'] : '';
-
-        if ($current_mode !== 'list') {
-            $list_mode_url = remove_query_arg('mode');
-            $list_mode_url = add_query_arg('mode', 'list', $list_mode_url);
-            wp_redirect($list_mode_url);
-            exit;
-        }
-    }
-}
-add_action('admin_init', 'snn_redirect_media_library_grid_to_list');
 
 ?>
