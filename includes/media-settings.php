@@ -154,9 +154,6 @@ function snn_add_custom_css_js_to_media_page() {
 
         ?>
         <style>
-        #view-switch-grid {
-            display: none;
-        }
         table.media .column-title .media-icon img {
             max-width: 100px;
             width: 100%;
@@ -172,12 +169,19 @@ function snn_add_custom_css_js_to_media_page() {
             cursor: grab;
         }
         </style>
+
+
+
+
+
+
+
+
+
         <?php
     
 
-    // If media categories are enabled, add the manager markup and JS
     if (isset($options['media_categories']) && $options['media_categories']) {
-        // Get total media files count
         $count_posts = wp_count_posts('attachment');
         $total_media = 0;
         foreach ($count_posts as $status => $count) {
@@ -231,10 +235,10 @@ function snn_add_custom_css_js_to_media_page() {
                 color: red;
                 cursor: pointer;
                 margin-left: 10px;
-                display: none; /* Initially hidden */
+                display: none; 
             }
             #media-categories-list li:hover .delete-category {
-                display: inline; /* Show on hover */
+                display: inline; 
             }
             #add-category-form  {
                 opacity:0.4
@@ -282,6 +286,133 @@ function snn_add_custom_css_js_to_media_page() {
                 });
 
             });
+
+
+
+
+            
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Disable default browser right-click menu globally if needed
+    // Comment out the following lines if you want the default menu in other parts of the site
+    document.addEventListener('contextmenu', (e) => {
+        // Optional: Disable right-click globally
+        // e.preventDefault();
+    });
+
+    // Define the custom context menu container
+    const menu = document.createElement('div');
+    menu.id = 'custom-context-menu';
+    Object.assign(menu.style, {
+        position: 'absolute',
+        zIndex: '10000',
+        display: 'none',
+        backgroundColor: '#fff',
+        border: '1px solid #ccc',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
+        padding: '5px 0',
+        minWidth: '150px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '14px',
+    });
+
+    document.body.appendChild(menu);
+
+    // Function to load taxonomy items into the menu
+    function loadTaxonomy() {
+        menu.innerHTML = '';
+
+        <?php
+        // Fetch taxonomy items using WordPress get_terms
+        $taxonomyItems = get_terms([
+            'taxonomy' => 'media_taxonomy_categories',
+            'hide_empty' => false,
+        ]);
+
+        if (!empty($taxonomyItems) && !is_wp_error($taxonomyItems)) {
+            foreach ($taxonomyItems as $term) {
+                // Sanitize term name for JavaScript
+                $item = esc_js($term->name);
+                echo "menu.innerHTML += '<div class=\"context-menu-item\">$item</div>';\n";
+            }
+        } else {
+            echo "menu.innerHTML = '<div class=\"context-menu-item\">No items found</div>';\n";
+        }
+        ?>
+
+        // Add event listeners to menu items
+        const menuItems = menu.querySelectorAll('.context-menu-item');
+        menuItems.forEach(item => {
+            item.style.padding = '5px 10px';
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', () => {
+                alert(`Selected: ${item.textContent}`);
+                menu.style.display = 'none';
+            });
+
+            // Optional: Add hover effect
+            item.addEventListener('mouseover', () => {
+                item.style.backgroundColor = '#f0f0f0';
+            });
+            item.addEventListener('mouseout', () => {
+                item.style.backgroundColor = '#fff';
+            });
+        });
+    }
+
+    // Event delegation: Attach contextmenu listener to the document
+    document.addEventListener('contextmenu', function (e) {
+        // Check if the right-clicked element or any of its parents has the class 'attachment'
+        const attachmentElement = e.target.closest('li.attachment');
+
+        if (attachmentElement) {
+            e.preventDefault(); // Prevent the default context menu
+
+            // Load taxonomy items into the custom menu
+            loadTaxonomy();
+
+            // Position and display the custom menu
+            menu.style.display = 'block';
+            menu.style.left = `${e.pageX}px`;
+            menu.style.top = `${e.pageY}px`;
+        }
+    });
+
+    // Hide the custom context menu when clicking outside
+    document.addEventListener('click', function (e) {
+        // Only hide if the click is outside the menu
+        if (!menu.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    });
+
+    // Optional: Hide the menu when pressing the Esc key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            menu.style.display = 'none';
+        }
+    });
+
+    // Optional: Adjust menu position if it overflows the viewport
+    window.addEventListener('resize', () => {
+        menu.style.display = 'none';
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
 
 
         </script>
@@ -374,6 +505,8 @@ function snn_add_custom_css_js_to_media_page() {
 
                                 document.getElementById('media-categories-list').appendChild(li);
                                 document.getElementById('new-category-name').value = '';
+
+                                location.reload();
                             } else {
                                 alert(response.data);
                             }
@@ -407,6 +540,7 @@ function snn_add_custom_css_js_to_media_page() {
                                 if (response.success) {
                                     const li = deleteSpan.parentElement;
                                     li.parentElement.removeChild(li);
+                                    
                                 } else {
                                     alert(response.data);
                                 }
@@ -534,7 +668,7 @@ add_action('admin_footer', 'snn_add_media_categories_manager_dom');
 function snn_add_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
+    if (!current_user_can('edit_posts')) {
         wp_send_json_error('Unauthorized user');
     }
 
@@ -563,7 +697,7 @@ add_action('wp_ajax_snn_add_media_category', 'snn_add_media_category');
 function snn_delete_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
+    if (!current_user_can('edit_posts')) {
         wp_send_json_error('Unauthorized user');
     }
 
@@ -589,7 +723,7 @@ add_action('wp_ajax_snn_delete_media_category', 'snn_delete_media_category');
 function snn_assign_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
-    if (!current_user_can('manage_options')) {
+    if (!current_user_can('edit_posts')) {
         wp_send_json_error('Unauthorized user');
     }
 
