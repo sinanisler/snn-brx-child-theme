@@ -1,5 +1,5 @@
 <?php
-
+ 
 // Use CUSTOM-CODES-HERE.php file for adding your custom codes. 
 require_once get_stylesheet_directory() . '/CUSTOM-CODES-HERE.php';
 
