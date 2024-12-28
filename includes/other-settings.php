@@ -80,6 +80,14 @@ function snn_register_other_settings() {
         'snn-other-settings',
         'snn_other_settings_section'
     );
+
+    add_settings_field(
+        'hide_element_icons',
+        'Hide Element Icons on Bricks (Advanced)',
+        'snn_hide_element_icons_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -97,6 +105,9 @@ function snn_sanitize_other_settings($input) {
     $sanitized['move_bricks_menu'] = isset($input['move_bricks_menu']) && $input['move_bricks_menu'] ? 1 : 0;
 
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
+
+    // ** Sanitize New Setting **
+    $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
 
     return $sanitized;
 }
@@ -150,6 +161,17 @@ function snn_disable_comments_callback() {
     <label>
         <input type="checkbox" name="snn_other_settings[disable_comments]" value="1" <?php checked(1, isset($options['disable_comments']) ? $options['disable_comments'] : 0); ?> >
         Disable all comments on the site
+    </label>
+    <?php
+}
+
+// ** New Callback Function: Hide Element Icons **
+function snn_hide_element_icons_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_other_settings[hide_element_icons]" value="1" <?php checked(1, isset($options['hide_element_icons']) ? $options['hide_element_icons'] : 0); ?>>
+        Hide Element Icons on Bricks Builder
     </label>
     <?php
 }
@@ -216,5 +238,44 @@ function snn_hide_comments_section() {
     }
 }
 add_action('admin_head', 'snn_hide_comments_section');
+
+// ** New Function: Add Inline CSS When Setting is Enabled and URL Contains '/?bricks=run' **
+function snn_add_inline_css_if_bricks_run() {
+    $options = get_option('snn_other_settings');
+    if (isset($options['hide_element_icons']) && $options['hide_element_icons']) {
+        // Check if the URL contains '/?bricks=run'
+        if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
+            echo '<style>
+                #bricks-panel-elements .sortable-wrapper{
+                    margin:0 0 5px;
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                #bricks-panel-elements-categories .category-title{
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                .bricks-add-element .element-icon {
+                    display: none;
+                }
+                .bricks-add-element{
+                
+                }
+                #bricks-panel-elements-categories .category-title{
+                    line-height:0;
+                    padding-top:10px;
+                    padding-bottom:10px;
+                }
+                .bricks-add-element .element-label{
+                    box-shadow:0 0 ;
+                    font-size:14px;
+                    padding: 0 3px;
+                    line-height:30px;
+                }
+            </style>';
+        }
+    }
+}
+add_action('wp_head', 'snn_add_inline_css_if_bricks_run');
 
 ?>
