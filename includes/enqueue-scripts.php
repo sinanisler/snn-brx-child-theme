@@ -28,7 +28,6 @@ function add_footer_inline_js_for_logged_users() {
 
 
 
-
 // Flag to prevent recursive updates
 let isUpdating = false;
 
@@ -82,6 +81,10 @@ function attachInputListener() {
             const plainText = editableDiv.innerText; // Get plain text from contenteditable
             if (inputField.value !== plainText) {
                 inputField.value = plainText;
+
+                // Trigger an "input" event on the input field to simulate real-time updates
+                const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+                inputField.dispatchEvent(inputEvent);
             }
 
             // Preserve caret position based on character index
