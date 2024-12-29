@@ -10,11 +10,12 @@ window.onload = function () {
 
       if (animations.length > 1) {
         // Create a GSAP timeline for multiple animations
-        const timeline = gsap.timeline();
+        const timeline = gsap.timeline({
+          scrollTrigger: createScrollTriggerConfig(parseAnimationOptions(animations[0]), element)
+        });
 
-        animations.forEach((animation) => {
+        animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
-          const scrollTriggerConfig = createScrollTriggerConfig(options, element);
 
           timeline.to(
             splitText(element, options),
@@ -28,9 +29,8 @@ window.onload = function () {
               duration: options.duration || 1,
               delay: options.delay || 0,
               stagger: options.stagger ? parseFloat(options.stagger) : 0,
-              scrollTrigger: scrollTriggerConfig,
             },
-            options.startTime || 0 // Start time for timeline animations
+            index > 0 ? `+=${options.delay || 0}` : 0 // Ensure sequential animations
           );
         });
       } else {
