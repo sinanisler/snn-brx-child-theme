@@ -6,7 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 $options = get_option('snn_other_settings');
 if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
 
-
 class Custom_Element_LottieAnimation extends \Bricks\Element {
 
     public $category     = 'snn';
@@ -68,11 +67,50 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'default' => 400,
             'min'     => 100,
             'step'    => 10,
+            'description' => "<br><br>",
         ];
 
+        // Scroll Trigger Option
+        $this->controls['scroll_trigger'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Enable Scroll Trigger', 'bricks' ),
+            'type'    => 'checkbox',
+            'inline'  => true,
+            'small'   => true,
+            'default' => false,
+            'description' => "Animate your lottie on scroll.",
+        ];
 
+        // Scroll Trigger Start
+        $this->controls['scroll_trigger_start'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Scroll Trigger Start', 'bricks' ),
+            'type'    => 'text',
+            'default' => 'top center',
+            'description' => "
+                top top<br>
+                top 10%
+            ",
+        ];
 
+        // Scroll Trigger End
+        $this->controls['scroll_trigger_end'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Scroll Trigger End', 'bricks' ),
+            'type'    => 'text',
+            'default' => 'bottom top',
+            'description' => "Define the end position for ScrollTrigger (e.g., 'bottom top').",
+        ];
 
+        // Scroll Trigger Markers
+        $this->controls['scroll_trigger_markers'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Show Scroll Trigger Markers', 'bricks' ),
+            'type'    => 'checkbox',
+            'inline'  => true,
+            'small'   => true,
+            'default' => false,
+        ];
     }
 
     public function render() {
@@ -82,13 +120,15 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         $autoplay         = isset( $this->settings['autoplay'] ) && $this->settings['autoplay'] === true ? 'true' : 'false';
         $animation_speed  = isset( $this->settings['animation_speed'] ) ? floatval( $this->settings['animation_speed'] ) : 1.0;
         $animation_height = isset( $this->settings['animation_height'] ) ? intval( $this->settings['animation_height'] ) : 400;
+        $scroll_trigger   = isset( $this->settings['scroll_trigger'] ) && $this->settings['scroll_trigger'] === true ? true : false;
+        $scroll_trigger_start = isset( $this->settings['scroll_trigger_start'] ) ? esc_js( $this->settings['scroll_trigger_start'] ) : 'top center';
+        $scroll_trigger_end   = isset( $this->settings['scroll_trigger_end'] ) ? esc_js( $this->settings['scroll_trigger_end'] ) : 'bottom top';
+        $scroll_trigger_markers = isset( $this->settings['scroll_trigger_markers'] ) && $this->settings['scroll_trigger_markers'] === true ? 'true' : 'false';
 
         if ( empty( $lottie_json ) ) {
             echo '<p>' . esc_html__( 'Please upload a Lottie JSON file.', 'bricks' ) . '</p>';
             return;
         }
-
-        
 
         // Generate unique ID for animation container
         $animation_id = 'custom-lottie-animation-' . uniqid();
@@ -114,6 +154,27 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 
             // Set animation speed
             lottieAnimation.setSpeed(<?php echo esc_js( $animation_speed ); ?>);
+
+            <?php if ( $scroll_trigger ): ?>
+            // Initialize GSAP ScrollTrigger for Lottie
+            gsap.registerPlugin(ScrollTrigger);
+            gsap.to({}, {
+                scrollTrigger: {
+                    trigger: "#<?php echo esc_js( $animation_id ); ?>",
+                    start: "<?php echo esc_js( $scroll_trigger_start ); ?>",
+                    end: "<?php echo esc_js( $scroll_trigger_end ); ?>",
+                    scrub: true,
+                    markers: <?php echo esc_js( $scroll_trigger_markers ); ?>,
+                    onUpdate: function(self) {
+                        var progress = self.progress.toFixed(3);
+                        console.log("Scroll Progress:", progress);
+
+                        
+                        lottieAnimation.goToAndStop(progress * lottieAnimation.totalFrames, true);
+                    }
+                }
+            });
+            <?php endif; ?>
         });
         </script>
 
@@ -125,8 +186,5 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 add_action( 'bricks_register_elements', function() {
     \Bricks\Element::register_element( 'Custom_Element_LottieAnimation', 'lottieanimation' );
 } );
-
-
-
 
 }
