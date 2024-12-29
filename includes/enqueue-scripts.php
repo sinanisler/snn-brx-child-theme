@@ -50,7 +50,7 @@ function attachInputListener() {
             editableDiv.style.fontSize = '14px';
             editableDiv.style.boxSizing = 'border-box';
             editableDiv.style.padding = '10px';
-            editableDiv.style.border = '1px solid #ccc';
+            editableDiv.style.border = '1px solid #00000033';
             editableDiv.style.overflow = 'auto';
             editableDiv.style.whiteSpace = 'pre-wrap';
             editableDiv.style.wordWrap = 'break-word';
