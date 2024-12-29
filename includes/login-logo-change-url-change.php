@@ -53,11 +53,11 @@ function snn_custom_logo_url_callback() {
 
 function snn_login_enqueue_scripts() {
     $options = get_option('snn_settings');
-    $logo_url = $options['login_logo_url'] ?? '/wp-admin/images/w-logo-blue.png'; 
+    $logo_url = !empty($options['login_logo_url']) ? $options['login_logo_url'] : get_bloginfo('url') . '/wp-admin/images/w-logo-blue.png';
     ?>
     <style type="text/css">
         #login h1 a, .login h1 a {
-            background-image: url('<?php echo esc_url($logo_url); ?>');
+            background-image: url('<?php echo $logo_url; ?>');
             height: 85px;
             width: 320px;
             background-size: contain;
