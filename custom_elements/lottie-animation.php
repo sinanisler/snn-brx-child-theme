@@ -57,6 +57,9 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'step'    => 0.1,
             'min'     => 0.1,
             'max'     => 5.0,
+            'description' => "
+                can be; <b>0.5</b> or <b>1</b> or <b>2</b> ...etc
+            ",
         ];
 
         // Animation Height
@@ -159,6 +162,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 
             // Set animation speed
             lottieAnimation.setSpeed(<?php echo esc_js( $animation_speed ); ?>);
+            // lottieAnimation.setDirection(1);
 
             <?php if ( $scroll_trigger ): ?>
             // Initialize GSAP ScrollTrigger for Lottie
