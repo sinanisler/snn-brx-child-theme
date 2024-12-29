@@ -88,8 +88,9 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'type'    => 'text',
             'default' => 'top center',
             'description' => "
-                top top<br>
-                top 10%
+                top 10%<br>
+                top 50%<br>
+                top 90%
             ",
         ];
 
@@ -98,8 +99,12 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Scroll Trigger End', 'bricks' ),
             'type'    => 'text',
-            'default' => 'bottom top',
-            'description' => "Define the end position for ScrollTrigger (e.g., 'bottom top').",
+            'default' => 'bottom center',
+            'description' => "
+                bottom 10%<br>
+                bottom 50%<br>
+                bottom 90%
+            ",
         ];
 
         // Scroll Trigger Markers
