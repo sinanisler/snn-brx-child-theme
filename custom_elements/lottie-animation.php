@@ -3,6 +3,10 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
+$options = get_option('snn_other_settings');
+if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
+
+
 class Custom_Element_LottieAnimation extends \Bricks\Element {
 
     public $category     = 'snn';
@@ -22,7 +26,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'label'  => esc_html__( 'Lottie JSON File', 'bricks' ),
             'type'   => 'file',
             'accept' => '.json',
-            'description' => esc_html__( 'Upload your Lottie JSON file here.', 'bricks' ),
+            'description' => "Upload your Lottie JSON file here",
         ];
 
         // Loop Option
@@ -32,7 +36,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'type'    => 'checkbox',
             'inline'  => true,
             'small'   => true,
-            'default' => true, // Default: true (checked)
+            'default' => false,
         ];
 
         // Autoplay Option
@@ -42,7 +46,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'type'    => 'checkbox',
             'inline'  => true,
             'small'   => true,
-            'default' => true, // Default: true (checked)
+            'default' => true, 
         ];
 
         // Animation Speed
@@ -66,6 +70,9 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'step'    => 10,
         ];
 
+
+
+
     }
 
     public function render() {
@@ -80,6 +87,8 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             echo '<p>' . esc_html__( 'Please upload a Lottie JSON file.', 'bricks' ) . '</p>';
             return;
         }
+
+        
 
         // Generate unique ID for animation container
         $animation_id = 'custom-lottie-animation-' . uniqid();
@@ -116,3 +125,8 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 add_action( 'bricks_register_elements', function() {
     \Bricks\Element::register_element( 'Custom_Element_LottieAnimation', 'lottieanimation' );
 } );
+
+
+
+
+}

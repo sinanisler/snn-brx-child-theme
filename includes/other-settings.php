@@ -43,7 +43,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'enqueue_gsap',
-        'Enable GSAP',
+        'Enable GSAP and Lottie',
         'snn_enqueue_gsap_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -179,7 +179,8 @@ function snn_enqueue_gsap_scripts() {
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
         wp_enqueue_script('gsap-js', get_stylesheet_directory_uri() . '/js/gsap.min.js', array(), null, true);
         wp_enqueue_script('gsap-st-js', get_stylesheet_directory_uri() . '/js/ScrollTrigger.min.js', array('gsap-js'), null, true);
-        wp_enqueue_script('gsap-data-js', get_stylesheet_directory_uri() . '/js/gsap-data-animate.js?v0.01', array(), null, true);
+        wp_enqueue_script('gsap-data-js', get_stylesheet_directory_uri() . '/js/gsap-data-animate.js?v0.02', array(), null, true);
+        wp_enqueue_script('lottie-js', get_stylesheet_directory_uri() . '/js/lottie.min.js', array(), null, true);
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_gsap_scripts');
