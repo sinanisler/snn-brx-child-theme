@@ -166,7 +166,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
                     scrub: true,
                     markers: <?php echo esc_js( $scroll_trigger_markers ); ?>,
                     onUpdate: function(self) {
-                        var progress = self.progress.toFixed(3);
+                        var progress = Math.min(self.progress.toFixed(3), 0.990);
                         console.log("Scroll Progress:", progress);
 
                         
