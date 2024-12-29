@@ -45,7 +45,7 @@ function attachInputListener() {
             editableDiv.id = 'highlighted-editor';
             editableDiv.contentEditable = true;
             editableDiv.style.width = '100%';
-            editableDiv.style.height = '150px';
+            editableDiv.style.height = '250px';
             editableDiv.style.fontSize = '14px';
             editableDiv.style.boxSizing = 'border-box';
             editableDiv.style.padding = '10px';
