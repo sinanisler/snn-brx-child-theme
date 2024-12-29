@@ -66,16 +66,28 @@ function snn_block_editor_settings_page_callback() {
     document.addEventListener('DOMContentLoaded', function () {
         const selectAllButton = document.getElementById('toggle-select-all');
         const checkboxes = document.querySelectorAll('.block-checkbox');
-        let allSelected = false;
+        let allSelected = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+        function updateButtonText() {
+            selectAllButton.textContent = allSelected ? 'Unselect All' : 'Select All';
+        }
 
         selectAllButton.addEventListener('click', function () {
             allSelected = !allSelected;
             checkboxes.forEach(checkbox => {
                 checkbox.checked = allSelected;
             });
-
-            selectAllButton.textContent = allSelected ? 'Unselect All' : 'Select All';
+            updateButtonText();
         });
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                allSelected = Array.from(checkboxes).every(checkbox => checkbox.checked);
+                updateButtonText();
+            });
+        });
+
+        updateButtonText();
     });
     </script>
 
@@ -96,7 +108,7 @@ function snn_disable_selected_blocks($allowed_block_types, $post) {
     }
 
     foreach ($options as $block_name => $value) {
-        if (isset($options[$block_name]) && $value == 1) {
+        if ($value == 1) {
             $key = array_search($block_name, $allowed_block_types);
             if ($key !== false) {
                 unset($allowed_block_types[$key]);
@@ -104,6 +116,6 @@ function snn_disable_selected_blocks($allowed_block_types, $post) {
         }
     }
 
-    return $allowed_block_types;
+    return array_values($allowed_block_types); // Re-index the array for consistency
 }
 add_filter('allowed_block_types_all', 'snn_disable_selected_blocks', 10, 2);
