@@ -13,21 +13,14 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
     return 'Custom Code HTML -SNN';
   }
 
-  // Set builder control groups
-  public function set_control_groups() {
-    $this->control_groups['settings'] = [
-      'title' => 'Settings',
-      'tab' => 'content',
-    ];
-  }
-
-  // Set builder controls
+  // Set builder control
   public function set_controls() {
     $this->controls['content'] = [
       'tab' => 'content',
-      'group' => 'settings',
+      
       'label' => 'Custom HTML Code',
-      'type' => 'textarea',
+      'type' => 'code',
+      'moe' => 'html',
       'default' => '<div>Your HTML here</div>
 
 <h1 class="redme">Title</h1>
