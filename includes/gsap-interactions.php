@@ -9,7 +9,7 @@
 
     
     
-    This will be implemented after I am sure 100% gsap-data-animate.js is stable
+    This will be implemented after I am 100% sure gsap-data-animate.js is stable
 
 
 
