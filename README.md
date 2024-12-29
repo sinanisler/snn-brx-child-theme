@@ -5,7 +5,7 @@
 [![Gmail Badge](https://img.shields.io/badge/-Download_Latest_Release-29903b?style=flat&logo=Download&logoColor=white)](https://sinanisler.com/snn-brx-download)
 
 
-[![Github All Releases](https://sinanisler.com/tool/git-banner/download_count.php/download_count.png?v4)](https://sinanisler.com/snn-brx-download)
+[![Github All Releases](https://sinanisler.com/tool/git-banner/download_count.php/download_count.png?v6)](https://sinanisler.com/snn-brx-download)
 
 
 SNN BRX theme adds theme settings, security settings and lots of plugin eliminating features with it. 
