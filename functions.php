@@ -1,7 +1,7 @@
 <?php
  
-// Use CUSTOM-CODES-HERE.php file for adding your custom codes. 
-require_once get_stylesheet_directory() . '/CUSTOM-CODES-HERE.php';
+// Use custom-codes-here.php file for adding your custom JS and CSS codes. 
+require_once get_stylesheet_directory() . '/custom-codes-here.php';
 
 
 
