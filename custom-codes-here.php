@@ -1,5 +1,5 @@
 <?php
-  
+
 // Frontend Head Inline JS and CSS, This will load in the <head>
 // ASCII ART https://patorjk.com/software/taag/#p=display&f=ANSI%20Regular&t=sinanisler.com
 function snn_custom_inline_frontend_head_code() {    ?>
