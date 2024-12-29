@@ -5,11 +5,9 @@ window.onload = function () {
     const animateElements = document.querySelectorAll('[data-animate]');
 
     animateElements.forEach((element) => {
-      // Parse multiple `data-animate` attributes, separated by semicolons
       const animations = element.getAttribute('data-animate').split(';').map(anim => anim.trim()).filter(Boolean);
 
       if (animations.length > 1) {
-        // Create a GSAP timeline for multiple animations
         const timeline = gsap.timeline({
           scrollTrigger: createScrollTriggerConfig(parseAnimationOptions(animations[0]), element)
         });
@@ -30,15 +28,14 @@ window.onload = function () {
               delay: options.delay || 0,
               stagger: options.stagger ? parseFloat(options.stagger) : 0,
             },
-            index > 0 ? `+=${options.delay || 0}` : 0 // Ensure sequential animations
+            index > 0 ? `+=${options.delay || 0}` : 0
           );
         });
       } else {
-        // Single animation: process as in the original code
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
 
-        const animation = gsap.fromTo(
+        gsap.fromTo(
           splitText(element, options),
           {
             ...(options.x ? { x: parseInt(options.x) } : {}),
@@ -61,15 +58,6 @@ window.onload = function () {
             delay: options.delay || 0,
           }
         );
-
-        if (!options.scroll) {
-          ScrollTrigger.create({
-            trigger: element,
-            start: options.start || 'top 90%',
-            onEnter: () => animation.play(),
-            markers: options.markers === 'true',
-          });
-        }
       }
     });
 
@@ -107,7 +95,8 @@ window.onload = function () {
             toggleClass: options.toggleClass || null,
             pinSpacing: options.pinSpacing || 'margin',
             invalidateOnRefresh: true,
-            immediateRender: true,
+            immediateRender: false, // Prevent pre-computing frames
+            animation: gsap.timeline({ paused: true }), // Attach animations
           }
         : false;
     }
