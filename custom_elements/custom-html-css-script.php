@@ -17,10 +17,9 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
   public function set_controls() {
     $this->controls['content'] = [
       'tab' => 'content',
-      
       'label' => 'Custom HTML Code',
       'type' => 'code',
-      'moe' => 'html',
+      'mode' => 'php',
       'default' => '<div>Your HTML here</div>
 
 <h1 class="redme">Title</h1>
