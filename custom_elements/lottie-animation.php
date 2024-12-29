@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
-}
+} 
 
 $options = get_option('snn_other_settings');
 if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
