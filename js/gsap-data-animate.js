@@ -8,8 +8,12 @@ window.onload = function () {
       const animations = element.getAttribute('data-animate').split(';').map(anim => anim.trim()).filter(Boolean);
 
       if (animations.length > 1) {
+        const firstOptions = parseAnimationOptions(animations[0]);
+
+        gsap.set(splitText(element, firstOptions), firstOptions.startStyles);
+
         const timeline = gsap.timeline({
-          scrollTrigger: createScrollTriggerConfig(parseAnimationOptions(animations[0]), element)
+          scrollTrigger: createScrollTriggerConfig(firstOptions, element)
         });
 
         animations.forEach((animation, index) => {
@@ -95,8 +99,8 @@ window.onload = function () {
             toggleClass: options.toggleClass || null,
             pinSpacing: options.pinSpacing || 'margin',
             invalidateOnRefresh: true,
-            immediateRender: false, // Prevent pre-computing frames
-            animation: gsap.timeline({ paused: true }), // Attach animations
+            immediateRender: false, 
+            animation: gsap.timeline({ paused: true }),
           }
         : false;
     }
