@@ -84,7 +84,7 @@ window.onload = function () {
     }
 
     function createScrollTriggerConfig(options, element) {
-      const defaultStart = 'top 90%';
+      const defaultStart = 'top 55%';
       const defaultEnd = 'bottom 50%';
       const isBodyTrigger = options.trigger === 'body';
 
