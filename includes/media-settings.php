@@ -164,6 +164,7 @@ function snn_add_custom_css_js_to_media_page() {
     <style>
     table.media .column-title .media-icon img {
         max-width: 100px;
+        max-height:80px;
         width: 100%;
     }
     .media-icon {
@@ -401,6 +402,12 @@ function snn_add_custom_css_js_to_media_page() {
             }
             #the-list .title, .attachments .attachment .attachment-details {
                 
+            }
+            #file_size , #date{
+                width:80px
+            }
+            #comments , .column-comments{
+            display:none
             }
         </style>
 
