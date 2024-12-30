@@ -404,7 +404,7 @@ function snn_add_custom_css_js_to_media_page() {
                 
             }
             #file_size , #date{
-                width:80px
+                width:90px
             }
             #comments , .column-comments{
             display:none
