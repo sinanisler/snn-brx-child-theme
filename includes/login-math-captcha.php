@@ -40,16 +40,13 @@ function snn_add_math_captcha() {
                 const number1 = parseInt(window.atob(b64Number1), 10);
                 const number2 = parseInt(window.atob(b64Number2), 10);
                 const correctSum = parseInt(window.atob(b64Sum), 10);
-
                 captchaLabel.innerHTML = `<canvas id='captchaCanvas' width='150' height='40'></canvas>`;
                 const canvas = document.getElementById('captchaCanvas');
                 const ctx = canvas.getContext('2d');
                 ctx.font = "24px Arial";
                 ctx.fillStyle = "#333";
                 ctx.fillText(`${number1} + ${number2} = ?`, 10, 28);
-
-                captchaSolutionInput.value = correctSum; // Store correct solution in a hidden field for validation
-
+                captchaSolutionInput.value = correctSum; 
                 function validateCaptcha() {
                     const userCaptcha = parseInt(captchaInput.value.trim(), 10);
                     if (isNaN(userCaptcha) || userCaptcha !== correctSum) {
