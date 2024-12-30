@@ -91,7 +91,6 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'type'    => 'text',
             'default' => 'top center',
             'description' => "
-                top 10%<br>
                 top 50%<br>
                 top 90%
             ",
@@ -104,9 +103,12 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'type'    => 'text',
             'default' => 'bottom center',
             'description' => "
-                bottom 10%<br>
                 bottom 50%<br>
                 bottom 90%
+                <br><br>
+                <p  data-control='info'>
+                    Scroll Start and Stop settings little bit counter-intuitive. To start early you need top 90% or top bottom. Enable markers and test it out to learn it.
+                </p>
             ",
         ];
 
