@@ -3,51 +3,55 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!session_id()) {
-    session_start();
-}
-
 function snn_add_math_captcha() {
     $options = get_option('snn_security_options');
     if (isset($options['enable_math_captcha']) && $options['enable_math_captcha']) {
-        $_SESSION['captcha_number1'] = rand(1, 6);
-        $_SESSION['captcha_number2'] = rand(1, 6);
-        $sum = $_SESSION['captcha_number1'] + $_SESSION['captcha_number2'];
+        $number1 = rand(1, 6);
+        $number2 = rand(1, 6);
+        $sum     = $number1 + $number2;
 
-        $encodedNumber1 = base64_encode($_SESSION['captcha_number1']);
-        $encodedNumber2 = base64_encode($_SESSION['captcha_number2']);
+        $encodedNumber1 = base64_encode($number1);
+        $encodedNumber2 = base64_encode($number2);
         $encodedSum     = base64_encode($sum);
         ?>
         <p id="math_captcha_container" style="display: none;">
             <label id="captcha_label" for="math_captcha"></label>
             <input type="text" name="math_captcha" id="math_captcha" class="input" value="" size="20" autocomplete="off" required>
+            <input type="hidden" name="captcha_solution" id="captcha_solution" value="">
             <input type="hidden" name="js_enabled" value="no" id="js_enabled">
         </p>
         <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function () {
-                var captchaContainer = document.getElementById('math_captcha_container');
+                const captchaContainer = document.getElementById('math_captcha_container');
                 captchaContainer.style.display = 'block'; 
                 document.getElementById('js_enabled').value = 'yes';
-                var captchaLabel = document.getElementById('captcha_label');
-                var submitButton = document.querySelector('input[type="submit"]');
-                var captchaInput = document.getElementById('math_captcha');
+                const captchaLabel = document.getElementById('captcha_label');
+                const submitButton = document.querySelector('input[type="submit"]');
+                const captchaInput = document.getElementById('math_captcha');
+                const captchaSolutionInput = document.getElementById('captcha_solution');
+
                 if (submitButton) {
                     submitButton.disabled = true;
                 }
-                var b64Number1 = "<?php echo esc_js($encodedNumber1); ?>";
-                var b64Number2 = "<?php echo esc_js($encodedNumber2); ?>";
-                var b64Sum     = "<?php echo esc_js($encodedSum); ?>";
-                var number1 = parseInt(window.atob(b64Number1), 10);
-                var number2 = parseInt(window.atob(b64Number2), 10);
-                var correctSum = parseInt(window.atob(b64Sum), 10);
-                captchaLabel.innerHTML = "<canvas id='captchaCanvas' width='150' height='40'></canvas>";
-                var canvas = document.getElementById('captchaCanvas');
-                var ctx    = canvas.getContext('2d');
+
+                const b64Number1 = "<?php echo esc_js($encodedNumber1); ?>";
+                const b64Number2 = "<?php echo esc_js($encodedNumber2); ?>";
+                const b64Sum     = "<?php echo esc_js($encodedSum); ?>";
+                const number1 = parseInt(window.atob(b64Number1), 10);
+                const number2 = parseInt(window.atob(b64Number2), 10);
+                const correctSum = parseInt(window.atob(b64Sum), 10);
+
+                captchaLabel.innerHTML = `<canvas id='captchaCanvas' width='150' height='40'></canvas>`;
+                const canvas = document.getElementById('captchaCanvas');
+                const ctx = canvas.getContext('2d');
                 ctx.font = "24px Arial";
                 ctx.fillStyle = "#333";
-                ctx.fillText(number1 + ' + ' + number2 + ' = ?', 10, 28);
+                ctx.fillText(`${number1} + ${number2} = ?`, 10, 28);
+
+                captchaSolutionInput.value = correctSum; // Store correct solution in a hidden field for validation
+
                 function validateCaptcha() {
-                    var userCaptcha = parseInt(captchaInput.value.trim(), 10);
+                    const userCaptcha = parseInt(captchaInput.value.trim(), 10);
                     if (isNaN(userCaptcha) || userCaptcha !== correctSum) {
                         if (submitButton) {
                             submitButton.disabled = true;
@@ -58,6 +62,7 @@ function snn_add_math_captcha() {
                         }
                     }
                 }
+
                 captchaInput.addEventListener('input', validateCaptcha);
             });
         </script>
@@ -68,6 +73,24 @@ function snn_add_math_captcha() {
 add_action('login_form', 'snn_add_math_captcha');
 add_action('register_form', 'snn_add_math_captcha');
 add_action('lostpassword_form', 'snn_add_math_captcha');
+
+function snn_check_captcha() {
+    $js_enabled = isset($_POST['js_enabled']) && $_POST['js_enabled'] === 'yes';
+    if ($js_enabled) {
+        if (!isset($_POST['math_captcha'], $_POST['captcha_solution'])) {
+            return false;
+        }
+        $user_captcha_response = trim($_POST['math_captcha']);
+        $correct_answer = trim($_POST['captcha_solution']);
+
+        if (empty($user_captcha_response) || (int)$user_captcha_response !== (int)$correct_answer) {
+            return false;
+        }
+    } else {
+        return false; // JavaScript must be enabled
+    }
+    return true;
+}
 
 function snn_validate_math_captcha($result, $username, $password) {
     $current_action = '';
@@ -98,30 +121,4 @@ function snn_validate_lostpassword_captcha($errors, $user_login) {
     return $errors;
 }
 add_filter('lostpassword_post_errors', 'snn_validate_lostpassword_captcha', 10, 2);
-
-function snn_check_captcha() {
-    if (!session_id()) {
-        session_start();
-    }
-    $js_enabled = isset($_POST['js_enabled']) && $_POST['js_enabled'] === 'yes';
-    if ($js_enabled) {
-        if (!isset($_POST['math_captcha'])) {
-            return false;
-        }
-    } else {
-        if (empty($_POST['math_captcha'])) {
-            return false;
-        }
-    }
-    if (isset($_POST['math_captcha'], $_SESSION['captcha_number1'], $_SESSION['captcha_number2'])) {
-        $user_captcha_response = trim($_POST['math_captcha']);
-        $correct_answer        = $_SESSION['captcha_number1'] + $_SESSION['captcha_number2'];
-        if (empty($user_captcha_response) || (int)$user_captcha_response !== $correct_answer) {
-            return false;
-        }
-    } else {
-        return false;
-    }
-    return true;
-}
 ?>
