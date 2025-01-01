@@ -33,7 +33,13 @@ function snn_settings_page_callback() {
             style="font-size: 16px; text-decoration:none; line-height:40px " >Docs ➤</a><br>
 
             <a href="https://github.com/sinanisler/snn-brx-child-theme/issues" target="_blank" 
-            style="font-size: 16px; text-decoration:none; line-height:40px " >BUG Report ➤</a>
+            style="font-size: 16px; text-decoration:none; line-height:40px " >BUG Report ➤</a><br>
+
+
+            <a href="https://github.com/sinanisler/snn-brx-child-theme/discussions" target="_blank" 
+            style="font-size: 16px; text-decoration:none; line-height:40px " >Discussions ➤</a>
+            
+
             
              
         </p>
