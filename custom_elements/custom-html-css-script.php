@@ -38,7 +38,7 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
 
   // Render element HTML
   public function render() {
-    echo "<div class='custom-html-css-script-wrapper'>";
+    echo "<div class='custom-html-css-script-wrapper' style='width:100%'>";
     echo $this->settings['content']; // Direct output, consider security implications
     echo "</div>";
   }
