@@ -88,6 +88,15 @@ function snn_register_other_settings() {
         'snn-other-settings',
         'snn_other_settings_section'
     );
+
+    // New Setting: Custom Admin Post Order
+    add_settings_field(
+        'custom_admin_post_order',
+        'Custom Admin Post Types Order by Date',
+        'snn_custom_admin_post_order_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -107,6 +116,8 @@ function snn_sanitize_other_settings($input) {
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
 
     $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
+
+    $sanitized['custom_admin_post_order'] = isset($input['custom_admin_post_order']) && $input['custom_admin_post_order'] ? 1 : 0;
 
     return $sanitized;
 }
@@ -171,6 +182,17 @@ function snn_hide_element_icons_callback() {
     <label>
         <input type="checkbox" name="snn_other_settings[hide_element_icons]" value="1" <?php checked(1, isset($options['hide_element_icons']) ? $options['hide_element_icons'] : 0); ?>>
         Hide Element Icons on Bricks Builder
+    </label>
+    <?php
+}
+
+// Callback for the new Custom Admin Post Order setting
+function snn_custom_admin_post_order_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_other_settings[custom_admin_post_order]" value="1" <?php checked(1, isset($options['custom_admin_post_order']) ? $options['custom_admin_post_order'] : 0); ?> >
+        Enable Custom Order by Date for Pages and Post Types
     </label>
     <?php
 }
@@ -275,5 +297,22 @@ function snn_add_inline_css_if_bricks_run() {
     }
 }
 add_action('wp_head', 'snn_add_inline_css_if_bricks_run');
+
+function snn_custom_admin_post_order( $wp_query ) {
+    $options = get_option('snn_other_settings');
+    if (isset($options['custom_admin_post_order']) && $options['custom_admin_post_order']) {
+        if (is_admin()) {
+            $post_type = isset($wp_query->query['post_type']) ? $wp_query->query['post_type'] : '';
+
+            if ( 'post' == $post_type || is_array($post_type) || is_string($post_type) ) {
+                if (!isset($_GET['orderby'])) {
+                    $wp_query->set('orderby', 'date');
+                    $wp_query->set('order', 'DESC'); // 'DESC' for newest to oldest
+                }
+            }
+        }
+    }
+}
+add_filter('pre_get_posts', 'snn_custom_admin_post_order');
 
 ?>
