@@ -271,25 +271,56 @@ function snn_render_301_redirects_page() {
     </div>
 
     <script>
-    (function($){
-        $('.edit-redirect').on('click', function(){
-            var redirectId = $(this).data('redirect-id');
-            var redirectFrom = $(this).data('redirect-from');
-            var redirectTo = $(this).data('redirect-to');
-
-            $('tr[id^="edit-form-row-"]').hide();
-
-            $('#edit-form-row-' + redirectId).show();
-
-            $('#edit-redirect-from-' + redirectId).val(redirectFrom);
-            $('#edit-redirect-to-' + redirectId).val(redirectTo);
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to hide all edit form rows
+    function hideAllEditForms() {
+        const editFormRows = document.querySelectorAll('tr[id^="edit-form-row-"]');
+        editFormRows.forEach(function(row) {
+            row.style.display = 'none';
         });
+    }
 
-        $('.cancel-edit').on('click', function(){
-            var redirectId = $(this).data('redirect-id');
-            $('#edit-form-row-' + redirectId).hide();
+    // Event listener for Edit buttons
+    const editRedirectButtons = document.querySelectorAll('.edit-redirect');
+    editRedirectButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const redirectId = this.dataset.redirectId;
+            const redirectFrom = this.dataset.redirectFrom;
+            const redirectTo = this.dataset.redirectTo;
+
+            // Hide all existing edit forms
+            hideAllEditForms();
+
+            // Show the specific edit form row
+            const editFormRow = document.getElementById('edit-form-row-' + redirectId);
+            if (editFormRow) {
+                editFormRow.style.display = 'table-row'; // Use 'block' if not within a table
+            }
+
+            // Populate the input fields with existing values
+            const redirectFromInput = document.getElementById('edit-redirect-from-' + redirectId);
+            const redirectToInput = document.getElementById('edit-redirect-to-' + redirectId);
+            if (redirectFromInput) {
+                redirectFromInput.value = redirectFrom;
+            }
+            if (redirectToInput) {
+                redirectToInput.value = redirectTo;
+            }
         });
-    })(jQuery);
+    });
+
+    // Event listener for Cancel buttons
+    const cancelEditButtons = document.querySelectorAll('.cancel-edit');
+    cancelEditButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const redirectId = this.dataset.redirectId;
+            const editFormRow = document.getElementById('edit-form-row-' + redirectId);
+            if (editFormRow) {
+                editFormRow.style.display = 'none';
+            }
+        });
+    });
+});
     </script>
 
     <?php
