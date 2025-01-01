@@ -26,7 +26,7 @@ add_action('wp_footer', 'snn_custom_footer_inline', 9999);
 
 
 // WP-Admin Backend Custom JS and CSS in <head>
-function sinn_custom_css() { ?>
+function snn_custom_css() { ?>
 <style>
 
 </style>
@@ -34,4 +34,4 @@ function sinn_custom_css() { ?>
 
 </script>
 <?php }
-add_action('admin_head', 'sinn_custom_css');
+add_action('admin_head', 'snn_custom_css');
