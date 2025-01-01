@@ -206,6 +206,7 @@ function snn_render_mail_logs_page() {
 .log-message{
     max-height:250px;
     overflow:auto;
+    display:block;
 }
 </style>
 <?php
