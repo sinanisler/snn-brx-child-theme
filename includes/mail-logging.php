@@ -185,7 +185,7 @@ function snn_render_mail_logs_page() {
             echo '<td>' . esc_html($from) . '</td>';
             echo '<td>' . esc_html($to) . '</td>';
             echo '<td>' . esc_html($subject) . '</td>';
-            echo '<td>' . esc_html($message) . '</td>';
+            echo '<td class="log-message">' . esc_html($message) . '</td>';
 
             if (is_array($headers_data)) {
                 echo '<td>' . esc_html(implode(', ', $headers_data)) . '</td>';
@@ -201,4 +201,12 @@ function snn_render_mail_logs_page() {
     }
 
     echo '</div>';
+?>
+<style>
+.log-message{
+    max-height:250px;
+    overflow:auto;
+}
+</style>
+<?php
 }
