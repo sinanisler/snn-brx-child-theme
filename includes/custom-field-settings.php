@@ -523,14 +523,12 @@ function snn_render_field_input($field, $value = '', $index = '') {
     }
 }
 
-// Output JavaScript code for repeater fields and media uploader
 function snn_output_repeater_field_js() {
     global $snn_repeater_fields_exist, $snn_media_fields_exist;
     if (!$snn_repeater_fields_exist && !$snn_media_fields_exist) {
         return;
     }
 
-    // Generate templates for each field type
     $field_types = ['text', 'number', 'textarea', 'media', 'date', 'color'];
     $templates = [];
 
@@ -606,7 +604,6 @@ function snn_output_repeater_field_js() {
                 $(this).closest('.repeater-item').remove();
             });
 
-            // Media uploader code
             $('body').on('click', '.media-upload-button', function(e){
                 e.preventDefault();
                 var button = $(this);
@@ -630,7 +627,6 @@ function snn_output_repeater_field_js() {
     <?php
 }
 
-// Enqueue media uploader scripts
 function snn_enqueue_admin_scripts($hook) {
     global $snn_media_fields_exist;
     if ($snn_media_fields_exist && ('post.php' == $hook || 'post-new.php' == $hook)) {
@@ -639,19 +635,15 @@ function snn_enqueue_admin_scripts($hook) {
 }
 add_action('admin_enqueue_scripts', 'snn_enqueue_admin_scripts');
 
-// Save dynamically created metabox data
 function snn_save_dynamic_metabox_data($post_id) {
-    // Check if our nonce is set.
     if (!isset($_POST['snn_custom_fields_nonce']) || !wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_save_custom_fields')) {
         return;
     }
 
-    // Check if not an autosave
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
         return;
     }
 
-    // Check user permissions
     if (isset($_POST['post_type']) && 'page' == $_POST['post_type']) {
         if (!current_user_can('edit_page', $post_id)) {
             return;
@@ -671,9 +663,7 @@ function snn_save_dynamic_metabox_data($post_id) {
     foreach ($custom_fields as $field) {
         $field_name = $field['name'];
         if (!empty($field['repeater'])) {
-            // Repeater Field
             if (isset($_POST['custom_fields'][$field_name]) && is_array($_POST['custom_fields'][$field_name])) {
-                // Sanitize each value based on field type
                 $values = array_map(function($value) use ($field) {
                     switch ($field['type']) {
                         case 'text':
@@ -686,7 +676,7 @@ function snn_save_dynamic_metabox_data($post_id) {
                         case 'rich_text':
                             return wp_kses_post($value);
                         case 'media':
-                            return intval($value); // Assuming media is saved as attachment ID
+                            return intval($value); 
                         default:
                             return sanitize_text_field($value);
                     }
@@ -696,7 +686,6 @@ function snn_save_dynamic_metabox_data($post_id) {
                 delete_post_meta($post_id, $field_name);
             }
         } else {
-            // Single Field
             if (isset($_POST['custom_fields'][$field_name])) {
                 $value = $_POST['custom_fields'][$field_name];
                 switch ($field['type']) {
@@ -704,7 +693,7 @@ function snn_save_dynamic_metabox_data($post_id) {
                         $value = wp_kses_post($value);
                         break;
                     case 'media':
-                        $value = intval($value); // Assuming media is saved as attachment ID
+                        $value = intval($value); 
                         break;
                     case 'textarea':
                         $value = sanitize_textarea_field($value);
