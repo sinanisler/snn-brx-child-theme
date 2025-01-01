@@ -203,73 +203,50 @@ function snn_render_301_redirects_page() {
     <?php
 }
 
-
 function snn_handle_301_redirects() {
-
     if (is_admin()) return;
 
+    // Get the full request URI
+    $request_uri = $_SERVER['REQUEST_URI'];
+    $parsed_url = parse_url($request_uri);
+    $current_path = isset($parsed_url['path']) ? snn_normalize_path($parsed_url['path']) : '/';
+    $query_string = isset($parsed_url['query']) ? $parsed_url['query'] : '';
 
-    $current_path = snn_normalize_path($_SERVER['REQUEST_URI']);
-
-
-    $path_without_query = strtok($current_path, '?');
-
-
+    // Retrieve all redirects
     $redirects = get_posts(array(
         'post_type'      => 'snn_301_redirects',
-        'posts_per_page' => 1,
-        'meta_query'     => array(
-            array(
-                'key'     => 'redirect_from',
-                'value'   => $path_without_query,
-                'compare' => '='
-            )
-        )
+        'posts_per_page' => -1
     ));
 
+    foreach ($redirects as $redirect) {
+        $redirect_from = get_post_meta($redirect->ID, 'redirect_from', true);
+        $redirect_to = get_post_meta($redirect->ID, 'redirect_to', true);
 
-    if (!empty($redirects)) {
-        $redirect_id = $redirects[0]->ID;
-        $redirect_to = get_post_meta($redirect_id, 'redirect_to', true);
-
-        if ($redirect_to) {
-
-            $clicks = (int) get_post_meta($redirect_id, 'redirect_clicks', true);
-            $clicks++;
-            update_post_meta($redirect_id, 'redirect_clicks', $clicks);
-
-
-            $query_string = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+        // Check if the redirect matches the current path or full URI
+        if ($redirect_from === $current_path || $redirect_from === $current_path . '?' . $query_string) {
             if ($query_string) {
-
+                // Append query string to the redirect URL if not already included
                 $redirect_to .= (strpos($redirect_to, '?') !== false) ? '&' : '?';
                 $redirect_to .= $query_string;
             }
 
-
-            if (strpos($redirect_to, 'http') !== 0 && strpos($redirect_to, '//') !== 0) {
+            // Normalize relative URLs
+            if (strpos($redirect_to, 'http') !== 0) {
                 $redirect_to = home_url($redirect_to);
             }
 
+            // Log click count
+            $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
+            update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
 
-            $redirect_to_path = snn_normalize_path($redirect_to);
-            if ($redirect_to_path !== $current_path) {
-                nocache_headers();
-
-
-                $is_external = (strpos($redirect_to, home_url()) !== 0);
-                if ($is_external) {
-                    wp_redirect($redirect_to, 301, 'SNN 301 Redirects');
-                    exit;
-                } else {
-
-                    wp_safe_redirect($redirect_to, 301, 'SNN 301 Redirects');
-                    exit;
-                }
-            }
+            // Perform the redirect
+            nocache_headers();
+            wp_redirect($redirect_to, 301);
+            exit;
         }
     }
 }
+
 add_action('template_redirect', 'snn_handle_301_redirects');
 
 
