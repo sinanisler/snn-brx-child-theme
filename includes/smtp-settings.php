@@ -101,7 +101,7 @@ function custom_smtp_settings_sanitize($input) {
 }
 
 function custom_smtp_settings_section_callback() {
-    echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues. ', 'textdomain') . '</p>';
+    echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues.', 'textdomain') . '</p>';
 }
 
 function custom_smtp_enable_smtp_render() {
@@ -185,21 +185,6 @@ function custom_smtp_remove_password_callback() {
     }
 }
 
-function custom_smtp_settings_page() {
-    ?>
-    <div class="wrap">
-        <h1><?php _e('SMTP Settings', 'textdomain'); ?></h1>
-        <form action='options.php' method='post'>
-            <?php
-            settings_fields('custom_smtp_settings_group');
-            do_settings_sections('smtp-settings');
-            submit_button();
-            ?>
-        </form>
-    </div>
-    <?php
-}
-
 add_action('phpmailer_init', 'custom_smtp_phpmailer_init');
 function custom_smtp_phpmailer_init($phpmailer) {
     $options = get_option('custom_smtp_settings', array());
@@ -223,4 +208,94 @@ function custom_smtp_enqueue_scripts($hook) {
         return;
     }
     wp_enqueue_script('jquery');
+}
+
+/**
+ * Handle sending the test email if the form is submitted.
+ */
+function custom_smtp_handle_test_email_submission() {
+    if (
+        isset($_POST['custom_smtp_send_test_email']) &&
+        check_admin_referer('custom_smtp_send_test_email_action', 'custom_smtp_send_test_email_nonce')
+    ) {
+        // Get the email address from the form (if provided)
+        $to = isset($_POST['test_email_address']) ? sanitize_email($_POST['test_email_address']) : '';
+
+        // Fallback to the site admin email if the input field is empty or invalid
+        if (empty($to)) {
+            $to = get_option('admin_email');
+        }
+
+        $subject = __('SMTP Test Email', 'textdomain');
+        $message = __('This is a test email sent via your SMTP settings.', 'textdomain');
+        $headers = array('Content-Type: text/html; charset=UTF-8');
+
+        $sent = wp_mail($to, $subject, $message, $headers);
+
+        if ($sent) {
+            add_settings_error(
+                'custom_smtp_test_email',
+                'custom_smtp_test_email_success',
+                sprintf(
+                    __('Test email sent successfully to %s! Check the inbox.', 'textdomain'),
+                    esc_html($to)
+                ),
+                'updated'
+            );
+        } else {
+            add_settings_error(
+                'custom_smtp_test_email',
+                'custom_smtp_test_email_failed',
+                __('Failed to send test email. Check your SMTP settings or logs for more information.', 'textdomain'),
+                'error'
+            );
+        }
+    }
+}
+
+/**
+ * Renders the main SMTP settings page (including the test email form).
+ */
+function custom_smtp_settings_page() {
+    // Process test email submission before rendering the page.
+    custom_smtp_handle_test_email_submission();
+
+    // Display any admin notices (including errors set above).
+    settings_errors('custom_smtp_test_email');
+    ?>
+    <div class="wrap">
+        <h1><?php _e('SMTP Settings', 'textdomain'); ?></h1>
+        <form action='options.php' method='post'>
+            <?php
+            settings_fields('custom_smtp_settings_group');
+            do_settings_sections('smtp-settings');
+            submit_button();
+            ?>
+        </form>
+
+        <hr />
+
+        <h2><?php _e('Send Test Email', 'textdomain'); ?></h2>
+        <p><?php _e('Use the form below to send a test email to any email address, using the configured SMTP settings.', 'textdomain'); ?></p>
+        <form method="post">
+            <?php wp_nonce_field('custom_smtp_send_test_email_action', 'custom_smtp_send_test_email_nonce'); ?>
+            <table class="form-table">
+                <tr>
+                    <th scope="row"><?php _e('Recipient Email', 'textdomain'); ?></th>
+                    <td>
+                        <input 
+                            type="email" 
+                            name="test_email_address" 
+                            value="" 
+                            placeholder="<?php echo esc_attr__('you@example.com', 'textdomain'); ?>" 
+                            size="40" 
+                        />
+                    </td>
+                </tr>
+            </table>
+            <input type="hidden" name="custom_smtp_send_test_email" value="1" />
+            <input type="submit" class="button button-primary" value="<?php esc_attr_e('Send Test Email', 'textdomain'); ?>" />
+        </form>
+    </div>
+    <?php
 }
