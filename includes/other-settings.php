@@ -89,7 +89,6 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
-    // New Setting: Custom Admin Post Order
     add_settings_field(
         'custom_admin_post_order',
         'Custom Admin Post Types Order by Date',
@@ -98,10 +97,9 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
-    // === New Setting: Enable GitHub-Based Child Theme Updates ===
     add_settings_field(
         'enable_github_updates',
-        'Enable GitHub-Based Child Theme Updates (Experimental)',
+        'Enable GitHub-Based Child Theme Updates',
         'snn_enable_github_updates_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -128,7 +126,6 @@ function snn_sanitize_other_settings($input) {
 
     $sanitized['custom_admin_post_order'] = isset($input['custom_admin_post_order']) && $input['custom_admin_post_order'] ? 1 : 0;
 
-    // Sanitize the new GitHub Updates setting
     $sanitized['enable_github_updates'] = isset($input['enable_github_updates']) && $input['enable_github_updates'] ? 1 : 0;
 
     return $sanitized;
@@ -321,16 +318,15 @@ function snn_add_inline_css_if_bricks_run() {
 }
 add_action('wp_head', 'snn_add_inline_css_if_bricks_run');
 
-function snn_custom_admin_post_order( $wp_query ) {
+function snn_custom_admin_post_order($wp_query) {
     $options = get_option('snn_other_settings');
     if (isset($options['custom_admin_post_order']) && $options['custom_admin_post_order']) {
         if (is_admin()) {
             $post_type = isset($wp_query->query['post_type']) ? $wp_query->query['post_type'] : '';
-
-            if ( 'post' == $post_type || is_array($post_type) || is_string($post_type) ) {
+            if ('post' == $post_type || is_array($post_type) || is_string($post_type)) {
                 if (!isset($_GET['orderby'])) {
                     $wp_query->set('orderby', 'date');
-                    $wp_query->set('order', 'DESC'); 
+                    $wp_query->set('order', 'DESC');
                 }
             }
         }
@@ -341,132 +337,111 @@ add_filter('pre_get_posts', 'snn_custom_admin_post_order');
 function snn_github_child_theme_updates() {
     $options = get_option('snn_other_settings');
     if (isset($options['enable_github_updates']) && $options['enable_github_updates']) {
-
-        if ( !defined('CHILD_THEME_GITHUB_USER') ) {
-            define( 'CHILD_THEME_GITHUB_USER', 'sinanisler' );             // Your GitHub username
+        if (!defined('CHILD_THEME_GITHUB_USER')) {
+            define('CHILD_THEME_GITHUB_USER', 'sinanisler');
         }
-        if ( !defined('CHILD_THEME_GITHUB_REPO') ) {
-            define( 'CHILD_THEME_GITHUB_REPO', 'snn-brx-child-theme' );    // Your child theme's GitHub repository name
+        if (!defined('CHILD_THEME_GITHUB_REPO')) {
+            define('CHILD_THEME_GITHUB_REPO', 'snn-brx-child-theme');
         }
-        if ( !defined('CHILD_THEME_GITHUB_BRANCH') ) {
-            define( 'CHILD_THEME_GITHUB_BRANCH', 'main' );                 // Branch to track (usually 'main' or 'master')
+        if (!defined('CHILD_THEME_GITHUB_BRANCH')) {
+            define('CHILD_THEME_GITHUB_BRANCH', 'main');
         }
-        if ( !defined('CHILD_THEME_TAG_PREFIX') ) {
-            define( 'CHILD_THEME_TAG_PREFIX', 'v' );                       // Prefix for your tags (e.g., 'v' for 'v1.0.0')
+        if (!defined('CHILD_THEME_TAG_PREFIX')) {
+            define('CHILD_THEME_TAG_PREFIX', 'v');
         }
-
-        if ( !defined('CHILD_THEME_RAW_STYLE_URL') ) {
-            define( 'CHILD_THEME_RAW_STYLE_URL', 'https://raw.githubusercontent.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/' . CHILD_THEME_GITHUB_BRANCH . '/style.css' );
+        if (!defined('CHILD_THEME_RAW_STYLE_URL')) {
+            define('CHILD_THEME_RAW_STYLE_URL', 'https://raw.githubusercontent.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/' . CHILD_THEME_GITHUB_BRANCH . '/style.css');
         }
-        if ( !defined('CHILD_THEME_ZIP_URL') ) {
-            define( 'CHILD_THEME_ZIP_URL', 'https://github.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/archive/refs/tags/' . CHILD_THEME_TAG_PREFIX . '%s.zip' );
+        if (!defined('CHILD_THEME_ZIP_URL')) {
+            define('CHILD_THEME_ZIP_URL', 'https://github.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/archive/refs/tags/' . CHILD_THEME_TAG_PREFIX . '%s.zip');
         }
-        if ( !defined('CHILD_THEME_RELEASES_URL') ) {
-            define( 'CHILD_THEME_RELEASES_URL', 'https://github.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/releases/tag/' . CHILD_THEME_TAG_PREFIX . '%s' );
+        if (!defined('CHILD_THEME_RELEASES_URL')) {
+            define('CHILD_THEME_RELEASES_URL', 'https://github.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/releases/tag/' . CHILD_THEME_TAG_PREFIX . '%s');
         }
 
-        function child_theme_github_update( $transient ) {
-            if ( empty( $transient->checked ) ) {
+        function child_theme_github_update($transient) {
+            if (empty($transient->checked)) {
                 return $transient;
             }
-
             $theme = wp_get_theme();
-            $current_version = $theme->get( 'Version' );
-
-            $response = wp_remote_get( CHILD_THEME_RAW_STYLE_URL, array(
+            $current_version = $theme->get('Version');
+            $response = wp_remote_get(CHILD_THEME_RAW_STYLE_URL, array(
                 'headers' => array(
-                    'User-Agent' => CHILD_THEME_GITHUB_USER . '-theme-update', // GitHub requires a User-Agent header
+                    'User-Agent' => CHILD_THEME_GITHUB_USER . '-theme-update',
                 ),
                 'timeout' => 15,
-            ) );
-
-            if ( is_wp_error( $response ) ) {
-                return $transient; 
+            ));
+            if (is_wp_error($response)) {
+                return $transient;
             }
-
-            $style_css = wp_remote_retrieve_body( $response );
-
-            if ( preg_match( '/Version:\s*(.+)/i', $style_css, $matches ) ) {
-                $latest_version = trim( $matches[1] );
+            $style_css = wp_remote_retrieve_body($response);
+            if (preg_match('/Version:\s*(.+)/i', $style_css, $matches)) {
+                $latest_version = trim($matches[1]);
             } else {
-                return $transient; // If version not found, abort
+                return $transient;
             }
-
-            if ( version_compare( $current_version, $latest_version, '<' ) ) {
-                $zip_url = sprintf( CHILD_THEME_ZIP_URL, $latest_version );
-
-                $transient->response[ $theme->get_stylesheet() ] = array(
-                    'theme'       => $theme->get_stylesheet(),
+            if (version_compare($current_version, $latest_version, '<')) {
+                $zip_url = sprintf(CHILD_THEME_ZIP_URL, $latest_version);
+                $transient->response[$theme->get_stylesheet()] = array(
+                    'theme' => $theme->get_stylesheet(),
                     'new_version' => $latest_version,
-                    'url'         => sprintf( CHILD_THEME_RELEASES_URL, $latest_version ),
-                    'package'     => $zip_url,
+                    'url' => sprintf(CHILD_THEME_RELEASES_URL, $latest_version),
+                    'package' => $zip_url,
                 );
             }
-
             return $transient;
         }
-        add_filter( 'pre_set_site_transient_update_themes', 'child_theme_github_update' );
+        add_filter('pre_set_site_transient_update_themes', 'child_theme_github_update');
 
-        function child_theme_github_info( $response, $action, $args ) {
-            if ( 'theme_information' !== $action ) {
+        function child_theme_github_info($response, $action, $args) {
+            if ('theme_information' !== $action) {
                 return $response;
             }
-
             $theme = wp_get_theme();
-            $current_version = $theme->get( 'Version' );
-
-            $response_style = wp_remote_get( CHILD_THEME_RAW_STYLE_URL, array(
+            $current_version = $theme->get('Version');
+            $response_style = wp_remote_get(CHILD_THEME_RAW_STYLE_URL, array(
                 'headers' => array(
-                    'User-Agent' => CHILD_THEME_GITHUB_USER . '-theme-info', 
+                    'User-Agent' => CHILD_THEME_GITHUB_USER . '-theme-info',
                 ),
                 'timeout' => 15,
-            ) );
-
-            if ( is_wp_error( $response_style ) ) {
-                return $response; 
+            ));
+            if (is_wp_error($response_style)) {
+                return $response;
             }
-
-            $style_css = wp_remote_retrieve_body( $response_style );
-
-            if ( preg_match( '/Description:\s*(.+)/i', $style_css, $matches ) ) {
-                $description = trim( $matches[1] );
+            $style_css = wp_remote_retrieve_body($response_style);
+            if (preg_match('/Description:\s*(.+)/i', $style_css, $matches)) {
+                $description = trim($matches[1]);
             } else {
                 $description = 'No description available.';
             }
-
-            if ( preg_match( '/Version:\s*(.+)/i', $style_css, $matches ) ) {
-                $version = trim( $matches[1] );
+            if (preg_match('/Version:\s*(.+)/i', $style_css, $matches)) {
+                $version = trim($matches[1]);
             } else {
                 $version = '1.0.0';
             }
-
-            $latest_release_url = sprintf( CHILD_THEME_RELEASES_URL, $version );
-
-            if ( !is_object( $response ) ) {
+            $latest_release_url = sprintf(CHILD_THEME_RELEASES_URL, $version);
+            if (!is_object($response)) {
                 $response = new stdClass();
             }
             $response->sections = array(
                 'description' => $description,
             );
-
             return $response;
         }
-        add_filter( 'themes_api', 'child_theme_github_info', 20, 3 );
+        add_filter('themes_api', 'child_theme_github_info', 20, 3);
 
-        if ( ! class_exists( 'Parsedown' ) ) {
+        if (!class_exists('Parsedown')) {
             class Parsedown {
                 public function text($text) {
-                    $html = wpautop( esc_html( $text ) );
+                    $html = wpautop(esc_html($text));
                     return $html;
                 }
             }
         }
-
     }
 }
 add_action('after_setup_theme', 'snn_github_child_theme_updates');
 
-// THEME UPDATE CHANGE LOG LINK CHANGE to RELEASES
 function add_custom_js_to_admin_footer() {
     $screen = get_current_screen();
     if ($screen->base === 'themes') {
@@ -488,12 +463,10 @@ function add_custom_js_to_admin_footer() {
                         }
                     });
                 });
-
                 observer.observe(document.body, {
                     childList: true,
                     subtree: true
                 });
-
                 document.body.addEventListener('click', function (event) {
                     if (event.target.classList.contains('close') || event.target.closest('.theme-overlay') === null) {
                         observer.disconnect();
@@ -505,3 +478,17 @@ function add_custom_js_to_admin_footer() {
     }
 }
 add_action('admin_footer', 'add_custom_js_to_admin_footer');
+
+function snn_rename_extracted_theme_folder($source, $remote_source, $upgrader) {
+    $correct_folder_name = 'snn-brx-child-theme';
+    if (strpos($source, 'snn-brx-child-theme') !== false) {
+        $new_source = trailingslashit(dirname($source)) . $correct_folder_name;
+        if (@rename($source, $new_source)) {
+            return $new_source;
+        }
+    }
+    return $source;
+}
+add_filter('upgrader_source_selection', 'snn_rename_extracted_theme_folder', 10, 3);
+
+?>
