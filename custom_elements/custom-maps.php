@@ -1,6 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+    exit; 
 }
 
 class Custom_Element_OpenStreetMap extends \Bricks\Element {
@@ -72,7 +72,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             ],
         ];
 
-        // Map Center Latitude
         $this->controls['map_center_lat'] = [
             'tab'     => 'content',
             'label'   => __( 'Map Center Latitude', 'bricks' ),
@@ -83,7 +82,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'max'     => 90,
         ];
 
-        // Map Center Longitude
         $this->controls['map_center_lng'] = [
             'tab'     => 'content',
             'label'   => __( 'Map Center Longitude', 'bricks' ),
@@ -94,7 +92,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'max'     => 180,
         ];
 
-        // Zoom Level
         $this->controls['zoom_level'] = [
             'tab'     => 'content',
             'label'   => __( 'Zoom Level', 'bricks' ),
@@ -105,7 +102,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'step'    => 1,
         ];
 
-        // Map Height
         $this->controls['map_height'] = [
             'tab'     => 'content',
             'label'   => __( 'Map Height (px)', 'bricks' ),
@@ -115,7 +111,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'step'    => 10,
         ];
 
-        // Popup Font Size
         $this->controls['popup_font_size'] = [
             'tab'    => 'content',
             'label'  => __( 'Popup Font Size (px)', 'bricks' ),
@@ -126,7 +121,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'inline' => true,
         ];
 
-        // Map Style
         $this->controls['map_style'] = [
             'tab'     => 'content',
             'label'   => __( 'Map Style', 'bricks' ),
@@ -141,15 +135,12 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         ];
     }
 
-    // Enqueue Leaflet CSS/JS
     public function enqueue_scripts() {
         wp_enqueue_style( 'leaflet-css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', [], '1.9.4' );
         wp_enqueue_script( 'leaflet-js', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', [], '1.9.4', true );
-        // No FontAwesome or other icon library enqueues — let Bricks handle it.
     }
 
     public function render() {
-        // Retrieve settings
         $map_center_lat  = isset( $this->settings['map_center_lat'] ) ? floatval( $this->settings['map_center_lat'] ) : 51.5;
         $map_center_lng  = isset( $this->settings['map_center_lng'] ) ? floatval( $this->settings['map_center_lng'] ) : -0.09;
         $zoom_level      = isset( $this->settings['zoom_level'] ) ? intval( $this->settings['zoom_level'] ) : 13;
@@ -158,10 +149,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         $popup_font_size = isset( $this->settings['popup_font_size'] ) ? intval( $this->settings['popup_font_size'] ) : 14;
         $map_style       = isset( $this->settings['map_style'] ) ? $this->settings['map_style'] : 'default';
 
-        // Generate unique map ID
         $map_id = 'custom-openstreetmap-' . uniqid();
 
-        // Optional inline CSS for popup font size
         $popup_font_size_css = '';
         if ( ! empty( $popup_font_size ) ) {
             $popup_font_size_css = "
@@ -196,8 +185,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             ";
         }
 
-        // Decide tile layer URL
-        $tile_url = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'; // Default
+        $tile_url = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'; 
         if ( $map_style === 'light' ) {
             $tile_url = 'https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png';
         } elseif ( $map_style === 'dark' ) {
@@ -208,12 +196,10 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         $tile_attribution = '©OpenStreetMap, ©Fastly, ©OpenTopoMap';
         ?>
         
-        <!-- Map container -->
         <div id="<?php echo esc_attr( $map_id ); ?>" class="custom-openstreetmap-wrapper"
              style="height: <?php echo esc_attr( $map_height ); ?>px; width: 100%; max-width: 100%;">
         </div>
         
-        <!-- Inject optional CSS for popup font size -->
         <?php echo $popup_font_size_css; ?>
 
         <script>
@@ -287,7 +273,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
     }
 }
 
-// Register the Custom Element
 add_action( 'bricks_register_elements', function() {
     \Bricks\Element::register_element( 'Custom_Element_OpenStreetMap', 'openstreetmap' );
 } );
