@@ -88,22 +88,6 @@ function snn_register_other_settings() {
         'snn-other-settings',
         'snn_other_settings_section'
     );
-
-    add_settings_field(
-        'custom_admin_post_order',
-        'Custom Admin Post Types Order by Date',
-        'snn_custom_admin_post_order_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
-
-    add_settings_field(
-        'enable_github_updates',
-        'Enable GitHub-Based Child Theme Updates',
-        'snn_enable_github_updates_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -123,10 +107,6 @@ function snn_sanitize_other_settings($input) {
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
 
     $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
-
-    $sanitized['custom_admin_post_order'] = isset($input['custom_admin_post_order']) && $input['custom_admin_post_order'] ? 1 : 0;
-
-    $sanitized['enable_github_updates'] = isset($input['enable_github_updates']) && $input['enable_github_updates'] ? 1 : 0;
 
     return $sanitized;
 }
@@ -191,28 +171,6 @@ function snn_hide_element_icons_callback() {
     <label>
         <input type="checkbox" name="snn_other_settings[hide_element_icons]" value="1" <?php checked(1, isset($options['hide_element_icons']) ? $options['hide_element_icons'] : 0); ?>>
         Hide Element Icons on Bricks Builder
-    </label>
-    <?php
-}
-
-function snn_custom_admin_post_order_callback() {
-    $options = get_option('snn_other_settings');
-    ?>
-    <label>
-        <input type="checkbox" name="snn_other_settings[custom_admin_post_order]" value="1" <?php checked(1, isset($options['custom_admin_post_order']) ? $options['custom_admin_post_order'] : 0); ?> >
-        Enable Custom Order by Date for Pages and Post Types
-    </label>
-    <?php
-}
-
-function snn_enable_github_updates_callback() {
-    $options = get_option('snn_other_settings');
-    ?>
-    <label>
-        <input type="checkbox" name="snn_other_settings[enable_github_updates]" value="1" <?php checked(1, isset($options['enable_github_updates']) ? $options['enable_github_updates'] : 0); ?>>
-        Enable GitHub-Based Child Theme Updates<br>
-        When this feature is enabled, the theme can check if a new version has been released. <br>
-        If a new version is available, updates can be performed from the <a href="<?php echo get_bloginfo('url'); ?>/wp-admin/themes.php">themes</a> page.
     </label>
     <?php
 }
@@ -317,178 +275,5 @@ function snn_add_inline_css_if_bricks_run() {
     }
 }
 add_action('wp_head', 'snn_add_inline_css_if_bricks_run');
-
-function snn_custom_admin_post_order($wp_query) {
-    $options = get_option('snn_other_settings');
-    if (isset($options['custom_admin_post_order']) && $options['custom_admin_post_order']) {
-        if (is_admin()) {
-            $post_type = isset($wp_query->query['post_type']) ? $wp_query->query['post_type'] : '';
-            if ('post' == $post_type || is_array($post_type) || is_string($post_type)) {
-                if (!isset($_GET['orderby'])) {
-                    $wp_query->set('orderby', 'date');
-                    $wp_query->set('order', 'DESC');
-                }
-            }
-        }
-    }
-}
-add_filter('pre_get_posts', 'snn_custom_admin_post_order');
-
-function snn_github_child_theme_updates() {
-    $options = get_option('snn_other_settings');
-    if (isset($options['enable_github_updates']) && $options['enable_github_updates']) {
-        if (!defined('CHILD_THEME_GITHUB_USER')) {
-            define('CHILD_THEME_GITHUB_USER', 'sinanisler');
-        }
-        if (!defined('CHILD_THEME_GITHUB_REPO')) {
-            define('CHILD_THEME_GITHUB_REPO', 'snn-brx-child-theme');
-        }
-        if (!defined('CHILD_THEME_GITHUB_BRANCH')) {
-            define('CHILD_THEME_GITHUB_BRANCH', 'main');
-        }
-        if (!defined('CHILD_THEME_TAG_PREFIX')) {
-            define('CHILD_THEME_TAG_PREFIX', 'v');
-        }
-        if (!defined('CHILD_THEME_RAW_STYLE_URL')) {
-            define('CHILD_THEME_RAW_STYLE_URL', 'https://raw.githubusercontent.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/' . CHILD_THEME_GITHUB_BRANCH . '/style.css');
-        }
-        if (!defined('CHILD_THEME_ZIP_URL')) {
-            define('CHILD_THEME_ZIP_URL', 'https://github.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/archive/refs/tags/' . CHILD_THEME_TAG_PREFIX . '%s.zip');
-        }
-        if (!defined('CHILD_THEME_RELEASES_URL')) {
-            define('CHILD_THEME_RELEASES_URL', 'https://github.com/' . CHILD_THEME_GITHUB_USER . '/' . CHILD_THEME_GITHUB_REPO . '/releases/tag/' . CHILD_THEME_TAG_PREFIX . '%s');
-        }
-
-        function child_theme_github_update($transient) {
-            if (empty($transient->checked)) {
-                return $transient;
-            }
-            $theme = wp_get_theme();
-            $current_version = $theme->get('Version');
-            $response = wp_remote_get(CHILD_THEME_RAW_STYLE_URL, array(
-                'headers' => array(
-                    'User-Agent' => CHILD_THEME_GITHUB_USER . '-theme-update',
-                ),
-                'timeout' => 15,
-            ));
-            if (is_wp_error($response)) {
-                return $transient;
-            }
-            $style_css = wp_remote_retrieve_body($response);
-            if (preg_match('/Version:\s*(.+)/i', $style_css, $matches)) {
-                $latest_version = trim($matches[1]);
-            } else {
-                return $transient;
-            }
-            if (version_compare($current_version, $latest_version, '<')) {
-                $zip_url = sprintf(CHILD_THEME_ZIP_URL, $latest_version);
-                $transient->response[$theme->get_stylesheet()] = array(
-                    'theme' => $theme->get_stylesheet(),
-                    'new_version' => $latest_version,
-                    'url' => sprintf(CHILD_THEME_RELEASES_URL, $latest_version),
-                    'package' => $zip_url,
-                );
-            }
-            return $transient;
-        }
-        add_filter('pre_set_site_transient_update_themes', 'child_theme_github_update');
-
-        function child_theme_github_info($response, $action, $args) {
-            if ('theme_information' !== $action) {
-                return $response;
-            }
-            $theme = wp_get_theme();
-            $current_version = $theme->get('Version');
-            $response_style = wp_remote_get(CHILD_THEME_RAW_STYLE_URL, array(
-                'headers' => array(
-                    'User-Agent' => CHILD_THEME_GITHUB_USER . '-theme-info',
-                ),
-                'timeout' => 15,
-            ));
-            if (is_wp_error($response_style)) {
-                return $response;
-            }
-            $style_css = wp_remote_retrieve_body($response_style);
-            if (preg_match('/Description:\s*(.+)/i', $style_css, $matches)) {
-                $description = trim($matches[1]);
-            } else {
-                $description = 'No description available.';
-            }
-            if (preg_match('/Version:\s*(.+)/i', $style_css, $matches)) {
-                $version = trim($matches[1]);
-            } else {
-                $version = '1.0.0';
-            }
-            $latest_release_url = sprintf(CHILD_THEME_RELEASES_URL, $version);
-            if (!is_object($response)) {
-                $response = new stdClass();
-            }
-            $response->sections = array(
-                'description' => $description,
-            );
-            return $response;
-        }
-        add_filter('themes_api', 'child_theme_github_info', 20, 3);
-
-        if (!class_exists('Parsedown')) {
-            class Parsedown {
-                public function text($text) {
-                    $html = wpautop(esc_html($text));
-                    return $html;
-                }
-            }
-        }
-    }
-}
-add_action('after_setup_theme', 'snn_github_child_theme_updates');
-
-function add_custom_js_to_admin_footer() {
-    $screen = get_current_screen();
-    if ($screen->base === 'themes') {
-        ?>
-        <script type="text/javascript">
-            document.addEventListener('DOMContentLoaded', function () {
-                const observer = new MutationObserver(function (mutations) {
-                    mutations.forEach(function (mutation) {
-                        const modal = document.querySelector('.theme-overlay');
-                        if (modal && modal.style.display !== 'none') {
-                            const links = modal.querySelectorAll('.open-plugin-details-modal');
-                            links.forEach(link => {
-                                if (link.tagName === 'A') {
-                                    link.setAttribute('href', "https://github.com/sinanisler/snn-brx-child-theme/releases");
-                                    link.setAttribute('target', '_blank');
-                                    link.className = '';
-                                }
-                            });
-                        }
-                    });
-                });
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true
-                });
-                document.body.addEventListener('click', function (event) {
-                    if (event.target.classList.contains('close') || event.target.closest('.theme-overlay') === null) {
-                        observer.disconnect();
-                    }
-                });
-            });
-        </script>
-        <?php
-    }
-}
-add_action('admin_footer', 'add_custom_js_to_admin_footer');
-
-function snn_rename_extracted_theme_folder($source, $remote_source, $upgrader) {
-    $correct_folder_name = 'snn-brx-child-theme';
-    if (strpos($source, 'snn-brx-child-theme') !== false) {
-        $new_source = trailingslashit(dirname($source)) . $correct_folder_name;
-        if (@rename($source, $new_source)) {
-            return $new_source;
-        }
-    }
-    return $source;
-}
-add_filter('upgrader_source_selection', 'snn_rename_extracted_theme_folder', 10, 3);
 
 ?>
