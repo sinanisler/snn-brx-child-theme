@@ -466,4 +466,49 @@ function snn_github_child_theme_updates() {
 }
 add_action('after_setup_theme', 'snn_github_child_theme_updates');
 
+// THEME UPDATE CHANGE LOG LINK CHANGE to RELEASES
+function add_custom_js_to_admin_footer() {
+    $screen = get_current_screen();
+    if ($screen->base === 'themes') {
+        ?>
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                const observer = new MutationObserver(function (mutations) {
+                    mutations.forEach(function (mutation) {
+                        const modal = document.querySelector('.theme-overlay');
+                        if (modal && modal.style.display !== 'none') {
+                            const links = modal.querySelectorAll('.open-plugin-details-modal');
+                            links.forEach(link => {
+                                if (link.tagName === 'A') {
+                                    link.setAttribute('href', "https://github.com/sinanisler/snn-brx-child-theme/releases");
+                                    link.setAttribute('target', '_blank');
+                                    link.className = '';
+                                }
+                            });
+                        }
+                    });
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+
+                document.body.addEventListener('click', function (event) {
+                    if (event.target.classList.contains('close') || event.target.closest('.theme-overlay') === null) {
+                        observer.disconnect();
+                    }
+                });
+            });
+        </script>
+        <?php
+    }
+}
+add_action('admin_footer', 'add_custom_js_to_admin_footer');
+
+
+
+
+
+
 ?>
