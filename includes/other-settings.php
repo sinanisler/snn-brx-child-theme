@@ -101,7 +101,7 @@ function snn_register_other_settings() {
     // === New Setting: Enable GitHub-Based Child Theme Updates ===
     add_settings_field(
         'enable_github_updates',
-        'Enable GitHub-Based Child Theme Updates',
+        'Enable GitHub-Based Child Theme Updates (Experimental)',
         'snn_enable_github_updates_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -505,10 +505,3 @@ function add_custom_js_to_admin_footer() {
     }
 }
 add_action('admin_footer', 'add_custom_js_to_admin_footer');
-
-
-
-
-
-
-?>
