@@ -12,7 +12,6 @@ require_once get_stylesheet_directory() . '/includes/security-page.php';
 require_once get_stylesheet_directory() . '/includes/post-types-settings.php';
 require_once get_stylesheet_directory() . '/includes/custom-field-settings.php';
 require_once get_stylesheet_directory() . '/includes/taxonomy-settings.php';
-require_once get_stylesheet_directory() . '/includes/smtp-settings.php';
 require_once get_stylesheet_directory() . '/includes/login-settings.php';
 require_once get_stylesheet_directory() . '/includes/block-editor-settings.php';
 require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
@@ -26,6 +25,7 @@ require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
 require_once get_stylesheet_directory() . '/includes/file-size-column-media.php';
 require_once get_stylesheet_directory() . '/includes/404-logging.php';
 require_once get_stylesheet_directory() . '/includes/301-redirect.php';
+require_once get_stylesheet_directory() . '/includes/smtp-settings.php';
 require_once get_stylesheet_directory() . '/includes/mail-logging.php';
 require_once get_stylesheet_directory() . '/includes/media-settings.php';
 
