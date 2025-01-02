@@ -15,3 +15,5 @@ SNN BRX theme adds theme settings, security settings and lots of plugin eliminat
 ### SNN Settings & Features
 
 Documentation: https://github.com/sinanisler/snn-brx-child-theme/wiki
+
+Relases and Changelogs https://github.com/sinanisler/snn-brx-child-theme/releases
