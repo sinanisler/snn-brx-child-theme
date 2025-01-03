@@ -83,8 +83,16 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'hide_element_icons',
-        'Hide Element Icons on Bricks (Advanced)',
+        'Hide Elements Icons on Bricks Editor',
         'snn_hide_element_icons_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
+    add_settings_field(
+        'make_compact_but_keep_icons',
+        'Make Elements Compact But Keep Icons on Bricks Editor',
+        'snn_make_compact_but_keep_icons_callback',
         'snn-other-settings',
         'snn_other_settings_section'
     );
@@ -107,6 +115,8 @@ function snn_sanitize_other_settings($input) {
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
 
     $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
+
+    $sanitized['make_compact_but_keep_icons'] = isset($input['make_compact_but_keep_icons']) && $input['make_compact_but_keep_icons'] ? 1 : 0;
 
     return $sanitized;
 }
@@ -175,6 +185,17 @@ function snn_hide_element_icons_callback() {
     <?php
 }
 
+
+function snn_make_compact_but_keep_icons_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_other_settings[make_compact_but_keep_icons]" value="1" <?php checked(1, isset($options['make_compact_but_keep_icons']) ? $options['make_compact_but_keep_icons'] : 0); ?>>
+        Make Elements Compact but Keep Icons
+    </label>
+    <?php
+}
+
 function snn_enqueue_gsap_scripts() {
     $options = get_option('snn_other_settings');
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
@@ -239,11 +260,17 @@ function snn_hide_comments_section() {
 }
 add_action('admin_head', 'snn_hide_comments_section');
 
+// Updated Inline CSS Injection Function to Include New Setting
+
 function snn_add_inline_css_if_bricks_run() {
     $options = get_option('snn_other_settings');
-    if (isset($options['hide_element_icons']) && $options['hide_element_icons']) {
-        if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
+    if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
+        // Existing Hide Element Icons CSS
+        if (isset($options['hide_element_icons']) && $options['hide_element_icons']) {
             echo '<style>
+                .bricks-add-element .element-icon {
+                    display: none;
+                }
                 #bricks-panel-elements .sortable-wrapper{
                     margin:0 0 5px;
                     padding-left:8px;
@@ -253,11 +280,37 @@ function snn_add_inline_css_if_bricks_run() {
                     padding-left:8px;
                     padding-right:8px;
                 }
-                .bricks-add-element .element-icon {
-                    display: none;
+                #bricks-panel-elements-categories .category-title{
+                    line-height:0;
+                    padding-top:10px;
+                    padding-bottom:10px;
                 }
-                .bricks-add-element{
-                
+                .bricks-add-element .element-label{
+                    box-shadow:0 0 ;
+                    font-size:14px;
+                    padding: 0 3px;
+                    line-height:30px;
+                }
+            </style>';
+        }
+
+        if (isset($options['make_compact_but_keep_icons']) && $options['make_compact_but_keep_icons']) {
+            echo '<style>
+                .bricks-add-element .element-icon {
+                    float: left;
+                    width: 24px;
+                    height: auto;
+                    font-size: 14px;
+                    line-height: 32px;
+                }
+                #bricks-panel-elements .sortable-wrapper{
+                    margin:0 0 5px;
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                #bricks-panel-elements-categories .category-title{
+                    padding-left:8px;
+                    padding-right:8px;
                 }
                 #bricks-panel-elements-categories .category-title{
                     line-height:0;
