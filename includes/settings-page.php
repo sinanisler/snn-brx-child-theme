@@ -29,22 +29,13 @@ function snn_settings_page_callback() {
             Everything is straightforward and ready to use. <br><br>
             Enjoy building your site.<br><br>
 
-            <a href="https://academy.bricksbuilder.io/" target="_blank" 
+            <a href="https://academy.bricksbuilder.io/topic/getting-started/" target="_blank" 
             style="font-size: 16px; text-decoration:none; line-height:40px " >Bricks Builder Docs ➤</a><br>
 
-            <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki" target="_blank" 
-            style="font-size: 16px; text-decoration:none; line-height:40px " >Settings Docs ➤</a><br>
-
-            <a href="https://github.com/sinanisler/snn-brx-child-theme/issues" target="_blank" 
-            style="font-size: 16px; text-decoration:none; line-height:40px " >BUG Report ➤</a><br>
-
-
-            <a href="https://github.com/sinanisler/snn-brx-child-theme/discussions" target="_blank" 
-            style="font-size: 16px; text-decoration:none; line-height:40px " >Discussions ➤</a>
-            
+            <a href="https://www.youtube.com/@bricksbuilder/videos" target="_blank" 
+            style="font-size: 16px; text-decoration:none; line-height:40px " >Bricks Builder Videos ➤</a><br>
 
             
-             
         </p>
         
         </div>
