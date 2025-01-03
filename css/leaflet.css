@@ -411,9 +411,11 @@ svg.leaflet-image-layer.leaflet-interactive path {
 /* attribution and scale controls */
 
 .leaflet-container .leaflet-control-attribution {
-	background: #fff;
-	background: rgba(255, 255, 255, 0.8);
+	
+	background: rgba(255, 255, 255, 0.2);
 	margin: 0;
+	color:rgba(0, 0, 0, 0.7) !important;
+	
 	}
 .leaflet-control-attribution,
 .leaflet-control-scale-line {
