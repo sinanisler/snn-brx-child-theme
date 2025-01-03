@@ -29,6 +29,7 @@ require_once get_stylesheet_directory() . '/includes/smtp-settings.php';
 require_once get_stylesheet_directory() . '/includes/mail-logging.php';
 require_once get_stylesheet_directory() . '/includes/media-settings.php';
 require_once get_stylesheet_directory() . '/includes/disable-emojis.php';
+require_once get_stylesheet_directory() . '/includes/disable-gravatar.php';
 
 
 
