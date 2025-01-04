@@ -92,7 +92,7 @@ function snn_media_categories_callback() {
     $options = get_option('snn_media_settings');
     ?>
     <input type="checkbox" name="snn_media_settings[media_categories]" value="1" <?php checked(1, isset($options['media_categories']) ? $options['media_categories'] : 0); ?> >
-    <p>Enable Media Categories with drag-and-drop functionality.</p>
+    <p>Enable Media Categories with drag-and-drop functionality. (right click on grid view)</p>
     <?php
 }
 
