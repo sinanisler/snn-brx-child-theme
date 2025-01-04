@@ -18,6 +18,22 @@ window.onload = function () {
       observer.observe(element);
     }
 
+    function setupTriggers() {
+      const triggers = document.querySelectorAll('[data-trigger]');
+      triggers.forEach(trigger => {
+        trigger.addEventListener('click', () => {
+          const targetSelector = trigger.getAttribute('data-trigger');
+          const targetElement = document.querySelector(targetSelector);
+          if (targetElement) {
+            const animation = targetElement._gsapAnimationInstance;
+            if (animation) {
+              animation.play(0); 
+            }
+          }
+        });
+      });
+    }
+
     animateElements.forEach((element) => {
       const animations = element
         .getAttribute('data-animate')
@@ -25,13 +41,35 @@ window.onload = function () {
         .map(anim => anim.trim())
         .filter(Boolean);
 
-      if (animations.length > 1) {
-        const firstOptions = parseAnimationOptions(animations[0]);
-        
+      const firstOptions = parseAnimationOptions(animations[0]);
+
+      if (firstOptions.trigger === 'true') {
+        const timeline = gsap.timeline({ paused: true });
+        animations.forEach((animation) => {
+          const options = parseAnimationOptions(animation);
+          timeline.to(
+            splitText(element, options),
+            {
+              ...(options.x ? { x: parseInt(options.x) } : {}),
+              ...(options.y ? { y: parseInt(options.y) } : {}),
+              ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
+              ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
+              ...(options.r || options.rotate ? { rotate: parseFloat(options.r || options.rotate) } : {}),
+              ...options.endStyles,
+              duration: options.duration || 1,
+              delay: options.delay || 0,
+              stagger: options.stagger ? parseFloat(options.stagger) : 0,
+            }
+          );
+        });
+
+        element._gsapAnimationInstance = timeline; 
+
+      } else if (animations.length > 1) {
         gsap.set(splitText(element, firstOptions), firstOptions.startStyles);
 
         const timeline = gsap.timeline({
-          paused: firstOptions.scroll === 'false',  // If scroll:false, start paused
+          paused: firstOptions.scroll === 'false',  
           scrollTrigger: createScrollTriggerConfig(firstOptions, element)
         });
 
@@ -54,6 +92,8 @@ window.onload = function () {
             index > 0 ? `+=${options.delay || 0}` : 0
           );
         });
+
+        element._gsapAnimationInstance = timeline; 
 
         if (firstOptions.scroll === 'false') {
           observeIfScrollFalse(element, timeline);
@@ -88,11 +128,15 @@ window.onload = function () {
           }
         );
 
+        element._gsapAnimationInstance = tween; // Store animation instance for triggering
+
         if (options.scroll === 'false') {
           observeIfScrollFalse(element, tween);
         }
       }
     });
+
+    setupTriggers(); // Initialize the trigger system
 
     function parseAnimationOptions(data) {
       return data.split(',').reduce((acc, option) => {
@@ -117,7 +161,7 @@ window.onload = function () {
       const defaultEnd = 'bottom 40%';
       const isBodyTrigger = options.trigger === 'body';
 
-      if (options.scroll === 'false') {
+      if (options.scroll === 'false' || options.trigger === 'true') {
         return false;
       }
 
