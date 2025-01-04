@@ -4,15 +4,34 @@ window.onload = function () {
   setTimeout(() => {
     const animateElements = document.querySelectorAll('[data-animate]');
 
+    function observeIfScrollFalse(element, animationInstance) {
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animationInstance.play();
+            obs.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.1
+      });
+      observer.observe(element);
+    }
+
     animateElements.forEach((element) => {
-      const animations = element.getAttribute('data-animate').split(';').map(anim => anim.trim()).filter(Boolean);
+      const animations = element
+        .getAttribute('data-animate')
+        .split(';')
+        .map(anim => anim.trim())
+        .filter(Boolean);
 
       if (animations.length > 1) {
         const firstOptions = parseAnimationOptions(animations[0]);
-
+        
         gsap.set(splitText(element, firstOptions), firstOptions.startStyles);
 
         const timeline = gsap.timeline({
+          paused: firstOptions.scroll === 'false',  // If scroll:false, start paused
           scrollTrigger: createScrollTriggerConfig(firstOptions, element)
         });
 
@@ -35,11 +54,16 @@ window.onload = function () {
             index > 0 ? `+=${options.delay || 0}` : 0
           );
         });
+
+        if (firstOptions.scroll === 'false') {
+          observeIfScrollFalse(element, timeline);
+        }
+
       } else {
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
 
-        gsap.fromTo(
+        const tween = gsap.fromTo(
           splitText(element, options),
           {
             ...(options.x ? { x: parseInt(options.x) } : {}),
@@ -56,12 +80,17 @@ window.onload = function () {
             ...(options.s || options.scale ? { scale: 1 } : {}),
             ...(options.r || options.rotate ? { rotate: 0 } : {}),
             ...options.endStyles,
-            scrollTrigger: scrollTriggerConfig,
+            scrollTrigger: scrollTriggerConfig !== false ? scrollTriggerConfig : null,
             stagger: options.stagger ? parseFloat(options.stagger) : 0,
             duration: options.duration || 1,
             delay: options.delay || 0,
+            paused: options.scroll === 'false', 
           }
         );
+
+        if (options.scroll === 'false') {
+          observeIfScrollFalse(element, tween);
+        }
       }
     });
 
@@ -88,21 +117,23 @@ window.onload = function () {
       const defaultEnd = 'bottom 40%';
       const isBodyTrigger = options.trigger === 'body';
 
-      return options.scroll !== 'false'
-        ? {
-            trigger: isBodyTrigger ? document.body : element,
-            start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
-            end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
-            scrub: options.scrub === 'true' ? true : parseFloat(options.scrub) || 1,
-            pin: options.pin === 'true',
-            markers: options.markers === 'true',
-            toggleClass: options.toggleClass || null,
-            pinSpacing: options.pinSpacing || 'margin',
-            invalidateOnRefresh: true,
-            immediateRender: false, 
-            animation: gsap.timeline({ paused: true }),
-          }
-        : false;
+      if (options.scroll === 'false') {
+        return false;
+      }
+
+      return {
+        trigger: isBodyTrigger ? document.body : element,
+        start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
+        end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
+        scrub: options.scrub === 'true' ? true : parseFloat(options.scrub) || 1,
+        pin: options.pin === 'true',
+        markers: options.markers === 'true',
+        toggleClass: options.toggleClass || null,
+        pinSpacing: options.pinSpacing || 'margin',
+        invalidateOnRefresh: true,
+        immediateRender: false,
+        animation: gsap.timeline({ paused: true })
+      };
     }
 
     function splitText(element, options) {
@@ -110,7 +141,9 @@ window.onload = function () {
       if (splitText) {
         const text = element.innerText;
         const chars = text.split('');
-        element.innerHTML = chars.map(char => `<span style="opacity: 0;">${char}</span>`).join('');
+        element.innerHTML = chars
+          .map(char => `<span style="opacity: 0;">${char}</span>`)
+          .join('');
         return element.children;
       }
       return element;
