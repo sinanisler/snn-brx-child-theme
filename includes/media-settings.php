@@ -160,6 +160,9 @@ function snn_add_custom_css_js_to_media_page() {
 
     $options = get_option('snn_media_settings');
 
+
+    if (isset($options['media_categories']) && $options['media_categories']) {
+
     ?>
     <style>
     table.media .column-title .media-icon img {
@@ -315,6 +318,11 @@ function snn_add_custom_css_js_to_media_page() {
     </script>
 
     <?php
+}
+
+
+
+
 
     if (isset($options['media_categories']) && $options['media_categories']) {
         ?>
