@@ -1,9 +1,7 @@
 <?php
-
 if (!defined('ABSPATH')) {
     exit;
 }
-
 
 function snn_add_block_theme_json_submenu() {
     add_submenu_page(
@@ -16,7 +14,6 @@ function snn_add_block_theme_json_submenu() {
     );
 }
 add_action('admin_menu', 'snn_add_block_theme_json_submenu' , 11);
-
 
 function snn_block_theme_json_page_callback() {
     // Get the path to the child theme's theme.json file
@@ -71,11 +68,11 @@ function snn_block_theme_json_page_callback() {
     }
 
     // Extract known fields for editing
-    $appearance_tools = isset($theme_json_data['settings']['appearanceTools']) ? (bool)$theme_json_data['settings']['appearanceTools'] : false;
-    $layout_content_size = isset($theme_json_data['settings']['layout']['contentSize']) ? $theme_json_data['settings']['layout']['contentSize'] : '';
-    $layout_wide_size = isset($theme_json_data['settings']['layout']['wideSize']) ? $theme_json_data['settings']['layout']['wideSize'] : '';
-    $spacing_units = isset($theme_json_data['settings']['spacing']['units']) ? $theme_json_data['settings']['spacing']['units'] : [];
-    $spacing_units_str = implode(',', $spacing_units);
+    $appearance_tools       = isset($theme_json_data['settings']['appearanceTools']) ? (bool)$theme_json_data['settings']['appearanceTools'] : false;
+    $layout_content_size    = isset($theme_json_data['settings']['layout']['contentSize']) ? $theme_json_data['settings']['layout']['contentSize'] : '';
+    $layout_wide_size       = isset($theme_json_data['settings']['layout']['wideSize']) ? $theme_json_data['settings']['layout']['wideSize'] : '';
+    $spacing_units          = isset($theme_json_data['settings']['spacing']['units']) ? $theme_json_data['settings']['spacing']['units'] : [];
+    $spacing_units_str      = implode(',', $spacing_units);
 
     // Typography font families
     $typography_font_families = isset($theme_json_data['settings']['typography']['fontFamilies']) ? $theme_json_data['settings']['typography']['fontFamilies'] : [];
@@ -93,10 +90,6 @@ function snn_block_theme_json_page_callback() {
         <form method="post" id="dynamic-form">
             <?php wp_nonce_field('snn_theme_json_edit', 'snn_theme_json_nonce'); ?>
 
-
-
-
-
             <h2 style="margin-top: 40px;">Color Palette</h2>
             <p>These are the colors defined in your theme.json. Add or remove as needed.</p>
             <div id="color-list" style="margin-bottom:20px;">
@@ -110,10 +103,6 @@ function snn_block_theme_json_page_callback() {
                 <?php endforeach; ?>
             </div>
             <button type="button" id="add-color-node" class="button" style="margin-bottom:40px;">Add Color</button>
-
-
-
-
 
 
             <h2 style="margin-top: 40px;">Layout</h2>
@@ -139,8 +128,8 @@ function snn_block_theme_json_page_callback() {
             <p>Manage your font families here. Add or remove as needed.</p>
             <div id="font-families-list" style="margin-bottom:20px;">
                 <?php foreach ($typography_font_families as $index => $font) : 
-                    $name = isset($font['name']) ? $font['name'] : '';
-                    $slug = isset($font['slug']) ? $font['slug'] : '';
+                    $name       = isset($font['name']) ? $font['name'] : '';
+                    $slug       = isset($font['slug']) ? $font['slug'] : '';
                     $fontFamily = isset($font['fontFamily']) ? $font['fontFamily'] : '';
                 ?>
                     <div class="font-family-node" style="margin-bottom:10px; display:flex; align-items:center;">
@@ -164,11 +153,10 @@ function snn_block_theme_json_page_callback() {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const themeJsonTextarea = document.getElementById('theme-json-textarea');
-            const dynamicForm = document.getElementById('dynamic-form');
-            const colorList = document.getElementById('color-list');
-            const addColorButton = document.getElementById('add-color-node');
-
-            const fontFamiliesList = document.getElementById('font-families-list');
+            const dynamicForm        = document.getElementById('dynamic-form');
+            const colorList          = document.getElementById('color-list');
+            const addColorButton     = document.getElementById('add-color-node');
+            const fontFamiliesList   = document.getElementById('font-families-list');
             const addFontFamilyButton = document.getElementById('add-font-family-node');
 
             let jsonData;
@@ -202,12 +190,11 @@ function snn_block_theme_json_page_callback() {
                     delete newData.settings.editor;
                 }
 
-
                 // Layout
                 let layoutContentSize = dynamicForm.querySelector('input[name="layout_content_size"]').value;
-                let layoutWideSize = dynamicForm.querySelector('input[name="layout_wide_size"]').value;
+                let layoutWideSize    = dynamicForm.querySelector('input[name="layout_wide_size"]').value;
                 newData.settings.layout.contentSize = layoutContentSize;
-                newData.settings.layout.wideSize = layoutWideSize;
+                newData.settings.layout.wideSize    = layoutWideSize;
 
                 // Spacing
                 let spacingUnits = dynamicForm.querySelector('input[name="spacing_units"]').value
@@ -219,8 +206,8 @@ function snn_block_theme_json_page_callback() {
                 // Typography Font Families
                 let fontFamilies = [];
                 fontFamiliesList.querySelectorAll('.font-family-node').forEach((node) => {
-                    let name = node.querySelector('input[placeholder="Name"]').value;
-                    let slug = node.querySelector('input[placeholder="Slug"]').value;
+                    let name       = node.querySelector('input[placeholder="Name"]').value;
+                    let slug       = node.querySelector('input[placeholder="Slug"]').value;
                     let fontFamily = node.querySelector('input[placeholder="Font Family CSS Value"]').value;
                     fontFamilies.push({
                         name: name,
@@ -229,6 +216,41 @@ function snn_block_theme_json_page_callback() {
                     });
                 });
                 newData.settings.typography.fontFamilies = fontFamilies;
+
+                // If at least one fontFamily is defined, update "styles" references 
+                // to use the first family's slug in var(--wp--preset--font-family--XYZ).
+                if (fontFamilies.length > 0) {
+                    const primarySlug = fontFamilies[0].slug || 'default-font';
+
+                    // Walk through newData.styles and replace relevant fontFamily references
+                    if (newData.styles) {
+                        // Update blocks
+                        if (newData.styles.blocks) {
+                            for (const blockName in newData.styles.blocks) {
+                                if (newData.styles.blocks[blockName].typography 
+                                    && newData.styles.blocks[blockName].typography.fontFamily) {
+                                    newData.styles.blocks[blockName].typography.fontFamily =
+                                        `var(--wp--preset--font-family--${primarySlug})`;
+                                }
+                            }
+                        }
+                        // Update elements
+                        if (newData.styles.elements) {
+                            for (const elementName in newData.styles.elements) {
+                                if (newData.styles.elements[elementName].typography 
+                                    && newData.styles.elements[elementName].typography.fontFamily) {
+                                    newData.styles.elements[elementName].typography.fontFamily =
+                                        `var(--wp--preset--font-family--${primarySlug})`;
+                                }
+                            }
+                        }
+                        // Update styles.typography
+                        if (newData.styles.typography && newData.styles.typography.fontFamily) {
+                            newData.styles.typography.fontFamily =
+                                `var(--wp--preset--font-family--${primarySlug})`;
+                        }
+                    }
+                }
 
                 // Color Palette
                 let palette = [];
@@ -335,12 +357,14 @@ function snn_block_theme_json_page_callback() {
 
             function syncFieldsFromJsonData() {
                 let appearanceTools = dynamicForm.querySelector('input[name="appearanceTools"]');
-                appearanceTools.checked = !!(jsonData?.settings?.appearanceTools);
+                if (appearanceTools) {
+                    appearanceTools.checked = !!(jsonData?.settings?.appearanceTools);
+                }
 
                 let layoutContentSize = dynamicForm.querySelector('input[name="layout_content_size"]');
-                let layoutWideSize = dynamicForm.querySelector('input[name="layout_wide_size"]');
+                let layoutWideSize    = dynamicForm.querySelector('input[name="layout_wide_size"]');
                 layoutContentSize.value = jsonData?.settings?.layout?.contentSize || '';
-                layoutWideSize.value = jsonData?.settings?.layout?.wideSize || '';
+                layoutWideSize.value    = jsonData?.settings?.layout?.wideSize || '';
 
                 let spacingUnits = dynamicForm.querySelector('input[name="spacing_units"]');
                 let unitsArr = jsonData?.settings?.spacing?.units || [];
@@ -358,8 +382,8 @@ function snn_block_theme_json_page_callback() {
                     div.style.display = 'flex';
                     div.style.alignItems = 'center';
 
-                    const nameVal = font.name || '';
-                    const slugVal = font.slug || '';
+                    const nameVal       = font.name || '';
+                    const slugVal       = font.slug || '';
                     const fontFamilyVal = font.fontFamily || '';
 
                     div.innerHTML = `
@@ -389,8 +413,8 @@ function snn_block_theme_json_page_callback() {
                     div.style.alignItems = 'center';
 
                     const cVal = color.color || '#000000';
-                    const nVal = color.name || '';
-                    const sVal = color.slug || '';
+                    const nVal = color.name  || '';
+                    const sVal = color.slug  || '';
 
                     div.innerHTML = `
                         <input type="color" name="colors[${index}][color]" value="${cVal}" style="margin-right:10px;">
