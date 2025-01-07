@@ -151,15 +151,15 @@ function snn_render_mail_logs_page() {
         echo '</form>';
         echo '</div>';
 
-        echo '<table class="wp-list-table widefat fixed striped">';
+        echo '<table class="wp-list-table wp-mail-log-list widefat fixed striped">';
         echo '<thead>';
         echo '<tr>';
-        echo '<th>Date & Time</th>';
-        echo '<th>From</th>';
-        echo '<th>To</th>';
-        echo '<th>Subject</th>';
-        echo '<th>Message</th>';
-        echo '<th>Headers</th>';
+        echo '<th class="date">Date & Time</th>';
+        echo '<th class="from">From</th>';
+        echo '<th class="to">To</th>';
+        echo '<th class="subject">Subject</th>';
+        echo '<th class="message">Message</th>';
+        echo '<th class="header">Headers</th>';
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
@@ -208,6 +208,9 @@ function snn_render_mail_logs_page() {
     overflow:auto;
     display:block;
 }
+
+.date       {  width:130px;    }
+.message    {  width:500px;    }
 </style>
 <?php
 }
