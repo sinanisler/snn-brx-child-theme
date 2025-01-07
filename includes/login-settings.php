@@ -41,7 +41,7 @@ function ls_register_login_settings() {
 
     add_settings_field(
         'ls_login_custom_text',
-        'Custom Text',
+        'Custom Text under Login Form',
         'ls_login_custom_text_callback',
         'login-settings',
         'ls_login_settings_section'
