@@ -1,5 +1,5 @@
 <?php
-                  
+                   
 // Use custom-codes-here.php file for adding your custom JS and CSS codes. 
 require_once get_stylesheet_directory() . '/custom-codes-here.php';
 
