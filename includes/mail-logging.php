@@ -239,6 +239,9 @@ function snn_render_mail_logs_page() {
     display: block;
 }
 
+.delete {
+    width: 70px;
+}
 .date {
     width: 130px;
 }
