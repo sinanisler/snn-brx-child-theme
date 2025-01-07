@@ -5,6 +5,8 @@ if (!defined('ABSPATH')) {
 
 function snn_add_math_captcha() {
     $options = get_option('snn_security_options');
+
+    // Only show the math captcha if it's actually enabled in your options.
     if (isset($options['enable_math_captcha']) && $options['enable_math_captcha']) {
         $number1 = rand(1, 6);
         $number2 = rand(1, 6);
@@ -23,8 +25,9 @@ function snn_add_math_captcha() {
         <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function () {
                 const captchaContainer = document.getElementById('math_captcha_container');
-                captchaContainer.style.display = 'block'; 
+                captchaContainer.style.display = 'block';
                 document.getElementById('js_enabled').value = 'yes';
+
                 const captchaLabel = document.getElementById('captcha_label');
                 const submitButton = document.querySelector('input[type="submit"]');
                 const captchaInput = document.getElementById('math_captcha');
@@ -37,16 +40,21 @@ function snn_add_math_captcha() {
                 const b64Number1 = "<?php echo esc_js($encodedNumber1); ?>";
                 const b64Number2 = "<?php echo esc_js($encodedNumber2); ?>";
                 const b64Sum     = "<?php echo esc_js($encodedSum); ?>";
-                const number1 = parseInt(window.atob(b64Number1), 10);
-                const number2 = parseInt(window.atob(b64Number2), 10);
+                const number1    = parseInt(window.atob(b64Number1), 10);
+                const number2    = parseInt(window.atob(b64Number2), 10);
                 const correctSum = parseInt(window.atob(b64Sum), 10);
+
                 captchaLabel.innerHTML = `<canvas id='captchaCanvas' width='150' height='40'></canvas>`;
+
                 const canvas = document.getElementById('captchaCanvas');
-                const ctx = canvas.getContext('2d');
-                ctx.font = "24px Arial";
-                ctx.fillStyle = "#333";
+                const ctx    = canvas.getContext('2d');
+                ctx.font     = "24px Arial";
+                ctx.fillStyle= "#333";
                 ctx.fillText(`${number1} + ${number2} = ?`, 10, 28);
-                captchaSolutionInput.value = correctSum; 
+
+                // Store the correct sum in a hidden field
+                captchaSolutionInput.value = correctSum;
+
                 function validateCaptcha() {
                     const userCaptcha = parseInt(captchaInput.value.trim(), 10);
                     if (isNaN(userCaptcha) || userCaptcha !== correctSum) {
@@ -66,54 +74,92 @@ function snn_add_math_captcha() {
         <?php
     }
 }
-
+// Hook in our "display" functions
 add_action('login_form', 'snn_add_math_captcha');
 add_action('register_form', 'snn_add_math_captcha');
 add_action('lostpassword_form', 'snn_add_math_captcha');
 
 function snn_check_captcha() {
-    $js_enabled = isset($_POST['js_enabled']) && $_POST['js_enabled'] === 'yes';
-    if ($js_enabled) {
-        if (!isset($_POST['math_captcha'], $_POST['captcha_solution'])) {
-            return false;
-        }
-        $user_captcha_response = trim($_POST['math_captcha']);
-        $correct_answer = trim($_POST['captcha_solution']);
+    $options = get_option('snn_security_options');
 
-        if (empty($user_captcha_response) || (int)$user_captcha_response !== (int)$correct_answer) {
-            return false;
-        }
-    } else {
-        return false; // JavaScript must be enabled
+    // If the captcha is not enabled, do nothing and allow the login/registration.
+    if (empty($options['enable_math_captcha'])) {
+        return true;
     }
+
+    $js_enabled = (isset($_POST['js_enabled']) && $_POST['js_enabled'] === 'yes');
+
+    // If JavaScript is not enabled, consider that an automatic failure (if captcha is on).
+    if (!$js_enabled) {
+        return false;
+    }
+
+    // Make sure both captcha fields exist
+    if (!isset($_POST['math_captcha'], $_POST['captcha_solution'])) {
+        return false;
+    }
+
+    $user_captcha_response = trim($_POST['math_captcha']);
+    $correct_answer        = trim($_POST['captcha_solution']);
+
+    // Validate the captcha
+    if (empty($user_captcha_response) || (int)$user_captcha_response !== (int)$correct_answer) {
+        return false;
+    }
+
+    // Passed the checks
     return true;
 }
 
+
 function snn_validate_math_captcha($result, $username, $password) {
-    $current_action = '';
-    if (isset($_REQUEST['action'])) {
-        $current_action = $_REQUEST['action'];
-    }
-    if ($current_action === 'login' || !isset($_REQUEST['action'])) {
-        if (!snn_check_captcha()) {
-            $result = new WP_Error('captcha_error', __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn"));
+    $options = get_option('snn_security_options');
+
+    // Only validate if captcha is enabled
+    if (!empty($options['enable_math_captcha'])) {
+        $current_action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+
+        // If it's a regular login action
+        if ($current_action === 'login' || !isset($_REQUEST['action'])) {
+            if (!snn_check_captcha()) {
+                $result = new WP_Error(
+                    'captcha_error',
+                    __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn")
+                );
+            }
         }
     }
     return $result;
 }
 add_filter('authenticate', 'snn_validate_math_captcha', 30, 3);
 
+
 function snn_validate_registration_captcha($errors, $sanitized_user_login, $user_email) {
-    if (!snn_check_captcha()) {
-        $errors->add('captcha_error', __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn"));
+    $options = get_option('snn_security_options');
+
+    if (!empty($options['enable_math_captcha'])) {
+        if (!snn_check_captcha()) {
+            $errors->add(
+                'captcha_error',
+                __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn")
+            );
+        }
     }
     return $errors;
 }
 add_filter('registration_errors', 'snn_validate_registration_captcha', 10, 3);
 
+
 function snn_validate_lostpassword_captcha($errors, $user_login) {
-    if (!snn_check_captcha()) {
-        $errors->add('captcha_error', __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn"));
+    $options = get_option('snn_security_options');
+
+    if (!empty($options['enable_math_captcha'])) {
+        if (!snn_check_captcha()) {
+            $errors->add(
+                'captcha_error',
+                __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn")
+            );
+        }
     }
     return $errors;
 }
