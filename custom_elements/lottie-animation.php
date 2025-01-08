@@ -18,6 +18,8 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
     }
 
     public function set_controls() {
+        // Existing Controls...
+
         // Lottie JSON Upload
         $this->controls['lottie_json'] = [
             'tab'    => 'content',
@@ -148,10 +150,28 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'small'   => true,
             'default' => false,
         ];
+
+        /**
+         * **New Link Control Added Below**
+         */
+        // Link Control
+        $this->controls['animation_link'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Link', 'bricks' ),
+            'type'        => 'link',
+            'pasteStyles' => false,
+            'placeholder' => esc_html__( 'http://yoursite.com', 'bricks' ),
+            // You can uncomment and customize the 'exclude' parameter if needed
+            // 'exclude'     => [
+            //     'rel',
+            //     'newTab',
+            // ],
+        ];
     }
 
     public function render() {
 
+        // Existing Settings Retrieval
         $lottie_json      = isset($this->settings['lottie_json']['url']) ? esc_url($this->settings['lottie_json']['url']) : '';
         $loop             = ! empty($this->settings['loop']) ? 'true' : 'false';
         $autoplay         = ! empty($this->settings['autoplay']) ? 'true' : 'false';
@@ -168,19 +188,33 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         $scroll_trigger_end   = isset($this->settings['scroll_trigger_end'])   ? esc_js($this->settings['scroll_trigger_end'])   : 'bottom top';
         $scroll_trigger_markers = ! empty($this->settings['scroll_trigger_markers']) ? 'true' : 'false';
 
+        // **Retrieve Link Settings**
+        $animation_link = isset($this->settings['animation_link']) ? $this->settings['animation_link'] : null;
+        $link_url       = isset($animation_link['url']) ? esc_url($animation_link['url']) : '';
+        $link_target    = isset($animation_link['target']) && $animation_link['target'] ? ' target="_blank"' : '';
+        $link_nofollow  = isset($animation_link['rel']) && strpos($animation_link['rel'], 'nofollow') !== false ? ' rel="nofollow"' : '';
+
         if ( empty( $lottie_json ) ) {
             echo '<p>' . esc_html__( 'Please upload a Lottie JSON file.', 'bricks' ) . '</p>';
             return;
         }
 
         $animation_id = 'custom-lottie-animation-' . uniqid();
+        
+        // **Start Output Buffering to Handle Optional Link Wrapping**
+        ob_start();
+        if ( ! empty( $link_url ) ) {
+            echo '<a 
+            href="' . $link_url . '"' . $link_target . $link_nofollow . ' 
+            style="width: 100%; display: block; cursor:pointer;" 
+            class="lottie-link">';
+        }
         ?>
-
         <div 
             id="<?php echo esc_attr($animation_id); ?>" 
             class="custom-lottie-animation-wrapper"
             style="height: <?php echo esc_attr($animation_height); ?>px; width: 100%; max-width: 100%;
-                   cursor: <?php echo ($play_on_click === 'true') ? 'pointer' : 'default'; ?>;"
+                   cursor: <?php echo ($play_on_click === 'true') ? 'pointer' : ''; ?>;"
         ></div>
 
         <script>
@@ -219,7 +253,8 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             if ('<?php echo esc_js($play_on_hover); ?>' === 'true') {
                 var container = document.getElementById('<?php echo esc_js($animation_id); ?>');
                 container.addEventListener('mouseenter', function() {
-                    lottieAnimation.goToAndPlay(0, true);
+                    // Changed from goToAndPlay(0, true) to play() to resume from paused state
+                    lottieAnimation.play();
                 });
 
                 container.addEventListener('mouseleave', function() {
@@ -231,22 +266,25 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 
             if ('<?php echo esc_js($play_on_click); ?>' === 'true') {
                 var container = document.getElementById('<?php echo esc_js($animation_id); ?>');
-                var isPlaying = ('<?php echo esc_js($autoplay); ?>' === 'true');
+
+                // Ensure the cursor indicates interactivity
+                container.style.cursor = 'pointer';
 
                 container.addEventListener('click', function() {
-                    if (isPlaying) {
-                        lottieAnimation.pause();
-                        isPlaying = false;
-                    } else {
-                        lottieAnimation.play();
-                        isPlaying = true;
-                    }
+                    // Restart the animation from the beginning
+                    lottieAnimation.stop();
+                    lottieAnimation.goToAndPlay(0, true);
                 });
             }
         });
         </script>
 
         <?php
+        if ( ! empty( $link_url ) ) {
+            echo '</a>';
+        }
+        // **End Output Buffering and Output Content**
+        echo ob_get_clean();
     }
 }
 
