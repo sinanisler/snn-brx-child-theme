@@ -16,6 +16,18 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
     public function set_controls() {
 
+        // 1. Added Control for Enabling/Disabling Scroll Wheel Zoom
+        $this->controls['enable_scroll_zoom'] = [
+            'tab'    => 'content',
+            'label'  => esc_html__( 'Enable Scroll Zoom', 'bricks' ),
+            'type'   => 'checkbox',
+            'inline' => true,
+            'small'  => true,
+            'default' => false, // Disabled by default
+        ];
+
+        // Existing controls...
+
         $this->controls['markers'] = [
             'tab'           => 'content',
             'label'         => 'Location',
@@ -141,13 +153,14 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
     }
 
     public function render() {
-        $map_center_lat  = isset( $this->settings['map_center_lat'] ) ? floatval( $this->settings['map_center_lat'] ) : 51.5;
-        $map_center_lng  = isset( $this->settings['map_center_lng'] ) ? floatval( $this->settings['map_center_lng'] ) : -0.09;
-        $zoom_level      = isset( $this->settings['zoom_level'] ) ? intval( $this->settings['zoom_level'] ) : 13;
-        $markers         = isset( $this->settings['markers'] ) ? $this->settings['markers'] : [];
-        $map_height      = isset( $this->settings['map_height'] ) ? intval( $this->settings['map_height'] ) : 400;
-        $popup_font_size = isset( $this->settings['popup_font_size'] ) ? intval( $this->settings['popup_font_size'] ) : 14;
-        $map_style       = isset( $this->settings['map_style'] ) ? $this->settings['map_style'] : 'default';
+        $enable_scroll_zoom = isset( $this->settings['enable_scroll_zoom'] ) ? (bool) $this->settings['enable_scroll_zoom'] : false;
+        $map_center_lat     = isset( $this->settings['map_center_lat'] ) ? floatval( $this->settings['map_center_lat'] ) : 51.5;
+        $map_center_lng     = isset( $this->settings['map_center_lng'] ) ? floatval( $this->settings['map_center_lng'] ) : -0.09;
+        $zoom_level         = isset( $this->settings['zoom_level'] ) ? intval( $this->settings['zoom_level'] ) : 13;
+        $markers            = isset( $this->settings['markers'] ) ? $this->settings['markers'] : [];
+        $map_height         = isset( $this->settings['map_height'] ) ? intval( $this->settings['map_height'] ) : 400;
+        $popup_font_size    = isset( $this->settings['popup_font_size'] ) ? intval( $this->settings['popup_font_size'] ) : 14;
+        $map_style          = isset( $this->settings['map_style'] ) ? $this->settings['map_style'] : 'default';
 
         $map_id = 'custom-openstreetmap-' . uniqid();
 
@@ -157,7 +170,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 <style>
                     #{$map_id} .custom-openstreetmap-popup {
                         font-size: {$popup_font_size}px;
-                        
                     }
                     .leaflet-icon-custom{
                         display:flex;
@@ -172,14 +184,14 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                         font-size:20px !important;
                     }
                     .leaflet-control-attribution{
-                    font-size:11px;
-                    color:gray !important;
+                        font-size:11px;
+                        color:gray !important;
                     }
                     .leaflet-control-attribution a{
-                    display:none
+                        display:none
                     }
                     .leaflet-control-attribution span{
-                    display:none
+                        display:none
                     }
                 </style>
             ";
@@ -204,8 +216,10 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize map
-            var map = L.map('<?php echo esc_js( $map_id ); ?>').setView(
+            // Initialize map with scrollWheelZoom option based on user setting
+            var map = L.map('<?php echo esc_js( $map_id ); ?>', {
+                scrollWheelZoom: <?php echo $enable_scroll_zoom ? 'true' : 'false'; ?>
+            }).setView(
                 [<?php echo esc_js( $map_center_lat ); ?>, <?php echo esc_js( $map_center_lng ); ?>],
                 <?php echo esc_js( $zoom_level ); ?>
             );
@@ -276,3 +290,4 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 add_action( 'bricks_register_elements', function() {
     \Bricks\Element::register_element( 'Custom_Element_OpenStreetMap', 'openstreetmap' );
 } );
+?>
