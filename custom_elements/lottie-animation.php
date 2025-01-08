@@ -1,6 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+    exit;
 }
 
 $options = get_option('snn_other_settings');
@@ -24,20 +24,8 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'label'  => esc_html__( 'Lottie JSON File', 'bricks' ),
             'type'   => 'file',
             'accept' => '.json',
-            'description' => "",
+            'description' => "Upload your Lottie JSON file here",
         ];
-
-
-        // Autoplay Option
-        $this->controls['autoplay'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Autoplay Animation', 'bricks' ),
-            'type'    => 'checkbox',
-            'inline'  => true,
-            'small'   => true,
-            'default' => true,
-        ];
-
 
         // Loop Option
         $this->controls['loop'] = [
@@ -49,6 +37,15 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'default' => false,
         ];
 
+        // Autoplay Option
+        $this->controls['autoplay'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Autoplay Animation', 'bricks' ),
+            'type'    => 'checkbox',
+            'inline'  => true,
+            'small'   => true,
+            'default' => true,
+        ];
 
         // Play on Hover
         $this->controls['play_on_hover'] = [
@@ -58,7 +55,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'inline'      => true,
             'small'       => true,
             'default'     => false,
-            
+            'description' => "",
         ];
 
         // Pause on Mouse Leave
@@ -92,18 +89,17 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'step'    => 0.1,
             'min'     => 0.1,
             'max'     => 5.0,
-            'description' => "               
-            ",
+            'description' => "",
         ];
 
         // Animation Height
         $this->controls['animation_height'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Height (px)', 'bricks' ),
+            'label'   => esc_html__( 'Animation Height (px)', 'bricks' ),
             'type'    => 'number',
-            'default' => 500,
-            'min'     => 0,
-            'step'    => 1,
+            'default' => 400,
+            'min'     => 100,
+            'step'    => 10,
         ];
 
         // Scroll Trigger Option
@@ -136,6 +132,10 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'default' => 'bottom center',
             'description' => "
                 Examples: <br>bottom 50%<br>bottom 90%
+                <p data-control='info'>
+                    Scroll Start and Stop can be counter-intuitive. 
+                    Enable markers and test it out.
+                </p>
             ",
         ];
 
@@ -147,18 +147,11 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'inline'  => true,
             'small'   => true,
             'default' => false,
-            'description' => "
-                <p data-control='info'>
-                    Scroll Start and Stop can be counter-intuitive. 
-                    Enable markers and test it out.
-                </p>
-            ",
         ];
     }
 
     public function render() {
 
-        // Retrieve settings with "empty" checks for booleans
         $lottie_json      = isset($this->settings['lottie_json']['url']) ? esc_url($this->settings['lottie_json']['url']) : '';
         $loop             = ! empty($this->settings['loop']) ? 'true' : 'false';
         $autoplay         = ! empty($this->settings['autoplay']) ? 'true' : 'false';
@@ -175,17 +168,14 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         $scroll_trigger_end   = isset($this->settings['scroll_trigger_end'])   ? esc_js($this->settings['scroll_trigger_end'])   : 'bottom top';
         $scroll_trigger_markers = ! empty($this->settings['scroll_trigger_markers']) ? 'true' : 'false';
 
-        // If no Lottie JSON, bail out
         if ( empty( $lottie_json ) ) {
             echo '<p>' . esc_html__( 'Please upload a Lottie JSON file.', 'bricks' ) . '</p>';
             return;
         }
 
-        // Generate unique ID for the animation container
         $animation_id = 'custom-lottie-animation-' . uniqid();
         ?>
 
-        <!-- Lottie Animation Container -->
         <div 
             id="<?php echo esc_attr($animation_id); ?>" 
             class="custom-lottie-animation-wrapper"
@@ -196,7 +186,6 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            // Load the Lottie animation
             var lottieAnimation = lottie.loadAnimation({
                 container: document.getElementById('<?php echo esc_js($animation_id); ?>'),
                 renderer: 'svg',
@@ -208,10 +197,8 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
                 }
             });
 
-            // Set animation speed
             lottieAnimation.setSpeed(<?php echo esc_js($animation_speed); ?>);
 
-            // If ScrollTrigger is enabled
             <?php if ( $scroll_trigger ): ?>
             gsap.registerPlugin(ScrollTrigger);
             gsap.to({}, {
@@ -229,29 +216,19 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             });
             <?php endif; ?>
 
-            // Handle "Play on Hover" and "Pause on Mouse Leave"
             if ('<?php echo esc_js($play_on_hover); ?>' === 'true') {
                 var container = document.getElementById('<?php echo esc_js($animation_id); ?>');
-
                 container.addEventListener('mouseenter', function() {
-                    lottieAnimation.play();
+                    lottieAnimation.goToAndPlay(0, true);
                 });
 
                 container.addEventListener('mouseleave', function() {
-                    // If "Pause on Mouse Leave" is checked, always pause on mouseleave.
-                    // Otherwise, check if loop is false => pause, else keep playing.
                     if ('<?php echo esc_js($pause_on_mouse_leave); ?>' === 'true') {
                         lottieAnimation.pause();
-                    } else {
-                        if ('<?php echo esc_js($loop); ?>' === 'false') {
-                            lottieAnimation.pause();
-                        }
-                        // If loop === 'true' & no "pause_on_mouse_leave", do nothing (keeps playing)
                     }
                 });
             }
 
-            // Handle "Play on Click" toggling
             if ('<?php echo esc_js($play_on_click); ?>' === 'true') {
                 var container = document.getElementById('<?php echo esc_js($animation_id); ?>');
                 var isPlaying = ('<?php echo esc_js($autoplay); ?>' === 'true');
@@ -273,7 +250,6 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
     }
 }
 
-// Register the Custom Element
 add_action( 'bricks_register_elements', function() {
     \Bricks\Element::register_element( 'Custom_Element_LottieAnimation', 'lottieanimation' );
 } );
