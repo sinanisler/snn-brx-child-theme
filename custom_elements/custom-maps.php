@@ -205,7 +205,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         } elseif ( $map_style === 'topology' ) {
             $tile_url = 'https://b.tile.opentopomap.org/{z}/{x}/{y}.png';
         }
-        $tile_attribution = '©OpenStreetMap, ©Fastly, ©OpenTopoMap';
+        $tile_attribution = '©OpenStreetMap';
         ?>
         
         <div id="<?php echo esc_attr( $map_id ); ?>" class="custom-openstreetmap-wrapper"
