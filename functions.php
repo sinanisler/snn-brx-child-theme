@@ -62,6 +62,11 @@ add_action('init', function () {
         }
     }
 
+    $custom_maps_file = get_stylesheet_directory() . '/custom_elements/experimental.php';
+    if (file_exists($custom_maps_file)) {
+        require_once $custom_maps_file;
+        \Bricks\Elements::register_element($custom_maps_file);
+    }
 
 
 }, 11);
