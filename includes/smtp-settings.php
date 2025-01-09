@@ -1,5 +1,6 @@
 <?php
 
+
 add_action('admin_menu', 'custom_smtp_add_admin_menu');
 function custom_smtp_add_admin_menu() {
     add_submenu_page(
@@ -11,6 +12,7 @@ function custom_smtp_add_admin_menu() {
         'custom_smtp_settings_page'
     );
 }
+
 
 add_action('admin_init', 'custom_smtp_settings_init');
 function custom_smtp_settings_init() {
@@ -72,12 +74,13 @@ function custom_smtp_settings_init() {
     );
 }
 
+
 function custom_smtp_settings_sanitize($input) {
     $sanitized = array();
 
-    $sanitized['enable_smtp'] = isset($input['enable_smtp']) ? boolval($input['enable_smtp']) : false;
-    $sanitized['smtp_host'] = sanitize_text_field($input['smtp_host'] ?? '');
-    $sanitized['smtp_encryption'] = sanitize_text_field($input['smtp_encryption'] ?? '');
+    $sanitized['enable_smtp']       = isset($input['enable_smtp']) ? boolval($input['enable_smtp']) : false;
+    $sanitized['smtp_host']         = sanitize_text_field($input['smtp_host'] ?? '');
+    $sanitized['smtp_encryption']   = sanitize_text_field($input['smtp_encryption'] ?? '');
 
     if (!empty($sanitized['smtp_encryption'])) {
         switch (strtolower($sanitized['smtp_encryption'])) {
@@ -100,9 +103,11 @@ function custom_smtp_settings_sanitize($input) {
     return $sanitized;
 }
 
+
 function custom_smtp_settings_section_callback() {
     echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues.', 'textdomain') . '</p>';
 }
+
 
 function custom_smtp_enable_smtp_render() {
     $options = get_option('custom_smtp_settings', array());
@@ -111,12 +116,14 @@ function custom_smtp_enable_smtp_render() {
     <?php
 }
 
+
 function custom_smtp_smtp_host_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
     <input type='text' name='custom_smtp_settings[smtp_host]' value='<?php echo esc_attr($options['smtp_host'] ?? ''); ?>' size='50'>
     <?php
 }
+
 
 function custom_smtp_smtp_encryption_render() {
     $options = get_option('custom_smtp_settings', array());
@@ -148,28 +155,39 @@ function custom_smtp_smtp_encryption_render() {
     <?php
 }
 
+
 function custom_smtp_smtp_port_render() {
     $options = get_option('custom_smtp_settings', array());
     $encryption = strtolower($options['smtp_encryption'] ?? 'none');
     $is_readonly = in_array($encryption, ['ssl', 'tls']) ? 'readonly' : '';
     ?>
-    <input type='number' name='custom_smtp_settings[smtp_port]' value='<?php echo esc_attr($options['smtp_port'] ?? ''); ?>' size='10' <?php echo $is_readonly; ?>>
+    <input type='number' name='custom_smtp_settings[smtp_port]' 
+        value='<?php echo esc_attr($options['smtp_port'] ?? ''); ?>' 
+        size='10' 
+        <?php echo $is_readonly; ?>>
     <?php
 }
+
 
 function custom_smtp_smtp_username_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
-    <input type='text' name='custom_smtp_settings[smtp_username]' value='<?php echo esc_attr($options['smtp_username'] ?? ''); ?>' size='50'>
+    <input type='text' name='custom_smtp_settings[smtp_username]' 
+        value='<?php echo esc_attr($options['smtp_username'] ?? ''); ?>' 
+        size='50'>
     <?php
 }
+
 
 function custom_smtp_smtp_password_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
-    <input type='password' name='custom_smtp_settings[smtp_password]' value='<?php echo esc_attr($options['smtp_password'] ?? ''); ?>' size='50'>
+    <input type='password' name='custom_smtp_settings[smtp_password]' 
+        value='<?php echo esc_attr($options['smtp_password'] ?? ''); ?>' 
+        size='50'>
     <?php
 }
+
 
 add_action('wp_ajax_remove_smtp_password', 'custom_smtp_remove_password_callback');
 function custom_smtp_remove_password_callback() {
@@ -185,22 +203,28 @@ function custom_smtp_remove_password_callback() {
     }
 }
 
+
 add_action('phpmailer_init', 'custom_smtp_phpmailer_init');
 function custom_smtp_phpmailer_init($phpmailer) {
     $options = get_option('custom_smtp_settings', array());
 
-    if (isset($options['enable_smtp']) && $options['enable_smtp']) {
+    if (!empty($options['enable_smtp'])) {
         $phpmailer->isSMTP();
         $phpmailer->Host       = $options['smtp_host'] ?? '';
         $phpmailer->SMTPAuth   = true;
         $phpmailer->Port       = $options['smtp_port'] ?? 25;
         $phpmailer->Username   = $options['smtp_username'] ?? '';
         $phpmailer->Password   = $options['smtp_password'] ?? '';
-        $phpmailer->SMTPSecure = (!empty($options['smtp_encryption']) && strtolower($options['smtp_encryption']) !== 'none') ? strtolower($options['smtp_encryption']) : '';
+        $phpmailer->SMTPSecure = (!empty($options['smtp_encryption']) && strtolower($options['smtp_encryption']) !== 'none') 
+            ? strtolower($options['smtp_encryption']) 
+            : '';
+
+        // Set From to the same as username (or change as you see fit)
         $phpmailer->From       = $options['smtp_username'] ?? '';
         $phpmailer->FromName   = get_bloginfo('name');
     }
 }
+
 
 add_action('admin_enqueue_scripts', 'custom_smtp_enqueue_scripts');
 function custom_smtp_enqueue_scripts($hook) {
@@ -211,51 +235,116 @@ function custom_smtp_enqueue_scripts($hook) {
 }
 
 /**
- * Handle sending the test email if the form is submitted.
+ * A helper function to check if the server/port is reachable, with a short timeout.
+ *
+ * @param string $host
+ * @param int    $port
+ * @return bool
  */
+function custom_smtp_check_port_availability($host, $port) {
+    $errno    = 0;
+    $errstr   = '';
+    // Shorten the timeout to help avoid long stalls
+    $timeout  = 3; // seconds
+    $connection = @fsockopen($host, $port, $errno, $errstr, $timeout);
+
+    if (is_resource($connection)) {
+        fclose($connection);
+        return true;
+    }
+
+    // Log debug info if something goes wrong
+    error_log("SMTP CHECK: Could not connect to $host on port $port. Error ($errno): $errstr");
+    return false;
+}
+
+
 function custom_smtp_handle_test_email_submission() {
-    if (
-        isset($_POST['custom_smtp_send_test_email']) &&
-        check_admin_referer('custom_smtp_send_test_email_action', 'custom_smtp_send_test_email_nonce')
-    ) {
-        // Get the email address from the form (if provided)
-        $to = isset($_POST['test_email_address']) ? sanitize_email($_POST['test_email_address']) : '';
+    // Confirm we have a POST request to handle
+    if (!isset($_POST['custom_smtp_send_test_email'])) {
+        return; // Not a test email submission
+    }
 
-        // Fallback to the site admin email if the input field is empty or invalid
-        if (empty($to)) {
-            $to = get_option('admin_email');
-        }
+    // Check nonce first
+    if (!check_admin_referer('custom_smtp_send_test_email_action', 'custom_smtp_send_test_email_nonce')) {
+        // If the nonce fails, show error and stop
+        add_settings_error(
+            'custom_smtp_test_email',
+            'custom_smtp_nonce_failed',
+            __('Security check failed. Please refresh the page and try again.', 'textdomain'),
+            'error'
+        );
+        error_log("SMTP TEST: Nonce check failed.");
+        return;
+    }
 
-        $subject = __('SMTP Test Email', 'textdomain');
-        $message = __('This is a test email sent via your SMTP settings.', 'textdomain');
-        $headers = array('Content-Type: text/html; charset=UTF-8');
+    // Now proceed
+    error_log("SMTP TEST: Test email submission received.");
 
-        $sent = wp_mail($to, $subject, $message, $headers);
+    // Get the email address from the form
+    $to = isset($_POST['test_email_address']) ? sanitize_email($_POST['test_email_address']) : '';
 
-        if ($sent) {
+    // Fallback to the site admin email if the input field is empty or invalid
+    if (empty($to)) {
+        $to = get_option('admin_email');
+    }
+
+    error_log("SMTP TEST: Attempting to send test email to $to");
+
+    // Check if SMTP is enabled
+    $options = get_option('custom_smtp_settings', array());
+    if (!empty($options['enable_smtp'])) {
+        $host = $options['smtp_host'] ?? '';
+        $port = $options['smtp_port'] ?? 25;
+
+        // Check if the host/port are reachable before sending the email
+        if (!custom_smtp_check_port_availability($host, $port)) {
             add_settings_error(
                 'custom_smtp_test_email',
-                'custom_smtp_test_email_success',
+                'custom_smtp_port_blocked',
                 sprintf(
-                    __('Test email sent successfully to %s! Check the inbox.', 'textdomain'),
-                    esc_html($to)
+                    __('Could not connect to %s on port %d. It may be blocked by your hosting environment.', 'textdomain'),
+                    esc_html($host),
+                    esc_html($port)
                 ),
-                'updated'
-            );
-        } else {
-            add_settings_error(
-                'custom_smtp_test_email',
-                'custom_smtp_test_email_failed',
-                __('Failed to send test email. Check your SMTP settings or logs for more information.', 'textdomain'),
                 'error'
             );
+            error_log("SMTP TEST: Host/Port check failed for $host:$port. Aborting send.");
+            return; // Stop here; don't attempt sending the email
         }
+    }
+
+    // Attempt to send email using wp_mail()
+    $subject = __('SMTP Test Email', 'textdomain');
+    $message = __('This is a test email sent via your SMTP settings.', 'textdomain');
+    $headers = array('Content-Type: text/html; charset=UTF-8');
+
+    error_log("SMTP TEST: Calling wp_mail() now...");
+    $sent = wp_mail($to, $subject, $message, $headers);
+
+    if ($sent) {
+        add_settings_error(
+            'custom_smtp_test_email',
+            'custom_smtp_test_email_success',
+            sprintf(
+                __('Test email sent successfully to %s! Check the inbox.', 'textdomain'),
+                esc_html($to)
+            ),
+            'updated'
+        );
+        error_log("SMTP TEST: wp_mail() succeeded.");
+    } else {
+        add_settings_error(
+            'custom_smtp_test_email',
+            'custom_smtp_test_email_failed',
+            __('Failed to send test email. Check your SMTP settings or logs for more information.', 'textdomain'),
+            'error'
+        );
+        error_log("SMTP TEST: wp_mail() FAILED.");
     }
 }
 
-/**
- * Renders the main SMTP settings page (including the test email form).
- */
+
 function custom_smtp_settings_page() {
     // Process test email submission before rendering the page.
     custom_smtp_handle_test_email_submission();
