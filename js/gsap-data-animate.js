@@ -191,7 +191,7 @@ window.onload = function () {
         const chars = text.split('');
         const startStylesString = convertStylesToString(options.startStyles);
         element.innerHTML = chars
-          .map(char => `<span style="display:inline-block; position: relative; ${startStylesString}">${char}</span>`)
+          .map(char => `<span style="position:relative; ${startStylesString}">${char}</span>`)
           .join('');
         return element.children;
       }
