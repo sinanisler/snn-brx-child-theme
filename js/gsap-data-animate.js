@@ -47,19 +47,28 @@ window.onload = function () {
         const timeline = gsap.timeline({ paused: true });
         animations.forEach((animation) => {
           const options = parseAnimationOptions(animation);
+
+          // Determine if 'transform' is specified
+          const hasTransform = options.startStyles.transform || options.endStyles.transform;
+
+          // Build animation properties conditionally
+          const animationProps = {
+            ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
+            ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
+            ...( !hasTransform && (options.s || options.scale) ? { scale: parseFloat(options.s || options.scale) } : {}),
+            ...( !hasTransform && (options.r || options.rotate) ? { rotate: parseFloat(options.r || options.rotate) } : {}),
+            ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
+            ...options.endStyles,
+            duration: options.duration || 1,
+            delay: options.delay || 0,
+            stagger: options.stagger ? parseFloat(options.stagger) : 0,
+            // Prevent GSAP from adding translate3d if 'transform' is specified
+            ...(hasTransform ? { force3D: false } : {})
+          };
+
           timeline.to(
             splitText(element, options),
-            {
-              ...(options.x ? { x: parseInt(options.x) } : {}),
-              ...(options.y ? { y: parseInt(options.y) } : {}),
-              ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
-              ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
-              ...(options.r || options.rotate ? { rotate: parseFloat(options.r || options.rotate) } : {}),
-              ...options.endStyles,
-              duration: options.duration || 1,
-              delay: options.delay || 0,
-              stagger: options.stagger ? parseFloat(options.stagger) : 0,
-            }
+            animationProps
           );
         });
 
@@ -76,19 +85,27 @@ window.onload = function () {
         animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
 
+          // Determine if 'transform' is specified
+          const hasTransform = options.startStyles.transform || options.endStyles.transform;
+
+          // Build animation properties conditionally
+          const animationProps = {
+            ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
+            ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
+            ...( !hasTransform && (options.s || options.scale) ? { scale: parseFloat(options.s || options.scale) } : {}),
+            ...( !hasTransform && (options.r || options.rotate) ? { rotate: parseFloat(options.r || options.rotate) } : {}),
+            ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
+            ...options.endStyles,
+            duration: options.duration || 1,
+            delay: options.delay || 0,
+            stagger: options.stagger ? parseFloat(options.stagger) : 0,
+            // Prevent GSAP from adding translate3d if 'transform' is specified
+            ...(hasTransform ? { force3D: false } : {})
+          };
+
           timeline.to(
             splitText(element, options),
-            {
-              ...(options.x ? { x: parseInt(options.x) } : {}),
-              ...(options.y ? { y: parseInt(options.y) } : {}),
-              ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
-              ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
-              ...(options.r || options.rotate ? { rotate: parseFloat(options.r || options.rotate) } : {}),
-              ...options.endStyles,
-              duration: options.duration || 1,
-              delay: options.delay || 0,
-              stagger: options.stagger ? parseFloat(options.stagger) : 0,
-            },
+            animationProps,
             index > 0 ? `+=${options.delay || 0}` : 0
           );
         });
@@ -103,29 +120,41 @@ window.onload = function () {
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
 
+        // Determine if 'transform' is specified
+        const hasTransform = options.startStyles.transform || options.endStyles.transform;
+
+        // Build from and to properties conditionally
+        const fromProps = {
+          ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
+          ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
+          ...( !hasTransform && (options.s || options.scale) ? { scale: parseFloat(options.s || options.scale) } : {}),
+          ...( !hasTransform && (options.r || options.rotate) ? { rotate: parseFloat(options.r || options.rotate) } : {}),
+          ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
+          ...options.startStyles,
+          // Prevent GSAP from adding translate3d if 'transform' is specified
+          ...(hasTransform ? { force3D: false } : {})
+        };
+
+        const toProps = {
+          ...( !hasTransform && options.x ? { x: 0 } : {}),
+          ...( !hasTransform && options.y ? { y: 0 } : {}),
+          ...( !hasTransform && (options.s || options.scale) ? { scale: 1 } : {}),
+          ...( !hasTransform && (options.r || options.rotate) ? { rotate: 0 } : {}),
+          ...(options.o || options.opacity ? { opacity: 1 } : {}),
+          ...options.endStyles,
+          scrollTrigger: scrollTriggerConfig !== false ? scrollTriggerConfig : null,
+          stagger: options.stagger ? parseFloat(options.stagger) : 0,
+          duration: options.duration || 1,
+          delay: options.delay || 0,
+          paused: options.scroll === 'false', 
+          // Prevent GSAP from adding translate3d if 'transform' is specified
+          ...(hasTransform ? { force3D: false } : {})
+        };
+
         const tween = gsap.fromTo(
           splitText(element, options),
-          {
-            ...(options.x ? { x: parseInt(options.x) } : {}),
-            ...(options.y ? { y: parseInt(options.y) } : {}),
-            ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
-            ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
-            ...(options.r || options.rotate ? { rotate: parseFloat(options.r || options.rotate) } : {}),
-            ...options.startStyles,
-          },
-          {
-            ...(options.x ? { x: 0 } : {}),
-            ...(options.y ? { y: 0 } : {}),
-            ...(options.o || options.opacity ? { opacity: 1 } : {}),
-            ...(options.s || options.scale ? { scale: 1 } : {}),
-            ...(options.r || options.rotate ? { rotate: 0 } : {}),
-            ...options.endStyles,
-            scrollTrigger: scrollTriggerConfig !== false ? scrollTriggerConfig : null,
-            stagger: options.stagger ? parseFloat(options.stagger) : 0,
-            duration: options.duration || 1,
-            delay: options.delay || 0,
-            paused: options.scroll === 'false', 
-          }
+          fromProps,
+          toProps
         );
 
         element._gsapAnimationInstance = tween; // Store animation instance for triggering
@@ -181,16 +210,33 @@ window.onload = function () {
     }
 
     function splitText(element, options) {
-      const splitText = options.splittext === 'true';
-      if (splitText) {
+      const shouldSplitText = options.splittext === 'true';
+      if (shouldSplitText) {
         const text = element.innerText;
         const chars = text.split('');
+        const startStylesString = convertStylesToString(options.startStyles);
         element.innerHTML = chars
-          .map(char => `<span style="opacity: 0;">${char}</span>`)
+          .map(char => `<span style="${startStylesString}">${char}</span>`)
           .join('');
         return element.children;
       }
       return element;
+    }
+
+    function convertStylesToString(styles) {
+      // If 'transform' is specified, prepend 'translate: none;' to avoid conflicts
+      let styleString = '';
+      if (styles.transform) {
+        styleString += `translate: none; `;
+      }
+      styleString += Object.entries(styles)
+        .map(([key, value]) => {
+          // Convert camelCase to kebab-case for CSS
+          const kebabKey = key.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+          return `${kebabKey}: ${value};`;
+        })
+        .join(' ');
+      return styleString.trim();
     }
   }, 10);
 };
