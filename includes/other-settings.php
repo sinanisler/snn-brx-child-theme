@@ -147,7 +147,7 @@ function snn_revisions_limit_callback() {
     $options = get_option('snn_other_settings');
     $value = isset($options['revisions_limit']) ? intval($options['revisions_limit']) : '';
     ?>
-    <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="500" min="0">
+    <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="500" >
     <?php
 }
 
