@@ -27,7 +27,7 @@ window.onload = function () {
           if (targetElement) {
             const animation = targetElement._gsapAnimationInstance;
             if (animation) {
-              animation.play(0); 
+              animation.play(0);
             }
           }
         });
@@ -48,10 +48,8 @@ window.onload = function () {
         animations.forEach((animation) => {
           const options = parseAnimationOptions(animation);
 
-          // Determine if 'transform' is specified
           const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
-          // Build animation properties conditionally
           const animationProps = {
             ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
             ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
@@ -62,7 +60,6 @@ window.onload = function () {
             duration: options.duration || 1,
             delay: options.delay || 0,
             stagger: options.stagger ? parseFloat(options.stagger) : 0,
-            // Prevent GSAP from adding translate3d if 'transform' is specified
             ...(hasTransform ? { force3D: false } : {})
           };
 
@@ -72,23 +69,21 @@ window.onload = function () {
           );
         });
 
-        element._gsapAnimationInstance = timeline; 
+        element._gsapAnimationInstance = timeline;
 
       } else if (animations.length > 1) {
         gsap.set(splitText(element, firstOptions), firstOptions.startStyles);
 
         const timeline = gsap.timeline({
-          paused: firstOptions.scroll === 'false',  
+          paused: firstOptions.scroll === 'false',
           scrollTrigger: createScrollTriggerConfig(firstOptions, element)
         });
 
         animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
 
-          // Determine if 'transform' is specified
           const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
-          // Build animation properties conditionally
           const animationProps = {
             ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
             ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
@@ -99,7 +94,6 @@ window.onload = function () {
             duration: options.duration || 1,
             delay: options.delay || 0,
             stagger: options.stagger ? parseFloat(options.stagger) : 0,
-            // Prevent GSAP from adding translate3d if 'transform' is specified
             ...(hasTransform ? { force3D: false } : {})
           };
 
@@ -110,7 +104,7 @@ window.onload = function () {
           );
         });
 
-        element._gsapAnimationInstance = timeline; 
+        element._gsapAnimationInstance = timeline;
 
         if (firstOptions.scroll === 'false') {
           observeIfScrollFalse(element, timeline);
@@ -120,10 +114,8 @@ window.onload = function () {
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
 
-        // Determine if 'transform' is specified
         const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
-        // Build from and to properties conditionally
         const fromProps = {
           ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
           ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
@@ -131,7 +123,6 @@ window.onload = function () {
           ...( !hasTransform && (options.r || options.rotate) ? { rotate: parseFloat(options.r || options.rotate) } : {}),
           ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
           ...options.startStyles,
-          // Prevent GSAP from adding translate3d if 'transform' is specified
           ...(hasTransform ? { force3D: false } : {})
         };
 
@@ -146,8 +137,7 @@ window.onload = function () {
           stagger: options.stagger ? parseFloat(options.stagger) : 0,
           duration: options.duration || 1,
           delay: options.delay || 0,
-          paused: options.scroll === 'false', 
-          // Prevent GSAP from adding translate3d if 'transform' is specified
+          paused: options.scroll === 'false',
           ...(hasTransform ? { force3D: false } : {})
         };
 
@@ -157,7 +147,7 @@ window.onload = function () {
           toProps
         );
 
-        element._gsapAnimationInstance = tween; // Store animation instance for triggering
+        element._gsapAnimationInstance = tween;
 
         if (options.scroll === 'false') {
           observeIfScrollFalse(element, tween);
@@ -165,7 +155,7 @@ window.onload = function () {
       }
     });
 
-    setupTriggers(); // Initialize the trigger system
+    setupTriggers();
 
     function parseAnimationOptions(data) {
       return data.split(',').reduce((acc, option) => {
@@ -216,7 +206,7 @@ window.onload = function () {
         const chars = text.split('');
         const startStylesString = convertStylesToString(options.startStyles);
         element.innerHTML = chars
-          .map(char => `<span style="${startStylesString}">${char}</span>`)
+          .map(char => `<span style="position: relative; ${startStylesString}">${char}</span>`)
           .join('');
         return element.children;
       }
@@ -224,14 +214,12 @@ window.onload = function () {
     }
 
     function convertStylesToString(styles) {
-      // If 'transform' is specified, prepend 'translate: none;' to avoid conflicts
       let styleString = '';
       if (styles.transform) {
         styleString += `translate: none; `;
       }
       styleString += Object.entries(styles)
         .map(([key, value]) => {
-          // Convert camelCase to kebab-case for CSS
           const kebabKey = key.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
           return `${kebabKey}: ${value};`;
         })
