@@ -12,9 +12,7 @@ window.onload = function () {
             obs.unobserve(entry.target);
           }
         });
-      }, {
-        threshold: 0.1
-      });
+      }, { threshold: 0.1 });
       observer.observe(element);
     }
 
@@ -34,7 +32,7 @@ window.onload = function () {
       });
     }
 
-    animateElements.forEach((element) => {
+    animateElements.forEach(element => {
       const animations = element
         .getAttribute('data-animate')
         .split(';')
@@ -45,9 +43,9 @@ window.onload = function () {
 
       if (firstOptions.trigger === 'true') {
         const timeline = gsap.timeline({ paused: true });
-        animations.forEach((animation) => {
-          const options = parseAnimationOptions(animation);
 
+        animations.forEach(animation => {
+          const options = parseAnimationOptions(animation);
           const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
           const animationProps = {
@@ -63,10 +61,7 @@ window.onload = function () {
             ...(hasTransform ? { force3D: false } : {})
           };
 
-          timeline.to(
-            splitText(element, options),
-            animationProps
-          );
+          timeline.to(splitText(element, options), animationProps);
         });
 
         element._gsapAnimationInstance = timeline;
@@ -81,7 +76,6 @@ window.onload = function () {
 
         animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
-
           const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
           const animationProps = {
@@ -97,11 +91,7 @@ window.onload = function () {
             ...(hasTransform ? { force3D: false } : {})
           };
 
-          timeline.to(
-            splitText(element, options),
-            animationProps,
-            index > 0 ? `+=${options.delay || 0}` : 0
-          );
+          timeline.to(splitText(element, options), animationProps, index > 0 ? `+=${options.delay || 0}` : 0);
         });
 
         element._gsapAnimationInstance = timeline;
@@ -113,7 +103,6 @@ window.onload = function () {
       } else {
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
-
         const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
         const fromProps = {
@@ -141,11 +130,7 @@ window.onload = function () {
           ...(hasTransform ? { force3D: false } : {})
         };
 
-        const tween = gsap.fromTo(
-          splitText(element, options),
-          fromProps,
-          toProps
-        );
+        const tween = gsap.fromTo(splitText(element, options), fromProps, toProps);
 
         element._gsapAnimationInstance = tween;
 
@@ -206,7 +191,7 @@ window.onload = function () {
         const chars = text.split('');
         const startStylesString = convertStylesToString(options.startStyles);
         element.innerHTML = chars
-          .map(char => `<span style="position: relative; ${startStylesString}">${char}</span>`)
+          .map(char => `<span style="display:inline-block; position: relative; ${startStylesString}">${char}</span>`)
           .join('');
         return element.children;
       }
