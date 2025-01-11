@@ -248,6 +248,9 @@ function snn_render_mail_logs_page() {
 .message {
     width: 500px;
 }
+#snn_clear_mail_logs{
+width:100px;
+}
 </style>
 <?php
 }
