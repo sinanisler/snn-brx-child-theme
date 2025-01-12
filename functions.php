@@ -35,7 +35,7 @@ require_once get_stylesheet_directory() . '/includes/global-classes.php';
 
 
 
-require_once get_stylesheet_directory() . '/dynamic_data_tags/custom_dynamic_data_tags.php';
+require_once get_stylesheet_directory() . '/dynamic_data_tags/custom-dynamic-data-tags.php';
 
 
 
