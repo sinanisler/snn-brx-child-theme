@@ -147,7 +147,7 @@ function bgcc_page() {
     ?>
 <style>
 #classes-table textarea{
-height:50px;
+height:28px;
 width:90%;
 }
 #classes-table input,
