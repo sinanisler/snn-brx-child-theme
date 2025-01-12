@@ -20,7 +20,6 @@
  * ----------------------------------------
  */
 
-
 // Step 1: Register the dynamic tags with Bricks Builder.
 add_filter('bricks/dynamic_tags_list', 'add_get_contextual_id_tags_to_builder');
 function add_get_contextual_id_tags_to_builder($tags) {
@@ -59,13 +58,13 @@ function get_contextual_id($type) {
         case 'term':
             if (is_category() || is_tag() || is_tax()) {
                 $term = get_queried_object();
-                return $term->term_id ?? '';
+                return isset($term->term_id) ? $term->term_id : '';
             }
             return '';
         case 'taxonomy':
             if (is_tax()) {
                 $taxonomy = get_queried_object();
-                return $taxonomy->taxonomy ?? '';
+                return isset($taxonomy->taxonomy) ? $taxonomy->taxonomy : '';
             }
             return '';
         case 'user':
@@ -90,11 +89,25 @@ function get_contextual_id($type) {
 // Step 3: Render the dynamic tag in Bricks Builder.
 add_filter('bricks/dynamic_data/render_tag', 'render_get_contextual_id_tag', 20, 3);
 function render_get_contextual_id_tag($tag, $post, $context = 'text') {
-    if (strpos($tag, '{get_contextual_id:') === 0) {
+    // Ensure that $tag is a string before processing.
+    if (is_string($tag) && strpos($tag, '{get_contextual_id:') === 0) {
         // Extract the type from the tag.
-        $type = str_replace(['{get_contextual_id:', '}'], '', $tag);
+        $type = trim(str_replace(['{get_contextual_id:', '}'], '', $tag));
         return get_contextual_id($type);
     }
+
+    // If $tag is an array, iterate through and process each element.
+    if (is_array($tag)) {
+        foreach ($tag as $key => $value) {
+            if (is_string($value) && strpos($value, '{get_contextual_id:') === 0) {
+                $type = trim(str_replace(['{get_contextual_id:', '}'], '', $value));
+                $tag[$key] = get_contextual_id($type);
+            }
+        }
+        return $tag;
+    }
+
+    // Return the original tag if it doesn't match the expected pattern.
     return $tag;
 }
 
@@ -102,6 +115,10 @@ function render_get_contextual_id_tag($tag, $post, $context = 'text') {
 add_filter('bricks/dynamic_data/render_content', 'replace_get_contextual_id_in_content', 20, 3);
 add_filter('bricks/frontend/render_data', 'replace_get_contextual_id_in_content', 20, 2);
 function replace_get_contextual_id_in_content($content, $post, $context = 'text') {
+    if (!is_string($content)) {
+        return $content;
+    }
+
     preg_match_all('/{get_contextual_id:([^}]+)}/', $content, $matches);
     if (!empty($matches[1])) {
         foreach ($matches[1] as $type) {
