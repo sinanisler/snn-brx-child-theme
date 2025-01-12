@@ -56,7 +56,9 @@ function get_dynamic_user_field($field) {
             case 'custom': // Example for a custom user field.
                 return esc_html(get_user_meta($current_user->ID, 'custom_field_example', true)) ?: 'No Value';
             default:
-                return esc_html(get_user_meta($current_user->ID, sanitize_key($field), true)) ?: '';
+                // Sanitize the field name to prevent potential security issues.
+                $sanitized_field = sanitize_key($field);
+                return esc_html(get_user_meta($current_user->ID, $sanitized_field, true)) ?: '';
         }
     }
 
@@ -66,11 +68,18 @@ function get_dynamic_user_field($field) {
 // Step 3: Render each dynamic tag when Bricks encounters it in a field.
 add_filter('bricks/dynamic_data/render_tag', 'render_dynamic_user_field_tag', 20, 3);
 function render_dynamic_user_field_tag($tag, $post, $context = 'text') {
-    if (strpos($tag, '{current_user_field:') === 0 && substr($tag, -1) === '}') {
-        // Extract the field name from the tag.
-        $field = str_replace(['{current_user_field:', '}'], '', $tag);
-        return get_dynamic_user_field($field);
+    // Check if $tag is an array and has the 'name' key.
+    if (is_array($tag) && isset($tag['name'])) {
+        $tag_name = $tag['name'];
+
+        // Ensure $tag_name is a string before using strpos().
+        if (is_string($tag_name) && strpos($tag_name, '{current_user_field:') === 0 && substr($tag_name, -1) === '}') {
+            // Extract the field name from the tag.
+            $field = str_replace(['{current_user_field:', '}'], '', $tag_name);
+            return get_dynamic_user_field($field);
+        }
     }
+    // If $tag is not an array or doesn't match the pattern, return it unchanged.
     return $tag;
 }
 
