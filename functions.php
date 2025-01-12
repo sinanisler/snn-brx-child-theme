@@ -4,8 +4,7 @@
 require_once get_stylesheet_directory() . '/custom-codes-here.php';
 
 
-
-
+// Main Features and Settings
 require_once get_stylesheet_directory() . '/includes/settings-page.php';
 require_once get_stylesheet_directory() . '/includes/other-settings.php';
 require_once get_stylesheet_directory() . '/includes/security-page.php';
@@ -32,9 +31,20 @@ require_once get_stylesheet_directory() . '/includes/disable-gravatar.php';
 require_once get_stylesheet_directory() . '/includes/global-classes.php';
 
 
-
-
+// Register Custom Dynamic Tags
 require_once get_stylesheet_directory() . '/dynamic_data_tags/custom-dynamic-data-tags.php';
+
+
+
+
+
+// Utils for functions.php
+require_once get_stylesheet_directory() . '/includes/utils.php';
+
+
+
+
+
 
 
 
@@ -78,5 +88,3 @@ add_action('init', function () {
 }, 11);
 
 
-
-require_once get_stylesheet_directory() . '/includes/utils.php';
