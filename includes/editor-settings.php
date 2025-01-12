@@ -240,14 +240,75 @@ function snn_bricks_builder_color_fix_inline_css() {
     $options = get_option('snn_editor_settings');
     if (isset($options['snn_bricks_builder_color_fix']) && $options['snn_bricks_builder_color_fix']) { ?>
 
+
+
+
+
+<?php
+// Function to fetch and output the specified colors as CSS
+function echo_theme_colors_as_css() {
+    // Get the serialized option from the WordPress database
+    $theme_styles = get_option('bricks_theme_styles');
+    
+    // Check if the option exists
+    if (!$theme_styles) {
+        echo '/* No theme styles found */';
+        return;
+    }
+    
+    // Unserialize the option to access its data
+    $theme_styles_data = maybe_unserialize($theme_styles);
+
+    // Ensure the data contains the necessary structure
+    if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
+        echo '/* No colors found in theme styles */';
+        return;
+    }
+
+    // Extract colors
+    $colors = $theme_styles_data['default_styles']['settings']['colors'];
+
+    // List of required colors and their CSS variable mappings
+    $color_keys = [
+        'colorPrimary'   => 'bricks-color-primary',
+        'colorSecondary' => 'bricks-color-secondary',
+        'colorDark'      => 'bricks-text-dark',
+        'colorLight'     => 'bricks-text-light',
+        'colorInfo'      => 'bricks-text-info',
+        'colorSuccess'   => 'bricks-text-success',
+        'colorWarning'   => 'bricks-text-warning',
+        'colorDanger'    => 'bricks-text-danger',
+    ];
+
+    // Start outputting CSS variables
+    echo "
 <style>
-/* Add your CSS fixes here */
-</style>
+/*  SNN-BRX Bricks Builder Editor Color Fix Setting  */
+
+:root {\n";
+
+// Loop through the required colors and output them as CSS variables
+foreach ($color_keys as $key => $css_var) {
+if (isset($colors[$key]['hex'])) {
+$color_value = $colors[$key]['hex'];
+echo "    --$css_var: $color_value;\n";
+}
+}
+
+// End the CSS block
+echo "}
+</style>\n";
+}
+
+// Call the function to echo the theme colors as CSS
+echo_theme_colors_as_css();
+?>
+
 <script>
-// Add your JavaScript fixes here
+
 </script>
 <?php }
 }
-add_action('wp_footer', 'snn_bricks_builder_color_fix_inline_css', 99999);
+add_action('wp_footer', 'snn_bricks_builder_color_fix_inline_css', 9999);
 
 ?>
