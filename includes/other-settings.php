@@ -96,6 +96,14 @@ function snn_register_other_settings() {
         'snn-other-settings',
         'snn_other_settings_section'
     );
+
+    add_settings_field(
+        'make_elements_wide',
+        'Make Elements Wide on Bricks Editor',
+        'snn_make_elements_wide_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -117,6 +125,8 @@ function snn_sanitize_other_settings($input) {
     $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
 
     $sanitized['make_compact_but_keep_icons'] = isset($input['make_compact_but_keep_icons']) && $input['make_compact_but_keep_icons'] ? 1 : 0;
+
+    $sanitized['make_elements_wide'] = isset($input['make_elements_wide']) && $input['make_elements_wide'] ? 1 : 0;
 
     return $sanitized;
 }
@@ -147,7 +157,7 @@ function snn_revisions_limit_callback() {
     $options = get_option('snn_other_settings');
     $value = isset($options['revisions_limit']) ? intval($options['revisions_limit']) : '';
     ?>
-    <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="500" >
+    <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="500" min="0">
     <?php
 }
 
@@ -185,13 +195,22 @@ function snn_hide_element_icons_callback() {
     <?php
 }
 
-
 function snn_make_compact_but_keep_icons_callback() {
     $options = get_option('snn_other_settings');
     ?>
     <label>
         <input type="checkbox" name="snn_other_settings[make_compact_but_keep_icons]" value="1" <?php checked(1, isset($options['make_compact_but_keep_icons']) ? $options['make_compact_but_keep_icons'] : 0); ?>>
         Make Elements Compact but Keep Icons
+    </label>
+    <?php
+}
+
+function snn_make_elements_wide_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_other_settings[make_elements_wide]" value="1" <?php checked(1, isset($options['make_elements_wide']) ? $options['make_elements_wide'] : 0); ?>>
+        Make Elements Wide on Bricks Editor
     </label>
     <?php
 }
@@ -260,14 +279,15 @@ function snn_hide_comments_section() {
 }
 add_action('admin_head', 'snn_hide_comments_section');
 
-// Updated Inline CSS Injection Function to Include New Setting
-
 function snn_add_inline_css_if_bricks_run() {
     $options = get_option('snn_other_settings');
     if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
-        // Existing Hide Element Icons CSS
+        // Initialize CSS variable
+        $inline_css = '';
+
+        // Hide Element Icons CSS
         if (isset($options['hide_element_icons']) && $options['hide_element_icons']) {
-            echo '<style>
+            $inline_css .= '
                 .bricks-add-element .element-icon {
                     display: none;
                 }
@@ -291,11 +311,11 @@ function snn_add_inline_css_if_bricks_run() {
                     padding: 0 3px;
                     line-height:30px;
                 }
-            </style>';
+            ';
         }
 
         if (isset($options['make_compact_but_keep_icons']) && $options['make_compact_but_keep_icons']) {
-            echo '<style>
+            $inline_css .= '
                 .bricks-add-element .element-icon {
                     float: left;
                     width: 24px;
@@ -323,7 +343,19 @@ function snn_add_inline_css_if_bricks_run() {
                     padding: 0 3px;
                     line-height:30px;
                 }
-            </style>';
+            ';
+        }
+
+        if (isset($options['make_elements_wide']) && $options['make_elements_wide']) {
+            $inline_css .= '
+                #bricks-panel-elements .sortable-wrapper{
+                    grid-template-columns: 1fr;
+                }
+            ';
+        }
+
+        if (!empty($inline_css)) {
+            echo '<style>' . $inline_css . '</style>';
         }
     }
 }
