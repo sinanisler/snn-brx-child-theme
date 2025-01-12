@@ -57,7 +57,7 @@ function get_post_term_count($type) {
             'fields'     => 'ids', // Only retrieve term IDs for performance.
         ]);
 
-        if (!is_wp_error($terms)) {
+        if (!is_wp_error($terms) && is_array($terms)) {
             return count($terms);
         }
     }
@@ -68,11 +68,18 @@ function get_post_term_count($type) {
 // Step 3: Render each dynamic tag when Bricks encounters it in a field.
 add_filter('bricks/dynamic_data/render_tag', 'render_post_term_count_tag', 20, 3);
 function render_post_term_count_tag($tag, $post, $context = 'text') {
+    // Ensure that $tag is a string before proceeding.
+    if (!is_string($tag)) {
+        return $tag;
+    }
+
+    // Check if the tag matches the {post_term_count:type} pattern.
     if (strpos($tag, '{post_term_count:') === 0 && substr($tag, -1) === '}') {
         // Extract the type from the tag.
         $type = str_replace(['{post_term_count:', '}'], '', $tag);
         return get_post_term_count($type);
     }
+
     return $tag;
 }
 
@@ -92,3 +99,4 @@ function replace_post_term_count_in_content($content, $post, $context = 'text') 
     }
     return $content;
 }
+?>
