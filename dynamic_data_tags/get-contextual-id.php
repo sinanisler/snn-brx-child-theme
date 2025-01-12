@@ -29,7 +29,7 @@ function add_get_contextual_id_tags_to_builder($tags) {
         'post'     => 'Current Post ID',
         'term'     => 'Current Term ID',
         'taxonomy' => 'Current Taxonomy Name',
-        'user'     => 'Current User ID',
+        'user'     => 'Current Logged User ID',
         'page'     => 'Current Page ID',
         'category' => 'Current Category ID',
         'tag'      => 'Current Tag ID',
