@@ -28,7 +28,7 @@ require_once get_stylesheet_directory() . '/includes/mail-logging.php';
 require_once get_stylesheet_directory() . '/includes/media-settings.php';
 require_once get_stylesheet_directory() . '/includes/disable-emojis.php';
 require_once get_stylesheet_directory() . '/includes/disable-gravatar.php';
-require_once get_stylesheet_directory() . '/includes/global-classes.php';
+require_once get_stylesheet_directory() . '/includes/editor-settings.php';
 
 
 // Register Custom Dynamic Tags
@@ -40,7 +40,7 @@ require_once get_stylesheet_directory() . '/dynamic_data_tags/user-author-fields
 
 
 
-// Utils for functions.php
+// Utils
 require_once get_stylesheet_directory() . '/includes/utils.php';
 
 

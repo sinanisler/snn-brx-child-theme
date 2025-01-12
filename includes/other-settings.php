@@ -7,7 +7,8 @@ function snn_add_other_settings_submenu() {
         'Other Settings',
         'manage_options',
         'snn-other-settings',
-        'snn_render_other_settings'
+        'snn_render_other_settings',
+        1
     );
 }
 add_action('admin_menu', 'snn_add_other_settings_submenu');
@@ -81,7 +82,10 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
-
+    // Removed the following three settings from Other Settings:
+    // hide_element_icons
+    // make_compact_but_keep_icons
+    // make_elements_wide
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -159,13 +163,7 @@ function snn_disable_comments_callback() {
     <?php
 }
 
-// Removed the following callback functions from Other Settings:
-// snn_hide_element_icons_callback
-// snn_make_compact_but_keep_icons_callback
-// snn_make_elements_wide_callback
-
-// All other functions remain unchanged.
-
+// Ensure that snn_enqueue_gsap_scripts() is only declared once here.
 function snn_enqueue_gsap_scripts() {
     $options = get_option('snn_other_settings');
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
@@ -230,118 +228,6 @@ function snn_hide_comments_section() {
 }
 add_action('admin_head', 'snn_hide_comments_section');
 
-// Update the CSS injection to remove references to the moved settings
-function snn_add_inline_css_if_bricks_run() {
-    $options_other = get_option('snn_other_settings');
-    $options_editor = get_option('snn_editor_settings'); // New option group
-
-    if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
-        // Initialize CSS variable
-        $inline_css = '';
-
-        // Handle settings from Other Settings
-        if (isset($options_other['hide_element_icons']) && $options_other['hide_element_icons']) {
-            $inline_css .= '
-                .bricks-add-element .element-icon {
-                    display: none;
-                }
-                #bricks-panel-elements .sortable-wrapper{
-                    margin:0 0 5px;
-                    padding-left:8px;
-                    padding-right:8px;
-                }
-                #bricks-panel-elements-categories .category-title{
-                    padding-left:8px;
-                    padding-right:8px;
-                }
-                #bricks-panel-elements-categories .category-title{
-                    line-height:0;
-                    padding-top:10px;
-                    padding-bottom:10px;
-                }
-                .bricks-add-element .element-label{
-                    box-shadow:0 0 ;
-                    font-size:14px;
-                    padding: 0 3px;
-                    line-height:30px;
-                }
-            ';
-        }
-
-        // Handle settings moved to Editor Settings
-        if (isset($options_editor['hide_element_icons']) && $options_editor['hide_element_icons']) {
-            $inline_css .= '
-                .bricks-add-element .element-icon {
-                    display: none;
-                }
-                #bricks-panel-elements .sortable-wrapper{
-                    margin:0 0 5px;
-                    padding-left:8px;
-                    padding-right:8px;
-                }
-                #bricks-panel-elements-categories .category-title{
-                    padding-left:8px;
-                    padding-right:8px;
-                }
-                #bricks-panel-elements-categories .category-title{
-                    line-height:0;
-                    padding-top:10px;
-                    padding-bottom:10px;
-                }
-                .bricks-add-element .element-label{
-                    box-shadow:0 0 ;
-                    font-size:14px;
-                    padding: 0 3px;
-                    line-height:30px;
-                }
-            ';
-        }
-
-        if (isset($options_editor['make_compact_but_keep_icons']) && $options_editor['make_compact_but_keep_icons']) {
-            $inline_css .= '
-                .bricks-add-element .element-icon {
-                    float: left;
-                    width: 24px;
-                    height: auto;
-                    font-size: 14px;
-                    line-height: 32px;
-                }
-                #bricks-panel-elements .sortable-wrapper{
-                    margin:0 0 5px;
-                    padding-left:8px;
-                    padding-right:8px;
-                }
-                #bricks-panel-elements-categories .category-title{
-                    padding-left:8px;
-                    padding-right:8px;
-                }
-                #bricks-panel-elements-categories .category-title{
-                    line-height:0;
-                    padding-top:10px;
-                    padding-bottom:10px;
-                }
-                .bricks-add-element .element-label{
-                    box-shadow:0 0 ;
-                    font-size:14px;
-                    padding: 0 3px;
-                    line-height:30px;
-                }
-            ';
-        }
-
-        if (isset($options_editor['make_elements_wide']) && $options_editor['make_elements_wide']) {
-            $inline_css .= '
-                #bricks-panel-elements .sortable-wrapper{
-                    grid-template-columns: 1fr;
-                }
-            ';
-        }
-
-        if (!empty($inline_css)) {
-            echo '<style>' . $inline_css . '</style>';
-        }
-    }
-}
-add_action('wp_head', 'snn_add_inline_css_if_bricks_run');
+// Removed the snn_add_inline_css_if_bricks_run() function from Other Settings to prevent redeclaration.
 
 ?>

@@ -1,17 +1,253 @@
 <?php
 
-/* 
+add_action('admin_menu', 'custom_editor_settings_page');
+function custom_editor_settings_page() {
+    add_submenu_page(
+        'snn-settings',
+        'Editor Settings',
+        'Editor Settings',
+        'manage_options',
+        'editor-settings',
+        'snn_render_editor_settings_page',
+        2
+    );
+}
 
-setup for fixing bricks builder global theme defaults colors styles fixes for ux ui problems
+function snn_render_editor_settings_page() {
+    ?>
+    <div class="wrap">
+        <h1>Bricks Builder Editor Settings</h1>
+        <form method="post" action="options.php">
+            <?php
+            settings_fields('snn_editor_settings_group');
+            do_settings_sections('snn-editor-settings');
+            submit_button();
+            ?>
+        </form>
+    </div>
+    <?php
+}
 
-*/
+add_action('admin_init', 'snn_register_editor_settings');
+function snn_register_editor_settings() {
+    register_setting(
+        'snn_editor_settings_group',
+        'snn_editor_settings',
+        'snn_sanitize_editor_settings'
+    );
+
+    add_settings_section(
+        'snn_editor_settings_section',
+        'Editor Settings',
+        'snn_editor_settings_section_callback',
+        'snn-editor-settings'
+    );
+
+    add_settings_field(
+        'snn_bricks_builder_color_fix_field',
+        'Bricks Builder Editor Color Fix',
+        'snn_render_checkbox_field',
+        'snn-editor-settings',
+        'snn_editor_settings_section'
+    );
+
+    // Add the three new settings to Editor Settings
+    add_settings_field(
+        'hide_element_icons',
+        'Hide Elements Icons on Bricks Editor',
+        'snn_hide_element_icons_callback',
+        'snn-editor-settings',
+        'snn_editor_settings_section'
+    );
+
+    add_settings_field(
+        'make_compact_but_keep_icons',
+        'Make Elements Compact But Keep Icons on Bricks Editor',
+        'snn_make_compact_but_keep_icons_callback',
+        'snn-editor-settings',
+        'snn_editor_settings_section'
+    );
+
+    add_settings_field(
+        'make_elements_wide',
+        'Make Elements Wide on Bricks Editor',
+        'snn_make_elements_wide_callback',
+        'snn-editor-settings',
+        'snn_editor_settings_section'
+    );
+}
+
+function snn_sanitize_editor_settings($input) {
+    $sanitized = array();
+
+    // Sanitize existing settings
+    $sanitized['snn_bricks_builder_color_fix'] = isset($input['snn_bricks_builder_color_fix']) && $input['snn_bricks_builder_color_fix'] ? 1 : 0;
+
+    // Sanitize the three new settings
+    $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
+    $sanitized['make_compact_but_keep_icons'] = isset($input['make_compact_but_keep_icons']) && $input['make_compact_but_keep_icons'] ? 1 : 0;
+    $sanitized['make_elements_wide'] = isset($input['make_elements_wide']) && $input['make_elements_wide'] ? 1 : 0;
+
+    return $sanitized;
+}
+
+function snn_editor_settings_section_callback() {
+?>
+
+<p>
+    Configure bricks builder editor-specific settings below.<br>
+</p>
 
 
 
 
 
 
+<?php
+}
 
+function snn_render_checkbox_field() {
+    $options = get_option('snn_editor_settings');
+    $checked = isset($options['snn_bricks_builder_color_fix']) ? $options['snn_bricks_builder_color_fix'] : 0;
+    ?>
+    <input type="checkbox" id="snn_bricks_builder_color_fix" name="snn_editor_settings[snn_bricks_builder_color_fix]" value="1" <?php checked(1, $checked, true); ?> />
+    <label for="snn_bricks_builder_color_fix">
+        Enable Bricks Builder Editor Color Fix<br>
+        This setting will show the primary global color variables inside the all color palettes.<br>
+        It will load those color palettes as :root frontend colors as well.<br>
+        
+    </label>
+    <?php
+}
 
+function snn_hide_element_icons_callback() {
+    $options = get_option('snn_editor_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_editor_settings[hide_element_icons]" value="1" <?php checked(1, isset($options['hide_element_icons']) ? $options['hide_element_icons'] : 0); ?>>
+        Hide Elements Icons on Bricks Editor
+    </label>
+    <?php
+}
 
+function snn_make_compact_but_keep_icons_callback() {
+    $options = get_option('snn_editor_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_editor_settings[make_compact_but_keep_icons]" value="1" <?php checked(1, isset($options['make_compact_but_keep_icons']) ? $options['make_compact_but_keep_icons'] : 0); ?>>
+        Make Elements Compact But Keep Icons
+    </label>
+    <?php
+}
 
+function snn_make_elements_wide_callback() {
+    $options = get_option('snn_editor_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_editor_settings[make_elements_wide]" value="1" <?php checked(1, isset($options['make_elements_wide']) ? $options['make_elements_wide'] : 0); ?>>
+        Make Elements Wide on Bricks Editor
+    </label>
+    <?php
+}
+
+function snn_add_inline_css_if_bricks_run() {
+    $options_editor = get_option('snn_editor_settings'); // New option group
+
+    if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
+        // Initialize CSS variable
+        $inline_css = '';
+
+        // Handle settings from Editor Settings
+        if (isset($options_editor['hide_element_icons']) && $options_editor['hide_element_icons']) {
+            // CSS for hiding element icons
+            $inline_css .= '
+                .bricks-add-element .element-icon {
+                    display: none;
+                }
+                #bricks-panel-elements .sortable-wrapper{
+                    margin:0 0 5px;
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                #bricks-panel-elements-categories .category-title{
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                #bricks-panel-elements-categories .category-title{
+                    line-height:0;
+                    padding-top:10px;
+                    padding-bottom:10px;
+                }
+                .bricks-add-element .element-label{
+                    box-shadow:0 0 ;
+                    font-size:14px;
+                    padding: 0 3px;
+                    line-height:30px;
+                }
+            ';
+        }
+
+        if (isset($options_editor['make_compact_but_keep_icons']) && $options_editor['make_compact_but_keep_icons']) {
+            // CSS for making elements compact but keeping icons
+            $inline_css .= '
+                .bricks-add-element .element-icon {
+                    float: left;
+                    width: 24px;
+                    height: auto;
+                    font-size: 14px;
+                    line-height: 32px;
+                }
+                #bricks-panel-elements .sortable-wrapper{
+                    margin:0 0 5px;
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                #bricks-panel-elements-categories .category-title{
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                #bricks-panel-elements-categories .category-title{
+                    line-height:0;
+                    padding-top:10px;
+                    padding-bottom:10px;
+                }
+                .bricks-add-element .element-label{
+                    box-shadow:0 0 ;
+                    font-size:14px;
+                    padding: 0 3px;
+                    line-height:30px;
+                }
+            ';
+        }
+
+        if (isset($options_editor['make_elements_wide']) && $options_editor['make_elements_wide']) {
+            // CSS for making elements wide
+            $inline_css .= '
+                #bricks-panel-elements .sortable-wrapper{
+                    grid-template-columns: 1fr;
+                }
+            ';
+        }
+
+        if (!empty($inline_css)) {
+            echo '<style>' . $inline_css . '</style>';
+        }
+    }
+}
+add_action('wp_head', 'snn_add_inline_css_if_bricks_run');
+
+function snn_bricks_builder_color_fix_inline_css() {
+    $options = get_option('snn_editor_settings');
+    if (isset($options['snn_bricks_builder_color_fix']) && $options['snn_bricks_builder_color_fix']) { ?>
+
+<style>
+/* Add your CSS fixes here */
+</style>
+<script>
+// Add your JavaScript fixes here
+</script>
+<?php }
+}
+add_action('wp_footer', 'snn_bricks_builder_color_fix_inline_css', 99999);
+
+?>
