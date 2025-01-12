@@ -81,29 +81,7 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
-    add_settings_field(
-        'hide_element_icons',
-        'Hide Elements Icons on Bricks Editor',
-        'snn_hide_element_icons_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
 
-    add_settings_field(
-        'make_compact_but_keep_icons',
-        'Make Elements Compact But Keep Icons on Bricks Editor',
-        'snn_make_compact_but_keep_icons_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
-
-    add_settings_field(
-        'make_elements_wide',
-        'Make Elements Wide on Bricks Editor',
-        'snn_make_elements_wide_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -122,11 +100,7 @@ function snn_sanitize_other_settings($input) {
 
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
 
-    $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
-
-    $sanitized['make_compact_but_keep_icons'] = isset($input['make_compact_but_keep_icons']) && $input['make_compact_but_keep_icons'] ? 1 : 0;
-
-    $sanitized['make_elements_wide'] = isset($input['make_elements_wide']) && $input['make_elements_wide'] ? 1 : 0;
+    // Removed sanitization for the three settings
 
     return $sanitized;
 }
@@ -185,35 +159,12 @@ function snn_disable_comments_callback() {
     <?php
 }
 
-function snn_hide_element_icons_callback() {
-    $options = get_option('snn_other_settings');
-    ?>
-    <label>
-        <input type="checkbox" name="snn_other_settings[hide_element_icons]" value="1" <?php checked(1, isset($options['hide_element_icons']) ? $options['hide_element_icons'] : 0); ?>>
-        Hide Element Icons on Bricks Builder
-    </label>
-    <?php
-}
+// Removed the following callback functions from Other Settings:
+// snn_hide_element_icons_callback
+// snn_make_compact_but_keep_icons_callback
+// snn_make_elements_wide_callback
 
-function snn_make_compact_but_keep_icons_callback() {
-    $options = get_option('snn_other_settings');
-    ?>
-    <label>
-        <input type="checkbox" name="snn_other_settings[make_compact_but_keep_icons]" value="1" <?php checked(1, isset($options['make_compact_but_keep_icons']) ? $options['make_compact_but_keep_icons'] : 0); ?>>
-        Make Elements Compact but Keep Icons
-    </label>
-    <?php
-}
-
-function snn_make_elements_wide_callback() {
-    $options = get_option('snn_other_settings');
-    ?>
-    <label>
-        <input type="checkbox" name="snn_other_settings[make_elements_wide]" value="1" <?php checked(1, isset($options['make_elements_wide']) ? $options['make_elements_wide'] : 0); ?>>
-        Make Elements Wide on Bricks Editor
-    </label>
-    <?php
-}
+// All other functions remain unchanged.
 
 function snn_enqueue_gsap_scripts() {
     $options = get_option('snn_other_settings');
@@ -279,14 +230,17 @@ function snn_hide_comments_section() {
 }
 add_action('admin_head', 'snn_hide_comments_section');
 
+// Update the CSS injection to remove references to the moved settings
 function snn_add_inline_css_if_bricks_run() {
-    $options = get_option('snn_other_settings');
+    $options_other = get_option('snn_other_settings');
+    $options_editor = get_option('snn_editor_settings'); // New option group
+
     if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
         // Initialize CSS variable
         $inline_css = '';
 
-        // Hide Element Icons CSS
-        if (isset($options['hide_element_icons']) && $options['hide_element_icons']) {
+        // Handle settings from Other Settings
+        if (isset($options_other['hide_element_icons']) && $options_other['hide_element_icons']) {
             $inline_css .= '
                 .bricks-add-element .element-icon {
                     display: none;
@@ -314,7 +268,36 @@ function snn_add_inline_css_if_bricks_run() {
             ';
         }
 
-        if (isset($options['make_compact_but_keep_icons']) && $options['make_compact_but_keep_icons']) {
+        // Handle settings moved to Editor Settings
+        if (isset($options_editor['hide_element_icons']) && $options_editor['hide_element_icons']) {
+            $inline_css .= '
+                .bricks-add-element .element-icon {
+                    display: none;
+                }
+                #bricks-panel-elements .sortable-wrapper{
+                    margin:0 0 5px;
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                #bricks-panel-elements-categories .category-title{
+                    padding-left:8px;
+                    padding-right:8px;
+                }
+                #bricks-panel-elements-categories .category-title{
+                    line-height:0;
+                    padding-top:10px;
+                    padding-bottom:10px;
+                }
+                .bricks-add-element .element-label{
+                    box-shadow:0 0 ;
+                    font-size:14px;
+                    padding: 0 3px;
+                    line-height:30px;
+                }
+            ';
+        }
+
+        if (isset($options_editor['make_compact_but_keep_icons']) && $options_editor['make_compact_but_keep_icons']) {
             $inline_css .= '
                 .bricks-add-element .element-icon {
                     float: left;
@@ -346,7 +329,7 @@ function snn_add_inline_css_if_bricks_run() {
             ';
         }
 
-        if (isset($options['make_elements_wide']) && $options['make_elements_wide']) {
+        if (isset($options_editor['make_elements_wide']) && $options_editor['make_elements_wide']) {
             $inline_css .= '
                 #bricks-panel-elements .sortable-wrapper{
                     grid-template-columns: 1fr;
