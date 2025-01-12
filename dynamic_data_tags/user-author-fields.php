@@ -1,64 +1,91 @@
-<?php 
-
+<?php
 /**
  * ----------------------------------------
- * Current User Fields Tag
+ * Dynamic Current User Fields Module
  * ----------------------------------------
- * Usage: {current_user_fields:field_name}
- * Description: Fetches various fields of the current user, such as name, firstname, lastname, email, and custom fields.
+ * Usage:
+ *  1) {current_user_field:field_name}
+ *     - e.g. {current_user_field:name}, {current_user_field:firstname}, {current_user_field:lastname}, {current_user_field:email}
+ * 
+ *  2) {current_user_field:custom_field_name}
+ *     - Example for fetching custom user meta fields.
+ *
+ * Description:
+ * Dynamically generates and renders user field tags, including common fields and custom fields.
+ * ----------------------------------------
  */
 
-
-
-add_filter( 'bricks/dynamic_tags_list', 'add_current_user_fields_tag_to_builder' );
-function add_current_user_fields_tag_to_builder( $tags ) {
-    $tags[] = [
-        'name'  => '{current_user_fields}',
-        'label' => 'Current User Fields',
-        'group' => 'SNN',
+// Step 1: Register the dynamic tags with Bricks Builder.
+add_filter('bricks/dynamic_tags_list', 'add_dynamic_user_field_tags_to_builder');
+function add_dynamic_user_field_tags_to_builder($tags) {
+    // Define popular user fields.
+    $popular_fields = [
+        'name'      => 'Display Name',
+        'firstname' => 'First Name',
+        'lastname'  => 'Last Name',
+        'email'     => 'Email',
+        'custom'    => 'Custom Field Example', // Example custom field
     ];
+
+    // Add each field as a tag.
+    foreach ($popular_fields as $field => $label) {
+        $tags[] = [
+            'name'  => "{current_user_field:$field}",
+            'label' => "Current User - $label",
+            'group' => 'SNN', // Group name in Bricks Builder.
+        ];
+    }
+
     return $tags;
 }
 
-function get_current_user_field( $field ) {
+// Step 2: Define a helper function to retrieve user fields dynamically.
+function get_dynamic_user_field($field) {
     $current_user = wp_get_current_user();
-    if ( $current_user->ID !== 0 ) {
-        switch ( strtolower( $field ) ) {
+
+    if ($current_user->ID !== 0) { // Check if the user is logged in.
+        switch (strtolower($field)) {
             case 'name':
-                return esc_html( $current_user->display_name );
+                return esc_html($current_user->display_name);
             case 'firstname':
-                return esc_html( get_user_meta( $current_user->ID, 'first_name', true ) );
+                return esc_html(get_user_meta($current_user->ID, 'first_name', true));
             case 'lastname':
-                return esc_html( get_user_meta( $current_user->ID, 'last_name', true ) );
+                return esc_html(get_user_meta($current_user->ID, 'last_name', true));
             case 'email':
-                return esc_html( $current_user->user_email );
+                return esc_html($current_user->user_email);
+            case 'custom': // Example for a custom user field.
+                return esc_html(get_user_meta($current_user->ID, 'custom_field_example', true)) ?: 'No Value';
             default:
-                // Handle custom fields, return an empty string if the field is not set
-                return esc_html( get_user_meta( $current_user->ID, sanitize_key( $field ), true ) ) ?: '';
+                return esc_html(get_user_meta($current_user->ID, sanitize_key($field), true)) ?: '';
         }
     }
+
     return '';
 }
 
-add_filter( 'bricks/dynamic_data/render_tag', 'render_current_user_fields_tag', 10, 3 );
-function render_current_user_fields_tag( $tag, $post, $context = 'text' ) {
-    if ( strpos( $tag, '{current_user_fields:' ) === 0 ) {
-        // Extract the field name after 'current_user_fields:'
-        $field = str_replace( '{current_user_fields:', '', trim( $tag, '{}' ) );
-        return get_current_user_field( sanitize_key( $field ) );
+// Step 3: Render each dynamic tag when Bricks encounters it in a field.
+add_filter('bricks/dynamic_data/render_tag', 'render_dynamic_user_field_tag', 20, 3);
+function render_dynamic_user_field_tag($tag, $post, $context = 'text') {
+    if (strpos($tag, '{current_user_field:') === 0 && substr($tag, -1) === '}') {
+        // Extract the field name from the tag.
+        $field = str_replace(['{current_user_field:', '}'], '', $tag);
+        return get_dynamic_user_field($field);
     }
     return $tag;
 }
 
-add_filter( 'bricks/dynamic_data/render_content', 'render_current_user_fields_in_content', 10, 3 );
-add_filter( 'bricks/frontend/render_data', 'render_current_user_fields_in_content', 10, 2 );
-function render_current_user_fields_in_content( $content, $post, $context = 'text' ) {
-    // Find all occurrences of '{current_user_fields:field}'
-    if ( preg_match_all( '/\{current_user_fields:([^}]+)\}/', $content, $matches ) ) {
-        foreach ( $matches[1] as $field ) {
-            $field_value = get_current_user_field( sanitize_key( $field ) );
-            // Replace the placeholder with the actual user field value
-            $content = str_replace( "{current_user_fields:$field}", $field_value, $content );
+// Step 4: Replace placeholders inside dynamic content (like in Rich Text, etc.).
+add_filter('bricks/dynamic_data/render_content', 'replace_dynamic_user_field_in_content', 20, 3);
+add_filter('bricks/frontend/render_data', 'replace_dynamic_user_field_in_content', 20, 2);
+function replace_dynamic_user_field_in_content($content, $post, $context = 'text') {
+    // Pattern: {current_user_field:field_name}
+    if (preg_match_all('/\{current_user_field:([\w-]+)\}/', $content, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $match) {
+            // $match[0] => The entire match, e.g., {current_user_field:name}
+            // $match[1] => Field name, e.g., 'name'
+            $field = sanitize_key($match[1]);
+            $field_value = get_dynamic_user_field($field);
+            $content = str_replace($match[0], $field_value, $content);
         }
     }
     return $content;
