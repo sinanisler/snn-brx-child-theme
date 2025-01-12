@@ -15,7 +15,7 @@ function add_current_user_fields_tag_to_builder( $tags ) {
     $tags[] = [
         'name'  => '{current_user_fields}',
         'label' => 'Current User Fields',
-        'group' => 'SNN BRX',
+        'group' => 'SNN',
     ];
     return $tags;
 }

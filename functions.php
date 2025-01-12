@@ -32,21 +32,16 @@ require_once get_stylesheet_directory() . '/includes/global-classes.php';
 
 
 // Register Custom Dynamic Tags
-require_once get_stylesheet_directory() . '/dynamic_data_tags/estimated-post-read-time.php';
-require_once get_stylesheet_directory() . '/dynamic_data_tags/get-contextual-id.php';
 require_once get_stylesheet_directory() . '/dynamic_data_tags/post-term-count.php';
-
-
+require_once get_stylesheet_directory() . '/dynamic_data_tags/get-contextual-id.php';
+require_once get_stylesheet_directory() . '/dynamic_data_tags/estimated-post-read-time.php';
+require_once get_stylesheet_directory() . '/dynamic_data_tags/parent-link.php';
+require_once get_stylesheet_directory() . '/dynamic_data_tags/user-author-fields.php';
 
 
 
 // Utils for functions.php
 require_once get_stylesheet_directory() . '/includes/utils.php';
-
-
-
-
-
 
 
 
