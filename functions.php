@@ -32,9 +32,9 @@ require_once get_stylesheet_directory() . '/includes/global-classes.php';
 
 
 // Register Custom Dynamic Tags
-// require_once get_stylesheet_directory() . '/dynamic_data_tags/custom-dynamic-data-tags.php';
 require_once get_stylesheet_directory() . '/dynamic_data_tags/estimated-post-read-time.php';
 require_once get_stylesheet_directory() . '/dynamic_data_tags/get-contextual-id.php';
+require_once get_stylesheet_directory() . '/dynamic_data_tags/post-term-count.php';
 
 
 
