@@ -13,7 +13,7 @@ function register_parent_link_tag( $tags ) {
     $tags[] = [
         'name'  => '{parent_link}',
         'label' => 'Parent Title and Link',
-        'group' => 'SNN BRX',
+        'group' => 'SNN',
     ];
     return $tags;
 }
