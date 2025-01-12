@@ -3,7 +3,7 @@
 function snn_add_logo_settings() {
     add_settings_field(
         'snn_login_logo_url',
-        'Login Logo URL',
+        'Login Logo Image URL',
         'snn_login_logo_url_callback',
         'login-settings',
         'ls_login_settings_section'
@@ -11,7 +11,7 @@ function snn_add_logo_settings() {
 
     add_settings_field(
         'snn_custom_logo_url',
-        'Custom Logo Link URL',
+        'Custom Logo Link Website URL',
         'snn_custom_logo_url_callback',
         'login-settings',
         'ls_login_settings_section'
