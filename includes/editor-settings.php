@@ -43,15 +43,7 @@ function snn_register_editor_settings() {
         'snn-editor-settings'
     );
 
-    add_settings_field(
-        'snn_bricks_builder_color_fix_field',
-        'Bricks Builder Editor Color Fix',
-        'snn_render_checkbox_field',
-        'snn-editor-settings',
-        'snn_editor_settings_section'
-    );
 
-    // Add the three new settings to Editor Settings
     add_settings_field(
         'hide_element_icons',
         'Hide Elements Icons on Bricks Editor',
@@ -75,6 +67,21 @@ function snn_register_editor_settings() {
         'snn-editor-settings',
         'snn_editor_settings_section'
     );
+
+
+    add_settings_field(
+        'snn_bricks_builder_color_fix_field',
+        'Bricks Builder Editor Color Fix <br><span style="color:Red">EXPERIMENTAL dont use it YET :)</span>    ',
+        'snn_render_checkbox_field',
+        'snn-editor-settings',
+        'snn_editor_settings_section'
+    );
+
+
+
+
+
+
 }
 
 function snn_sanitize_editor_settings($input) {
@@ -278,13 +285,14 @@ function echo_theme_colors_as_css() {
         'colorSuccess'   => 'bricks-text-success',
         'colorWarning'   => 'bricks-text-warning',
         'colorDanger'    => 'bricks-text-danger',
+        'colorMuted'    => 'bricks-text-muted',
+        'colorBorder'    => 'bricks-text-border',
     ];
 
     // Start outputting CSS variables
     echo "
 <style>
-/*  SNN-BRX Bricks Builder Editor Color Fix Setting  */
-
+/* SNN-BRX Bricks Builder Editor Color Fix Setting  */
 :root {\n";
 
 // Loop through the required colors and output them as CSS variables
@@ -305,6 +313,166 @@ echo_theme_colors_as_css();
 ?>
 
 <script>
+<?php
+// Function to output theme colors as JavaScript variables
+function generate_theme_colors_js() {
+    // Retrieve the serialized theme styles from the WordPress database
+    $theme_styles = get_option('bricks_theme_styles');
+    
+    // Check if the theme styles exist
+    if (!$theme_styles) {
+        echo '/* No theme styles found */';
+        return;
+    }
+    
+    // Unserialize the theme styles to access its data
+    $theme_styles_data = maybe_unserialize($theme_styles);
+
+    // Check for the necessary structure in theme styles
+    if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
+        echo '/* No colors found in theme styles */';
+        return;
+    }
+
+    // Extract the colors
+    $colors = $theme_styles_data['default_styles']['settings']['colors'];
+
+    // Mapping of color keys to their CSS variable names
+    $color_keys = [
+        'colorPrimary'   => 'bricks-color-primary',
+        'colorSecondary' => 'bricks-color-secondary',
+        'colorDark'      => 'bricks-text-dark',
+        'colorLight'     => 'bricks-text-light',
+        'colorInfo'      => 'bricks-text-info',
+        'colorSuccess'   => 'bricks-text-success',
+        'colorWarning'   => 'bricks-text-warning',
+        'colorDanger'    => 'bricks-text-danger',
+        'colorMuted'     => 'bricks-text-muted',
+        'colorBorder'    => 'bricks-text-border',
+    ];
+
+    // Begin outputting JavaScript variables
+    
+    echo 'const bricksColors = {
+';
+    
+    // Loop through the colors and output them as JavaScript variables
+    foreach ($color_keys as $key => $js_var) {
+        if (isset($colors[$key]['hex'])) {
+            $color_value = $colors[$key]['hex'];
+
+
+            echo "      '--$js_var': '$color_value',\n";
+
+
+        }
+    }
+
+
+}
+generate_theme_colors_js(); ?>
+};
+
+function addColor(colorHex, colorIdentifier, prepend = false) {
+    const colorPalette = document.querySelector('.color-palette.grid');
+    if (!colorPalette) {
+        console.error('Color palette not found!');
+        return;
+    }
+
+    // Prevent duplicate injections
+    const existingColor = Array.from(colorPalette.children).find(child => {
+        const balloon = child.querySelector('.color-button.sortable')?.getAttribute('data-balloon');
+        return balloon && balloon.includes(colorIdentifier);
+    });
+
+    if (existingColor) {
+        console.log(`Color with identifier "${colorIdentifier}" already exists. Skipping injection.`);
+        return;
+    }
+
+    const newColorItem = document.createElement('li');
+    newColorItem.className = 'color custom-color-injected'; // Custom class for identification
+
+    const colorButton = document.createElement('div');
+    colorButton.className = 'color-button sortable';
+    colorButton.setAttribute('data-balloon', `var(${colorIdentifier})`);
+    colorButton.setAttribute('data-balloon-pos', 'bottom');
+    colorButton.style.backgroundColor = colorHex;
+
+    newColorItem.appendChild(colorButton);
+
+    if (prepend) {
+        colorPalette.insertBefore(newColorItem, colorPalette.firstChild);
+    } else {
+        colorPalette.appendChild(newColorItem);
+    }
+
+    console.log(`Added color "${colorIdentifier}": ${colorHex}`);
+}
+
+/**
+ * Injects all custom colors from the bricksColors object into the color palette.
+ */
+function injectAllCustomColors() {
+    for (const [cssVariable, colorHex] of Object.entries(bricksColors)) {
+        addColor(colorHex, cssVariable, true); // Prepend to the top
+    }
+}
+
+/**
+ * Initializes a MutationObserver to monitor the DOM for changes to the color palette.
+ */
+function initializeColorPaletteObserver() {
+    const observerCallback = (mutationsList, observer) => {
+        for (const mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (node.classList.contains('color-palette') && node.classList.contains('grid')) {
+                            injectAllCustomColors();
+                        } else {
+                            const nestedPalette = node.querySelector('.color-palette.grid');
+                            if (nestedPalette) {
+                                injectAllCustomColors();
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (mutation.type === 'attributes') {
+                const target = mutation.target;
+                if (target.classList.contains('color-palette') && target.classList.contains('grid')) {
+                    injectAllCustomColors();
+                }
+            }
+        }
+    };
+
+    const observer = new MutationObserver(observerCallback);
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class'],
+    });
+
+    // Initial injection on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const existingPalette = document.querySelector('.color-palette.grid');
+        if (existingPalette) {
+            injectAllCustomColors();
+        }
+    });
+}
+
+// Initialize the observer and inject colors
+initializeColorPaletteObserver();
+
+
+
 
 </script>
 <?php }
