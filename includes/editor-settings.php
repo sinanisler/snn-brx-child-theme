@@ -71,7 +71,7 @@ function snn_register_editor_settings() {
 
     add_settings_field(
         'snn_bricks_builder_color_fix_field',
-        'Bricks Builder Editor Color Fix <br><span style="color:Red">EXPERIMENTAL</span>    ',
+        'Bricks Builder Global Colors Sync with Color Palette <br><span style="color:Red">EXPERIMENTAL</span>    ',
         'snn_render_checkbox_field',
         'snn-editor-settings',
         'snn_editor_settings_section'
