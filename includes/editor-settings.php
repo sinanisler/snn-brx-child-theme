@@ -243,240 +243,156 @@ function snn_add_inline_css_if_bricks_run() {
 }
 add_action('wp_head', 'snn_add_inline_css_if_bricks_run');
 
+
+
+
 function snn_bricks_builder_color_fix_inline_css() {
     $options = get_option('snn_editor_settings');
-    if (isset($options['snn_bricks_builder_color_fix']) && $options['snn_bricks_builder_color_fix']) { ?>
-
-
-
-
-
-<?php
-// Function to fetch and output the specified colors as CSS
-function echo_theme_colors_as_css() {
-    // Get the serialized option from the WordPress database
-    $theme_styles = get_option('bricks_theme_styles');
-    
-    // Check if the option exists
-    if (!$theme_styles) {
-        echo '/* No theme styles found */';
-        return;
-    }
-    
-    // Unserialize the option to access its data
-    $theme_styles_data = maybe_unserialize($theme_styles);
-
-    // Ensure the data contains the necessary structure
-    if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
-        echo '/* No colors found in theme styles */';
-        return;
-    }
-
-    // Extract colors
-    $colors = $theme_styles_data['default_styles']['settings']['colors'];
-
-    // List of required colors and their CSS variable mappings
-    $color_keys = [
-        'colorPrimary'   => 'bricks-color-primary',
-        'colorSecondary' => 'bricks-color-secondary',
-        'colorDark'      => 'bricks-text-dark',
-        'colorLight'     => 'bricks-text-light',
-        'colorInfo'      => 'bricks-text-info',
-        'colorSuccess'   => 'bricks-text-success',
-        'colorWarning'   => 'bricks-text-warning',
-        'colorDanger'    => 'bricks-text-danger',
-        'colorMuted'    => 'bricks-text-muted',
-        'colorBorder'    => 'bricks-text-border',
-    ];
-
-    // Start outputting CSS variables
-    echo "
+    if (isset($options['snn_bricks_builder_color_fix']) && $options['snn_bricks_builder_color_fix']) { 
+        // Function to fetch and output the specified colors as CSS
+        function echo_theme_colors_as_css() {
+            // Get the serialized option from the WordPress database
+            $theme_styles = get_option('bricks_theme_styles');
+            
+            // Check if the option exists
+            if (!$theme_styles) {
+                echo '/* No theme styles found */';
+                return;
+            }
+            
+            // Unserialize the option to access its data
+            $theme_styles_data = maybe_unserialize($theme_styles);
+        
+            // Ensure the data contains the necessary structure
+            if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
+                echo '/* No colors found in theme styles */';
+                return;
+            }
+        
+            // Extract colors
+            $colors = $theme_styles_data['default_styles']['settings']['colors'];
+        
+            // List of required colors and their CSS variable mappings
+            $color_keys = [
+                'colorPrimary'   => 'bricks-color-primary',
+                'colorSecondary' => 'bricks-color-secondary',
+                'colorDark'      => 'bricks-text-dark',
+                'colorLight'     => 'bricks-text-light',
+                'colorInfo'      => 'bricks-text-info',
+                'colorSuccess'   => 'bricks-text-success',
+                'colorWarning'   => 'bricks-text-warning',
+                'colorDanger'    => 'bricks-text-danger',
+                'colorMuted'     => 'bricks-text-muted',
+                'colorBorder'    => 'bricks-text-border',
+            ];
+        
+            // Start outputting CSS variables
+            echo "
 <style>
 /* SNN-BRX Bricks Builder Editor Color Fix Setting  */
 :root {\n";
-
-// Loop through the required colors and output them as CSS variables
-foreach ($color_keys as $key => $css_var) {
-if (isset($colors[$key]['hex'])) {
-$color_value = $colors[$key]['hex'];
-echo "    --$css_var: $color_value;\n";
-}
-}
-
-// End the CSS block
-echo "}
-</style>\n";
-}
-
-// Call the function to echo the theme colors as CSS
-echo_theme_colors_as_css();
-?>
-
-<script>
-<?php
-// Function to output theme colors as JavaScript variables
-function generate_theme_colors_js() {
-    // Retrieve the serialized theme styles from the WordPress database
-    $theme_styles = get_option('bricks_theme_styles');
-    
-    // Check if the theme styles exist
-    if (!$theme_styles) {
-        echo '/* No theme styles found */';
-        return;
-    }
-    
-    // Unserialize the theme styles to access its data
-    $theme_styles_data = maybe_unserialize($theme_styles);
-
-    // Check for the necessary structure in theme styles
-    if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
-        echo '/* No colors found in theme styles */';
-        return;
-    }
-
-    // Extract the colors
-    $colors = $theme_styles_data['default_styles']['settings']['colors'];
-
-    // Mapping of color keys to their CSS variable names
-    $color_keys = [
-        'colorPrimary'   => 'bricks-color-primary',
-        'colorSecondary' => 'bricks-color-secondary',
-        'colorDark'      => 'bricks-text-dark',
-        'colorLight'     => 'bricks-text-light',
-        'colorInfo'      => 'bricks-text-info',
-        'colorSuccess'   => 'bricks-text-success',
-        'colorWarning'   => 'bricks-text-warning',
-        'colorDanger'    => 'bricks-text-danger',
-        'colorMuted'     => 'bricks-text-muted',
-        'colorBorder'    => 'bricks-text-border',
-    ];
-
-    // Begin outputting JavaScript variables
-    
-    echo 'const bricksColors = {
-';
-    
-    // Loop through the colors and output them as JavaScript variables
-    foreach ($color_keys as $key => $js_var) {
-        if (isset($colors[$key]['hex'])) {
-            $color_value = $colors[$key]['hex'];
-
-
-            echo "      '--$js_var': '$color_value',\n";
-
-
-        }
-    }
-
-
-}
-generate_theme_colors_js(); ?>
-};
-
-function addColor(colorHex, colorIdentifier, prepend = false) {
-    const colorPalette = document.querySelector('.color-palette.grid');
-    if (!colorPalette) {
-        console.error('Color palette not found!');
-        return;
-    }
-
-    // Prevent duplicate injections
-    const existingColor = Array.from(colorPalette.children).find(child => {
-        const balloon = child.querySelector('.color-button.sortable')?.getAttribute('data-balloon');
-        return balloon && balloon.includes(colorIdentifier);
-    });
-
-    if (existingColor) {
-        console.log(`Color with identifier "${colorIdentifier}" already exists. Skipping injection.`);
-        return;
-    }
-
-    const newColorItem = document.createElement('li');
-    newColorItem.className = 'color custom-color-injected'; // Custom class for identification
-
-    const colorButton = document.createElement('div');
-    colorButton.className = 'color-button sortable';
-    colorButton.setAttribute('data-balloon', `var(${colorIdentifier})`);
-    colorButton.setAttribute('data-balloon-pos', 'bottom');
-    colorButton.style.backgroundColor = colorHex;
-
-    newColorItem.appendChild(colorButton);
-
-    if (prepend) {
-        colorPalette.insertBefore(newColorItem, colorPalette.firstChild);
-    } else {
-        colorPalette.appendChild(newColorItem);
-    }
-
-    console.log(`Added color "${colorIdentifier}": ${colorHex}`);
-}
-
-/**
- * Injects all custom colors from the bricksColors object into the color palette.
- */
-function injectAllCustomColors() {
-    for (const [cssVariable, colorHex] of Object.entries(bricksColors)) {
-        addColor(colorHex, cssVariable, true); // Prepend to the top
-    }
-}
-
-/**
- * Initializes a MutationObserver to monitor the DOM for changes to the color palette.
- */
-function initializeColorPaletteObserver() {
-    const observerCallback = (mutationsList, observer) => {
-        for (const mutation of mutationsList) {
-            if (mutation.type === 'childList') {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeType === Node.ELEMENT_NODE) {
-                        if (node.classList.contains('color-palette') && node.classList.contains('grid')) {
-                            injectAllCustomColors();
-                        } else {
-                            const nestedPalette = node.querySelector('.color-palette.grid');
-                            if (nestedPalette) {
-                                injectAllCustomColors();
-                            }
-                        }
-                    }
-                });
-            }
-
-            if (mutation.type === 'attributes') {
-                const target = mutation.target;
-                if (target.classList.contains('color-palette') && target.classList.contains('grid')) {
-                    injectAllCustomColors();
+            
+            // Loop through the required colors and output them as CSS variables
+            foreach ($color_keys as $key => $css_var) {
+                if (isset($colors[$key]['hex'])) {
+                    $color_value = $colors[$key]['hex'];
+                    echo "    --$css_var: $color_value;\n";
                 }
             }
+            
+            // End the CSS block
+            echo "}
+</style>\n";
         }
-    };
+        
+        // Function to output theme colors as JavaScript variables and unshift color palette
+        function generate_theme_colors_js() {
+            // Retrieve the serialized theme styles from the WordPress database
+            $theme_styles = get_option('bricks_theme_styles');
+            
+            // Check if the theme styles exist
+            if (!$theme_styles) {
+                echo '/* No theme styles found */';
+                return;
+            }
+            
+            // Unserialize the theme styles to access its data
+            $theme_styles_data = maybe_unserialize($theme_styles);
+        
+            // Check for the necessary structure in theme styles
+            if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
+                echo '/* No colors found in theme styles */';
+                return;
+            }
+        
+            // Extract the colors
+            $colors = $theme_styles_data['default_styles']['settings']['colors'];
+        
+            // Mapping of color keys to their CSS variable names
+            $color_keys = [
+                'colorPrimary'   => 'bricks-color-primary',
+                'colorSecondary' => 'bricks-color-secondary',
+                'colorDark'      => 'bricks-text-dark',
+                'colorLight'     => 'bricks-text-light',
+                'colorInfo'      => 'bricks-text-info',
+                'colorSuccess'   => 'bricks-text-success',
+                'colorWarning'   => 'bricks-text-warning',
+                'colorDanger'    => 'bricks-text-danger',
+                'colorMuted'     => 'bricks-text-muted',
+                'colorBorder'    => 'bricks-text-border',
+            ];
+        
+            // Begin outputting JavaScript variables
+            /*
+            echo 'const bricksColors = {';
+            foreach ($color_keys as $key => $js_var) {
+                if (isset($colors[$key]['hex'])) {
+                    $color_value = $colors[$key]['hex'];
+                    echo "\n    '--$js_var': '$color_value',";
+                }
+            }
+            echo "\n};\n";
+            */
 
-    const observer = new MutationObserver(observerCallback);
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['class'],
-    });
-
-    // Initial injection on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        const existingPalette = document.querySelector('.color-palette.grid');
-        if (existingPalette) {
-            injectAllCustomColors();
+        
+            // Begin the unshift call
+            echo 'bricksData.loadData.colorPalette[0].colors.unshift(';
+        
+            // Initialize an array to hold color objects
+            $color_objects = [];
+            $index = 1; // Initialize a separate counter for IDs
+        
+            foreach ($color_keys as $key => $js_var) {
+                if (isset($colors[$key]['hex'])) {
+                    $color_objects[] = '    {
+        "raw": "var(--' . $js_var . ')", 
+        "id": "snn1' . $index . '", 
+        "name": "' . $js_var . '" 
+    }';
+                    $index++;
+                }
+            }
+        
+            // Join the color objects with commas
+            echo "\n" . implode(",\n", $color_objects) . "\n);";
         }
-    });
-}
-
-// Initialize the observer and inject colors
-initializeColorPaletteObserver();
-
-
-
+        
+        // Output the CSS variables
+        echo_theme_colors_as_css();
+        ?>
+<script>
+<?php
+// Output the JavaScript variables and unshift color palette
+generate_theme_colors_js(); 
+?>
 
 </script>
-<?php }
+        <?php
+    }
 }
-add_action('wp_footer', 'snn_bricks_builder_color_fix_inline_css', 9999);
-
+add_action('wp_footer', 'snn_bricks_builder_color_fix_inline_css', 50);
 ?>
+
+
+
+

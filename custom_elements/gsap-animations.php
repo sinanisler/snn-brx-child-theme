@@ -1,8 +1,7 @@
 <?php
-// element-gsap-animations.php
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly
+    exit;
 }
 
 class Prefix_Element_Gsap_Animations extends \Bricks\Element {
@@ -18,7 +17,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
      * Return localized element label.
      */
     public function get_label() {
-        return esc_html__( 'GSAP Animations', 'bricks' );
+        return esc_html__( 'GSAP Animations (Nestable)', 'bricks' );
     }
 
     /**
