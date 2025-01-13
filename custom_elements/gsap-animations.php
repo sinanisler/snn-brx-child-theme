@@ -10,31 +10,19 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     public $category     = 'snn';
     public $name         = 'gsap-animations';
     public $icon         = 'ti-bolt-alt';
-    public $css_selector = '.prefix-gsap-animations-wrapper';
+    public $css_selector = '.snn-gsap-animations-wrapper';
     public $scripts      = [];
     public $nestable     = true; 
 
-    /**
-     * Get the label for the element.
-     *
-     * @return string
-     */
     public function get_label() {
         return esc_html__( 'GSAP Animations (Nestable)', 'bricks' );
     }
 
-    /**
-     * Define control groups if needed.
-     */
     public function set_control_groups() {
-        // You can define control groups here if necessary.
+        
     }
 
-    /**
-     * Define controls for the element.
-     */
     public function set_controls() {
-        // Existing 'animations' repeater control
         $this->controls['animations'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'Animations', 'bricks' ),
@@ -189,21 +177,13 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         */
     }
 
-    /**
-     * Enqueue necessary scripts.
-     */
     public function enqueue_scripts() {
-        // Enqueue GSAP library
         wp_enqueue_script( 'gsap', 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js', [], '3.11.3', true );
 
-        // Enqueue your custom GSAP animations script
         wp_enqueue_script( 'prefix-gsap-animations', plugins_url( '/js/prefix-gsap-animations.js', __FILE__ ), [ 'gsap' ], '1.0.0', true );
     }
 
 
-    /**
-     * Render the element on the frontend.
-     */
     public function render() {
         $root_classes = ['prefix-gsap-animations-wrapper'];
         $this->set_attribute( '_root', 'class', $root_classes );
@@ -290,23 +270,14 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $other_attributes = $this->render_attributes( '_root' );
 
-        // Start rendering the outer wrapper
+
         echo '<div ' . $data_animate_attr . ' ' . $other_attributes . '>';
 
-            // Render GSAP-animated static content
-            echo '<div class="gsap-animated-content">';
-                echo '<p>' . esc_html__( 'Animate me with GSAP!', 'bricks' ) . '</p>';
-            echo '</div>';
-
-            // Render nested children elements
             echo Frontend::render_children( $this );
 
         echo '</div>';
     }
 
-    /**
-     * Render the element in the Bricks builder.
-     */
     public static function render_builder() {
         ?>
         <script type="text/x-template" id="tmpl-bricks-element-gsap-animations">
