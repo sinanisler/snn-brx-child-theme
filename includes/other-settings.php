@@ -98,6 +98,13 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
+    add_settings_field(
+        'dashboard_custom_metabox_content',
+        'Dashboard Custom Metabox Content',
+        'snn_dashboard_custom_metabox_content_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -119,6 +126,12 @@ function snn_sanitize_other_settings($input) {
     $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
 
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
+
+    if (isset($input['dashboard_custom_metabox_content'])) {
+        $sanitized['dashboard_custom_metabox_content'] = wp_kses_post($input['dashboard_custom_metabox_content']);
+    } else {
+        $sanitized['dashboard_custom_metabox_content'] = '';
+    }
 
     return $sanitized;
 }
@@ -195,6 +208,17 @@ function snn_disable_dashboard_widgets_callback() {
     <p>
         Enabling this setting will remove several default dashboard widgets from the WordPress admin dashboard.<br>
         This helps in decluttering the dashboard and focusing on the essential information.
+    </p>
+    <?php
+}
+
+function snn_dashboard_custom_metabox_content_callback() {
+    $options = get_option('snn_other_settings');
+    $content = isset($options['dashboard_custom_metabox_content']) ? $options['dashboard_custom_metabox_content'] : '';
+    ?>
+    <textarea name="snn_other_settings[dashboard_custom_metabox_content]" rows="10" class="large-text" style="max-width:600px"><?php echo esc_textarea($content); ?></textarea>
+    <p>
+        Enter the HTML content for the custom dashboard metabox. You can include HTML tags for formatting.
     </p>
     <?php
 }
@@ -310,7 +334,7 @@ function snn_maybe_remove_dashboard_widgets() {
     $options = get_option('snn_other_settings');
     if (isset($options['disable_dashboard_widgets']) && $options['disable_dashboard_widgets']) {
         remove_action('welcome_panel', 'wp_welcome_panel');
-        
+
         remove_meta_box('dashboard_right_now', 'dashboard', 'normal');
         remove_meta_box('dashboard_activity', 'dashboard', 'normal');
         remove_meta_box('dashboard_quick_press', 'dashboard', 'side');
@@ -319,5 +343,34 @@ function snn_maybe_remove_dashboard_widgets() {
     }
 }
 add_action('wp_dashboard_setup', 'snn_maybe_remove_dashboard_widgets');
+
+function snn_maybe_add_dashboard_custom_metabox() {
+    $options = get_option('snn_other_settings');
+    if (!empty($options['dashboard_custom_metabox_content'])) {
+        add_meta_box(
+            'snn_custom_dashboard_metabox', // ID of the meta box
+            'Welcome',      // Title of the meta box
+            'snn_display_custom_dashboard_metabox', // Callback function
+            'dashboard',            // Screen where to show the meta box (in this case, dashboard)
+            'normal',                 // Context (where on the screen)
+            'high'                  // Priority of the meta box
+        );
+    }
+}
+add_action('wp_dashboard_setup', 'snn_maybe_add_dashboard_custom_metabox');
+
+// Callback function to display the custom dashboard metabox content
+function snn_display_custom_dashboard_metabox() {
+    $options = get_option('snn_other_settings');
+    $content = isset($options['dashboard_custom_metabox_content']) ? $options['dashboard_custom_metabox_content'] : '';
+
+    // Replace placeholders with dynamic content if needed
+    $current_user = wp_get_current_user();
+    $content = str_replace('{first_name}', esc_html($current_user->user_firstname), $content);
+    $content = str_replace('{homepage_url}', esc_url(home_url('/')), $content);
+
+    echo $content;
+}
+
 
 ?>
