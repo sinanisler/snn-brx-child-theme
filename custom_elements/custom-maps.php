@@ -193,6 +193,9 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     .leaflet-control-attribution span{
                         display:none
                     }
+                    .leaflet-top, .leaflet-bottom {
+                        z-index: 99 !important;
+                    }
                 </style>
             ";
         }
