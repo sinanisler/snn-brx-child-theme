@@ -90,6 +90,14 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
+    add_settings_field(
+        'disable_dashboard_widgets',
+        'Disable Default Dashboard Widgets',
+        'snn_disable_dashboard_widgets_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -110,6 +118,7 @@ function snn_sanitize_other_settings($input) {
 
     $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
 
+    $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
 
     return $sanitized;
 }
@@ -175,6 +184,17 @@ function snn_enable_thumbnail_column_callback() {
     <p>
         Enabling this setting will add a "Thumbnail" column to your post tables in the admin dashboard.<br>
         This allows you to see the featured image of each post directly in the list view.
+    </p>
+    <?php
+}
+
+function snn_disable_dashboard_widgets_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <input type="checkbox" name="snn_other_settings[disable_dashboard_widgets]" value="1" <?php checked(1, isset($options['disable_dashboard_widgets']) ? $options['disable_dashboard_widgets'] : 0); ?>>
+    <p>
+        Enabling this setting will remove several default dashboard widgets from the WordPress admin dashboard.<br>
+        This helps in decluttering the dashboard and focusing on the essential information.
     </p>
     <?php
 }
@@ -286,5 +306,18 @@ function snn_display_thumbnail_column($column, $post_id) {
     }
 }
 
+function snn_maybe_remove_dashboard_widgets() {
+    $options = get_option('snn_other_settings');
+    if (isset($options['disable_dashboard_widgets']) && $options['disable_dashboard_widgets']) {
+        remove_action('welcome_panel', 'wp_welcome_panel');
+        
+        remove_meta_box('dashboard_right_now', 'dashboard', 'normal');
+        remove_meta_box('dashboard_activity', 'dashboard', 'normal');
+        remove_meta_box('dashboard_quick_press', 'dashboard', 'side');
+        remove_meta_box('dashboard_primary', 'dashboard', 'side');
+        remove_meta_box('dashboard_site_health', 'dashboard', 'normal');
+    }
+}
+add_action('wp_dashboard_setup', 'snn_maybe_remove_dashboard_widgets');
 
 ?>
