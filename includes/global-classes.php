@@ -163,7 +163,7 @@ width:100px
 
 
     <div class="wrap">
-        <h1>Bricks Global Classes Manager - EXPERIMENTAL DONT USE IT YET ;)</h1>
+        <h1>Bricks Global Classes Manager - <span style="color:Red">EXPERIMENTAL</span></h1>
         <?php settings_errors('bgcc_messages'); ?>
 
         <h2>Bulk CSS</h2>
