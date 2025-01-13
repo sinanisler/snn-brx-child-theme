@@ -19,7 +19,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     }
 
     public function set_control_groups() {
-        
+        // You can define control groups here if needed
     }
 
     public function set_controls() {
@@ -41,9 +41,8 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'scroll'          => '',
                     'scrub'           => '',
                     'pin'             => '',
-                    'markers'         => '',
-                    'toggleClass'     => '',
                     'pinSpacing'      => '',
+                    'markers'         => '',
                 ],
             ],
             'placeholder'   => esc_html__( 'Animation', 'bricks' ),
@@ -88,7 +87,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'type'        => 'number',
                     'min'         => '0',
                     'step'        => '0.1',
-                    'default'     => '1',
+                    'default'     => '', // Changed from '1' to ''
                     'placeholder' => esc_html__( 'e.g., 2', 'bricks' ),
                 ],
                 'delay' => [
@@ -96,17 +95,17 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'type'        => 'number',
                     'min'         => '0',
                     'step'        => '0.1',
-                    'default'     => '0',
+                    'default'     => '', // Changed from '0' to ''
                     'placeholder' => esc_html__( 'e.g., 0.5', 'bricks' ),
                 ],
                 'scroll' => [
-                    'label'       => esc_html__( 'Enable Scroll Trigger', 'bricks' ),
+                    'label'       => esc_html__( 'Scroll Trigger', 'bricks' ),
                     'type'        => 'select',
                     'options'     => [
                         'true'  => esc_html__( 'Yes', 'bricks' ),
                         'false' => esc_html__( 'No', 'bricks' ),
                     ],
-                    'default'     => 'true',
+                    'default'     => '', // Changed from 'true' to ''
                     'inline'      => true,
                     'placeholder' => esc_html__( 'Select', 'bricks' ),
                 ],
@@ -119,7 +118,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                         '1'     => esc_html__( '1', 'bricks' ),
                         '2'     => esc_html__( '2', 'bricks' ),
                     ],
-                    'default'     => 'false',
+                    'default'     => '', // Changed from 'false' to ''
                     'inline'      => true,
                     'placeholder' => esc_html__( 'Select', 'bricks' ),
                 ],
@@ -130,7 +129,19 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                         'true'  => esc_html__( 'Yes', 'bricks' ),
                         'false' => esc_html__( 'No', 'bricks' ),
                     ],
-                    'default'     => 'false',
+                    'default'     => '', // Changed from 'false' to ''
+                    'inline'      => true,
+                    'placeholder' => esc_html__( 'Select', 'bricks' ),
+                ],
+                'pinSpacing' => [
+                    'label'       => esc_html__( 'Pin Spacing', 'bricks' ),
+                    'type'        => 'select',
+                    'options'     => [
+                        'margin' => esc_html__( 'Margin', 'bricks' ),
+                        'padding' => esc_html__( 'Padding', 'bricks' ),
+                        'false'   => esc_html__( 'False', 'bricks' ),
+                    ],
+                    'default'     => '', // Changed from 'margin' to ''
                     'inline'      => true,
                     'placeholder' => esc_html__( 'Select', 'bricks' ),
                 ],
@@ -141,48 +152,14 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                         'true'  => esc_html__( 'Yes', 'bricks' ),
                         'false' => esc_html__( 'No', 'bricks' ),
                     ],
-                    'default'     => 'false',
-                    'inline'      => true,
-                    'placeholder' => esc_html__( 'Select', 'bricks' ),
-                ],
-                'toggleClass' => [
-                    'label'       => esc_html__( 'Toggle Class', 'bricks' ),
-                    'type'        => 'text',
-                    'default'     => '',
-                    'placeholder' => esc_html__( 'e.g., active', 'bricks' ),
-                ],
-                'pinSpacing' => [
-                    'label'       => esc_html__( 'Pin Spacing', 'bricks' ),
-                    'type'        => 'select',
-                    'options'     => [
-                        'margin' => esc_html__( 'Margin', 'bricks' ),
-                        'padding' => esc_html__( 'Padding', 'bricks' ),
-                        'false'   => esc_html__( 'False', 'bricks' ),
-                    ],
-                    'default'     => 'margin',
+                    'default'     => '', // Changed from 'false' to ''
                     'inline'      => true,
                     'placeholder' => esc_html__( 'Select', 'bricks' ),
                 ],
             ],
         ];
-        /*
-        // Add '_children' repeater for managing nested elements
-        $this->controls['_children'] = [
-            'type'          => 'repeater',
-            'titleProperty' => 'label',
-            'items'         => 'children',
-            'label'         => esc_html__( 'Nested Elements', 'bricks' ),
-            'description'   => esc_html__( 'Add elements to animate with GSAP.', 'bricks' ),
-        ];
-        */
+
     }
-
-    public function enqueue_scripts() {
-        wp_enqueue_script( 'gsap', 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js', [], '3.11.3', true );
-
-        wp_enqueue_script( 'prefix-gsap-animations', plugins_url( '/js/prefix-gsap-animations.js', __FILE__ ), [ 'gsap' ], '1.0.0', true );
-    }
-
 
     public function render() {
         $root_classes = ['prefix-gsap-animations-wrapper'];
@@ -228,27 +205,28 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 $props[] = "delay:{$delay}";
             }
 
-            $scroll = isset( $anim['scroll'] ) ? ( filter_var( $anim['scroll'], FILTER_VALIDATE_BOOLEAN ) ? 'true' : 'false' ) : 'false';
-            $props[] = "scroll:{$scroll}";
+            if ( ($scroll = $anim['scroll'] ?? '') !== '' ) {
+                $scroll = filter_var( $scroll, FILTER_VALIDATE_BOOLEAN ) ? 'true' : 'false';
+                $props[] = "scroll:{$scroll}";
+            }
 
-            if ( isset( $anim['scrub'] ) ) {
-                if ( is_numeric( $anim['scrub'] ) ) {
-                    $scrub = floatval( $anim['scrub'] );
+            if ( ($scrub = $anim['scrub'] ?? '') !== '' ) {
+                if ( is_numeric( $scrub ) ) {
+                    $scrub = floatval( $scrub );
                 } else {
-                    $scrub = filter_var( $anim['scrub'], FILTER_VALIDATE_BOOLEAN ) ? 'true' : 'false';
+                    $scrub = filter_var( $scrub, FILTER_VALIDATE_BOOLEAN ) ? 'true' : 'false';
                 }
                 $props[] = "scrub:{$scrub}";
             }
 
-            $pin = isset( $anim['pin'] ) ? ( filter_var( $anim['pin'], FILTER_VALIDATE_BOOLEAN ) ? 'true' : 'false' ) : 'false';
-            $props[] = "pin:{$pin}";
+            if ( ($pin = $anim['pin'] ?? '') !== '' ) {
+                $pin = filter_var( $pin, FILTER_VALIDATE_BOOLEAN ) ? 'true' : 'false';
+                $props[] = "pin:{$pin}";
+            }
 
-            $markers = isset( $anim['markers'] ) ? ( filter_var( $anim['markers'], FILTER_VALIDATE_BOOLEAN ) ? 'true' : 'false' ) : 'false';
-            $props[] = "markers:{$markers}";
-
-            if ( ($toggleClass = $anim['toggleClass'] ?? '') !== '' ) {
-                $toggleClass = sanitize_html_class( $toggleClass );
-                $props[] = "toggleClass:{$toggleClass}";
+            if ( ($markers = $anim['markers'] ?? '') !== '' ) {
+                $markers = filter_var( $markers, FILTER_VALIDATE_BOOLEAN ) ? 'true' : 'false';
+                $props[] = "markers:{$markers}";
             }
 
             if ( ($pinSpacing = $anim['pinSpacing'] ?? '') !== '' ) {
