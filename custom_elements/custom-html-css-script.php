@@ -13,9 +13,8 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
     $this->controls['content'] = [
       'tab' => 'content',
       'label' => '
-Custom HTML CSS JS Code<br>Just write your HTML or CSS or JS here.<br> 
-To use JS use < <a href="https://www.w3schools.com/tags/tag_script.asp" target="_blank" title="Learn Script Tag">script</a> > tags and 
-for CSS use < <a href="https://www.w3schools.com/tags/tag_style.asp" target="_blank" title="Learn Style Tag">style</a> > tags.
+Custom HTML, CSS, and JS Code<br>
+
       ',
       'type' => 'code',
       'mode' => 'php',
