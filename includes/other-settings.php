@@ -82,10 +82,14 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
-    // Removed the following three settings from Other Settings:
-    // hide_element_icons
-    // make_compact_but_keep_icons
-    // make_elements_wide
+    add_settings_field(
+        'enable_thumbnail_column',
+        'Enable Thumbnail Column in Post Tables',
+        'snn_enable_thumbnail_column_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -104,7 +108,8 @@ function snn_sanitize_other_settings($input) {
 
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
 
-    // Removed sanitization for the three settings
+    $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
+
 
     return $sanitized;
 }
@@ -163,7 +168,17 @@ function snn_disable_comments_callback() {
     <?php
 }
 
-// Ensure that snn_enqueue_gsap_scripts() is only declared once here.
+function snn_enable_thumbnail_column_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <input type="checkbox" name="snn_other_settings[enable_thumbnail_column]" value="1" <?php checked(1, isset($options['enable_thumbnail_column']) ? $options['enable_thumbnail_column'] : 0); ?>>
+    <p>
+        Enabling this setting will add a "Thumbnail" column to your post tables in the admin dashboard.<br>
+        This allows you to see the featured image of each post directly in the list view.
+    </p>
+    <?php
+}
+
 function snn_enqueue_gsap_scripts() {
     $options = get_option('snn_other_settings');
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
@@ -228,6 +243,48 @@ function snn_hide_comments_section() {
 }
 add_action('admin_head', 'snn_hide_comments_section');
 
-// Removed the snn_add_inline_css_if_bricks_run() function from Other Settings to prevent redeclaration.
+function snn_add_thumbnail_column() {
+    $options = get_option('snn_other_settings');
+    if (isset($options['enable_thumbnail_column']) && $options['enable_thumbnail_column']) {
+        // Add Thumbnail column to default 'post' post type
+        add_filter('manage_posts_columns', 'snn_add_thumbnail_column_header');
+        add_action('manage_posts_custom_column', 'snn_display_thumbnail_column', 10, 2);
+
+        // Add Thumbnail column to all registered custom post types
+        $post_types = get_post_types(array('public' => true), 'names');
+        foreach ($post_types as $post_type) {
+            if ($post_type === 'post') {
+                continue; // Already handled
+            }
+            add_filter("manage_{$post_type}_posts_columns", 'snn_add_thumbnail_column_header');
+            add_action("manage_{$post_type}_posts_custom_column", 'snn_display_thumbnail_column', 10, 2);
+        }
+    }
+}
+add_action('admin_init', 'snn_add_thumbnail_column');
+
+function snn_add_thumbnail_column_header($columns) {
+    $new_columns = array();
+    foreach ($columns as $key => $value) {
+        $new_columns[$key] = $value;
+        if ($key === 'title') { // Adjust the position as needed
+            $new_columns['post_thumbnail'] = __('Thumbnail');
+        }
+    }
+    return $new_columns;
+}
+
+function snn_display_thumbnail_column($column, $post_id) {
+    if ($column === 'post_thumbnail') {
+        $post_thumbnail_id = get_post_thumbnail_id($post_id);
+        if ($post_thumbnail_id) {
+            $post_thumbnail_img = wp_get_attachment_image_src($post_thumbnail_id, 'thumbnail');
+            echo '<img src="' . esc_url($post_thumbnail_img[0]) . '" width="80" />';
+        } else {
+            echo __('No Thumbnail');
+        }
+    }
+}
+
 
 ?>
