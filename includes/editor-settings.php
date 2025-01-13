@@ -382,8 +382,12 @@ function snn_bricks_builder_color_fix_inline_css() {
         ?>
 <script>
 <?php
-// Output the JavaScript variables and unshift color palette
+
+if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
+
 generate_theme_colors_js(); 
+
+}
 ?>
 
 </script>
