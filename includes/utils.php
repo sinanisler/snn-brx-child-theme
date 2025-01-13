@@ -4,6 +4,20 @@
 
 
 
+// WP-Admin Backend Custom JS and CSS in <head>
+function snn_custom_css_utils() { ?>
+<style>
+.form-table th {
+    width: 330px;
+}
+</style>
+<?php }
+add_action('admin_head', 'snn_custom_css_utils');
+
+
+
+
+
 
 
 // Enable JSON lottie file uploads in the Media Library
