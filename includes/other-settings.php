@@ -44,7 +44,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'enqueue_gsap',
-        'Enable GSAP and Lottie',
+        'Enable GSAP and Lottie Element',
         'snn_enqueue_gsap_callback',
         'snn-other-settings',
         'snn_other_settings_section'
