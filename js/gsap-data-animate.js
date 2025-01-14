@@ -91,7 +91,11 @@ window.onload = function () {
             ...(hasTransform ? { force3D: false } : {})
           };
 
-          timeline.to(splitText(element, options), animationProps, index > 0 ? `+=${options.delay || 0}` : 0);
+          timeline.to(
+            splitText(element, options),
+            animationProps,
+            index > 0 ? `+=${options.delay || 0}` : 0
+          );
         });
 
         element._gsapAnimationInstance = timeline;
@@ -169,10 +173,13 @@ window.onload = function () {
         return false;
       }
 
+      const finalStart = parseStartEndValue(options.start, isBodyTrigger ? 'top top' : defaultStart);
+      const finalEnd   = parseStartEndValue(options.end,   isBodyTrigger ? 'bottom bottom' : defaultEnd);
+
       return {
         trigger: isBodyTrigger ? document.body : element,
-        start: options.start || (isBodyTrigger ? 'top top' : defaultStart),
-        end: options.end || (isBodyTrigger ? 'bottom bottom' : defaultEnd),
+        start: finalStart,
+        end: finalEnd,
         scrub: options.scrub === 'true' ? true : parseFloat(options.scrub) || 1,
         pin: options.pin === 'true',
         markers: options.markers === 'true',
@@ -182,6 +189,26 @@ window.onload = function () {
         immediateRender: false,
         animation: gsap.timeline({ paused: true })
       };
+    }
+
+    function parseStartEndValue(value, defaultValue) {
+      if (!value) {
+        return defaultValue;
+      }
+
+      if (/\s/.test(value)) {
+        return value; 
+      }
+
+      if (/^\d+(\.\d+)?(px)?$/i.test(value)) {
+        return 'top+=' + value;
+      }
+
+      if (/^\d+(\.\d+)?%$/.test(value)) {
+        return 'top ' + value;
+      }
+
+      return value;
     }
 
     function splitText(element, options) {
