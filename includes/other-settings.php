@@ -216,7 +216,7 @@ function snn_dashboard_custom_metabox_content_callback() {
     $options = get_option('snn_other_settings');
     $content = isset($options['dashboard_custom_metabox_content']) ? $options['dashboard_custom_metabox_content'] : '';
     ?>
-    <textarea name="snn_other_settings[dashboard_custom_metabox_content]" rows="10" class="large-text" style="max-width:600px"><?php echo esc_textarea($content); ?></textarea>
+    <textarea name="snn_other_settings[dashboard_custom_metabox_content]" rows="5" class="large-text" style="max-width:600px"><?php echo esc_textarea($content); ?></textarea>
     <p>
         Enter the HTML content for the custom dashboard metabox. You can include HTML tags for formatting.
     </p>
