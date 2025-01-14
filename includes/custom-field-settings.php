@@ -422,7 +422,7 @@ function snn_register_dynamic_metaboxes() {
                                 echo '<button type="button" class="remove-repeater-item">Remove</button>';
                                 echo '</div>';
                             }
-                            echo '<button type="button" class="add-repeater-item">Add More</button>';
+                            echo '<button type="button" class="button add-repeater-item">Add More +</button>';
                             echo '</div>';
                         } else {
                             snn_render_field_input($field, $field_value);
