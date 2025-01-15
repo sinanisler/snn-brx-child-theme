@@ -1,6 +1,5 @@
 <?php
 
-
 function snn_add_custom_fields_submenu() {
     add_submenu_page(
         'snn-settings',
@@ -536,7 +535,7 @@ function snn_sanitize_value_by_type($type, $value) {
         case 'media':
             return intval($value);
         case 'textarea':
-            return sanitize_textarea_field($value);
+            return $value;
         case 'number':
             return floatval($value);
         case 'date':
@@ -577,9 +576,21 @@ function snn_render_field_input($field, $value = '', $index = '') {
             echo '<div class="media-uploader">';
             echo '<input type="hidden" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" class="media-url-field" />';
             if ($value) {
-                $image = wp_get_attachment_image_src($value, 'thumbnail');
-                if ($image) {
-                    echo '<img src="' . esc_url($image[0]) . '" class="media-preview" style="max-width: 100px; max-height: 100px;" />';
+                $attachment = get_post($value);
+                if ($attachment) {
+                    $mime_type = get_post_mime_type($attachment);
+                    if (strpos($mime_type, 'image/') === 0) {
+                        $image = wp_get_attachment_image_src($value, 'thumbnail');
+                        if ($image) {
+                            echo '<img src="' . esc_url($image[0]) . '" class="media-preview" style="max-width: 100px; max-height: 100px;" />';
+                        } else {
+                            echo '<img src="" class="media-preview" style="display: none; max-width: 100px; max-height: 100px;" />';
+                        }
+                    } else {
+                        // Determine appropriate Dashicon based on file type
+                        $dashicon = snn_get_dashicon_for_mime($mime_type);
+                        echo '<span class="dashicons ' . esc_attr($dashicon) . ' media-preview" style="font-size: 48px;"></span>';
+                    }
                 } else {
                     echo '<img src="" class="media-preview" style="display: none; max-width: 100px; max-height: 100px;" />';
                 }
@@ -599,6 +610,29 @@ function snn_render_field_input($field, $value = '', $index = '') {
             echo '<input type="text" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
     }
+}
+
+/**
+ * Get the appropriate Dashicon class for a given MIME type.
+ *
+ * @param string $mime_type The MIME type of the file.
+ * @return string The Dashicon class name.
+ */
+function snn_get_dashicon_for_mime($mime_type) {
+    $mime_to_dashicon = [
+        'application/pdf' => 'dashicons-media-document',
+        'application/json' => 'dashicons-editor-code',
+        'application/vnd.ms-excel' => 'dashicons-media-spreadsheet',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'dashicons-media-spreadsheet',
+        'application/msword' => 'dashicons-media-document',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'dashicons-media-document',
+        'text/plain' => 'dashicons-editor-paragraph',
+        'video/mp4' => 'dashicons-video-alt3',
+        'audio/mpeg' => 'dashicons-format-audio',
+        // Add more mappings as needed
+    ];
+
+    return isset($mime_to_dashicon[$mime_type]) ? $mime_to_dashicon[$mime_type] : 'dashicons-media-default';
 }
 
 function snn_output_repeater_field_js() {
@@ -632,7 +666,12 @@ function snn_output_repeater_field_js() {
         gap:10px;
     }
 
-    [data-field-type="media"] .media-uploader img{
+    .media-uploader .media-preview{
+        width:140px !important;
+    }
+
+    [data-field-type="media"] .media-uploader img,
+    [data-field-type="media"] .media-uploader .dashicons {
         aspect-ratio:1;
         object-fit:cover;
     }
@@ -695,7 +734,34 @@ function snn_output_repeater_field_js() {
                 .on('select', function(){
                     var attachment = custom_uploader.state().get('selection').first().toJSON();
                     button.siblings('.media-url-field').val(attachment.id);
-                    button.siblings('.media-preview').attr('src', attachment.url).show();
+                    if (attachment.type === 'image') {
+                        button.siblings('.media-preview').attr('src', attachment.url).show();
+                        button.siblings('.dashicons').remove();
+                    } else {
+                        button.siblings('.media-preview').remove();
+                        // Create a new Dashicon element based on the MIME type
+                        var dashiconClass = '<?php echo esc_js(snn_get_dashicon_for_mime('application/pdf')); ?>'; // Default icon
+                        // Ideally, you would pass the mapping from PHP to JS, but for simplicity, using a default
+                        button.siblings('.media-preview').remove();
+                        var dashicon = $('<span class="dashicons dashicons-media-default media-preview" style="font-size: 48px;"></span>');
+                        // Update dashicon based on attachment.mime
+                        var mimeType = attachment.mime;
+                        var dashiconMap = {
+                            'application/pdf': 'dashicons-media-document',
+                            'application/json': 'dashicons-editor-code',
+                            'application/vnd.ms-excel': 'dashicons-media-spreadsheet',
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'dashicons-media-spreadsheet',
+                            'application/msword': 'dashicons-media-document',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'dashicons-media-document',
+                            'text/plain': 'dashicons-editor-paragraph',
+                            'video/mp4': 'dashicons-video-alt3',
+                            'audio/mpeg': 'dashicons-format-audio',
+                            // Add more mappings as needed
+                        };
+                        var selectedDashicon = dashiconMap[mimeType] || 'dashicons-media-default';
+                        dashicon.removeClass('dashicons-media-default').addClass(selectedDashicon);
+                        button.before(dashicon);
+                    }
                 })
                 .open();
             });
@@ -764,3 +830,5 @@ function snn_save_dynamic_metabox_data($post_id) {
     }
 }
 add_action('save_post', 'snn_save_dynamic_metabox_data');
+
+?>
