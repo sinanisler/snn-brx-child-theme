@@ -325,7 +325,7 @@ function snn_display_thumbnail_column($column, $post_id) {
             $post_thumbnail_img = wp_get_attachment_image_src($post_thumbnail_id, 'thumbnail');
             echo '<img src="' . esc_url($post_thumbnail_img[0]) . '" width="80" />';
         } else {
-            echo __('No Thumbnail');
+            echo __('--');
         }
     }
 }
