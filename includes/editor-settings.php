@@ -251,7 +251,7 @@ function snn_bricks_builder_color_fix_inline_css() {
             
             // Check if the option exists
             if (!$theme_styles) {
-                echo '/* No theme styles found */';
+                echo '';
                 return;
             }
             
@@ -260,7 +260,7 @@ function snn_bricks_builder_color_fix_inline_css() {
         
             // Ensure the data contains the necessary structure
             if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
-                echo '/* No colors found in theme styles */';
+                echo '';
                 return;
             }
         
@@ -392,7 +392,7 @@ function snn_bricks_builder_color_fix_inline_css_head() {
             
             // Check if the option exists
             if (!$theme_styles) {
-                echo '/* No theme styles found */';
+                echo '';
                 return;
             }
             
@@ -401,7 +401,7 @@ function snn_bricks_builder_color_fix_inline_css_head() {
         
             // Ensure the data contains the necessary structure
             if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
-                echo '/* No colors found in theme styles */';
+                echo '';
                 return;
             }
         
