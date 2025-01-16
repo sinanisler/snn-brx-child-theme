@@ -294,7 +294,7 @@ function snn_bricks_builder_color_fix_inline_css() {
             // Start outputting CSS variables
             echo "
 <style>
-/* SNN-BRX Bricks Builder Editor Color Fix Setting  */
+/* SNN-BRX Bricks Builder Editor Theme Styles CSS Colors  */
 :root {\n";
             
             // Loop through the required colors and output them as CSS variables
@@ -453,7 +453,7 @@ function snn_bricks_builder_color_fix_inline_css_head() {
             // Start outputting CSS variables
             echo "
 <style>
-/* SNN-BRX Bricks Builder Editor Color Fix Setting (HEAD) */
+/* SNN-BRX Bricks Builder Editor Theme Styles CSS Colors (HEAD) */
 :root {\n";
             
             // Loop through the required colors and output them as CSS variables
