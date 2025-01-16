@@ -258,15 +258,25 @@ function snn_bricks_builder_color_fix_inline_css() {
             // Unserialize the option to access its data
             $theme_styles_data = maybe_unserialize($theme_styles);
         
-            // Ensure the data contains the necessary structure
-            if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
+            // **Begin: Updated Code to Dynamically Find 'colors'**
+            // Initialize colors as null
+            $colors = null;
+        
+            // Dynamically search for the 'colors' array within any first-level key
+            foreach ($theme_styles_data as $style_key => $style) {
+                if (isset($style['settings']['colors'])) {
+                    $colors = $style['settings']['colors'];
+                    break; // Exit loop once colors are found
+                }
+            }
+        
+            // If colors are not found, exit the function
+            if (!$colors) {
                 echo '';
                 return;
             }
-        
-            // Extract colors
-            $colors = $theme_styles_data['default_styles']['settings']['colors'];
-        
+            // **End: Updated Code**
+
             // List of required colors and their CSS variable mappings
             $color_keys = [
                 'colorPrimary'   => 'bricks-color-primary',
@@ -313,14 +323,24 @@ function snn_bricks_builder_color_fix_inline_css() {
             // Unserialize the theme styles to access its data
             $theme_styles_data = maybe_unserialize($theme_styles);
         
-            // Check for the necessary structure in theme styles
-            if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
-                return;
+            // **Begin: Updated Code to Dynamically Find 'colors'**
+            // Initialize colors as null
+            $colors = null;
+        
+            // Dynamically search for the 'colors' array within any first-level key
+            foreach ($theme_styles_data as $style_key => $style) {
+                if (isset($style['settings']['colors'])) {
+                    $colors = $style['settings']['colors'];
+                    break; // Exit loop once colors are found
+                }
             }
         
-            // Extract the colors
-            $colors = $theme_styles_data['default_styles']['settings']['colors'];
-        
+            // If colors are not found, exit the function
+            if (!$colors) {
+                return;
+            }
+            // **End: Updated Code**
+
             // Mapping of color keys to their CSS variable names
             $color_keys = [
                 'colorPrimary'   => 'bricks-color-primary',
@@ -374,9 +394,7 @@ function snn_bricks_builder_color_fix_inline_css() {
 }
 add_action('wp_footer', 'snn_bricks_builder_color_fix_inline_css', 50);
 
-
-
-
+// Add inline CSS and JS for Bricks Builder Color Fix in <head>
 function snn_bricks_builder_color_fix_inline_css_head() {
     // Ensure this runs only on the frontend
     if (is_admin()) {
@@ -399,15 +417,25 @@ function snn_bricks_builder_color_fix_inline_css_head() {
             // Unserialize the option to access its data
             $theme_styles_data = maybe_unserialize($theme_styles);
         
-            // Ensure the data contains the necessary structure
-            if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
+            // **Begin: Updated Code to Dynamically Find 'colors'**
+            // Initialize colors as null
+            $colors = null;
+        
+            // Dynamically search for the 'colors' array within any first-level key
+            foreach ($theme_styles_data as $style_key => $style) {
+                if (isset($style['settings']['colors'])) {
+                    $colors = $style['settings']['colors'];
+                    break; // Exit loop once colors are found
+                }
+            }
+        
+            // If colors are not found, exit the function
+            if (!$colors) {
                 echo '';
                 return;
             }
-        
-            // Extract colors
-            $colors = $theme_styles_data['default_styles']['settings']['colors'];
-        
+            // **End: Updated Code**
+
             // List of required colors and their CSS variable mappings
             $color_keys = [
                 'colorPrimary'   => 'bricks-color-primary',
@@ -454,14 +482,24 @@ function snn_bricks_builder_color_fix_inline_css_head() {
             // Unserialize the theme styles to access its data
             $theme_styles_data = maybe_unserialize($theme_styles);
         
-            // Check for the necessary structure in theme styles
-            if (!isset($theme_styles_data['default_styles']['settings']['colors'])) {
-                return;
+            // **Begin: Updated Code to Dynamically Find 'colors'**
+            // Initialize colors as null
+            $colors = null;
+        
+            // Dynamically search for the 'colors' array within any first-level key
+            foreach ($theme_styles_data as $style_key => $style) {
+                if (isset($style['settings']['colors'])) {
+                    $colors = $style['settings']['colors'];
+                    break; // Exit loop once colors are found
+                }
             }
         
-            // Extract the colors
-            $colors = $theme_styles_data['default_styles']['settings']['colors'];
-        
+            // If colors are not found, exit the function
+            if (!$colors) {
+                return;
+            }
+            // **End: Updated Code**
+
             // Mapping of color keys to their CSS variable names
             $color_keys = [
                 'colorPrimary'   => 'bricks-color-primary',
@@ -487,10 +525,10 @@ function snn_bricks_builder_color_fix_inline_css_head() {
                 if (isset($colors[$key]['hex'])) {
                     $color_value = esc_js($colors[$key]['hex']); // Sanitize output
                     $color_objects[] = '    {
-        "raw": "var(--' . $js_var . ')", 
-        "id": "snn1' . $index . '", 
-        "name": "' . $js_var . '" 
-    }';
+    "raw": "var(--' . $js_var . ')", 
+    "id": "snn1' . $index . '", 
+    "name": "' . $js_var . '" 
+}';
                     $index++;
                 }
             }
