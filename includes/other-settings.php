@@ -307,6 +307,21 @@ function snn_add_thumbnail_column() {
 }
 add_action('admin_init', 'snn_add_thumbnail_column');
 
+
+function snn_add_thumbnail_column_style() {
+    $options = get_option('snn_other_settings');
+    if (isset($options['enable_thumbnail_column'])) {
+
+        echo '<style>.post_thumbnail img:nth-child(1) { display: none; }</style>';
+
+    } 
+}
+add_action('admin_head', 'snn_add_thumbnail_column_style');
+
+
+
+
+
 function snn_add_thumbnail_column_header($columns) {
     $new_columns = array();
     foreach ($columns as $key => $value) {
