@@ -322,6 +322,7 @@ function snn_register_custom_post_types() {
             'show_in_rest'        => true,
             'menu_position'       => 20,
             'menu_icon'           => 'dashicons-welcome-write-blog',
+            'hierarchical'        => true,
         );
 
         register_post_type( $post_type['slug'], $args );
