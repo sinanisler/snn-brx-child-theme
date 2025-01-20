@@ -125,6 +125,22 @@ function ls_add_custom_login_footer() {
         box-shadow: inset 0px 0px 10px;
     }
 
+    .wpml-login-ls{
+        text-align:left !important;
+    }
+    #wpml-login-ls-form{
+        margin-left:16% !important;
+    }
+
+    @media (max-width: 980px) {
+        .wpml-login-ls{
+            text-align:center !important;
+        }
+        #wpml-login-ls-form{
+            margin-left:auto !important;
+        }
+    }
+
     ';
     if (!empty($background_image_url)) {
         echo '
