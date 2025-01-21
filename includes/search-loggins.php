@@ -226,7 +226,11 @@ function snn_render_search_logs_page() {
                                     <tr>
                                         <td><?php echo esc_html($log->post_title); ?></td>
                                         <td><?php echo esc_html(get_the_date('', $log->ID)); ?></td>
-                                        <td><?php echo esc_html($ip_value); ?></td>
+                                        <td>
+                                        <a href="https://radar.cloudflare.com/ip/<?php echo esc_html($ip_value); ?>" target="_blank">
+                                            <?php echo esc_html($ip_value); ?>
+                                        </a>
+                                        </td>
                                         <td><?php echo esc_html($ua_value); ?></td>
                                     </tr>
                                     <?php
