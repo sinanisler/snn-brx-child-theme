@@ -90,8 +90,8 @@ add_action('init', 'snn_register_redirect_logs_taxonomies');
 function snn_add_301_redirects_page() {
     add_submenu_page(
         'snn-settings',
-        '301 Redirects',
-        '301 Redirects',
+        '301 Redirects & Logs',
+        '301 Redirects & Logs',
         'manage_options',
         'snn-301-redirects',
         'snn_render_301_redirects_page'
