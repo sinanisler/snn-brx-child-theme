@@ -353,7 +353,7 @@ function snn_render_301_redirects_page() {
         // Retrieve the maximum number of logs to keep, default to 100
         $max_logs = get_option('snn_max_logs_to_keep', 100);
 
-        // 2. Query the latest logs based on the maximum setting
+        // Query the latest logs based on the maximum setting
         $recent_logs = get_posts(array(
             'post_type'      => 'snn_redirect_logs',
             'posts_per_page' => $max_logs,
@@ -364,8 +364,7 @@ function snn_render_301_redirects_page() {
         ?>
 
         <div class="wrap">
-            <h2>Recent Redirect Logs (Latest <?php echo esc_html($max_logs); ?>)</h2>
-            
+            <h2>Recent Redirect Logs</h2>
 
             <!-- Maximum Number of Logs to Keep Form -->
             <form method="post" action="" style="margin-bottom: 2em;">
@@ -383,15 +382,12 @@ function snn_render_301_redirects_page() {
                 </p>
             </form>
 
-
             <!-- Clear All Logs Form -->
             <form method="post" action="" style="margin-bottom: 1em;">
                 <?php wp_nonce_field('snn_301_clear_logs_nonce'); ?>
                 <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs" 
                        onclick="return confirm('Are you sure you want to clear all logs? This action cannot be undone.');">
             </form>
-
-
 
             <?php if (!empty($recent_logs)): ?>
                 <table class="widefat fixed striped">
