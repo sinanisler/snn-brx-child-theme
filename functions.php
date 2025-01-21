@@ -22,6 +22,7 @@ require_once get_stylesheet_directory() . '/includes/login-logo-change-url-chang
 require_once get_stylesheet_directory() . '/includes/enqueue-scripts.php';
 require_once get_stylesheet_directory() . '/includes/file-size-column-media.php';
 require_once get_stylesheet_directory() . '/includes/404-logging.php';
+require_once get_stylesheet_directory() . '/includes/search-loggins.php';
 require_once get_stylesheet_directory() . '/includes/301-redirect.php';
 require_once get_stylesheet_directory() . '/includes/smtp-settings.php';
 require_once get_stylesheet_directory() . '/includes/mail-logging.php';
@@ -30,6 +31,8 @@ require_once get_stylesheet_directory() . '/includes/disable-emojis.php';
 require_once get_stylesheet_directory() . '/includes/disable-gravatar.php';
 require_once get_stylesheet_directory() . '/includes/editor-settings.php';
 require_once get_stylesheet_directory() . '/includes/global-classes.php';
+
+
 
 
 // Register Custom Dynamic Tags
