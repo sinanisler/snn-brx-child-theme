@@ -128,7 +128,7 @@ function snn_validate_url($url) {
 
 /**
  * Render the 301 Redirects Admin Page
- * (Added section to display logs & clear them)
+ * (Removed "Daily Redirect Hits" and related chart features)
  */
 function snn_render_301_redirects_page() {
     global $wpdb;
@@ -222,49 +222,6 @@ function snn_render_301_redirects_page() {
         }
     }
 
-    /**
-     * Prepare Data for the Daily Hits Chart from our aggregator logs
-     * We group by the 'redirect_day' taxonomy and sum the 'hit_count' meta.
-     */
-    $chart_labels = array();
-    $chart_data   = array();
-    $daily_sums   = array();
-
-    // 1. Get all aggregator posts of type "snn_redirect_logs"
-    $log_posts = get_posts(array(
-        'post_type'      => 'snn_redirect_logs',
-        'posts_per_page' => -1,
-        'post_status'    => 'publish',
-    ));
-
-    // 2. For each aggregator post, find the day from the "redirect_day" taxonomy and add the meta 'hit_count'
-    foreach ($log_posts as $lp) {
-        $log_id       = $lp->ID;
-        $day_terms    = wp_get_object_terms($log_id, 'redirect_day', array('fields' => 'slugs'));
-        if (empty($day_terms)) {
-            // If no day term assigned (unlikely), skip
-            continue;
-        }
-        // Typically there's just one day slug
-        $day_slug = $day_terms[0];  // e.g. "2025-01-21"
-
-        $hit_count = get_post_meta($log_id, 'hit_count', true);
-        $hit_count = $hit_count ? (int) $hit_count : 0;
-
-        if (!isset($daily_sums[$day_slug])) {
-            $daily_sums[$day_slug] = 0;
-        }
-        $daily_sums[$day_slug] += $hit_count;
-    }
-
-    // 3. Sort by day (ascending)
-    ksort($daily_sums);
-
-    // 4. Prepare for Chart.js
-    foreach ($daily_sums as $day => $sum_hits) {
-        $chart_labels[] = $day;          
-        $chart_data[]   = $sum_hits;     
-    }
     ?>
     <div class="wrap">
         <h1>301 Redirect Rules</h1>
@@ -399,13 +356,97 @@ function snn_render_301_redirects_page() {
             <p>No redirects found.</p>
         <?php endif; ?>
 
-        <!-- Daily Redirect Hits Chart -->
-        <h2>Daily Redirect Hits</h2>
-        <canvas id="redirectsChart" width="400" height="150"></canvas>
+        <!-- REMOVE THE "Daily Redirect Hits" SECTION BELOW -->
+
+        <!-- ADDITIONAL SECTION: SHOW LATEST 100 REDIRECT LOGS + CLEAR BUTTON -->
+        <?php
+        // 1. If "Clear All Logs" is requested, delete all posts of type 'snn_redirect_logs'.
+        if (isset($_POST['clear_all_logs']) && check_admin_referer('snn_301_clear_logs_nonce')) {
+            $all_logs = get_posts(array(
+                'post_type'      => 'snn_redirect_logs',
+                'posts_per_page' => -1,
+                'post_status'    => 'publish'
+            ));
+            if (!empty($all_logs)) {
+                foreach ($all_logs as $log_post) {
+                    wp_delete_post($log_post->ID, true);
+                }
+            }
+            echo '<div class="notice notice-success"><p>All logs have been cleared!</p></div>';
+        }
+
+        // 2. Query the latest 100 logs
+        $recent_logs = get_posts(array(
+            'post_type'      => 'snn_redirect_logs',
+            'posts_per_page' => 100,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'post_status'    => 'publish',
+        ));
+        ?>
+
+        <div class="wrap">
+            <h2>Recent Redirect Logs (Latest 100)</h2>
+            <form method="post" action="" style="margin-bottom: 1em;">
+                <?php wp_nonce_field('snn_301_clear_logs_nonce'); ?>
+                <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs" 
+                       onclick="return confirm('Are you sure you want to clear all logs? This action cannot be undone.');">
+            </form>
+
+            <?php if (!empty($recent_logs)): ?>
+                <table class="widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Requested URL</th>
+                            <th>Redirected URL</th>
+                            <th>Hit Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($recent_logs as $log): ?>
+                            <?php 
+                                // Get the day slug
+                                $day_terms = wp_get_post_terms($log->ID, 'redirect_day', array('fields' => 'slugs'));
+                                $day_slug  = !empty($day_terms) ? $day_terms[0] : 'N/A';
+
+                                // Get the requested_url slug
+                                $req_terms = wp_get_post_terms($log->ID, 'requested_url', array('fields' => 'slugs'));
+                                $req_slug  = !empty($req_terms) ? $req_terms[0] : 'N/A';
+
+                                // Get the redirected_url slug
+                                $redir_terms = wp_get_post_terms($log->ID, 'redirected_url', array('fields' => 'slugs'));
+                                $redir_slug  = !empty($redir_terms) ? $redir_terms[0] : 'N/A';
+
+                                // Hit count
+                                $hit_count = get_post_meta($log->ID, 'hit_count', true);
+                                $hit_count = $hit_count ? (int)$hit_count : 0;
+                            ?>
+                            <tr>
+                                <td><?php echo esc_html($day_slug); ?></td>
+                                <td><?php echo esc_html($req_slug); ?></td>
+                                <td><?php echo esc_html($redir_slug); ?></td>
+                                <td><?php echo esc_html($hit_count); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>No recent logs found.</p>
+            <?php endif; ?>
+        </div>
     </div>
 
-    <!-- Include Chart.js from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Remove the following Chart.js related scripts and HTML -->
+    <?php
+    // Removed:
+    // 1. The data preparation for the chart.
+    // 2. The <h2>Daily Redirect Hits</h2> and <canvas> element.
+    // 3. The inclusion of Chart.js via CDN.
+    // 4. The JavaScript code initializing the chart.
+    ?>
+
+    <!-- Retain the Edit functionality scripts -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Hide all edit forms
@@ -450,125 +491,8 @@ function snn_render_301_redirects_page() {
                 }
             });
         });
-
-        // Create the Daily Hits Chart
-        const ctx = document.getElementById('redirectsChart').getContext('2d');
-        const redirectsChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: <?php echo json_encode($chart_labels); ?>,
-                datasets: [{
-                    label: '# of Redirects',
-                    data: <?php echo json_encode($chart_data); ?>,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Number of Redirects'
-                        },
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        });
     });
     </script>
-    <?php
-
-    /**
-     * ADDITIONAL SECTION: SHOW LATEST 100 REDIRECT LOGS + CLEAR BUTTON
-     */
-    // 1. If "Clear All Logs" is requested, delete all posts of type 'snn_redirect_logs'.
-    if (isset($_POST['clear_all_logs']) && check_admin_referer('snn_301_clear_logs_nonce')) {
-        $all_logs = get_posts(array(
-            'post_type'      => 'snn_redirect_logs',
-            'posts_per_page' => -1,
-            'post_status'    => 'publish'
-        ));
-        if (!empty($all_logs)) {
-            foreach ($all_logs as $log_post) {
-                wp_delete_post($log_post->ID, true);
-            }
-        }
-        echo '<div class="notice notice-success"><p>All logs have been cleared!</p></div>';
-    }
-
-    // 2. Query the latest 100 logs
-    $recent_logs = get_posts(array(
-        'post_type'      => 'snn_redirect_logs',
-        'posts_per_page' => 100,
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'post_status'    => 'publish',
-    ));
-
-    ?>
-    <div class="wrap">
-        <h2>Recent Redirect Logs (Latest 100)</h2>
-        <form method="post" action="" style="margin-bottom: 1em;">
-            <?php wp_nonce_field('snn_301_clear_logs_nonce'); ?>
-            <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs" 
-                   onclick="return confirm('Are you sure you want to clear all logs? This action cannot be undone.');">
-        </form>
-
-        <?php if (!empty($recent_logs)): ?>
-            <table class="widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th>Day</th>
-                        <th>Requested URL</th>
-                        <th>Redirected URL</th>
-                        <th>Hit Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($recent_logs as $log): ?>
-                        <?php 
-                            // Get the day slug
-                            $day_terms = wp_get_object_terms($log->ID, 'redirect_day', array('fields' => 'slugs'));
-                            $day_slug  = !empty($day_terms) ? $day_terms[0] : 'N/A';
-
-                            // Get the requested_url slug
-                            $req_terms = wp_get_object_terms($log->ID, 'requested_url', array('fields' => 'slugs'));
-                            $req_slug  = !empty($req_terms) ? $req_terms[0] : 'N/A';
-
-                            // Get the redirected_url slug
-                            $redir_terms = wp_get_object_terms($log->ID, 'redirected_url', array('fields' => 'slugs'));
-                            $redir_slug  = !empty($redir_terms) ? $redir_terms[0] : 'N/A';
-
-                            // Hit count
-                            $hit_count = get_post_meta($log->ID, 'hit_count', true);
-                            $hit_count = $hit_count ? (int)$hit_count : 0;
-                        ?>
-                        <tr>
-                            <td><?php echo esc_html($day_slug); ?></td>
-                            <td><?php echo esc_html($req_slug); ?></td>
-                            <td><?php echo esc_html($redir_slug); ?></td>
-                            <td><?php echo esc_html($hit_count); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p>No recent logs found.</p>
-        <?php endif; ?>
-    </div>
     <?php
 }
 
