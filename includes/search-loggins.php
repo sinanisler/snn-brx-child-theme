@@ -20,7 +20,7 @@ function snn_register_search_logs_post_type() {
             'singular_name' => 'Search Log',
         ),
         'public'  => false,
-        'show_ui' => true,
+        'show_ui' => false,
         'supports' => array('title'),
     ));
 }
@@ -35,7 +35,7 @@ function snn_register_search_logs_taxonomies() {
         ),
         'public'       => false,
         'hierarchical' => false,
-        'show_ui'      => true,
+        'show_ui'      => false,
     ));
 
     register_taxonomy('snn_user_agent', 'snn_search_logs', array(
@@ -45,7 +45,7 @@ function snn_register_search_logs_taxonomies() {
         ),
         'public'       => false,
         'hierarchical' => false,
-        'show_ui'      => true,
+        'show_ui'      => false,
     ));
 
     register_taxonomy('snn_search_count', 'snn_search_logs', array(
