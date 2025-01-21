@@ -210,6 +210,15 @@ function snn_render_custom_post_types_page() {
              * Handles removal and reordering of custom post type rows.
              */
             fieldContainer.addEventListener('click', function(event) {
+
+                if (event.target.classList.contains('remove-post-type')) {
+                    if (confirm('Are you sure you want to remove this post type?')) {
+                        event.target.closest('.custom-post-type-row').remove();
+                        updateFieldIndexes();
+                    }
+                }
+
+
                 if (event.target.classList.contains('remove-post-type')) {
                     event.target.closest('.custom-post-type-row').remove();
                     updateFieldIndexes();
