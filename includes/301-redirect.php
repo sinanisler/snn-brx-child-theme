@@ -3,6 +3,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Register 301 Redirects Post Type
+ */
 function snn_register_301_redirects_post_type() {
     register_post_type(
         'snn_301_redirects',
@@ -18,6 +21,10 @@ function snn_register_301_redirects_post_type() {
 }
 add_action('init', 'snn_register_301_redirects_post_type');
 
+/**
+ * Register Redirect Logs Post Type
+ * Modified to remove taxonomies and support necessary fields
+ */
 function snn_register_redirect_logs_post_type() {
     register_post_type(
         'snn_redirect_logs',
@@ -27,59 +34,17 @@ function snn_register_redirect_logs_post_type() {
             'publicly_queryable' => false,
             'rewrite'            => false,
             'label'              => 'SNN Redirect Logs',
-            'supports'           => array( 'title', 'author', 'custom-fields' )
+            'supports'           => array( 'title', 'custom-fields' )
         )
     );
 }
 add_action('init', 'snn_register_redirect_logs_post_type');
 
 /**
- * Register Taxonomies for Logging
- * - redirect_day:  The date (YYYY-MM-DD)
- * - requested_url: The original requested URL/path
- * - redirected_url: The final redirect URL
+ * Removed Taxonomies for Logging
+ * Since each log is individual, taxonomies are no longer necessary
  */
-function snn_register_redirect_logs_taxonomies() {
-    // Taxonomy for the Day of the redirect
-    register_taxonomy(
-        'redirect_day',
-        'snn_redirect_logs',
-        array(
-            'label'        => 'Redirect Day',
-            'hierarchical' => false,
-            'public'       => false,
-            'show_ui'      => false,
-            'rewrite'      => false,
-        )
-    );
-
-    // Taxonomy for Requested URL
-    register_taxonomy(
-        'requested_url',
-        'snn_redirect_logs',
-        array(
-            'label'        => 'Requested URL',
-            'hierarchical' => false,
-            'public'       => false,
-            'show_ui'      => false,
-            'rewrite'      => false,
-        )
-    );
-
-    // Taxonomy for Redirected URL
-    register_taxonomy(
-        'redirected_url',
-        'snn_redirect_logs',
-        array(
-            'label'        => 'Redirected URL',
-            'hierarchical' => false,
-            'public'       => false,
-            'show_ui'      => false,
-            'rewrite'      => false,
-        )
-    );
-}
-add_action('init', 'snn_register_redirect_logs_taxonomies');
+// Removed the entire snn_register_redirect_logs_taxonomies function and its hook
 
 /**
  * Add 301 Redirects Submenu Page (Unchanged)
@@ -128,7 +93,7 @@ function snn_validate_url($url) {
 
 /**
  * Render the 301 Redirects Admin Page
- * (Removed "Daily Redirect Hits" and related chart features)
+ * Modified the Recent Redirect Logs section
  */
 function snn_render_301_redirects_page() {
     global $wpdb;
@@ -356,8 +321,6 @@ function snn_render_301_redirects_page() {
             <p>No redirects found.</p>
         <?php endif; ?>
 
-        <!-- REMOVE THE "Daily Redirect Hits" SECTION BELOW -->
-
         <!-- ADDITIONAL SECTION: SHOW LATEST 100 REDIRECT LOGS + CLEAR BUTTON -->
         <?php
         // 1. If "Clear All Logs" is requested, delete all posts of type 'snn_redirect_logs'.
@@ -397,36 +360,34 @@ function snn_render_301_redirects_page() {
                 <table class="widefat fixed striped">
                     <thead>
                         <tr>
-                            <th>Day</th>
+                            <th>Date</th>
                             <th>Requested URL</th>
                             <th>Redirected URL</th>
-                            <th>Hit Count</th>
+                            <th>IP Address</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($recent_logs as $log): ?>
                             <?php 
-                                // Get the day slug
-                                $day_terms = wp_get_post_terms($log->ID, 'redirect_day', array('fields' => 'slugs'));
-                                $day_slug  = !empty($day_terms) ? $day_terms[0] : 'N/A';
-
-                                // Get the requested_url slug
-                                $req_terms = wp_get_post_terms($log->ID, 'requested_url', array('fields' => 'slugs'));
-                                $req_slug  = !empty($req_terms) ? $req_terms[0] : 'N/A';
-
-                                // Get the redirected_url slug
-                                $redir_terms = wp_get_post_terms($log->ID, 'redirected_url', array('fields' => 'slugs'));
-                                $redir_slug  = !empty($redir_terms) ? $redir_terms[0] : 'N/A';
-
-                                // Hit count
-                                $hit_count = get_post_meta($log->ID, 'hit_count', true);
-                                $hit_count = $hit_count ? (int)$hit_count : 0;
+                                // Get log meta
+                                $redirect_from = get_post_meta($log->ID, 'redirect_from', true);
+                                $redirect_to   = get_post_meta($log->ID, 'redirect_to', true);
+                                $created_date  = get_post_meta($log->ID, 'created_date', true);
+                                $ip_address    = get_post_meta($log->ID, 'ip_address', true);
                             ?>
                             <tr>
-                                <td><?php echo esc_html($day_slug); ?></td>
-                                <td><?php echo esc_html($req_slug); ?></td>
-                                <td><?php echo esc_html($redir_slug); ?></td>
-                                <td><?php echo esc_html($hit_count); ?></td>
+                                <td><?php echo esc_html($created_date); ?></td>
+                                <td>
+                                    <a href="<?php echo esc_url(home_url($redirect_from)); ?>" target="_blank">
+                                        <?php echo esc_html($redirect_from); ?>
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="<?php echo esc_url($redirect_to); ?>" target="_blank">
+                                        <?php echo esc_html($redirect_to); ?>
+                                    </a>
+                                </td>
+                                <td><?php echo esc_html($ip_address); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -436,15 +397,6 @@ function snn_render_301_redirects_page() {
             <?php endif; ?>
         </div>
     </div>
-
-    <!-- Remove the following Chart.js related scripts and HTML -->
-    <?php
-    // Removed:
-    // 1. The data preparation for the chart.
-    // 2. The <h2>Daily Redirect Hits</h2> and <canvas> element.
-    // 3. The inclusion of Chart.js via CDN.
-    // 4. The JavaScript code initializing the chart.
-    ?>
 
     <!-- Retain the Edit functionality scripts -->
     <script>
@@ -531,7 +483,7 @@ function snn_handle_301_redirects() {
             $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
             update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
 
-            // Log this redirect using our aggregator approach
+            // Log this redirect individually
             snn_log_redirect($redirect_from, $redirect_to);
 
             // Perform the 301 redirect
@@ -544,87 +496,24 @@ function snn_handle_301_redirects() {
 add_action('template_redirect', 'snn_handle_301_redirects');
 
 /**
- * Log Each Redirect in an Aggregated Post
+ * Log Each Redirect Individually
  */
 function snn_log_redirect($redirect_from, $redirect_to) {
-    // Current date in YYYY-MM-DD
-    $today_slug = gmdate('Y-m-d');
-
-    // Attempt to find an existing aggregator post that has:
-    // - Taxonomy "redirect_day" = $today_slug
-    // - Taxonomy "requested_url" = $redirect_from
-    // - Taxonomy "redirected_url" = $redirect_to
-    $existing = snn_find_aggregator_post($today_slug, $redirect_from, $redirect_to);
-
-    if (!$existing) {
-        // Create a new aggregator post
-        $new_post_id = wp_insert_post(array(
-            'post_type'   => 'snn_redirect_logs',
-            'post_title'  => $redirect_from . ' -> ' . $redirect_to . ' @ ' . $today_slug,
-            'post_status' => 'publish',
-            'post_author' => 0, // or get_current_user_id() if you prefer
-        ));
-
-        if ($new_post_id) {
-            // Assign taxonomies
-            wp_set_object_terms($new_post_id, $today_slug, 'redirect_day', false);
-            wp_set_object_terms($new_post_id, $redirect_from, 'requested_url', false);
-            wp_set_object_terms($new_post_id, $redirect_to, 'redirected_url', false);
-
-            // Initialize meta
-            update_post_meta($new_post_id, 'hit_count', 1);
-
-            // Initialize IP array with the first IP
-            $ip_list = array(snn_get_client_ip());
-            update_post_meta($new_post_id, 'ips', wp_json_encode($ip_list, JSON_UNESCAPED_SLASHES));
-        }
-    } else {
-        // We have an existing aggregator post. Just increment and append IP.
-        $current_count = get_post_meta($existing->ID, 'hit_count', true);
-        $current_count = $current_count ? (int) $current_count : 0;
-        update_post_meta($existing->ID, 'hit_count', $current_count + 1);
-
-        // Append IP
-        $stored_ips = get_post_meta($existing->ID, 'ips', true);
-        $ip_list    = $stored_ips ? json_decode($stored_ips, true) : array();
-        if (!is_array($ip_list)) {
-            $ip_list = array();
-        }
-        $ip_list[] = snn_get_client_ip();
-        update_post_meta($existing->ID, 'ips', wp_json_encode($ip_list, JSON_UNESCAPED_SLASHES));
-    }
-}
-
-/**
- * Helper to find existing aggregator post by day + from + to
- */
-function snn_find_aggregator_post($day_slug, $redirect_from, $redirect_to) {
-    $args = array(
-        'post_type'      => 'snn_redirect_logs',
-        'posts_per_page' => 1,
-        'tax_query'      => array(
-            'relation' => 'AND',
-            array(
-                'taxonomy' => 'redirect_day',
-                'field'    => 'slug',
-                'terms'    => $day_slug,
-            ),
-            array(
-                'taxonomy' => 'requested_url',
-                'field'    => 'name',
-                'terms'    => $redirect_from,
-            ),
-            array(
-                'taxonomy' => 'redirected_url',
-                'field'    => 'name',
-                'terms'    => $redirect_to,
-            ),
-        ),
-        'post_status'    => 'publish',
+    $log_post = array(
+        'post_type'   => 'snn_redirect_logs',
+        'post_title'  => 'Redirect from ' . $redirect_from . ' to ' . $redirect_to,
+        'post_status' => 'publish',
+        'post_author' => 0, // System-generated
     );
 
-    $posts = get_posts($args);
-    return $posts ? $posts[0] : null;
+    $log_id = wp_insert_post($log_post);
+
+    if ($log_id) {
+        update_post_meta($log_id, 'redirect_from', $redirect_from);
+        update_post_meta($log_id, 'redirect_to', $redirect_to);
+        update_post_meta($log_id, 'created_date', current_time('mysql'));
+        update_post_meta($log_id, 'ip_address', snn_get_client_ip());
+    }
 }
 
 /**
@@ -645,12 +534,12 @@ function snn_get_client_ip() {
 }
 
 /**
- * Activation Hook: Register Post Types/Taxonomies and Flush Rewrite
+ * Activation Hook: Register Post Types/Flush Rewrite
  */
 function snn_activate_301_redirects() {
     snn_register_301_redirects_post_type();
     snn_register_redirect_logs_post_type();
-    snn_register_redirect_logs_taxonomies();
+    // Removed snn_register_redirect_logs_taxonomies();
     flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'snn_activate_301_redirects');
@@ -662,3 +551,4 @@ function snn_deactivate_301_redirects() {
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'snn_deactivate_301_redirects');
+?>
