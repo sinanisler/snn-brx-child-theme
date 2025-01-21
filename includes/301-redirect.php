@@ -284,7 +284,7 @@ function snn_render_301_redirects_page() {
                             </button>
                         </td>
                     </tr>
-
+                    <tr></tr>
                     <!-- Inline Edit Form Row -->
                     <tr id="edit-form-row-<?php echo esc_attr($redirect_id); ?>" style="display: none;">
                         <td colspan="5">
@@ -388,7 +388,11 @@ function snn_render_301_redirects_page() {
                                         <?php echo esc_html($redirect_to); ?>
                                     </a>
                                 </td>
-                                <td><?php echo esc_html($ip_address); ?></td>
+                                <td>
+                                    <a href="https://radar.cloudflare.com/ip/<?php echo esc_html(preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/', $ip_address, $matches) ? $matches[1] : ''); ?>" target="_blank" class="ip-out-cloudflare">
+                                        <?php echo esc_html($ip_address); ?>
+                                    </a>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

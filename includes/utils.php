@@ -7,8 +7,11 @@
 // WP-Admin Backend Custom JS and CSS in <head>
 function snn_custom_css_utils() { ?>
 <style>
-.form-table th {
-    width: 330px;
+#toplevel_page_snn-settings li a{
+    line-height:1.1 !important;
+}
+#toplevel_page_snn-settings li a:hover{
+    font-weight:700
 }
 </style>
 <?php }
