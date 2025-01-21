@@ -131,7 +131,7 @@ function snn_validate_url($url) {
 
 /**
  * Render the 301 Redirects Admin Page
- * (Modified to arrange Recent Redirect Logs and Daily Redirect Hits side by side)
+ * (Modified to add Time Range Filters for the Chart)
  */
 function snn_render_301_redirects_page() {
     global $wpdb;
@@ -226,30 +226,76 @@ function snn_render_301_redirects_page() {
     }
 
     /**
+     * Handle Time Range Selection
+     * Default Time Range: Last 30 Days
+     */
+    $allowed_ranges = array(
+        '7_days'   => 'Last 7 Days',
+        '30_days'  => 'Last 30 Days',
+        '90_days'  => 'Last 90 Days',
+        '1_year'   => 'Last 1 Year',
+        'all_time' => 'All Time'
+    );
+
+    $selected_range = isset($_GET['time_range']) && array_key_exists($_GET['time_range'], $allowed_ranges) ? $_GET['time_range'] : '30_days';
+
+    /**
      * Prepare Data for the Daily Hits Chart from our aggregator logs
-     * We group by the 'redirect_day' taxonomy and sum the 'hit_count' meta.
+     * Now with Time Range Filters
      */
     $chart_labels = array();
     $chart_data   = array();
     $daily_sums   = array();
 
-    // 1. Get all aggregator posts of type "snn_redirect_logs"
+    // Determine Date Range Based on Selected Time Range
+    $current_date = current_time('Y-m-d');
+    switch ($selected_range) {
+        case '7_days':
+            $start_date = date('Y-m-d', strtotime('-7 days', strtotime($current_date)));
+            break;
+        case '30_days':
+            $start_date = date('Y-m-d', strtotime('-30 days', strtotime($current_date)));
+            break;
+        case '90_days':
+            $start_date = date('Y-m-d', strtotime('-90 days', strtotime($current_date)));
+            break;
+        case '1_year':
+            $start_date = date('Y-m-d', strtotime('-1 year', strtotime($current_date)));
+            break;
+        case 'all_time':
+        default:
+            $start_date = '0000-00-00';
+            break;
+    }
+
+    // Fetch Aggregated Data Based on Date Range
     $log_posts = get_posts(array(
         'post_type'      => 'snn_redirect_logs',
         'posts_per_page' => -1,
         'post_status'    => 'publish',
+        'tax_query'      => array(
+            array(
+                'taxonomy' => 'redirect_day',
+                'field'    => 'slug',
+                'terms'    => $start_date,
+                'operator' => '>=',
+            ),
+        ),
     ));
 
-    // 2. For each aggregator post, find the day from the "redirect_day" taxonomy and add the meta 'hit_count'
+    // Process Each Log Post
     foreach ($log_posts as $lp) {
-        $log_id       = $lp->ID;
-        $day_terms    = wp_get_object_terms($log_id, 'redirect_day', array('fields' => 'slugs'));
+        $log_id    = $lp->ID;
+        $day_terms = wp_get_object_terms($log_id, 'redirect_day', array('fields' => 'slugs'));
         if (empty($day_terms)) {
-            // If no day term assigned (unlikely), skip
             continue;
         }
-        // Typically there's just one day slug
-        $day_slug = $day_terms[0];  // e.g. "2025-01-21"
+        $day_slug = $day_terms[0]; // e.g., "2025-01-21"
+
+        // Check if the day is within the selected range
+        if ($day_slug < $start_date && $selected_range !== 'all_time') {
+            continue;
+        }
 
         $hit_count = get_post_meta($log_id, 'hit_count', true);
         $hit_count = $hit_count ? (int) $hit_count : 0;
@@ -260,14 +306,15 @@ function snn_render_301_redirects_page() {
         $daily_sums[$day_slug] += $hit_count;
     }
 
-    // 3. Sort by day (ascending)
+    // Sort by day (ascending)
     ksort($daily_sums);
 
-    // 4. Prepare for Chart.js
+    // Prepare for Chart.js
     foreach ($daily_sums as $day => $sum_hits) {
-        $chart_labels[] = $day;          
-        $chart_data[]   = $sum_hits;     
+        $chart_labels[] = $day;
+        $chart_data[]   = $sum_hits;
     }
+
     ?>
     <div class="wrap">
         <h1>301 Redirect Rules</h1>
@@ -288,6 +335,15 @@ function snn_render_301_redirects_page() {
                 .snn-columns {
                     flex-direction: column;
                 }
+            }
+            /* Additional styling for Time Range Selector */
+            .time-range-selector {
+                margin-bottom: 20px;
+            }
+            .time-range-selector form {
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
         </style>
         <div class="postbox">
@@ -495,9 +551,32 @@ function snn_render_301_redirects_page() {
                 <?php endif; ?>
             </div>
 
-            <!-- Right Column: Daily Redirect Hits Chart -->
+            <!-- Right Column: Daily Redirect Hits Chart with Time Range Filters -->
             <div class="snn-column">
-                <h2>Daily Redirect Hits</h2>
+                <h2>Redirect Statistics</h2>
+
+                <!-- Time Range Selector -->
+                <div class="time-range-selector">
+                    <form method="get" action="">
+                        <label for="time_range">Select Time Range:</label>
+                        <select name="time_range" id="time_range" onchange="this.form.submit()">
+                            <?php foreach ($allowed_ranges as $range_key => $range_label): ?>
+                                <option value="<?php echo esc_attr($range_key); ?>" <?php selected($selected_range, $range_key); ?>>
+                                    <?php echo esc_html($range_label); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php
+                            // Preserve other GET parameters if any
+                            foreach ($_GET as $key => $value) {
+                                if ($key !== 'time_range') {
+                                    echo '<input type="hidden" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '">';
+                                }
+                            }
+                        ?>
+                    </form>
+                </div>
+
                 <canvas id="redirectsChart" width="400" height="150"></canvas>
             </div>
         </div>
@@ -571,6 +650,10 @@ function snn_render_301_redirects_page() {
                         title: {
                             display: true,
                             text: 'Date'
+                        },
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 20
                         }
                     },
                     y: {
@@ -582,6 +665,15 @@ function snn_render_301_redirects_page() {
                         ticks: {
                             precision: 0
                         }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    legend: {
+                        display: false
                     }
                 }
             }
