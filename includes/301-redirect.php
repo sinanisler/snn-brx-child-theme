@@ -3,9 +3,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-/**
- * Register Custom Post Types for 301 Redirects and Redirect Logs
- */
 function snn_register_301_redirects_post_type() {
     register_post_type(
         'snn_301_redirects',
@@ -90,8 +87,8 @@ add_action('init', 'snn_register_redirect_logs_taxonomies');
 function snn_add_301_redirects_page() {
     add_submenu_page(
         'snn-settings',
-        '301 Redirects & Logs',
-        '301 Redirects & Logs',
+        '301 Redirects',
+        '301 Redirects',
         'manage_options',
         'snn-301-redirects',
         'snn_render_301_redirects_page'
@@ -131,7 +128,7 @@ function snn_validate_url($url) {
 
 /**
  * Render the 301 Redirects Admin Page
- * (Modified to add Time Range Filters for the Chart)
+ * (Added section to display logs & clear them)
  */
 function snn_render_301_redirects_page() {
     global $wpdb;
@@ -226,76 +223,30 @@ function snn_render_301_redirects_page() {
     }
 
     /**
-     * Handle Time Range Selection
-     * Default Time Range: Last 30 Days
-     */
-    $allowed_ranges = array(
-        '7_days'   => 'Last 7 Days',
-        '30_days'  => 'Last 30 Days',
-        '90_days'  => 'Last 90 Days',
-        '1_year'   => 'Last 1 Year',
-        'all_time' => 'All Time'
-    );
-
-    $selected_range = isset($_GET['time_range']) && array_key_exists($_GET['time_range'], $allowed_ranges) ? $_GET['time_range'] : '30_days';
-
-    /**
      * Prepare Data for the Daily Hits Chart from our aggregator logs
-     * Now with Time Range Filters
+     * We group by the 'redirect_day' taxonomy and sum the 'hit_count' meta.
      */
     $chart_labels = array();
     $chart_data   = array();
     $daily_sums   = array();
 
-    // Determine Date Range Based on Selected Time Range
-    $current_date = current_time('Y-m-d');
-    switch ($selected_range) {
-        case '7_days':
-            $start_date = date('Y-m-d', strtotime('-7 days', strtotime($current_date)));
-            break;
-        case '30_days':
-            $start_date = date('Y-m-d', strtotime('-30 days', strtotime($current_date)));
-            break;
-        case '90_days':
-            $start_date = date('Y-m-d', strtotime('-90 days', strtotime($current_date)));
-            break;
-        case '1_year':
-            $start_date = date('Y-m-d', strtotime('-1 year', strtotime($current_date)));
-            break;
-        case 'all_time':
-        default:
-            $start_date = '0000-00-00';
-            break;
-    }
-
-    // Fetch Aggregated Data Based on Date Range
+    // 1. Get all aggregator posts of type "snn_redirect_logs"
     $log_posts = get_posts(array(
         'post_type'      => 'snn_redirect_logs',
         'posts_per_page' => -1,
         'post_status'    => 'publish',
-        'tax_query'      => array(
-            array(
-                'taxonomy' => 'redirect_day',
-                'field'    => 'slug',
-                'terms'    => $start_date,
-                'operator' => '>=',
-            ),
-        ),
     ));
 
-    // Process Each Log Post
+    // 2. For each aggregator post, find the day from the "redirect_day" taxonomy and add the meta 'hit_count'
     foreach ($log_posts as $lp) {
-        $log_id    = $lp->ID;
-        $day_terms = wp_get_object_terms($log_id, 'redirect_day', array('fields' => 'slugs'));
+        $log_id       = $lp->ID;
+        $day_terms    = wp_get_object_terms($log_id, 'redirect_day', array('fields' => 'slugs'));
         if (empty($day_terms)) {
+            // If no day term assigned (unlikely), skip
             continue;
         }
-        $day_slug = $day_terms[0]; // e.g., "2025-01-21"
-
-        // Check if the day is within the selected range
-        if ($day_slug < $start_date && $selected_range !== 'all_time') {
-            continue;
-        }
+        // Typically there's just one day slug
+        $day_slug = $day_terms[0];  // e.g. "2025-01-21"
 
         $hit_count = get_post_meta($log_id, 'hit_count', true);
         $hit_count = $hit_count ? (int) $hit_count : 0;
@@ -306,15 +257,14 @@ function snn_render_301_redirects_page() {
         $daily_sums[$day_slug] += $hit_count;
     }
 
-    // Sort by day (ascending)
+    // 3. Sort by day (ascending)
     ksort($daily_sums);
 
-    // Prepare for Chart.js
+    // 4. Prepare for Chart.js
     foreach ($daily_sums as $day => $sum_hits) {
-        $chart_labels[] = $day;
-        $chart_data[]   = $sum_hits;
+        $chart_labels[] = $day;          
+        $chart_data[]   = $sum_hits;     
     }
-
     ?>
     <div class="wrap">
         <h1>301 Redirect Rules</h1>
@@ -322,29 +272,6 @@ function snn_render_301_redirects_page() {
         <!-- Form to Add a New Redirect -->
         <style>
             .inside , .submit{padding-bottom:0 !important}
-            .snn-columns {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 20px;
-            }
-            .snn-column {
-                flex: 1;
-                min-width: 300px;
-            }
-            @media (max-width: 800px) {
-                .snn-columns {
-                    flex-direction: column;
-                }
-            }
-            /* Additional styling for Time Range Selector */
-            .time-range-selector {
-                margin-bottom: 20px;
-            }
-            .time-range-selector form {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
         </style>
         <div class="postbox">
             <div class="inside">
@@ -472,114 +399,9 @@ function snn_render_301_redirects_page() {
             <p>No redirects found.</p>
         <?php endif; ?>
 
-        <!-- Container for Recent Redirect Logs and Daily Redirect Hits Chart -->
-        <div class="snn-columns" style="margin-top: 40px;">
-            <!-- Left Column: Recent Redirect Logs -->
-            <div class="snn-column">
-                <h2>Recent Redirect Logs (Latest 100)</h2>
-                <form method="post" action="" style="margin-bottom: 1em;">
-                    <?php wp_nonce_field('snn_301_clear_logs_nonce'); ?>
-                    <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs" 
-                           onclick="return confirm('Are you sure you want to clear all logs? This action cannot be undone.');">
-                </form>
-
-                <?php
-                if (isset($_POST['clear_all_logs']) && check_admin_referer('snn_301_clear_logs_nonce')) {
-                    $all_logs = get_posts(array(
-                        'post_type'      => 'snn_redirect_logs',
-                        'posts_per_page' => -1,
-                        'post_status'    => 'publish'
-                    ));
-                    if (!empty($all_logs)) {
-                        foreach ($all_logs as $log_post) {
-                            wp_delete_post($log_post->ID, true);
-                        }
-                    }
-                    echo '<div class="notice notice-success"><p>All logs have been cleared!</p></div>';
-                }
-
-                // Query the latest 100 logs
-                $recent_logs = get_posts(array(
-                    'post_type'      => 'snn_redirect_logs',
-                    'posts_per_page' => 100,
-                    'orderby'        => 'date',
-                    'order'          => 'DESC',
-                    'post_status'    => 'publish',
-                ));
-                ?>
-
-                <?php if (!empty($recent_logs)): ?>
-                    <table class="widefat fixed striped">
-                        <thead>
-                            <tr>
-                                <th>Day</th>
-                                <th>Requested URL</th>
-                                <th>Redirected URL</th>
-                                <th>Hit Count</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($recent_logs as $log): ?>
-                                <?php 
-                                    // Get the day slug
-                                    $day_terms = wp_get_object_terms($log->ID, 'redirect_day', array('fields' => 'slugs'));
-                                    $day_slug  = !empty($day_terms) ? $day_terms[0] : 'N/A';
-
-                                    // Get the requested_url slug
-                                    $req_terms = wp_get_object_terms($log->ID, 'requested_url', array('fields' => 'slugs'));
-                                    $req_slug  = !empty($req_terms) ? $req_terms[0] : 'N/A';
-
-                                    // Get the redirected_url slug
-                                    $redir_terms = wp_get_object_terms($log->ID, 'redirected_url', array('fields' => 'slugs'));
-                                    $redir_slug  = !empty($redir_terms) ? $redir_terms[0] : 'N/A';
-
-                                    // Hit count
-                                    $hit_count = get_post_meta($log->ID, 'hit_count', true);
-                                    $hit_count = $hit_count ? (int)$hit_count : 0;
-                                ?>
-                                <tr>
-                                    <td><?php echo esc_html($day_slug); ?></td>
-                                    <td><?php echo esc_html($req_slug); ?></td>
-                                    <td><?php echo esc_html($redir_slug); ?></td>
-                                    <td><?php echo esc_html($hit_count); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php else: ?>
-                    <p>No recent logs found.</p>
-                <?php endif; ?>
-            </div>
-
-            <!-- Right Column: Daily Redirect Hits Chart with Time Range Filters -->
-            <div class="snn-column">
-                <h2>Redirect Statistics</h2>
-
-                <!-- Time Range Selector -->
-                <div class="time-range-selector">
-                    <form method="get" action="">
-                        <label for="time_range">Select Time Range:</label>
-                        <select name="time_range" id="time_range" onchange="this.form.submit()">
-                            <?php foreach ($allowed_ranges as $range_key => $range_label): ?>
-                                <option value="<?php echo esc_attr($range_key); ?>" <?php selected($selected_range, $range_key); ?>>
-                                    <?php echo esc_html($range_label); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <?php
-                            // Preserve other GET parameters if any
-                            foreach ($_GET as $key => $value) {
-                                if ($key !== 'time_range') {
-                                    echo '<input type="hidden" name="' . esc_attr($key) . '" value="' . esc_attr($value) . '">';
-                                }
-                            }
-                        ?>
-                    </form>
-                </div>
-
-                <canvas id="redirectsChart" width="400" height="150"></canvas>
-            </div>
-        </div>
+        <!-- Daily Redirect Hits Chart -->
+        <h2>Daily Redirect Hits</h2>
+        <canvas id="redirectsChart" width="400" height="150"></canvas>
     </div>
 
     <!-- Include Chart.js from CDN -->
@@ -650,10 +472,6 @@ function snn_render_301_redirects_page() {
                         title: {
                             display: true,
                             text: 'Date'
-                        },
-                        ticks: {
-                            autoSkip: true,
-                            maxTicksLimit: 20
                         }
                     },
                     y: {
@@ -666,15 +484,6 @@ function snn_render_301_redirects_page() {
                             precision: 0
                         }
                     }
-                },
-                plugins: {
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    legend: {
-                        display: false
-                    }
                 }
             }
         });
@@ -683,170 +492,249 @@ function snn_render_301_redirects_page() {
     <?php
 
     /**
-     * Hook into template_redirect to handle 301 redirections
+     * ADDITIONAL SECTION: SHOW LATEST 100 REDIRECT LOGS + CLEAR BUTTON
      */
-    function snn_handle_301_redirects() {
-        if (is_admin()) return;
+    // 1. If "Clear All Logs" is requested, delete all posts of type 'snn_redirect_logs'.
+    if (isset($_POST['clear_all_logs']) && check_admin_referer('snn_301_clear_logs_nonce')) {
+        $all_logs = get_posts(array(
+            'post_type'      => 'snn_redirect_logs',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish'
+        ));
+        if (!empty($all_logs)) {
+            foreach ($all_logs as $log_post) {
+                wp_delete_post($log_post->ID, true);
+            }
+        }
+        echo '<div class="notice notice-success"><p>All logs have been cleared!</p></div>';
+    }
 
-        $request_uri  = $_SERVER['REQUEST_URI'];
-        $parsed_url   = parse_url($request_uri);
-        $current_path = isset($parsed_url['path']) ? snn_normalize_path($parsed_url['path']) : '/';
-        $query_string = isset($parsed_url['query']) ? $parsed_url['query'] : '';
+    // 2. Query the latest 100 logs
+    $recent_logs = get_posts(array(
+        'post_type'      => 'snn_redirect_logs',
+        'posts_per_page' => 100,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'post_status'    => 'publish',
+    ));
 
-        // Get all 301 redirect rules
-        $redirects = get_posts(array(
-            'post_type'      => 'snn_301_redirects',
-            'posts_per_page' => -1
+    ?>
+    <div class="wrap">
+        <h2>Recent Redirect Logs (Latest 100)</h2>
+        <form method="post" action="" style="margin-bottom: 1em;">
+            <?php wp_nonce_field('snn_301_clear_logs_nonce'); ?>
+            <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs" 
+                   onclick="return confirm('Are you sure you want to clear all logs? This action cannot be undone.');">
+        </form>
+
+        <?php if (!empty($recent_logs)): ?>
+            <table class="widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Requested URL</th>
+                        <th>Redirected URL</th>
+                        <th>Hit Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($recent_logs as $log): ?>
+                        <?php 
+                            // Get the day slug
+                            $day_terms = wp_get_object_terms($log->ID, 'redirect_day', array('fields' => 'slugs'));
+                            $day_slug  = !empty($day_terms) ? $day_terms[0] : 'N/A';
+
+                            // Get the requested_url slug
+                            $req_terms = wp_get_object_terms($log->ID, 'requested_url', array('fields' => 'slugs'));
+                            $req_slug  = !empty($req_terms) ? $req_terms[0] : 'N/A';
+
+                            // Get the redirected_url slug
+                            $redir_terms = wp_get_object_terms($log->ID, 'redirected_url', array('fields' => 'slugs'));
+                            $redir_slug  = !empty($redir_terms) ? $redir_terms[0] : 'N/A';
+
+                            // Hit count
+                            $hit_count = get_post_meta($log->ID, 'hit_count', true);
+                            $hit_count = $hit_count ? (int)$hit_count : 0;
+                        ?>
+                        <tr>
+                            <td><?php echo esc_html($day_slug); ?></td>
+                            <td><?php echo esc_html($req_slug); ?></td>
+                            <td><?php echo esc_html($redir_slug); ?></td>
+                            <td><?php echo esc_html($hit_count); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>No recent logs found.</p>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
+/**
+ * Hook into template_redirect to handle 301 redirections
+ */
+function snn_handle_301_redirects() {
+    if (is_admin()) return;
+
+    $request_uri  = $_SERVER['REQUEST_URI'];
+    $parsed_url   = parse_url($request_uri);
+    $current_path = isset($parsed_url['path']) ? snn_normalize_path($parsed_url['path']) : '/';
+    $query_string = isset($parsed_url['query']) ? $parsed_url['query'] : '';
+
+    // Get all 301 redirect rules
+    $redirects = get_posts(array(
+        'post_type'      => 'snn_301_redirects',
+        'posts_per_page' => -1
+    ));
+
+    foreach ($redirects as $redirect) {
+        $redirect_from = get_post_meta($redirect->ID, 'redirect_from', true);
+        $redirect_to   = get_post_meta($redirect->ID, 'redirect_to', true);
+
+        // Match the requested path
+        if ($redirect_from === $current_path || $redirect_from === $current_path . '?' . $query_string) {
+            if ($query_string) {
+                $redirect_to .= (strpos($redirect_to, '?') !== false) ? '&' : '?';
+                $redirect_to .= $query_string;
+            }
+            if (strpos($redirect_to, 'http') !== 0) {
+                $redirect_to = home_url($redirect_to);
+            }
+
+            // Increment the clicks (stored in the 301 rules post)
+            $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
+            update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
+
+            // Log this redirect using our aggregator approach
+            snn_log_redirect($redirect_from, $redirect_to);
+
+            // Perform the 301 redirect
+            nocache_headers();
+            wp_redirect($redirect_to, 301);
+            exit;
+        }
+    }
+}
+add_action('template_redirect', 'snn_handle_301_redirects');
+
+/**
+ * Log Each Redirect in an Aggregated Post
+ */
+function snn_log_redirect($redirect_from, $redirect_to) {
+    // Current date in YYYY-MM-DD
+    $today_slug = gmdate('Y-m-d');
+
+    // Attempt to find an existing aggregator post that has:
+    // - Taxonomy "redirect_day" = $today_slug
+    // - Taxonomy "requested_url" = $redirect_from
+    // - Taxonomy "redirected_url" = $redirect_to
+    $existing = snn_find_aggregator_post($today_slug, $redirect_from, $redirect_to);
+
+    if (!$existing) {
+        // Create a new aggregator post
+        $new_post_id = wp_insert_post(array(
+            'post_type'   => 'snn_redirect_logs',
+            'post_title'  => $redirect_from . ' -> ' . $redirect_to . ' @ ' . $today_slug,
+            'post_status' => 'publish',
+            'post_author' => 0, // or get_current_user_id() if you prefer
         ));
 
-        foreach ($redirects as $redirect) {
-            $redirect_from = get_post_meta($redirect->ID, 'redirect_from', true);
-            $redirect_to   = get_post_meta($redirect->ID, 'redirect_to', true);
+        if ($new_post_id) {
+            // Assign taxonomies
+            wp_set_object_terms($new_post_id, $today_slug, 'redirect_day', false);
+            wp_set_object_terms($new_post_id, $redirect_from, 'requested_url', false);
+            wp_set_object_terms($new_post_id, $redirect_to, 'redirected_url', false);
 
-            // Match the requested path
-            if ($redirect_from === $current_path || $redirect_from === $current_path . '?' . $query_string) {
-                if ($query_string) {
-                    $redirect_to .= (strpos($redirect_to, '?') !== false) ? '&' : '?';
-                    $redirect_to .= $query_string;
-                }
-                if (strpos($redirect_to, 'http') !== 0) {
-                    $redirect_to = home_url($redirect_to);
-                }
+            // Initialize meta
+            update_post_meta($new_post_id, 'hit_count', 1);
 
-                // Increment the clicks (stored in the 301 rules post)
-                $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
-                update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
-
-                // Log this redirect using our aggregator approach
-                snn_log_redirect($redirect_from, $redirect_to);
-
-                // Perform the 301 redirect
-                nocache_headers();
-                wp_redirect($redirect_to, 301);
-                exit;
-            }
+            // Initialize IP array with the first IP
+            $ip_list = array(snn_get_client_ip());
+            update_post_meta($new_post_id, 'ips', wp_json_encode($ip_list, JSON_UNESCAPED_SLASHES));
         }
-    }
-    add_action('template_redirect', 'snn_handle_301_redirects');
+    } else {
+        // We have an existing aggregator post. Just increment and append IP.
+        $current_count = get_post_meta($existing->ID, 'hit_count', true);
+        $current_count = $current_count ? (int) $current_count : 0;
+        update_post_meta($existing->ID, 'hit_count', $current_count + 1);
 
-    /**
-     * Log Each Redirect in an Aggregated Post
-     */
-    function snn_log_redirect($redirect_from, $redirect_to) {
-        // Current date in YYYY-MM-DD
-        $today_slug = gmdate('Y-m-d');
-
-        // Attempt to find an existing aggregator post that has:
-        // - Taxonomy "redirect_day" = $today_slug
-        // - Taxonomy "requested_url" = $redirect_from
-        // - Taxonomy "redirected_url" = $redirect_to
-        $existing = snn_find_aggregator_post($today_slug, $redirect_from, $redirect_to);
-
-        if (!$existing) {
-            // Create a new aggregator post
-            $new_post_id = wp_insert_post(array(
-                'post_type'   => 'snn_redirect_logs',
-                'post_title'  => $redirect_from . ' -> ' . $redirect_to . ' @ ' . $today_slug,
-                'post_status' => 'publish',
-                'post_author' => 0, // or get_current_user_id() if you prefer
-            ));
-
-            if ($new_post_id) {
-                // Assign taxonomies
-                wp_set_object_terms($new_post_id, $today_slug, 'redirect_day', false);
-                wp_set_object_terms($new_post_id, $redirect_from, 'requested_url', false);
-                wp_set_object_terms($new_post_id, $redirect_to, 'redirected_url', false);
-
-                // Initialize meta
-                update_post_meta($new_post_id, 'hit_count', 1);
-
-                // Initialize IP array with the first IP
-                $ip_list = array(snn_get_client_ip());
-                update_post_meta($new_post_id, 'ips', wp_json_encode($ip_list, JSON_UNESCAPED_SLASHES));
-            }
-        } else {
-            // We have an existing aggregator post. Just increment and append IP.
-            $current_count = get_post_meta($existing->ID, 'hit_count', true);
-            $current_count = $current_count ? (int) $current_count : 0;
-            update_post_meta($existing->ID, 'hit_count', $current_count + 1);
-
-            // Append IP
-            $stored_ips = get_post_meta($existing->ID, 'ips', true);
-            $ip_list    = $stored_ips ? json_decode($stored_ips, true) : array();
-            if (!is_array($ip_list)) {
-                $ip_list = array();
-            }
-            $ip_list[] = snn_get_client_ip();
-            update_post_meta($existing->ID, 'ips', wp_json_encode($ip_list, JSON_UNESCAPED_SLASHES));
+        // Append IP
+        $stored_ips = get_post_meta($existing->ID, 'ips', true);
+        $ip_list    = $stored_ips ? json_decode($stored_ips, true) : array();
+        if (!is_array($ip_list)) {
+            $ip_list = array();
         }
+        $ip_list[] = snn_get_client_ip();
+        update_post_meta($existing->ID, 'ips', wp_json_encode($ip_list, JSON_UNESCAPED_SLASHES));
     }
-
-    /**
-     * Helper to find existing aggregator post by day + from + to
-     */
-    function snn_find_aggregator_post($day_slug, $redirect_from, $redirect_to) {
-        $args = array(
-            'post_type'      => 'snn_redirect_logs',
-            'posts_per_page' => 1,
-            'tax_query'      => array(
-                'relation' => 'AND',
-                array(
-                    'taxonomy' => 'redirect_day',
-                    'field'    => 'slug',
-                    'terms'    => $day_slug,
-                ),
-                array(
-                    'taxonomy' => 'requested_url',
-                    'field'    => 'name',
-                    'terms'    => $redirect_from,
-                ),
-                array(
-                    'taxonomy' => 'redirected_url',
-                    'field'    => 'name',
-                    'terms'    => $redirect_to,
-                ),
-            ),
-            'post_status'    => 'publish',
-        );
-
-        $posts = get_posts($args);
-        return $posts ? $posts[0] : null;
-    }
-
-    /**
-     * Safely Retrieve Client IP Address
-     */
-    function snn_get_client_ip() {
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            // IP from shared internet
-            $ip = $_SERVER['HTTP_CLIENT_IP'];
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            // IP passed from proxy
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } else {
-            // Regular IP
-            $ip = $_SERVER['REMOTE_ADDR'];
-        }
-        return sanitize_text_field($ip);
-    }
-
-    /**
-     * Activation Hook: Register Post Types/Taxonomies and Flush Rewrite
-     */
-    function snn_activate_301_redirects() {
-        snn_register_301_redirects_post_type();
-        snn_register_redirect_logs_post_type();
-        snn_register_redirect_logs_taxonomies();
-        flush_rewrite_rules();
-    }
-    register_activation_hook(__FILE__, 'snn_activate_301_redirects');
-
-    /**
-     * Deactivation Hook: Flush Rewrite Rules
-     */
-    function snn_deactivate_301_redirects() {
-        flush_rewrite_rules();
-    }
-    register_deactivation_hook(__FILE__, 'snn_deactivate_301_redirects');
 }
-?>
+
+/**
+ * Helper to find existing aggregator post by day + from + to
+ */
+function snn_find_aggregator_post($day_slug, $redirect_from, $redirect_to) {
+    $args = array(
+        'post_type'      => 'snn_redirect_logs',
+        'posts_per_page' => 1,
+        'tax_query'      => array(
+            'relation' => 'AND',
+            array(
+                'taxonomy' => 'redirect_day',
+                'field'    => 'slug',
+                'terms'    => $day_slug,
+            ),
+            array(
+                'taxonomy' => 'requested_url',
+                'field'    => 'name',
+                'terms'    => $redirect_from,
+            ),
+            array(
+                'taxonomy' => 'redirected_url',
+                'field'    => 'name',
+                'terms'    => $redirect_to,
+            ),
+        ),
+        'post_status'    => 'publish',
+    );
+
+    $posts = get_posts($args);
+    return $posts ? $posts[0] : null;
+}
+
+/**
+ * Safely Retrieve Client IP Address
+ */
+function snn_get_client_ip() {
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        // IP from shared internet
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        // IP passed from proxy
+        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    } else {
+        // Regular IP
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    return sanitize_text_field($ip);
+}
+
+/**
+ * Activation Hook: Register Post Types/Taxonomies and Flush Rewrite
+ */
+function snn_activate_301_redirects() {
+    snn_register_301_redirects_post_type();
+    snn_register_redirect_logs_post_type();
+    snn_register_redirect_logs_taxonomies();
+    flush_rewrite_rules();
+}
+register_activation_hook(__FILE__, 'snn_activate_301_redirects');
+
+/**
+ * Deactivation Hook: Flush Rewrite Rules
+ */
+function snn_deactivate_301_redirects() {
+    flush_rewrite_rules();
+}
+register_deactivation_hook(__FILE__, 'snn_deactivate_301_redirects');
