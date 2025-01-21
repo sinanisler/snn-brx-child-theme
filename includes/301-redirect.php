@@ -187,6 +187,32 @@ function snn_render_301_redirects_page() {
         }
     }
 
+    // Handle Clear All Logs
+    if (isset($_POST['clear_all_logs']) && check_admin_referer('snn_301_clear_logs_nonce')) {
+        $all_logs = get_posts(array(
+            'post_type'      => 'snn_redirect_logs',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish'
+        ));
+        if (!empty($all_logs)) {
+            foreach ($all_logs as $log_post) {
+                wp_delete_post($log_post->ID, true);
+            }
+        }
+        echo '<div class="notice notice-success"><p>All logs have been cleared!</p></div>';
+    }
+
+    // Handle Update Maximum Logs to Keep
+    if (isset($_POST['update_max_logs']) && check_admin_referer('snn_301_update_max_logs_nonce')) {
+        $max_logs = intval($_POST['max_logs_to_keep']);
+        if ($max_logs < 1) {
+            echo '<div class="notice notice-error"><p>The maximum number of logs must be at least 1.</p></div>';
+        } else {
+            update_option('snn_max_logs_to_keep', $max_logs);
+            echo '<div class="notice notice-success"><p>Maximum number of logs to keep updated successfully!</p></div>';
+        }
+    }
+
     ?>
     <div class="wrap">
         <h1>301 Redirect Rules</h1>
@@ -322,27 +348,15 @@ function snn_render_301_redirects_page() {
             <p>No redirects found.</p>
         <?php endif; ?>
 
-        <!-- ADDITIONAL SECTION: SHOW LATEST 100 REDIRECT LOGS + CLEAR BUTTON -->
+        <!-- ADDITIONAL SECTION: SHOW RECENT LOGS + CLEAR BUTTON + Maximum Logs Setting -->
         <?php
-        // 1. If "Clear All Logs" is requested, delete all posts of type 'snn_redirect_logs'.
-        if (isset($_POST['clear_all_logs']) && check_admin_referer('snn_301_clear_logs_nonce')) {
-            $all_logs = get_posts(array(
-                'post_type'      => 'snn_redirect_logs',
-                'posts_per_page' => -1,
-                'post_status'    => 'publish'
-            ));
-            if (!empty($all_logs)) {
-                foreach ($all_logs as $log_post) {
-                    wp_delete_post($log_post->ID, true);
-                }
-            }
-            echo '<div class="notice notice-success"><p>All logs have been cleared!</p></div>';
-        }
+        // Retrieve the maximum number of logs to keep, default to 100
+        $max_logs = get_option('snn_max_logs_to_keep', 100);
 
-        // 2. Query the latest 100 logs
+        // 2. Query the latest logs based on the maximum setting
         $recent_logs = get_posts(array(
             'post_type'      => 'snn_redirect_logs',
-            'posts_per_page' => 100,
+            'posts_per_page' => $max_logs,
             'orderby'        => 'date',
             'order'          => 'DESC',
             'post_status'    => 'publish',
@@ -350,12 +364,34 @@ function snn_render_301_redirects_page() {
         ?>
 
         <div class="wrap">
-            <h2>Recent Redirect Logs (Latest 100)</h2>
+            <h2>Recent Redirect Logs (Latest <?php echo esc_html($max_logs); ?>)</h2>
+            
+
+            <!-- Maximum Number of Logs to Keep Form -->
+            <form method="post" action="" style="margin-bottom: 2em;">
+                <?php wp_nonce_field('snn_301_update_max_logs_nonce'); ?>
+                <table class="form-table1">
+                    <tr>
+                        <th scope="row"><label for="max_logs_to_keep">Maximum number of logs to keep</label></th>
+                        <td>
+                            <input type="number" id="max_logs_to_keep" name="max_logs_to_keep" value="<?php echo esc_attr($max_logs); ?>" min="1" class="small-text">
+                        </td>
+                    </tr>
+                </table>
+                <p class="submit" style="margin-top:0; padding-top:0">
+                    <input type="submit" name="update_max_logs" class="button button-primary" value="Update Maximum Logs">
+                </p>
+            </form>
+
+
+            <!-- Clear All Logs Form -->
             <form method="post" action="" style="margin-bottom: 1em;">
                 <?php wp_nonce_field('snn_301_clear_logs_nonce'); ?>
                 <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs" 
                        onclick="return confirm('Are you sure you want to clear all logs? This action cannot be undone.');">
             </form>
+
+
 
             <?php if (!empty($recent_logs)): ?>
                 <table class="widefat fixed striped">
@@ -416,26 +452,26 @@ function snn_render_301_redirects_page() {
 
         // Edit button click event
         const editRedirectButtons = document.querySelectorAll('.edit-redirect');
-        editRedirectButtons.forEach(function(button) {
-            button.addEventListener('click', function() {
-                const redirectId   = this.dataset.redirectId;
-                const redirectFrom = this.dataset.redirectFrom;
-                const redirectTo   = this.dataset.redirectTo;
+            editRedirectButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const redirectId   = this.dataset.redirectId;
+                    const redirectFrom = this.dataset.redirectFrom;
+                    const redirectTo   = this.dataset.redirectTo;
 
-                // Hide any open edit forms
-                hideAllEditForms();
+                    // Hide any open edit forms
+                    hideAllEditForms();
 
-                // Show the relevant edit form row
-                const editFormRow = document.getElementById('edit-form-row-' + redirectId);
-                if (editFormRow) {
-                    editFormRow.style.display = 'table-row';
-                }
+                    // Show the relevant edit form row
+                    const editFormRow = document.getElementById('edit-form-row-' + redirectId);
+                    if (editFormRow) {
+                        editFormRow.style.display = 'table-row';
+                    }
 
-                // Populate fields
-                document.getElementById('edit-redirect-from-' + redirectId).value = redirectFrom;
-                document.getElementById('edit-redirect-to-' + redirectId).value   = redirectTo;
+                    // Populate fields
+                    document.getElementById('edit-redirect-from-' + redirectId).value = redirectFrom;
+                    document.getElementById('edit-redirect-to-' + redirectId).value   = redirectTo;
+                });
             });
-        });
 
         // Cancel edit
         const cancelEditButtons = document.querySelectorAll('.cancel-edit');
@@ -469,7 +505,7 @@ function snn_render_301_redirects_page() {
     </script>
     <?php
 }
-
+    
 /**
  * Hook into template_redirect to handle 301 redirections
  */
@@ -535,6 +571,39 @@ function snn_log_redirect($redirect_from, $redirect_to) {
         update_post_meta($log_id, 'redirect_to', $redirect_to);
         update_post_meta($log_id, 'created_date', current_time('mysql'));
         update_post_meta($log_id, 'ip_address', snn_get_client_ip());
+
+        // Enforce the maximum number of logs to keep
+        snn_enforce_max_logs();
+    }
+}
+
+/**
+ * Enforce the Maximum Number of Logs to Keep
+ */
+function snn_enforce_max_logs() {
+    $max_logs = get_option('snn_max_logs_to_keep', 100);
+
+    // Get total number of logs
+    $total_logs = wp_count_posts('snn_redirect_logs')->publish;
+
+    if ($total_logs > $max_logs) {
+        $logs_to_delete = $total_logs - $max_logs;
+
+        // Get the oldest logs
+        $old_logs = get_posts(array(
+            'post_type'      => 'snn_redirect_logs',
+            'posts_per_page' => $logs_to_delete,
+            'orderby'        => 'date',
+            'order'          => 'ASC',
+            'post_status'    => 'publish',
+            'fields'         => 'ids', // Only get post IDs
+        ));
+
+        if (!empty($old_logs)) {
+            foreach ($old_logs as $log_id) {
+                wp_delete_post($log_id, true);
+            }
+        }
     }
 }
 
