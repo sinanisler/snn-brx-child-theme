@@ -191,11 +191,11 @@ function snn_render_301_redirects_page() {
     <div class="wrap">
         <h1>301 Redirect Rules</h1>
 
-        <!-- Form to Add a New Redirect -->
-        <style>
-            .inside , .submit{padding-bottom:0 !important}
-        </style>
-        <div class="postbox">
+        <!-- Add Redirect Button -->
+        <button id="show-add-redirect-form" class="button button-primary" style="margin-bottom: 15px;">Add Redirect</button>
+
+        <!-- Form to Add a New Redirect (Initially Hidden) -->
+        <div class="postbox" id="add-redirect-form" style="display: none;">
             <div class="inside">
                 <form method="post" action="">
                     <?php wp_nonce_field('snn_301_redirect_nonce'); ?>
@@ -219,6 +219,7 @@ function snn_render_301_redirects_page() {
                     </table>
                     <p class="submit">
                         <input type="submit" name="submit_redirect" class="button button-primary" value="Add Redirect">
+                        <button type="button" id="cancel-add-redirect" class="button">Cancel</button>
                     </p>
                 </form>
             </div>
@@ -398,7 +399,7 @@ function snn_render_301_redirects_page() {
         </div>
     </div>
 
-    <!-- Retain the Edit functionality scripts -->
+    <!-- Retain the Edit functionality scripts and add Show/Hide Add Redirect Form scripts -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Hide all edit forms
@@ -443,6 +444,23 @@ function snn_render_301_redirects_page() {
                 }
             });
         });
+
+        // Show Add Redirect Form
+        const showAddRedirectButton = document.getElementById('show-add-redirect-form');
+        const addRedirectForm = document.getElementById('add-redirect-form');
+        const cancelAddRedirectButton = document.getElementById('cancel-add-redirect');
+
+        if (showAddRedirectButton && addRedirectForm && cancelAddRedirectButton) {
+            showAddRedirectButton.addEventListener('click', function() {
+                addRedirectForm.style.display = 'block';
+                showAddRedirectButton.style.display = 'none';
+            });
+
+            cancelAddRedirectButton.addEventListener('click', function() {
+                addRedirectForm.style.display = 'none';
+                showAddRedirectButton.style.display = 'inline-block';
+            });
+        }
     });
     </script>
     <?php
