@@ -290,7 +290,7 @@ add_action('admin_head', 'snn_hide_comments_section');
 function snn_add_thumbnail_column() {
     $options = get_option('snn_other_settings');
     if (isset($options['enable_thumbnail_column']) && $options['enable_thumbnail_column']) {
-        // Add Thumbnail column to default 'post' post type
+        // Add Thumbnail column to the default 'post' post type
         add_filter('manage_posts_columns', 'snn_add_thumbnail_column_header');
         add_action('manage_posts_custom_column', 'snn_display_thumbnail_column', 10, 2);
 
@@ -298,10 +298,15 @@ function snn_add_thumbnail_column() {
         $post_types = get_post_types(array('public' => true), 'names');
         foreach ($post_types as $post_type) {
             if ($post_type === 'post') {
-                continue; // Already handled
+                continue; 
             }
-            add_filter("manage_{$post_type}_posts_columns", 'snn_add_thumbnail_column_header');
-            add_action("manage_{$post_type}_posts_custom_column", 'snn_display_thumbnail_column', 10, 2);
+            if ($post_type === 'product') { 
+                // If the post type is WooCommerce products, skip adding the thumbnail column
+                continue;
+            } else {
+                add_filter("manage_{$post_type}_posts_columns", 'snn_add_thumbnail_column_header');
+                add_action("manage_{$post_type}_posts_custom_column", 'snn_display_thumbnail_column', 10, 2);
+            }
         }
     }
 }
