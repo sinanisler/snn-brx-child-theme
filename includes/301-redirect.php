@@ -1,4 +1,4 @@
-<?php
+<?php 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -250,10 +250,12 @@ function snn_render_301_redirects_page() {
 
             <!-- Existing Redirects Table -->
             <?php
+            // Order by clicks in descending order so the most clicked are on top
             $redirects = get_posts(array(
                 'post_type'      => 'snn_301_redirects',
                 'posts_per_page' => -1,
-                'orderby'        => 'date',
+                'meta_key'       => 'redirect_clicks',
+                'orderby'        => 'meta_value_num',
                 'order'          => 'DESC'
             ));
 
@@ -628,4 +630,3 @@ function snn_deactivate_301_redirects() {
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'snn_deactivate_301_redirects');
-?>
