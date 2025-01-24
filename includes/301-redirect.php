@@ -59,7 +59,6 @@ function snn_normalize_path($url) {
     return strtolower($url);
 }
 
-
 function snn_validate_url($url) {
     if (substr($url, 0, 1) === '/') {
         return true;
@@ -188,156 +187,167 @@ function snn_render_301_redirects_page() {
         }
     }
 
+    // Retrieve the maximum number of logs to keep, default to 100
+    $max_logs = get_option('snn_max_logs_to_keep', 100);
+
+    // Query the latest logs based on the maximum setting
+    $recent_logs = get_posts(array(
+        'post_type'      => 'snn_redirect_logs',
+        'posts_per_page' => $max_logs,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'post_status'    => 'publish',
+    ));
     ?>
+
     <div class="wrap">
-        <h1>301 Redirect Rules</h1>
 
-        <!-- Add Redirect Button -->
-        <button id="show-add-redirect-form" class="button button-primary" style="margin-bottom: 15px;">Add Redirect</button>
+        <!-- Tab Navigation -->
+        <h2 class="nav-tab-wrapper">
+            <a href="#tab1" class="nav-tab nav-tab-active" data-tab="tab1">301 Redirect Rules</a>
+            <a href="#tab2" class="nav-tab" data-tab="tab2">Recent Redirect Logs</a>
+        </h2>
 
-        <!-- Form to Add a New Redirect (Initially Hidden) -->
-        <div class="postbox" id="add-redirect-form" style="display: none;">
-            <div class="inside">
-                <form method="post" action="">
-                    <?php wp_nonce_field('snn_301_redirect_nonce'); ?>
-                    <table class="form-table">
-                        <tr>
-                            <th><label for="redirect_from">Redirect From</label>
-                                <p class="description">Enter the path (e.g., /old-page or /category/old-post)</p>
-                            </th>
-                            <td>
-                                <input type="text" id="redirect_from" name="redirect_from" class="regular-text" required>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label for="redirect_to">Redirect To</label>
-                                <p class="description">Enter the full URL or path (e.g., https://example.com/new-page or /new-page)</p>
-                            </th>
-                            <td>
-                                <input type="text" id="redirect_to" name="redirect_to" class="regular-text" required>
-                            </td>
-                        </tr>
-                    </table>
-                    <p class="submit">
-                        <input type="submit" name="submit_redirect" class="button button-primary" value="Add Redirect">
-                        <button type="button" id="cancel-add-redirect" class="button">Cancel</button>
-                    </p>
-                </form>
+        <!-- Tab 1: 301 Redirect Rules -->
+        <div id="tab1" class="tab-content" style="display: block;">
+            <h1>301 Redirect Rules</h1>
+
+            <!-- Add Redirect Button -->
+            <button id="show-add-redirect-form" class="button button-primary" style="margin-bottom: 15px;">Add Redirect</button>
+
+            <!-- Form to Add a New Redirect (Initially Hidden) -->
+            <div class="postbox" id="add-redirect-form" style="display: none;">
+                <div class="inside">
+                    <form method="post" action="">
+                        <?php wp_nonce_field('snn_301_redirect_nonce'); ?>
+                        <table class="form-table">
+                            <tr>
+                                <th>
+                                    <label for="redirect_from">Redirect From</label>
+                                    <p class="description">Enter the path (e.g., /old-page or /category/old-post)</p>
+                                </th>
+                                <td>
+                                    <input type="text" id="redirect_from" name="redirect_from" class="regular-text" required>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>
+                                    <label for="redirect_to">Redirect To</label>
+                                    <p class="description">Enter the full URL or path (e.g., https://example.com/new-page or /new-page)</p>
+                                </th>
+                                <td>
+                                    <input type="text" id="redirect_to" name="redirect_to" class="regular-text" required>
+                                </td>
+                            </tr>
+                        </table>
+                        <p class="submit">
+                            <input type="submit" name="submit_redirect" class="button button-primary" value="Add Redirect">
+                            <button type="button" id="cancel-add-redirect" class="button">Cancel</button>
+                        </p>
+                    </form>
+                </div>
             </div>
+
+            <!-- Existing Redirects Table -->
+            <?php
+            $redirects = get_posts(array(
+                'post_type'      => 'snn_301_redirects',
+                'posts_per_page' => -1,
+                'orderby'        => 'date',
+                'order'          => 'DESC'
+            ));
+
+            if ($redirects) : ?>
+                <table class="widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th>Redirect From</th>
+                            <th>Redirect To</th>
+                            <th>Added Date</th>
+                            <th>Clicks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($redirects as $redirect) :
+                        $redirect_id   = $redirect->ID;
+                        $redirect_from = get_post_meta($redirect_id, 'redirect_from', true);
+                        $redirect_to   = get_post_meta($redirect_id, 'redirect_to', true);
+                        $created_date  = get_post_meta($redirect_id, 'created_date', true);
+                        $clicks        = (int) get_post_meta($redirect_id, 'redirect_clicks', true);
+                        ?>
+                        <tr id="redirect-row-<?php echo esc_attr($redirect_id); ?>">
+                            <td>
+                                <a href="<?php echo esc_url(home_url($redirect_from)); ?>" target="_blank">
+                                    <?php echo esc_html($redirect_from); ?>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="<?php echo esc_url($redirect_to); ?>" target="_blank">
+                                    <?php echo esc_html($redirect_to); ?>
+                                </a>
+                            </td>
+                            <td><?php echo esc_html($created_date); ?></td>
+                            <td><?php echo esc_html($clicks); ?></td>
+                            <td>
+                                <form method="post" action="" style="display:inline;">
+                                    <?php wp_nonce_field('snn_301_redirect_delete_nonce'); ?>
+                                    <input type="hidden" name="redirect_id" value="<?php echo esc_attr($redirect_id); ?>">
+                                    <input type="submit" name="delete_redirect" class="button button-small button-link-delete" value="Delete" onclick="return confirm('Are you sure you want to delete this redirect?');">
+                                </form>
+
+                                <button
+                                    type="button"
+                                    class="button button-small edit-redirect"
+                                    data-redirect-id="<?php echo esc_attr($redirect_id); ?>"
+                                    data-redirect-from="<?php echo esc_attr($redirect_from); ?>"
+                                    data-redirect-to="<?php echo esc_attr($redirect_to); ?>"
+                                    >
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                        <tr></tr>
+                        <!-- Inline Edit Form Row -->
+                        <tr id="edit-form-row-<?php echo esc_attr($redirect_id); ?>" style="display: none;">
+                            <td colspan="5">
+                                <form method="post" action="">
+                                    <?php wp_nonce_field('snn_301_redirect_edit_nonce'); ?>
+                                    <input type="hidden" name="edit_redirect" value="1">
+                                    <input type="hidden" name="redirect_id" value="<?php echo esc_attr($redirect_id); ?>">
+
+                                    <table class="form-table" style="margin: 0;">
+                                        <tr>
+                                            <th>Redirect From</th>
+                                            <td>
+                                                <input type="text" name="edit_redirect_from" id="edit-redirect-from-<?php echo esc_attr($redirect_id); ?>" class="regular-text" required>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Redirect To</th>
+                                            <td>
+                                                <input type="text" name="edit_redirect_to" id="edit-redirect-to-<?php echo esc_attr($redirect_id); ?>" class="regular-text" required>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <p class="submit">
+                                        <button type="submit" class="button button-primary">Save</button>
+                                        <button type="button" class="button cancel-edit" data-redirect-id="<?php echo esc_attr($redirect_id); ?>">Cancel</button>
+                                    </p>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else : ?>
+                <p>No redirects found.</p>
+            <?php endif; ?>
         </div>
 
-        <!-- Existing Redirects Table -->
-        <?php
-        $redirects = get_posts(array(
-            'post_type'      => 'snn_301_redirects',
-            'posts_per_page' => -1,
-            'orderby'        => 'date',
-            'order'          => 'DESC'
-        ));
-
-        if ($redirects) : ?>
-            <table class="widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th>Redirect From</th>
-                        <th>Redirect To</th>
-                        <th>Added Date</th>
-                        <th>Clicks</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($redirects as $redirect) :
-                    $redirect_id   = $redirect->ID;
-                    $redirect_from = get_post_meta($redirect_id, 'redirect_from', true);
-                    $redirect_to   = get_post_meta($redirect_id, 'redirect_to', true);
-                    $created_date  = get_post_meta($redirect_id, 'created_date', true);
-                    $clicks        = (int) get_post_meta($redirect_id, 'redirect_clicks', true);
-                    ?>
-                    <tr id="redirect-row-<?php echo esc_attr($redirect_id); ?>">
-                        <td>
-                            <a href="<?php echo esc_url(home_url($redirect_from)); ?>" target="_blank">
-                                <?php echo esc_html($redirect_from); ?>
-                            </a>
-                        </td>
-                        <td>
-                            <a href="<?php echo esc_url($redirect_to); ?>" target="_blank">
-                                <?php echo esc_html($redirect_to); ?>
-                            </a>
-                        </td>
-                        <td><?php echo esc_html($created_date); ?></td>
-                        <td><?php echo esc_html($clicks); ?></td>
-                        <td>
-                            <form method="post" action="" style="display:inline;">
-                                <?php wp_nonce_field('snn_301_redirect_delete_nonce'); ?>
-                                <input type="hidden" name="redirect_id" value="<?php echo esc_attr($redirect_id); ?>">
-                                <input type="submit" name="delete_redirect" class="button button-small button-link-delete" value="Delete" onclick="return confirm('Are you sure you want to delete this redirect?');">
-                            </form>
-
-                            <button
-                                type="button"
-                                class="button button-small edit-redirect"
-                                data-redirect-id="<?php echo esc_attr($redirect_id); ?>"
-                                data-redirect-from="<?php echo esc_attr($redirect_from); ?>"
-                                data-redirect-to="<?php echo esc_attr($redirect_to); ?>"
-                                >
-                                Edit
-                            </button>
-                        </td>
-                    </tr>
-                    <tr></tr>
-                    <!-- Inline Edit Form Row -->
-                    <tr id="edit-form-row-<?php echo esc_attr($redirect_id); ?>" style="display: none;">
-                        <td colspan="5">
-                            <form method="post" action="">
-                                <?php wp_nonce_field('snn_301_redirect_edit_nonce'); ?>
-                                <input type="hidden" name="edit_redirect" value="1">
-                                <input type="hidden" name="redirect_id" value="<?php echo esc_attr($redirect_id); ?>">
-
-                                <table class="form-table" style="margin: 0;">
-                                    <tr>
-                                        <th>Redirect From</th>
-                                        <td>
-                                            <input type="text" name="edit_redirect_from" id="edit-redirect-from-<?php echo esc_attr($redirect_id); ?>" class="regular-text" required>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Redirect To</th>
-                                        <td>
-                                            <input type="text" name="edit_redirect_to" id="edit-redirect-to-<?php echo esc_attr($redirect_id); ?>" class="regular-text" required>
-                                        </td>
-                                    </tr>
-                                </table>
-
-                                <p class="submit">
-                                    <button type="submit" class="button button-primary">Save</button>
-                                    <button type="button" class="button cancel-edit" data-redirect-id="<?php echo esc_attr($redirect_id); ?>">Cancel</button>
-                                </p>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php else : ?>
-            <p>No redirects found.</p>
-        <?php endif; ?>
-
-        <?php
-        // Retrieve the maximum number of logs to keep, default to 100
-        $max_logs = get_option('snn_max_logs_to_keep', 100);
-
-        // Query the latest logs based on the maximum setting
-        $recent_logs = get_posts(array(
-            'post_type'      => 'snn_redirect_logs',
-            'posts_per_page' => $max_logs,
-            'orderby'        => 'date',
-            'order'          => 'DESC',
-            'post_status'    => 'publish',
-        ));
-        ?>
-
-        <div class="wrap">
+        <!-- Tab 2: Recent Redirect Logs -->
+        <div id="tab2" class="tab-content" style="display: none;">
             <h2>Recent Redirect Logs</h2>
 
             <!-- Maximum Number of Logs to Keep Form -->
@@ -375,7 +385,7 @@ function snn_render_301_redirects_page() {
                     </thead>
                     <tbody>
                         <?php foreach ($recent_logs as $log): ?>
-                            <?php 
+                            <?php
                                 // Get log meta
                                 $redirect_from = get_post_meta($log->ID, 'redirect_from', true);
                                 $redirect_to   = get_post_meta($log->ID, 'redirect_to', true);
@@ -407,10 +417,36 @@ function snn_render_301_redirects_page() {
                 <p>No recent logs found.</p>
             <?php endif; ?>
         </div>
-    </div>
+
+    </div><!-- .wrap -->
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+
+        // Simple tab switching
+        const tabLinks = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = this.getAttribute('data-tab');
+
+                // Remove active class from all tabs
+                tabLinks.forEach(function(tab) {
+                    tab.classList.remove('nav-tab-active');
+                });
+                // Hide all tab contents
+                tabContents.forEach(function(content) {
+                    content.style.display = 'none';
+                });
+
+                // Add active class to clicked tab and show corresponding content
+                this.classList.add('nav-tab-active');
+                document.getElementById(target).style.display = 'block';
+            });
+        });
+
         // Hide all edit forms
         function hideAllEditForms() {
             const editFormRows = document.querySelectorAll('tr[id^="edit-form-row-"]');
@@ -474,7 +510,7 @@ function snn_render_301_redirects_page() {
     </script>
     <?php
 }
-    
+
 function snn_handle_301_redirects() {
     if (is_admin()) return;
 
