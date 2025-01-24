@@ -3,9 +3,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-/**
- * Register 301 Redirects Post Type
- */
 function snn_register_301_redirects_post_type() {
     register_post_type(
         'snn_301_redirects',
@@ -21,10 +18,6 @@ function snn_register_301_redirects_post_type() {
 }
 add_action('init', 'snn_register_301_redirects_post_type');
 
-/**
- * Register Redirect Logs Post Type
- * Modified to remove taxonomies and support necessary fields
- */
 function snn_register_redirect_logs_post_type() {
     register_post_type(
         'snn_redirect_logs',
@@ -40,15 +33,6 @@ function snn_register_redirect_logs_post_type() {
 }
 add_action('init', 'snn_register_redirect_logs_post_type');
 
-/**
- * Removed Taxonomies for Logging
- * Since each log is individual, taxonomies are no longer necessary
- */
-// Removed the entire snn_register_redirect_logs_taxonomies function and its hook
-
-/**
- * Add 301 Redirects Submenu Page (Unchanged)
- */
 function snn_add_301_redirects_page() {
     add_submenu_page(
         'snn-settings',
@@ -61,9 +45,6 @@ function snn_add_301_redirects_page() {
 }
 add_action('admin_menu', 'snn_add_301_redirects_page');
 
-/**
- * Normalize a given URL Path (Unchanged)
- */
 function snn_normalize_path($url) {
     $url = preg_replace('/^https?:\/\/[^\/]+/i', '', $url);
 
@@ -78,9 +59,7 @@ function snn_normalize_path($url) {
     return strtolower($url);
 }
 
-/**
- * Validate the "Redirect To" URL (Unchanged)
- */
+
 function snn_validate_url($url) {
     if (substr($url, 0, 1) === '/') {
         return true;
@@ -91,10 +70,6 @@ function snn_validate_url($url) {
     return false;
 }
 
-/**
- * Render the 301 Redirects Admin Page
- * Modified the Recent Redirect Logs section
- */
 function snn_render_301_redirects_page() {
     global $wpdb;
 
@@ -348,7 +323,6 @@ function snn_render_301_redirects_page() {
             <p>No redirects found.</p>
         <?php endif; ?>
 
-        <!-- ADDITIONAL SECTION: SHOW RECENT LOGS + CLEAR BUTTON + Maximum Logs Setting -->
         <?php
         // Retrieve the maximum number of logs to keep, default to 100
         $max_logs = get_option('snn_max_logs_to_keep', 100);
@@ -435,7 +409,6 @@ function snn_render_301_redirects_page() {
         </div>
     </div>
 
-    <!-- Retain the Edit functionality scripts and add Show/Hide Add Redirect Form scripts -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Hide all edit forms
@@ -502,9 +475,6 @@ function snn_render_301_redirects_page() {
     <?php
 }
     
-/**
- * Hook into template_redirect to handle 301 redirections
- */
 function snn_handle_301_redirects() {
     if (is_admin()) return;
 
@@ -549,9 +519,6 @@ function snn_handle_301_redirects() {
 }
 add_action('template_redirect', 'snn_handle_301_redirects');
 
-/**
- * Log Each Redirect Individually
- */
 function snn_log_redirect($redirect_from, $redirect_to) {
     $log_post = array(
         'post_type'   => 'snn_redirect_logs',
@@ -573,9 +540,6 @@ function snn_log_redirect($redirect_from, $redirect_to) {
     }
 }
 
-/**
- * Enforce the Maximum Number of Logs to Keep
- */
 function snn_enforce_max_logs() {
     $max_logs = get_option('snn_max_logs_to_keep', 100);
 
@@ -603,9 +567,6 @@ function snn_enforce_max_logs() {
     }
 }
 
-/**
- * Safely Retrieve Client IP Address
- */
 function snn_get_client_ip() {
     if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
         // IP from shared internet
@@ -620,20 +581,13 @@ function snn_get_client_ip() {
     return sanitize_text_field($ip);
 }
 
-/**
- * Activation Hook: Register Post Types/Flush Rewrite
- */
 function snn_activate_301_redirects() {
     snn_register_301_redirects_post_type();
     snn_register_redirect_logs_post_type();
-    // Removed snn_register_redirect_logs_taxonomies();
     flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'snn_activate_301_redirects');
 
-/**
- * Deactivation Hook: Flush Rewrite Rules
- */
 function snn_deactivate_301_redirects() {
     flush_rewrite_rules();
 }
