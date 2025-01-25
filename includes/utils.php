@@ -40,11 +40,11 @@ function snn_custom_css_utils_wp_footer() {
             gap:2px !important
         }
         [data-controlkey="gsap_animations"] .bricks-sortable-item .control{
-            margin-left:5px !important;
-            margin-right:5px !important;
+            margin-left:8px !important;
+            margin-right:8px !important;
         }
         [data-controlkey="gsap_animations"] .sortable-title{
-            padding-left:5px !important;
+            padding-left:8px !important;
         }
     </style>
     <?php
