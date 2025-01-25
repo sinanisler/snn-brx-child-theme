@@ -12,7 +12,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     public $icon         = 'ti-bolt-alt';
     public $css_selector = '.snn-gsap-animations-wrapper';
     public $scripts      = [];
-    public $nestable     = true; 
+    public $nestable     = true;
 
     public function get_label() {
         return esc_html__( 'GSAP Animations (Nestable)', 'bricks' );
@@ -23,7 +23,6 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     }
 
     public function set_controls() {
-
         $this->controls['gsap_animations'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'GSAP Animations', 'bricks' ),
@@ -31,16 +30,20 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'titleProperty' => '',
             'default'       => [
                 [
-                    'x_start'             => '',
-                    'y_start'             => '',
-                    'x_end'               => '',
-                    'y_end'               => '',
-                    'style_start-scale'   => '',
-                    'style_end-scale'     => '',
-                    'style_start-rotate'  => '',
-                    'style_end-rotate'    => '',
-                    'style_start-opacity' => '',
-                    'style_end-opacity'   => '',
+                    'x_start'              => '',
+                    'y_start'              => '',
+                    'x_end'                => '',
+                    'y_end'                => '',
+                    'style_start-scale'    => '',
+                    'style_end-scale'      => '',
+                    'style_start-rotate'   => '',
+                    'style_end-rotate'     => '',
+                    'style_start-opacity'  => '',
+                    'style_end-opacity'    => '',
+                    'style_start-filter'   => '',
+                    'style_end-filter'     => '',
+                    'style_start-grayscale' => '',
+                    'style_end-grayscale'  => '',
                 ],
             ],
             'placeholder'   => esc_html__( 'Animation', 'bricks' ),
@@ -89,11 +92,47 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'label'       => esc_html__( 'Opacity Start', 'bricks' ),
                     'type'        => 'number',
                     'placeholder' => '1',
+                    'min'         => '0',
+                    'max'         => '1',
+                    'step'        => '0.1',
                 ],
                 'style_end-opacity' => [
                     'label'       => esc_html__( 'Opacity End', 'bricks' ),
                     'type'        => 'number',
                     'placeholder' => '1',
+                    'min'         => '0',
+                    'max'         => '1',
+                    'step'        => '0.1',
+                ],
+                'style_start-filter' => [
+                    'label'       => esc_html__( 'Blur Start (px)', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '0',
+                    'min'         => '0',
+                    'step'        => '1',
+                ],
+                'style_end-filter' => [
+                    'label'       => esc_html__( 'Blur End (px)', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '0',
+                    'min'         => '0',
+                    'step'        => '1',
+                ],
+                'style_start-grayscale' => [
+                    'label'       => esc_html__( 'Grayscale Start (%)', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '0',
+                    'min'         => '0',
+                    'max'         => '100',
+                    'step'        => '1',
+                ],
+                'style_end-grayscale' => [
+                    'label'       => esc_html__( 'Grayscale End (%)', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '0',
+                    'min'         => '0',
+                    'max'         => '100',
+                    'step'        => '1',
                 ],
             ],
         ];
@@ -111,25 +150,10 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'inline'        => true,
             'placeholder'   => esc_html__( 'Select', 'bricks' ),
         ];
-
-        // Scroll Control
-        $this->controls['scroll'] = [
-            'tab'           => 'content',
-            'label'         => esc_html__( 'ScrollTrigger', 'bricks' ),
-            'type'          => 'select',
-            'options'       => [
-                'true'  => esc_html__( 'Yes', 'bricks' ),
-                'false' => esc_html__( 'No', 'bricks' ),
-            ],
-            'default'       => '',
-            'inline'        => true,
-            'placeholder'   => esc_html__( 'Select', 'bricks' ),
-            'description'   => '<br><p data-control="info">To make this feature work, enable "Other Settings > GSAP".</p>',
-        ];
     }
 
     public function render() {
-        $root_classes = ['prefix-gsap-animations-wrapper'];
+        $root_classes = ['snn-gsap-animations-wrapper'];
         $this->set_attribute( '_root', 'class', $root_classes );
 
         $gsap_animations = isset( $this->settings['gsap_animations'] ) ? $this->settings['gsap_animations'] : [];
@@ -138,6 +162,11 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         foreach ( $gsap_animations as $anim ) {
             $props = [];
 
+            // Initialize filter components
+            $filter_start_components = [];
+            $filter_end_components = [];
+
+            // Transformations
             if ( ( $xStart = $anim['x_start'] ?? '' ) !== '' ) {
                 $props[] = "style_start-transform:translateX({$xStart}px)";
             }
@@ -150,23 +179,53 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             if ( ( $yEnd = $anim['y_end'] ?? '' ) !== '' ) {
                 $props[] = "style_end-transform:translateY({$yEnd}px)";
             }
+
+            // Scale
             if ( ( $scaleStart = $anim['style_start-scale'] ?? '' ) !== '' ) {
                 $props[] = "style_start-scale:{$scaleStart}";
             }
             if ( ( $scaleEnd = $anim['style_end-scale'] ?? '' ) !== '' ) {
                 $props[] = "style_end-scale:{$scaleEnd}";
             }
+
+            // Rotate
             if ( ( $rotateStart = $anim['style_start-rotate'] ?? '' ) !== '' ) {
                 $props[] = "style_start-rotate:{$rotateStart}deg";
             }
             if ( ( $rotateEnd = $anim['style_end-rotate'] ?? '' ) !== '' ) {
                 $props[] = "style_end-rotate:{$rotateEnd}deg";
             }
+
+            // Opacity
             if ( ( $opacityStart = $anim['style_start-opacity'] ?? '' ) !== '' ) {
                 $props[] = "style_start-opacity:{$opacityStart}";
             }
             if ( ( $opacityEnd = $anim['style_end-opacity'] ?? '' ) !== '' ) {
                 $props[] = "style_end-opacity:{$opacityEnd}";
+            }
+
+            // Filter - Blur
+            if ( ( $blurStart = $anim['style_start-filter'] ?? '' ) !== '' ) {
+                $filter_start_components[] = "blur({$blurStart}px)";
+            }
+            if ( ( $blurEnd = $anim['style_end-filter'] ?? '' ) !== '' ) {
+                $filter_end_components[] = "blur({$blurEnd}px)";
+            }
+
+            // Filter - Grayscale
+            if ( ( $grayscaleStart = $anim['style_start-grayscale'] ?? '' ) !== '' ) {
+                $filter_start_components[] = "grayscale({$grayscaleStart}%)";
+            }
+            if ( ( $grayscaleEnd = $anim['style_end-grayscale'] ?? '' ) !== '' ) {
+                $filter_end_components[] = "grayscale({$grayscaleEnd}%)";
+            }
+
+            // Combine filter components if any
+            if ( ! empty( $filter_start_components ) ) {
+                $props[] = "style_start-filter:" . implode(' ', $filter_start_components);
+            }
+            if ( ! empty( $filter_end_components ) ) {
+                $props[] = "style_end-filter:" . implode(' ', $filter_end_components);
             }
 
             if ( ! empty( $props ) ) {
@@ -177,11 +236,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         $global_settings = [];
 
         if ( isset( $this->settings['markers'] ) ) {
-            $global_settings[] = "markers:" . ($this->settings['markers'] === 'true' ? 'true' : 'false');
-        }
-
-        if ( isset( $this->settings['scroll'] ) ) {
-            $global_settings[] = "scroll:" . ($this->settings['scroll'] === 'true' ? 'true' : 'false');
+            $global_settings[] = "markers:" . ( 'true' === $this->settings['markers'] ? 'true' : 'false' );
         }
 
         $global = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
