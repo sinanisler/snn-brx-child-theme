@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -34,7 +35,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'y_start' => '',
                     'x_end'   => '',
                     'y_end'   => '',
-                    'duration'=> '',
+                    'delay'   => '',
                 ],
             ],
             'placeholder'   => esc_html__( 'Animation', 'bricks' ),
@@ -42,47 +43,27 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 'x_start' => [
                     'label'       => esc_html__( 'X Start', 'bricks' ),
                     'type'        => 'number',
-                    'min'         => '-1000',
-                    'max'         => '1000',
-                    'step'        => '10',
-                    'default'     => '',
-                    'placeholder' => esc_html__( 'e.g., 100', 'bricks' ),
-                ],
-                'y_start' => [
-                    'label'       => esc_html__( 'Y Start', 'bricks' ),
-                    'type'        => 'number',
-                    'min'         => '-1000',
-                    'max'         => '1000',
-                    'step'        => '10',
-                    'default'     => '',
-                    'placeholder' => esc_html__( 'e.g., 50', 'bricks' ),
+                    'placeholder' => '0',
                 ],
                 'x_end' => [
                     'label'       => esc_html__( 'X End', 'bricks' ),
                     'type'        => 'number',
-                    'min'         => '-1000',
-                    'max'         => '1000',
-                    'step'        => '10',
-                    'default'     => '',
-                    'placeholder' => esc_html__( 'e.g., 200', 'bricks' ),
+                    'placeholder' => '0',
+                ],
+                'y_start' => [
+                    'label'       => esc_html__( 'Y Start', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '0',
                 ],
                 'y_end' => [
                     'label'       => esc_html__( 'Y End', 'bricks' ),
                     'type'        => 'number',
-                    'min'         => '-1000',
-                    'max'         => '1000',
-                    'step'        => '10',
-                    'default'     => '',
-                    'placeholder' => esc_html__( 'e.g., 100', 'bricks' ),
+                    'placeholder' => '0',
                 ],
-                'duration' => [
-                    'label'       => esc_html__( 'Duration', 'bricks' ),
+                'delay' => [
+                    'label'       => esc_html__( 'Delay', 'bricks' ),
                     'type'        => 'number',
-                    'min'         => '0',
-                    'max'         => '60',
-                    'step'        => '0.1',
-                    'default'     => '',
-                    'placeholder' => esc_html__( '0', 'bricks' ),
+                    'placeholder' => '0',
                 ],
             ],
         ];
@@ -127,76 +108,46 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         foreach ( $gsap_animations as $anim ) {
             $props = [];
 
-            // Add X Start
-            if ( ($xStart = $anim['x_start'] ?? '') !== '' ) {
-                $xStart = floatval( $xStart );
+            if ( ( $xStart = $anim['x_start'] ?? '' ) !== '' ) {
                 $props[] = "style_start-transform:translateX({$xStart}px)";
             }
-
-            // Add Y Start
-            if ( ($yStart = $anim['y_start'] ?? '') !== '' ) {
-                $yStart = floatval( $yStart );
+            if ( ( $yStart = $anim['y_start'] ?? '' ) !== '' ) {
                 $props[] = "style_start-transform:translateY({$yStart}px)";
             }
-
-            // Add X End
-            if ( ($xEnd = $anim['x_end'] ?? '') !== '' ) {
-                $xEnd = floatval( $xEnd );
+            if ( ( $xEnd = $anim['x_end'] ?? '' ) !== '' ) {
                 $props[] = "style_end-transform:translateX({$xEnd}px)";
             }
-
-            // Add Y End
-            if ( ($yEnd = $anim['y_end'] ?? '') !== '' ) {
-                $yEnd = floatval( $yEnd );
+            if ( ( $yEnd = $anim['y_end'] ?? '' ) !== '' ) {
                 $props[] = "style_end-transform:translateY({$yEnd}px)";
             }
-
-            // Add Duration
-            if ( ($duration = $anim['duration'] ?? '') !== '' ) {
-                $duration = floatval( $duration );
-                $props[] = "duration:{$duration}s";
+            if ( ( $delay = $anim['delay'] ?? '' ) !== '' ) {
+                $props[] = "delay:{$delay}s";
             }
 
-            // Convert this single animation's properties array to a string and append a semicolon
             if ( ! empty( $props ) ) {
                 $animation_strings[] = implode( ', ', $props ) . ';';
             }
         }
 
-        // Global settings
         $global_settings = [];
 
         if ( isset( $this->settings['markers'] ) ) {
-            $markers = $this->settings['markers'];
-            if ( $markers === 'true' ) {
-                $global_settings[] = "markers:true";
-            } elseif ( $markers === 'false' ) {
-                $global_settings[] = "markers:false";
-            }
+            $global_settings[] = "markers:" . ($this->settings['markers'] === 'true' ? 'true' : 'false');
         }
 
         if ( isset( $this->settings['scroll'] ) ) {
-            $scroll = $this->settings['scroll'] === 'true' ? 'true' : 'false';
-            $global_settings[] = "scroll:{$scroll}";
+            $global_settings[] = "scroll:" . ($this->settings['scroll'] === 'true' ? 'true' : 'false');
         }
 
-        // Add global settings to the beginning of the string, separated by commas
-        if ( ! empty( $global_settings ) ) {
-            array_unshift( $animation_strings, implode( ', ', $global_settings ) . ',' );
-        }
+        $global = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
+        $data_animate = $global . implode( ' ', $animation_strings );
 
-        $data_animate = implode( ' ', $animation_strings );
-
-        $data_animate_attr = '';
-        if ( ! empty( $data_animate ) ) {
-            $data_animate_sanitized = esc_attr( $data_animate );
-            $data_animate_attr = " data-animate=\"{$data_animate_sanitized}\"";
-        }
+        $data_animate_attr = ! empty( $data_animate ) ? ' data-animate="' . esc_attr( $data_animate ) . '"' : '';
 
         $other_attributes = $this->render_attributes( '_root' );
 
         echo '<div ' . $data_animate_attr . ' ' . $other_attributes . '>';
-            echo Frontend::render_children( $this );
+        echo Frontend::render_children( $this );
         echo '</div>';
     }
 
