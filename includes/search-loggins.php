@@ -60,35 +60,50 @@ function snn_register_search_logs_taxonomies() {
 }
 add_action('init', 'snn_register_search_logs_taxonomies');
 
-// Log search queries
+// Log search queries with enhanced validation
 function snn_log_search_query($query) {
-    if (!empty($query) && get_option('snn_search_logging_enabled') === '1') {
+    // Trim whitespace and sanitize the query
+    $query = trim($query);
+    $sanitized_query = sanitize_text_field($query);
+
+    // Debugging: Log all search queries (optional)
+    if (defined('WP_DEBUG') && WP_DEBUG === true) {
+        error_log('Search Query Received: ' . $sanitized_query);
+    }
+
+    // Exclude empty queries or those containing feed-like patterns
+    if (empty($sanitized_query) ||
+        preg_match('/(feed|rss|xml|\/)/i', $sanitized_query)) {
+        return; // Do not log these queries
+    }
+
+    if (get_option('snn_search_logging_enabled') === '1') {
         // Check if a term for this query already exists in snn_search_count
-        $term = get_term_by('name', $query, 'snn_search_count');
+        $term = get_term_by('name', $sanitized_query, 'snn_search_count');
 
         if ($term && !is_wp_error($term)) {
             // Increment the search count by updating the term
             wp_update_term($term->term_id, 'snn_search_count', array(
-                'name' => $query,
-                'slug' => $term->slug,
-                'count' => $term->count + 1, // WP normally recalculates 'count', but we'll keep the user's original code
+                'name' => $sanitized_query,
+                'slug' => sanitize_title($sanitized_query),
+                // 'count' => $term->count + 1, // Removed as WordPress handles 'count' automatically
             ));
         } else {
             // Create a new term with an initial count of 1
-            wp_insert_term($query, 'snn_search_count', array(
-                'slug'  => sanitize_title($query),
-                'count' => 1,
+            wp_insert_term($sanitized_query, 'snn_search_count', array(
+                'slug'  => sanitize_title($sanitized_query),
+                // 'count' => 1, // Removed as WordPress handles 'count' automatically
             ));
 
             // After creating, get the new term again if needed
-            $term = get_term_by('name', $query, 'snn_search_count');
+            $term = get_term_by('name', $sanitized_query, 'snn_search_count');
         }
 
         // Log the search query in a custom post type
         $post_data = array(
             'post_type'   => 'snn_search_logs',
             'post_status' => 'publish',
-            'post_title'  => $query,
+            'post_title'  => $sanitized_query,
         );
         $post_id = wp_insert_post($post_data);
 
@@ -107,9 +122,18 @@ function snn_log_search_query($query) {
         }
     }
 }
+
 // Hook into search queries and log them if main query is a search
 add_action('pre_get_posts', function ($query) {
-    if ($query->is_main_query() && $query->is_search() && !is_admin()) {
+    if (
+        $query->is_main_query() &&
+        $query->is_search() &&
+        !is_admin() &&
+        !$query->is_feed() &&          // Exclude feed requests
+        !$query->is_trackback() &&     // Exclude trackbacks
+        !$query->is_comment_feed() &&  // Exclude comment feeds
+        !$query->is_paged()            // Optionally exclude paged results
+    ) {
         snn_log_search_query($query->get('s'));
     }
 });
