@@ -18,16 +18,11 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     }
 
     public function set_control_groups() {
-        // Define control groups here if needed
+        // NO
     }
 
     public function set_controls() {
 
-        /**
-         * -----------------------------------------------------------------
-         * ANIMATIONS REPEATER
-         * -----------------------------------------------------------------
-         */
         $this->controls['animations'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'Animations', 'bricks' ),
@@ -36,28 +31,33 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'description'   => '<p data-control="info">To make this feature work, enable "Other Settings > GSAP".</p>',
             'default'       => [
                 [
-                    'opacity' => '',
+                    'position_start_horizontal' => '',
+                    'position_start_vertical'   => '',
                 ],
             ],
             'placeholder'   => esc_html__( 'Animation', 'bricks' ),
             'fields'        => [
-                'opacity' => [
-                    'label'       => esc_html__( 'Opacity', 'bricks' ),
+                'position_start_horizontal' => [
+                    'label'       => esc_html__( 'Position Start Horizontal', 'bricks' ),
                     'type'        => 'number',
-                    'min'         => '0',
-                    'max'         => '1',
-                    'step'        => '0.1',
+                    'min'         => '-1000',
+                    'max'         => '1000',
+                    'step'        => '10',
                     'default'     => '',
-                    'placeholder' => esc_html__( 'e.g., 0.5', 'bricks' ),
+                    'placeholder' => esc_html__( 'e.g., 100', 'bricks' ),
+                ],
+                'position_start_vertical' => [
+                    'label'       => esc_html__( 'Position Start Vertical', 'bricks' ),
+                    'type'        => 'number',
+                    'min'         => '-1000',
+                    'max'         => '1000',
+                    'step'        => '10',
+                    'default'     => '',
+                    'placeholder' => esc_html__( 'e.g., 50', 'bricks' ),
                 ],
             ],
         ];
 
-        /**
-         * -----------------------------------------------------------------
-         * GLOBAL CONTROLS
-         * -----------------------------------------------------------------
-         */
 
         // Markers Control
         $this->controls['markers'] = [
@@ -98,14 +98,21 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         foreach ( $animations as $anim ) {
             $props = [];
 
-            // Gather opacity field
-            if ( ($opacity = $anim['opacity'] ?? '') !== '' ) {
-                $opacity = floatval( $opacity );
-                $props[] = "opacity:{$opacity}";
+            // Add Position Start Horizontal to the data-animate attribute
+            if ( ($posX = $anim['position_start_horizontal'] ?? '') !== '' ) {
+                $posX = floatval( $posX );
+                $props[] = "style_start-transform:translateX({$posX}px)";
             }
 
+            // Add Position Start Vertical to the data-animate attribute
+            if ( ($posY = $anim['position_start_vertical'] ?? '') !== '' ) {
+                $posY = floatval( $posY );
+                $props[] = "style_start-transform:translateY({$posY}px)";
+            }
+
+            // Convert this single animation's properties array to a string and append a semicolon
             if ( ! empty( $props ) ) {
-                $animation_strings[] = implode( ', ', $props );
+                $animation_strings[] = implode( ', ', $props ) . ';';
             }
         }
 
@@ -126,11 +133,12 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             $global_settings[] = "scroll:{$scroll}";
         }
 
+        // Add global settings to the beginning of the string, separated by commas
         if ( ! empty( $global_settings ) ) {
-            array_unshift( $animation_strings, implode( ', ', $global_settings ) );
+            array_unshift( $animation_strings, implode( ', ', $global_settings ) . ',' );
         }
 
-        $data_animate = implode( '; ', $animation_strings );
+        $data_animate = implode( ' ', $animation_strings );
 
         $data_animate_attr = '';
         if ( ! empty( $data_animate ) ) {
