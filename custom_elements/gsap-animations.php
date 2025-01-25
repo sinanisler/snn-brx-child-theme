@@ -137,7 +137,6 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             ],
         ];
 
-        // Markers Control
         $this->controls['markers'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'Markers', 'bricks' ),
@@ -149,6 +148,26 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'default'       => '',
             'inline'        => true,
             'placeholder'   => esc_html__( 'Select', 'bricks' ),
+        ];
+
+        $this->controls['scroll_start'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Scroll Start (%)', 'bricks' ),
+            'type'        => 'number',
+            'min'         => 0,
+            'max'         => 100,
+            'step'        => 1,
+            'placeholder' => '60',
+        ];
+
+        $this->controls['scroll_end'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Scroll End (%)', 'bricks' ),
+            'type'        => 'number',
+            'min'         => 0,
+            'max'         => 100,
+            'step'        => 1,
+            'placeholder' => '40',
         ];
     }
 
@@ -235,8 +254,18 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $global_settings = [];
 
+        // Markers
         if ( isset( $this->settings['markers'] ) ) {
             $global_settings[] = "markers:" . ( 'true' === $this->settings['markers'] ? 'true' : 'false' );
+        }
+
+        // Scroll Start/End
+        if ( isset( $this->settings['scroll_start'] ) && $this->settings['scroll_start'] !== '' ) {
+            $global_settings[] = "start:'top " . $this->settings['scroll_start'] . "%'";
+        }
+
+        if ( isset( $this->settings['scroll_end'] ) && $this->settings['scroll_end'] !== '' ) {
+            $global_settings[] = "end:'bottom " . $this->settings['scroll_end'] . "%'";
         }
 
         $global = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
