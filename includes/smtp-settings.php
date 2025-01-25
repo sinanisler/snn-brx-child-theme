@@ -5,8 +5,8 @@ add_action('admin_menu', 'custom_smtp_add_admin_menu');
 function custom_smtp_add_admin_menu() {
     add_submenu_page(
         'snn-settings',
-        'SMTP Settings',
-        'SMTP Settings',
+        'Mail SMTP Settings',
+        'Mail SMTP Settings',
         'manage_options',
         'smtp-settings',
         'custom_smtp_settings_page'
@@ -353,7 +353,7 @@ function custom_smtp_settings_page() {
     settings_errors('custom_smtp_test_email');
     ?>
     <div class="wrap">
-        <h1><?php _e('SMTP Settings', 'textdomain'); ?></h1>
+        <h1><?php _e('Mail SMTP Settings', 'textdomain'); ?></h1>
         <form action='options.php' method='post'>
             <?php
             settings_fields('custom_smtp_settings_group');
