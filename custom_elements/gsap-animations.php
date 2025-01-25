@@ -18,27 +18,29 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     }
 
     public function set_control_groups() {
-        // NO
+        // No specific groups required
     }
 
     public function set_controls() {
 
-        $this->controls['animations'] = [
+        $this->controls['gsap_animations'] = [
             'tab'           => 'content',
-            'label'         => esc_html__( 'Animations', 'bricks' ),
+            'label'         => esc_html__( 'GSAP Animations', 'bricks' ),
             'type'          => 'repeater',
             'titleProperty' => '',
-            'description'   => '<p data-control="info">To make this feature work, enable "Other Settings > GSAP".</p>',
             'default'       => [
                 [
-                    'position_start_horizontal' => '',
-                    'position_start_vertical'   => '',
+                    'x_start' => '',
+                    'y_start' => '',
+                    'x_end'   => '',
+                    'y_end'   => '',
+                    'duration'=> '',
                 ],
             ],
             'placeholder'   => esc_html__( 'Animation', 'bricks' ),
             'fields'        => [
-                'position_start_horizontal' => [
-                    'label'       => esc_html__( 'Position Start Horizontal', 'bricks' ),
+                'x_start' => [
+                    'label'       => esc_html__( 'X Start', 'bricks' ),
                     'type'        => 'number',
                     'min'         => '-1000',
                     'max'         => '1000',
@@ -46,8 +48,8 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'default'     => '',
                     'placeholder' => esc_html__( 'e.g., 100', 'bricks' ),
                 ],
-                'position_start_vertical' => [
-                    'label'       => esc_html__( 'Position Start Vertical', 'bricks' ),
+                'y_start' => [
+                    'label'       => esc_html__( 'Y Start', 'bricks' ),
                     'type'        => 'number',
                     'min'         => '-1000',
                     'max'         => '1000',
@@ -55,9 +57,35 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'default'     => '',
                     'placeholder' => esc_html__( 'e.g., 50', 'bricks' ),
                 ],
+                'x_end' => [
+                    'label'       => esc_html__( 'X End', 'bricks' ),
+                    'type'        => 'number',
+                    'min'         => '-1000',
+                    'max'         => '1000',
+                    'step'        => '10',
+                    'default'     => '',
+                    'placeholder' => esc_html__( 'e.g., 200', 'bricks' ),
+                ],
+                'y_end' => [
+                    'label'       => esc_html__( 'Y End', 'bricks' ),
+                    'type'        => 'number',
+                    'min'         => '-1000',
+                    'max'         => '1000',
+                    'step'        => '10',
+                    'default'     => '',
+                    'placeholder' => esc_html__( 'e.g., 100', 'bricks' ),
+                ],
+                'duration' => [
+                    'label'       => esc_html__( 'Duration', 'bricks' ),
+                    'type'        => 'number',
+                    'min'         => '0',
+                    'max'         => '60',
+                    'step'        => '0.1',
+                    'default'     => '',
+                    'placeholder' => esc_html__( '0', 'bricks' ),
+                ],
             ],
         ];
-
 
         // Markers Control
         $this->controls['markers'] = [
@@ -73,7 +101,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'placeholder'   => esc_html__( 'Select', 'bricks' ),
         ];
 
-        // Scroll Control (Renamed from 'scroll_trigger' to 'scroll')
+        // Scroll Control
         $this->controls['scroll'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'ScrollTrigger', 'bricks' ),
@@ -85,6 +113,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'default'       => '',
             'inline'        => true,
             'placeholder'   => esc_html__( 'Select', 'bricks' ),
+            'description'   => '<br><p data-control="info">To make this feature work, enable "Other Settings > GSAP".</p>',
         ];
     }
 
@@ -92,22 +121,40 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         $root_classes = ['prefix-gsap-animations-wrapper'];
         $this->set_attribute( '_root', 'class', $root_classes );
 
-        $animations = isset( $this->settings['animations'] ) ? $this->settings['animations'] : [];
+        $gsap_animations = isset( $this->settings['gsap_animations'] ) ? $this->settings['gsap_animations'] : [];
         $animation_strings = [];
 
-        foreach ( $animations as $anim ) {
+        foreach ( $gsap_animations as $anim ) {
             $props = [];
 
-            // Add Position Start Horizontal to the data-animate attribute
-            if ( ($posX = $anim['position_start_horizontal'] ?? '') !== '' ) {
-                $posX = floatval( $posX );
-                $props[] = "style_start-transform:translateX({$posX}px)";
+            // Add X Start
+            if ( ($xStart = $anim['x_start'] ?? '') !== '' ) {
+                $xStart = floatval( $xStart );
+                $props[] = "style_start-transform:translateX({$xStart}px)";
             }
 
-            // Add Position Start Vertical to the data-animate attribute
-            if ( ($posY = $anim['position_start_vertical'] ?? '') !== '' ) {
-                $posY = floatval( $posY );
-                $props[] = "style_start-transform:translateY({$posY}px)";
+            // Add Y Start
+            if ( ($yStart = $anim['y_start'] ?? '') !== '' ) {
+                $yStart = floatval( $yStart );
+                $props[] = "style_start-transform:translateY({$yStart}px)";
+            }
+
+            // Add X End
+            if ( ($xEnd = $anim['x_end'] ?? '') !== '' ) {
+                $xEnd = floatval( $xEnd );
+                $props[] = "style_end-transform:translateX({$xEnd}px)";
+            }
+
+            // Add Y End
+            if ( ($yEnd = $anim['y_end'] ?? '') !== '' ) {
+                $yEnd = floatval( $yEnd );
+                $props[] = "style_end-transform:translateY({$yEnd}px)";
+            }
+
+            // Add Duration
+            if ( ($duration = $anim['duration'] ?? '') !== '' ) {
+                $duration = floatval( $duration );
+                $props[] = "duration:{$duration}s";
             }
 
             // Convert this single animation's properties array to a string and append a semicolon

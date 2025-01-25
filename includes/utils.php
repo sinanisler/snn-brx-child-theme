@@ -1,21 +1,65 @@
 <?php 
-
-
-
-
-
 // WP-Admin Backend Custom JS and CSS in <head>
 function snn_custom_css_utils() { ?>
-<style>
-#toplevel_page_snn-settings li a{
-    line-height:1.1 !important;
-}
-#toplevel_page_snn-settings li a:hover{
-    font-weight:700
-}
-</style>
+    <style>
+    #toplevel_page_snn-settings li a{
+        line-height:1.1 !important;
+    }
+    #toplevel_page_snn-settings li a:hover{
+        font-weight:700
+    }
+
+
+    </style>
+
+
+    <?php if (isset($_GET['bricks'])) { ?>
+        <style>
+        [data-control-key="position_start_horizontal"],
+        [data-control-key="position_start_vertical"] {
+            float:left !important;
+            padding:10px;
+        }
+        </style>
+    <?php }?>
+
 <?php }
 add_action('admin_head', 'snn_custom_css_utils');
+
+
+// Add custom CSS to the footer based on query parameter
+function snn_custom_css_utils_wp_footer() {
+    if (isset($_GET['bricks'])) { ?>
+    <style>
+        [data-controlkey="gsap_animations"] .repeater-item-inner,
+        [data-controlkey="gsap_animations"] .repeater-item-inner {
+            float: left !important;
+            width: 50%;
+        }
+        [data-controlkey="gsap_animations"] .control-inline{
+            gap:2px !important
+        }
+        [data-controlkey="gsap_animations"] .bricks-sortable-item .control{
+            margin-left:5px !important;
+            margin-right:5px !important;
+        }
+        [data-controlkey="gsap_animations"] .sortable-title{
+            padding-left:5px !important;
+        }
+    </style>
+    <?php
+    }
+}
+
+// Hook the function to the WordPress 'wp_footer' action
+add_action('wp_footer', 'snn_custom_css_utils_wp_footer');
+
+
+
+
+
+
+
 
 
 
