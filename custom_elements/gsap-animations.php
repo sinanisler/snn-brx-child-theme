@@ -31,11 +31,16 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'titleProperty' => '',
             'default'       => [
                 [
-                    'x_start' => '',
-                    'y_start' => '',
-                    'x_end'   => '',
-                    'y_end'   => '',
-                    'delay'   => '',
+                    'x_start'             => '',
+                    'y_start'             => '',
+                    'x_end'               => '',
+                    'y_end'               => '',
+                    'style_start-scale'   => '',
+                    'style_end-scale'     => '',
+                    'style_start-rotate'  => '',
+                    'style_end-rotate'    => '',
+                    'style_start-opacity' => '',
+                    'style_end-opacity'   => '',
                 ],
             ],
             'placeholder'   => esc_html__( 'Animation', 'bricks' ),
@@ -60,10 +65,35 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'type'        => 'number',
                     'placeholder' => '0',
                 ],
-                'delay' => [
-                    'label'       => esc_html__( 'Delay', 'bricks' ),
+                'style_start-scale' => [
+                    'label'       => esc_html__( 'Scale Start', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '1',
+                ],
+                'style_end-scale' => [
+                    'label'       => esc_html__( 'Scale End', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '1',
+                ],
+                'style_start-rotate' => [
+                    'label'       => esc_html__( 'Rotate Start', 'bricks' ),
                     'type'        => 'number',
                     'placeholder' => '0',
+                ],
+                'style_end-rotate' => [
+                    'label'       => esc_html__( 'Rotate End', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '0',
+                ],
+                'style_start-opacity' => [
+                    'label'       => esc_html__( 'Opacity Start', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '1',
+                ],
+                'style_end-opacity' => [
+                    'label'       => esc_html__( 'Opacity End', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '1',
                 ],
             ],
         ];
@@ -120,8 +150,23 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             if ( ( $yEnd = $anim['y_end'] ?? '' ) !== '' ) {
                 $props[] = "style_end-transform:translateY({$yEnd}px)";
             }
-            if ( ( $delay = $anim['delay'] ?? '' ) !== '' ) {
-                $props[] = "delay:{$delay}s";
+            if ( ( $scaleStart = $anim['style_start-scale'] ?? '' ) !== '' ) {
+                $props[] = "style_start-scale:{$scaleStart}";
+            }
+            if ( ( $scaleEnd = $anim['style_end-scale'] ?? '' ) !== '' ) {
+                $props[] = "style_end-scale:{$scaleEnd}";
+            }
+            if ( ( $rotateStart = $anim['style_start-rotate'] ?? '' ) !== '' ) {
+                $props[] = "style_start-rotate:{$rotateStart}deg";
+            }
+            if ( ( $rotateEnd = $anim['style_end-rotate'] ?? '' ) !== '' ) {
+                $props[] = "style_end-rotate:{$rotateEnd}deg";
+            }
+            if ( ( $opacityStart = $anim['style_start-opacity'] ?? '' ) !== '' ) {
+                $props[] = "style_start-opacity:{$opacityStart}";
+            }
+            if ( ( $opacityEnd = $anim['style_end-opacity'] ?? '' ) !== '' ) {
+                $props[] = "style_end-opacity:{$opacityEnd}";
             }
 
             if ( ! empty( $props ) ) {
