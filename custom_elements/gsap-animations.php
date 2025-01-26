@@ -55,12 +55,6 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'y_start'              => '',
                     'x_end'                => '',
                     'y_end'                => '',
-                    'width_start'          => '',
-                    'width_end'            => '',
-                    'height_start'         => '',
-                    'height_end'           => '',
-                    'font_size_start'      => '',
-                    'font_size_end'        => '',
                     'style_start-scale'    => '',
                     'style_end-scale'      => '',
                     'style_start-rotate'   => '',
@@ -71,6 +65,8 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'style_end-filter'     => '',
                     'style_start-grayscale' => '',
                     'style_end-grayscale'  => '',
+                    'style_start_custom'   => '',
+                    'style_end_custom'     => '',
                 ],
             ],
             'placeholder'   => esc_html__( 'Animation', 'bricks' ),
@@ -92,36 +88,6 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 ],
                 'y_end' => [
                     'label'       => esc_html__( 'Y End', 'bricks' ),
-                    'type'        => 'number',
-                    'placeholder' => '0px',
-                ],
-                'width_start' => [
-                    'label'       => esc_html__( 'Width Start', 'bricks' ),
-                    'type'        => 'number',
-                    'placeholder' => 'auto',
-                ],
-                'width_end' => [
-                    'label'       => esc_html__( 'Width End', 'bricks' ),
-                    'type'        => 'number',
-                    'placeholder' => 'auto',
-                ],
-                'height_start' => [
-                    'label'       => esc_html__( 'Height Start', 'bricks' ),
-                    'type'        => 'number',
-                    'placeholder' => 'auto',
-                ],
-                'height_end' => [
-                    'label'       => esc_html__( 'Height End', 'bricks' ),
-                    'type'        => 'number',
-                    'placeholder' => 'auto',
-                ],
-                'font_size_start' => [
-                    'label'       => esc_html__( 'Font Size Start', 'bricks' ),
-                    'type'        => 'number',
-                    'placeholder' => '0px',
-                ],
-                'font_size_end' => [
-                    'label'       => esc_html__( 'Font Size End', 'bricks' ),
                     'type'        => 'number',
                     'placeholder' => '0px',
                 ],
@@ -187,9 +153,22 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'max'         => '100',
                     'step'        => '1',
                 ],
+                'style_start_custom' => [
+                    'label'       => esc_html__( 'Style Start (Custom CSS)', 'bricks' ),
+                    'type'        => 'textarea',
+                    'placeholder' => 'background: red; color: white;',
+                    'description' => esc_html__( 'Enter custom CSS properties for start state (without selectors or braces)', 'bricks' ),
+                ],
+                'style_end_custom' => [
+                    'label'       => esc_html__( 'Style End (Custom CSS)', 'bricks' ),
+                    'type'        => 'textarea',
+                    'placeholder' => 'background: blue; color: yellow;',
+                    'description' => esc_html__( 'Enter custom CSS properties for end state (without selectors or braces)', 'bricks' ),
+                ],
             ],
         ];
 
+        // Rest of the controls remain the same
         $this->controls['markers'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'Markers', 'bricks' ),
@@ -286,23 +265,6 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 $props[] = "style_end-transform:" . implode(' ', $transform_end);
             }
 
-            // Handle size properties
-            $size_properties = [
-                'width' => ['start', 'end'],
-                'height' => ['start', 'end'],
-                'font_size' => ['start', 'end']
-            ];
-
-            foreach ($size_properties as $prop => $states) {
-                foreach ($states as $state) {
-                    $key = "{$prop}_{$state}";
-                    if (!empty($anim[$key])) {
-                        $value = $this->parse_unit_value($anim[$key]);
-                        $props[] = "style_{$state}-{$prop}:{$value}";
-                    }
-                }
-            }
-
             // Handle opacity
             foreach (['start', 'end'] as $state) {
                 $key = "style_{$state}-opacity";
@@ -340,6 +302,26 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             foreach (['start', 'end'] as $state) {
                 if (!empty($filters[$state])) {
                     $props[] = "style_{$state}-filter:" . implode(' ', $filters[$state]);
+                }
+            }
+
+            // Process custom CSS inputs
+            foreach (['start', 'end'] as $state) {
+                $key = "style_{$state}_custom";
+                if (!empty($anim[$key])) {
+                    $custom_css = $anim[$key];
+                    $declarations = array_map('trim', explode(';', $custom_css));
+                    
+                    foreach ($declarations as $declaration) {
+                        if (!empty($declaration)) {
+                            $parts = array_map('trim', explode(':', $declaration, 2));
+                            if (count($parts) === 2) {
+                                list($css_prop, $css_value) = $parts;
+                                $gsap_prop = str_replace('_', '-', $css_prop);
+                                $props[] = "style_{$state}-{$gsap_prop}:{$css_value}";
+                            }
+                        }
+                    }
                 }
             }
 
