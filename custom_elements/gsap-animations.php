@@ -156,13 +156,15 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 'style_start_custom' => [
                     'label'       => esc_html__( 'Style Start (Custom CSS)', 'bricks' ),
                     'type'        => 'textarea',
-                    'placeholder' => 'background: red; color: white;',
+                    'placeholder' => 'background: red; 
+color: white;',
                     'description' => esc_html__( 'Enter custom CSS properties for start state (without selectors or braces)', 'bricks' ),
                 ],
                 'style_end_custom' => [
                     'label'       => esc_html__( 'Style End (Custom CSS)', 'bricks' ),
                     'type'        => 'textarea',
-                    'placeholder' => 'background: blue; color: yellow;',
+                    'placeholder' => 'background: blue; 
+color: yellow;',
                     'description' => esc_html__( 'Enter custom CSS properties for end state (without selectors or braces)', 'bricks' ),
                 ],
             ],
