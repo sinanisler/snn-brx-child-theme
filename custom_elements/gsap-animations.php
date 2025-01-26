@@ -157,7 +157,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'min'         => 0,
             'max'         => 100,
             'step'        => 1,
-            'placeholder' => '60',
+            'placeholder' => '40',
         ];
 
         $this->controls['scroll_end'] = [
@@ -167,7 +167,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'min'         => 0,
             'max'         => 100,
             'step'        => 1,
-            'placeholder' => '40',
+            'placeholder' => '60',
         ];
     }
 
@@ -180,71 +180,75 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         foreach ( $gsap_animations as $anim ) {
             $props = [];
+            $transform_start = [];
+            $transform_end = [];
 
-            // Initialize filter components
-            $filter_start_components = [];
-            $filter_end_components = [];
-
-            // Transformations
-            if ( ( $xStart = $anim['x_start'] ?? '' ) !== '' ) {
-                $props[] = "style_start-transform:translateX({$xStart}px)";
+            // Build transform properties
+            if ( isset( $anim['x_start'] ) && $anim['x_start'] !== '' ) {
+                $transform_start[] = "translateX({$anim['x_start']}px)";
             }
-            if ( ( $yStart = $anim['y_start'] ?? '' ) !== '' ) {
-                $props[] = "style_start-transform:translateY({$yStart}px)";
+            if ( isset( $anim['y_start'] ) && $anim['y_start'] !== '' ) {
+                $transform_start[] = "translateY({$anim['y_start']}px)";
             }
-            if ( ( $xEnd = $anim['x_end'] ?? '' ) !== '' ) {
-                $props[] = "style_end-transform:translateX({$xEnd}px)";
+            if ( isset( $anim['style_start-rotate'] ) && $anim['style_start-rotate'] !== '' ) {
+                $transform_start[] = "rotate({$anim['style_start-rotate']}deg)";
             }
-            if ( ( $yEnd = $anim['y_end'] ?? '' ) !== '' ) {
-                $props[] = "style_end-transform:translateY({$yEnd}px)";
+            if ( isset( $anim['style_start-scale'] ) && $anim['style_start-scale'] !== '' ) {
+                $transform_start[] = "scale({$anim['style_start-scale']})";
             }
 
-            // Scale
-            if ( ( $scaleStart = $anim['style_start-scale'] ?? '' ) !== '' ) {
-                $props[] = "style_start-scale:{$scaleStart}";
+            if ( isset( $anim['x_end'] ) && $anim['x_end'] !== '' ) {
+                $transform_end[] = "translateX({$anim['x_end']}px)";
             }
-            if ( ( $scaleEnd = $anim['style_end-scale'] ?? '' ) !== '' ) {
-                $props[] = "style_end-scale:{$scaleEnd}";
+            if ( isset( $anim['y_end'] ) && $anim['y_end'] !== '' ) {
+                $transform_end[] = "translateY({$anim['y_end']}px)";
             }
-
-            // Rotate
-            if ( ( $rotateStart = $anim['style_start-rotate'] ?? '' ) !== '' ) {
-                $props[] = "style_start-rotate:{$rotateStart}deg";
+            if ( isset( $anim['style_end-rotate'] ) && $anim['style_end-rotate'] !== '' ) {
+                $transform_end[] = "rotate({$anim['style_end-rotate']}deg)";
             }
-            if ( ( $rotateEnd = $anim['style_end-rotate'] ?? '' ) !== '' ) {
-                $props[] = "style_end-rotate:{$rotateEnd}deg";
+            if ( isset( $anim['style_end-scale'] ) && $anim['style_end-scale'] !== '' ) {
+                $transform_end[] = "scale({$anim['style_end-scale']})";
             }
 
-            // Opacity
-            if ( ( $opacityStart = $anim['style_start-opacity'] ?? '' ) !== '' ) {
-                $props[] = "style_start-opacity:{$opacityStart}";
+            // Add combined transform properties
+            if ( ! empty( $transform_start ) ) {
+                $props[] = "style_start-transform:" . implode( ' ', $transform_start );
             }
-            if ( ( $opacityEnd = $anim['style_end-opacity'] ?? '' ) !== '' ) {
-                $props[] = "style_end-opacity:{$opacityEnd}";
-            }
-
-            // Filter - Blur
-            if ( ( $blurStart = $anim['style_start-filter'] ?? '' ) !== '' ) {
-                $filter_start_components[] = "blur({$blurStart}px)";
-            }
-            if ( ( $blurEnd = $anim['style_end-filter'] ?? '' ) !== '' ) {
-                $filter_end_components[] = "blur({$blurEnd}px)";
+            if ( ! empty( $transform_end ) ) {
+                $props[] = "style_end-transform:" . implode( ' ', $transform_end );
             }
 
-            // Filter - Grayscale
-            if ( ( $grayscaleStart = $anim['style_start-grayscale'] ?? '' ) !== '' ) {
-                $filter_start_components[] = "grayscale({$grayscaleStart}%)";
+            // Handle opacity
+            if ( isset( $anim['style_start-opacity'] ) && $anim['style_start-opacity'] !== '' ) {
+                $props[] = "style_start-opacity:{$anim['style_start-opacity']}";
             }
-            if ( ( $grayscaleEnd = $anim['style_end-grayscale'] ?? '' ) !== '' ) {
-                $filter_end_components[] = "grayscale({$grayscaleEnd}%)";
+            if ( isset( $anim['style_end-opacity'] ) && $anim['style_end-opacity'] !== '' ) {
+                $props[] = "style_end-opacity:{$anim['style_end-opacity']}";
             }
 
-            // Combine filter components if any
-            if ( ! empty( $filter_start_components ) ) {
-                $props[] = "style_start-filter:" . implode(' ', $filter_start_components);
+            // Handle filters
+            $filter_start = [];
+            $filter_end = [];
+
+            if ( isset( $anim['style_start-filter'] ) && $anim['style_start-filter'] !== '' ) {
+                $filter_start[] = "blur({$anim['style_start-filter']}px)";
             }
-            if ( ! empty( $filter_end_components ) ) {
-                $props[] = "style_end-filter:" . implode(' ', $filter_end_components);
+            if ( isset( $anim['style_start-grayscale'] ) && $anim['style_start-grayscale'] !== '' ) {
+                $filter_start[] = "grayscale({$anim['style_start-grayscale']}%)";
+            }
+
+            if ( isset( $anim['style_end-filter'] ) && $anim['style_end-filter'] !== '' ) {
+                $filter_end[] = "blur({$anim['style_end-filter']}px)";
+            }
+            if ( isset( $anim['style_end-grayscale'] ) && $anim['style_end-grayscale'] !== '' ) {
+                $filter_end[] = "grayscale({$anim['style_end-grayscale']}%)";
+            }
+
+            if ( ! empty( $filter_start ) ) {
+                $props[] = "style_start-filter:" . implode( ' ', $filter_start );
+            }
+            if ( ! empty( $filter_end ) ) {
+                $props[] = "style_end-filter:" . implode( ' ', $filter_end );
             }
 
             if ( ! empty( $props ) ) {
@@ -254,12 +258,10 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $global_settings = [];
 
-        // Markers
         if ( isset( $this->settings['markers'] ) ) {
-            $global_settings[] = "markers:" . ( 'true' === $this->settings['markers'] ? 'true' : 'false' );
+            $global_settings[] = "markers:" . ( $this->settings['markers'] === 'true' ? 'true' : 'false' );
         }
 
-        // Scroll Start/End
         if ( isset( $this->settings['scroll_start'] ) && $this->settings['scroll_start'] !== '' ) {
             $global_settings[] = "start:'top " . $this->settings['scroll_start'] . "%'";
         }
