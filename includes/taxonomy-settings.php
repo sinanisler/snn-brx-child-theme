@@ -224,6 +224,15 @@ function snn_render_taxonomies_page() {
             select[multiple] {
                 height: 100px;
             }
+            .buttons button{
+                cursor:pointer;
+                border:solid 1px gray;
+                padding:4px 10px;
+            }
+            .buttons button:hover{
+                background:white;
+            }
+
         </style>
     </div>
     <?php

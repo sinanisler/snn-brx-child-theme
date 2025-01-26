@@ -290,6 +290,16 @@ function snn_render_custom_post_types_page() {
                 gap: 10px;
                 flex-direction: row-reverse;
             }
+            .custom-post-type-row button{
+                cursor:pointer;
+                border:solid 1px gray;
+                padding:4px 10px;
+            }
+            .custom-post-type-row button:hover{
+                background:none;
+                color:black;  
+                border:solid 1px;
+            }
         </style>
     </div>
     <?php

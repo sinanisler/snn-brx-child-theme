@@ -347,6 +347,15 @@ function snn_custom_fields_page_callback() {
             .submit input[type="submit"]:hover {
                 background-color: #005177;
             }
+
+            .buttons button{
+                cursor:pointer;
+                border:solid 1px gray;
+                padding:4px 10px;
+            }
+            .buttons button:hover{
+                background:white;
+            }
             
             @media (max-width: 768px) {
                 .custom-field-row {
