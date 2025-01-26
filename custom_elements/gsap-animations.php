@@ -22,6 +22,27 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         // No specific groups required
     }
 
+    private function parse_unit_value( $value ) {
+        if ( empty( $value ) ) {
+            return '';
+        }
+        
+        $value = trim( $value );
+        
+        // Allow special values like 'auto' or 'initial'
+        if ( preg_match( '/^(auto|initial|inherit|unset)$/', $value ) ) {
+            return $value;
+        }
+        
+        // Check if value contains any unit or is a CSS function
+        if ( preg_match( '/[a-zA-Z%()]/', $value ) ) {
+            return $value;
+        }
+        
+        // Default to pixels if no unit specified and it's a numeric value
+        return is_numeric( $value ) ? $value . 'px' : $value;
+    }
+
     public function set_controls() {
         $this->controls['gsap_animations'] = [
             'tab'           => 'content',
@@ -34,6 +55,12 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'y_start'              => '',
                     'x_end'                => '',
                     'y_end'                => '',
+                    'width_start'          => '',
+                    'width_end'            => '',
+                    'height_start'         => '',
+                    'height_end'           => '',
+                    'font_size_start'      => '',
+                    'font_size_end'        => '',
                     'style_start-scale'    => '',
                     'style_end-scale'      => '',
                     'style_start-rotate'   => '',
@@ -51,22 +78,52 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 'x_start' => [
                     'label'       => esc_html__( 'X Start', 'bricks' ),
                     'type'        => 'number',
-                    'placeholder' => '0',
+                    'placeholder' => '0px',
                 ],
                 'x_end' => [
                     'label'       => esc_html__( 'X End', 'bricks' ),
                     'type'        => 'number',
-                    'placeholder' => '0',
+                    'placeholder' => '0px',
                 ],
                 'y_start' => [
                     'label'       => esc_html__( 'Y Start', 'bricks' ),
                     'type'        => 'number',
-                    'placeholder' => '0',
+                    'placeholder' => '0px',
                 ],
                 'y_end' => [
                     'label'       => esc_html__( 'Y End', 'bricks' ),
                     'type'        => 'number',
-                    'placeholder' => '0',
+                    'placeholder' => '0px',
+                ],
+                'width_start' => [
+                    'label'       => esc_html__( 'Width Start', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => 'auto',
+                ],
+                'width_end' => [
+                    'label'       => esc_html__( 'Width End', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => 'auto',
+                ],
+                'height_start' => [
+                    'label'       => esc_html__( 'Height Start', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => 'auto',
+                ],
+                'height_end' => [
+                    'label'       => esc_html__( 'Height End', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => 'auto',
+                ],
+                'font_size_start' => [
+                    'label'       => esc_html__( 'Font Size Start', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '0px',
+                ],
+                'font_size_end' => [
+                    'label'       => esc_html__( 'Font Size End', 'bricks' ),
+                    'type'        => 'number',
+                    'placeholder' => '0px',
                 ],
                 'style_start-scale' => [
                     'label'       => esc_html__( 'Scale Start', 'bricks' ),
@@ -105,18 +162,14 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'step'        => '0.1',
                 ],
                 'style_start-filter' => [
-                    'label'       => esc_html__( 'Blur Start (px)', 'bricks' ),
+                    'label'       => esc_html__( 'Blur Start', 'bricks' ),
                     'type'        => 'number',
-                    'placeholder' => '0',
-                    'min'         => '0',
-                    'step'        => '1',
+                    'placeholder' => '0px',
                 ],
                 'style_end-filter' => [
-                    'label'       => esc_html__( 'Blur End (px)', 'bricks' ),
+                    'label'       => esc_html__( 'Blur End', 'bricks' ),
                     'type'        => 'number',
-                    'placeholder' => '0',
-                    'min'         => '0',
-                    'step'        => '1',
+                    'placeholder' => '0px',
                 ],
                 'style_start-grayscale' => [
                     'label'       => esc_html__( 'Grayscale Start (%)', 'bricks' ),
@@ -183,102 +236,141 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             $transform_start = [];
             $transform_end = [];
 
-            // Build transform properties
-            if ( isset( $anim['x_start'] ) && $anim['x_start'] !== '' ) {
-                $transform_start[] = "translateX({$anim['x_start']}px)";
-            }
-            if ( isset( $anim['y_start'] ) && $anim['y_start'] !== '' ) {
-                $transform_start[] = "translateY({$anim['y_start']}px)";
-            }
-            if ( isset( $anim['style_start-rotate'] ) && $anim['style_start-rotate'] !== '' ) {
-                $transform_start[] = "rotate({$anim['style_start-rotate']}deg)";
-            }
-            if ( isset( $anim['style_start-scale'] ) && $anim['style_start-scale'] !== '' ) {
-                $transform_start[] = "scale({$anim['style_start-scale']})";
+            // Handle X/Y transforms
+            foreach (['x', 'y'] as $axis) {
+                foreach (['start', 'end'] as $state) {
+                    $key = "{$axis}_{$state}";
+                    if (!empty($anim[$key])) {
+                        $value = $this->parse_unit_value($anim[$key]);
+                        $transform = "translate" . strtoupper($axis) . "($value)";
+                        if ($state === 'start') {
+                            $transform_start[] = $transform;
+                        } else {
+                            $transform_end[] = $transform;
+                        }
+                    }
+                }
             }
 
-            if ( isset( $anim['x_end'] ) && $anim['x_end'] !== '' ) {
-                $transform_end[] = "translateX({$anim['x_end']}px)";
+            // Handle scale
+            foreach (['start', 'end'] as $state) {
+                $key = "style_{$state}-scale";
+                if (!empty($anim[$key])) {
+                    $value = $anim[$key];
+                    if ($state === 'start') {
+                        $transform_start[] = "scale($value)";
+                    } else {
+                        $transform_end[] = "scale($value)";
+                    }
+                }
             }
-            if ( isset( $anim['y_end'] ) && $anim['y_end'] !== '' ) {
-                $transform_end[] = "translateY({$anim['y_end']}px)";
-            }
-            if ( isset( $anim['style_end-rotate'] ) && $anim['style_end-rotate'] !== '' ) {
-                $transform_end[] = "rotate({$anim['style_end-rotate']}deg)";
-            }
-            if ( isset( $anim['style_end-scale'] ) && $anim['style_end-scale'] !== '' ) {
-                $transform_end[] = "scale({$anim['style_end-scale']})";
+
+            // Handle rotate
+            foreach (['start', 'end'] as $state) {
+                $key = "style_{$state}-rotate";
+                if (!empty($anim[$key])) {
+                    $value = $anim[$key];
+                    if ($state === 'start') {
+                        $transform_start[] = "rotate({$value}deg)";
+                    } else {
+                        $transform_end[] = "rotate({$value}deg)";
+                    }
+                }
             }
 
             // Add combined transform properties
-            if ( ! empty( $transform_start ) ) {
-                $props[] = "style_start-transform:" . implode( ' ', $transform_start );
+            if (!empty($transform_start)) {
+                $props[] = "style_start-transform:" . implode(' ', $transform_start);
             }
-            if ( ! empty( $transform_end ) ) {
-                $props[] = "style_end-transform:" . implode( ' ', $transform_end );
+            if (!empty($transform_end)) {
+                $props[] = "style_end-transform:" . implode(' ', $transform_end);
+            }
+
+            // Handle size properties
+            $size_properties = [
+                'width' => ['start', 'end'],
+                'height' => ['start', 'end'],
+                'font_size' => ['start', 'end']
+            ];
+
+            foreach ($size_properties as $prop => $states) {
+                foreach ($states as $state) {
+                    $key = "{$prop}_{$state}";
+                    if (!empty($anim[$key])) {
+                        $value = $this->parse_unit_value($anim[$key]);
+                        $props[] = "style_{$state}-{$prop}:{$value}";
+                    }
+                }
             }
 
             // Handle opacity
-            if ( isset( $anim['style_start-opacity'] ) && $anim['style_start-opacity'] !== '' ) {
-                $props[] = "style_start-opacity:{$anim['style_start-opacity']}";
-            }
-            if ( isset( $anim['style_end-opacity'] ) && $anim['style_end-opacity'] !== '' ) {
-                $props[] = "style_end-opacity:{$anim['style_end-opacity']}";
+            foreach (['start', 'end'] as $state) {
+                $key = "style_{$state}-opacity";
+                if (!empty($anim[$key])) {
+                    $value = $anim[$key];
+                    $props[] = "style_{$state}-opacity:{$value}";
+                }
             }
 
             // Handle filters
-            $filter_start = [];
-            $filter_end = [];
+            $filters = [
+                'start' => [],
+                'end' => []
+            ];
 
-            if ( isset( $anim['style_start-filter'] ) && $anim['style_start-filter'] !== '' ) {
-                $filter_start[] = "blur({$anim['style_start-filter']}px)";
-            }
-            if ( isset( $anim['style_start-grayscale'] ) && $anim['style_start-grayscale'] !== '' ) {
-                $filter_start[] = "grayscale({$anim['style_start-grayscale']}%)";
-            }
-
-            if ( isset( $anim['style_end-filter'] ) && $anim['style_end-filter'] !== '' ) {
-                $filter_end[] = "blur({$anim['style_end-filter']}px)";
-            }
-            if ( isset( $anim['style_end-grayscale'] ) && $anim['style_end-grayscale'] !== '' ) {
-                $filter_end[] = "grayscale({$anim['style_end-grayscale']}%)";
+            // Blur filter
+            foreach (['start', 'end'] as $state) {
+                $key = "style_{$state}-filter";
+                if (!empty($anim[$key])) {
+                    $value = $this->parse_unit_value($anim[$key]);
+                    $filters[$state][] = "blur($value)";
+                }
             }
 
-            if ( ! empty( $filter_start ) ) {
-                $props[] = "style_start-filter:" . implode( ' ', $filter_start );
-            }
-            if ( ! empty( $filter_end ) ) {
-                $props[] = "style_end-filter:" . implode( ' ', $filter_end );
+            // Grayscale filter
+            foreach (['start', 'end'] as $state) {
+                $key = "style_{$state}-grayscale";
+                if (!empty($anim[$key])) {
+                    $value = $anim[$key];
+                    $filters[$state][] = "grayscale({$value}%)";
+                }
             }
 
-            if ( ! empty( $props ) ) {
-                $animation_strings[] = implode( ', ', $props ) . ';';
+            // Add filter properties
+            foreach (['start', 'end'] as $state) {
+                if (!empty($filters[$state])) {
+                    $props[] = "style_{$state}-filter:" . implode(' ', $filters[$state]);
+                }
+            }
+
+            if (!empty($props)) {
+                $animation_strings[] = implode(', ', $props) . ';';
             }
         }
 
         $global_settings = [];
 
-        if ( isset( $this->settings['markers'] ) ) {
-            $global_settings[] = "markers:" . ( $this->settings['markers'] === 'true' ? 'true' : 'false' );
+        if (isset($this->settings['markers'])) {
+            $global_settings[] = "markers:" . ($this->settings['markers'] === 'true' ? 'true' : 'false');
         }
 
-        if ( isset( $this->settings['scroll_start'] ) && $this->settings['scroll_start'] !== '' ) {
+        if (isset($this->settings['scroll_start']) && $this->settings['scroll_start'] !== '') {
             $global_settings[] = "start:'top " . $this->settings['scroll_start'] . "%'";
         }
 
-        if ( isset( $this->settings['scroll_end'] ) && $this->settings['scroll_end'] !== '' ) {
+        if (isset($this->settings['scroll_end']) && $this->settings['scroll_end'] !== '') {
             $global_settings[] = "end:'bottom " . $this->settings['scroll_end'] . "%'";
         }
 
-        $global = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
-        $data_animate = $global . implode( ' ', $animation_strings );
+        $global = !empty($global_settings) ? implode(', ', $global_settings) . ',' : '';
+        $data_animate = $global . implode(' ', $animation_strings);
 
-        $data_animate_attr = ! empty( $data_animate ) ? ' data-animate="' . esc_attr( $data_animate ) . '"' : '';
+        $data_animate_attr = !empty($data_animate) ? ' data-animate="' . esc_attr($data_animate) . '"' : '';
 
-        $other_attributes = $this->render_attributes( '_root' );
+        $other_attributes = $this->render_attributes('_root');
 
         echo '<div ' . $data_animate_attr . ' ' . $other_attributes . '>';
-        echo Frontend::render_children( $this );
+        echo Frontend::render_children($this);
         echo '</div>';
     }
 
