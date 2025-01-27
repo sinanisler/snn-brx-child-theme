@@ -383,6 +383,7 @@ function snn_render_301_redirects_page() {
                             <th>Requested URL</th>
                             <th>Redirected URL</th>
                             <th>IP Address</th>
+                            <th>User Agent</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -393,6 +394,7 @@ function snn_render_301_redirects_page() {
                                 $redirect_to   = get_post_meta($log->ID, 'redirect_to', true);
                                 $created_date  = get_post_meta($log->ID, 'created_date', true);
                                 $ip_address    = get_post_meta($log->ID, 'ip_address', true);
+                                $user_agent    = get_post_meta($log->ID, 'user_agent', true);
                             ?>
                             <tr>
                                 <td><?php echo esc_html($created_date); ?></td>
@@ -411,6 +413,7 @@ function snn_render_301_redirects_page() {
                                         <?php echo esc_html($ip_address); ?>
                                     </a>
                                 </td>
+                                <td><?php echo esc_html($user_agent); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -572,6 +575,8 @@ function snn_log_redirect($redirect_from, $redirect_to) {
         update_post_meta($log_id, 'redirect_to', $redirect_to);
         update_post_meta($log_id, 'created_date', current_time('mysql'));
         update_post_meta($log_id, 'ip_address', snn_get_client_ip());
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+        update_post_meta($log_id, 'user_agent', $user_agent);
 
         // Enforce the maximum number of logs to keep
         snn_enforce_max_logs();
