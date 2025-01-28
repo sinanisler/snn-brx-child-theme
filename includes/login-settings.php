@@ -24,10 +24,21 @@ function ls_register_login_settings() {
         'sanitize_callback' => 'wp_kses_post',
     ]);
 
+    register_setting('ls_login_settings_group', 'ls_login_redirect_url', [
+        'sanitize_callback' => 'esc_url_raw',
+    ]);
+
     add_settings_section(
         'ls_login_settings_section',
         'Login Page Customizations',
         'ls_login_settings_section_callback',
+        'login-settings'
+    );
+
+    add_settings_section(
+        'ls_login_redirect_section',
+        'Redirect Setting',
+        'ls_login_redirect_section_callback',
         'login-settings'
     );
 
@@ -46,10 +57,22 @@ function ls_register_login_settings() {
         'login-settings',
         'ls_login_settings_section'
     );
+
+    add_settings_field(
+        'ls_login_redirect_url',
+        'Redirect URL after Login',
+        'ls_login_redirect_url_callback',
+        'login-settings',
+        'ls_login_redirect_section'
+    );
 }
 
 function ls_login_settings_section_callback() {
     echo '<p>Customize the login page with your own background image and custom text.</p>';
+}
+
+function ls_login_redirect_section_callback() {
+    
 }
 
 function ls_login_background_image_url_callback() {
@@ -65,6 +88,14 @@ function ls_login_custom_text_callback() {
     ?>
     <textarea id="ls_login_custom_text" name="ls_login_custom_text" rows="5" style="width:100%;" placeholder="Enter your custom text here. HTML tags are allowed."><?php echo esc_textarea($custom_text); ?></textarea>
     <p class="description">You can use HTML tags in this text.</p>
+    <?php
+}
+
+function ls_login_redirect_url_callback() {
+    $redirect_url = get_option('ls_login_redirect_url', '');
+    ?>
+    <input type="text" id="ls_login_redirect_url" name="ls_login_redirect_url" value="<?php echo esc_attr($redirect_url); ?>" style="width: 100%;" placeholder="https://example.com/redirect-path" />
+    <p class="description">Enter the full URL where users should be redirected after logging in. Leave blank to disable custom redirect.</p>
     <?php
 }
 
@@ -97,6 +128,7 @@ add_action('login_footer', 'ls_add_custom_login_footer');
 function ls_add_custom_login_footer() {
     $background_image_url = get_option('ls_login_background_image_url', '');
     $custom_text = get_option('ls_login_custom_text', '');
+    $redirect_url = get_option('ls_login_redirect_url', '');
 
     $custom_text = wp_kses_post($custom_text);
 
@@ -201,4 +233,16 @@ function ls_add_custom_login_footer() {
     }
     </style>
     ';
+}
+
+// Add redirect functionality
+add_filter('login_redirect', 'ls_login_redirect', 10, 3);
+function ls_login_redirect($redirect_to, $request_redirect_to, $user) {
+    $redirect_url = get_option('ls_login_redirect_url');
+    
+    if (!empty($redirect_url)) {
+        return esc_url_raw($redirect_url);
+    }
+    
+    return $redirect_to;
 }
