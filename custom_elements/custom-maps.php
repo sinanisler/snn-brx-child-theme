@@ -232,9 +232,9 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 attribution: '<?php echo esc_js( $tile_attribution ); ?>'
             }).addTo(map);
 
-            // Helper to create a Leaflet DivIcon from an HTML string
-            function createIcon(iconHtml, size, color) {
-                var styledIconHtml = '<div class="leaflet-icon-custom" style="font-size:' + size + 'px; color:' + color + '; line-height:1;">'
+            // Helper to create a Leaflet DivIcon from an HTML string with an ARIA label
+            function createIcon(iconHtml, size, color, label) {
+                var styledIconHtml = '<div class="leaflet-icon-custom" aria-label="' + label + '" style="font-size:' + size + 'px; color:' + color + '; line-height:1;">'
                                    + iconHtml
                                    + '</div>';
                 return L.divIcon({
@@ -259,7 +259,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 }
 
                 // Render the icon using $this->render_icon()
-                // capture to a variable via output buffering
                 ob_start();
                 echo $this->render_icon( $marker['icon'] );
                 $icon_html = ob_get_clean();
@@ -267,6 +266,10 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 // Escape for use in JS
                 $icon_html_escaped  = str_replace( "'", "\\'", $icon_html );
                 $popup_escaped      = str_replace( "'", "\\'", $popup );
+
+                // Set ARIA label for the icon using the popup text if available, or default to "Map marker"
+                $icon_label = !empty( $popup ) ? wp_strip_all_tags( $popup ) : 'Map marker';
+                $icon_label_escaped = str_replace( "'", "\\'", $icon_label );
             ?>
 
             // Create marker
@@ -276,7 +279,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     icon: createIcon(
                         '<?php echo $icon_html_escaped; ?>',
                         <?php echo $icon_size; ?>,
-                        '<?php echo esc_js( $icon_color ); ?>'
+                        '<?php echo esc_js( $icon_color ); ?>',
+                        '<?php echo $icon_label_escaped; ?>'
                     )
                 }
             ).bindPopup(
