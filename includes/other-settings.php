@@ -294,44 +294,36 @@ function snn_add_thumbnail_column() {
         add_filter('manage_posts_columns', 'snn_add_thumbnail_column_header');
         add_action('manage_posts_custom_column', 'snn_display_thumbnail_column', 10, 2);
 
-        // Add Thumbnail column to all registered custom post types
+        // Add Thumbnail column to all registered custom post types (if they support thumbnails) except "product"
         $post_types = get_post_types(array('public' => true), 'names');
         foreach ($post_types as $post_type) {
-            if ($post_type === 'post') {
-                continue; 
-            }
-            if ($post_type === 'product') { 
-                // If the post type is WooCommerce products, skip adding the thumbnail column
+            if ($post_type === 'post' || $post_type === 'product') {
                 continue;
-            } else {
-                add_filter("manage_{$post_type}_posts_columns", 'snn_add_thumbnail_column_header');
-                add_action("manage_{$post_type}_posts_custom_column", 'snn_display_thumbnail_column', 10, 2);
             }
+            // Only add the thumbnail column if the post type supports featured images.
+            if (!post_type_supports($post_type, 'thumbnail')) {
+                continue;
+            }
+            add_filter("manage_edit-{$post_type}_columns", 'snn_add_thumbnail_column_header');
+            add_action("manage_{$post_type}_posts_custom_column", 'snn_display_thumbnail_column', 10, 2);
         }
     }
 }
 add_action('admin_init', 'snn_add_thumbnail_column');
 
-
 function snn_add_thumbnail_column_style() {
     $options = get_option('snn_other_settings');
     if (isset($options['enable_thumbnail_column'])) {
-
-        echo '<style>.post_thumbnail img:nth-child(1) { display: none; }</style>';
-
-    } 
+        echo '<style>.post_thumbnail img:nth-child(2) { display: none; }</style>';
+    }
 }
 add_action('admin_head', 'snn_add_thumbnail_column_style');
-
-
-
-
 
 function snn_add_thumbnail_column_header($columns) {
     $new_columns = array();
     foreach ($columns as $key => $value) {
         $new_columns[$key] = $value;
-        if ($key === 'title') { // Adjust the position as needed
+        if ($key === 'title') { // Insert our column after the title column.
             $new_columns['post_thumbnail'] = __('Thumbnail');
         }
     }
@@ -350,11 +342,18 @@ function snn_display_thumbnail_column($column, $post_id) {
     }
 }
 
+function snn_remove_thumbnail_column_for_product($columns) {
+    if (isset($columns['post_thumbnail'])) {
+        unset($columns['post_thumbnail']);
+    }
+    return $columns;
+}
+add_filter('manage_edit-product_columns', 'snn_remove_thumbnail_column_for_product', 20);
+
 function snn_maybe_remove_dashboard_widgets() {
     $options = get_option('snn_other_settings');
     if (isset($options['disable_dashboard_widgets']) && $options['disable_dashboard_widgets']) {
         remove_action('welcome_panel', 'wp_welcome_panel');
-
         remove_meta_box('dashboard_right_now', 'dashboard', 'normal');
         remove_meta_box('dashboard_activity', 'dashboard', 'normal');
         remove_meta_box('dashboard_quick_press', 'dashboard', 'side');
@@ -368,29 +367,26 @@ function snn_maybe_add_dashboard_custom_metabox() {
     $options = get_option('snn_other_settings');
     if (!empty($options['dashboard_custom_metabox_content'])) {
         add_meta_box(
-            'snn_custom_dashboard_metabox', // ID of the meta box
-            'Welcome',      // Title of the meta box
-            'snn_display_custom_dashboard_metabox', // Callback function
-            'dashboard',            // Screen where to show the meta box (in this case, dashboard)
-            'normal',                 // Context (where on the screen)
-            'high'                  // Priority of the meta box
+            'snn_custom_dashboard_metabox',  
+            'Welcome',       
+            'snn_display_custom_dashboard_metabox',  
+            'dashboard',    
+            'normal',       
+            'high'          
         );
     }
 }
 add_action('wp_dashboard_setup', 'snn_maybe_add_dashboard_custom_metabox');
 
-// Callback function to display the custom dashboard metabox content
 function snn_display_custom_dashboard_metabox() {
     $options = get_option('snn_other_settings');
     $content = isset($options['dashboard_custom_metabox_content']) ? $options['dashboard_custom_metabox_content'] : '';
 
-    // Replace placeholders with dynamic content if needed
     $current_user = wp_get_current_user();
     $content = str_replace('{first_name}', esc_html($current_user->user_firstname), $content);
     $content = str_replace('{homepage_url}', esc_url(home_url('/')), $content);
 
     echo $content;
 }
-
 
 ?>
