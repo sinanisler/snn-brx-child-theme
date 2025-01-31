@@ -194,7 +194,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                         display:none
                     }
                     .leaflet-top, .leaflet-bottom {
-                        z-index: 999;
+                        z-index: 500 !important;
                     }
                 </style>
             ";
