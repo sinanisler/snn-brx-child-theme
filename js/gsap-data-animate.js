@@ -32,6 +32,19 @@ window.onload = function () {
       });
     }
 
+    function randomizeValue(val, isRandom) {
+      const num = parseFloat(val);
+      return isRandom ? gsap.utils.random(-Math.abs(num), Math.abs(num)) : num;
+    }
+
+    function getStaggerValue(options) {
+      if (options.stagger) {
+        const s = parseFloat(options.stagger);
+        return (options.rand === 'true') ? { each: s, from: "random" } : s;
+      }
+      return 0;
+    }
+
     animateElements.forEach(element => {
       const animations = element
         .getAttribute('data-animate')
@@ -49,15 +62,27 @@ window.onload = function () {
           const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
           const animationProps = {
-            ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
-            ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
-            ...( !hasTransform && (options.s || options.scale) ? { scale: parseFloat(options.s || options.scale) } : {}),
-            ...( !hasTransform && (options.r || options.rotate) ? { rotate: parseFloat(options.r || options.rotate) } : {}),
+            ...( !hasTransform && options.x
+                ? { x: randomizeValue(options.x, options.rand === 'true') }
+                : {}
+            ),
+            ...( !hasTransform && options.y
+                ? { y: randomizeValue(options.y, options.rand === 'true') }
+                : {}
+            ),
+            ...( !hasTransform && (options.s || options.scale)
+                ? { scale: parseFloat(options.s || options.scale) }
+                : {}
+            ),
+            ...( !hasTransform && (options.r || options.rotate)
+                ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
+                : {}
+            ),
             ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
             ...options.endStyles,
             duration: options.duration || 1,
             delay: options.delay || 0,
-            stagger: options.stagger ? parseFloat(options.stagger) : 0,
+            stagger: options.stagger ? getStaggerValue(options) : 0,
             ...(hasTransform ? { force3D: false } : {})
           };
 
@@ -79,15 +104,27 @@ window.onload = function () {
           const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
           const animationProps = {
-            ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
-            ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
-            ...( !hasTransform && (options.s || options.scale) ? { scale: parseFloat(options.s || options.scale) } : {}),
-            ...( !hasTransform && (options.r || options.rotate) ? { rotate: parseFloat(options.r || options.rotate) } : {}),
+            ...( !hasTransform && options.x
+                ? { x: randomizeValue(options.x, options.rand === 'true') }
+                : {}
+            ),
+            ...( !hasTransform && options.y
+                ? { y: randomizeValue(options.y, options.rand === 'true') }
+                : {}
+            ),
+            ...( !hasTransform && (options.s || options.scale)
+                ? { scale: parseFloat(options.s || options.scale) }
+                : {}
+            ),
+            ...( !hasTransform && (options.r || options.rotate)
+                ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
+                : {}
+            ),
             ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
             ...options.endStyles,
             duration: options.duration || 1,
             delay: options.delay || 0,
-            stagger: options.stagger ? parseFloat(options.stagger) : 0,
+            stagger: options.stagger ? getStaggerValue(options) : 0,
             ...(hasTransform ? { force3D: false } : {})
           };
 
@@ -110,10 +147,22 @@ window.onload = function () {
         const hasTransform = options.startStyles.transform || options.endStyles.transform;
 
         const fromProps = {
-          ...( !hasTransform && options.x ? { x: parseFloat(options.x) } : {}),
-          ...( !hasTransform && options.y ? { y: parseFloat(options.y) } : {}),
-          ...( !hasTransform && (options.s || options.scale) ? { scale: parseFloat(options.s || options.scale) } : {}),
-          ...( !hasTransform && (options.r || options.rotate) ? { rotate: parseFloat(options.r || options.rotate) } : {}),
+          ...( !hasTransform && options.x
+              ? { x: randomizeValue(options.x, options.rand === 'true') }
+              : {}
+          ),
+          ...( !hasTransform && options.y
+              ? { y: randomizeValue(options.y, options.rand === 'true') }
+              : {}
+          ),
+          ...( !hasTransform && (options.s || options.scale)
+              ? { scale: parseFloat(options.s || options.scale) }
+              : {}
+          ),
+          ...( !hasTransform && (options.r || options.rotate)
+              ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
+              : {}
+          ),
           ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
           ...options.startStyles,
           ...(hasTransform ? { force3D: false } : {})
@@ -127,7 +176,7 @@ window.onload = function () {
           ...(options.o || options.opacity ? { opacity: 1 } : {}),
           ...options.endStyles,
           scrollTrigger: scrollTriggerConfig !== false ? scrollTriggerConfig : null,
-          stagger: options.stagger ? parseFloat(options.stagger) : 0,
+          stagger: options.stagger ? getStaggerValue(options) : 0,
           duration: options.duration || 1,
           delay: options.delay || 0,
           paused: options.scroll === 'false',
