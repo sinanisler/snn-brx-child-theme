@@ -156,32 +156,73 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 'style_start_custom' => [
                     'label'       => esc_html__( 'Style Start (Custom CSS)', 'bricks' ),
                     'type'        => 'textarea',
-                    'placeholder' => 'background: red; 
-color: white;',
+                    'placeholder' => "background: red;\ncolor: white;",
                     'description' => esc_html__( 'Enter custom CSS properties for start state (without selectors or braces)', 'bricks' ),
                 ],
                 'style_end_custom' => [
                     'label'       => esc_html__( 'Style End (Custom CSS)', 'bricks' ),
                     'type'        => 'textarea',
-                    'placeholder' => 'background: blue; 
-color: yellow;',
+                    'placeholder' => "background: blue;\ncolor: yellow;",
                     'description' => esc_html__( 'Enter custom CSS properties for end state (without selectors or braces)', 'bricks' ),
                 ],
             ],
         ];
 
-        // Rest of the controls remain the same
-        $this->controls['markers'] = [
-            'tab'           => 'content',
-            'label'         => esc_html__( 'Markers', 'bricks' ),
-            'type'          => 'select',
-            'options'       => [
+        $this->controls['loop'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Loop', 'bricks' ),
+            'type'        => 'select',
+            'options'     => [
                 'true'  => esc_html__( 'Yes', 'bricks' ),
                 'false' => esc_html__( 'No', 'bricks' ),
             ],
-            'default'       => '',
-            'inline'        => true,
-            'placeholder'   => esc_html__( 'Select', 'bricks' ),
+            'default'     => '',
+            'inline'      => true,
+            'placeholder' => esc_html__( 'Select', 'bricks' ),
+        ];
+
+        $this->controls['scroll'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Scroll', 'bricks' ),
+            'type'        => 'select',
+            'options'     => [
+                'true'  => esc_html__( 'Yes', 'bricks' ),
+                'false' => esc_html__( 'No', 'bricks' ),
+            ],
+            'default'     => '',
+            'inline'      => true,
+            'placeholder' => esc_html__( 'Select', 'bricks' ),
+        ];
+
+        $this->controls['duration'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Duration', 'bricks' ),
+            'type'        => 'number',
+            'placeholder' => '1000',
+            'min'         => 0,
+            'step'        => 1,
+        ];
+
+        $this->controls['delay'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Delay', 'bricks' ),
+            'type'        => 'number',
+            'placeholder' => '0',
+            'min'         => 0,
+            'step'        => 1,
+        ];
+
+        $this->controls['markers'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Markers', 'bricks' ),
+            'type'        => 'select',
+            'options'     => [
+                'true'  => esc_html__( 'Yes', 'bricks' ),
+                'false' => esc_html__( 'No', 'bricks' ),
+            ],
+            'default'     => '',
+            'inline'      => true,
+            'placeholder' => esc_html__( 'Select', 'bricks' ),
         ];
 
         $this->controls['scroll_start'] = [
@@ -215,16 +256,16 @@ color: yellow;',
         foreach ( $gsap_animations as $anim ) {
             $props = [];
             $transform_start = [];
-            $transform_end = [];
+            $transform_end   = [];
 
             // Handle X/Y transforms
-            foreach (['x', 'y'] as $axis) {
-                foreach (['start', 'end'] as $state) {
+            foreach ( ['x', 'y'] as $axis ) {
+                foreach ( ['start', 'end'] as $state ) {
                     $key = "{$axis}_{$state}";
-                    if (!empty($anim[$key])) {
-                        $value = $this->parse_unit_value($anim[$key]);
-                        $transform = "translate" . strtoupper($axis) . "($value)";
-                        if ($state === 'start') {
+                    if ( ! empty( $anim[ $key ] ) ) {
+                        $value = $this->parse_unit_value( $anim[ $key ] );
+                        $transform = "translate" . strtoupper( $axis ) . "($value)";
+                        if ( $state === 'start' ) {
                             $transform_start[] = $transform;
                         } else {
                             $transform_end[] = $transform;
@@ -234,11 +275,11 @@ color: yellow;',
             }
 
             // Handle scale
-            foreach (['start', 'end'] as $state) {
+            foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-scale";
-                if (!empty($anim[$key])) {
-                    $value = $anim[$key];
-                    if ($state === 'start') {
+                if ( ! empty( $anim[ $key ] ) ) {
+                    $value = $anim[ $key ];
+                    if ( $state === 'start' ) {
                         $transform_start[] = "scale($value)";
                     } else {
                         $transform_end[] = "scale($value)";
@@ -247,11 +288,11 @@ color: yellow;',
             }
 
             // Handle rotate
-            foreach (['start', 'end'] as $state) {
+            foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-rotate";
-                if (!empty($anim[$key])) {
-                    $value = $anim[$key];
-                    if ($state === 'start') {
+                if ( ! empty( $anim[ $key ] ) ) {
+                    $value = $anim[ $key ];
+                    if ( $state === 'start' ) {
                         $transform_start[] = "rotate({$value}deg)";
                     } else {
                         $transform_end[] = "rotate({$value}deg)";
@@ -260,18 +301,18 @@ color: yellow;',
             }
 
             // Add combined transform properties
-            if (!empty($transform_start)) {
-                $props[] = "style_start-transform:" . implode(' ', $transform_start);
+            if ( ! empty( $transform_start ) ) {
+                $props[] = "style_start-transform:" . implode( ' ', $transform_start );
             }
-            if (!empty($transform_end)) {
-                $props[] = "style_end-transform:" . implode(' ', $transform_end);
+            if ( ! empty( $transform_end ) ) {
+                $props[] = "style_end-transform:" . implode( ' ', $transform_end );
             }
 
             // Handle opacity
-            foreach (['start', 'end'] as $state) {
+            foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-opacity";
-                if (!empty($anim[$key])) {
-                    $value = $anim[$key];
+                if ( ! empty( $anim[ $key ] ) ) {
+                    $value = $anim[ $key ];
                     $props[] = "style_{$state}-opacity:{$value}";
                 }
             }
@@ -279,47 +320,47 @@ color: yellow;',
             // Handle filters
             $filters = [
                 'start' => [],
-                'end' => []
+                'end'   => []
             ];
 
             // Blur filter
-            foreach (['start', 'end'] as $state) {
+            foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-filter";
-                if (!empty($anim[$key])) {
-                    $value = $this->parse_unit_value($anim[$key]);
-                    $filters[$state][] = "blur($value)";
+                if ( ! empty( $anim[ $key ] ) ) {
+                    $value = $this->parse_unit_value( $anim[ $key ] );
+                    $filters[ $state ][] = "blur($value)";
                 }
             }
 
             // Grayscale filter
-            foreach (['start', 'end'] as $state) {
+            foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-grayscale";
-                if (!empty($anim[$key])) {
-                    $value = $anim[$key];
-                    $filters[$state][] = "grayscale({$value}%)";
+                if ( ! empty( $anim[ $key ] ) ) {
+                    $value = $anim[ $key ];
+                    $filters[ $state ][] = "grayscale({$value}%)";
                 }
             }
 
             // Add filter properties
-            foreach (['start', 'end'] as $state) {
-                if (!empty($filters[$state])) {
-                    $props[] = "style_{$state}-filter:" . implode(' ', $filters[$state]);
+            foreach ( ['start', 'end'] as $state ) {
+                if ( ! empty( $filters[ $state ] ) ) {
+                    $props[] = "style_{$state}-filter:" . implode( ' ', $filters[ $state ] );
                 }
             }
 
             // Process custom CSS inputs
-            foreach (['start', 'end'] as $state) {
+            foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}_custom";
-                if (!empty($anim[$key])) {
-                    $custom_css = $anim[$key];
-                    $declarations = array_map('trim', explode(';', $custom_css));
+                if ( ! empty( $anim[ $key ] ) ) {
+                    $custom_css = $anim[ $key ];
+                    $declarations = array_map( 'trim', explode( ';', $custom_css ) );
                     
-                    foreach ($declarations as $declaration) {
-                        if (!empty($declaration)) {
-                            $parts = array_map('trim', explode(':', $declaration, 2));
-                            if (count($parts) === 2) {
-                                list($css_prop, $css_value) = $parts;
-                                $gsap_prop = str_replace('_', '-', $css_prop);
+                    foreach ( $declarations as $declaration ) {
+                        if ( ! empty( $declaration ) ) {
+                            $parts = array_map( 'trim', explode( ':', $declaration, 2 ) );
+                            if ( count( $parts ) === 2 ) {
+                                list( $css_prop, $css_value ) = $parts;
+                                $gsap_prop = str_replace( '_', '-', $css_prop );
                                 $props[] = "style_{$state}-{$gsap_prop}:{$css_value}";
                             }
                         }
@@ -327,34 +368,54 @@ color: yellow;',
                 }
             }
 
-            if (!empty($props)) {
-                $animation_strings[] = implode(', ', $props) . ';';
+            if ( ! empty( $props ) ) {
+                $animation_strings[] = implode( ', ', $props ) . ';';
             }
         }
 
         $global_settings = [];
 
-        if (isset($this->settings['markers'])) {
-            $global_settings[] = "markers:" . ($this->settings['markers'] === 'true' ? 'true' : 'false');
+        // Check if loop is set to true; add it at the beginning if so.
+        if ( isset( $this->settings['loop'] ) && $this->settings['loop'] === 'true' ) {
+            array_unshift( $global_settings, "loop:true" );
         }
 
-        if (isset($this->settings['scroll_start']) && $this->settings['scroll_start'] !== '') {
+        // Check if scroll is set; add the scroll setting.
+        if ( isset( $this->settings['scroll'] ) && $this->settings['scroll'] !== '' ) {
+            $global_settings[] = "scroll:" . ( $this->settings['scroll'] === 'true' ? 'true' : 'false' );
+        }
+
+        if ( isset( $this->settings['markers'] ) ) {
+            $global_settings[] = "markers:" . ( $this->settings['markers'] === 'true' ? 'true' : 'false' );
+        }
+
+        if ( isset( $this->settings['scroll_start'] ) && $this->settings['scroll_start'] !== '' ) {
             $global_settings[] = "start:'top " . $this->settings['scroll_start'] . "%'";
         }
 
-        if (isset($this->settings['scroll_end']) && $this->settings['scroll_end'] !== '') {
+        if ( isset( $this->settings['scroll_end'] ) && $this->settings['scroll_end'] !== '' ) {
             $global_settings[] = "end:'bottom " . $this->settings['scroll_end'] . "%'";
         }
 
-        $global = !empty($global_settings) ? implode(', ', $global_settings) . ',' : '';
-        $data_animate = $global . implode(' ', $animation_strings);
+        // Add duration if set
+        if ( isset( $this->settings['duration'] ) && $this->settings['duration'] !== '' ) {
+            $global_settings[] = "duration:" . $this->settings['duration'];
+        }
 
-        $data_animate_attr = !empty($data_animate) ? ' data-animate="' . esc_attr($data_animate) . '"' : '';
+        // Add delay if set
+        if ( isset( $this->settings['delay'] ) && $this->settings['delay'] !== '' ) {
+            $global_settings[] = "delay:" . $this->settings['delay'];
+        }
 
-        $other_attributes = $this->render_attributes('_root');
+        $global = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
+        $data_animate = $global . implode( ' ', $animation_strings );
+
+        $data_animate_attr = ! empty( $data_animate ) ? ' data-animate="' . esc_attr( $data_animate ) . '"' : '';
+
+        $other_attributes = $this->render_attributes( '_root' );
 
         echo '<div ' . $data_animate_attr . ' ' . $other_attributes . '>';
-        echo Frontend::render_children($this);
+        echo Frontend::render_children( $this );
         echo '</div>';
     }
 
