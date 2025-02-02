@@ -137,6 +137,9 @@ window.onload = function () {
 
         element._gsapAnimationInstance = timeline;
 
+        if (firstOptions.scroll === 'false' && firstOptions.loop === 'true') {
+          timeline.repeat(-1).yoyo(true);
+        }
         if (firstOptions.scroll === 'false') {
           observeIfScrollFalse(element, timeline);
         }
@@ -187,6 +190,9 @@ window.onload = function () {
 
         element._gsapAnimationInstance = tween;
 
+        if (options.scroll === 'false' && options.loop === 'true') {
+          tween.repeat(-1).yoyo(true);
+        }
         if (options.scroll === 'false') {
           observeIfScrollFalse(element, tween);
         }
