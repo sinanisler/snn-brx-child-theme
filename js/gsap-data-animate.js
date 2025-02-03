@@ -224,8 +224,8 @@ window.onload = function () {
       const defaultEnd = 'bottom 40%';
       const isBodyTrigger = options.trigger === 'body';
 
-      // Modified condition: allow ScrollTrigger creation if markers is true.
-      if ((options.scroll === 'false' && options.markers !== 'true') || options.trigger === 'true') {
+      // If scroll is false or trigger is set to 'true', do not create a ScrollTrigger.
+      if (options.scroll === 'false' || options.trigger === 'true') {
         return false;
       }
 
@@ -238,7 +238,8 @@ window.onload = function () {
         end: finalEnd,
         scrub: options.scrub === 'true' ? true : parseFloat(options.scrub) || 1,
         pin: options.pin === 'true',
-        markers: options.markers === 'true',
+        // Only enable markers if scroll is not "false" and markers is set to "true"
+        markers: (options.markers === 'true' && options.scroll !== 'false') ? true : false,
         toggleClass: options.toggleClass || null,
         pinSpacing: options.pinSpacing || 'margin',
         invalidateOnRefresh: true,

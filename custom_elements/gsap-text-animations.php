@@ -56,7 +56,6 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'default'     => '',
         ];
 
-
         $this->controls['style_start_custom'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Style Start (Custom CSS)', 'bricks' ),
@@ -71,10 +70,6 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'placeholder' => "background: blue;\ncolor: yellow;",
             'description' => esc_html__( 'Enter custom CSS properties for the end state (without selectors or braces)', 'bricks' ),
         ];
-
-
-
-
 
         $this->controls['loop'] = [
             'tab'         => 'content',
@@ -120,9 +115,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'step'        => 1,
         ];
 
-        // ------------------------------------------------------------------
-        // New Controls: Split Text and Stagger (added before Markers)
-        // ------------------------------------------------------------------
+        // New Controls: Split Text and Stagger
         $this->controls['splittext'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Split Text', 'bricks' ),
@@ -187,15 +180,10 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         // Retrieve the text content (from the new textarea control)
         $text_content = isset( $this->settings['text_content'] ) ? $this->settings['text_content'] : '';
 
-        // ------------------------------------------------------------------
         // Build Animation Properties
-        // ------------------------------------------------------------------
-        // Removed: X/Y transforms, scale, rotate, opacity, blur, grayscale
-
-        // We still initialize $props to capture any custom CSS properties.
         $props = [];
 
-        // Process custom CSS inputs
+        // Process custom CSS inputs for start and end states
         foreach ( ['start', 'end'] as $state ) {
             $key = "style_{$state}_custom";
             if ( ! empty( $this->settings[ $key ] ) ) {
@@ -215,9 +203,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             }
         }
 
-        // ------------------------------------------------------------------
         // Global Settings for the Animation
-        // ------------------------------------------------------------------
         $global_settings = [];
 
         if ( isset( $this->settings['loop'] ) && $this->settings['loop'] === 'true' ) {
@@ -236,7 +222,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             $global_settings[] = "delay:" . $this->settings['delay'];
         }
 
-        // New controls processing: Split Text and Stagger
+        // Process new controls: Split Text and Stagger
         if ( isset( $this->settings['splittext'] ) && $this->settings['splittext'] !== '' ) {
             $global_settings[] = "splittext:" . ( $this->settings['splittext'] === 'true' ? 'true' : 'false' );
         }
@@ -270,10 +256,15 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         echo '</div>';
     }
 
+    // Updated render_builder to show text content in the editor
     public static function render_builder() {
         ?>
         <script type="text/x-template" id="tmpl-bricks-element-gsap-text-animations">
             <component :is="tag">
+                <!-- Display the text content from the settings -->
+                <div v-if="element.settings.text_content" class="snn-gsap-text-animations-content">
+                    {{ element.settings.text_content }}
+                </div>
                 <bricks-element-children :element="element"/>
             </component>
         </script>
