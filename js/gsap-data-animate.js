@@ -224,7 +224,8 @@ window.onload = function () {
       const defaultEnd = 'bottom 40%';
       const isBodyTrigger = options.trigger === 'body';
 
-      if (options.scroll === 'false' || options.trigger === 'true') {
+      // Modified condition: allow ScrollTrigger creation if markers is true.
+      if ((options.scroll === 'false' && options.markers !== 'true') || options.trigger === 'true') {
         return false;
       }
 
@@ -241,7 +242,7 @@ window.onload = function () {
         toggleClass: options.toggleClass || null,
         pinSpacing: options.pinSpacing || 'margin',
         invalidateOnRefresh: true,
-        immediateRender: false,
+        immediateRender: true,
         animation: gsap.timeline({ paused: true })
       };
     }
