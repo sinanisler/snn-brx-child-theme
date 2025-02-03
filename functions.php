@@ -85,6 +85,12 @@ add_action('init', function () {
         \Bricks\Elements::register_element($gsap_animation_element);
     }
 
+    $gsap_animation_element = get_stylesheet_directory() . '/custom_elements/gsap-text-animations.php';
+    if (file_exists($gsap_animation_element)) {
+        require_once $gsap_animation_element;
+        \Bricks\Elements::register_element($gsap_animation_element);
+    }
+
 
 }, 11);
 

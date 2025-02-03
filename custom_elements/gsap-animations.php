@@ -198,7 +198,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'tab'         => 'content',
             'label'       => esc_html__( 'Duration', 'bricks' ),
             'type'        => 'number',
-            'placeholder' => '1000',
+            'placeholder' => '1',
             'min'         => 0,
             'step'        => 1,
         ];
