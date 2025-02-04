@@ -122,6 +122,32 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'placeholder' => esc_html__( 'Select', 'bricks' ),
         ];
 
+        $this->controls['rand'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Random', 'bricks' ),
+            'type'        => 'select',
+            'options'     => [
+                'true'  => esc_html__( 'Yes', 'bricks' ),
+                'false' => esc_html__( 'No', 'bricks' ),
+            ],
+            'default'     => '',
+            'inline'      => true,
+            'placeholder' => esc_html__( 'Select', 'bricks' ),
+        ];
+
+        $this->controls['pin'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Pin', 'bricks' ),
+            'type'        => 'select',
+            'options'     => [
+                'true'  => esc_html__( 'Yes', 'bricks' ),
+                'false' => esc_html__( 'No', 'bricks' ),
+            ],
+            'default'     => '',
+            'inline'      => true,
+            'placeholder' => esc_html__( 'Select', 'bricks' ),
+        ];
+
         $this->controls['stagger'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Stagger', 'bricks' ),
@@ -236,6 +262,12 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         }
         if (isset($this->settings['splittext']) && $this->settings['splittext'] !== '') {
             $global_settings[] = "splittext:" . ($this->settings['splittext'] === 'true' ? 'true' : 'false');
+        }
+        if (isset($this->settings['rand']) && $this->settings['rand'] !== '') {
+            $global_settings[] = "rand:" . ($this->settings['rand'] === 'true' ? 'true' : 'false');
+        }
+        if (isset($this->settings['pin']) && $this->settings['pin'] !== '') {
+            $global_settings[] = "pin:" . ($this->settings['pin'] === 'true' ? 'true' : 'false');
         }
         if (isset($this->settings['stagger']) && $this->settings['stagger'] !== '') {
             $global_settings[] = "stagger:" . $this->settings['stagger'];
