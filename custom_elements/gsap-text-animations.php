@@ -18,15 +18,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
     }
 
     public function set_control_groups() {
-        $this->control_groups['content'] = [
-            'title' => esc_html__( 'Content', 'bricks' ),
-            'tab'   => 'content',
-        ];
 
-        $this->control_groups['style'] = [
-            'title' => esc_html__( 'Style', 'bricks' ),
-            'tab'   => 'style',
-        ];
     }
 
     private function parse_unit_value( $value ) {
