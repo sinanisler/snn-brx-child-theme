@@ -10,7 +10,6 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
     public $category     = 'snn';
     public $name         = 'gsap-text-animations';
     public $icon         = 'ti-bolt-alt';
-    public $css_selector = '.snn-gsap-text-animations-wrapper';
     public $scripts      = [];
     public $nestable     = false;
 
@@ -19,12 +18,17 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
     }
 
     public function set_control_groups() {
-        // No specific groups required
+        $this->control_groups['content'] = [
+            'title' => esc_html__( 'Content', 'bricks' ),
+            'tab'   => 'content',
+        ];
+
+        $this->control_groups['style'] = [
+            'title' => esc_html__( 'Style', 'bricks' ),
+            'tab'   => 'style',
+        ];
     }
 
-    /**
-     * Returns a CSS-friendly value with units.
-     */
     private function parse_unit_value( $value ) {
         if ( empty( $value ) ) {
             return '';
@@ -32,22 +36,19 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         
         $value = trim( $value );
         
-        // Allow special values like 'auto' or 'initial'
         if ( preg_match( '/^(auto|initial|inherit|unset)$/', $value ) ) {
             return $value;
         }
         
-        // Check if value contains any unit or is a CSS function
         if ( preg_match( '/[a-zA-Z%()]/', $value ) ) {
             return $value;
         }
         
-        // Default to pixels if no unit specified and it's a numeric value
         return is_numeric( $value ) ? $value . 'px' : $value;
     }
 
     public function set_controls() {
-
+        // Content Controls
         $this->controls['text_content'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Text Content', 'bricks' ),
@@ -63,6 +64,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'placeholder' => "background: red;\ncolor: white;",
             'description' => esc_html__( 'Enter custom CSS properties for the start state (without selectors or braces)', 'bricks' ),
         ];
+
         $this->controls['style_end_custom'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Style End (Custom CSS)', 'bricks' ),
@@ -115,7 +117,6 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'step'        => 1,
         ];
 
-        // New Controls: Split Text and Stagger
         $this->controls['splittext'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Split Text', 'bricks' ),
@@ -171,98 +172,108 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'placeholder' => '60',
         ];
 
+        // Style Controls
+        $this->controls['animation_text_typography'] = [
+            'tab'   => 'style',
+            'group' => 'style',
+            'label' => esc_html__( 'Typography', 'bricks' ),
+            'type'  => 'typography',
+            'css'   => [
+                [
+                    'property' => 'font',
+                    'selector' => '',
+                ],
+            ],
+        ];
     }
 
     public function render() {
         $root_classes = ['snn-gsap-text-animations-wrapper'];
         $this->set_attribute( '_root', 'class', $root_classes );
 
-        // Retrieve the text content (from the new textarea control)
         $text_content = isset( $this->settings['text_content'] ) ? $this->settings['text_content'] : '';
-
-        // Build Animation Properties
         $props = [];
 
-        // Process custom CSS inputs for start and end states
-        foreach ( ['start', 'end'] as $state ) {
-            $key = "style_{$state}_custom";
-            if ( ! empty( $this->settings[ $key ] ) ) {
-                $custom_css   = $this->settings[ $key ];
-                $declarations = array_map( 'trim', explode( ';', $custom_css ) );
-                
-                foreach ( $declarations as $declaration ) {
-                    if ( ! empty( $declaration ) ) {
-                        $parts = array_map( 'trim', explode( ':', $declaration, 2 ) );
-                        if ( count( $parts ) === 2 ) {
-                            list( $css_prop, $css_value ) = $parts;
-                            $gsap_prop = str_replace( '_', '-', $css_prop );
-                            $props[]   = "style_{$state}-{$gsap_prop}:{$css_value}";
-                        }
+        // Process style_start_custom
+        if (!empty($this->settings['style_start_custom'])) {
+            $custom_css = $this->settings['style_start_custom'];
+            $declarations = array_map('trim', explode(';', $custom_css));
+            
+            foreach ($declarations as $declaration) {
+                if (!empty($declaration)) {
+                    $parts = explode(':', $declaration, 2);
+                    if (count($parts) === 2) {
+                        list($css_prop, $css_value) = array_map('trim', $parts);
+                        $gsap_prop = str_replace('_', '-', $css_prop);
+                        $props[] = "style_start-{$gsap_prop}:{$css_value}";
                     }
                 }
             }
         }
 
-        // Global Settings for the Animation
-        $global_settings = [];
+        // Process style_end_custom
+        if (!empty($this->settings['style_end_custom'])) {
+            $custom_css = $this->settings['style_end_custom'];
+            $declarations = array_map('trim', explode(';', $custom_css));
+            
+            foreach ($declarations as $declaration) {
+                if (!empty($declaration)) {
+                    $parts = explode(':', $declaration, 2);
+                    if (count($parts) === 2) {
+                        list($css_prop, $css_value) = array_map('trim', $parts);
+                        $gsap_prop = str_replace('_', '-', $css_prop);
+                        $props[] = "style_end-{$gsap_prop}:{$css_value}";
+                    }
+                }
+            }
+        }
 
-        if ( isset( $this->settings['loop'] ) && $this->settings['loop'] === 'true' ) {
+        // Global settings
+        $global_settings = [];
+        if (isset($this->settings['loop']) && $this->settings['loop'] === 'true') {
             $global_settings[] = "loop:true";
         }
-
-        if ( isset( $this->settings['scroll'] ) && $this->settings['scroll'] !== '' ) {
-            $global_settings[] = "scroll:" . ( $this->settings['scroll'] === 'true' ? 'true' : 'false' );
+        if (isset($this->settings['scroll']) && $this->settings['scroll'] !== '') {
+            $global_settings[] = "scroll:" . ($this->settings['scroll'] === 'true' ? 'true' : 'false');
         }
-
-        if ( isset( $this->settings['duration'] ) && $this->settings['duration'] !== '' ) {
+        if (isset($this->settings['duration']) && $this->settings['duration'] !== '') {
             $global_settings[] = "duration:" . $this->settings['duration'];
         }
-
-        if ( isset( $this->settings['delay'] ) && $this->settings['delay'] !== '' ) {
+        if (isset($this->settings['delay']) && $this->settings['delay'] !== '') {
             $global_settings[] = "delay:" . $this->settings['delay'];
         }
-
-        // Process new controls: Split Text and Stagger
-        if ( isset( $this->settings['splittext'] ) && $this->settings['splittext'] !== '' ) {
-            $global_settings[] = "splittext:" . ( $this->settings['splittext'] === 'true' ? 'true' : 'false' );
+        if (isset($this->settings['splittext']) && $this->settings['splittext'] !== '') {
+            $global_settings[] = "splittext:" . ($this->settings['splittext'] === 'true' ? 'true' : 'false');
         }
-
-        if ( isset( $this->settings['stagger'] ) && $this->settings['stagger'] !== '' ) {
+        if (isset($this->settings['stagger']) && $this->settings['stagger'] !== '') {
             $global_settings[] = "stagger:" . $this->settings['stagger'];
         }
-
-        if ( isset( $this->settings['markers'] ) ) {
-            $global_settings[] = "markers:" . ( $this->settings['markers'] === 'true' ? 'true' : 'false' );
+        if (isset($this->settings['markers'])) {
+            $global_settings[] = "markers:" . ($this->settings['markers'] === 'true' ? 'true' : 'false');
         }
-
-        if ( isset( $this->settings['scroll_start'] ) && $this->settings['scroll_start'] !== '' ) {
+        if (isset($this->settings['scroll_start']) && $this->settings['scroll_start'] !== '') {
             $global_settings[] = "start:'top " . $this->settings['scroll_start'] . "%'";
         }
-
-        if ( isset( $this->settings['scroll_end'] ) && $this->settings['scroll_end'] !== '' ) {
+        if (isset($this->settings['scroll_end']) && $this->settings['scroll_end'] !== '') {
             $global_settings[] = "end:'bottom " . $this->settings['scroll_end'] . "%'";
         }
 
-        $global           = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
-        $animation_string = ! empty( $props ) ? implode( ', ', $props ) : '';
-        $data_animate     = $global . $animation_string;
-        $data_animate_attr = ! empty( $data_animate ) ? ' data-animate="' . esc_attr( $data_animate ) . '"' : '';
+        $global = !empty($global_settings) ? implode(', ', $global_settings) . ',' : '';
+        $animation_string = !empty($props) ? implode(', ', $props) : '';
+        $data_animate = $global . $animation_string;
+        $data_animate_attr = !empty($data_animate) ? ' data-animate="' . esc_attr($data_animate) . '"' : '';
 
-        $other_attributes = $this->render_attributes( '_root' );
-
-        echo '<div ' . $data_animate_attr . ' ' . $other_attributes . '>';
-            echo $text_content;
-            echo Frontend::render_children( $this );
+        echo '<div ' . $this->render_attributes('_root') . $data_animate_attr . '>';
+        echo $text_content;
+        echo Frontend::render_children($this);
         echo '</div>';
     }
 
-    // Updated render_builder to show text content in the editor
     public static function render_builder() {
         ?>
         <script type="text/x-template" id="tmpl-bricks-element-gsap-text-animations">
             <component :is="tag">
-                <!-- Display the text content from the settings -->
-                <div v-if="element.settings.text_content" class="snn-gsap-text-animations-content">
+                <div v-if="element.settings.text_content" class="snn-gsap-text-animations-wrapper">
                     {{ element.settings.text_content }}
                 </div>
                 <bricks-element-children :element="element"/>
@@ -271,4 +282,3 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         <?php
     }
 }
-?>
