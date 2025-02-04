@@ -12,7 +12,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
     public $icon         = 'ti-bolt-alt';
     public $css_selector = '.snn-gsap-text-animations-wrapper';
     public $scripts      = [];
-    public $nestable     = true;
+    public $nestable     = false;
 
     public function get_label() {
         return esc_html__( 'GSAP Text Animations', 'bricks' );
