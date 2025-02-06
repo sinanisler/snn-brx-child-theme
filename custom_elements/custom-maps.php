@@ -148,7 +148,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
     }
 
     public function enqueue_scripts() {
-        wp_enqueue_style( 'leaflet-css', get_stylesheet_directory_uri() . '/css/leaflet.css', [], '1.9.4' );
+        wp_enqueue_style( 'leaflet-css', get_stylesheet_directory_uri() . '/assets/css/leaflet.css', [], '1.9.4' );
         wp_enqueue_script( 'leaflet-js', get_stylesheet_directory_uri() .  '/js/leaflet.js', [], '1.9.4', true );
     }
 
