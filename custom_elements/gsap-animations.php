@@ -26,19 +26,19 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         if ( empty( $value ) ) {
             return '';
         }
-        
+
         $value = trim( $value );
-        
+
         // Allow special values like 'auto' or 'initial'
         if ( preg_match( '/^(auto|initial|inherit|unset)$/', $value ) ) {
             return $value;
         }
-        
+
         // Check if value contains any unit or is a CSS function
         if ( preg_match( '/[a-zA-Z%()]/', $value ) ) {
             return $value;
         }
-        
+
         // Default to pixels if no unit specified and it's a numeric value
         return is_numeric( $value ) ? $value . 'px' : $value;
     }
@@ -354,7 +354,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 if ( ! empty( $anim[ $key ] ) ) {
                     $custom_css = $anim[ $key ];
                     $declarations = array_map( 'trim', explode( ';', $custom_css ) );
-                    
+
                     foreach ( $declarations as $declaration ) {
                         if ( ! empty( $declaration ) ) {
                             $parts = array_map( 'trim', explode( ':', $declaration, 2 ) );

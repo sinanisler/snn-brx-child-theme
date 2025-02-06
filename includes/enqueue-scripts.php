@@ -17,7 +17,7 @@ function add_footer_inline_js_for_logged_users() {
 [data-control-group="_attributes"]:not(:has([value="data-animate"])) #synced-textarea ,
 [data-control-group="_attributes"]:not(:has([value="data-animate"])) #highlighted-editor{    display: none;}
 .key        { color:#ffe369;       }
-.value      { color:#a1deff;    }    
+.value      { color:#a1deff;    }
 .comma      { color: white; font-weight:900; scale:2; padding:0px 2px;    }
 .colon      { color: white; font-weight:900; scale:2; padding:0px 2px;    }
 .semicolon  { color: #ff4053; font-weight:900; scale:2; padding:0px 2px;     }

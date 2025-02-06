@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 function snn_add_logo_settings() {
     add_settings_field(

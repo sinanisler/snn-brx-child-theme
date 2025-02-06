@@ -52,7 +52,7 @@ function snn_block_editor_settings_page_callback() {
                     <tr>
                         <th scope="row"><?php echo esc_html($block_name); ?></th>
                         <td>
-                            <input type="checkbox" name="snn_block_editor_settings[<?php echo esc_attr($block_name); ?>]" 
+                            <input type="checkbox" name="snn_block_editor_settings[<?php echo esc_attr($block_name); ?>]"
                             value="1" <?php checked(isset($options[$block_name]), 1); ?> class="block-checkbox">
                         </td>
                     </tr>

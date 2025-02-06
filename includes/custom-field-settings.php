@@ -22,7 +22,7 @@ add_filter(
 
 function snn_custom_fields_page_callback() {
     $custom_fields = get_option('snn_custom_fields', []);
-    $post_types    = get_post_types(['public' => true], 'objects'); 
+    $post_types    = get_post_types(['public' => true], 'objects');
     $taxonomies    = get_taxonomies(['public' => true], 'objects');
 
     if (isset($_POST['snn_custom_fields_nonce']) && wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_custom_fields_save')) {
@@ -40,8 +40,8 @@ function snn_custom_fields_page_callback() {
                         'group_name' => sanitize_text_field($field['group_name']),
                         'name'       => sanitize_text_field($field['name']),
                         'type'       => sanitize_text_field($field['type']),
-                        'post_type'  => $post_types_selected, 
-                        'taxonomies' => $taxonomies_selected, 
+                        'post_type'  => $post_types_selected,
+                        'taxonomies' => $taxonomies_selected,
                         'repeater'   => !empty($field['repeater']) ? 1 : 0,
                     ];
                 }
@@ -57,7 +57,7 @@ function snn_custom_fields_page_callback() {
         <h1>Manage Custom Fields</h1>
         <form method="post">
             <?php wp_nonce_field('snn_custom_fields_save', 'snn_custom_fields_nonce'); ?>
-            
+
             <div id="custom-field-settings">
                 <p>Define custom fields with group name, field name, field type, and post type or taxonomy:<br>
                     Select one or more to register same Custom Field to Post Types or Taxonomies.<br>
@@ -78,10 +78,10 @@ function snn_custom_fields_page_callback() {
 
                             <label>Group Name</label>
                             <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" value="<?php echo isset($field['group_name']) ? esc_attr($field['group_name']) : ''; ?>" />
-                            
+
                             <label>Field Name</label>
                             <input type="text" name="custom_fields[<?php echo $index; ?>][name]" placeholder="Field Name" value="<?php echo esc_attr($field['name']); ?>" />
-                            
+
                             <label>Field Type</label>
                             <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
                                 <option value="text"      <?php selected($field['type'], 'text'); ?>>Text</option>
@@ -92,7 +92,7 @@ function snn_custom_fields_page_callback() {
                                 <option value="date"      <?php selected($field['type'], 'date'); ?>>Date</option>
                                 <option value="color"     <?php selected($field['type'], 'color'); ?>>Color</option>
                             </select>
-                            
+
                             <label>Post Types</label>
                             <select name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
                                 <?php foreach ($post_types as $post_type) : ?>
@@ -110,10 +110,10 @@ function snn_custom_fields_page_callback() {
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            
+
                             <label>Repeater</label>
                             <input type="checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" <?php checked(!empty($field['repeater'])); ?> <?php echo $field['type'] === 'rich_text' ? 'disabled' : ''; ?> />
-                            
+
                         </div>
                         <?php
                     }
@@ -129,10 +129,10 @@ function snn_custom_fields_page_callback() {
 
                         <label>Group Name</label>
                         <input type="text" name="custom_fields[0][group_name]" placeholder="Group Name" />
-                        
+
                         <label>Field Name</label>
                         <input type="text" name="custom_fields[0][name]" placeholder="Field Name" />
-                        
+
                         <label>Field Type</label>
                         <select name="custom_fields[0][type]" class="field-type-select">
                             <option value="text">Text</option>
@@ -143,7 +143,7 @@ function snn_custom_fields_page_callback() {
                             <option value="date">Date</option>
                             <option value="color">Color</option>
                         </select>
-                        
+
                         <label>Post Types</label>
                         <select name="custom_fields[0][post_type][]" multiple>
                             <?php foreach ($post_types as $post_type) : ?>
@@ -161,10 +161,10 @@ function snn_custom_fields_page_callback() {
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        
+
                         <label>Repeater</label>
                         <input type="checkbox" name="custom_fields[0][repeater]" disabled />
-                        
+
                     </div>
                     <?php
                 }
@@ -275,7 +275,7 @@ function snn_custom_fields_page_callback() {
                 if (event.target.classList.contains('field-type-select')) {
                     const row = event.target.closest('.custom-field-row');
                     const repeaterCheckbox = row.querySelector('input[type="checkbox"][name*="[repeater]"]');
-                    
+
                     if (event.target.value === 'rich_text') {
                         repeaterCheckbox.disabled = true;
                         repeaterCheckbox.checked = false;
@@ -315,14 +315,14 @@ function snn_custom_fields_page_callback() {
                 border-radius: 5px;
                 background-color: #f9f9f9;
             }
-            
+
             .custom-field-row .buttons {
                 display: flex;
                 flex-direction: column;
                 gap: 5px;
                 flex-direction:row;
             }
-            
+
             #add-custom-field-row {
                 color: #2271b1;
                 border-color: #2271b1;
@@ -332,18 +332,18 @@ function snn_custom_fields_page_callback() {
                 cursor: pointer;
                 border-radius: 3px;
             }
-            
+
             #add-custom-field-row:hover {
                 background: rgb(242, 242, 242);
             }
-            
+
             .submit input[type="submit"] {
                 background: #2271b1;
                 border-color: #2271b1;
                 color: #fff;
                 text-shadow: none;
             }
-            
+
             .submit input[type="submit"]:hover {
                 background-color: #005177;
             }
@@ -356,7 +356,7 @@ function snn_custom_fields_page_callback() {
             .buttons button:hover{
                 background:white;
             }
-            
+
             @media (max-width: 768px) {
                 .custom-field-row {
                     flex-direction: column;
@@ -816,7 +816,7 @@ function snn_save_dynamic_metabox_data($post_id) {
     foreach ($custom_fields as $field) {
         $field_name = $field['name'];
         if (!empty($field['post_type']) && in_array(get_post_type($post_id), $field['post_type'])) {
-            
+
             if (!empty($field['repeater'])) {
                 if (isset($_POST['custom_fields'][$field_name]) && is_array($_POST['custom_fields'][$field_name])) {
                     $values = array_map(function($value) use ($field) {

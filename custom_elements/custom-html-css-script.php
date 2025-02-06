@@ -1,10 +1,10 @@
-<?php 
+<?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 class Custom_HTML_CSS_Script extends \Bricks\Element {
   public $category     = 'snn';
   public $name         = 'custom-html-css-script';
-  public $icon         = 'fas fa-code'; 
-  
+  public $icon         = 'fas fa-code';
+
   public function get_label() {
     return 'Custom Code HTML JS CSS';
   }
@@ -38,8 +38,8 @@ var sebas_sama = 6969;
   }
 
   public function render() {
-    echo "<div {$this->render_attributes('_root')}>"; 
-    echo wp_kses_post($this->settings['content']); 
+    echo "<div {$this->render_attributes('_root')}>";
+    echo wp_kses_post($this->settings['content']);
     echo "</div>";
   }
 }

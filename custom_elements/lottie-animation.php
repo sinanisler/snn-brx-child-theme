@@ -135,7 +135,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'description' => "
                 Examples: <br>bottom 50%<br>bottom 90%
                 <p data-control='info'>
-                    Scroll Start and Stop can be counter-intuitive. 
+                    Scroll Start and Stop can be counter-intuitive.
                     Enable markers and test it out.
                 </p>
             ",
@@ -200,18 +200,18 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         }
 
         $animation_id = 'custom-lottie-animation-' . uniqid();
-        
+
         // **Start Output Buffering to Handle Optional Link Wrapping**
         ob_start();
         if ( ! empty( $link_url ) ) {
-            echo '<a 
-            href="' . $link_url . '"' . $link_target . $link_nofollow . ' 
-            style="width: 100%; display: block; cursor:pointer;" 
+            echo '<a
+            href="' . $link_url . '"' . $link_target . $link_nofollow . '
+            style="width: 100%; display: block; cursor:pointer;"
             class="lottie-link">';
         }
         ?>
-        <div 
-            id="<?php echo esc_attr($animation_id); ?>" 
+        <div
+            id="<?php echo esc_attr($animation_id); ?>"
             class="custom-lottie-animation-wrapper"
             style="height: <?php echo esc_attr($animation_height); ?>px; width: 100%; max-width: 100%;
                    cursor: <?php echo ($play_on_click === 'true') ? 'pointer' : ''; ?>;"

@@ -4,7 +4,7 @@
  * Dynamic ID Tag Module
  * ----------------------------------------
  * Usage: {get_contextual_id:type}
- * 
+ *
  * Supported Types and Possible Outputs:
  * - author: Displays the ID of the current post's author. (e.g., 3)
  * - post: Displays the ID of the current post. (e.g., 45)
