@@ -1,4 +1,4 @@
-<?php 
+<?php
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -371,7 +371,7 @@ function snn_render_301_redirects_page() {
             <!-- Clear All Logs Form -->
             <form method="post" action="" style="margin-bottom: 1em;">
                 <?php wp_nonce_field('snn_301_clear_logs_nonce'); ?>
-                <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs" 
+                <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs"
                        onclick="return confirm('Are you sure you want to clear all logs? This action cannot be undone.');">
             </form>
 
