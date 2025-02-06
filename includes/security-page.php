@@ -3,12 +3,12 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-require_once get_stylesheet_directory() . '/includes/login-math-captcha.php';
-require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
-require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
-require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
-require_once get_stylesheet_directory() . '/includes/remove-rss.php';
-require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
+require_once SNN_PATH . '/includes/login-math-captcha.php';
+require_once SNN_PATH . '/includes/disable-xmlrpc.php';
+require_once SNN_PATH . '/includes/disable-wp-json-if-not-logged-in.php';
+require_once SNN_PATH . '/includes/disable-file-editing.php';
+require_once SNN_PATH . '/includes/remove-rss.php';
+require_once SNN_PATH . '/includes/remove-wp-version.php';
 
 function snn_add_security_submenu() {
     add_submenu_page(

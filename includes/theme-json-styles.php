@@ -17,7 +17,7 @@ add_action('admin_menu', 'snn_add_block_theme_json_submenu' , 11);
 
 function snn_block_theme_json_page_callback() {
     // Get the path to the child theme's theme.json file
-    $theme_json_path = get_stylesheet_directory() . '/theme.json';
+    $theme_json_path = SNN_PATH . '/theme.json';
 
     // Check if the theme.json file exists
     if (!file_exists($theme_json_path)) {
