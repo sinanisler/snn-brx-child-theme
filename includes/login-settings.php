@@ -72,7 +72,7 @@ function ls_login_settings_section_callback() {
 }
 
 function ls_login_redirect_section_callback() {
-    
+
 }
 
 function ls_login_background_image_url_callback() {
@@ -136,7 +136,7 @@ function ls_add_custom_login_footer() {
     <div class="ls-terms">
         ' . $custom_text . '
     </div>
-    
+
     <div class="ls-image-right"></div>
 
     <style>
@@ -181,7 +181,7 @@ function ls_add_custom_login_footer() {
             margin:0;
             margin-left:14%;
             padding-top:150px
-        }     
+        }
         ';
     } else{
         echo '
@@ -190,7 +190,7 @@ function ls_add_custom_login_footer() {
         }
         ';
     }
-    
+
 
     echo '
     #nav {display:flex; align-items:center}
@@ -201,16 +201,16 @@ function ls_add_custom_login_footer() {
     .ls-terms{
         max-width:330px;
         font-size:12px;
-        text-align: center; 
+        text-align: center;
         padding-left:5px;
         padding-right:5px;
         margin-top:30px;
-        margin-left:14%;    
+        margin-left:14%;
     }
 
     .ls-snn{
         width:330px;
-        padding: 20px; 
+        padding: 20px;
         font-weight:300;
         padding-left:5px;
         padding-right:5px;
@@ -221,7 +221,7 @@ function ls_add_custom_login_footer() {
     #loginform{
         border-radius:10px;
     }
-    body{ 
+    body{
         border-radius:10px
     }
 
@@ -239,10 +239,10 @@ function ls_add_custom_login_footer() {
 add_filter('login_redirect', 'ls_login_redirect', 10, 3);
 function ls_login_redirect($redirect_to, $request_redirect_to, $user) {
     $redirect_url = get_option('ls_login_redirect_url');
-    
+
     if (!empty($redirect_url)) {
         return esc_url_raw($redirect_url);
     }
-    
+
     return $redirect_to;
 }

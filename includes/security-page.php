@@ -26,11 +26,11 @@ function snn_security_page_callback() {
     ?>
     <div class="wrap">
         <h1><?php esc_html_e( 'Security Settings', 'snn' ); ?></h1>
-        
+
         <?php
             settings_errors();
         ?>
-        
+
         <form method="post" action="options.php">
             <?php
                 settings_fields( 'snn_security_settings_group' );
@@ -72,7 +72,7 @@ function snn_security_section_callback() {
 function snn_math_captcha_callback() {
     $options = get_option('snn_security_options');
     ?>
-    <style> 
+    <style>
     [type="checkbox"]{
         width: 18px !important;
         height: 18px !important;

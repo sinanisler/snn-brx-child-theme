@@ -244,25 +244,25 @@ function snn_bricks_builder_color_fix_inline_css() {
     }
 
     $options = get_option('snn_editor_settings');
-    if (isset($options['snn_bricks_builder_color_fix']) && $options['snn_bricks_builder_color_fix']) { 
+    if (isset($options['snn_bricks_builder_color_fix']) && $options['snn_bricks_builder_color_fix']) {
         // Function to fetch and output the specified colors as CSS
         function echo_theme_colors_as_css() {
             // Get the serialized option from the WordPress database
             $theme_styles = get_option('bricks_theme_styles');
-            
+
             // Check if the option exists
             if (!$theme_styles) {
                 echo '';
                 return;
             }
-            
+
             // Unserialize the option to access its data
             $theme_styles_data = maybe_unserialize($theme_styles);
-        
+
             // **Begin: Updated Code to Dynamically Find 'colors'**
             // Initialize colors as null
             $colors = null;
-        
+
             // Dynamically search for the 'colors' array within any first-level key
             foreach ($theme_styles_data as $style_key => $style) {
                 if (isset($style['settings']['colors'])) {
@@ -270,7 +270,7 @@ function snn_bricks_builder_color_fix_inline_css() {
                     break; // Exit loop once colors are found
                 }
             }
-        
+
             // If colors are not found, exit the function
             if (!$colors) {
                 echo '';
@@ -291,13 +291,13 @@ function snn_bricks_builder_color_fix_inline_css() {
                 'colorMuted'     => 'bricks-text-muted',
                 'colorBorder'    => 'bricks-text-border',
             ];
-        
+
             // Start outputting CSS variables
             echo "
 <style>
 /* SNN-BRX Bricks Builder Editor Theme Styles CSS Colors  */
 :root {\n";
-            
+
             // Loop through the required colors and output them as CSS variables
             foreach ($color_keys as $key => $css_var) {
                 if (isset($colors[$key]['hex'])) {
@@ -305,29 +305,29 @@ function snn_bricks_builder_color_fix_inline_css() {
                     echo "    --$css_var: $color_value;\n";
                 }
             }
-            
+
             // End the CSS block
             echo "}
 </style>\n";
         }
-        
+
         // Function to output theme colors as JavaScript variables and unshift color palette
         function generate_theme_colors_js() {
             // Retrieve the serialized theme styles from the WordPress database
             $theme_styles = get_option('bricks_theme_styles');
-            
+
             // Check if the theme styles exist
             if (!$theme_styles) {
                 return;
             }
-            
+
             // Unserialize the theme styles to access its data
             $theme_styles_data = maybe_unserialize($theme_styles);
-        
+
             // **Begin: Updated Code to Dynamically Find 'colors'**
             // Initialize colors as null
             $colors = null;
-        
+
             // Dynamically search for the 'colors' array within any first-level key
             foreach ($theme_styles_data as $style_key => $style) {
                 if (isset($style['settings']['colors'])) {
@@ -335,7 +335,7 @@ function snn_bricks_builder_color_fix_inline_css() {
                     break; // Exit loop once colors are found
                 }
             }
-        
+
             // If colors are not found, exit the function
             if (!$colors) {
                 return;
@@ -355,30 +355,30 @@ function snn_bricks_builder_color_fix_inline_css() {
                 'colorMuted'     => 'bricks-text-muted',
                 'colorBorder'    => 'bricks-text-border',
             ];
-        
+
             // Begin the unshift call
             echo 'bricksData.loadData.colorPalette[0].colors.unshift(';
-        
+
             // Initialize an array to hold color objects
             $color_objects = [];
             $index = 1; // Initialize a separate counter for IDs
-        
+
             foreach ($color_keys as $key => $js_var) {
                 if (isset($colors[$key]['hex'])) {
                     $color_value = esc_js($colors[$key]['hex']); // Sanitize output
                     $color_objects[] = '    {
-        "raw": "var(--' . $js_var . ')", 
-        "id": "snn1' . $index . '", 
-        "name": "' . $js_var . '" 
+        "raw": "var(--' . $js_var . ')",
+        "id": "snn1' . $index . '",
+        "name": "' . $js_var . '"
     }';
                     $index++;
                 }
             }
-        
+
             // Join the color objects with commas
             echo "\n" . implode(",\n", $color_objects) . "\n);";
         }
-        
+
         // Output the CSS variables
         echo_theme_colors_as_css();
         ?>
@@ -386,7 +386,7 @@ function snn_bricks_builder_color_fix_inline_css() {
 <?php
         // Ensure this runs only when Bricks is running
         if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
-            generate_theme_colors_js(); 
+            generate_theme_colors_js();
         }
 ?>
 </script>
@@ -403,25 +403,25 @@ function snn_bricks_builder_color_fix_inline_css_head() {
     }
 
     $options = get_option('snn_editor_settings');
-    if (isset($options['snn_bricks_builder_color_fix']) && $options['snn_bricks_builder_color_fix']) { 
+    if (isset($options['snn_bricks_builder_color_fix']) && $options['snn_bricks_builder_color_fix']) {
         // Function to fetch and output the specified colors as CSS
         function echo_theme_colors_as_css_head() {
             // Get the serialized option from the WordPress database
             $theme_styles = get_option('bricks_theme_styles');
-            
+
             // Check if the option exists
             if (!$theme_styles) {
                 echo '';
                 return;
             }
-            
+
             // Unserialize the option to access its data
             $theme_styles_data = maybe_unserialize($theme_styles);
-        
+
             // **Begin: Updated Code to Dynamically Find 'colors'**
             // Initialize colors as null
             $colors = null;
-        
+
             // Dynamically search for the 'colors' array within any first-level key
             foreach ($theme_styles_data as $style_key => $style) {
                 if (isset($style['settings']['colors'])) {
@@ -429,7 +429,7 @@ function snn_bricks_builder_color_fix_inline_css_head() {
                     break; // Exit loop once colors are found
                 }
             }
-        
+
             // If colors are not found, exit the function
             if (!$colors) {
                 echo '';
@@ -450,13 +450,13 @@ function snn_bricks_builder_color_fix_inline_css_head() {
                 'colorMuted'     => 'bricks-text-muted',
                 'colorBorder'    => 'bricks-text-border',
             ];
-        
+
             // Start outputting CSS variables
             echo "
 <style>
 /* SNN-BRX Bricks Builder Editor Theme Styles CSS Colors (HEAD) */
 :root {\n";
-            
+
             // Loop through the required colors and output them as CSS variables
             foreach ($color_keys as $key => $css_var) {
                 if (isset($colors[$key]['hex'])) {
@@ -464,29 +464,29 @@ function snn_bricks_builder_color_fix_inline_css_head() {
                     echo "    --$css_var: $color_value !important;\n";
                 }
             }
-            
+
             // End the CSS block
             echo "}
 </style>\n";
         }
-        
+
         // Function to output theme colors as JavaScript variables and unshift color palette
         function generate_theme_colors_js_head() {
             // Retrieve the serialized theme styles from the WordPress database
             $theme_styles = get_option('bricks_theme_styles');
-            
+
             // Check if the theme styles exist
             if (!$theme_styles) {
                 return;
             }
-            
+
             // Unserialize the theme styles to access its data
             $theme_styles_data = maybe_unserialize($theme_styles);
-        
+
             // **Begin: Updated Code to Dynamically Find 'colors'**
             // Initialize colors as null
             $colors = null;
-        
+
             // Dynamically search for the 'colors' array within any first-level key
             foreach ($theme_styles_data as $style_key => $style) {
                 if (isset($style['settings']['colors'])) {
@@ -494,7 +494,7 @@ function snn_bricks_builder_color_fix_inline_css_head() {
                     break; // Exit loop once colors are found
                 }
             }
-        
+
             // If colors are not found, exit the function
             if (!$colors) {
                 return;
@@ -514,30 +514,30 @@ function snn_bricks_builder_color_fix_inline_css_head() {
                 'colorMuted'     => 'bricks-text-muted',
                 'colorBorder'    => 'bricks-text-border',
             ];
-        
+
             // Begin the unshift call
             echo 'bricksData.loadData.colorPalette[0].colors.unshift(';
-        
+
             // Initialize an array to hold color objects
             $color_objects = [];
             $index = 1; // Initialize a separate counter for IDs
-        
+
             foreach ($color_keys as $key => $js_var) {
                 if (isset($colors[$key]['hex'])) {
                     $color_value = esc_js($colors[$key]['hex']); // Sanitize output
                     $color_objects[] = '    {
-    "raw": "var(--' . $js_var . ')", 
-    "id": "snn1' . $index . '", 
-    "name": "' . $js_var . '" 
+    "raw": "var(--' . $js_var . ')",
+    "id": "snn1' . $index . '",
+    "name": "' . $js_var . '"
 }';
                     $index++;
                 }
             }
-        
+
             // Join the color objects with commas
             echo "\n" . implode(",\n", $color_objects) . "\n);";
         }
-        
+
         // Output the CSS variables
         echo_theme_colors_as_css_head();
         ?>
@@ -545,7 +545,7 @@ function snn_bricks_builder_color_fix_inline_css_head() {
 <?php
         // Ensure this runs only when Bricks is running
         if (isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
-            generate_theme_colors_js_head(); 
+            generate_theme_colors_js_head();
         }
 ?>
 </script>

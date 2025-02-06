@@ -2,7 +2,7 @@
 
 //  [verify_email]
 //  Register the shortcode
-// 
+//
 //  Confirmation Mail Setup : 	/example-page/?verify-my-mail={{f12de2}}&hash=y2u6ı8b2d6js3
 //
 //  {{f12de2}}   this tag id changes depending on your mail field
@@ -11,14 +11,14 @@
 //  SETUP
 //
 //  Put your form wherevre you want.
-//  Create a page for the shortcode when user comes from the email link 
+//  Create a page for the shortcode when user comes from the email link
 //  [verify_email] shortcode will check the mail and verify it.
-//  
-//  Setup your confirmation mail for the form and send user a link for the shortcode verification page 
+//
+//  Setup your confirmation mail for the form and send user a link for the shortcode verification page
 //  example: /example-page/?verify-my-mail={{f12de2}}
 //
 //
-// 
+//
 add_shortcode('verify_email', 'verify_user_email_via_shortcode');
 
 function verify_user_email_via_shortcode() {
@@ -109,11 +109,11 @@ function custom_admin_footer_script() {
             if (theList) {
                 // Select all <td> elements with class 'browser' within '#the-list'
                 var browserTds = theList.querySelectorAll('td.browser');
-                
+
                 browserTds.forEach(function(td) {
                     // Trim the text content to avoid issues with leading/trailing whitespace
                     var content = td.textContent.trim();
-                    
+
                     // Check if the text content includes 'Verified'
                     if (content.includes('Verified')) {
                         td.style.color = 'green';
