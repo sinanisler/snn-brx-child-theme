@@ -226,10 +226,10 @@ function snn_dashboard_custom_metabox_content_callback() {
 function snn_enqueue_gsap_scripts() {
     $options = get_option('snn_other_settings');
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
-        wp_enqueue_script('gsap-js', get_stylesheet_directory_uri() . '/js/gsap.min.js', array(), null, true);
-        wp_enqueue_script('gsap-st-js', get_stylesheet_directory_uri() . '/js/ScrollTrigger.min.js', array('gsap-js'), null, true);
-        wp_enqueue_script('gsap-data-js', get_stylesheet_directory_uri() . '/js/gsap-data-animate.js?v0.03', array(), null, true);
-        wp_enqueue_script('lottie-js', get_stylesheet_directory_uri() . '/js/lottie.min.js', array(), null, true);
+        wp_enqueue_script('gsap-js', SNN_URL_ASSETS . '/js/gsap.min.js', array(), null, true);
+        wp_enqueue_script('gsap-st-js', SNN_URL_ASSETS . '/js/ScrollTrigger.min.js', array('gsap-js'), null, true);
+        wp_enqueue_script('gsap-data-js', SNN_URL_ASSETS . '/js/gsap-data-animate.js?v0.03', array(), null, true);
+        wp_enqueue_script('lottie-js', SNN_URL_ASSETS . '/js/lottie.min.js', array(), null, true);
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_gsap_scripts');
@@ -367,12 +367,12 @@ function snn_maybe_add_dashboard_custom_metabox() {
     $options = get_option('snn_other_settings');
     if (!empty($options['dashboard_custom_metabox_content'])) {
         add_meta_box(
-            'snn_custom_dashboard_metabox',  
-            'Welcome',       
-            'snn_display_custom_dashboard_metabox',  
-            'dashboard',    
-            'normal',       
-            'high'          
+            'snn_custom_dashboard_metabox',
+            'Welcome',
+            'snn_display_custom_dashboard_metabox',
+            'dashboard',
+            'normal',
+            'high'
         );
     }
 }

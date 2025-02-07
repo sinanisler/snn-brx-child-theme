@@ -1,6 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; 
+    exit;
 }
 
 class Custom_Element_OpenStreetMap extends \Bricks\Element {
@@ -32,7 +32,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'tab'           => 'content',
             'label'         => 'Location',
             'type'          => 'repeater',
-            'titleProperty' => 'Location', 
+            'titleProperty' => 'Location',
             'default'       => [],
             'fields'        => [
                 'lat' => [
@@ -148,8 +148,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
     }
 
     public function enqueue_scripts() {
-        wp_enqueue_style( 'leaflet-css', get_stylesheet_directory_uri() . '/css/leaflet.css', [], '1.9.4' );
-        wp_enqueue_script( 'leaflet-js', get_stylesheet_directory_uri() .  '/js/leaflet.js', [], '1.9.4', true );
+        wp_enqueue_style( 'leaflet-css', SNN_URL_ASSETS . '/css/leaflet.css', [], '1.9.4' );
+        wp_enqueue_script( 'leaflet-js', SNN_URL_ASSETS . '/js/leaflet.js', [], '1.9.4', true );
     }
 
     public function render() {
@@ -200,7 +200,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             ";
         }
 
-        $tile_url = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'; 
+        $tile_url = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
         if ( $map_style === 'light' ) {
             $tile_url = 'https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png';
         } elseif ( $map_style === 'dark' ) {
@@ -210,11 +210,11 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         }
         $tile_attribution = '©OpenStreetMap';
         ?>
-        
+
         <div id="<?php echo esc_attr( $map_id ); ?>" class="custom-openstreetmap-wrapper"
              style="height: <?php echo esc_attr( $map_height ); ?>px; width: 100%; max-width: 100%;">
         </div>
-        
+
         <?php echo $popup_font_size_css; ?>
 
         <script>
@@ -249,7 +249,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 $lat = isset( $marker['lat'] ) ? floatval( $marker['lat'] ) : 0;
                 $lng = isset( $marker['lng'] ) ? floatval( $marker['lng'] ) : 0;
                 $popup = isset( $marker['popup'] ) ? $marker['popup'] : '';
-                
+
                 // Icon size/color
                 $icon_size = isset( $marker['icon_size'] ) ? intval( $marker['icon_size'] ) : 24;
                 if ( isset( $marker['icon_color']['hex'] ) && ! empty( $marker['icon_color']['hex'] ) ) {

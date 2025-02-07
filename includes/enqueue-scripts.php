@@ -2,7 +2,7 @@
 
 add_action('wp_enqueue_scripts', function () {
   if (!bricks_is_builder_main()) {
-    wp_enqueue_style('bricks-child', get_stylesheet_uri(), ['bricks-frontend'], filemtime(get_stylesheet_directory() . '/style.css'));
+    wp_enqueue_style('bricks-child', get_stylesheet_uri(), ['bricks-frontend'], filemtime(SNN_PATH . '/style.css'));
   }
 });
 
@@ -17,7 +17,7 @@ function add_footer_inline_js_for_logged_users() {
 [data-control-group="_attributes"]:not(:has([value="data-animate"])) #synced-textarea ,
 [data-control-group="_attributes"]:not(:has([value="data-animate"])) #highlighted-editor{    display: none;}
 .key        { color:#ffe369;       }
-.value      { color:#a1deff;    }    
+.value      { color:#a1deff;    }
 .comma      { color: white; font-weight:900; scale:2; padding:0px 2px;    }
 .colon      { color: white; font-weight:900; scale:2; padding:0px 2px;    }
 .semicolon  { color: #ff4053; font-weight:900; scale:2; padding:0px 2px;     }

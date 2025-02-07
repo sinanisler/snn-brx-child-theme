@@ -6,10 +6,10 @@ if (!defined('ABSPATH')) {
 function snn_add_block_theme_json_submenu() {
     add_submenu_page(
         'snn-settings',
-        'Block Theme JSON', 
-        'Block Theme JSON', 
-        'manage_options', 
-        'snn-block-theme-json', 
+        'Block Theme JSON',
+        'Block Theme JSON',
+        'manage_options',
+        'snn-block-theme-json',
         'snn_block_theme_json_page_callback'
     );
 }
@@ -17,7 +17,7 @@ add_action('admin_menu', 'snn_add_block_theme_json_submenu' , 11);
 
 function snn_block_theme_json_page_callback() {
     // Get the path to the child theme's theme.json file
-    $theme_json_path = get_stylesheet_directory() . '/theme.json';
+    $theme_json_path = SNN_PATH . '/theme.json';
 
     // Check if the theme.json file exists
     if (!file_exists($theme_json_path)) {
@@ -76,7 +76,7 @@ function snn_block_theme_json_page_callback() {
 
     // Typography font families
     $typography_font_families = isset($theme_json_data['settings']['typography']['fontFamilies']) ? $theme_json_data['settings']['typography']['fontFamilies'] : [];
-    
+
     // Colors
     $colors = $theme_json_data['settings']['color']['palette'] ?? [];
 
@@ -107,19 +107,19 @@ function snn_block_theme_json_page_callback() {
 
             <h2 style="margin-top: 40px;">Layout</h2>
             <div style="margin-bottom:8px;">
-                <label>Content Size: 
+                <label>Content Size:
                     <input type="text" name="layout_content_size" value="<?php echo esc_attr($layout_content_size); ?>" style="margin-left:10px;">
                 </label>
             </div>
             <div style="margin-bottom:8px;">
-                <label>Wide Size: 
+                <label>Wide Size:
                     <input type="text" name="layout_wide_size" value="<?php echo esc_attr($layout_wide_size); ?>" style="margin-left:10px;">
                 </label>
             </div>
 
             <h2 style="margin-top: 40px;">Spacing</h2>
             <div style="margin-bottom:8px;">
-                <label>Units (comma separated): 
+                <label>Units (comma separated):
                     <input type="text" name="spacing_units" value="<?php echo esc_attr($spacing_units_str); ?>" style="margin-left:10px;width:200px;">
                 </label>
             </div>
@@ -127,7 +127,7 @@ function snn_block_theme_json_page_callback() {
             <h2 style="margin-top: 40px;">Typography Font Families</h2>
             <p>Manage your font families here. Add or remove as needed.</p>
             <div id="font-families-list" style="margin-bottom:20px;">
-                <?php foreach ($typography_font_families as $index => $font) : 
+                <?php foreach ($typography_font_families as $index => $font) :
                     $name       = isset($font['name']) ? $font['name'] : '';
                     $slug       = isset($font['slug']) ? $font['slug'] : '';
                     $fontFamily = isset($font['fontFamily']) ? $font['fontFamily'] : '';
@@ -217,7 +217,7 @@ function snn_block_theme_json_page_callback() {
                 });
                 newData.settings.typography.fontFamilies = fontFamilies;
 
-                // If at least one fontFamily is defined, update "styles" references 
+                // If at least one fontFamily is defined, update "styles" references
                 // to use the first family's slug in var(--wp--preset--font-family--XYZ).
                 if (fontFamilies.length > 0) {
                     const primarySlug = fontFamilies[0].slug || 'default-font';
@@ -227,7 +227,7 @@ function snn_block_theme_json_page_callback() {
                         // Update blocks
                         if (newData.styles.blocks) {
                             for (const blockName in newData.styles.blocks) {
-                                if (newData.styles.blocks[blockName].typography 
+                                if (newData.styles.blocks[blockName].typography
                                     && newData.styles.blocks[blockName].typography.fontFamily) {
                                     newData.styles.blocks[blockName].typography.fontFamily =
                                         `var(--wp--preset--font-family--${primarySlug})`;
@@ -237,7 +237,7 @@ function snn_block_theme_json_page_callback() {
                         // Update elements
                         if (newData.styles.elements) {
                             for (const elementName in newData.styles.elements) {
-                                if (newData.styles.elements[elementName].typography 
+                                if (newData.styles.elements[elementName].typography
                                     && newData.styles.elements[elementName].typography.fontFamily) {
                                     newData.styles.elements[elementName].typography.fontFamily =
                                         `var(--wp--preset--font-family--${primarySlug})`;

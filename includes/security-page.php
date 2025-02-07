@@ -3,12 +3,12 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-require_once get_stylesheet_directory() . '/includes/login-math-captcha.php';
-require_once get_stylesheet_directory() . '/includes/disable-xmlrpc.php';
-require_once get_stylesheet_directory() . '/includes/disable-wp-json-if-not-logged-in.php';
-require_once get_stylesheet_directory() . '/includes/disable-file-editing.php';
-require_once get_stylesheet_directory() . '/includes/remove-rss.php';
-require_once get_stylesheet_directory() . '/includes/remove-wp-version.php';
+require_once SNN_PATH . '/includes/login-math-captcha.php';
+require_once SNN_PATH . '/includes/disable-xmlrpc.php';
+require_once SNN_PATH . '/includes/disable-wp-json-if-not-logged-in.php';
+require_once SNN_PATH . '/includes/disable-file-editing.php';
+require_once SNN_PATH . '/includes/remove-rss.php';
+require_once SNN_PATH . '/includes/remove-wp-version.php';
 
 function snn_add_security_submenu() {
     add_submenu_page(
@@ -26,11 +26,11 @@ function snn_security_page_callback() {
     ?>
     <div class="wrap">
         <h1><?php esc_html_e( 'Security Settings', 'snn' ); ?></h1>
-        
+
         <?php
             settings_errors();
         ?>
-        
+
         <form method="post" action="options.php">
             <?php
                 settings_fields( 'snn_security_settings_group' );
@@ -72,7 +72,7 @@ function snn_security_section_callback() {
 function snn_math_captcha_callback() {
     $options = get_option('snn_security_options');
     ?>
-    <style> 
+    <style>
     [type="checkbox"]{
         width: 18px !important;
         height: 18px !important;

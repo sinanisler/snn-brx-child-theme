@@ -1,4 +1,4 @@
-<?php 
+<?php
 // WP-Admin Backend Custom JS and CSS in <head>
 function snn_custom_css_utils() { ?>
     <style>
@@ -79,7 +79,7 @@ add_filter('upload_mimes', 'allow_json_upload');
 function check_json_filetype($data, $file, $filename, $mimes) {
     // Get the file extension
     $filetype = wp_check_filetype($filename, $mimes);
-    
+
     // If the extension is JSON, update the type and ext
     if ($filetype['ext'] === 'json') {
         $data['ext'] = 'json';

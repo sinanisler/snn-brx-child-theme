@@ -58,7 +58,7 @@ function snn_handle_404_logs_actions() {
             'posts_per_page' => -1,
             'post_status'    => 'any'
         );
-        
+
         $logs = get_posts($args);
         foreach ($logs as $log) {
             wp_delete_post($log->ID, true);
@@ -120,10 +120,10 @@ function snn_cleanup_old_logs($limit) {
         'order'          => 'ASC',
         'post_status'    => 'any'
     );
-    
+
     $logs = get_posts($args);
     $total_logs = count($logs);
-    
+
     if ($total_logs >= $limit) {
         $logs_to_delete = array_slice($logs, 0, $total_logs - $limit + 1);
         foreach ($logs_to_delete as $log) {
@@ -180,20 +180,20 @@ function snn_render_404_logs_page() {
         <form method="post" action="">
             <label>
 
-            <input type="checkbox" name="snn_404_logging_enabled" 
+            <input type="checkbox" name="snn_404_logging_enabled"
                        <?php checked($logging_enabled); ?>>
                 Enable 404 Logging
             </label>
             <br><br>
-            
+
             <label>
                 Maximum number of logs to keep:
-                <input type="number" name="snn_404_log_size_limit" 
-                       value="<?php echo esc_attr($log_size_limit); ?>" 
+                <input type="number" name="snn_404_log_size_limit"
+                       value="<?php echo esc_attr($log_size_limit); ?>"
                        min="1" style="width: 100px;">
             </label>
             <br><br>
-            
+
             <?php submit_button('Save Changes', 'primary', 'snn_404_logging_submit', false); ?>
         </form>
 
@@ -230,7 +230,7 @@ function snn_render_404_logs_page() {
                             <td><?php echo esc_html(get_post_meta($log->ID, 'url', true)); ?></td>
                             <td><?php echo esc_html(get_post_meta($log->ID, 'referrer', true)); ?></td>
                             <td>
-                                <a href="https://radar.cloudflare.com/ip/<?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>" 
+                                <a href="https://radar.cloudflare.com/ip/<?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>"
                                    target="_blank">
                                     <?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>
                                 </a>
