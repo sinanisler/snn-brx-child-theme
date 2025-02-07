@@ -1,36 +1,26 @@
 <?php
-// Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Hook to add submenu page
 add_action( 'admin_menu', 'snn_add_custom_post_types_submenu' );
 
-/**
- * Adds a submenu page under 'snn-settings'.
- */
 function snn_add_custom_post_types_submenu() {
     add_submenu_page(
-        'snn-settings',                    // Parent slug
-        'Register Post Types',            // Page title
-        'Post Types',                     // Menu title
-        'manage_options',                 // Capability
-        'snn-custom-post-types',          // Menu slug
-        'snn_render_custom_post_types_page' // Callback function
+        'snn-settings',                   
+        'Register Post Types',             
+        'Post Types',                      
+        'manage_options',                 
+        'snn-custom-post-types',           
+        'snn_render_custom_post_types_page'
     );
 }
 
-/**
- * Renders the Custom Post Types management page.
- */
 function snn_render_custom_post_types_page() {
-    // Verify user permissions
     if ( ! current_user_can( 'manage_options' ) ) {
         return;
     }
 
-    // Define available supports options
     $available_supports = array(
         'title'           => 'Title',
         'editor'          => 'Editor',
@@ -42,7 +32,6 @@ function snn_render_custom_post_types_page() {
         'page-attributes' => 'Page Attributes',
     );
 
-    // Handle form submission
     if ( isset( $_POST['snn_custom_post_types_nonce'] ) && wp_verify_nonce( $_POST['snn_custom_post_types_nonce'], 'snn_save_custom_post_types' ) ) {
         if ( isset( $_POST['custom_post_types'] ) && is_array( $_POST['custom_post_types'] ) ) {
             $custom_post_types = array();
@@ -65,21 +54,22 @@ function snn_render_custom_post_types_page() {
             }
 
             update_option( 'snn_custom_post_types', $custom_post_types );
-
+            echo '<div class="updated"><p>Custom Post Types saved successfully.</p></div>';
+        } else {
+            // If no custom post types are submitted, update the option to an empty array.
+            update_option( 'snn_custom_post_types', array() );
             echo '<div class="updated"><p>Custom Post Types saved successfully.</p></div>';
         }
     }
 
-    // Retrieve existing custom post types
     $custom_post_types = get_option( 'snn_custom_post_types', array() );
 
-    // Ensure each post type has 'supports' as an array
     foreach ( $custom_post_types as &$post_type ) {
         if ( ! isset( $post_type['supports'] ) || ! is_array( $post_type['supports'] ) ) {
             $post_type['supports'] = array_keys( $available_supports );
         }
     }
-    unset( $post_type ); // Break reference
+    unset( $post_type ); 
 
     ?>
     <div class="wrap">
@@ -129,7 +119,6 @@ function snn_render_custom_post_types_page() {
             const fieldContainer = document.getElementById('custom-post-type-settings');
             const addFieldButton = document.getElementById('add-custom-post-type-row');
 
-            // Define available supports options (must match PHP array)
             const availableSupports = {
                 'title': 'Title',
                 'editor': 'Editor',
@@ -141,9 +130,6 @@ function snn_render_custom_post_types_page() {
                 'page-attributes': 'Page Attributes'
             };
 
-            /**
-             * Updates the index of each custom post type row.
-             */
             function updateFieldIndexes() {
                 const rows = fieldContainer.querySelectorAll('.custom-post-type-row');
                 rows.forEach((row, index) => {
@@ -157,9 +143,6 @@ function snn_render_custom_post_types_page() {
                 });
             }
 
-            /**
-             * Generates the HTML for the supports checkboxes.
-             */
             function generateSupportsHTML(index) {
                 let html = '<div class="supports-section">';
                 for (const [key, label] of Object.entries(availableSupports)) {
@@ -174,9 +157,6 @@ function snn_render_custom_post_types_page() {
                 return html;
             }
 
-            /**
-             * Adds a new custom post type row.
-             */
             addFieldButton.addEventListener('click', function() {
                 const newIndex = fieldContainer.querySelectorAll('.custom-post-type-row').length;
                 const newRow = document.createElement('div');
@@ -206,12 +186,8 @@ function snn_render_custom_post_types_page() {
                 fieldContainer.appendChild(newRow);
             });
 
-            /**
-             * Handles removal and reordering of custom post type rows.
-             */
             fieldContainer.addEventListener('click', function(event) {
                 if (event.target.classList.contains('remove-post-type')) {
-                    // Show confirmation dialog
                     if (confirm('Are you sure you want to remove this post type?')) {
                         event.target.closest('.custom-post-type-row').remove();
                         updateFieldIndexes();
@@ -236,14 +212,10 @@ function snn_render_custom_post_types_page() {
                     }
                 }
             });
-
-
-
         });
         </script>
 
         <style>
-            /* Retain original styles */
             .custom-post-type-row {
                 display: flex;
                 flex-wrap: wrap;
@@ -271,7 +243,7 @@ function snn_render_custom_post_types_page() {
                 gap: 5px;
             }
             .custom-post-type-row button {
-                /* Keep buttons minimal as before */
+                
             }
             .custom-post-type-row button:hover {
                 background-color: #005177;
@@ -305,9 +277,6 @@ function snn_render_custom_post_types_page() {
     <?php
 }
 
-/**
- * Registers the custom post types based on saved configurations.
- */
 add_action( 'init', 'snn_register_custom_post_types' );
 
 function snn_register_custom_post_types() {
@@ -315,7 +284,7 @@ function snn_register_custom_post_types() {
 
     foreach ( $custom_post_types as $post_type ) {
         // Ensure 'supports' is an array
-        $supports = isset( $post_type['supports'] ) && is_array( $post_type['supports'] ) ? $post_type['supports'] : array( 'title', 'editor', 'thumbnail','author','excerpt','custom-fields','revisions','page-attributes' );
+        $supports = isset( $post_type['supports'] ) && is_array( $post_type['supports'] ) ? $post_type['supports'] : array( 'title', 'editor', 'thumbnail', 'author', 'excerpt', 'custom-fields', 'revisions', 'page-attributes' );
 
         // Filter supports to only include allowed options
         $allowed_supports = array(
@@ -331,14 +300,14 @@ function snn_register_custom_post_types() {
         $supports = array_intersect( $supports, $allowed_supports );
 
         $args = array(
-            'label'               => $post_type['name'],
-            'public'              => ! (bool) $post_type['private'],
-            'has_archive'         => true,
-            'supports'            => ! empty( $supports ) ? $supports : array( 'title', 'editor', 'thumbnail','author','excerpt','custom-fields','revisions','page-attributes' ),
-            'show_in_rest'        => true,
-            'menu_position'       => 20,
-            'menu_icon'           => 'dashicons-welcome-write-blog',
-            'hierarchical'        => true,
+            'label'         => $post_type['name'],
+            'public'        => ! (bool) $post_type['private'],
+            'has_archive'   => true,
+            'supports'      => ! empty( $supports ) ? $supports : array( 'title', 'editor', 'thumbnail', 'author', 'excerpt', 'custom-fields', 'revisions', 'page-attributes' ),
+            'show_in_rest'  => true,
+            'menu_position' => 20,
+            'menu_icon'     => 'dashicons-welcome-write-blog',
+            'hierarchical'  => true,
         );
 
         register_post_type( $post_type['slug'], $args );
