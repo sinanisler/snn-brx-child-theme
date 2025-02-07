@@ -141,7 +141,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 'default'  => 'Default (OSM Free Tiles)',
                 'light'    => 'Light (Fastly Free Tiles)',
                 'dark'     => 'Dark (Fastly Free Tiles)',
-                'topology' => 'Topology (OSM Free Tiles)',
             ],
             'default' => 'default',
         ];
@@ -205,8 +204,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             $tile_url = 'https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png';
         } elseif ( $map_style === 'dark' ) {
             $tile_url = 'https://cartodb-basemaps-c.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png';
-        } elseif ( $map_style === 'topology' ) {
-            $tile_url = 'https://b.tile.opentopomap.org/{z}/{x}/{y}.png';
         }
         $tile_attribution = '©OpenStreetMap';
         ?>
