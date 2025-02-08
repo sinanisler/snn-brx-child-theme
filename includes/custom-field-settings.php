@@ -36,6 +36,7 @@ function snn_custom_fields_page_callback() {
                     $post_types_selected = $has_post_type ? array_map('sanitize_text_field', $field['post_type']) : [];
                     $taxonomies_selected = $has_taxonomies ? array_map('sanitize_text_field', $field['taxonomies']) : [];
 
+                    // PHP-side sanitization remains as a fallback.
                     $new_fields[] = [
                         'group_name' => sanitize_text_field($field['group_name']),
                         'name'       => sanitize_text_field($field['name']),
@@ -62,7 +63,6 @@ function snn_custom_fields_page_callback() {
                 <p>Define custom fields with group name, field name, field type, and post type or taxonomy:<br>
                     Select one or more to register same Custom Field to Post Types or Taxonomies.<br>
                     Press CTRL/CMD to select multiple or to remove selection.
-
                 </p>
                 <?php
                 if (!empty($custom_fields) && is_array($custom_fields)) {
@@ -80,6 +80,7 @@ function snn_custom_fields_page_callback() {
                             <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" value="<?php echo isset($field['group_name']) ? esc_attr($field['group_name']) : ''; ?>" />
 
                             <label>Field Name</label>
+                            <!-- The Field Name inputs use the placeholder "Field Name" for our realtime sanitizer -->
                             <input type="text" name="custom_fields[<?php echo $index; ?>][name]" placeholder="Field Name" value="<?php echo esc_attr($field['name']); ?>" />
 
                             <label>Field Type</label>
@@ -175,6 +176,7 @@ function snn_custom_fields_page_callback() {
             <?php submit_button('Save Custom Fields'); ?>
         </form>
 
+        <!-- Existing JavaScript for moving/removing/adding field rows -->
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             const fieldContainer = document.getElementById('custom-field-settings');
@@ -240,6 +242,7 @@ function snn_custom_fields_page_callback() {
                     <input type="checkbox" name="custom_fields[${newIndex}][repeater]" disabled />
                 `;
                 fieldContainer.appendChild(newRow);
+                updateFieldIndexes();
             });
 
             fieldContainer.addEventListener('click', function(event) {
@@ -287,6 +290,67 @@ function snn_custom_fields_page_callback() {
         });
         </script>
 
+        <!-- New native JavaScript for realtime field name sanitization -->
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to replace spaces with underscores and remove unwanted characters
+            function sanitizeFieldName(value) {
+                value = value.trim();
+                value = value.replace(/\s+/g, '_'); // Replace any whitespace with an underscore
+                value = value.replace(/[^A-Za-z0-9_]/g, ''); // Remove non-latin letters, digits, or underscores
+                return value;
+            }
+            
+            // Attach both keydown and input event listeners to a Field Name input element.
+            function attachFieldNameSanitizer(input) {
+                // On keydown: if the user presses space, insert an underscore instead.
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === ' ') {
+                        e.preventDefault();
+                        var start = input.selectionStart;
+                        var end = input.selectionEnd;
+                        var value = input.value;
+                        // Insert underscore at the caret position
+                        input.value = value.substring(0, start) + '_' + value.substring(end);
+                        input.setSelectionRange(start + 1, start + 1);
+                    }
+                });
+                
+                // On input: sanitize the value (useful for pasted content)
+                input.addEventListener('input', function(e) {
+                    var sanitized = sanitizeFieldName(e.target.value);
+                    if (e.target.value !== sanitized) {
+                        e.target.value = sanitized;
+                    }
+                });
+            }
+            
+            // Attach the sanitizer to all existing Field Name inputs (identified by placeholder "Field Name")
+            var fieldNameInputs = document.querySelectorAll('input[placeholder="Field Name"]');
+            fieldNameInputs.forEach(function(input) {
+                attachFieldNameSanitizer(input);
+            });
+            
+            // Observe for dynamically added Field Name inputs and attach the sanitizer
+            var fieldContainer = document.getElementById('custom-field-settings');
+            if (fieldContainer) {
+                var observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1) {
+                                var newInputs = node.querySelectorAll('input[placeholder="Field Name"]');
+                                newInputs.forEach(function(input) {
+                                    attachFieldNameSanitizer(input);
+                                });
+                            }
+                        });
+                    });
+                });
+                observer.observe(fieldContainer, { childList: true, subtree: true });
+            }
+        });
+        </script>
+
         <style>
             .custom-field-row {
                 display: flex;
@@ -318,9 +382,8 @@ function snn_custom_fields_page_callback() {
 
             .custom-field-row .buttons {
                 display: flex;
-                flex-direction: column;
+                flex-direction: row;
                 gap: 5px;
-                flex-direction:row;
             }
 
             #add-custom-field-row {
@@ -596,7 +659,6 @@ function snn_render_field_input($field, $value = '', $index = '') {
                             echo '<img src="" class="media-preview" style="display: none; max-width: 100px; max-height: 100px;" />';
                         }
                     } else {
-                        // Determine appropriate Dashicon based on file type
                         $dashicon = snn_get_dashicon_for_mime($mime_type);
                         echo '<span class="dashicons ' . esc_attr($dashicon) . ' media-preview" style="font-size: 48px;"></span>';
                     }
@@ -638,7 +700,6 @@ function snn_get_dashicon_for_mime($mime_type) {
         'text/plain' => 'dashicons-editor-paragraph',
         'video/mp4' => 'dashicons-video-alt3',
         'audio/mpeg' => 'dashicons-format-audio',
-        // Add more mappings as needed
     ];
 
     return isset($mime_to_dashicon[$mime_type]) ? $mime_to_dashicon[$mime_type] : 'dashicons-media-default';
@@ -748,12 +809,9 @@ function snn_output_repeater_field_js() {
                         button.siblings('.dashicons').remove();
                     } else {
                         button.siblings('.media-preview').remove();
-                        // Create a new Dashicon element based on the MIME type
-                        var dashiconClass = '<?php echo esc_js(snn_get_dashicon_for_mime('application/pdf')); ?>'; // Default icon
-                        // Ideally, you would pass the mapping from PHP to JS, but for simplicity, using a default
+                        var dashiconClass = '<?php echo esc_js(snn_get_dashicon_for_mime('application/pdf')); ?>';
                         button.siblings('.media-preview').remove();
                         var dashicon = $('<span class="dashicons dashicons-media-default media-preview" style="font-size: 48px;"></span>');
-                        // Update dashicon based on attachment.mime
                         var mimeType = attachment.mime;
                         var dashiconMap = {
                             'application/pdf': 'dashicons-media-document',
@@ -765,7 +823,6 @@ function snn_output_repeater_field_js() {
                             'text/plain': 'dashicons-editor-paragraph',
                             'video/mp4': 'dashicons-video-alt3',
                             'audio/mpeg': 'dashicons-format-audio',
-                            // Add more mappings as needed
                         };
                         var selectedDashicon = dashiconMap[mimeType] || 'dashicons-media-default';
                         dashicon.removeClass('dashicons-media-default').addClass(selectedDashicon);
