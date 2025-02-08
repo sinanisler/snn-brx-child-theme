@@ -69,8 +69,7 @@ function snn_render_custom_post_types_page() {
             $post_type['supports'] = array_keys( $available_supports );
         }
     }
-    unset( $post_type ); 
-
+    unset( $post_type );
     ?>
     <div class="wrap">
         <h1>Manage Custom Post Types</h1>
@@ -130,6 +129,27 @@ function snn_render_custom_post_types_page() {
                 'page-attributes': 'Page Attributes'
             };
 
+            // Function to sanitize slug input: lowercase, replace spaces with dashes, remove special characters.
+            function slugify(value) {
+                value = value.toLowerCase();
+                value = value.replace(/\s+/g, '-'); // Replace spaces with dashes
+                value = value.replace(/[^a-z0-9\-]/g, ''); // Remove any character that is not a letter, number, or dash
+                value = value.replace(/-+/g, '-'); // Replace multiple dashes with a single dash
+                return value;
+            }
+
+            // Attach input event listener to slug fields to enforce slug rules.
+            function attachSlugListener(input) {
+                input.addEventListener('input', function() {
+                    this.value = slugify(this.value);
+                });
+            }
+
+            // Attach slug listener to existing slug inputs.
+            document.querySelectorAll('input[name*="[slug]"]').forEach(function(input) {
+                attachSlugListener(input);
+            });
+
             function updateFieldIndexes() {
                 const rows = fieldContainer.querySelectorAll('.custom-post-type-row');
                 rows.forEach((row, index) => {
@@ -184,6 +204,12 @@ function snn_render_custom_post_types_page() {
                     <!-- End of Supports Section -->
                 `;
                 fieldContainer.appendChild(newRow);
+
+                // Attach slug listener for the new slug input
+                const newSlugInput = newRow.querySelector('input[name*="[slug]"]');
+                if (newSlugInput) {
+                    attachSlugListener(newSlugInput);
+                }
             });
 
             fieldContainer.addEventListener('click', function(event) {
