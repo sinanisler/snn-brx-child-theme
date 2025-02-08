@@ -1,12 +1,12 @@
-<?php
+<?php 
 if ( ! defined( 'ABSPATH' ) ) exit;
 class Custom_HTML_CSS_Script extends \Bricks\Element {
   public $category     = 'snn';
   public $name         = 'custom-html-css-script';
-  public $icon         = 'fas fa-code';
-
+  public $icon         = 'fas fa-code'; 
+  public $css_selector = '.snn-brx-html-css-script-wrapper';
   public function get_label() {
-    return 'Custom Code HTML JS CSS';
+    return 'Custom Code HTML -SNN';
   }
 
   public function set_controls() {
@@ -19,13 +19,10 @@ Custom HTML, CSS, and JS Code<br>
       'mode' => 'php',
       'default' => '
 <div>Your HTML here</div>
-
 <h1 class="redme">Title</h1>
-
 <style>
 .redme{color:red}
 </style>
-
 <script>
 var sebas_sama = 6969;
 </script>
@@ -38,8 +35,8 @@ var sebas_sama = 6969;
   }
 
   public function render() {
-    echo "<div {$this->render_attributes('_root')}>";
-    echo wp_kses_post($this->settings['content']);
+    echo "<div class='custom-html-css-script-wrapper' style='width:100%'>";
+    echo $this->settings['content']; // Direct output, consider security implications
     echo "</div>";
   }
 }
