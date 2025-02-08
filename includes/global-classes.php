@@ -13,15 +13,12 @@ add_action('admin_menu', function () {
 });
 
 add_action('admin_init', function () {
-    if (isset($_POST['bgcc_submit']) && wp_verify_nonce($_POST['bgcc_nonce'], 'bgcc_save_options')) {
-        $existing_categories = get_option('bricks_global_classes_categories', []);
-        $existing_classes    = get_option('bricks_global_classes', []);
-        $oldCatById = [];
-        foreach ($existing_categories as $cat) {
-            $oldCatById[$cat['id']] = $cat;
-        }
+
+    // Process Categories Save
+    if (isset($_POST['bgcc_categories_submit']) && wp_verify_nonce($_POST['bgcc_categories_nonce'], 'bgcc_save_categories')) {
         $postedCategories = $_POST['categories'] ?? null;
         $new_categories   = [];
+
         if ($postedCategories && is_array($postedCategories)) {
             foreach ($postedCategories as $c) {
                 $catId   = !empty($c['id']) ? sanitize_text_field($c['id']) : bgcc_rand_id();
@@ -33,29 +30,37 @@ add_action('admin_init', function () {
                     ];
                 }
             }
-        } else {
-            $new_categories = $existing_categories;
         }
+
         update_option('bricks_global_classes_categories', $new_categories);
-        $valid_ids = array_column($new_categories, 'id');
+        add_settings_error('bgcc_messages', 'bgcc_categories_message', 'Categories Saved', 'updated');
+        wp_redirect(add_query_arg(['page' => 'bricks-global-classes', 'categories-updated' => 'true'], admin_url('admin.php')));
+        exit;
+    }
+
+    // Process Classes Save
+    if (isset($_POST['bgcc_classes_submit']) && wp_verify_nonce($_POST['bgcc_classes_nonce'], 'bgcc_save_classes')) {
+        $existing_classes = get_option('bricks_global_classes', []);
         $oldClassById = [];
         foreach ($existing_classes as $cl) {
             $oldClassById[$cl['id']] = $cl;
         }
         $postedClasses = $_POST['classes'] ?? null;
         $new_classes   = [];
+
         if ($postedClasses && is_array($postedClasses)) {
             foreach ($postedClasses as $cl) {
                 $classId   = !empty($cl['id']) ? sanitize_text_field($cl['id']) : bgcc_rand_id();
                 $className = !empty($cl['name']) ? sanitize_text_field($cl['name']) : '';
-                $catId     = !empty($cl['category']) ? sanitize_text_field($cl['category']) : '';
-                if ($className && in_array($catId, $valid_ids)) {
+                // Allow category to be empty so that classes can be saved without a category.
+                $catId     = isset($cl['category']) ? sanitize_text_field($cl['category']) : '';
+
+                if ($className) {
                     $parsedSettings = bgcc_parse_css($cl['css'] ?? '');
                     if (isset($oldClassById[$classId])) {
                         $oldSettings = $oldClassById[$classId]['settings'] ?? [];
                         if (!empty($oldSettings['_typography']['color']) && !empty($parsedSettings['_typography']['color'])) {
                             $oldColor = $oldSettings['_typography']['color'];
-                            $newColor = $parsedSettings['_typography']['color'];
                             $parsedSettings['_typography']['color']['id']   = $oldColor['id'];
                             $parsedSettings['_typography']['color']['name'] = $oldColor['name'];
                         }
@@ -71,12 +76,11 @@ add_action('admin_init', function () {
                     ];
                 }
             }
-        } else {
-            $new_classes = $existing_classes;
         }
+
         update_option('bricks_global_classes', $new_classes);
-        add_settings_error('bgcc_messages', 'bgcc_message', 'Settings Saved', 'updated');
-        wp_redirect(add_query_arg(['page' => 'bricks-global-classes', 'settings-updated' => 'true'], admin_url('admin.php')));
+        add_settings_error('bgcc_messages', 'bgcc_classes_message', 'Classes Saved', 'updated');
+        wp_redirect(add_query_arg(['page' => 'bricks-global-classes', 'classes-updated' => 'true'], admin_url('admin.php')));
         exit;
     }
 });
@@ -87,7 +91,7 @@ function bgcc_rand_id($len = 6) {
 
 function bgcc_parse_css($css) {
     $settings = [];
-    $css = preg_replace('/\/\*.*?\*\//s','', trim($css));
+    $css = preg_replace('/\/\*.*?\*\//s', '', trim($css));
     if (preg_match('/\{(.*)\}/s', $css, $m)) {
         $rules = explode(';', $m[1]);
     } else {
@@ -119,12 +123,12 @@ function bgcc_parse_css($css) {
                 }
                 break;
             case 'text-align':
-                if (in_array(strtolower($v), ['left','center','right','justify'])) {
+                if (in_array(strtolower($v), ['left', 'center', 'right', 'justify'])) {
                     $settings['_typography']['text-align'] = strtolower($v);
                 }
                 break;
             case 'text-transform':
-                if (in_array(strtolower($v), ['none','capitalize','uppercase','lowercase'])) {
+                if (in_array(strtolower($v), ['none', 'capitalize', 'uppercase', 'lowercase'])) {
                     $settings['_typography']['text-transform'] = strtolower($v);
                 }
                 break;
@@ -145,191 +149,212 @@ function bgcc_page() {
     $categories = get_option('bricks_global_classes_categories', []);
     $classes    = get_option('bricks_global_classes', []);
     ?>
-<style>
-#classes-table textarea{
-height:28px;
-width:90%;
-}
-#classes-table input,
-#classes-table select{
-width:90%;
-}
-.add-new{
-width:100px
-}
-
-
+    <style>
+        /* Grid layout: left section fixed at 300px and right section takes the remaining width */
+        #bgcc-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+        #categories-section {
+            width: 300px;
+        }
+        /* Ensure inputs and textareas take proper width */
+        #categories-table input[type="text"],
+        #classes-table textarea {
+            width: 90%;
+        }
+        #classes-table textarea {
+            height: 100px;
+        }
     </style>
-
 
     <div class="wrap">
         <h1>Bricks Global Classes Manager - <span style="color:Red">EXPERIMENTAL</span></h1>
         <?php settings_errors('bgcc_messages'); ?>
 
-        <h2>Bulk CSS</h2>
-        <p>Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>) and click "Generate Classes".</p>
-        <textarea id="bulk-css" rows="4" style="width:100%; font-family:monospace;"></textarea><br><br>
-        <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
-
-        <form method="post" style="margin-top: 30px;">
-            <?php wp_nonce_field('bgcc_save_options', 'bgcc_nonce'); ?>
-
-            <div style="display: grid; grid-template-columns: 1fr 3fr; gap: 20px;">
-                <div>
-                    <h2>Categories</h2>
+        <div id="bgcc-container">
+            <!-- Categories Section -->
+            <div id="categories-section">
+                <h2>Categories</h2>
+                <form method="post">
+                    <?php wp_nonce_field('bgcc_save_categories', 'bgcc_categories_nonce'); ?>
                     <table class="widefat fixed" id="categories-table">
                         <thead>
                             <tr>
-                                <th style="display:none;">ID</th>
                                 <th>Name</th>
-                                <th class="add-new"><button type="button" class="button button-secondary" id="add-category">Add</button></th>
+                                <th style="width:100px">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if ($categories): foreach ($categories as $i => $c): ?>
-                            <tr>
-                                <td style="display:none;">
-                                    <input type="hidden" name="categories[<?php echo $i; ?>][id]" value="<?php echo esc_attr($c['id']); ?>">
-                                </td>
-                                <td>
-                                    <input type="text" name="categories[<?php echo $i; ?>][name]" value="<?php echo esc_attr($c['name']); ?>" required>
-                                </td>
-                                <td>
-                                    <button type="button" class="button button-danger remove-row">Remove</button>
-                                </td>
-                            </tr>
-                            <?php endforeach; else: ?>
-                            <tr>
-                                <td style="display:none;">
-                                    <input type="hidden" name="categories[0][id]" value="<?php echo esc_attr(bgcc_rand_id()); ?>">
-                                </td>
-                                <td>
-                                    <input type="text" name="categories[0][name]" required>
-                                </td>
-                                <td>
-                                    <button type="button" class="button button-danger remove-row">Remove</button>
-                                </td>
-                            </tr>
+                            <?php if ($categories) : ?>
+                                <?php foreach ($categories as $i => $c) : ?>
+                                    <tr>
+                                        <td>
+                                            <input type="hidden" name="categories[<?php echo $i; ?>][id]" value="<?php echo esc_attr($c['id']); ?>">
+                                            <input type="text" name="categories[<?php echo $i; ?>][name]" value="<?php echo esc_attr($c['name']); ?>" required>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="button button-danger remove-row">Remove</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else : ?>
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="categories[0][id]" value="<?php echo esc_attr(bgcc_rand_id()); ?>">
+                                        <input type="text" name="categories[0][name]" required>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="button button-danger remove-row">Remove</button>
+                                    </td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2">
+                                    <button type="button" class="button button-secondary" id="add-category">Add</button>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
+                    <?php submit_button('Save Categories', 'primary', 'bgcc_categories_submit'); ?>
+                </form>
+            </div>
+
+            <!-- Classes Section -->
+            <div id="classes-section">
+                <h2>Classes</h2>
+                <div style="margin-bottom:20px;">
+                    <h3>Bulk CSS</h3>
+                    <p>
+                        Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>)
+                        and click "Generate Classes".
+                    </p>
+                    <textarea id="bulk-css" rows="4" style="width:100%; font-family:monospace;"></textarea>
+                    <br><br>
+                    <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
                 </div>
-                <div>
-                    <h2>Classes</h2>
+                <form method="post">
+                    <?php wp_nonce_field('bgcc_save_classes', 'bgcc_classes_nonce'); ?>
                     <table class="widefat fixed" id="classes-table">
                         <thead>
                             <tr>
-                                <th style="display:none;">ID</th>
                                 <th>Name</th>
-                                <th>Category</th>
+                                <th>Category (Optional)</th>
                                 <th>CSS</th>
-                                <th class="add-new"><button type="button" class="button button-secondary" id="add-class">Add</button></th>
+                                <th style="width:100px">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if ($classes): foreach ($classes as $i => $cl): ?>
-                            <tr>
-                                <td style="display:none;">
-                                    <input type="hidden" name="classes[<?php echo $i; ?>][id]" value="<?php echo esc_attr($cl['id']); ?>">
-                                </td>
-                                <td>
-                                    <input type="text" name="classes[<?php echo $i; ?>][name]" value="<?php echo esc_attr($cl['name']); ?>" required>
-                                </td>
-                                <td>
-                                    <select name="classes[<?php echo $i; ?>][category]" required>
-                                        <option value="">— Select —</option>
-                                        <?php foreach ($categories as $cat): ?>
-                                        <option value="<?php echo esc_attr($cat['id']); ?>" <?php selected($cl['category'], $cat['id']); ?>>
-                                            <?php echo esc_html($cat['name']); ?>
-                                        </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </td>
-                                <td>
-                                    <textarea name="classes[<?php echo $i; ?>][css]" rows="5" placeholder=".classname { /* CSS */ }" required>
-<?php echo esc_textarea(bgcc_gen_css($cl['name'], $cl['settings'])); ?>
-                                    </textarea>
-                                </td>
-                                <td class="">
-                                    <button type="button" class="button button-danger remove-row">Remove</button>
-                                </td>
-                            </tr>
-                            <?php endforeach; else: ?>
-                            <tr>
-                                <td style="display:none;">
-                                    <input type="hidden" name="classes[0][id]" value="<?php echo esc_attr(bgcc_rand_id()); ?>">
-                                </td>
-                                <td>
-                                    <input type="text" name="classes[0][name]" required>
-                                </td>
-                                <td>
-                                    <select name="classes[0][category]" required>
-                                        <option value="">— Select —</option>
-                                        <?php foreach ($categories as $cat): ?>
-                                            <option value="<?php echo esc_attr($cat['id']); ?>">
-                                                <?php echo esc_html($cat['name']); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </td>
-                                <td>
-                                    <textarea name="classes[0][css]" rows="5" placeholder=".classname { /* CSS */ }" required></textarea>
-                                </td>
-                                <td>
-                                    <button type="button" class="button button-danger remove-row">Remove</button>
-                                </td>
-                            </tr>
+                            <?php if ($classes) : ?>
+                                <?php foreach ($classes as $i => $cl) : ?>
+                                    <tr>
+                                        <td>
+                                            <input type="hidden" name="classes[<?php echo $i; ?>][id]" value="<?php echo esc_attr($cl['id']); ?>">
+                                            <input type="text" name="classes[<?php echo $i; ?>][name]" value="<?php echo esc_attr($cl['name']); ?>" required>
+                                        </td>
+                                        <td>
+                                            <select name="classes[<?php echo $i; ?>][category]">
+                                                <option value="">— None —</option>
+                                                <?php foreach ($categories as $cat) : ?>
+                                                    <option value="<?php echo esc_attr($cat['id']); ?>" <?php selected($cl['category'], $cat['id']); ?>>
+                                                        <?php echo esc_html($cat['name']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <textarea name="classes[<?php echo $i; ?>][css]" rows="5" placeholder=".classname { /* CSS */ }" required><?php echo esc_textarea(bgcc_gen_css($cl['name'], $cl['settings'])); ?></textarea>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="button button-danger remove-row">Remove</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else : ?>
+                                <tr>
+                                    <td>
+                                        <input type="hidden" name="classes[0][id]" value="<?php echo esc_attr(bgcc_rand_id()); ?>">
+                                        <input type="text" name="classes[0][name]" required>
+                                    </td>
+                                    <td>
+                                        <select name="classes[0][category]">
+                                            <option value="">— None —</option>
+                                            <?php foreach ($categories as $cat) : ?>
+                                                <option value="<?php echo esc_attr($cat['id']); ?>">
+                                                    <?php echo esc_html($cat['name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <textarea name="classes[0][css]" rows="5" placeholder=".classname { /* CSS */ }" required></textarea>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="button button-danger remove-row">Remove</button>
+                                    </td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4">
+                                    <button type="button" class="button button-secondary" id="add-class">Add</button>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
-                </div>
+                    <?php submit_button('Save Classes', 'primary', 'bgcc_classes_submit'); ?>
+                </form>
             </div>
-            <?php submit_button('Save Changes', 'primary', 'bgcc_submit'); ?>
-        </form>
+        </div>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const categoriesTable   = document.getElementById('categories-table').querySelector('tbody');
-        const classesTable      = document.getElementById('classes-table').querySelector('tbody');
-        const addCategoryBtn    = document.getElementById('add-category');
-        const addClassBtn       = document.getElementById('add-class');
-        const generateBtn       = document.getElementById('generate-classes');
-        const bulkCssTextarea   = document.getElementById('bulk-css');
+    document.addEventListener('DOMContentLoaded', function () {
+        const categoriesTable = document.getElementById('categories-table').querySelector('tbody');
+        const classesTable = document.getElementById('classes-table').querySelector('tbody');
+        const addCategoryBtn = document.getElementById('add-category');
+        const addClassBtn = document.getElementById('add-class');
+        const generateBtn = document.getElementById('generate-classes');
+        const bulkCssTextarea = document.getElementById('bulk-css');
         const categories = <?php echo json_encode(array_map(fn($c) => ['id' => $c['id'], 'name' => $c['name']], $categories)); ?>;
+    
         function bgccRandId(len = 6) {
-            return [...Array(len)].map(() => 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)]).join('');
+            return [...Array(len)]
+                .map(() => 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)])
+                .join('');
         }
+    
         addCategoryBtn.addEventListener('click', () => {
-            const row = categoriesTable.insertRow();
-            const idx = categoriesTable.rows.length - 1;
+            const idx = categoriesTable.rows.length;
+            const row = categoriesTable.insertRow(-1); // Insert at the bottom
             row.innerHTML = `
-                <td style="display:none;">
-                    <input type="hidden" name="categories[${idx}][id]" value="${bgccRandId()}">
-                </td>
                 <td>
+                    <input type="hidden" name="categories[${idx}][id]" value="${bgccRandId()}">
                     <input type="text" name="categories[${idx}][name]" required>
                 </td>
                 <td>
                     <button type="button" class="button button-danger remove-row">Remove</button>
                 </td>`;
         });
+    
         addClassBtn.addEventListener('click', () => {
-            const row = classesTable.insertRow();
-            const idx = classesTable.rows.length - 1;
-            let options = '<option value="">— Select —</option>';
+            const idx = classesTable.rows.length;
+            const row = classesTable.insertRow(-1); // Insert at the bottom
+            let options = '<option value="">— None —</option>';
             categories.forEach(c => {
                 options += `<option value="${c.id}">${c.name}</option>`;
             });
             row.innerHTML = `
-                <td style="display:none;">
-                    <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
-                </td>
                 <td>
+                    <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
                     <input type="text" name="classes[${idx}][name]" required>
                 </td>
                 <td>
-                    <select name="classes[${idx}][category]" required>${options}</select>
+                    <select name="classes[${idx}][category]">${options}</select>
                 </td>
                 <td>
                     <textarea name="classes[${idx}][css]" rows="5" placeholder=".classname { /* CSS */ }" required></textarea>
@@ -338,19 +363,17 @@ width:100px
                     <button type="button" class="button button-danger remove-row">Remove</button>
                 </td>`;
         });
-        document.body.addEventListener('click', function(e) {
+    
+        document.body.addEventListener('click', function (e) {
             if (e.target.classList.contains('remove-row')) {
                 e.target.closest('tr').remove();
             }
         });
+    
         generateBtn.addEventListener('click', () => {
             const text = bulkCssTextarea.value.trim();
             if (!text) {
                 alert('Please paste some CSS first.');
-                return;
-            }
-            if (!categories.length) {
-                alert('Please create at least one category first.');
                 return;
             }
             const regex = /\.([A-Za-z0-9_\-]+)\s*\{([^}]*)\}/g;
@@ -358,24 +381,22 @@ width:100px
             while ((match = regex.exec(text)) !== null) {
                 found++;
                 const className = match[1].trim();
-                const rules     = match[2].trim();
-                const row = classesTable.insertRow();
-                const idx = classesTable.rows.length - 1;
-                let options = '<option value="">— Select —</option>';
+                const rules = match[2].trim();
+                const idx = classesTable.rows.length;
+                const row = classesTable.insertRow(-1);
+                let options = '<option value="">— None —</option>';
                 categories.forEach((c, index) => {
                     const selected = (index === 0) ? 'selected' : '';
                     options += `<option value="${c.id}" ${selected}>${c.name}</option>`;
                 });
                 const finalCSS = '.' + className + ' {\n' + rules + '\n}';
                 row.innerHTML = `
-                    <td style="display:none;">
-                        <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
-                    </td>
                     <td>
+                        <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
                         <input type="text" name="classes[${idx}][name]" value="${className}" required>
                     </td>
                     <td>
-                        <select name="classes[${idx}][category]" required>${options}</select>
+                        <select name="classes[${idx}][category]">${options}</select>
                     </td>
                     <td>
                         <textarea name="classes[${idx}][css]" rows="5" required>${finalCSS}</textarea>
@@ -392,7 +413,7 @@ width:100px
 }
 
 function bgcc_gen_css($name, $s) {
-    $css = '.' . $name . ' {' . "\n";
+    $css = '.' . $name . " {\n";
     if (!empty($s['_typography'])) {
         if (!empty($s['_typography']['text-align'])) {
             $css .= "  text-align: {$s['_typography']['text-align']};\n";
