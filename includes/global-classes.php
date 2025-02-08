@@ -41,7 +41,7 @@ add_action('admin_init', function () {
     // Process Classes Save
     if (isset($_POST['bgcc_classes_submit']) && wp_verify_nonce($_POST['bgcc_classes_nonce'], 'bgcc_save_classes')) {
         $existing_classes = get_option('bricks_global_classes', []);
-        $oldClassById = [];
+        $oldClassById     = [];
         foreach ($existing_classes as $cl) {
             $oldClassById[$cl['id']] = $cl;
         }
@@ -145,6 +145,37 @@ function bgcc_parse_css($css) {
     return $settings;
 }
 
+function bgcc_gen_css($name, $s) {
+    $css = '.' . $name . " {\n";
+    if (!empty($s['_typography'])) {
+        if (!empty($s['_typography']['text-align'])) {
+            $css .= "  text-align: {$s['_typography']['text-align']};\n";
+        }
+        if (!empty($s['_typography']['text-transform'])) {
+            $css .= "  text-transform: {$s['_typography']['text-transform']};\n";
+        }
+        if (!empty($s['_typography']['color']['hex'])) {
+            $css .= "  color: {$s['_typography']['color']['hex']};\n";
+        }
+        if (!empty($s['_typography']['font-weight'])) {
+            $css .= "  font-weight: {$s['_typography']['font-weight']};\n";
+        }
+    }
+    if (!empty($s['_background']['color']['hex'])) {
+        $css .= "  background-color: {$s['_background']['color']['hex']};\n";
+    }
+    if (!empty($s['_border']['border'])) {
+        $css .= "  border: {$s['_border']['border']};\n";
+    }
+    if (!empty($s['_custom_css']) && is_array($s['_custom_css'])) {
+        foreach ($s['_custom_css'] as $p => $v) {
+            $css .= "  {$p}: {$v};\n";
+        }
+    }
+    $css .= '}';
+    return $css;
+}
+
 function bgcc_page() {
     $categories = get_option('bricks_global_classes_categories', []);
     $classes    = get_option('bricks_global_classes', []);
@@ -166,6 +197,11 @@ function bgcc_page() {
         }
         #classes-table textarea {
             height: 100px;
+        }
+        /* Export textarea styling */
+        #export-section textarea {
+            width: 100%;
+            font-family: monospace;
         }
     </style>
 
@@ -236,11 +272,23 @@ function bgcc_page() {
                     <br><br>
                     <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
                 </div>
+                <!-- Bulk Actions for Classes -->
+                <div id="bulk-actions" style="margin-bottom:10px;">
+                    <button type="button" class="button" id="bulk-delete">Delete Selected</button>
+                    <select id="bulk-category">
+                        <option value="">— Change Category To —</option>
+                        <?php foreach ($categories as $cat) : ?>
+                            <option value="<?php echo esc_attr($cat['id']); ?>"><?php echo esc_html($cat['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="button" class="button" id="bulk-change-category">Apply</button>
+                </div>
                 <form method="post">
                     <?php wp_nonce_field('bgcc_save_classes', 'bgcc_classes_nonce'); ?>
                     <table class="widefat fixed" id="classes-table">
                         <thead>
                             <tr>
+                                <th style="width:30px"><input type="checkbox" id="select-all"></th>
                                 <th>Name</th>
                                 <th>Category (Optional)</th>
                                 <th>CSS</th>
@@ -251,6 +299,7 @@ function bgcc_page() {
                             <?php if ($classes) : ?>
                                 <?php foreach ($classes as $i => $cl) : ?>
                                     <tr>
+                                        <td><input type="checkbox" class="bulk-select"></td>
                                         <td>
                                             <input type="hidden" name="classes[<?php echo $i; ?>][id]" value="<?php echo esc_attr($cl['id']); ?>">
                                             <input type="text" name="classes[<?php echo $i; ?>][name]" value="<?php echo esc_attr($cl['name']); ?>" required>
@@ -275,6 +324,7 @@ function bgcc_page() {
                                 <?php endforeach; ?>
                             <?php else : ?>
                                 <tr>
+                                    <td><input type="checkbox" class="bulk-select"></td>
                                     <td>
                                         <input type="hidden" name="classes[0][id]" value="<?php echo esc_attr(bgcc_rand_id()); ?>">
                                         <input type="text" name="classes[0][name]" required>
@@ -300,7 +350,7 @@ function bgcc_page() {
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="4">
+                                <td colspan="5">
                                     <button type="button" class="button button-secondary" id="add-class">Add</button>
                                 </td>
                             </tr>
@@ -309,6 +359,21 @@ function bgcc_page() {
                     <?php submit_button('Save Classes', 'primary', 'bgcc_classes_submit'); ?>
                 </form>
             </div>
+        </div>
+
+        <!-- Export Section -->
+        <div id="export-section" style="margin-top:30px;">
+            <h2>Export</h2>
+            <p>Copy the CSS for all classes below to backup your class list:</p>
+            <textarea readonly rows="15"><?php 
+                $export_css = '';
+                if ($classes) {
+                    foreach ($classes as $cl) {
+                        $export_css .= bgcc_gen_css($cl['name'], $cl['settings']) . "\n\n";
+                    }
+                }
+                echo esc_textarea($export_css);
+            ?></textarea>
         </div>
     </div>
 
@@ -320,6 +385,10 @@ function bgcc_page() {
         const addClassBtn = document.getElementById('add-class');
         const generateBtn = document.getElementById('generate-classes');
         const bulkCssTextarea = document.getElementById('bulk-css');
+        const bulkDeleteBtn = document.getElementById('bulk-delete');
+        const bulkChangeCategoryBtn = document.getElementById('bulk-change-category');
+        const bulkCategorySelect = document.getElementById('bulk-category');
+        const selectAllCheckbox = document.getElementById('select-all');
         const categories = <?php echo json_encode(array_map(fn($c) => ['id' => $c['id'], 'name' => $c['name']], $categories)); ?>;
     
         function bgccRandId(len = 6) {
@@ -330,7 +399,7 @@ function bgcc_page() {
     
         addCategoryBtn.addEventListener('click', () => {
             const idx = categoriesTable.rows.length;
-            const row = categoriesTable.insertRow(-1); // Insert at the bottom
+            const row = categoriesTable.insertRow(-1);
             row.innerHTML = `
                 <td>
                     <input type="hidden" name="categories[${idx}][id]" value="${bgccRandId()}">
@@ -343,12 +412,13 @@ function bgcc_page() {
     
         addClassBtn.addEventListener('click', () => {
             const idx = classesTable.rows.length;
-            const row = classesTable.insertRow(-1); // Insert at the bottom
+            const row = classesTable.insertRow(-1);
             let options = '<option value="">— None —</option>';
             categories.forEach(c => {
                 options += `<option value="${c.id}">${c.name}</option>`;
             });
             row.innerHTML = `
+                <td><input type="checkbox" class="bulk-select"></td>
                 <td>
                     <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
                     <input type="text" name="classes[${idx}][name]" required>
@@ -391,6 +461,7 @@ function bgcc_page() {
                 });
                 const finalCSS = '.' + className + ' {\n' + rules + '\n}';
                 row.innerHTML = `
+                    <td><input type="checkbox" class="bulk-select"></td>
                     <td>
                         <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
                         <input type="text" name="classes[${idx}][name]" value="${className}" required>
@@ -407,38 +478,36 @@ function bgcc_page() {
             }
             alert(found + ' classes generated from Bulk CSS.');
         });
+    
+        bulkDeleteBtn.addEventListener('click', () => {
+            const checkboxes = classesTable.querySelectorAll('input.bulk-select:checked');
+            checkboxes.forEach(cb => {
+                cb.closest('tr').remove();
+            });
+        });
+    
+        bulkChangeCategoryBtn.addEventListener('click', () => {
+            const newCategory = bulkCategorySelect.value;
+            if (!newCategory) {
+                alert('Please select a category.');
+                return;
+            }
+            const checkboxes = classesTable.querySelectorAll('input.bulk-select:checked');
+            checkboxes.forEach(cb => {
+                const row = cb.closest('tr');
+                const select = row.querySelector('select[name^="classes"]');
+                if (select) {
+                    select.value = newCategory;
+                }
+            });
+        });
+    
+        selectAllCheckbox.addEventListener('change', function(){
+            const checkboxes = classesTable.querySelectorAll('input.bulk-select');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
     });
     </script>
     <?php
 }
-
-function bgcc_gen_css($name, $s) {
-    $css = '.' . $name . " {\n";
-    if (!empty($s['_typography'])) {
-        if (!empty($s['_typography']['text-align'])) {
-            $css .= "  text-align: {$s['_typography']['text-align']};\n";
-        }
-        if (!empty($s['_typography']['text-transform'])) {
-            $css .= "  text-transform: {$s['_typography']['text-transform']};\n";
-        }
-        if (!empty($s['_typography']['color']['hex'])) {
-            $css .= "  color: {$s['_typography']['color']['hex']};\n";
-        }
-        if (!empty($s['_typography']['font-weight'])) {
-            $css .= "  font-weight: {$s['_typography']['font-weight']};\n";
-        }
-    }
-    if (!empty($s['_background']['color']['hex'])) {
-        $css .= "  background-color: {$s['_background']['color']['hex']};\n";
-    }
-    if (!empty($s['_border']['border'])) {
-        $css .= "  border: {$s['_border']['border']};\n";
-    }
-    if (!empty($s['_custom_css']) && is_array($s['_custom_css'])) {
-        foreach ($s['_custom_css'] as $p => $v) {
-            $css .= "  {$p}: {$v};\n";
-        }
-    }
-    $css .= '}';
-    return $css;
-}
+?>
