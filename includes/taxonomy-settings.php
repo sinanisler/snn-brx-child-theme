@@ -1,13 +1,10 @@
 <?php
 
-
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
 add_action( 'admin_menu', 'snn_add_taxonomy_submenu' );
-
-
 
 function snn_add_taxonomy_submenu() {
     add_submenu_page(
@@ -20,14 +17,11 @@ function snn_add_taxonomy_submenu() {
     );
 }
 
-
-
 function snn_render_taxonomies_page() {
 
     if ( ! current_user_can( 'manage_options' ) ) {
         return;
     }
-
 
     if ( isset( $_POST['snn_taxonomies_nonce'] ) && wp_verify_nonce( $_POST['snn_taxonomies_nonce'], 'snn_save_taxonomies' ) ) {
         if ( isset( $_POST['taxonomies'] ) && is_array( $_POST['taxonomies'] ) ) {
@@ -36,10 +30,10 @@ function snn_render_taxonomies_page() {
             foreach ( $_POST['taxonomies'] as $taxonomy ) {
                 if ( ! empty( $taxonomy['name'] ) && ! empty( $taxonomy['slug'] ) && ! empty( $taxonomy['post_types'] ) ) {
                     $taxonomies[] = array(
-                        'name'        => sanitize_text_field( $taxonomy['name'] ),
-                        'slug'        => sanitize_title( $taxonomy['slug'] ),
-                        'hierarchical'=> isset( $taxonomy['hierarchical'] ) ? 1 : 0,
-                        'post_types'  => array_map( 'sanitize_text_field', $taxonomy['post_types'] ),
+                        'name'         => sanitize_text_field( $taxonomy['name'] ),
+                        'slug'         => sanitize_title( $taxonomy['slug'] ),
+                        'hierarchical' => isset( $taxonomy['hierarchical'] ) ? 1 : 0,
+                        'post_types'   => array_map( 'sanitize_text_field', $taxonomy['post_types'] ),
                     );
                 }
             }
@@ -55,7 +49,6 @@ function snn_render_taxonomies_page() {
 
     // Retrieve all registered post types for association
     $registered_post_types = get_post_types( array( 'public' => true ), 'objects' );
-
     ?>
     <div class="wrap">
         <h1>Manage Taxonomies</h1>
@@ -74,7 +67,7 @@ function snn_render_taxonomies_page() {
                         <input type="text" name="taxonomies[<?php echo esc_attr( $index ); ?>][name]" placeholder="Taxonomy Name" value="<?php echo esc_attr( $taxonomy['name'] ); ?>" />
 
                         <label>Taxonomy Slug</label>
-                        <input type="text" name="taxonomies[<?php echo esc_attr( $index ); ?>][slug]" placeholder="taxonomy-slug" value="<?php echo esc_attr( $taxonomy['slug'] ); ?>" />
+                        <input type="text" class="taxonomy-slug" name="taxonomies[<?php echo esc_attr( $index ); ?>][slug]" placeholder="taxonomy-slug" value="<?php echo esc_attr( $taxonomy['slug'] ); ?>" />
 
                         <label>Hierarchical</label>
                         <div class="checkbox-container">
@@ -102,7 +95,7 @@ function snn_render_taxonomies_page() {
             const fieldContainer = document.getElementById('taxonomy-settings');
             const addFieldButton = document.getElementById('add-taxonomy-row');
 
-
+            // Function to update the name attributes with the correct index
             function updateFieldIndexes() {
                 const rows = fieldContainer.querySelectorAll('.taxonomy-row');
                 rows.forEach((row, index) => {
@@ -115,6 +108,27 @@ function snn_render_taxonomies_page() {
                     });
                 });
             }
+
+            function sanitizeSlug(value) {
+                // Normalize string to decompose accented characters
+                value = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                // Convert to lowercase
+                value = value.toLowerCase();
+                // Replace spaces with dashes
+                value = value.replace(/\s+/g, "-");
+                // Remove disallowed characters (only allow a-z, 0-9, and dashes)
+                value = value.replace(/[^a-z0-9\-]/g, "");
+                // Remove leading digits
+                value = value.replace(/^\d+/, "");
+                return value;
+            }
+
+            // Listen for input events on any slug input (existing or new)
+            fieldContainer.addEventListener('input', function(event) {
+                if (event.target.classList.contains('taxonomy-slug')) {
+                    event.target.value = sanitizeSlug(event.target.value);
+                }
+            });
 
             /**
              * Adds a new taxonomy row.
@@ -134,7 +148,7 @@ function snn_render_taxonomies_page() {
                     <input type="text" name="taxonomies[${newIndex}][name]" placeholder="Taxonomy Name" />
 
                     <label>Taxonomy Slug</label>
-                    <input type="text" name="taxonomies[${newIndex}][slug]" placeholder="taxonomy-slug" />
+                    <input type="text" class="taxonomy-slug" name="taxonomies[${newIndex}][slug]" placeholder="taxonomy-slug" />
 
                     <label>Hierarchical</label>
                     <div class="checkbox-container">
@@ -209,30 +223,27 @@ function snn_render_taxonomies_page() {
                 border-radius: 3px;
             }
             .taxonomy-row .buttons {
-
                 flex-direction: column;
                 gap: 5px;
             }
-
             #add-taxonomy-row {
                 margin-top: 10px;
             }
-            [type="checkbox"]{
-                width:20px !important;
-                min-width:20px !important;
+            [type="checkbox"] {
+                width: 20px !important;
+                min-width: 20px !important;
             }
             select[multiple] {
                 height: 100px;
             }
-            .buttons button{
-                cursor:pointer;
-                border:solid 1px gray;
-                padding:4px 10px;
+            .buttons button {
+                cursor: pointer;
+                border: solid 1px gray;
+                padding: 4px 10px;
             }
-            .buttons button:hover{
-                background:white;
+            .buttons button:hover {
+                background: white;
             }
-
         </style>
     </div>
     <?php
@@ -281,3 +292,4 @@ function snn_register_custom_taxonomies() {
         register_taxonomy( $taxonomy['slug'], $post_types, $args );
     }
 }
+?>
