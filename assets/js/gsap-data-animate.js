@@ -54,36 +54,32 @@ window.onload = function () {
 
       const firstOptions = parseAnimationOptions(animations[0]);
 
+      // Branch 1: When trigger is explicitly set to "true"
       if (firstOptions.trigger === 'true') {
         const timeline = gsap.timeline({ paused: true });
 
         animations.forEach(animation => {
           const options = parseAnimationOptions(animation);
-          const hasTransform = options.startStyles.transform || options.endStyles.transform;
+          // Check if a rotation was provided in the start/end styles.
+          const hasRotate = options.startStyles.rotate || options.endStyles.rotate;
 
           const animationProps = {
-            ...( !hasTransform && options.x
-                ? { x: randomizeValue(options.x, options.rand === 'true') }
-                : {}
-            ),
-            ...( !hasTransform && options.y
-                ? { y: randomizeValue(options.y, options.rand === 'true') }
-                : {}
-            ),
-            ...( !hasTransform && (options.s || options.scale)
-                ? { scale: parseFloat(options.s || options.scale) }
-                : {}
-            ),
-            ...( !hasTransform && (options.r || options.rotate)
-                ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
-                : {}
-            ),
+            ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
+            ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
+            ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
+            // If a rotation is provided via the transform string, use it;
+            // otherwise, check for legacy options "r" or "rotate".
+            ...(options.endStyles.rotate
+              ? { rotate: parseFloat(options.endStyles.rotate) }
+              : (!hasRotate && (options.r || options.rotate)
+                  ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
+                  : {})),
             ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
             ...options.endStyles,
             duration: options.duration || 1,
             delay: options.delay || 0,
             stagger: options.stagger ? getStaggerValue(options) : 0,
-            ...(hasTransform ? { force3D: false } : {})
+            ...(hasRotate ? { force3D: false } : {})
           };
 
           timeline.to(splitText(element, options), animationProps);
@@ -91,6 +87,7 @@ window.onload = function () {
 
         element._gsapAnimationInstance = timeline;
 
+      // Branch 2: When there are multiple animations
       } else if (animations.length > 1) {
         gsap.set(splitText(element, firstOptions), firstOptions.startStyles);
 
@@ -101,31 +98,23 @@ window.onload = function () {
 
         animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
-          const hasTransform = options.startStyles.transform || options.endStyles.transform;
+          const hasRotate = options.startStyles.rotate || options.endStyles.rotate;
 
           const animationProps = {
-            ...( !hasTransform && options.x
-                ? { x: randomizeValue(options.x, options.rand === 'true') }
-                : {}
-            ),
-            ...( !hasTransform && options.y
-                ? { y: randomizeValue(options.y, options.rand === 'true') }
-                : {}
-            ),
-            ...( !hasTransform && (options.s || options.scale)
-                ? { scale: parseFloat(options.s || options.scale) }
-                : {}
-            ),
-            ...( !hasTransform && (options.r || options.rotate)
-                ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
-                : {}
-            ),
+            ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
+            ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
+            ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
+            ...(options.endStyles.rotate
+              ? { rotate: parseFloat(options.endStyles.rotate) }
+              : (!hasRotate && (options.r || options.rotate)
+                  ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
+                  : {})),
             ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
             ...options.endStyles,
             duration: options.duration || 1,
             delay: options.delay || 0,
             stagger: options.stagger ? getStaggerValue(options) : 0,
-            ...(hasTransform ? { force3D: false } : {})
+            ...(hasRotate ? { force3D: false } : {})
           };
 
           timeline.to(
@@ -147,35 +136,31 @@ window.onload = function () {
       } else {
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
-        const hasTransform = options.startStyles.transform || options.endStyles.transform;
+        const hasRotate = options.startStyles.rotate || options.endStyles.rotate;
 
         const fromProps = {
-          ...( !hasTransform && options.x
-              ? { x: randomizeValue(options.x, options.rand === 'true') }
-              : {}
-          ),
-          ...( !hasTransform && options.y
-              ? { y: randomizeValue(options.y, options.rand === 'true') }
-              : {}
-          ),
-          ...( !hasTransform && (options.s || options.scale)
-              ? { scale: parseFloat(options.s || options.scale) }
-              : {}
-          ),
-          ...( !hasTransform && (options.r || options.rotate)
-              ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
-              : {}
-          ),
+          ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
+          ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
+          ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
+          ...(options.startStyles.rotate
+            ? { rotate: parseFloat(options.startStyles.rotate) }
+            : (!hasRotate && (options.r || options.rotate)
+                ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
+                : {})),
           ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
           ...options.startStyles,
-          ...(hasTransform ? { force3D: false } : {})
+          ...(hasRotate ? { force3D: false } : {})
         };
 
         const toProps = {
-          ...( !hasTransform && options.x ? { x: 0 } : {}),
-          ...( !hasTransform && options.y ? { y: 0 } : {}),
-          ...( !hasTransform && (options.s || options.scale) ? { scale: 1 } : {}),
-          ...( !hasTransform && (options.r || options.rotate) ? { rotate: 0 } : {}),
+          ...(options.x ? { x: 0 } : {}),
+          ...(options.y ? { y: 0 } : {}),
+          ...(options.s || options.scale ? { scale: 1 } : {}),
+          ...(options.endStyles.rotate
+            ? { rotate: parseFloat(options.endStyles.rotate) }
+            : (!hasRotate && (options.r || options.rotate)
+                ? { rotate: 0 }
+                : {})),
           ...(options.o || options.opacity ? { opacity: 1 } : {}),
           ...options.endStyles,
           scrollTrigger: scrollTriggerConfig !== false ? scrollTriggerConfig : null,
@@ -183,7 +168,7 @@ window.onload = function () {
           duration: options.duration || 1,
           delay: options.delay || 0,
           paused: options.scroll === 'false',
-          ...(hasTransform ? { force3D: false } : {})
+          ...(hasRotate ? { force3D: false } : {})
         };
 
         const tween = gsap.fromTo(splitText(element, options), fromProps, toProps);
@@ -209,10 +194,25 @@ window.onload = function () {
         const [key, value] = option.split(':').map(item => item.trim());
         if (key.startsWith('style_start-')) {
           const cssProp = key.replace('style_start-', '');
-          acc.startStyles[cssProp] = value;
+          // If a transform is specified and contains "rotate", extract the rotate value.
+          if (cssProp === 'transform' && value.includes('rotate(')) {
+            const match = value.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
+            if (match) {
+              acc.startStyles.rotate = match[1] + 'deg';
+            }
+          } else {
+            acc.startStyles[cssProp] = value;
+          }
         } else if (key.startsWith('style_end-')) {
           const cssProp = key.replace('style_end-', '');
-          acc.endStyles[cssProp] = value;
+          if (cssProp === 'transform' && value.includes('rotate(')) {
+            const match = value.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
+            if (match) {
+              acc.endStyles.rotate = match[1] + 'deg';
+            }
+          } else {
+            acc.endStyles[cssProp] = value;
+          }
         } else if (key === 'duration' || key === 'delay') {
           acc[key] = parseFloat(value.replace('s', ''));
         } else {
@@ -227,7 +227,6 @@ window.onload = function () {
       const defaultEnd = 'bottom 40%';
       const isBodyTrigger = options.trigger === 'body';
 
-      // If scroll is false or trigger is set to 'true', do not create a ScrollTrigger.
       if (options.scroll === 'false' || options.trigger === 'true') {
         return false;
       }
@@ -241,7 +240,7 @@ window.onload = function () {
         end: finalEnd,
         scrub: options.scrub === 'true' ? true : parseFloat(options.scrub) || 1,
         pin: options.pin === 'true',
-        // Only enable markers if scroll is not "false" and markers is set to "true"
+        
         markers: (options.markers === 'true' && options.scroll !== 'false') ? true : false,
         toggleClass: options.toggleClass || null,
         pinSpacing: options.pinSpacing || 'margin',
@@ -278,7 +277,7 @@ window.onload = function () {
         const chars = text.split('');
         const startStylesString = convertStylesToString(options.startStyles);
         element.innerHTML = chars
-          .map(char => `<span style="position:relative; ${startStylesString}">${char}</span>`)
+          .map(char => `<span style="display:inline-block; position:relative; ${startStylesString}">${char}</span>`)
           .join('');
         return element.children;
       }
@@ -287,15 +286,14 @@ window.onload = function () {
 
     function convertStylesToString(styles) {
       let styleString = '';
-      if (styles.transform) {
-        styleString += `translate: none; `;
-      }
-      styleString += Object.entries(styles)
-        .map(([key, value]) => {
+      Object.entries(styles).forEach(([key, value]) => {
+        if (key === 'rotate') {
+          styleString += `transform: rotate(${value}); `;
+        } else {
           const kebabKey = key.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-          return `${kebabKey}: ${value};`;
-        })
-        .join(' ');
+          styleString += `${kebabKey}: ${value}; `;
+        }
+      });
       return styleString.trim();
     }
   }, 10);
