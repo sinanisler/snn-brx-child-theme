@@ -202,6 +202,9 @@ window.onload = function () {
     setupTriggers();
 
     function parseAnimationOptions(data) {
+      if (!data) {
+        return { startStyles: {}, endStyles: {} };
+      }
       return data.split(',').reduce((acc, option) => {
         const [key, value] = option.split(':').map(item => item.trim());
         if (key.startsWith('style_start-')) {
