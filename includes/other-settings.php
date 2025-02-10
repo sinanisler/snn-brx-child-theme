@@ -113,8 +113,11 @@ function snn_sanitize_other_settings($input) {
 
     $sanitized['enqueue_gsap'] = isset($input['enqueue_gsap']) && $input['enqueue_gsap'] ? 1 : 0;
 
-    if (isset($input['revisions_limit'])) {
+    // If the revisions_limit field is empty, save an empty string to allow WordPress defaults.
+    if (isset($input['revisions_limit']) && $input['revisions_limit'] !== '') {
         $sanitized['revisions_limit'] = intval($input['revisions_limit']);
+    } else {
+        $sanitized['revisions_limit'] = '';
     }
 
     $sanitized['auto_update_bricks'] = isset($input['auto_update_bricks']) && $input['auto_update_bricks'] ? 1 : 0;
@@ -160,9 +163,12 @@ function snn_enqueue_gsap_callback() {
 
 function snn_revisions_limit_callback() {
     $options = get_option('snn_other_settings');
-    $value = isset($options['revisions_limit']) ? intval($options['revisions_limit']) : '';
+    // Only display a value if revisions_limit is set and greater than 0; otherwise, show an empty field.
+    $value = (isset($options['revisions_limit']) && $options['revisions_limit'] !== '' && intval($options['revisions_limit']) > 0) 
+             ? intval($options['revisions_limit']) 
+             : '';
     ?>
-    <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="500" min="0">
+    <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="9999">
     <?php
 }
 
