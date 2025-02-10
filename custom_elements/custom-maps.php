@@ -16,18 +16,17 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
     public function set_controls() {
 
-        // 1. Added Control for Enabling/Disabling Scroll Wheel Zoom
+        // Control for Enabling/Disabling Scroll Wheel Zoom
         $this->controls['enable_scroll_zoom'] = [
-            'tab'    => 'content',
-            'label'  => esc_html__( 'Enable Scroll Zoom', 'bricks' ),
-            'type'   => 'checkbox',
-            'inline' => true,
-            'small'  => true,
-            'default' => false, // Disabled by default
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Enable Scroll Zoom', 'bricks' ),
+            'type'    => 'checkbox',
+            'inline'  => true,
+            'small'   => true,
+            'default' => false,
         ];
 
-        // Existing controls...
-
+        // Marker controls
         $this->controls['markers'] = [
             'tab'           => 'content',
             'label'         => 'Location',
@@ -138,9 +137,9 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'label'   => __( 'Map Style', 'bricks' ),
             'type'    => 'select',
             'options' => [
-                'default'  => 'Default (OSM Free Tiles)',
-                'light'    => 'Light (Fastly Free Tiles)',
-                'dark'     => 'Dark (Fastly Free Tiles)',
+                'default' => 'Default (OSM Free Tiles)',
+                'light'   => 'Light (Fastly Free Tiles)',
+                'dark'    => 'Dark (Fastly Free Tiles)',
             ],
             'default' => 'default',
         ];
@@ -170,27 +169,27 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     #{$map_id} .custom-openstreetmap-popup {
                         font-size: {$popup_font_size}px;
                     }
-                    .leaflet-icon-custom{
-                        display:flex;
+                    .leaflet-icon-custom {
+                        display: flex;
                     }
-                    .leaflet-icon-custom svg{
-                        width:100% !important;
+                    .leaflet-icon-custom svg {
+                        width: 100% !important;
                     }
                     .leaflet-marker-icon {
-                        height:auto !important;
+                        height: auto !important;
                     }
-                    .leaflet-container a.leaflet-popup-close-button{
-                        font-size:20px !important;
+                    .leaflet-container a.leaflet-popup-close-button {
+                        font-size: 20px !important;
                     }
-                    .leaflet-control-attribution{
-                        font-size:11px;
-                        color:gray !important;
+                    .leaflet-control-attribution {
+                        font-size: 11px;
+                        color: gray !important;
                     }
-                    .leaflet-control-attribution a{
-                        display:none
+                    .leaflet-control-attribution a {
+                        display: none;
                     }
-                    .leaflet-control-attribution span{
-                        display:none
+                    .leaflet-control-attribution span {
+                        display: none;
                     }
                     .leaflet-top, .leaflet-bottom {
                         z-index: 500 !important;
@@ -229,11 +228,9 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 attribution: '<?php echo esc_js( $tile_attribution ); ?>'
             }).addTo(map);
 
-            // Helper to create a Leaflet DivIcon from an HTML string with an ARIA label
+            // Helper to create a Leaflet DivIcon using the provided icon HTML and color
             function createIcon(iconHtml, size, color, label) {
-                var styledIconHtml = '<div class="leaflet-icon-custom" aria-label="' + label + '" style="font-size:' + size + 'px; color:' + color + '; line-height:1;">'
-                                   + iconHtml
-                                   + '</div>';
+                var styledIconHtml = '<div class="leaflet-icon-custom" aria-label="' + label + '" style="font-size:' + size + 'px; color:' + color + '; line-height:1;">' + iconHtml + '</div>';
                 return L.divIcon({
                     html: styledIconHtml,
                     iconSize: [size + 10, size + 10],
@@ -243,16 +240,20 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
             // Add markers
             <?php foreach ( $markers as $index => $marker ) :
-                $lat = isset( $marker['lat'] ) ? floatval( $marker['lat'] ) : 0;
-                $lng = isset( $marker['lng'] ) ? floatval( $marker['lng'] ) : 0;
+                $lat   = isset( $marker['lat'] ) ? floatval( $marker['lat'] ) : 0;
+                $lng   = isset( $marker['lng'] ) ? floatval( $marker['lng'] ) : 0;
                 $popup = isset( $marker['popup'] ) ? $marker['popup'] : '';
 
-                // Icon size/color
+                // Icon size
                 $icon_size = isset( $marker['icon_size'] ) ? intval( $marker['icon_size'] ) : 24;
-                if ( isset( $marker['icon_color']['hex'] ) && ! empty( $marker['icon_color']['hex'] ) ) {
-                    $icon_color = sanitize_hex_color( $marker['icon_color']['hex'] );
+
+                // Check and output the proper color value from the color control.
+                if ( is_array( $marker['icon_color'] ) ) {
+                    $icon_color = !empty( $marker['icon_color']['rgba'] )
+                        ? $marker['icon_color']['rgba']
+                        : ( !empty( $marker['icon_color']['hex'] ) ? $marker['icon_color']['hex'] : '' );
                 } else {
-                    $icon_color = '#000000';
+                    $icon_color = $marker['icon_color'];
                 }
 
                 // Render the icon using $this->render_icon()
@@ -260,7 +261,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 echo $this->render_icon( $marker['icon'] );
                 $icon_html = ob_get_clean();
 
-                // Escape for use in JS
+                // Escape icon HTML and popup for JS
                 $icon_html_escaped  = str_replace( "'", "\\'", $icon_html );
                 $popup_escaped      = str_replace( "'", "\\'", $popup );
 
@@ -276,7 +277,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     icon: createIcon(
                         '<?php echo $icon_html_escaped; ?>',
                         <?php echo $icon_size; ?>,
-                        '<?php echo esc_js( $icon_color ); ?>',
+                        '<?php echo $icon_color; ?>',
                         '<?php echo $icon_label_escaped; ?>'
                     )
                 }
