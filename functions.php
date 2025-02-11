@@ -56,13 +56,13 @@ require_once SNN_PATH . 'includes/utils.php';
 
 // Register Custom Bricks Builder Elements
 add_action('init', function () {
-    $custom_html_css_script_file = SNN_PATH . 'custom_elements/custom-html-css-script.php';
+    $custom_html_css_script_file = SNN_PATH . 'includes/elements/custom-html-css-script.php';
     if (file_exists($custom_html_css_script_file)) {
         require_once $custom_html_css_script_file;
         \Bricks\Elements::register_element($custom_html_css_script_file, 'custom-html-css-script', 'Custom_HTML_CSS_Script');
     }
 
-    $custom_maps_file = SNN_PATH . 'custom_elements/custom-maps.php';
+    $custom_maps_file = SNN_PATH . 'includes/elements/custom-maps.php';
     if (file_exists($custom_maps_file)) {
         require_once $custom_maps_file;
         \Bricks\Elements::register_element($custom_maps_file);
@@ -70,20 +70,20 @@ add_action('init', function () {
 
     $options = get_option('snn_other_settings');
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
-        $lottie_animation_file = SNN_PATH . 'custom_elements/lottie-animation.php';
+        $lottie_animation_file = SNN_PATH . 'includes/elements/lottie-animation.php';
         if (file_exists($lottie_animation_file)) {
             require_once $lottie_animation_file;
             \Bricks\Elements::register_element($lottie_animation_file);
         }
     }
 
-    $gsap_animation_element = SNN_PATH . 'custom_elements/gsap-animations.php';
+    $gsap_animation_element = SNN_PATH . 'includes/elements/gsap-animations.php';
     if (file_exists($gsap_animation_element)) {
         require_once $gsap_animation_element;
         \Bricks\Elements::register_element($gsap_animation_element);
     }
 
-    $gsap_animation_element = SNN_PATH . 'custom_elements/gsap-text-animations.php';
+    $gsap_animation_element = SNN_PATH . 'includes/elements/gsap-text-animations.php';
     if (file_exists($gsap_animation_element)) {
         require_once $gsap_animation_element;
         \Bricks\Elements::register_element($gsap_animation_element);
