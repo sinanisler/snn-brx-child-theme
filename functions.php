@@ -1,5 +1,4 @@
 <?php
-  
 // Constants
 define( 'SNN_PATH', trailingslashit( get_stylesheet_directory() ) );    // SNN dir for require_once files
 define( 'SNN_PATH_ASSETS', trailingslashit( SNN_PATH . 'assets' ) );    // SNN assets dir
@@ -8,7 +7,6 @@ define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );      // SNN a
 
 // Use custom-codes-here.php file for adding your custom JS and CSS codes.
 require_once SNN_PATH . '/custom-codes-here.php';
-
 
 // Main Features and Settings
 require_once SNN_PATH . '/includes/settings-page.php';
@@ -35,11 +33,9 @@ require_once SNN_PATH . '/includes/mail-logging.php';
 require_once SNN_PATH . '/includes/media-settings.php';
 require_once SNN_PATH . '/includes/disable-emojis.php';
 require_once SNN_PATH . '/includes/disable-gravatar.php';
-require_once SNN_PATH . '/includes/editor-settings.php';
+require_once SNN_PATH . '/includes/editor-settings.php'; 
+require_once SNN_PATH . '/includes/editor-color-global-sync.php'; 
 require_once SNN_PATH . '/includes/global-classes.php';
-
-
-
 
 // Register Custom Dynamic Tags
 require_once SNN_PATH . '/dynamic_data_tags/post-term-count.php';
@@ -48,19 +44,8 @@ require_once SNN_PATH . '/dynamic_data_tags/estimated-post-read-time.php';
 require_once SNN_PATH . '/dynamic_data_tags/parent-link.php';
 require_once SNN_PATH . '/dynamic_data_tags/user-author-fields.php';
 
-
-
 // Utils
 require_once SNN_PATH . '/includes/utils.php';
-
-
-
-
-
-
-
-
-
 
 // Register Custom Bricks Builder Elements
 add_action('init', function () {
@@ -96,7 +81,4 @@ add_action('init', function () {
         require_once $gsap_animation_element;
         \Bricks\Elements::register_element($gsap_animation_element);
     }
-
-
 }, 11);
-
