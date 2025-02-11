@@ -9,11 +9,11 @@ function snn_register_emoji_setting() {
 
     // Add the settings field
     add_settings_field(
-        'disable_wp_emojicons',       // ID
+        'disable_wp_emojicons',             // ID
         __('Disable Emoji Support', 'snn'), // Title
-        'snn_disable_wp_emojicons_callback', // Callback
-        'snn-security',               // Page
-        'snn_security_main_section'   // Section
+        'snn_disable_wp_emojicons_callback',// Callback
+        'snn-security',                     // Page
+        'snn_security_main_section'         // Section
     );
 }
 add_action('admin_init', 'snn_register_emoji_setting');
@@ -27,17 +27,13 @@ function snn_disable_wp_emojicons_callback() {
     <?php
 }
 
-// Function to disable emoji support if the setting is enabled
+// Function to disable emoji support on the front-end if the setting is enabled
 function snn_maybe_disable_wp_emojicons() {
     $options = get_option('snn_security_options');
-    if (isset($options['disable_wp_emojicons']) && $options['disable_wp_emojicons'] == 1) {
-        // Front-end
+    if ( isset($options['disable_wp_emojicons']) && $options['disable_wp_emojicons'] == 1 ) {
+        // Front-end removal
         remove_action('wp_head', 'print_emoji_detection_script', 7);
         remove_action('wp_print_styles', 'print_emoji_styles');
-
-        // Admin area
-        remove_action('admin_print_scripts', 'print_emoji_detection_script');
-        remove_action('admin_print_styles', 'print_emoji_styles');
 
         // Feeds
         remove_filter('the_content_feed', 'wp_staticize_emoji');
@@ -50,15 +46,25 @@ function snn_maybe_disable_wp_emojicons() {
         remove_action('embed_head', 'print_emoji_detection_script');
         remove_action('embed_print_styles', 'print_emoji_styles');
 
-        // TinyMCE editor
+        // TinyMCE editor: Remove the emoji plugin
         add_filter('tiny_mce_plugins', 'snn_disable_emojicons_tinymce');
     }
 }
 add_action('init', 'snn_maybe_disable_wp_emojicons');
 
+// Function to disable emoji support in the admin area if the setting is enabled
+function snn_disable_wp_emojicons_admin() {
+    $options = get_option('snn_security_options');
+    if ( isset($options['disable_wp_emojicons']) && $options['disable_wp_emojicons'] == 1 ) {
+        remove_action('admin_print_scripts', 'print_emoji_detection_script');
+        remove_action('admin_print_styles', 'print_emoji_styles');
+    }
+}
+add_action('admin_init', 'snn_disable_wp_emojicons_admin');
+
 // Filter function to remove the emoji plugin from TinyMCE
 function snn_disable_emojicons_tinymce($plugins) {
-    if (is_array($plugins)) {
+    if ( is_array($plugins) ) {
         return array_diff($plugins, array('wpemoji'));
     }
     return array();
