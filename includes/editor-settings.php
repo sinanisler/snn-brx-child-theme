@@ -69,7 +69,7 @@ function snn_register_editor_settings() {
 
     add_settings_field(
         'snn_bricks_builder_color_fix_field',
-        'Bricks Builder Global Colors Sync with Color Palette',
+        'SNN Settings Panel and Bricks Builder Global Colors Sync with Color Palette',
         'snn_render_checkbox_field',
         'snn-editor-settings',
         'snn_editor_settings_section'

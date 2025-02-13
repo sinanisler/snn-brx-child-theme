@@ -43,6 +43,8 @@ require_once SNN_PATH . 'includes/disable-gravatar.php';
 require_once SNN_PATH . 'includes/editor-settings.php'; 
 require_once SNN_PATH . 'includes/editor-color-global-sync.php'; 
 require_once SNN_PATH . 'includes/global-classes.php';
+require_once SNN_PATH . 'includes/editor-settings-panel.php';
+
 
 /**
   * Register Custom Dynamic Data Tags
