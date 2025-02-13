@@ -107,7 +107,8 @@ function snn_render_checkbox_field() {
         Enable Bricks Builder Editor Color Fix<br>
         This setting will show the primary global color variables inside all color palettes.<br>
         It will load those color palettes as :root frontend colors as well.<br>
-        Only create one Theme Style.
+        Only create one Theme Style.<br>
+        
     </label>
     <?php
 }
