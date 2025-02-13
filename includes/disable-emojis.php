@@ -23,7 +23,7 @@ function snn_disable_wp_emojicons_callback() {
     $options = get_option('snn_security_options');
     ?>
     <input type="checkbox" name="snn_security_options[disable_wp_emojicons]" value="1" <?php checked(isset($options['disable_wp_emojicons']), 1); ?>>
-    <p><?php esc_html_e('Check this box to disable emoji support in WordPress.', 'snn'); ?></p>
+    <p><?php esc_html_e('Check this box to disable emoji support in WordPress both frontend and wp-admin.', 'snn'); ?></p>
     <?php
 }
 
