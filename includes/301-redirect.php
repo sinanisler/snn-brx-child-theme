@@ -558,7 +558,8 @@ function snn_handle_301_redirects() {
         }
     }
 }
-add_action('template_redirect', 'snn_handle_301_redirects');
+// FIX: Lower the priority so this runs before canonical redirects.
+add_action('template_redirect', 'snn_handle_301_redirects', 0);
 
 function snn_log_redirect($redirect_from, $redirect_to) {
     $log_post = array(
@@ -635,3 +636,4 @@ function snn_deactivate_301_redirects() {
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'snn_deactivate_301_redirects');
+?>
