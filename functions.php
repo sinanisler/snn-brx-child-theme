@@ -44,12 +44,15 @@ require_once SNN_PATH . 'includes/editor-settings.php';
 require_once SNN_PATH . 'includes/editor-color-global-sync.php'; 
 require_once SNN_PATH . 'includes/global-classes.php';
 
-// Register Custom Dynamic Tags
-require_once SNN_PATH . 'dynamic_data_tags/post-term-count.php';
-require_once SNN_PATH . 'dynamic_data_tags/get-contextual-id.php';
-require_once SNN_PATH . 'dynamic_data_tags/estimated-post-read-time.php';
-require_once SNN_PATH . 'dynamic_data_tags/parent-link.php';
-require_once SNN_PATH . 'dynamic_data_tags/user-author-fields.php';
+/**
+  * Register Custom Dynamic Data Tags
+  */
+require_once SNN_PATH . 'includes/dynamic-data-tags/estimated-post-read-time.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/get-contextual-id.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/parent-link.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/post-term-count.php';
+// require_once SNN_PATH . 'includes/dynamic-data-tags/taxonomy-term-slug.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/user-author-fields.php';
 
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
