@@ -4,7 +4,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-
 function snn_add_media_submenu() {
     add_submenu_page(
         'snn-settings',
@@ -16,7 +15,6 @@ function snn_add_media_submenu() {
     );
 }
 add_action('admin_menu', 'snn_add_media_submenu');
-
 
 function snn_render_media_settings() {
     $options = get_option('snn_media_settings');
@@ -31,9 +29,8 @@ function snn_render_media_settings() {
             ?>
         </form>
     </div>
-<?php
+    <?php
 }
-
 
 function snn_register_media_settings() {
     register_setting(
@@ -67,14 +64,12 @@ function snn_register_media_settings() {
 }
 add_action('admin_init', 'snn_register_media_settings');
 
-
 function snn_sanitize_media_settings($input) {
     $sanitized = array();
     $sanitized['redirect_media_library'] = isset($input['redirect_media_library']) && $input['redirect_media_library'] ? 1 : 0;
     $sanitized['media_categories'] = isset($input['media_categories']) && $input['media_categories'] ? 1 : 0;
     return $sanitized;
 }
-
 
 function snn_media_settings_section_callback() {
     echo '<p>Configure media-related settings below.</p>';
@@ -97,6 +92,14 @@ function snn_media_categories_callback() {
 }
 
 function snn_redirect_media_library_grid_to_list() {
+    // Only run on GET requests and skip AJAX calls
+    if (defined('DOING_AJAX') && DOING_AJAX) {
+        return;
+    }
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        return;
+    }
+
     $options = get_option('snn_media_settings');
     if (
         isset($options['redirect_media_library']) &&
@@ -160,169 +163,162 @@ function snn_add_custom_css_js_to_media_page() {
 
     $options = get_option('snn_media_settings');
 
-
     if (isset($options['media_categories']) && $options['media_categories']) {
+        ?>
+        <style>
+        table.media .column-title .media-icon img {
+            max-width: 100px;
+            max-height:80px;
+            width: 100%;
+        }
+        .media-icon {
+            width: 100%;
+            text-align: left;
+        }
+        .row-actions {
+            margin-left:0px !important;
+        }
+        #the-list .title img {
+            cursor: grab;
+        }
+        #custom-context-menu {
+            position: absolute;
+            z-index: 10000;
+            display: none;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            padding: 5px 0;
+            min-width: 150px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        .context-menu-item {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .context-menu-item:hover {
+            background-color: #f0f0f0;
+        }
+        </style>
 
-    ?>
-    <style>
-    table.media .column-title .media-icon img {
-        max-width: 100px;
-        max-height:80px;
-        width: 100%;
-    }
-    .media-icon {
-        width: 100%;
-        text-align: left;
-    }
-    .row-actions {
-        margin-left:0px !important;
-    }
-    #the-list .title img {
-        cursor: grab;
-    }
-    #custom-context-menu {
-        position: absolute;
-        z-index: 10000;
-        display: none;
-        background-color: #fff;
-        border: 1px solid #ccc;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        padding: 5px 0;
-        min-width: 150px;
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-    }
-    .context-menu-item {
-        padding: 5px 10px;
-        cursor: pointer;
-    }
-    .context-menu-item:hover {
-        background-color: #f0f0f0;
-    }
-    </style>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menu = document.createElement('div');
+            menu.id = 'custom-context-menu';
+            document.body.appendChild(menu);
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const menu = document.createElement('div');
-        menu.id = 'custom-context-menu';
-        document.body.appendChild(menu);
+            function loadTaxonomy() {
+                menu.innerHTML = '';
 
-        function loadTaxonomy() {
-            menu.innerHTML = '';
+                <?php
+                $taxonomyItems = get_terms([
+                    'taxonomy' => 'media_taxonomy_categories',
+                    'hide_empty' => false,
+                ]);
 
-            <?php
-            $taxonomyItems = get_terms([
-                'taxonomy' => 'media_taxonomy_categories',
-                'hide_empty' => false,
-            ]);
-
-            if (!empty($taxonomyItems) && !is_wp_error($taxonomyItems)) {
-                foreach ($taxonomyItems as $term) {
-                    $item = esc_js($term->name);
-                    echo "menu.innerHTML += '<div class=\"context-menu-item\" data-term-id=\"{$term->term_id}\">" . esc_js($term->name) . "</div>';\n";
+                if (!empty($taxonomyItems) && !is_wp_error($taxonomyItems)) {
+                    foreach ($taxonomyItems as $term) {
+                        $item = esc_js($term->name);
+                        echo "menu.innerHTML += '<div class=\"context-menu-item\" data-term-id=\"{$term->term_id}\">" . esc_js($term->name) . "</div>';\n";
+                    }
+                } else {
+                    echo "menu.innerHTML = '<div class=\"context-menu-item\">No categories found</div>';\n";
                 }
-            } else {
-                echo "menu.innerHTML = '<div class=\"context-menu-item\">No categories found</div>';\n";
-            }
-            ?>
+                ?>
 
-            const menuItems = menu.querySelectorAll('.context-menu-item');
-            menuItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const termId = item.getAttribute('data-term-id');
-                    if (!termId) return;
+                const menuItems = menu.querySelectorAll('.context-menu-item');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const termId = item.getAttribute('data-term-id');
+                        if (!termId) return;
+
+                        if (!currentMediaId) return;
+
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', ajaxurl, true);
+                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                        xhr.onreadystatechange = function() {
+                            if (xhr.readyState === 4 && xhr.status === 200) {
+                                try {
+                                    const response = JSON.parse(xhr.responseText);
+                                    if (response.success) {
+                                        const categoryCountSpan = document.querySelector(`li[data-id="${termId}"] .category-count`);
+                                        if (categoryCountSpan) {
+                                            if (response.data.action_type === 'added') {
+                                                categoryCountSpan.textContent = parseInt(categoryCountSpan.textContent) + 1;
+                                            } else if (response.data.action_type === 'removed') {
+                                                categoryCountSpan.textContent = Math.max(0, parseInt(categoryCountSpan.textContent) - 1);
+                                            }
+                                        }
+                                        menu.style.display = 'none';
+                                    } else {
+                                        alert(`Error: ${response.data}`);
+                                    }
+                                } catch (err) {
+                                    console.error(err);
+                                }
+                            }
+                        };
+                        xhr.send(
+                            'action=snn_assign_media_category' +
+                            '&media_id=' + encodeURIComponent(currentMediaId) +
+                            '&term_id=' + encodeURIComponent(termId) +
+                            '&nonce=' + '<?php echo wp_create_nonce("snn_media_categories_nonce"); ?>'
+                        );
+
+                        menu.style.display = 'none';
+                    });
+                });
+            }
+
+            let currentMediaId = null;
+
+            document.addEventListener('contextmenu', function (e) {
+                const attachmentElement = e.target.closest('li.attachment, div.attachment');
+
+                if (attachmentElement) {
+                    e.preventDefault();
+
+                    if (attachmentElement.dataset.id) {
+                        currentMediaId = attachmentElement.dataset.id;
+                    } else if (attachmentElement.id) {
+                        const idMatch = attachmentElement.id.match(/post-(\d+)/);
+                        currentMediaId = idMatch ? idMatch[1] : null;
+                    } else {
+                        currentMediaId = null;
+                    }
 
                     if (!currentMediaId) return;
 
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', ajaxurl, true);
-                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                    xhr.onreadystatechange = function() {
-                        if (xhr.readyState === 4 && xhr.status === 200) {
-                            try {
-                                const response = JSON.parse(xhr.responseText);
-                                if (response.success) {
-                                    const categoryCountSpan = document.querySelector(`li[data-id="${termId}"] .category-count`);
-                                    if (categoryCountSpan) {
-                                        if (response.data.action_type === 'added') {
-                                            categoryCountSpan.textContent = parseInt(categoryCountSpan.textContent) + 1;
-                                        } else if (response.data.action_type === 'removed') {
-                                            categoryCountSpan.textContent = Math.max(0, parseInt(categoryCountSpan.textContent) - 1);
-                                        }
-                                    }
-                                    menu.style.display = 'none';
-                                    // alert(`Category ${response.data.action_type === 'added' ? 'assigned' : 'removed'} successfully.`);
-                                } else {
-                                    alert(`Error: ${response.data}`);
-                                }
-                            } catch (err) {
-                                console.error(err);
-                            }
-                        }
-                    };
-                    xhr.send(
-                        'action=snn_assign_media_category' +
-                        '&media_id=' + encodeURIComponent(currentMediaId) +
-                        '&term_id=' + encodeURIComponent(termId) +
-                        '&nonce=' + '<?php echo wp_create_nonce("snn_media_categories_nonce"); ?>'
-                    );
+                    loadTaxonomy();
 
-                    menu.style.display = 'none';
-                });
-            });
-        }
-
-        let currentMediaId = null;
-
-        document.addEventListener('contextmenu', function (e) {
-            const attachmentElement = e.target.closest('li.attachment, div.attachment');
-
-            if (attachmentElement) {
-                e.preventDefault();
-
-                if (attachmentElement.dataset.id) {
-                    currentMediaId = attachmentElement.dataset.id;
-                } else if (attachmentElement.id) {
-                    const idMatch = attachmentElement.id.match(/post-(\d+)/);
-                    currentMediaId = idMatch ? idMatch[1] : null;
-                } else {
-                    currentMediaId = null;
+                    menu.style.display = 'block';
+                    menu.style.left = `${e.pageX}px`;
+                    menu.style.top = `${e.pageY}px`;
                 }
+            });
 
-                if (!currentMediaId) return;
+            document.addEventListener('click', function (e) {
+                if (!menu.contains(e.target)) {
+                    menu.style.display = 'none';
+                }
+            });
 
-                loadTaxonomy();
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    menu.style.display = 'none';
+                }
+            });
 
-                menu.style.display = 'block';
-                menu.style.left = `${e.pageX}px`;
-                menu.style.top = `${e.pageY}px`;
-            }
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!menu.contains(e.target)) {
+            window.addEventListener('resize', () => {
                 menu.style.display = 'none';
-            }
+            });
         });
+        </script>
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                menu.style.display = 'none';
-            }
-        });
-
-        window.addEventListener('resize', () => {
-            menu.style.display = 'none';
-        });
-    });
-    </script>
-
-    <?php
-}
-
-
-
-
+        <?php
+    }
 
     if (isset($options['media_categories']) && $options['media_categories']) {
         ?>
@@ -401,7 +397,6 @@ function snn_add_custom_css_js_to_media_page() {
             #media-categories-list li .category-count {
                 margin-left: 10px;
                 font-size: 0.9em;
-
                 background:#2271b1;
                 color:white;
                 padding:4px 5px;
@@ -415,7 +410,7 @@ function snn_add_custom_css_js_to_media_page() {
                 width:90px
             }
             #comments , .column-comments{
-            display:none
+                display:none
             }
         </style>
 
@@ -451,7 +446,7 @@ function snn_add_custom_css_js_to_media_page() {
                                 const deleteSpan = document.createElement('span');
                                 deleteSpan.classList.add('delete-category');
                                 deleteSpan.setAttribute('data-id', termId);
-                                deleteSpan.innerHTML = '&#10006;'; // Use HTML entity
+                                deleteSpan.innerHTML = '&#10006;';
 
                                 li.appendChild(nameSpan);
                                 li.appendChild(countSpan);
@@ -460,7 +455,6 @@ function snn_add_custom_css_js_to_media_page() {
                                 document.getElementById('media-categories-list').appendChild(li);
                                 document.getElementById('new-category-name').value = '';
 
-                                // alert('Category added successfully.');
                                 location.reload();
                             } else {
                                 alert(response.data);
@@ -493,8 +487,6 @@ function snn_add_custom_css_js_to_media_page() {
                                 if (response.success) {
                                     const li = deleteSpan.parentElement;
                                     li.parentElement.removeChild(li);
-                                    // alert('Category deleted successfully.');
-
                                     location.reload();
                                 } else {
                                     alert(response.data);
@@ -610,7 +602,7 @@ function snn_add_custom_css_js_to_media_page() {
                             $term_id   = esc_attr($term->term_id);
                             $term_name = esc_html($term->name);
                             $count     = intval($term->count);
-                            $link_url  = admin_url('upload.php?mode=list&media_taxonomy_categories=' . $term_id); // Force list mode
+                            $link_url  = admin_url('upload.php?mode=list&media_taxonomy_categories=' . $term_id);
 
                             echo '<li data-id="' . $term_id . '">';
                             echo '<span class="category-name" style="cursor:pointer;">';
