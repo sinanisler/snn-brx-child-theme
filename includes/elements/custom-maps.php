@@ -143,6 +143,20 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             ],
             'default' => 'default',
         ];
+
+        // New control: CSS filters for the .leaflet-pane element
+        $this->controls['leaflet_pane_filters'] = [
+            'tab'    => 'content',
+            'label'  => esc_html__( 'Leaflet Pane Filters', 'bricks' ),
+            'type'   => 'filters',
+            'inline' => true,
+            'css'    => [
+                [
+                    'property' => 'filter',
+                    'selector' => '.leaflet-tile-container',
+                ],
+            ],
+        ];
     }
 
     public function enqueue_scripts() {
@@ -160,8 +174,22 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         $popup_font_size    = isset( $this->settings['popup_font_size'] ) ? intval( $this->settings['popup_font_size'] ) : 14;
         $map_style          = isset( $this->settings['map_style'] ) ? $this->settings['map_style'] : 'default';
 
-        $map_id = 'custom-openstreetmap-' . uniqid();
+        // Set up the root attributes using Bricks methods.
+        // Here we add our wrapper class and inline style.
+        $root_classes = ['custom-openstreetmap-wrapper'];
+        $this->set_attribute('_root', 'class', $root_classes);
+        $this->set_attribute('_root', 'style', "height: {$map_height}px; width: 100%; max-width: 100%;");
 
+        // Check if an ID is already set on the element’s root.
+        // If not, generate one.
+        if ( isset( $this->attributes['_root']['id'] ) && ! empty( $this->attributes['_root']['id'] ) ) {
+            $map_id = $this->attributes['_root']['id'];
+        } else {
+            $map_id = 'custom-openstreetmap-' . uniqid();
+            $this->set_attribute('_root', 'id', $map_id);
+        }
+
+        // Inline CSS for popup font size and other Leaflet styling
         $popup_font_size_css = '';
         if ( ! empty( $popup_font_size ) ) {
             $popup_font_size_css = "
@@ -185,9 +213,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                         font-size: 11px;
                         color: gray !important;
                     }
-                    .leaflet-control-attribution a {
-                        display: none;
-                    }
+                    .leaflet-control-attribution a,
                     .leaflet-control-attribution span {
                         display: none;
                     }
@@ -207,11 +233,10 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         $tile_attribution = '©OpenStreetMap';
         ?>
 
-        <div id="<?php echo esc_attr( $map_id ); ?>" class="custom-openstreetmap-wrapper"
-             style="height: <?php echo esc_attr( $map_height ); ?>px; width: 100%; max-width: 100%;">
-        </div>
-
         <?php echo $popup_font_size_css; ?>
+
+        <div <?php echo $this->render_attributes('_root'); ?>>
+        </div>
 
         <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -247,7 +272,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 // Icon size
                 $icon_size = isset( $marker['icon_size'] ) ? intval( $marker['icon_size'] ) : 24;
 
-                // Check and output the proper color value from the color control.
+                // Determine the proper icon color value
                 if ( is_array( $marker['icon_color'] ) ) {
                     $icon_color = !empty( $marker['icon_color']['rgba'] )
                         ? $marker['icon_color']['rgba']
@@ -261,11 +286,11 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 echo $this->render_icon( $marker['icon'] );
                 $icon_html = ob_get_clean();
 
-                // Escape icon HTML and popup for JS
+                // Escape icon HTML and popup for use in JS
                 $icon_html_escaped  = str_replace( "'", "\\'", $icon_html );
                 $popup_escaped      = str_replace( "'", "\\'", $popup );
 
-                // Set ARIA label for the icon using the popup text if available, or default to "Map marker"
+                // Set ARIA label for the icon (using the popup text if available)
                 $icon_label = !empty( $popup ) ? wp_strip_all_tags( $popup ) : 'Map marker';
                 $icon_label_escaped = str_replace( "'", "\\'", $icon_label );
             ?>
