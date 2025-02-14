@@ -27,22 +27,22 @@ function snn_custom_inline_styles_and_scripts_improved() {
  
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                console.log("DOM fully loaded, initializing SNN settings panel...");
+                // console.log("DOM fully loaded, initializing SNN settings panel...");
 
                 // Insert SNN button into the Bricks toolbar.
                 function insertSnnListItem(toolbar) {
-                    console.log("Toolbar found:", toolbar);
+                    // console.log("Toolbar found:", toolbar);
                     
                     // Determine the UL element that holds the li items.
                     var ul = (toolbar.tagName.toLowerCase() === "ul") ? toolbar : toolbar.querySelector("ul");
                     if (!ul) {
-                        console.log("No ul found in toolbar. Cannot insert SNN li.");
+                        // console.log("No ul found in toolbar. Cannot insert SNN li.");
                         return;
                     }
                     
                     // Avoid inserting duplicate SNN li element.
                     if (ul.querySelector(".snn-enhance-li")) {
-                        console.log("SNN li already exists in the list.");
+                        // console.log("SNN li already exists in the list.");
                         return;
                     }
                     
@@ -64,7 +64,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     
                     // Always append the li element at the end of the list.
                     ul.appendChild(li);
-                    console.log("Appended SNN li at the end of the list.");
+                    // console.log("Appended SNN li at the end of the list.");
                 }
 
                 function findAndInsertSnn() {
@@ -77,26 +77,26 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 }
 
                 var intervalCheck = setInterval(function() {
-                    console.log("Checking for #bricks-toolbar...");
+                    // console.log("Checking for #bricks-toolbar...");
                     if (findAndInsertSnn()) {
                         clearInterval(intervalCheck);
-                        console.log("Toolbar found, SNN li inserted.");
+                        // console.log("Toolbar found, SNN li inserted.");
                     }
                 }, 500);
 
                 var observer = new MutationObserver(function(mutationsList) {
-                    console.log("MutationObserver triggered.");
+                    // console.log("MutationObserver triggered.");
                     mutationsList.forEach(function(mutation) {
                         mutation.addedNodes.forEach(function(node) {
                             if (node.nodeType === 1) {
                                 if (node.matches("#bricks-toolbar")) {
-                                    console.log("Toolbar detected via MutationObserver.");
+                                    // console.log("Toolbar detected via MutationObserver.");
                                     insertSnnListItem(node);
                                     clearInterval(intervalCheck);
                                 } else {
                                     var toolbarInside = node.querySelector("#bricks-toolbar");
                                     if (toolbarInside) {
-                                        console.log("Toolbar found inside a new node.");
+                                        // console.log("Toolbar found inside a new node.");
                                         insertSnnListItem(toolbarInside);
                                         clearInterval(intervalCheck);
                                     }
@@ -107,7 +107,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 });
 
                 observer.observe(document.body, { childList: true, subtree: true });
-                console.log("MutationObserver is active.");
+                // console.log("MutationObserver is active.");
 
                 // Close popup when the close button is clicked.
                 document.addEventListener("click", function(e) {
@@ -212,7 +212,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                             colorsData.push({ name: autoName, hex: hexValue });
                         }
                     });
-                    console.log("Saving colors data:", colorsData);
+                    // console.log("Saving colors data:", colorsData);
 
                     fetch("<?php echo admin_url('admin-ajax.php'); ?>", {
                         method: "POST",
@@ -564,7 +564,9 @@ function snn_inject_bricks_color_palette() {
     ) {
         $colors = get_option('snn_global_color_sync_variables', []);
         if (!empty($colors) && is_array($colors)) {
-            echo "<script>(function(){\n";
+            echo "
+<script>
+(function(){\n";
             echo "if (typeof bricksData !== 'undefined' && bricksData.loadData && bricksData.loadData.colorPalette && bricksData.loadData.colorPalette[0]) {\n";
             echo "    bricksData.loadData.colorPalette[0].colors.unshift(\n";
             $color_objects = [];
@@ -583,7 +585,8 @@ function snn_inject_bricks_color_palette() {
             }
             echo "\n" . implode(",\n", $color_objects) . "\n);";
             echo "\n}\n";
-            echo "})();</script>\n";
+            echo "})();
+</script>\n";
         }
     }
 }

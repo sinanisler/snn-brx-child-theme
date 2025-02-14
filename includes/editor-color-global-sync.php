@@ -1,5 +1,5 @@
 <?php
-
+/*
 function snn_bricks_builder_color_fix_inline_css() {
     // Run only on the frontend.
     if (is_admin()) {
@@ -135,4 +135,7 @@ function snn_bricks_builder_color_fix_inline_css_head() {
     }
 }
 add_action('wp_head', 'snn_bricks_builder_color_fix_inline_css_head', 5);
+
+
+*/
 ?>
