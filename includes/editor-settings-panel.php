@@ -1,12 +1,12 @@
-<?php
+<?php 
 /*
- * SNN Settings Panel for Bricks Builder Editor
+ * SNN Settings Panel for Bricks Builder Editor (Improved - No Default Colors)
  *
  * This code adds inline CSS, JavaScript, and a popup container to the site if the
  * 'snn_bricks_builder_color_fix' option is enabled and the URL includes '?bricks=run'.
  */
 
-function snn_custom_inline_styles_and_scripts() {
+function snn_custom_inline_styles_and_scripts_improved() {
     // Get options from the settings panel.
     $options = get_option('snn_editor_settings');
 
@@ -18,7 +18,8 @@ function snn_custom_inline_styles_and_scripts() {
         $_GET['bricks'] === 'run'
     ) {
         // Retrieve the global color sync variables (if any)
-        $global_colors = get_option('snn_global_color_sync_variables', []);
+        // Change default value from [] to false to differentiate between never set and intentionally empty.
+        $global_colors = get_option('snn_global_color_sync_variables', false);
 
         // For security: create a nonce for the AJAX save action.
         $nonce = wp_create_nonce('snn_save_colors_nonce');
@@ -49,7 +50,7 @@ function snn_custom_inline_styles_and_scripts() {
                     var li = document.createElement("li");
                     li.className = "snn-enhance-li";
                     li.tabIndex = 0;
-                    li.setAttribute("data-balloon", "Open SNN Settings");
+                    li.setAttribute("data-balloon", "SNN-BRX");
                     li.setAttribute("data-balloon-pos", "bottom");
                     li.innerText = "SNN";
                     
@@ -61,15 +62,9 @@ function snn_custom_inline_styles_and_scripts() {
                         }
                     });
                     
-                    // Insert the li element.
-                    var liItems = ul.querySelectorAll("li");
-                    if (liItems.length >= 8) {
-                        ul.insertBefore(li, liItems[7]);
-                        console.log("Inserted SNN li before the 8th li item.");
-                    } else {
-                        ul.appendChild(li);
-                        console.log("Appended SNN li at the end of the list.");
-                    }
+                    // Always append the li element at the end of the list.
+                    ul.appendChild(li);
+                    console.log("Appended SNN li at the end of the list.");
                 }
 
                 function findAndInsertSnn() {
@@ -126,14 +121,15 @@ function snn_custom_inline_styles_and_scripts() {
 
                 // ----- Repeater Functionality for Global Color Variables -----
                 // Function to create a new color row with a static auto-generated name,
-                // a text input for hex value, a color picker, and a remove button.
-                function createColorRow(hex = "#ffffff") {
+                // a text input for hex value, a color picker (without any default value), and a remove button.
+                function createColorRow(hex = "") {
+                    var colorValueAttr = hex ? `value="${hex}"` : "";
                     var row = document.createElement("div");
                     row.className = "snn-color-row";
                     row.innerHTML = `
                         <span class="snn-color-name-display"></span>
-                        <input type="text" class="snn-hex-input" maxlength="7" placeholder="#HEX" value="${hex.toUpperCase()}" />
-                        <input type="color" class="snn-color-picker" value="${hex}" />
+                        <input type="text" class="snn-hex-input" maxlength="7" placeholder="#ffffff" value="${hex ? hex.toUpperCase() : ''}" />
+                        <input type="color" class="snn-color-picker" ${colorValueAttr} />
                         <button class="snn-remove-color">Remove</button>
                     `;
                     // Sync hex input and color picker.
@@ -183,19 +179,19 @@ function snn_custom_inline_styles_and_scripts() {
                 var repeaterContainer = document.getElementById("snn-color-repeater");
                 var addColorButton = document.getElementById("snn-add-color");
 
-                // Load existing colors from PHP (if any).
+                // Load existing colors from PHP.
                 var existingColors = <?php echo json_encode($global_colors); ?>;
-                if (Array.isArray(existingColors) && existingColors.length > 0) {
+                if (existingColors === false) {
+                    // First time load: add one empty row.
+                    repeaterContainer.appendChild(createColorRow());
+                } else if (Array.isArray(existingColors) && existingColors.length > 0) {
                     existingColors.forEach(function(colorItem) {
-                        var hex = colorItem.hex || "#ff5733";
+                        var hex = colorItem.hex ? colorItem.hex : "";
                         var row = createColorRow(hex);
                         repeaterContainer.appendChild(row);
                     });
-                } else {
-                    // If no existing colors, add one default row.
-                    repeaterContainer.appendChild(createColorRow());
                 }
-                // Update names after initial load.
+                // If existingColors is an empty array (colors intentionally removed), do not add any row.
                 updateColorNames();
 
                 addColorButton.addEventListener("click", function() {
@@ -223,7 +219,7 @@ function snn_custom_inline_styles_and_scripts() {
                         headers: {
                             "Content-Type": "application/x-www-form-urlencoded"
                         },
-                        body: "action=snn_save_colors&nonce=<?php echo $nonce; ?>&colors=" + encodeURIComponent(JSON.stringify(colorsData))
+                        body: "action=snn_save_colors_improved&nonce=<?php echo $nonce; ?>&colors=" + encodeURIComponent(JSON.stringify(colorsData))
                     })
                     .then(response => response.json())
                     .then(data => {
@@ -262,7 +258,7 @@ function snn_custom_inline_styles_and_scripts() {
                     }
                     var cssVars = ":root {";
                     colorsData.forEach(function(color, index) {
-                        cssVars += "--snn-global-color-" + (index + 1) + ": " + color.hex + ";";
+                        cssVars += "--snn-color-" + (index + 1) + ": " + color.hex + ";";
                     });
                     cssVars += "}";
                     styleEl.textContent = cssVars;
@@ -289,12 +285,12 @@ function snn_custom_inline_styles_and_scripts() {
             #snn-popup.active {
                 display: flex;
             }
-            #snn-popup h1{
+            #snn-popup h1 {
                 font-size: 2em;
                 font-weight: 600;
             }
-            .snn-enhance-li{
-                padding-right: 5px;
+            .snn-enhance-li {
+                padding-left: 5px;
                 font-size: 12px;
             }
             #snn-popup-inner {
@@ -384,10 +380,10 @@ function snn_custom_inline_styles_and_scripts() {
                 text-align: center;
                 font-size: 14px;
                 margin-right: 10px;
-                background:#171a1d;
-                line-height:32px;
-                height:32px;
-                color:#868686
+                background: #171a1d;
+                line-height: 32px;
+                height: 32px;
+                color: #868686;
             }
             .snn-color-row input[type="text"] {
                 padding: 5px;
@@ -395,12 +391,12 @@ function snn_custom_inline_styles_and_scripts() {
                 width: 150px;
                 text-align: center;
                 margin-right: 10px;
-                background:#171a1d;
-                border:0px;
-                line-height:22px;
+                background: #171a1d;
+                border: 0;
+                line-height: 22px;
             }
             .snn-color-row input[type="text"]::placeholder {
-                color:#ffffff44;
+                color: #ffffff44;
             }
             .snn-color-row input[type="color"] {
                 width: 50px;
@@ -408,14 +404,14 @@ function snn_custom_inline_styles_and_scripts() {
                 border: none;
                 cursor: pointer;
                 margin-right: 10px;
-                padding:0px;
+                padding: 0;
             }
             .snn-color-row button.snn-remove-color {
                 padding: 5px 10px;
                 font-size: 14px;
                 cursor: pointer;
-                background:#171a1d;
-                color:white
+                background: #171a1d;
+                color: white;
             }
             .snn-color-row button.snn-remove-color:hover {
                 background-color: var(--builder-color-accent);
@@ -426,8 +422,8 @@ function snn_custom_inline_styles_and_scripts() {
                 padding: 8px 12px;
                 font-size: 14px;
                 cursor: pointer;
-                background:#171a1d;
-                color:white
+                background: #171a1d;
+                color: white;
             }
             .snn-feedback-after-save {
                 margin-bottom: 10px;
@@ -438,17 +434,17 @@ function snn_custom_inline_styles_and_scripts() {
                 background-color: var(--builder-color-accent);
                 color: black;
             }
-            .snn-settings-content-wrapper-section-title{
-                margin-bottom:5px;
+            .snn-settings-content-wrapper-section-title {
+                margin-bottom: 5px;
             }
         </style>
  
         <?php
     }
 }
-add_action('wp_head', 'snn_custom_inline_styles_and_scripts');
+add_action('wp_head', 'snn_custom_inline_styles_and_scripts_improved');
 
-function snn_popup_container() {
+function snn_popup_container_improved() {
     $options = get_option('snn_editor_settings');
     if (
         isset($options['snn_bricks_builder_color_fix']) &&
@@ -460,7 +456,7 @@ function snn_popup_container() {
         <div id="snn-popup" class="snn-popup docs">
             <div id="snn-popup-inner" class="snn-popup-inner">
                 <div class="snn-title-wrapper">
-                    <h1>SNN Settings</h1>
+                    <h1>SNN-BRX</h1>
                     <button class="snn-close-button">X</button>
                 </div>
                 <div class="snn-settings-content-wrapper">
@@ -494,10 +490,11 @@ function snn_popup_container() {
         <?php
     }
 }
-add_action('wp_footer', 'snn_popup_container');
+add_action('wp_footer', 'snn_popup_container_improved');
+
 
 // AJAX handler for saving the color settings.
-function snn_save_color_settings() {
+function snn_save_color_settings_improved() {
     // Verify nonce for security.
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'snn_save_colors_nonce' ) ) {
         wp_send_json_error('Invalid nonce');
@@ -522,23 +519,73 @@ function snn_save_color_settings() {
     wp_send_json_success('Settings saved');
     wp_die();
 }
-add_action('wp_ajax_snn_save_colors', 'snn_save_color_settings');
+add_action('wp_ajax_snn_save_colors_improved', 'snn_save_color_settings_improved');
 
-// Function to output dynamic CSS variables based on saved colors.
-function snn_dynamic_color_variables_css() {
+
+// Function to output dynamic CSS variables based on saved colors in both head and footer.
+// No default color is printed if no color is saved.
+function snn_dynamic_color_variables_roots() {
     $colors = get_option('snn_global_color_sync_variables', []);
     if ( ! empty($colors) && is_array($colors) ) {
          echo '<style id="snn-dynamic-colors">';
-         echo ':root {';
+         echo '
+:root {
+';
          $i = 1;
          foreach ( $colors as $color ) {
-            $hex = isset($color['hex']) ? $color['hex'] : '#ff5733';
-            echo '--snn-global-color-' . $i . ': ' . $hex . ';';
+            $hex = isset($color['hex']) ? $color['hex'] : '';
+            if( $hex !== '' ){
+                echo '  --snn-color-' . $i . ': ' . $hex . ';
+';
+            }
             $i++;
          }
          echo '}';
-         echo '</style>';
+         echo '
+</style>';
     }
 }
-add_action('wp_head', 'snn_dynamic_color_variables_css');
+add_action( 'wp_head', 'snn_dynamic_color_variables_roots', 1 );
+add_action( 'wp_footer', 'snn_dynamic_color_variables_roots', 9999 );
+
+
+// --------------------------------------------------------------------------
+// New function: Inject colors into the Bricks Builder color palette
+// This script will run as the last script in the footer so that it seamlessly
+// integrates with Bricks Builder's own data. We now only use the colors from
+// "snn_global_color_sync_variables" and build our own names to match the CSS variables.
+function snn_inject_bricks_color_palette() {
+    $options = get_option('snn_editor_settings');
+    if (
+        isset($options['snn_bricks_builder_color_fix']) &&
+        $options['snn_bricks_builder_color_fix'] &&
+        isset($_GET['bricks']) &&
+        $_GET['bricks'] === 'run'
+    ) {
+        $colors = get_option('snn_global_color_sync_variables', []);
+        if (!empty($colors) && is_array($colors)) {
+            echo "<script>(function(){\n";
+            echo "if (typeof bricksData !== 'undefined' && bricksData.loadData && bricksData.loadData.colorPalette && bricksData.loadData.colorPalette[0]) {\n";
+            echo "    bricksData.loadData.colorPalette[0].colors.unshift(\n";
+            $color_objects = [];
+            $index = 1;
+            foreach ($colors as $color) {
+                if (isset($color['hex']) && $color['hex'] !== '') {
+                    // Generate our own variable name matching the dynamic CSS output.
+                    $js_var = 'snn-color-' . $index;
+                    $color_objects[] = '    {
+        "raw": "var(--' . $js_var . ')",
+        "id": "snn1' . $index . '",
+        "name": "' . $js_var . '"
+    }';
+                    $index++;
+                }
+            }
+            echo "\n" . implode(",\n", $color_objects) . "\n);";
+            echo "\n}\n";
+            echo "})();</script>\n";
+        }
+    }
+}
+add_action('wp_footer', 'snn_inject_bricks_color_palette', 100000);
 ?>
