@@ -75,20 +75,7 @@ function snn_options_page() {
             'snn_cookie_settings_accept_button'        => 'Accept',
             'snn_cookie_settings_deny_button'          => 'Deny',
             'snn_cookie_settings_preferences_button'   => 'Preferences',
-            'snn_cookie_settings_services'             => array(
-                array(
-                    'name'      => 'Google Analytics',
-                    'script'    => '',
-                    'position'  => 'head',
-                    'mandatory' => 'no'
-                ),
-                array(
-                    'name'      => 'Facebook Pixel',
-                    'script'    => '',
-                    'position'  => 'head',
-                    'mandatory' => 'no'
-                )
-            ),
+            'snn_cookie_settings_services'             => array(),
             'snn_cookie_settings_custom_css'           => '',
             'snn_cookie_settings_banner_position'      => 'left',
             'snn_cookie_settings_banner_bg_color'      => '#333333',
@@ -372,7 +359,7 @@ function snn_output_cookie_banner() {
     .snn-cookie-banner {
        position: fixed;
        bottom: 10px;
-       width: 500px;
+       width: 400px;
        z-index: 9999;
        padding: 15px;
        background: <?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>;
@@ -535,7 +522,7 @@ add_action('wp_footer', 'snn_output_service_scripts', 99);
 
 /**
  * 3) Add JavaScript to:
- *    - Save and check user preferences using localStorage
+ *    - Save and check user preferences using cookies (with a 365-day expiration)
  *    - Dynamically inject service scripts from the hidden divs based on consent and custom preferences
  *    - Update Google Consent Mode v2 using gtag if enabled
  */
@@ -546,6 +533,32 @@ function snn_output_banner_js() {
     ?>
     <script>
     (function(){
+        // Cookie helper functions
+        function setCookie(name, value, days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days*24*60*60*1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+        }
+        
+        function getCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for(var i=0;i < ca.length;i++) {
+                var c = ca[i];
+                while(c.charAt(0)==' ') c = c.substring(1,c.length);
+                if(c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+            }
+            return null;
+        }
+        
+        function eraseCookie(name) {   
+            document.cookie = name+'=; Max-Age=-99999999; path=/';  
+        }
+        
         // If the cookie banner is disabled in settings, inject all scripts immediately.
         var cookieBannerEnabled = <?php echo $cookie_banner_enabled; ?>;
         if (!cookieBannerEnabled) {
@@ -616,7 +629,7 @@ function snn_output_banner_js() {
         }
         
         function injectCustomConsentScripts() {
-            var prefs = localStorage.getItem('snn_cookie_services');
+            var prefs = getCookie('snn_cookie_services');
             if(prefs) {
                 var servicePrefs = JSON.parse(prefs);
                 var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
@@ -651,13 +664,13 @@ function snn_output_banner_js() {
                         var index = toggle.getAttribute('data-service-index');
                         servicePrefs[index] = toggle.checked;
                     });
-                    localStorage.setItem('snn_cookie_services', JSON.stringify(servicePrefs));
-                    localStorage.setItem('snn_cookie_accepted', 'custom');
+                    setCookie('snn_cookie_services', JSON.stringify(servicePrefs), 365);
+                    setCookie('snn_cookie_accepted', 'custom', 365);
                     updateGoogleConsent('granted');
                     injectCustomConsentScripts();
                 } else {
-                    localStorage.setItem('snn_cookie_accepted', 'true');
-                    localStorage.removeItem('snn_cookie_services');
+                    setCookie('snn_cookie_accepted', 'true', 365);
+                    eraseCookie('snn_cookie_services');
                     updateGoogleConsent('granted');
                     injectAllConsentScripts();
                 }
@@ -666,8 +679,8 @@ function snn_output_banner_js() {
         }
         if (denyBtn) {
             denyBtn.addEventListener('click', function(){
-                localStorage.setItem('snn_cookie_accepted', 'false');
-                localStorage.removeItem('snn_cookie_services');
+                setCookie('snn_cookie_accepted', 'false', 365);
+                eraseCookie('snn_cookie_services');
                 if(banner) { banner.style.display = 'none'; }
                 updateGoogleConsent('denied');
             });
@@ -683,8 +696,8 @@ function snn_output_banner_js() {
             });
         }
         
-        // Check localStorage for saved consent and act accordingly
-        var storedConsent = localStorage.getItem('snn_cookie_accepted');
+        // Check cookies for saved consent and act accordingly
+        var storedConsent = getCookie('snn_cookie_accepted');
         if (storedConsent === 'true') {
             updateGoogleConsent('granted');
             injectAllConsentScripts();
