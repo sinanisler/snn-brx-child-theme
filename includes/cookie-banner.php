@@ -354,6 +354,10 @@ function snn_output_cookie_banner() {
     
     // Determine banner position class and output dynamic CSS
     $position = isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : 'left';
+    
+    // Check for an existing consent cookie to hide the banner immediately (to avoid flashing)
+    $accepted = isset($_COOKIE['snn_cookie_accepted']) ? $_COOKIE['snn_cookie_accepted'] : '';
+    $banner_style = ( in_array($accepted, array('true', 'false', 'custom')) ) ? ' style="display: none;"' : '';
     ?>
     <style id="snn-dynamic-styles">
     .snn-cookie-banner {
@@ -463,7 +467,7 @@ function snn_output_cookie_banner() {
       }
     }
     </style>
-    <div id="snn-cookie-banner" class="snn-cookie-banner <?php echo esc_attr($position); ?>">
+    <div id="snn-cookie-banner" class="snn-cookie-banner <?php echo esc_attr($position); ?>"<?php echo $banner_style; ?>>
         <div class="snn-preferences-content">
             <div class="snn-preferences-title">Cookie Preferences</div>
             <?php if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) { ?>
