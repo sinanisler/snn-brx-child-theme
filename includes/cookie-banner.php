@@ -29,6 +29,8 @@ function snn_options_page() {
         $options = array();
         // ----- General Settings Tab -----
         $options['snn_cookie_settings_enable_cookie_banner'] = isset($_POST['snn_cookie_settings_enable_cookie_banner']) ? 'yes' : 'no';
+        // New checkbox: Disable for Logged-In Users
+        $options['snn_cookie_settings_disable_for_logged_in'] = isset($_POST['snn_cookie_settings_disable_for_logged_in']) ? 'yes' : 'no';
         $options['snn_cookie_settings_banner_description']   = isset($_POST['snn_cookie_settings_banner_description']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_description']) ) : '';
         $options['snn_cookie_settings_accept_button']        = isset($_POST['snn_cookie_settings_accept_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_accept_button']) ) : '';
         $options['snn_cookie_settings_deny_button']          = isset($_POST['snn_cookie_settings_deny_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_deny_button']) ) : '';
@@ -71,6 +73,7 @@ function snn_options_page() {
     if ( !is_array($options) ) {
         $options = array(
             'snn_cookie_settings_enable_cookie_banner' => 'no',
+            'snn_cookie_settings_disable_for_logged_in'  => 'no',
             'snn_cookie_settings_banner_description'   => 'This website uses cookies for analytics and functionality.',
             'snn_cookie_settings_accept_button'        => 'Accept',
             'snn_cookie_settings_deny_button'          => 'Deny',
@@ -115,12 +118,20 @@ function snn_options_page() {
             <!-- General Settings Tab Content -->
             <div id="general" class="snn-tab-content active">
                 <table class="form-table">
-                    <!-- New: Enable Cookie Banner -->
+                    <!-- Enable Cookie Banner -->
                     <tr valign="top">
                         <th scope="row">Enable Cookie Banner</th>
                         <td>
                             <input type="checkbox" name="snn_cookie_settings_enable_cookie_banner" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_cookie_banner']) ? $options['snn_cookie_settings_enable_cookie_banner'] : 'no'), 'yes'); ?>>
                             <span class="description">Check to enable the Cookie Banner on your site.</span>
+                        </td>
+                    </tr>
+                    <!-- New: Disable for Logged-In Users -->
+                    <tr valign="top">
+                        <th scope="row">Disable for Logged-In Users</th>
+                        <td>
+                            <input type="checkbox" name="snn_cookie_settings_disable_for_logged_in" value="yes" <?php checked((isset($options['snn_cookie_settings_disable_for_logged_in']) ? $options['snn_cookie_settings_disable_for_logged_in'] : 'no'), 'yes'); ?>>
+                            <span class="description">Check to disable the Cookie Banner for users who are logged in.</span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -351,6 +362,10 @@ function snn_output_cookie_banner() {
     if ( empty($options['snn_cookie_settings_enable_cookie_banner']) || $options['snn_cookie_settings_enable_cookie_banner'] !== 'yes' ) {
         return;
     }
+    // If "Disable for Logged-In Users" is enabled and the user is logged in, do not output the banner.
+    if ( ! empty($options['snn_cookie_settings_disable_for_logged_in']) && $options['snn_cookie_settings_disable_for_logged_in'] === 'yes' && is_user_logged_in() ) {
+        return;
+    }
     
     // Determine banner position class and output dynamic CSS
     $position = isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : 'left';
@@ -514,7 +529,8 @@ function snn_output_service_scripts() {
                     id="snn-service-script-<?php echo esc_attr($index); ?>" 
                     class="snn-service-script" 
                     data-script="<?php echo esc_attr( base64_encode($service['script']) ); ?>" 
-                    data-position="<?php echo esc_attr( isset($service['position']) ? $service['position'] : 'body_bottom' ); ?>" 
+                    data-position="<?php echo esc_attr( isset($service['position']) ? $service['position'] : 'body_bottom' ); ?>"
+                    data-mandatory="<?php echo (isset($service['mandatory']) && $service['mandatory'] === 'yes') ? 'yes' : 'no'; ?>" 
                     style="display: none;">
                 </div>
                 <?php
@@ -578,21 +594,7 @@ function snn_output_banner_js() {
             return;
         }
         
-        // Google Consent Mode integration flag from settings
-        var enableConsentMode = <?php echo ((isset($options['snn_cookie_settings_enable_consent_mode']) && $options['snn_cookie_settings_enable_consent_mode'] === 'yes') ? 'true' : 'false'); ?>;
-        
-        function updateGoogleConsent(consentValue) {
-            if(enableConsentMode && typeof gtag === 'function'){
-                gtag('consent', 'update', {
-                    'ad_storage': consentValue,
-                    'analytics_storage': consentValue,
-                    'ad_user_data': consentValue,
-                    'ad_personalization': consentValue
-                });
-            }
-        }
-        
-        // Dynamically inject script into the specified position
+        // Function to inject a script into the specified position
         function injectScript(decodedCode, position) {
             var tempDiv = document.createElement('div');
             tempDiv.innerHTML = decodedCode;
@@ -620,9 +622,10 @@ function snn_output_banner_js() {
             });
         }
         
-        function injectAllConsentScripts() {
-            var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
-            hiddenDivs.forEach(function(div){
+        // Inject mandatory scripts immediately
+        function injectMandatoryScripts() {
+            var mandatoryDivs = document.querySelectorAll('.snn-service-script[data-mandatory="yes"]');
+            mandatoryDivs.forEach(function(div){
                 var encoded = div.getAttribute('data-script');
                 var position = div.getAttribute('data-position') || 'body_bottom';
                 if (encoded) {
@@ -632,23 +635,58 @@ function snn_output_banner_js() {
             });
         }
         
+        // Dynamically inject non-mandatory scripts when consent is granted (all scripts)
+        function injectAllConsentScripts() {
+            var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
+            hiddenDivs.forEach(function(div){
+                if (div.getAttribute('data-mandatory') !== 'yes') {
+                    var encoded = div.getAttribute('data-script');
+                    var position = div.getAttribute('data-position') || 'body_bottom';
+                    if (encoded) {
+                        var decoded = atob(encoded);
+                        injectScript(decoded, position);
+                    }
+                }
+            });
+        }
+        
+        // Dynamically inject non-mandatory scripts based on custom preferences
         function injectCustomConsentScripts() {
             var prefs = getCookie('snn_cookie_services');
             if(prefs) {
                 var servicePrefs = JSON.parse(prefs);
                 var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
                 hiddenDivs.forEach(function(div){
-                    var id = div.getAttribute('id'); // format: snn-service-script-INDEX
-                    var parts = id.split('-');
-                    var index = parts[parts.length-1];
-                    if(servicePrefs[index]) {
-                        var encoded = div.getAttribute('data-script');
-                        var position = div.getAttribute('data-position') || 'body_bottom';
-                        if (encoded) {
-                            var decoded = atob(encoded);
-                            injectScript(decoded, position);
+                    if (div.getAttribute('data-mandatory') !== 'yes') {
+                        var id = div.getAttribute('id'); // format: snn-service-script-INDEX
+                        var parts = id.split('-');
+                        var index = parts[parts.length-1];
+                        if(servicePrefs[index]) {
+                            var encoded = div.getAttribute('data-script');
+                            var position = div.getAttribute('data-position') || 'body_bottom';
+                            if (encoded) {
+                                var decoded = atob(encoded);
+                                injectScript(decoded, position);
+                            }
                         }
                     }
+                });
+            }
+        }
+        
+        // Inject mandatory scripts regardless of consent
+        injectMandatoryScripts();
+        
+        // Google Consent Mode integration flag from settings
+        var enableConsentMode = <?php echo ((isset($options['snn_cookie_settings_enable_consent_mode']) && $options['snn_cookie_settings_enable_consent_mode'] === 'yes') ? 'true' : 'false'); ?>;
+        
+        function updateGoogleConsent(consentValue) {
+            if(enableConsentMode && typeof gtag === 'function'){
+                gtag('consent', 'update', {
+                    'ad_storage': consentValue,
+                    'analytics_storage': consentValue,
+                    'ad_user_data': consentValue,
+                    'ad_personalization': consentValue
                 });
             }
         }
@@ -721,7 +759,8 @@ function snn_output_banner_js() {
 add_action('wp_footer', 'snn_output_banner_js', 100);
 
 /**
- * 4) Output custom CSS for the cookie banner
+ * 4) Output custom CSS for the cookie banner.
+ *    Moved from wp_head to wp_footer with a high priority to ensure it overrides default styles.
  */
 function snn_output_custom_css() {
     $options = get_option( SNN_OPTIONS );
@@ -729,5 +768,5 @@ function snn_output_custom_css() {
         echo "<style id='snn-custom-css'>" . $options['snn_cookie_settings_custom_css'] . "</style>";
     }
 }
-add_action('wp_head', 'snn_output_custom_css');
+add_action('wp_footer', 'snn_output_custom_css', 999);
 ?>
