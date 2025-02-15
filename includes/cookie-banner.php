@@ -43,7 +43,7 @@ function snn_options_page() {
         $options['snn_cookie_settings_button_text_color']    = isset($_POST['snn_cookie_settings_button_text_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_text_color']) ) : '';
         
         // ----- Scripts & Services Tab -----
-        $options['snn_cookie_settings_enable_consent_mode'] = isset($_POST['snn_cookie_settings_enable_consent_mode']) ? 'yes' : 'no';
+        // Removed Google Consent Mode feature
         
         $services = array();
         if ( isset($_POST['snn_cookie_settings_services']) && is_array($_POST['snn_cookie_settings_services']) ) {
@@ -85,8 +85,7 @@ function snn_options_page() {
             'snn_cookie_settings_banner_bg_color'      => '#333333',
             'snn_cookie_settings_banner_text_color'    => '#ffffff',
             'snn_cookie_settings_button_bg_color'      => '#555555',
-            'snn_cookie_settings_button_text_color'    => '#ffffff',
-            'snn_cookie_settings_enable_consent_mode'  => 'yes'
+            'snn_cookie_settings_button_text_color'    => '#ffffff'
         );
     }
     ?>
@@ -220,16 +219,8 @@ function snn_options_page() {
                     <br>
                     - <strong>Mandatory Feature</strong>: If checked, this service will always be active and cannot be disabled by the user.
                     <br>
-                    
                 </p>
                 <table class="form-table">
-                    <tr valign="top">
-                        <th scope="row" style="width:330px">Enable Google Consent Mode v2</th>
-                        <td>
-                            <input type="checkbox" name="snn_cookie_settings_enable_consent_mode" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_consent_mode']) ? $options['snn_cookie_settings_enable_consent_mode'] : 'no'), 'yes'); ?>>
-                            <span class="description">When enabled, the plugin will update Google Consent Mode (gtag) based on user consent.</span>
-                        </td>
-                    </tr>
                     <tr valign="top">
                         <th scope="row">Services (Repeater)</th>
                         <td>
@@ -561,7 +552,6 @@ add_action('wp_footer', 'snn_output_service_scripts', 99);
  * 3) Add JavaScript to:
  *    - Save and check user preferences using cookies (with a 365-day expiration)
  *    - Dynamically inject service scripts from the hidden divs based on consent and custom preferences
- *    - Update Google Consent Mode v2 using gtag if enabled
  */
 function snn_output_banner_js() {
     $options = get_option(SNN_OPTIONS);
@@ -694,20 +684,6 @@ function snn_output_banner_js() {
         // Inject mandatory scripts regardless of consent
         injectMandatoryScripts();
         
-        // Google Consent Mode integration flag from settings
-        var enableConsentMode = <?php echo ((isset($options['snn_cookie_settings_enable_consent_mode']) && $options['snn_cookie_settings_enable_consent_mode'] === 'yes') ? 'true' : 'false'); ?>;
-        
-        function updateGoogleConsent(consentValue) {
-            if(enableConsentMode && typeof gtag === 'function'){
-                gtag('consent', 'update', {
-                    'ad_storage': consentValue,
-                    'analytics_storage': consentValue,
-                    'ad_user_data': consentValue,
-                    'ad_personalization': consentValue
-                });
-            }
-        }
-        
         // Event handlers for the banner buttons
         var acceptBtn = document.querySelector('.snn-accept');
         var denyBtn = document.querySelector('.snn-deny');
@@ -725,12 +701,10 @@ function snn_output_banner_js() {
                     });
                     setCookie('snn_cookie_services', JSON.stringify(servicePrefs), 365);
                     setCookie('snn_cookie_accepted', 'custom', 365);
-                    updateGoogleConsent('granted');
                     injectCustomConsentScripts();
                 } else {
                     setCookie('snn_cookie_accepted', 'true', 365);
                     eraseCookie('snn_cookie_services');
-                    updateGoogleConsent('granted');
                     injectAllConsentScripts();
                 }
                 if(banner) { banner.style.display = 'none'; }
@@ -741,7 +715,6 @@ function snn_output_banner_js() {
                 setCookie('snn_cookie_accepted', 'false', 365);
                 eraseCookie('snn_cookie_services');
                 if(banner) { banner.style.display = 'none'; }
-                updateGoogleConsent('denied');
             });
         }
         if (prefsBtn) {
@@ -758,14 +731,11 @@ function snn_output_banner_js() {
         // Check cookies for saved consent and act accordingly
         var storedConsent = getCookie('snn_cookie_accepted');
         if (storedConsent === 'true') {
-            updateGoogleConsent('granted');
             injectAllConsentScripts();
             if(banner) { banner.style.display = 'none'; }
         } else if (storedConsent === 'false') {
-            updateGoogleConsent('denied');
             if(banner) { banner.style.display = 'none'; }
         } else if (storedConsent === 'custom') {
-            updateGoogleConsent('granted');
             injectCustomConsentScripts();
             if(banner) { banner.style.display = 'none'; }
         }
