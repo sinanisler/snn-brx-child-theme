@@ -226,53 +226,54 @@ function snn_options_page() {
                         <td>
                             <div id="services-repeater" class="snn-services-repeater">
                                 <?php 
+                                $service_index = 0;
                                 if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) {
-                                    $index = 0;
                                     foreach ( $options['snn_cookie_settings_services'] as $service ) {
                                         ?>
                                         <div class="snn-service-item">
                                             <label>Service Name:
-                                                <input type="text" name="snn_cookie_settings_services[<?php echo $index; ?>][name]" value="<?php echo isset($service['name']) ? esc_attr($service['name']) : ''; ?>" class="snn-input snn-service-name">
+                                                <input type="text" name="snn_cookie_settings_services[<?php echo $service_index; ?>][name]" value="<?php echo isset($service['name']) ? esc_attr($service['name']) : ''; ?>" class="snn-input snn-service-name">
                                             </label>
                                             <label>Service Script Code (HTML allowed):
-                                                <textarea name="snn_cookie_settings_services[<?php echo $index; ?>][script]" rows="4" class="snn-textarea snn-service-script-code"><?php echo isset($service['script']) ? $service['script'] : ''; ?></textarea>
+                                                <textarea name="snn_cookie_settings_services[<?php echo $service_index; ?>][script]" rows="4" class="snn-textarea snn-service-script-code"><?php echo isset($service['script']) ? $service['script'] : ''; ?></textarea>
                                             </label>
                                             <label>Script Position:</label>
                                             <div class="snn-radio-group">
-                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $index; ?>][position]" value="head" <?php checked((isset($service['position']) ? $service['position'] : ''), 'head'); ?>> Head</label>
-                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $index; ?>][position]" value="body_top" <?php checked((isset($service['position']) ? $service['position'] : ''), 'body_top'); ?>> Body Top</label>
-                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $index; ?>][position]" value="body_bottom" <?php checked((isset($service['position']) ? $service['position'] : ''), 'body_bottom'); ?>> Body Bottom</label>
+                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="head" <?php checked((isset($service['position']) ? $service['position'] : ''), 'head'); ?>> Head</label>
+                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="body_top" <?php checked((isset($service['position']) ? $service['position'] : ''), 'body_top'); ?>> Body Top</label>
+                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="body_bottom" <?php checked((isset($service['position']) ? $service['position'] : ''), 'body_bottom'); ?>> Body Bottom</label>
                                             </div>
                                             <label>
-                                                <input type="checkbox" name="snn_cookie_settings_services[<?php echo $index; ?>][mandatory]" value="yes" <?php checked((isset($service['mandatory']) ? $service['mandatory'] : 'no'), 'yes'); ?>> Mandatory Feature
+                                                <input type="checkbox" name="snn_cookie_settings_services[<?php echo $service_index; ?>][mandatory]" value="yes" <?php checked((isset($service['mandatory']) ? $service['mandatory'] : 'no'), 'yes'); ?>> Mandatory Feature
                                             </label>
                                             <button class="remove-service snn-remove-service button">Remove</button>
                                         </div>
                                         <?php
-                                        $index++;
+                                        $service_index++;
                                     }
                                 } else {
-                                    // Output one empty service item if none exist.
+                                    // Output one empty service item with index 0 if none exist.
                                     ?>
                                     <div class="snn-service-item">
                                         <label>Service Name:
-                                            <input type="text" name="snn_cookie_settings_services[][name]" value="" class="snn-input snn-service-name">
+                                            <input type="text" name="snn_cookie_settings_services[0][name]" value="" class="snn-input snn-service-name">
                                         </label>
                                         <label>Service Script Code (HTML allowed):
-                                            <textarea name="snn_cookie_settings_services[][script]" rows="4" class="snn-textarea snn-service-script-code"></textarea>
+                                            <textarea name="snn_cookie_settings_services[0][script]" rows="4" class="snn-textarea snn-service-script-code"></textarea>
                                         </label>
                                         <label>Script Position:</label>
                                         <div class="snn-radio-group">
-                                            <label><input type="radio" name="snn_cookie_settings_services[][position]" value="head" checked> Head</label>
-                                            <label><input type="radio" name="snn_cookie_settings_services[][position]" value="body_top"> Body Top</label>
-                                            <label><input type="radio" name="snn_cookie_settings_services[][position]" value="body_bottom"> Body Bottom</label>
+                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="head"> Head</label>
+                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="body_top"> Body Top</label>
+                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="body_bottom" checked> Body Bottom</label>
                                         </div>
                                         <label>
-                                            <input type="checkbox" name="snn_cookie_settings_services[][mandatory]" value="yes"> Mandatory Feature
+                                            <input type="checkbox" name="snn_cookie_settings_services[0][mandatory]" value="yes"> Mandatory Feature
                                         </label>
                                         <button class="remove-service snn-remove-service button">Remove</button>
                                     </div>
                                     <?php
+                                    $service_index = 1; // Next index should be 1.
                                 }
                                 ?>
                             </div>
@@ -280,25 +281,28 @@ function snn_options_page() {
                             <script>
                             (function($){
                                 $(document).ready(function(){
+                                    // Set the starting index based on PHP output
+                                    var serviceIndex = <?php echo $service_index; ?>;
                                     $('#add-service').click(function(e){
                                         e.preventDefault();
                                         var newService = '<div class="snn-service-item">' +
                                             '<label>Service Name:' +
-                                                '<input type="text" name="snn_cookie_settings_services[][name]" value="" class="snn-input snn-service-name">' +
+                                                '<input type="text" name="snn_cookie_settings_services[' + serviceIndex + '][name]" value="" class="snn-input snn-service-name">' +
                                             '</label>' +
                                             '<label>Service Script Code (HTML allowed):' +
-                                                '<textarea name="snn_cookie_settings_services[][script]" rows="4" class="snn-textarea snn-service-script-code"></textarea>' +
+                                                '<textarea name="snn_cookie_settings_services[' + serviceIndex + '][script]" rows="4" class="snn-textarea snn-service-script-code"></textarea>' +
                                             '</label>' +
                                             '<label>Script Position:</label>' +
                                             '<div class="snn-radio-group">' +
-                                                '<label><input type="radio" name="snn_cookie_settings_services[][position]" value="head" checked> Head</label> ' +
-                                                '<label><input type="radio" name="snn_cookie_settings_services[][position]" value="body_top"> Body Top</label> ' +
-                                                '<label><input type="radio" name="snn_cookie_settings_services[][position]" value="body_bottom"> Body Bottom</label>' +
+                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="head"> Head</label> ' +
+                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="body_top"> Body Top</label> ' +
+                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="body_bottom" checked> Body Bottom</label>' +
                                             '</div>' +
-                                            '<label><input type="checkbox" name="snn_cookie_settings_services[][mandatory]" value="yes"> Mandatory Feature</label>' +
+                                            '<label><input type="checkbox" name="snn_cookie_settings_services[' + serviceIndex + '][mandatory]" value="yes"> Mandatory Feature</label>' +
                                             '<button class="remove-service snn-remove-service button">Remove</button>' +
                                             '</div>';
                                         $('#services-repeater').append(newService);
+                                        serviceIndex++;
                                     });
                                     $('#services-repeater').on('click', '.remove-service', function(e){
                                         e.preventDefault();
