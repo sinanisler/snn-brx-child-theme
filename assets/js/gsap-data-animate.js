@@ -240,6 +240,7 @@ window.onload = function () {
         end: finalEnd,
         scrub: options.scrub === 'true' ? true : parseFloat(options.scrub) || 1,
         pin: options.pin === 'true',
+        
         markers: (options.markers === 'true' && options.scroll !== 'false') ? true : false,
         toggleClass: options.toggleClass || null,
         pinSpacing: options.pinSpacing || 'margin',
@@ -275,9 +276,12 @@ window.onload = function () {
         const text = element.innerText;
         const chars = text.split('');
         const startStylesString = convertStylesToString(options.startStyles);
-        
         element.innerHTML = chars
-          .map(char => `<span style="position:relative; ${startStylesString}">${char}</span>`)
+          .map(char => 
+            char === ' ' 
+              ? `<span style="display:inline-block; position:relative;">&nbsp;</span>`
+              : `<span style="display:inline-block; position:relative; ${startStylesString}">${char}</span>`
+          )
           .join('');
         return element.children;
       }
