@@ -403,6 +403,10 @@ function snn_output_cookie_banner() {
     .snn-banner-text{
     margin-bottom:10px;
     }
+    .snn-service-name span{
+    font-size:11px;
+    opacity:0.7
+    }
     .snn-banner-buttons .snn-button {
         background: <?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : '#555555'; ?>;
         color: <?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : '#ffffff'; ?>;
@@ -418,7 +422,7 @@ function snn_output_cookie_banner() {
     }
     .snn-preferences-title {
         margin-top: 0;
-        font-weight:600
+        font-weight:600;
     }
     /* Toggle switch style */
     .snn-switch {
@@ -494,7 +498,7 @@ function snn_output_cookie_banner() {
                         <span class="snn-service-name">
                             <?php echo esc_html( $service['name'] ); ?>
                             <?php if ( isset($service['mandatory']) && $service['mandatory'] === 'yes' ) { ?>
-                                <span style="color:black; font-size:11px"> (<?php _e('Mandatory', 'snn-cookie-banner'); ?>) </span>
+                                <span> (<?php _e('Mandatory', 'snn-cookie-banner'); ?>) </span>
                             <?php } ?>
                         </span>
                         <label class="snn-switch">
