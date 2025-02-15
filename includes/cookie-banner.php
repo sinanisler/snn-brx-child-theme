@@ -469,7 +469,7 @@ function snn_output_cookie_banner() {
     </style>
     <div id="snn-cookie-banner" class="snn-cookie-banner <?php echo esc_attr($position); ?>"<?php echo $banner_style; ?>>
         <div class="snn-preferences-content">
-            <div class="snn-preferences-title">Cookie Preferences</div>
+            <div class="snn-preferences-title"><?php _e('Cookie Preferences', 'snn-cookie-banner'); ?></div>
             <?php if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) { ?>
                 <ul class="snn-services-list" style="list-style: none; padding: 0;">
                 <?php foreach ( $options['snn_cookie_settings_services'] as $index => $service ) { ?>
@@ -477,7 +477,7 @@ function snn_output_cookie_banner() {
                         <span class="snn-service-name">
                             <?php echo esc_html( $service['name'] ); ?>
                             <?php if ( isset($service['mandatory']) && $service['mandatory'] === 'yes' ) { ?>
-                                <span style="color:black; font-weight:bold">*</span>
+                                <span style="color:black; font-size:11px"> (<?php _e('Mandatory', 'snn-cookie-banner'); ?>) </span>
                             <?php } ?>
                         </span>
                         <label class="snn-switch">
@@ -491,9 +491,9 @@ function snn_output_cookie_banner() {
         </div>
         <p class="snn-banner-text"><?php echo esc_html( isset($options['snn_cookie_settings_banner_description']) ? $options['snn_cookie_settings_banner_description'] : '' ); ?></p>
         <div class="snn-banner-buttons">
-            <button class="snn-button snn-accept"><?php echo esc_html( isset($options['snn_cookie_settings_accept_button']) ? $options['snn_cookie_settings_accept_button'] : 'Accept' ); ?></button>
-            <button class="snn-button snn-deny"><?php echo esc_html( isset($options['snn_cookie_settings_deny_button']) ? $options['snn_cookie_settings_deny_button'] : 'Deny' ); ?></button>
-            <button class="snn-button snn-preferences"><?php echo esc_html( isset($options['snn_cookie_settings_preferences_button']) ? $options['snn_cookie_settings_preferences_button'] : 'Preferences' ); ?></button>
+            <button class="snn-button snn-accept"><?php echo esc_html( isset($options['snn_cookie_settings_accept_button']) ? $options['snn_cookie_settings_accept_button'] : __('Accept', 'snn-cookie-banner') ); ?></button>
+            <button class="snn-button snn-deny"><?php echo esc_html( isset($options['snn_cookie_settings_deny_button']) ? $options['snn_cookie_settings_deny_button'] : __('Deny', 'snn-cookie-banner') ); ?></button>
+            <button class="snn-button snn-preferences"><?php echo esc_html( isset($options['snn_cookie_settings_preferences_button']) ? $options['snn_cookie_settings_preferences_button'] : __('Preferences', 'snn-cookie-banner') ); ?></button>
         </div>
     </div>
     <?php
