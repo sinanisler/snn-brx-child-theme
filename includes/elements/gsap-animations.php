@@ -23,7 +23,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     }
 
     private function parse_unit_value( $value ) {
-        if ( empty( $value ) ) {
+        if ( $value === '' ) {
             return '';
         }
 
@@ -51,22 +51,22 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'titleProperty' => '',
             'default'       => [
                 [
-                    'x_start'              => '',
-                    'y_start'              => '',
-                    'x_end'                => '',
-                    'y_end'                => '',
-                    'style_start-scale'    => '',
-                    'style_end-scale'      => '',
-                    'style_start-rotate'   => '',
-                    'style_end-rotate'     => '',
-                    'style_start-opacity'  => '',
-                    'style_end-opacity'    => '',
-                    'style_start-filter'   => '',
-                    'style_end-filter'     => '',
+                    'x_start'               => '',
+                    'y_start'               => '',
+                    'x_end'                 => '',
+                    'y_end'                 => '',
+                    'style_start-scale'     => '',
+                    'style_end-scale'       => '',
+                    'style_start-rotate'    => '',
+                    'style_end-rotate'      => '',
+                    'style_start-opacity'   => '',
+                    'style_end-opacity'     => '',
+                    'style_start-filter'    => '',
+                    'style_end-filter'      => '',
                     'style_start-grayscale' => '',
-                    'style_end-grayscale'  => '',
-                    'style_start_custom'   => '',
-                    'style_end_custom'     => '',
+                    'style_end-grayscale'   => '',
+                    'style_start_custom'    => '',
+                    'style_end_custom'      => '',
                 ],
             ],
             'placeholder'   => esc_html__( 'Animation', 'bricks' ),
@@ -262,7 +262,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             foreach ( ['x', 'y'] as $axis ) {
                 foreach ( ['start', 'end'] as $state ) {
                     $key = "{$axis}_{$state}";
-                    if ( ! empty( $anim[ $key ] ) ) {
+                    if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
                         $value = $this->parse_unit_value( $anim[ $key ] );
                         $transform = "translate" . strtoupper( $axis ) . "($value)";
                         if ( $state === 'start' ) {
@@ -274,33 +274,25 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 }
             }
 
-            // Handle scale
+            // Handle scale as separate property using the (value) format
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-scale";
-                if ( ! empty( $anim[ $key ] ) ) {
+                if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
                     $value = $anim[ $key ];
-                    if ( $state === 'start' ) {
-                        $transform_start[] = "scale($value)";
-                    } else {
-                        $transform_end[] = "scale($value)";
-                    }
+                    $props[] = "style_{$state}-scale(" . $value . ")";
                 }
             }
 
-            // Handle rotate
+            // Handle rotate as separate property using the (value) format
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-rotate";
-                if ( ! empty( $anim[ $key ] ) ) {
+                if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
                     $value = $anim[ $key ];
-                    if ( $state === 'start' ) {
-                        $transform_start[] = "rotate({$value}deg)";
-                    } else {
-                        $transform_end[] = "rotate({$value}deg)";
-                    }
+                    $props[] = "style_{$state}-rotate(" . $value . "deg)";
                 }
             }
 
-            // Add combined transform properties
+            // Add combined transform properties if any translations exist
             if ( ! empty( $transform_start ) ) {
                 $props[] = "style_start-transform:" . implode( ' ', $transform_start );
             }
@@ -308,12 +300,12 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 $props[] = "style_end-transform:" . implode( ' ', $transform_end );
             }
 
-            // Handle opacity
+            // Handle opacity as separate property using the (value) format
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-opacity";
-                if ( ! empty( $anim[ $key ] ) ) {
+                if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
                     $value = $anim[ $key ];
-                    $props[] = "style_{$state}-opacity:{$value}";
+                    $props[] = "style_{$state}-opacity(" . $value . ")";
                 }
             }
 
@@ -326,7 +318,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             // Blur filter
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-filter";
-                if ( ! empty( $anim[ $key ] ) ) {
+                if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
                     $value = $this->parse_unit_value( $anim[ $key ] );
                     $filters[ $state ][] = "blur($value)";
                 }
@@ -335,7 +327,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             // Grayscale filter
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-grayscale";
-                if ( ! empty( $anim[ $key ] ) ) {
+                if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
                     $value = $anim[ $key ];
                     $filters[ $state ][] = "grayscale({$value}%)";
                 }
@@ -351,17 +343,17 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             // Process custom CSS inputs
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}_custom";
-                if ( ! empty( $anim[ $key ] ) ) {
+                if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
                     $custom_css = $anim[ $key ];
                     $declarations = array_map( 'trim', explode( ';', $custom_css ) );
 
                     foreach ( $declarations as $declaration ) {
-                        if ( ! empty( $declaration ) ) {
+                        if ( $declaration !== '' ) {
                             $parts = array_map( 'trim', explode( ':', $declaration, 2 ) );
                             if ( count( $parts ) === 2 ) {
                                 list( $css_prop, $css_value ) = $parts;
                                 $gsap_prop = str_replace( '_', '-', $css_prop );
-                                $props[] = "style_{$state}-{$gsap_prop}:{$css_value}";
+                                $props[] = "style_{$state}-{$gsap_prop}:" . $css_value;
                             }
                         }
                     }
