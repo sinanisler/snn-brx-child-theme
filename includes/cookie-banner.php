@@ -398,15 +398,17 @@ function snn_output_cookie_banner() {
     .snn-banner-buttons {
         display: flex;
         flex-direction: row;
+        gap:10px
+    }
+    .snn-banner-text{
+    margin-bottom:10px;
     }
     .snn-banner-buttons .snn-button {
-        margin-right: 10px;
         background: <?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : '#555555'; ?>;
         color: <?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : '#ffffff'; ?>;
         border: none;
         padding: 10px;
         cursor: pointer;
-        margin-top:10px;
         border-radius:5px;
         width: 100%;
         text-align: center;
