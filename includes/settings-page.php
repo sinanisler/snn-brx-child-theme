@@ -56,7 +56,7 @@ function snn_settings_page_callback() {
             }
             ?>
         </div>
-        <!-- End Dashboard Grid -->
+        <!-- End Dashboard Grid --> 
 
         <div style="max-width:660px; margin-bottom:40px">
             <p style="line-height:24px !important;">
