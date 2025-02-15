@@ -31,7 +31,8 @@ function snn_options_page() {
         $options['snn_cookie_settings_enable_cookie_banner'] = isset($_POST['snn_cookie_settings_enable_cookie_banner']) ? 'yes' : 'no';
         // New checkbox: Disable for Logged-In Users
         $options['snn_cookie_settings_disable_for_logged_in'] = isset($_POST['snn_cookie_settings_disable_for_logged_in']) ? 'yes' : 'no';
-        $options['snn_cookie_settings_banner_description']   = isset($_POST['snn_cookie_settings_banner_description']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_description']) ) : '';
+        // Use wp_kses_post to allow safe HTML in the description
+        $options['snn_cookie_settings_banner_description']   = isset($_POST['snn_cookie_settings_banner_description']) ? wp_kses_post( wp_unslash($_POST['snn_cookie_settings_banner_description']) ) : '';
         $options['snn_cookie_settings_accept_button']        = isset($_POST['snn_cookie_settings_accept_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_accept_button']) ) : '';
         $options['snn_cookie_settings_deny_button']          = isset($_POST['snn_cookie_settings_deny_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_deny_button']) ) : '';
         $options['snn_cookie_settings_preferences_button']   = isset($_POST['snn_cookie_settings_preferences_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_preferences_button']) ) : '';
@@ -137,7 +138,17 @@ function snn_options_page() {
                     <tr valign="top">
                         <th scope="row">Cookie Banner Description</th>
                         <td>
-                            <textarea name="snn_cookie_settings_banner_description" rows="3" class="snn-textarea snn-banner-description"><?php echo isset($options['snn_cookie_settings_banner_description']) ? esc_textarea($options['snn_cookie_settings_banner_description']) : ''; ?></textarea>
+                            <?php 
+                            // Use wp_editor to output the TinyMCE editor with the current description.
+                            wp_editor( 
+                                isset($options['snn_cookie_settings_banner_description']) ? $options['snn_cookie_settings_banner_description'] : '', 
+                                'snn_cookie_settings_banner_description_editor', 
+                                array(
+                                    'textarea_name' => 'snn_cookie_settings_banner_description',
+                                    'textarea_rows' => 3,
+                                ) 
+                            ); 
+                            ?>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -510,7 +521,7 @@ function snn_output_cookie_banner() {
                 </ul>
             <?php } ?>
         </div>
-        <p class="snn-banner-text"><?php echo esc_html( isset($options['snn_cookie_settings_banner_description']) ? $options['snn_cookie_settings_banner_description'] : '' ); ?></p>
+        <p class="snn-banner-text"><?php echo esc_html( isset($options['snn_cookie_settings_banner_description']) ? wp_strip_all_tags($options['snn_cookie_settings_banner_description']) : '' ); ?></p>
         <div class="snn-banner-buttons">
             <button class="snn-button snn-accept"><?php echo esc_html( isset($options['snn_cookie_settings_accept_button']) ? $options['snn_cookie_settings_accept_button'] : __('Accept', 'snn-cookie-banner') ); ?></button>
             <button class="snn-button snn-deny"><?php echo esc_html( isset($options['snn_cookie_settings_deny_button']) ? $options['snn_cookie_settings_deny_button'] : __('Deny', 'snn-cookie-banner') ); ?></button>
