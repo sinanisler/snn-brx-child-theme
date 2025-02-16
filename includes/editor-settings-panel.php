@@ -1,10 +1,4 @@
 <?php 
-/*
- * SNN Settings Panel for Bricks Builder Editor (Improved - No Default Colors)
- *
- * This code adds inline CSS, JavaScript, and a popup container to the site if the
- * 'snn_bricks_builder_color_fix' option is enabled and the URL includes '?bricks=run'.
- */
 
 function snn_custom_inline_styles_and_scripts_improved() {
     // Get options from the settings panel.
@@ -27,22 +21,33 @@ function snn_custom_inline_styles_and_scripts_improved() {
  
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                // console.log("DOM fully loaded, initializing SNN settings panel...");
+                // Helper function to convert any valid CSS color to a hex string.
+                function cssColorToHex(color) {
+                    var dummy = document.createElement("div");
+                    dummy.style.color = color;
+                    document.body.appendChild(dummy);
+                    var computedColor = getComputedStyle(dummy).color;
+                    document.body.removeChild(dummy);
+                    var match = computedColor.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                    if (match) {
+                        var r = parseInt(match[1]).toString(16).padStart(2, "0");
+                        var g = parseInt(match[2]).toString(16).padStart(2, "0");
+                        var b = parseInt(match[3]).toString(16).padStart(2, "0");
+                        return "#" + r + g + b;
+                    }
+                    return null;
+                }
 
                 // Insert SNN button into the Bricks toolbar.
                 function insertSnnListItem(toolbar) {
-                    // console.log("Toolbar found:", toolbar);
-                    
                     // Determine the UL element that holds the li items.
                     var ul = (toolbar.tagName.toLowerCase() === "ul") ? toolbar : toolbar.querySelector("ul");
                     if (!ul) {
-                        // console.log("No ul found in toolbar. Cannot insert SNN li.");
                         return;
                     }
                     
                     // Avoid inserting duplicate SNN li element.
                     if (ul.querySelector(".snn-enhance-li")) {
-                        // console.log("SNN li already exists in the list.");
                         return;
                     }
                     
@@ -52,7 +57,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     li.tabIndex = 0;
                     li.setAttribute("data-balloon", "SNN-BRX");
                     li.setAttribute("data-balloon-pos", "bottom");
-                    // li.innerText = "SNN";
                     li.innerHTML = 'SNN'; 
                     
                     // Click event to open the popup.
@@ -63,10 +67,12 @@ function snn_custom_inline_styles_and_scripts_improved() {
                         }
                     });
                     
-                    // Always append the li element at the end of the list.
-                    //ul.appendChild(li);
-                    ul.insertBefore(li, ul.children[6]);
-                    // console.log("Appended SNN li at the end of the list.");
+                    // Always insert at the desired position.
+                    if (ul.children.length >= 7) {
+                        ul.insertBefore(li, ul.children[6]);
+                    } else {
+                        ul.appendChild(li);
+                    }
                 }
 
                 function findAndInsertSnn() {
@@ -79,26 +85,21 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 }
 
                 var intervalCheck = setInterval(function() {
-                    // console.log("Checking for #bricks-toolbar...");
                     if (findAndInsertSnn()) {
                         clearInterval(intervalCheck);
-                        // console.log("Toolbar found, SNN li inserted.");
                     }
                 }, 500);
 
                 var observer = new MutationObserver(function(mutationsList) {
-                    // console.log("MutationObserver triggered.");
                     mutationsList.forEach(function(mutation) {
                         mutation.addedNodes.forEach(function(node) {
                             if (node.nodeType === 1) {
                                 if (node.matches("#bricks-toolbar")) {
-                                    // console.log("Toolbar detected via MutationObserver.");
                                     insertSnnListItem(node);
                                     clearInterval(intervalCheck);
                                 } else {
                                     var toolbarInside = node.querySelector("#bricks-toolbar");
                                     if (toolbarInside) {
-                                        // console.log("Toolbar found inside a new node.");
                                         insertSnnListItem(toolbarInside);
                                         clearInterval(intervalCheck);
                                     }
@@ -107,9 +108,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                         });
                     });
                 });
-
                 observer.observe(document.body, { childList: true, subtree: true });
-                // console.log("MutationObserver is active.");
 
                 // Close popup when the close button is clicked.
                 document.addEventListener("click", function(e) {
@@ -123,39 +122,55 @@ function snn_custom_inline_styles_and_scripts_improved() {
 
                 // ----- Repeater Functionality for Global Color Variables -----
                 // Function to create a new color row with a static auto-generated name,
-                // a text input for hex value, a color picker (without any default value), and a remove button.
+                // a text input for color value (supports any valid CSS color or CSS variable),
+                // a color picker (updated if a valid color is detected), and a remove button.
                 function createColorRow(hex = "") {
-                    var colorValueAttr = hex ? `value="${hex}"` : "";
+                    function expandShortHex(hexVal) {
+                        return "#" + hexVal[1] + hexVal[1] + hexVal[2] + hexVal[2] + hexVal[3] + hexVal[3];
+                    }
+                    var displayValue = "";
+                    var colorPickerValue = "";
+                    if (hex) {
+                        if (/^#([0-9A-Fa-f]{3})$/.test(hex)) {
+                            displayValue = expandShortHex(hex).toUpperCase();
+                            colorPickerValue = displayValue;
+                        } else if (/^#([0-9A-Fa-f]{6})$/.test(hex)) {
+                            displayValue = hex.toUpperCase();
+                            colorPickerValue = displayValue;
+                        } else {
+                            displayValue = hex;
+                            var converted = cssColorToHex(hex);
+                            if (converted) {
+                                colorPickerValue = converted;
+                            }
+                        }
+                    }
+                    var colorValueAttr = colorPickerValue ? `value="${colorPickerValue}"` : "";
                     var row = document.createElement("div");
                     row.className = "snn-color-row";
                     row.innerHTML = `
                         <span class="snn-color-name-display"></span>
-                        <input type="text" class="snn-hex-input" maxlength="7" placeholder="#ffffff" value="${hex ? hex.toUpperCase() : ''}" />
+                        <input type="text" class="snn-hex-input" placeholder="Enter CSS color" value="${displayValue}" />
                         <input type="color" class="snn-color-picker" ${colorValueAttr} />
                         <button class="snn-remove-color">Remove</button>
                     `;
-                    // Sync hex input and color picker.
+                    // Sync text input and color picker.
                     var hexInput = row.querySelector(".snn-hex-input");
                     var colorPicker = row.querySelector(".snn-color-picker");
 
-                    function expandShortHex(hexVal) {
-                        return "#" + hexVal[1] + hexVal[1] + hexVal[2] + hexVal[2] + hexVal[3] + hexVal[3];
-                    }
-
                     hexInput.addEventListener("input", function() {
                         var inputVal = hexInput.value.trim();
-                        let validFullHex = null;
-                        if (/^#([0-9A-Fa-f]{3})$/.test(inputVal)) {
-                            validFullHex = expandShortHex(inputVal).toUpperCase();
-                        } else if (/^#([0-9A-Fa-f]{6})$/.test(inputVal)) {
-                            validFullHex = inputVal.toUpperCase();
-                        }
-                        if (validFullHex) {
-                            colorPicker.value = validFullHex;
+                        var converted = cssColorToHex(inputVal);
+                        if (converted) {
+                            colorPicker.value = converted;
                         }
                     });
+                    
                     colorPicker.addEventListener("input", function() {
-                        hexInput.value = colorPicker.value.toUpperCase();
+                        // Only update the text input if its current value is already a valid hex.
+                        if (/^#([0-9A-Fa-f]{6})$/.test(hexInput.value.trim())) {
+                            hexInput.value = colorPicker.value.toUpperCase();
+                        }
                     });
 
                     // Remove button event.
@@ -214,7 +229,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                             colorsData.push({ name: autoName, hex: hexValue });
                         }
                     });
-                    // console.log("Saving colors data:", colorsData);
 
                     fetch("<?php echo admin_url('admin-ajax.php'); ?>", {
                         method: "POST",
@@ -575,9 +589,10 @@ function snn_inject_bricks_color_palette() {
         if (!empty($colors) && is_array($colors)) {
             echo "
 <script>
-(function(){\n";
-            echo "if (typeof bricksData !== 'undefined' && bricksData.loadData && bricksData.loadData.colorPalette && bricksData.loadData.colorPalette[0]) {\n";
-            echo "    bricksData.loadData.colorPalette[0].colors.unshift(\n";
+(function(){
+if (typeof bricksData !== 'undefined' && bricksData.loadData && bricksData.loadData.colorPalette && bricksData.loadData.colorPalette[0]) {
+    bricksData.loadData.colorPalette[0].colors.unshift(
+";
             $color_objects = [];
             $index = 1;
             foreach ($colors as $color) {
@@ -593,9 +608,10 @@ function snn_inject_bricks_color_palette() {
                 }
             }
             echo "\n" . implode(",\n", $color_objects) . "\n);";
-            echo "\n}\n";
-            echo "})();
-</script>\n";
+            echo "\n}
+})();
+</script>
+";
         }
     }
 }
