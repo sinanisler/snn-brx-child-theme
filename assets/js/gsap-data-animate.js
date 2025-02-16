@@ -72,7 +72,6 @@ window.onload = function () {
                     ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
                     : {}));
 
-          // Remove "rotate" from the spread so our computed value isn’t overridden.
           let cleanEndStyles = { ...options.endStyles };
           delete cleanEndStyles.rotate;
 
@@ -94,7 +93,6 @@ window.onload = function () {
 
         element._gsapAnimationInstance = timeline;
 
-      // Branch 2: When there are multiple animations
       } else if (animations.length > 1) {
         gsap.set(splitText(element, firstOptions), firstOptions.startStyles);
 
@@ -147,7 +145,6 @@ window.onload = function () {
           observeIfScrollFalse(element, timeline);
         }
 
-      // Branch 3: Single animation (default)
       } else {
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
@@ -209,20 +206,18 @@ window.onload = function () {
 
     setupTriggers();
 
-    // --- PARSER ---
     function parseAnimationOptions(data) {
       if (!data) {
         return { startStyles: {}, endStyles: {} };
       }
       return data.split(',').reduce((acc, option) => {
         option = option.trim();
-        // Try to match tokens without a colon, e.g. "style_start-scale(0)"
         let regex = /^(style_(start|end))-(\w+)\(([^)]+)\)$/;
         let match = option.match(regex);
         if (match) {
-          let type = match[1]; // "style_start" or "style_end"
-          let prop = match[3]; // e.g. "scale", "rotate", "opacity", etc.
-          let value = match[4]; // e.g. "0", "90deg", etc.
+          let type = match[1]; 
+          let prop = match[3]; 
+          let value = match[4]; 
           if (type === "style_start") {
             acc.startStyles[prop] = value;
           } else {
@@ -231,7 +226,6 @@ window.onload = function () {
           return acc;
         }
         
-        // Otherwise, split on the first colon.
         let index = option.indexOf(':');
         if (index === -1) {
           return acc;
@@ -267,7 +261,6 @@ window.onload = function () {
       }, { startStyles: {}, endStyles: {} });
     }
 
-    // --- SCROLL TRIGGER CONFIG ---
     function createScrollTriggerConfig(options, element) {
       const defaultStart = 'top 60%';
       const defaultEnd = 'bottom 40%';
