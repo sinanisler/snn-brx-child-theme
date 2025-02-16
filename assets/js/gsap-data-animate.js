@@ -60,22 +60,29 @@ window.onload = function () {
 
         animations.forEach(animation => {
           const options = parseAnimationOptions(animation);
-          // Check if a rotation was provided in the start/end styles.
-          const hasRotate = options.startStyles.rotate || options.endStyles.rotate;
+          const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
+
+          // Compute rotate value: if an explicit end value exists, use it.
+          // Otherwise, if a start rotation exists, default the ending rotate to 0.
+          const rotateProp = options.endStyles.rotate !== undefined
+            ? { rotate: parseFloat(options.endStyles.rotate) }
+            : (options.startStyles.rotate !== undefined
+                ? { rotate: 0 }
+                : (options.r || options.rotate
+                    ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
+                    : {}));
+
+          // Remove "rotate" from the spread so our computed value isn’t overridden.
+          let cleanEndStyles = { ...options.endStyles };
+          delete cleanEndStyles.rotate;
 
           const animationProps = {
             ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
             ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
             ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
-            // If a rotation is provided via the transform string, use it;
-            // otherwise, check for legacy options "r" or "rotate".
-            ...(options.endStyles.rotate
-              ? { rotate: parseFloat(options.endStyles.rotate) }
-              : (!hasRotate && (options.r || options.rotate)
-                  ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
-                  : {})),
+            ...rotateProp,
             ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
-            ...options.endStyles,
+            ...cleanEndStyles,
             duration: options.duration || 1,
             delay: options.delay || 0,
             stagger: options.stagger ? getStaggerValue(options) : 0,
@@ -98,19 +105,26 @@ window.onload = function () {
 
         animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
-          const hasRotate = options.startStyles.rotate || options.endStyles.rotate;
+          const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
+
+          const rotateProp = options.endStyles.rotate !== undefined
+            ? { rotate: parseFloat(options.endStyles.rotate) }
+            : (options.startStyles.rotate !== undefined
+                ? { rotate: 0 }
+                : (options.r || options.rotate
+                    ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
+                    : {}));
+
+          let cleanEndStyles = { ...options.endStyles };
+          delete cleanEndStyles.rotate;
 
           const animationProps = {
             ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
             ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
             ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
-            ...(options.endStyles.rotate
-              ? { rotate: parseFloat(options.endStyles.rotate) }
-              : (!hasRotate && (options.r || options.rotate)
-                  ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
-                  : {})),
+            ...rotateProp,
             ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
-            ...options.endStyles,
+            ...cleanEndStyles,
             duration: options.duration || 1,
             delay: options.delay || 0,
             stagger: options.stagger ? getStaggerValue(options) : 0,
@@ -133,22 +147,29 @@ window.onload = function () {
           observeIfScrollFalse(element, timeline);
         }
 
+      // Branch 3: Single animation (default)
       } else {
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
-        const hasRotate = options.startStyles.rotate || options.endStyles.rotate;
+        const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
+
+        let cleanStartStyles = { ...options.startStyles };
+        delete cleanStartStyles.rotate;
+
+        let cleanEndStyles = { ...options.endStyles };
+        delete cleanEndStyles.rotate;
 
         const fromProps = {
           ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
           ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
           ...(options.s || options.scale ? { scale: parseFloat(options.s || options.scale) } : {}),
-          ...(options.startStyles.rotate
+          ...(options.startStyles.rotate !== undefined
             ? { rotate: parseFloat(options.startStyles.rotate) }
-            : (!hasRotate && (options.r || options.rotate)
+            : (options.r || options.rotate
                 ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
                 : {})),
           ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
-          ...options.startStyles,
+          ...cleanStartStyles,
           ...(hasRotate ? { force3D: false } : {})
         };
 
@@ -156,13 +177,15 @@ window.onload = function () {
           ...(options.x ? { x: 0 } : {}),
           ...(options.y ? { y: 0 } : {}),
           ...(options.s || options.scale ? { scale: 1 } : {}),
-          ...(options.endStyles.rotate
+          ...(options.endStyles.rotate !== undefined
             ? { rotate: parseFloat(options.endStyles.rotate) }
-            : (!hasRotate && (options.r || options.rotate)
+            : (options.startStyles.rotate !== undefined
                 ? { rotate: 0 }
-                : {})),
-          ...(options.o || options.opacity ? { opacity: 1 } : {}),
-          ...options.endStyles,
+                : (options.r || options.rotate
+                    ? { rotate: 0 }
+                    : {}))),
+          ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
+          ...cleanEndStyles,
           scrollTrigger: scrollTriggerConfig !== false ? scrollTriggerConfig : null,
           stagger: options.stagger ? getStaggerValue(options) : 0,
           duration: options.duration || 1,
@@ -186,15 +209,37 @@ window.onload = function () {
 
     setupTriggers();
 
+    // --- PARSER ---
     function parseAnimationOptions(data) {
       if (!data) {
         return { startStyles: {}, endStyles: {} };
       }
       return data.split(',').reduce((acc, option) => {
-        const [key, value] = option.split(':').map(item => item.trim());
+        option = option.trim();
+        // Try to match tokens without a colon, e.g. "style_start-scale(0)"
+        let regex = /^(style_(start|end))-(\w+)\(([^)]+)\)$/;
+        let match = option.match(regex);
+        if (match) {
+          let type = match[1]; // "style_start" or "style_end"
+          let prop = match[3]; // e.g. "scale", "rotate", "opacity", etc.
+          let value = match[4]; // e.g. "0", "90deg", etc.
+          if (type === "style_start") {
+            acc.startStyles[prop] = value;
+          } else {
+            acc.endStyles[prop] = value;
+          }
+          return acc;
+        }
+        
+        // Otherwise, split on the first colon.
+        let index = option.indexOf(':');
+        if (index === -1) {
+          return acc;
+        }
+        let key = option.substring(0, index).trim();
+        let value = option.substring(index + 1).trim();
         if (key.startsWith('style_start-')) {
-          const cssProp = key.replace('style_start-', '');
-          // If a transform is specified and contains "rotate", extract the rotate value.
+          const cssProp = key.replace('style_start-', '').trim();
           if (cssProp === 'transform' && value.includes('rotate(')) {
             const match = value.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
             if (match) {
@@ -204,7 +249,7 @@ window.onload = function () {
             acc.startStyles[cssProp] = value;
           }
         } else if (key.startsWith('style_end-')) {
-          const cssProp = key.replace('style_end-', '');
+          const cssProp = key.replace('style_end-', '').trim();
           if (cssProp === 'transform' && value.includes('rotate(')) {
             const match = value.match(/rotate\((-?\d+(?:\.\d+)?)deg\)/);
             if (match) {
@@ -222,6 +267,7 @@ window.onload = function () {
       }, { startStyles: {}, endStyles: {} });
     }
 
+    // --- SCROLL TRIGGER CONFIG ---
     function createScrollTriggerConfig(options, element) {
       const defaultStart = 'top 60%';
       const defaultEnd = 'bottom 40%';
@@ -240,7 +286,6 @@ window.onload = function () {
         end: finalEnd,
         scrub: options.scrub === 'true' ? true : parseFloat(options.scrub) || 1,
         pin: options.pin === 'true',
-        
         markers: (options.markers === 'true' && options.scroll !== 'false') ? true : false,
         toggleClass: options.toggleClass || null,
         pinSpacing: options.pinSpacing || 'margin',
@@ -254,19 +299,15 @@ window.onload = function () {
       if (!value) {
         return defaultValue;
       }
-
       if (/\s/.test(value)) {
         return value; 
       }
-
       if (/^\d+(\.\d+)?(px)?$/i.test(value)) {
         return 'top+=' + value;
       }
-
       if (/^\d+(\.\d+)?%$/.test(value)) {
         return 'top ' + value;
       }
-
       return value;
     }
 
