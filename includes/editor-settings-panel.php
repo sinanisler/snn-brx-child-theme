@@ -52,7 +52,8 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     li.tabIndex = 0;
                     li.setAttribute("data-balloon", "SNN-BRX");
                     li.setAttribute("data-balloon-pos", "bottom");
-                    li.innerText = "SNN";
+                    // li.innerText = "SNN";
+                    li.innerHTML = 'SNN'; 
                     
                     // Click event to open the popup.
                     li.addEventListener("click", function() {
@@ -63,7 +64,8 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     });
                     
                     // Always append the li element at the end of the list.
-                    ul.appendChild(li);
+                    //ul.appendChild(li);
+                    ul.insertBefore(li, ul.children[6]);
                     // console.log("Appended SNN li at the end of the list.");
                 }
 
@@ -290,8 +292,15 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 font-weight: 600;
             }
             .snn-enhance-li {
-                padding-left: 5px;
+                width:26px !important;
+                padding-left: 3px;
                 font-size: 12px;
+                letter-spacing: -0.3px;
+                padding-top: 1px;
+            }
+            .snn-enhance-li i{
+                font-size: 19px;
+                opacity: 0.8;
             }
             #snn-popup-inner {
                 background-color: var(--builder-bg);
