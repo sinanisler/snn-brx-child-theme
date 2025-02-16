@@ -1,37 +1,32 @@
 <?php
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly
+    exit; 
 }
 
 define('SNN_OPTIONS', 'snn_cookie_settings_options');
 
 function snn_add_cookie_settings_submenu() {
     add_submenu_page(
-        'snn-settings',               // Parent menu slug (existing main menu)
-        'SNN Cookie Settings',        // Page title
-        'Cookie Settings',            // Submenu title
-        'manage_options',             // Capability
-        'snn-cookie-settings',        // Menu slug
-        'snn_options_page'            // Callback function
+        'snn-settings',               
+        'SNN Cookie Settings',        
+        'Cookie Settings',          
+        'manage_options',          
+        'snn-cookie-settings',      
+        'snn_options_page'            
     );
 }
 add_action('admin_menu', 'snn_add_cookie_settings_submenu', 10);
 
 function snn_options_page() {
-    // Security: Ensure the current user has proper capability
     if ( ! current_user_can('manage_options') ) {
         wp_die(__('You do not have sufficient permissions to access this page.', 'snn-cookie-banner'));
     }
     
-    // Handle form submission
     if ( isset($_POST['snn_options_nonce']) && wp_verify_nonce( $_POST['snn_options_nonce'], 'snn_save_options' ) ) {
         $options = array();
-        // ----- General Settings Tab -----
         $options['snn_cookie_settings_enable_cookie_banner'] = isset($_POST['snn_cookie_settings_enable_cookie_banner']) ? 'yes' : 'no';
-        // New checkbox: Disable for Logged-In Users
         $options['snn_cookie_settings_disable_for_logged_in'] = isset($_POST['snn_cookie_settings_disable_for_logged_in']) ? 'yes' : 'no';
-        // Use wp_kses_post to allow safe HTML in the description
         $options['snn_cookie_settings_banner_description']   = isset($_POST['snn_cookie_settings_banner_description']) ? wp_kses_post( wp_unslash($_POST['snn_cookie_settings_banner_description']) ) : '';
         $options['snn_cookie_settings_accept_button']        = isset($_POST['snn_cookie_settings_accept_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_accept_button']) ) : '';
         $options['snn_cookie_settings_deny_button']          = isset($_POST['snn_cookie_settings_deny_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_deny_button']) ) : '';
@@ -42,18 +37,15 @@ function snn_options_page() {
         $options['snn_cookie_settings_button_bg_color']      = isset($_POST['snn_cookie_settings_button_bg_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_bg_color']) ) : '';
         $options['snn_cookie_settings_button_text_color']    = isset($_POST['snn_cookie_settings_button_text_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_text_color']) ) : '';
         
-        // ----- Scripts & Services Tab -----
-        // Removed Google Consent Mode feature
         
         $services = array();
         if ( isset($_POST['snn_cookie_settings_services']) && is_array($_POST['snn_cookie_settings_services']) ) {
             foreach( $_POST['snn_cookie_settings_services'] as $service ) {
                 if ( empty( $service['name'] ) ) {
-                    continue; // Skip if no service name is provided.
+                    continue;
                 }
                 $service_data = array();
                 $service_data['name'] = sanitize_text_field( wp_unslash($service['name']) );
-                // Save the script exactly as provided (unsanitized, unslashed)
                 $service_data['script'] = isset($service['script']) ? wp_unslash($service['script']) : '';
                 $service_data['position'] = isset($service['position']) ? sanitize_text_field( wp_unslash($service['position']) ) : 'body_bottom';
                 $service_data['mandatory'] = isset($service['mandatory']) ? 'yes' : 'no';
@@ -62,14 +54,12 @@ function snn_options_page() {
         }
         $options['snn_cookie_settings_services'] = $services;
         
-        // Custom CSS remains unsanitized
         $options['snn_cookie_settings_custom_css'] = isset($_POST['snn_cookie_settings_custom_css']) ? wp_unslash($_POST['snn_cookie_settings_custom_css']) : '';
         
         update_option( SNN_OPTIONS, $options );
         echo '<div class="updated"><p>Settings saved.</p></div>';
     }
     
-    // Get existing options or set defaults
     $options = get_option( SNN_OPTIONS );
     if ( !is_array($options) ) {
         $options = array(
@@ -91,14 +81,12 @@ function snn_options_page() {
     ?>
     <div class="wrap">
         <h1>Cookie Banner</h1>
-        <!-- Admin CSS -->
         <style>
             .snn-textarea { width: 500px; }
             .snn-input { width: 300px; }
             .snn-color-picker { }
             .snn-services-repeater .snn-service-item { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; max-width:600px }
             .snn-custom-css-textarea { width: 500px; }
-            /* Tabs styling */
             .snn-tab { cursor:pointer; display: inline-block; margin-right: 10px; padding: 8px 12px; border: 1px solid #ccc; border-bottom: none; background: #f1f1f1; }
             .snn-tab.active { background: #fff; font-weight: bold; }
             .snn-tab-content { border: 1px solid #ccc; padding: 15px; display: none; }
@@ -108,17 +96,14 @@ function snn_options_page() {
             .snn-service-item textarea { width: 100%; }
             .snn-service-item .snn-radio-group label { margin-right: 10px; }
         </style>
-        <!-- Tabs Navigation -->
         <div class="snn-tabs">
             <span class="snn-tab active" data-tab="general">General Settings</span>
             <span class="snn-tab" data-tab="scripts">Scripts &amp; Services</span>
         </div>
         <form method="post">
             <?php wp_nonce_field( 'snn_save_options', 'snn_options_nonce' ); ?>
-            <!-- General Settings Tab Content -->
             <div id="general" class="snn-tab-content active">
                 <table class="form-table">
-                    <!-- Enable Cookie Banner -->
                     <tr valign="top">
                         <th scope="row">Enable Cookie Banner</th>
                         <td>
@@ -126,7 +111,6 @@ function snn_options_page() {
                             <span class="description">Check to enable the Cookie Banner on your site.</span>
                         </td>
                     </tr>
-                    <!-- New: Disable for Logged-In Users -->
                     <tr valign="top">
                         <th scope="row">Disable for Logged-In Users</th>
                         <td>
@@ -138,7 +122,6 @@ function snn_options_page() {
                         <th scope="row">Cookie Banner Description</th>
                         <td>
                             <?php 
-                            // Use wp_editor to output the TinyMCE editor with the current description.
                             wp_editor( 
                                 isset($options['snn_cookie_settings_banner_description']) ? $options['snn_cookie_settings_banner_description'] : '', 
                                 'snn_cookie_settings_banner_description_editor', 
@@ -205,9 +188,7 @@ function snn_options_page() {
                     </tr>
                 </table>
             </div>
-            <!-- Scripts & Services Tab Content -->
             <div id="scripts" class="snn-tab-content">
-                <!-- Added description for Scripts & Services -->
                 <p class="description">
                 Use this tab to add or modify services to ensure they load according to user consent preferences.
                     <br>
@@ -252,7 +233,6 @@ function snn_options_page() {
                                         $service_index++;
                                     }
                                 } else {
-                                    // Output one empty service item with index 0 if none exist.
                                     ?>
                                     <div class="snn-service-item">
                                         <label>Service Name:
@@ -273,7 +253,7 @@ function snn_options_page() {
                                         <button class="remove-service snn-remove-service button">Remove</button>
                                     </div>
                                     <?php
-                                    $service_index = 1; // Next index should be 1.
+                                    $service_index = 1; 
                                 }
                                 ?>
                             </div>
@@ -281,7 +261,6 @@ function snn_options_page() {
                             <script>
                             (function($){
                                 $(document).ready(function(){
-                                    // Set the starting index based on PHP output
                                     var serviceIndex = <?php echo $service_index; ?>;
                                     $('#add-service').click(function(e){
                                         e.preventDefault();
@@ -333,7 +312,6 @@ function snn_options_page() {
             </div>
             <?php submit_button(); ?>
         </form>
-        <!-- Tabs Script -->
         <script>
         (function($){
             $(document).ready(function(){
@@ -351,32 +329,21 @@ function snn_options_page() {
     <?php
 }
 
-/* ============================================================================ 
-   FRONTEND COOKIE BANNER, CUSTOM CSS & SCRIPT ENCODING
-============================================================================ */
 
-/**
- * 1) Output the cookie banner.
- *    The banner will only output if the admin has enabled it.
- */
 function snn_output_cookie_banner() {
     $options = get_option( SNN_OPTIONS );
     if ( ! $options ) {
         return;
     }
-    // If the cookie banner is not enabled, do not output it.
     if ( empty($options['snn_cookie_settings_enable_cookie_banner']) || $options['snn_cookie_settings_enable_cookie_banner'] !== 'yes' ) {
         return;
     }
-    // If "Disable for Logged-In Users" is enabled and the user is logged in, do not output the banner.
     if ( ! empty($options['snn_cookie_settings_disable_for_logged_in']) && $options['snn_cookie_settings_disable_for_logged_in'] === 'yes' && is_user_logged_in() ) {
         return;
     }
     
-    // Determine banner position class and output dynamic CSS
     $position = isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : 'left';
     
-    // Check for an existing consent cookie to hide the banner immediately (to avoid flashing)
     $accepted = isset($_COOKIE['snn_cookie_accepted']) ? $_COOKIE['snn_cookie_accepted'] : '';
     $banner_style = ( in_array($accepted, array('true', 'false', 'custom')) ) ? ' style="display: none;"' : '';
     ?>
@@ -430,7 +397,6 @@ function snn_output_cookie_banner() {
         margin-top: 0;
         font-weight:600;
     }
-    /* Toggle switch style */
     .snn-switch {
       position: relative;
       display: inline-block;
@@ -466,12 +432,10 @@ function snn_output_cookie_banner() {
     .snn-switch input:checked + .snn-slider:before {
       transform: translateX(20px);
     }
-    /* Disabled (mandatory) switch styling */
     .snn-switch input:disabled + .snn-slider {
       background-color: #ccc;
       cursor: not-allowed;
     }
-    /* Responsive Styles for small screens */
     @media (max-width: 768px) {
       .snn-cookie-banner {
           width: calc(100% - 20px);
@@ -527,10 +491,7 @@ function snn_output_cookie_banner() {
 }
 add_action('wp_footer', 'snn_output_cookie_banner');
 
-/**
- * 2) Output service scripts as Base64-encoded data in hidden divs.
- *    This replaces the previous static script areas.
- */
+
 function snn_output_service_scripts() {
     $options = get_option( SNN_OPTIONS );
     if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) {
@@ -552,19 +513,12 @@ function snn_output_service_scripts() {
 }
 add_action('wp_footer', 'snn_output_service_scripts', 99);
 
-/**
- * 3) Add JavaScript to:
- *    - Save and check user preferences using cookies (with a 365-day expiration)
- *    - Dynamically inject service scripts from the hidden divs based on consent and custom preferences
- */
 function snn_output_banner_js() {
     $options = get_option(SNN_OPTIONS);
-    // Pass the banner-enabled flag to JS.
     $cookie_banner_enabled = ( isset($options['snn_cookie_settings_enable_cookie_banner']) && $options['snn_cookie_settings_enable_cookie_banner'] === 'yes' ) ? 'true' : 'false';
     ?>
     <script>
     (function(){
-        // Cookie helper functions
         function setCookie(name, value, days) {
             var expires = "";
             if (days) {
@@ -590,7 +544,6 @@ function snn_output_banner_js() {
             document.cookie = name+'=; Max-Age=-99999999; path=/';  
         }
         
-        // If the cookie banner is disabled in settings, inject all scripts immediately.
         var cookieBannerEnabled = <?php echo $cookie_banner_enabled; ?>;
         if (!cookieBannerEnabled) {
             var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
@@ -605,7 +558,6 @@ function snn_output_banner_js() {
             return;
         }
         
-        // Function to inject a script into the specified position
         function injectScript(decodedCode, position) {
             var tempDiv = document.createElement('div');
             tempDiv.innerHTML = decodedCode;
@@ -633,7 +585,6 @@ function snn_output_banner_js() {
             });
         }
         
-        // Inject mandatory scripts immediately
         function injectMandatoryScripts() {
             var mandatoryDivs = document.querySelectorAll('.snn-service-script[data-mandatory="yes"]');
             mandatoryDivs.forEach(function(div){
@@ -646,7 +597,6 @@ function snn_output_banner_js() {
             });
         }
         
-        // Dynamically inject non-mandatory scripts when consent is granted (all scripts)
         function injectAllConsentScripts() {
             var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
             hiddenDivs.forEach(function(div){
@@ -661,7 +611,6 @@ function snn_output_banner_js() {
             });
         }
         
-        // Dynamically inject non-mandatory scripts based on custom preferences
         function injectCustomConsentScripts() {
             var prefs = getCookie('snn_cookie_services');
             if(prefs) {
@@ -685,10 +634,8 @@ function snn_output_banner_js() {
             }
         }
         
-        // Inject mandatory scripts regardless of consent
         injectMandatoryScripts();
         
-        // Event handlers for the banner buttons
         var acceptBtn = document.querySelector('.snn-accept');
         var denyBtn = document.querySelector('.snn-deny');
         var prefsBtn = document.querySelector('.snn-preferences');
@@ -732,7 +679,6 @@ function snn_output_banner_js() {
             });
         }
         
-        // Check cookies for saved consent and act accordingly
         var storedConsent = getCookie('snn_cookie_accepted');
         if (storedConsent === 'true') {
             injectAllConsentScripts();
@@ -749,10 +695,7 @@ function snn_output_banner_js() {
 }
 add_action('wp_footer', 'snn_output_banner_js', 100);
 
-/**
- * 4) Output custom CSS for the cookie banner.
- *    Moved from wp_head to wp_footer with a high priority to ensure it overrides default styles.
- */
+
 function snn_output_custom_css() {
     $options = get_option( SNN_OPTIONS );
     if ( !empty($options['snn_cookie_settings_custom_css']) ) {
