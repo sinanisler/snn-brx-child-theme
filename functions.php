@@ -74,24 +74,29 @@ add_action('init', function () {
         \Bricks\Elements::register_element($custom_maps_file);
     }
 
+    // Check if GSAP setting enabled or dont load elements
     $options = get_option('snn_other_settings');
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
+
         $lottie_animation_file = SNN_PATH . 'includes/elements/lottie-animation.php';
         if (file_exists($lottie_animation_file)) {
             require_once $lottie_animation_file;
             \Bricks\Elements::register_element($lottie_animation_file);
         }
+
+        $gsap_animation_element = SNN_PATH . 'includes/elements/gsap-animations.php';
+        if (file_exists($gsap_animation_element)) {
+            require_once $gsap_animation_element;
+            \Bricks\Elements::register_element($gsap_animation_element);
+        }
+    
+        $gsap_animation_element = SNN_PATH . 'includes/elements/gsap-text-animations.php';
+        if (file_exists($gsap_animation_element)) {
+            require_once $gsap_animation_element;
+            \Bricks\Elements::register_element($gsap_animation_element);
+        }    
+
     }
 
-    $gsap_animation_element = SNN_PATH . 'includes/elements/gsap-animations.php';
-    if (file_exists($gsap_animation_element)) {
-        require_once $gsap_animation_element;
-        \Bricks\Elements::register_element($gsap_animation_element);
-    }
 
-    $gsap_animation_element = SNN_PATH . 'includes/elements/gsap-text-animations.php';
-    if (file_exists($gsap_animation_element)) {
-        require_once $gsap_animation_element;
-        \Bricks\Elements::register_element($gsap_animation_element);
-    }
 }, 11);
