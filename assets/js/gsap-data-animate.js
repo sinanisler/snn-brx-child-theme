@@ -4,6 +4,19 @@ window.onload = function () {
   setTimeout(() => {
     const animateElements = document.querySelectorAll('[data-animate]');
 
+    function addVisibilityCallback(props) {
+      const originalOnStart = props.onStart;
+      props.onStart = function () {
+        this.targets().forEach(el => {
+          el.style.visibility = "visible";
+        });
+        if (originalOnStart) {
+          originalOnStart.call(this);
+        }
+      };
+      return props;
+    }
+
     function observeIfScrollFalse(element, animationInstance) {
       const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
@@ -62,8 +75,7 @@ window.onload = function () {
           const options = parseAnimationOptions(animation);
           const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
 
-          // Compute rotate value: if an explicit end value exists, use it.
-          // Otherwise, if a start rotation exists, default the ending rotate to 0.
+          // Compute rotate value
           const rotateProp = options.endStyles.rotate !== undefined
             ? { rotate: parseFloat(options.endStyles.rotate) }
             : (options.startStyles.rotate !== undefined
@@ -88,7 +100,7 @@ window.onload = function () {
             ...(hasRotate ? { force3D: false } : {})
           };
 
-          timeline.to(splitText(element, options), animationProps);
+          timeline.to(splitText(element, options), addVisibilityCallback(animationProps));
         });
 
         element._gsapAnimationInstance = timeline;
@@ -131,7 +143,7 @@ window.onload = function () {
 
           timeline.to(
             splitText(element, options),
-            animationProps,
+            addVisibilityCallback(animationProps),
             index > 0 ? `+=${options.delay || 0}` : 0
           );
         });
@@ -191,7 +203,11 @@ window.onload = function () {
           ...(hasRotate ? { force3D: false } : {})
         };
 
-        const tween = gsap.fromTo(splitText(element, options), fromProps, toProps);
+        const tween = gsap.fromTo(
+          splitText(element, options),
+          fromProps,
+          addVisibilityCallback(toProps)
+        );
 
         element._gsapAnimationInstance = tween;
 
@@ -215,9 +231,9 @@ window.onload = function () {
         let regex = /^(style_(start|end))-(\w+)\(([^)]+)\)$/;
         let match = option.match(regex);
         if (match) {
-          let type = match[1]; 
-          let prop = match[3]; 
-          let value = match[4]; 
+          let type = match[1];
+          let prop = match[3];
+          let value = match[4];
           if (type === "style_start") {
             acc.startStyles[prop] = value;
           } else {
@@ -225,7 +241,7 @@ window.onload = function () {
           }
           return acc;
         }
-        
+
         let index = option.indexOf(':');
         if (index === -1) {
           return acc;
@@ -293,7 +309,7 @@ window.onload = function () {
         return defaultValue;
       }
       if (/\s/.test(value)) {
-        return value; 
+        return value;
       }
       if (/^\d+(\.\d+)?(px)?$/i.test(value)) {
         return 'top+=' + value;
@@ -311,8 +327,8 @@ window.onload = function () {
         const chars = text.split('');
         const startStylesString = convertStylesToString(options.startStyles);
         element.innerHTML = chars
-          .map(char => 
-            char === ' ' 
+          .map(char =>
+            char === ' '
               ? `<span style="display:inline-block; position:relative;">&nbsp;</span>`
               : `<span style="display:inline-block; position:relative; ${startStylesString}">${char}</span>`
           )
