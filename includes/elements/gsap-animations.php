@@ -140,7 +140,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 'style_start-grayscale' => [
                     'label'       => esc_html__( 'Grayscale Start (%)', 'bricks' ),
                     'type'        => 'number',
-                    'placeholder' => '0',
+                    'placeholder' => '1-100',
                     'min'         => '0',
                     'max'         => '100',
                     'step'        => '1',
@@ -148,8 +148,8 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 'style_end-grayscale' => [
                     'label'       => esc_html__( 'Grayscale End (%)', 'bricks' ),
                     'type'        => 'number',
-                    'placeholder' => '0',
-                    'min'         => '0',
+                    'placeholder' => '1-100',
+                    'min'         => '100',
                     'max'         => '100',
                     'step'        => '1',
                 ],
