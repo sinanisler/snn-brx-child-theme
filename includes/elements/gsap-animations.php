@@ -170,7 +170,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $this->controls['loop'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Loop', 'bricks' ),
+            'label'       => esc_html__( 'Loop / yoyo', 'bricks' ),
             'type'        => 'select',
             'options'     => [
                 'true'  => esc_html__( 'Yes', 'bricks' ),
@@ -404,9 +404,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $data_animate_attr = ! empty( $data_animate ) ? ' data-animate="' . esc_attr( $data_animate ) . '"' : '';
 
-        $other_attributes = $this->render_attributes( '_root' );
-
-        echo '<div ' . $data_animate_attr . ' ' . $other_attributes . '>';
+        echo '<div ' . $this->render_attributes('_root') . $data_animate_attr . '>';
         echo Frontend::render_children( $this );
         echo '</div>';
     }
