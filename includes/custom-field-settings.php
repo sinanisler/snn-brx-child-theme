@@ -12,7 +12,6 @@ function snn_add_custom_fields_submenu() {
 }
 add_action('admin_menu', 'snn_add_custom_fields_submenu', 10);
 
-
 add_filter(
     'wp_default_editor',
     function () {
@@ -118,56 +117,6 @@ function snn_custom_fields_page_callback() {
                         </div>
                         <?php
                     }
-                } else {
-                    ?>
-                    <div class="custom-field-row" data-index="0">
-
-                        <div class="buttons">
-                            <button type="button" class="move-up">▲</button>
-                            <button type="button" class="move-down">▼</button>
-                            <button type="button" class="remove-field">Remove</button>
-                        </div>
-
-                        <label>Group Name</label>
-                        <input type="text" name="custom_fields[0][group_name]" placeholder="Group Name" />
-
-                        <label>Field Name</label>
-                        <input type="text" name="custom_fields[0][name]" placeholder="Field Name" />
-
-                        <label>Field Type</label>
-                        <select name="custom_fields[0][type]" class="field-type-select">
-                            <option value="text">Text</option>
-                            <option value="number">Number</option>
-                            <option value="textarea">Textarea</option>
-                            <option value="rich_text">Rich Text</option>
-                            <option value="media">Media</option>
-                            <option value="date">Date</option>
-                            <option value="color">Color</option>
-                        </select>
-
-                        <label>Post Types</label>
-                        <select name="custom_fields[0][post_type][]" multiple>
-                            <?php foreach ($post_types as $post_type) : ?>
-                                <option value="<?php echo esc_attr($post_type->name); ?>">
-                                    <?php echo esc_html($post_type->label); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-
-                        <label>Taxonomies</label>
-                        <select name="custom_fields[0][taxonomies][]" multiple>
-                            <?php foreach ($taxonomies as $tax) : ?>
-                                <option value="<?php echo esc_attr($tax->name); ?>">
-                                    <?php echo esc_html($tax->label); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-
-                        <label>Repeater</label>
-                        <input type="checkbox" name="custom_fields[0][repeater]" disabled />
-
-                    </div>
-                    <?php
                 }
                 ?>
             </div>
