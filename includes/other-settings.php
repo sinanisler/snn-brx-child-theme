@@ -113,7 +113,6 @@ function snn_sanitize_other_settings($input) {
 
     $sanitized['enqueue_gsap'] = isset($input['enqueue_gsap']) && $input['enqueue_gsap'] ? 1 : 0;
 
-    // If the revisions_limit field is empty, save an empty string to allow WordPress defaults.
     if (isset($input['revisions_limit']) && $input['revisions_limit'] !== '') {
         $sanitized['revisions_limit'] = intval($input['revisions_limit']);
     } else {
@@ -121,13 +120,9 @@ function snn_sanitize_other_settings($input) {
     }
 
     $sanitized['auto_update_bricks'] = isset($input['auto_update_bricks']) && $input['auto_update_bricks'] ? 1 : 0;
-
     $sanitized['move_bricks_menu'] = isset($input['move_bricks_menu']) && $input['move_bricks_menu'] ? 1 : 0;
-
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
-
     $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
-
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
 
     if (isset($input['dashboard_custom_metabox_content'])) {
@@ -163,7 +158,6 @@ function snn_enqueue_gsap_callback() {
 
 function snn_revisions_limit_callback() {
     $options = get_option('snn_other_settings');
-    // Only display a value if revisions_limit is set and greater than 0; otherwise, show an empty field.
     $value = (isset($options['revisions_limit']) && $options['revisions_limit'] !== '' && intval($options['revisions_limit']) > 0) 
              ? intval($options['revisions_limit']) 
              : '';
@@ -224,7 +218,7 @@ function snn_dashboard_custom_metabox_content_callback() {
     ?>
     <textarea name="snn_other_settings[dashboard_custom_metabox_content]" rows="5" class="large-text" style="max-width:600px"><?php echo esc_textarea($content); ?></textarea>
     <p>
-        Enter the HTML content for the custom dashboard metabox. You can include HTML tags for formatting.
+        Enter the HTML content for the custom dashboard metabox. You can include HTML tags for formatting, and now you can also paste shortcodes which will be executed.
     </p>
     <?php
 }
@@ -239,6 +233,7 @@ function snn_enqueue_gsap_scripts() {
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_gsap_scripts');
+add_action('admin_enqueue_scripts', 'snn_enqueue_gsap_scripts');
 
 function snn_limit_post_revisions($num, $post) {
     $options = get_option('snn_other_settings');
@@ -296,17 +291,14 @@ add_action('admin_head', 'snn_hide_comments_section');
 function snn_add_thumbnail_column() {
     $options = get_option('snn_other_settings');
     if (isset($options['enable_thumbnail_column']) && $options['enable_thumbnail_column']) {
-        // Add Thumbnail column to the default 'post' post type
         add_filter('manage_posts_columns', 'snn_add_thumbnail_column_header');
         add_action('manage_posts_custom_column', 'snn_display_thumbnail_column', 10, 2);
 
-        // Add Thumbnail column to all registered custom post types (if they support thumbnails) except "product"
         $post_types = get_post_types(array('public' => true), 'names');
         foreach ($post_types as $post_type) {
             if ($post_type === 'post' || $post_type === 'product') {
                 continue;
             }
-            // Only add the thumbnail column if the post type supports featured images.
             if (!post_type_supports($post_type, 'thumbnail')) {
                 continue;
             }
@@ -329,7 +321,7 @@ function snn_add_thumbnail_column_header($columns) {
     $new_columns = array();
     foreach ($columns as $key => $value) {
         $new_columns[$key] = $value;
-        if ($key === 'title') { // Insert our column after the title column.
+        if ($key === 'title') {
             $new_columns['post_thumbnail'] = __('Thumbnail');
         }
     }
@@ -384,6 +376,16 @@ function snn_maybe_add_dashboard_custom_metabox() {
 }
 add_action('wp_dashboard_setup', 'snn_maybe_add_dashboard_custom_metabox');
 
+/**
+ * Display custom dashboard metabox content.
+ *
+ * If the textarea content contains any shortcode syntax, we “delay”
+ * the execution of frontend head/footer actions so that all enqueued frontend
+ * styles/scripts (even those added very late) are captured.
+ *
+ * We also remove the deprecated wp_admin_bar_header action and force-print
+ * the inline CSS with ID "bricks-frontend-inline-inline-css" if missing.
+ */
 function snn_display_custom_dashboard_metabox() {
     $options = get_option('snn_other_settings');
     $content = isset($options['dashboard_custom_metabox_content']) ? $options['dashboard_custom_metabox_content'] : '';
@@ -392,7 +394,53 @@ function snn_display_custom_dashboard_metabox() {
     $content = str_replace('{first_name}', esc_html($current_user->user_firstname), $content);
     $content = str_replace('{homepage_url}', esc_url(home_url('/')), $content);
 
-    echo $content;
+    // Check for shortcode syntax in the content.
+    if ( preg_match('/\[[^\]]+\]/', $content) ) {
+
+        // Remove the deprecated admin bar header to avoid its notice.
+        remove_action('wp_head', 'wp_admin_bar_header');
+
+        // Capture very-late head resources.
+        ob_start();
+        do_action('wp_head');
+        $frontend_head = ob_get_clean();
+
+        // Capture extra styles and scripts.
+        ob_start();
+        wp_print_styles();
+        wp_print_scripts();
+        $extra_resources = ob_get_clean();
+
+        // Ensure the inline CSS with ID "bricks-frontend-inline-inline-css" is present.
+        if ( false === strpos($frontend_head, "bricks-frontend-inline-inline-css") ) {
+            ob_start();
+            wp_print_styles('bricks-frontend-inline-inline-css');
+            $bricks_inline_css = ob_get_clean();
+            $frontend_head .= $bricks_inline_css;
+            echo '
+            <style>
+                .postbox-container{width:100% !important}
+                .postbox-header, #screen-meta-links {display:none}
+                .inside{margin:0 !important; padding:0 !important}
+                #wpcontent{padding-left:0 !important}
+                .wrap{margin:0 !important; width:100% !important; display:flex !important; flex-direction: column;     overflow-x: hidden;}
+                #dashboard-widgets{padding:0 !important}
+                .wrap h1:first-of-type{display:none}
+            </style>
+            ';
+        }
+
+        // Capture footer resources.
+        ob_start();
+        do_action('wp_footer');
+        $frontend_footer = ob_get_clean();
+
+        echo $frontend_head . $extra_resources;
+        echo do_shortcode($content);
+        echo $frontend_footer;
+    } else {
+        echo do_shortcode($content);
+    }
 }
 
 ?>
