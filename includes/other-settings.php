@@ -426,6 +426,7 @@ function snn_display_custom_dashboard_metabox() {
                 .wrap{margin:0 !important; width:100% !important; display:flex !important; flex-direction: column;     overflow-x: hidden;}
                 #dashboard-widgets{padding:0 !important}
                 .wrap h1:first-of-type{display:none}
+                .postbox{border:none !important}
             </style>
             ';
         }
