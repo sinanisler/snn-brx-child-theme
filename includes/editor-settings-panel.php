@@ -518,6 +518,12 @@ add_action('wp_footer', 'snn_popup_container_improved');
 
 // AJAX handler for saving the color settings.
 function snn_save_color_settings_improved() {
+    // Check user capabilities.
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( 'Unauthorized' );
+        wp_die();
+    }
+
     // Verify nonce for security.
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'snn_save_colors_nonce' ) ) {
         wp_send_json_error('Invalid nonce');
