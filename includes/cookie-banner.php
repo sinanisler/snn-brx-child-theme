@@ -353,7 +353,7 @@ function snn_output_cookie_banner() {
        bottom: 10px;
        width: 400px;
        z-index: 9999;
-       padding: 15px;
+       padding: 10px;
        background: <?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>;
        color: <?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;
        box-shadow:0px 0px 10px #00000055;
@@ -366,7 +366,6 @@ function snn_output_cookie_banner() {
     
     .snn-preferences-content {
         display: none;
-        padding-top: 10px;
     }
     .snn-banner-buttons {
         display: flex;
@@ -376,9 +375,8 @@ function snn_output_cookie_banner() {
     .snn-banner-text{
     margin-bottom:10px;
     }
-    .snn-service-name span{
-    font-size:11px;
-    opacity:0.7
+    .snn-service-name span{ 
+    font-weight:900;
     }
     .snn-banner-buttons .snn-button {
         background: <?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : '#555555'; ?>;
@@ -396,6 +394,7 @@ function snn_output_cookie_banner() {
     .snn-preferences-title {
         margin-top: 0;
         font-weight:600;
+        text-align:center;
     }
     .snn-switch {
       position: relative;
@@ -449,7 +448,6 @@ function snn_output_cookie_banner() {
           flex-direction: column;
       }
       .snn-banner-buttons .snn-button {
-          margin-top:8px;
           width: 100%;
           text-align: center;
       }
@@ -468,7 +466,9 @@ function snn_output_cookie_banner() {
                         <span class="snn-service-name">
                             <?php echo esc_html( $service['name'] ); ?>
                             <?php if ( isset($service['mandatory']) && $service['mandatory'] === 'yes' ) { ?>
-                                <span> (<?php _e('Mandatory', 'snn-cookie-banner'); ?>) </span>
+                                <span  > 
+                                        <?php _e('*', 'snn-cookie-banner'); ?> 
+                                </span>
                             <?php } ?>
                         </span>
                         <label class="snn-switch">
