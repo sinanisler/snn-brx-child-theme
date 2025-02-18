@@ -14,11 +14,12 @@ add_action('admin_menu', function () {
 
 add_action('admin_init', function () {
 
-    // Process Categories Save (unchanged)
-    if (isset($_POST['bgcc_categories_submit']) && wp_verify_nonce($_POST['bgcc_categories_nonce'], 'bgcc_save_categories')) {
-        $postedCategories = $_POST['categories'] ?? null;
-        $new_categories   = [];
+    // Combined Save All Processing
+    if (isset($_POST['bgcc_save_all']) && wp_verify_nonce($_POST['bgcc_nonce'], 'bgcc_save_all')) {
 
+        // Process Categories Save
+        $postedCategories = $_POST['categories'] ?? null;
+        $new_categories = [];
         if ($postedCategories && is_array($postedCategories)) {
             foreach ($postedCategories as $c) {
                 $catId   = !empty($c['id']) ? sanitize_text_field($c['id']) : bgcc_rand_id();
@@ -31,15 +32,9 @@ add_action('admin_init', function () {
                 }
             }
         }
-
         update_option('bricks_global_classes_categories', $new_categories);
-        add_settings_error('bgcc_messages', 'bgcc_categories_message', 'Categories Saved', 'updated');
-        wp_redirect(add_query_arg(['page' => 'bricks-global-classes', 'categories-updated' => 'true'], admin_url('admin.php')));
-        exit;
-    }
 
-    // Process Classes Save – now using a single JSON field to avoid too many input variables.
-    if (isset($_POST['bgcc_classes_submit']) && wp_verify_nonce($_POST['bgcc_classes_nonce'], 'bgcc_save_classes')) {
+        // Process Classes Save – now using a single JSON field to avoid too many input variables.
         $existing_classes = get_option('bricks_global_classes', []);
         $oldClassById     = [];
         foreach ($existing_classes as $cl) {
@@ -80,8 +75,13 @@ add_action('admin_init', function () {
         }
 
         update_option('bricks_global_classes', $new_classes);
-        add_settings_error('bgcc_messages', 'bgcc_classes_message', 'Classes Saved', 'updated');
-        wp_redirect(add_query_arg(['page' => 'bricks-global-classes', 'classes-updated' => 'true'], admin_url('admin.php')));
+
+        // Process the new "Load inline" option.
+        $inline = isset($_POST['bgcc_inline']) ? 1 : 0;
+        update_option('bricks_global_classes_inline', $inline);
+
+        add_settings_error('bgcc_messages', 'bgcc_save_message', 'Settings Saved', 'updated');
+        wp_redirect(add_query_arg(['page' => 'bricks-global-classes', 'updated' => 'true'], admin_url('admin.php')));
         exit;
     }
 });
@@ -90,9 +90,54 @@ function bgcc_rand_id($len = 6) {
     return substr(str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'), 0, $len);
 }
 
+/**
+ * Helper function to extract a block with balanced braces starting at a given position.
+ *
+ * @param string $css The CSS string.
+ * @param int $startBracePos Position of the first "{".
+ * @return array [$blockText, $endPos] where $blockText includes the braces.
+ */
+function bgcc_extract_brace_block($css, $startBracePos) {
+    $braceCount = 0;
+    $len = strlen($css);
+    for ($i = $startBracePos; $i < $len; $i++) {
+        if ($css[$i] === '{') {
+            $braceCount++;
+        } elseif ($css[$i] === '}') {
+            $braceCount--;
+            if ($braceCount === 0) {
+                return [substr($css, $startBracePos, $i - $startBracePos + 1), $i + 1];
+            }
+        }
+    }
+    return [substr($css, $startBracePos), $len];
+}
+
 function bgcc_parse_css($css) {
     $settings = [];
+    // Remove comments.
     $css = preg_replace('/\/\*.*?\*\//s', '', trim($css));
+
+    // --- Extract any @keyframes blocks ---
+    $settings['_keyframes'] = [];
+    $offset = 0;
+    while (($pos = strpos($css, '@keyframes', $offset)) !== false) {
+        $bracePos = strpos($css, '{', $pos);
+        if ($bracePos === false) {
+            break;
+        }
+        list($block, $endPos) = bgcc_extract_brace_block($css, $bracePos);
+        $fullBlock = substr($css, $pos, $endPos - $pos);
+        if (preg_match('/@keyframes\s+([A-Za-z0-9_-]+)/', $fullBlock, $m)) {
+            $animationName = $m[1];
+            $settings['_keyframes'][$animationName] = trim($fullBlock);
+        }
+        // Remove the keyframes block from the CSS string.
+        $css = substr_replace($css, '', $pos, $endPos - $pos);
+        $offset = $pos;
+    }
+
+    // --- Parse remaining CSS rules (for the main class rule) ---
     if (preg_match('/\{(.*)\}/s', $css, $m)) {
         $rules = explode(';', $m[1]);
     } else {
@@ -177,13 +222,20 @@ function bgcc_gen_css($name, $s) {
             $css .= "  {$p}: {$v};\n";
         }
     }
-    $css .= '}';
+    $css .= "}";
+    // Append any keyframes blocks if present.
+    if (!empty($s['_keyframes']) && is_array($s['_keyframes'])) {
+        foreach ($s['_keyframes'] as $keyframesBlock) {
+            $css .= "\n\n" . $keyframesBlock;
+        }
+    }
     return $css;
 }
 
 function bgcc_page() {
-    $categories = get_option('bricks_global_classes_categories', []);
-    $classes    = get_option('bricks_global_classes', []);
+    $categories  = get_option('bricks_global_classes_categories', []);
+    $classes     = get_option('bricks_global_classes', []);
+    $load_inline = get_option('bricks_global_classes_inline', 0);
     ?>
     <style>
         /* Grid layout: left section fixed at 300px and right section takes the remaining width */
@@ -214,18 +266,35 @@ function bgcc_page() {
             font-style: italic;
             color: #555;
         }
+        /* Top save button styling */
+        #top-save {
+            margin-bottom: 10px;
+        }
+        /* Inline setting styling */
+        .inline-setting {
+            margin-bottom: 20px;
+        }
+        .inline-setting label {
+            font-weight: bold;
+        }
+        .inline-setting p.description {
+            font-size: 0.9em;
+            color: #555;
+            margin: 5px 0 0;
+        }
     </style>
 
     <div class="wrap">
-        <h1>Bricks Global Classes Manager - <span style="color:Red">EXPERIMENTAL</span></h1>
+        <h1>Bricks Global Classes Manager</h1>
         <?php settings_errors('bgcc_messages'); ?>
 
-        <div id="bgcc-container">
-            <!-- Categories Section -->
-            <div id="categories-section">
-                <h2>Categories</h2>
-                <form method="post">
-                    <?php wp_nonce_field('bgcc_save_categories', 'bgcc_categories_nonce'); ?>
+        <form method="post" id="bgcc-main-form">
+            <?php wp_nonce_field('bgcc_save_all', 'bgcc_nonce'); ?>
+
+            <div id="bgcc-container">
+                <!-- Left Column: Categories & Settings -->
+                <div id="categories-section">
+                    <h2>Categories</h2>
                     <table class="widefat fixed" id="categories-table">
                         <thead>
                             <tr>
@@ -260,38 +329,47 @@ function bgcc_page() {
                             </tr>
                         </tfoot>
                     </table>
-                    <?php submit_button('Save Categories', 'primary', 'bgcc_categories_submit'); ?>
-                </form>
-            </div>
 
-            <!-- Classes Section -->
-            <div id="classes-section">
-                <h2>Classes</h2>
-                <div style="margin-bottom:20px;">
-                    <h3>Bulk CSS</h3>
-                    <p>
-                        Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>)
-                        and click "Generate Classes".
-                    </p>
-                    <textarea id="bulk-css" rows="4" style="width:100%; font-family:monospace;"></textarea>
-                    <br><br>
-                    <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
+                    <!-- Moved Settings Section -->
+                    <div class="inline-setting" style="margin-top:40px">
+                        <label for="bgcc_inline">
+                            <input type="checkbox" name="bgcc_inline" id="bgcc_inline" <?php checked($load_inline, 1); ?>>
+                            Load global classes CSS inline on frontend
+                        </label>
+                        <p class="description">When enabled, all global classes will be output in minified form in the footer of your site.</p>
+                    </div>
+                    <div style="margin-bottom:50px;">
+                        <h3>Bulk CSS</h3>
+                        <p>
+                            Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>)
+                            and click "Generate Classes".<br>
+                            You may include multiple selectors (comma‐separated) and even attach an <code>@keyframes</code> block immediately after.
+                        </p>
+                        <textarea id="bulk-css" rows="4" style="width:100%; font-family:monospace;"></textarea>
+                        <br><br>
+                        <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
+                    </div>
+
+                    <!-- Combined Save All Button -->
+                    <p id="top-save"><?php submit_button('Save All', 'primary', 'bgcc_save_all', false); ?></p>
                 </div>
-                <!-- Bulk Actions for Classes -->
-                <div id="bulk-actions" style="margin-bottom:10px;">
-                    <button type="button" class="button" id="bulk-delete">Delete Selected</button>
-                    <select id="bulk-category">
-                        <option value="">— Change Category To —</option>
-                        <?php foreach ($categories as $cat) : ?>
-                            <option value="<?php echo esc_attr($cat['id']); ?>"><?php echo esc_html($cat['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="button" class="button" id="bulk-change-category">Apply</button>
-                </div>
-                <!-- The classes form now uses a hidden JSON field to store all class data -->
-                <form method="post" id="bgcc-classes-form">
-                    <?php wp_nonce_field('bgcc_save_classes', 'bgcc_classes_nonce'); ?>
-                    <input type="hidden" name="bgcc_classes_data" id="bgcc_classes_data" value="">
+
+                <!-- Right Column: Classes -->
+                <div id="classes-section">
+                    <h2>Classes</h2>
+                    <!-- Bulk Actions for Classes -->
+                    <div id="bulk-actions" style="margin-bottom:10px;">
+                        <button type="button" class="button" id="bulk-delete">Delete Selected</button>
+                        <select id="bulk-category">
+                            <option value="">— Change Category To —</option>
+                            <?php foreach ($categories as $cat) : ?>
+                                <option value="<?php echo esc_attr($cat['id']); ?>"><?php echo esc_html($cat['name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="button" class="button" id="bulk-change-category">Apply</button>
+                        <!-- Real-time Search Input -->
+                        <input type="text" id="bulk-search" placeholder="Search classes..." style="margin-left:20px; padding-left:5px;">
+                    </div>
                     <table class="widefat fixed" id="classes-table">
                         <thead>
                             <tr>
@@ -343,10 +421,10 @@ function bgcc_page() {
                             </tr>
                         </tfoot>
                     </table>
-                    <?php submit_button('Save Classes', 'primary', 'bgcc_classes_submit'); ?>
-                </form>
+                </div>
             </div>
-        </div>
+            <input type="hidden" name="bgcc_classes_data" id="bgcc_classes_data" value="">
+        </form>
 
         <!-- Export Section -->
         <div id="export-section" style="margin-top:30px;">
@@ -376,8 +454,9 @@ function bgcc_page() {
         const bulkChangeCategoryBtn = document.getElementById('bulk-change-category');
         const bulkCategorySelect = document.getElementById('bulk-category');
         const selectAllCheckbox = document.getElementById('select-all');
-        const classesForm = document.getElementById('bgcc-classes-form');
+        const mainForm = document.getElementById('bgcc-main-form');
         const classesDataInput = document.getElementById('bgcc_classes_data');
+        const bulkSearchInput = document.getElementById('bulk-search');
         const categories = <?php echo json_encode(array_map(function($c) {
             return ['id' => $c['id'], 'name' => $c['name']];
         }, $categories)); ?>;
@@ -461,36 +540,46 @@ function bgcc_page() {
             if (noClassesMsg) {
                 noClassesMsg.remove();
             }
-            const regex = /\.([A-Za-z0-9_\-]+)\s*\{([^}]*)\}/g;
+            // Updated regex: capture comma-separated selectors and an optional keyframes block
+            const regex = /((?:\.[A-Za-z0-9_\-]+\s*,\s*)*\.[A-Za-z0-9_\-]+)\s*\{([\s\S]*?)\}\s*(?:(@keyframes\s+[A-Za-z0-9_-]+\s*\{[\s\S]*?\}))?/g;
             let match, found = 0;
             while ((match = regex.exec(text)) !== null) {
                 found++;
-                const className = match[1].trim();
+                // Split selectors by comma and trim
+                const selectors = match[1].split(',').map(s => s.trim());
                 const rules = match[2].trim();
-                const idx = classesTable.rows.length;
-                const row = classesTable.insertRow(-1);
-                let options = '<option value="">— None —</option>';
-                categories.forEach(c => {
-                    options += `<option value="${c.id}">${c.name}</option>`;
+                // Optional keyframes block (if any)
+                const keyframesBlock = match[3] ? match[3].trim() : '';
+                selectors.forEach(selector => {
+                    const className = selector.startsWith('.') ? selector.slice(1) : selector;
+                    const idx = classesTable.rows.length;
+                    const row = classesTable.insertRow(-1);
+                    let options = '<option value="">— None —</option>';
+                    categories.forEach(c => {
+                        options += `<option value="${c.id}">${c.name}</option>`;
+                    });
+                    let finalCSS = '.' + className + ' {\n' + rules + '\n}';
+                    if(keyframesBlock){
+                        finalCSS += "\n\n" + keyframesBlock;
+                    }
+                    row.innerHTML = `
+                        <td><input type="checkbox" class="bulk-select"></td>
+                        <td>
+                            <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
+                            <input type="text" name="classes[${idx}][name]" value="${className}" required>
+                        </td>
+                        <td>
+                            <select name="classes[${idx}][category]">${options}</select>
+                        </td>
+                        <td>
+                            <textarea name="classes[${idx}][css]" rows="5" required>${finalCSS}</textarea>
+                        </td>
+                        <td>
+                            <button type="button" class="button button-danger remove-row">Remove</button>
+                        </td>`;
                 });
-                const finalCSS = '.' + className + ' {\n' + rules + '\n}';
-                row.innerHTML = `
-                    <td><input type="checkbox" class="bulk-select"></td>
-                    <td>
-                        <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
-                        <input type="text" name="classes[${idx}][name]" value="${className}" required>
-                    </td>
-                    <td>
-                        <select name="classes[${idx}][category]">${options}</select>
-                    </td>
-                    <td>
-                        <textarea name="classes[${idx}][css]" rows="5" required>${finalCSS}</textarea>
-                    </td>
-                    <td>
-                        <button type="button" class="button button-danger remove-row">Remove</button>
-                    </td>`;
             }
-            alert(found + ' classes generated from Bulk CSS.');
+            alert(found + ' CSS block(s) generated from Bulk CSS.');
         });
     
         bulkDeleteBtn.addEventListener('click', () => {
@@ -518,13 +607,35 @@ function bgcc_page() {
             });
         });
     
+        // Only toggle checkboxes in visible rows when "Select All" is used.
         selectAllCheckbox.addEventListener('change', function(){
-            const checkboxes = classesTable.querySelectorAll('input.bulk-select');
-            checkboxes.forEach(cb => cb.checked = this.checked);
+            const rows = classesTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                if(row.style.display !== 'none'){
+                    const cb = row.querySelector('input.bulk-select');
+                    if(cb){
+                        cb.checked = this.checked;
+                    }
+                }
+            });
         });
-
+    
+        // Real-time search for classes table
+        bulkSearchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const rows = classesTable.querySelectorAll('tr');
+            rows.forEach(row => {
+                if (row.classList.contains('no-classes')) return;
+                const nameInput = row.querySelector('input[name*="[name]"]');
+                if (nameInput) {
+                    const text = nameInput.value.toLowerCase();
+                    row.style.display = (text.indexOf(filter) !== -1) ? '' : 'none';
+                }
+            });
+        });
+    
         // On form submission, gather all class data into one JSON field and disable individual inputs.
-        classesForm.addEventListener('submit', function(e) {
+        mainForm.addEventListener('submit', function(e) {
             let classesData = [];
             const rows = classesTable.querySelectorAll('tbody tr');
             rows.forEach(row => {
@@ -551,5 +662,25 @@ function bgcc_page() {
     });
     </script>
     <?php
+}
+
+// Output minified CSS in the frontend footer if enabled.
+if (!is_admin()) {
+    add_action('wp_footer', 'bgcc_output_inline_css');
+}
+
+function bgcc_output_inline_css() {
+    if (get_option('bricks_global_classes_inline', 0)) {
+        $classes = get_option('bricks_global_classes', []);
+        $css = '';
+        if ($classes) {
+            foreach ($classes as $cl) {
+                $css .= bgcc_gen_css($cl['name'], $cl['settings']);
+            }
+        }
+        // Simple minification: remove newlines and extra spaces.
+        $minified = preg_replace('/\s+/', ' ', $css);
+        echo '<style id="bgcc-inline-css">' . $minified . '</style>';
+    }
 }
 ?>
