@@ -185,6 +185,15 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'step'        => 0.1,
         ];
 
+        $this->controls['scrub'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__('Scrub', 'bricks'),
+            'type'        => 'text',
+            'placeholder' => esc_html__('true, 1, 2', 'bricks'),
+            'default'     => '',
+            'inline'      => true,
+        ];
+
         $this->controls['markers'] = [
             'tab'         => 'content',
             'label'       => esc_html__('Markers', 'bricks'),
@@ -261,6 +270,9 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         }
         if (isset($this->settings['stagger']) && $this->settings['stagger'] !== '') {
             $global_settings[] = "stagger:" . $this->settings['stagger'];
+        }
+        if (isset($this->settings['scrub']) && $this->settings['scrub'] !== '') {
+            $global_settings[] = "scrub:" . $this->settings['scrub'];
         }
         if (isset($this->settings['scroll_start']) && $this->settings['scroll_start'] !== '') {
             $global_settings[] = "start:'top " . $this->settings['scroll_start'] . "%'";
