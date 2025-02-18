@@ -1,5 +1,5 @@
 <?php
- 
+
 add_action('admin_menu', function () {
     add_submenu_page(
         'snn-settings',
@@ -105,22 +105,26 @@ function bgcc_parse_css($css) {
         list($p, $v) = array_map('trim', explode(':', $r, 2));
         switch (strtolower($p)) {
             case 'color':
-                if ($hex = sanitize_hex_color($v)) {
-                    $settings['_typography']['color'] = [
-                        'hex'  => $hex,
-                        'id'   => bgcc_rand_id(),
-                        'name' => 'Custom Color'
-                    ];
+                $hex = sanitize_hex_color($v);
+                if ($hex === null) { // allow named colors or non-hex values
+                    $hex = sanitize_text_field($v);
                 }
+                $settings['_typography']['color'] = [
+                    'hex'  => $hex,
+                    'id'   => bgcc_rand_id(),
+                    'name' => 'Custom Color'
+                ];
                 break;
             case 'background-color':
-                if ($hex = sanitize_hex_color($v)) {
-                    $settings['_background']['color'] = [
-                        'hex'  => $hex,
-                        'id'   => bgcc_rand_id(),
-                        'name' => 'Custom BG'
-                    ];
+                $hex = sanitize_hex_color($v);
+                if ($hex === null) {
+                    $hex = sanitize_text_field($v);
                 }
+                $settings['_background']['color'] = [
+                    'hex'  => $hex,
+                    'id'   => bgcc_rand_id(),
+                    'name' => 'Custom BG'
+                ];
                 break;
             case 'text-align':
                 if (in_array(strtolower($v), ['left', 'center', 'right', 'justify'])) {
@@ -203,6 +207,12 @@ function bgcc_page() {
             width: 100%;
             font-family: monospace;
         }
+        /* Style for the no classes message */
+        .no-classes td {
+            padding: 15px;
+            font-style: italic;
+            color: #555;
+        }
     </style>
 
     <div class="wrap">
@@ -236,14 +246,8 @@ function bgcc_page() {
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else : ?>
-                                <tr>
-                                    <td>
-                                        <input type="hidden" name="categories[0][id]" value="<?php echo esc_attr(bgcc_rand_id()); ?>">
-                                        <input type="text" name="categories[0][name]" required>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="button button-danger remove-row">Remove</button>
-                                    </td>
+                                <tr class="no-classes">
+                                    <td colspan="2" style="text-align: center;">No categories added yet. Click "Add" to create one.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -296,7 +300,7 @@ function bgcc_page() {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if ($classes) : ?>
+                            <?php if ($classes && count($classes) > 0) : ?>
                                 <?php foreach ($classes as $i => $cl) : ?>
                                     <tr>
                                         <td><input type="checkbox" class="bulk-select"></td>
@@ -323,28 +327,8 @@ function bgcc_page() {
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else : ?>
-                                <tr>
-                                    <td><input type="checkbox" class="bulk-select"></td>
-                                    <td>
-                                        <input type="hidden" name="classes[0][id]" value="<?php echo esc_attr(bgcc_rand_id()); ?>">
-                                        <input type="text" name="classes[0][name]" required>
-                                    </td>
-                                    <td>
-                                        <select name="classes[0][category]">
-                                            <option value="">— None —</option>
-                                            <?php foreach ($categories as $cat) : ?>
-                                                <option value="<?php echo esc_attr($cat['id']); ?>">
-                                                    <?php echo esc_html($cat['name']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <textarea name="classes[0][css]" rows="5" placeholder=".classname { /* CSS */ }" required></textarea>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="button button-danger remove-row">Remove</button>
-                                    </td>
+                                <tr class="no-classes">
+                                    <td colspan="5" style="text-align: center;">No classes added yet. Click "Add" to create a class.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -389,12 +373,23 @@ function bgcc_page() {
         const bulkChangeCategoryBtn = document.getElementById('bulk-change-category');
         const bulkCategorySelect = document.getElementById('bulk-category');
         const selectAllCheckbox = document.getElementById('select-all');
-        const categories = <?php echo json_encode(array_map(fn($c) => ['id' => $c['id'], 'name' => $c['name']], $categories)); ?>;
+        const categories = <?php echo json_encode(array_map(function($c) {
+            return ['id' => $c['id'], 'name' => $c['name']];
+        }, $categories)); ?>;
     
         function bgccRandId(len = 6) {
             return [...Array(len)]
                 .map(() => 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)])
                 .join('');
+        }
+        
+        // Helper to update the classes table empty state.
+        function updateClassesEmptyState() {
+            if (classesTable.rows.length === 0) {
+                let row = classesTable.insertRow();
+                row.classList.add('no-classes');
+                row.innerHTML = '<td colspan="5" style="text-align: center;">No classes added yet. Click "Add" to create a class.</td>';
+            }
         }
     
         addCategoryBtn.addEventListener('click', () => {
@@ -411,6 +406,11 @@ function bgcc_page() {
         });
     
         addClassBtn.addEventListener('click', () => {
+            // Remove no-classes message if present.
+            const noClassesMsg = classesTable.querySelector('.no-classes');
+            if (noClassesMsg) {
+                noClassesMsg.remove();
+            }
             const idx = classesTable.rows.length;
             const row = classesTable.insertRow(-1);
             let options = '<option value="">— None —</option>';
@@ -436,7 +436,12 @@ function bgcc_page() {
     
         document.body.addEventListener('click', function (e) {
             if (e.target.classList.contains('remove-row')) {
-                e.target.closest('tr').remove();
+                const row = e.target.closest('tr');
+                row.remove();
+                // If the removed row is in the classes table, update empty state.
+                if (row.closest('tbody') === classesTable) {
+                    updateClassesEmptyState();
+                }
             }
         });
     
@@ -445,6 +450,11 @@ function bgcc_page() {
             if (!text) {
                 alert('Please paste some CSS first.');
                 return;
+            }
+            // Remove no-classes message if present.
+            const noClassesMsg = classesTable.querySelector('.no-classes');
+            if (noClassesMsg) {
+                noClassesMsg.remove();
             }
             const regex = /\.([A-Za-z0-9_\-]+)\s*\{([^}]*)\}/g;
             let match, found = 0;
@@ -455,9 +465,8 @@ function bgcc_page() {
                 const idx = classesTable.rows.length;
                 const row = classesTable.insertRow(-1);
                 let options = '<option value="">— None —</option>';
-                categories.forEach((c, index) => {
-                    const selected = (index === 0) ? 'selected' : '';
-                    options += `<option value="${c.id}" ${selected}>${c.name}</option>`;
+                categories.forEach(c => {
+                    options += `<option value="${c.id}">${c.name}</option>`;
                 });
                 const finalCSS = '.' + className + ' {\n' + rules + '\n}';
                 row.innerHTML = `
@@ -482,8 +491,10 @@ function bgcc_page() {
         bulkDeleteBtn.addEventListener('click', () => {
             const checkboxes = classesTable.querySelectorAll('input.bulk-select:checked');
             checkboxes.forEach(cb => {
-                cb.closest('tr').remove();
+                const row = cb.closest('tr');
+                row.remove();
             });
+            updateClassesEmptyState();
         });
     
         bulkChangeCategoryBtn.addEventListener('click', () => {
