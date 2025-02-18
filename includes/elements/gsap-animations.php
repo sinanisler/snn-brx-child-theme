@@ -212,6 +212,14 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'step'        => 1,
         ];
 
+        $this->controls['scrub'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Scrub', 'bricks' ),
+            'type'        => 'text',
+            'placeholder' => 'true, 1, 2',
+            'inline'      => true,
+        ];
+
         $this->controls['markers'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Markers', 'bricks' ),
@@ -397,6 +405,11 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         // Add delay if set
         if ( isset( $this->settings['delay'] ) && $this->settings['delay'] !== '' ) {
             $global_settings[] = "delay:" . $this->settings['delay'];
+        }
+
+        // Add scrub if set
+        if ( isset( $this->settings['scrub'] ) && $this->settings['scrub'] !== '' ) {
+            $global_settings[] = "scrub:" . $this->settings['scrub'];
         }
 
         $global = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
