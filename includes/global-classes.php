@@ -14,7 +14,7 @@ add_action('admin_menu', function () {
 
 add_action('admin_init', function () {
 
-    // Process Categories Save
+    // Process Categories Save (unchanged)
     if (isset($_POST['bgcc_categories_submit']) && wp_verify_nonce($_POST['bgcc_categories_nonce'], 'bgcc_save_categories')) {
         $postedCategories = $_POST['categories'] ?? null;
         $new_categories   = [];
@@ -38,21 +38,22 @@ add_action('admin_init', function () {
         exit;
     }
 
-    // Process Classes Save
+    // Process Classes Save – now using a single JSON field to avoid too many input variables.
     if (isset($_POST['bgcc_classes_submit']) && wp_verify_nonce($_POST['bgcc_classes_nonce'], 'bgcc_save_classes')) {
         $existing_classes = get_option('bricks_global_classes', []);
         $oldClassById     = [];
         foreach ($existing_classes as $cl) {
             $oldClassById[$cl['id']] = $cl;
         }
-        $postedClasses = $_POST['classes'] ?? null;
+        $classes_json  = $_POST['bgcc_classes_data'] ?? '';
+        $postedClasses = json_decode(stripslashes($classes_json), true);
         $new_classes   = [];
 
         if ($postedClasses && is_array($postedClasses)) {
             foreach ($postedClasses as $cl) {
                 $classId   = !empty($cl['id']) ? sanitize_text_field($cl['id']) : bgcc_rand_id();
                 $className = !empty($cl['name']) ? sanitize_text_field($cl['name']) : '';
-                // Allow category to be empty so that classes can be saved without a category.
+                // Allow category to be empty.
                 $catId     = isset($cl['category']) ? sanitize_text_field($cl['category']) : '';
 
                 if ($className) {
@@ -106,7 +107,7 @@ function bgcc_parse_css($css) {
         switch (strtolower($p)) {
             case 'color':
                 $hex = sanitize_hex_color($v);
-                if ($hex === null) { // allow named colors or non-hex values
+                if ($hex === null) { // fallback to text if not a valid hex
                     $hex = sanitize_text_field($v);
                 }
                 $settings['_typography']['color'] = [
@@ -287,8 +288,10 @@ function bgcc_page() {
                     </select>
                     <button type="button" class="button" id="bulk-change-category">Apply</button>
                 </div>
-                <form method="post">
+                <!-- The classes form now uses a hidden JSON field to store all class data -->
+                <form method="post" id="bgcc-classes-form">
                     <?php wp_nonce_field('bgcc_save_classes', 'bgcc_classes_nonce'); ?>
+                    <input type="hidden" name="bgcc_classes_data" id="bgcc_classes_data" value="">
                     <table class="widefat fixed" id="classes-table">
                         <thead>
                             <tr>
@@ -373,6 +376,8 @@ function bgcc_page() {
         const bulkChangeCategoryBtn = document.getElementById('bulk-change-category');
         const bulkCategorySelect = document.getElementById('bulk-category');
         const selectAllCheckbox = document.getElementById('select-all');
+        const classesForm = document.getElementById('bgcc-classes-form');
+        const classesDataInput = document.getElementById('bgcc_classes_data');
         const categories = <?php echo json_encode(array_map(function($c) {
             return ['id' => $c['id'], 'name' => $c['name']];
         }, $categories)); ?>;
@@ -506,7 +511,7 @@ function bgcc_page() {
             const checkboxes = classesTable.querySelectorAll('input.bulk-select:checked');
             checkboxes.forEach(cb => {
                 const row = cb.closest('tr');
-                const select = row.querySelector('select[name^="classes"]');
+                const select = row.querySelector('select[name*="[category]"]');
                 if (select) {
                     select.value = newCategory;
                 }
@@ -516,6 +521,32 @@ function bgcc_page() {
         selectAllCheckbox.addEventListener('change', function(){
             const checkboxes = classesTable.querySelectorAll('input.bulk-select');
             checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // On form submission, gather all class data into one JSON field and disable individual inputs.
+        classesForm.addEventListener('submit', function(e) {
+            let classesData = [];
+            const rows = classesTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                if (row.classList.contains('no-classes')) return;
+                const idInput = row.querySelector('input[name*="[id]"]');
+                const nameInput = row.querySelector('input[name*="[name]"]');
+                const categorySelect = row.querySelector('select[name*="[category]"]');
+                const cssTextarea = row.querySelector('textarea[name*="[css]"]');
+                if (!idInput || !nameInput || !categorySelect || !cssTextarea) return;
+                classesData.push({
+                    id: idInput.value,
+                    name: nameInput.value,
+                    category: categorySelect.value,
+                    css: cssTextarea.value
+                });
+                // Disable fields so they don't get submitted separately.
+                idInput.disabled = true;
+                nameInput.disabled = true;
+                categorySelect.disabled = true;
+                cssTextarea.disabled = true;
+            });
+            classesDataInput.value = JSON.stringify(classesData);
         });
     });
     </script>
