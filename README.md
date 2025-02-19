@@ -6,7 +6,7 @@
 [![Linkedin Badge](https://img.shields.io/badge/-SinanWP-c00b0b?style=flat&logo=Youtube&logoColor=white)](https://www.youtube.com/@sinanwp "Subscribe to YT")
 
 
-[![Github All Releases](https://sinanisler.com/tool/git-banner/download_count.php/download_count.png?v32.3)](https://sinanisler.com/snn-brx-download)
+[![Github All Releases](https://sinanisler.com/tool/git-banner/download_count.php/download_count.png?v32.4)](https://sinanisler.com/snn-brx-download)
 
 
 SNN BRX theme adds theme settings, security settings and lots of plugin eliminating features with it. 
@@ -14,6 +14,6 @@ SNN BRX theme adds theme settings, security settings and lots of plugin eliminat
 
 ### [Video Tutorial](https://www.youtube.com/watch?v=PssxfHxDdmY) 
 
-### [Documentation](https://github.com/sinanisler/snn-brx-child-theme/wiki) 
+### [Features](https://sinanisler.com/snn-brx/) 
 
 ### [Latest Relases and Changelogs](https://github.com/sinanisler/snn-brx-child-theme/releases) 
