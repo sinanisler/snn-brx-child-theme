@@ -7,7 +7,8 @@ function snn_custom_inline_styles_and_scripts_improved() {
         isset($options['snn_bricks_builder_color_fix']) &&
         $options['snn_bricks_builder_color_fix'] &&
         isset($_GET['bricks']) &&
-        $_GET['bricks'] === 'run' 
+        $_GET['bricks'] === 'run' &&
+        current_user_can('manage_options')
     ) {
         $global_colors = get_option('snn_global_color_sync_variables', false);
 
