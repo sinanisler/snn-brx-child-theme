@@ -164,25 +164,16 @@ function snn_custom_inline_styles_and_scripts_improved() {
                         return "#" + hexVal[1] + hexVal[1] + hexVal[2] + hexVal[2] + hexVal[3] + hexVal[3];
                     }
                     var displayValue = "";
-                    var colorPickerValue = "";
                     var isValidHex = false;
                     if (hex) {
                         if (/^#([0-9A-Fa-f]{3})$/.test(hex)) {
                             displayValue = expandShortHex(hex).toUpperCase();
-                            colorPickerValue = displayValue;
                             isValidHex = true;
                         } else if (/^#([0-9A-Fa-f]{6})$/.test(hex)) {
                             displayValue = hex.toUpperCase();
-                            colorPickerValue = displayValue;
                             isValidHex = true;
                         } else {
-                            // For non-hex inputs, we display the input value and convert it for the color picker,
-                            // but we do not consider it a valid hex literal.
                             displayValue = hex;
-                            var converted = cssColorToHex(hex);
-                            if (converted) {
-                                colorPickerValue = converted;
-                            }
                             isValidHex = false;
                         }
                     }
@@ -200,11 +191,14 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     hexInput.value = displayValue;
                     row.appendChild(hexInput);
 
-                    var colorPicker = document.createElement("input");
-                    colorPicker.type = "color";
-                    colorPicker.className = "snn-color-picker";
-                    colorPicker.value = colorPickerValue;
-                    row.appendChild(colorPicker);
+                    // Only add color picker if valid hex
+                    if (isValidHex) {
+                        var colorPicker = document.createElement("input");
+                        colorPicker.type = "color";
+                        colorPicker.className = "snn-color-picker";
+                        colorPicker.value = displayValue;
+                        row.appendChild(colorPicker);
+                    }
 
                     // Create remove button (shade input will be inserted before this if needed).
                     var removeButton = document.createElement("button");
@@ -225,15 +219,23 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     }
                     row.appendChild(removeButton);
 
-                    // Update the shade input based on the hex input value.
                     hexInput.addEventListener("input", function() {
                         var inputVal = hexInput.value.trim();
                         var validHex3 = /^#([0-9A-Fa-f]{3})$/;
                         var validHex6 = /^#([0-9A-Fa-f]{6})$/;
+                        var colorPickerElem = row.querySelector(".snn-color-picker");
                         if (validHex3.test(inputVal)) {
                             var newHex = expandShortHex(inputVal).toUpperCase();
                             hexInput.value = newHex;
-                            colorPicker.value = newHex;
+                            // If no color picker exists, create and insert it.
+                            if (!colorPickerElem) {
+                                colorPickerElem = document.createElement("input");
+                                colorPickerElem.type = "color";
+                                colorPickerElem.className = "snn-color-picker";
+                                hexInput.parentNode.insertBefore(colorPickerElem, removeButton);
+                            }
+                            colorPickerElem.value = newHex;
+                            // If shade input doesn't exist, create it.
                             if (!row.querySelector(".snn-shade-input")) {
                                 var newShadeInput = document.createElement("input");
                                 newShadeInput.type = "number";
@@ -248,7 +250,13 @@ function snn_custom_inline_styles_and_scripts_improved() {
                         } else if (validHex6.test(inputVal)) {
                             var newHex = inputVal.toUpperCase();
                             hexInput.value = newHex;
-                            colorPicker.value = newHex;
+                            if (!colorPickerElem) {
+                                colorPickerElem = document.createElement("input");
+                                colorPickerElem.type = "color";
+                                colorPickerElem.className = "snn-color-picker";
+                                hexInput.parentNode.insertBefore(colorPickerElem, removeButton);
+                            }
+                            colorPickerElem.value = newHex;
                             if (!row.querySelector(".snn-shade-input")) {
                                 var newShadeInput = document.createElement("input");
                                 newShadeInput.type = "number";
@@ -261,17 +269,22 @@ function snn_custom_inline_styles_and_scripts_improved() {
                                 row.insertBefore(newShadeInput, removeButton);
                             }
                         } else {
-                            var existingShadeInput = row.querySelector(".snn-shade-input");
-                            if (existingShadeInput) {
-                                existingShadeInput.remove();
+                            // Remove color picker if exists because input is not valid hex.
+                            if (colorPickerElem) {
+                                colorPickerElem.remove();
+                            }
+                            // Remove shade input if exists.
+                            var shadeInputElem = row.querySelector(".snn-shade-input");
+                            if (shadeInputElem) {
+                                shadeInputElem.remove();
                             }
                         }
                     });
                     
-                    colorPicker.addEventListener("input", function() {
-                        var currentVal = hexInput.value.trim();
-                        if (/^#([0-9A-Fa-f]{3})$/.test(currentVal) || /^#([0-9A-Fa-f]{6})$/.test(currentVal)) {
-                            hexInput.value = colorPicker.value.toUpperCase();
+                    row.addEventListener("input", function(e) {
+                        if (e.target && e.target.classList.contains("snn-color-picker")) {
+                            var newVal = e.target.value;
+                            hexInput.value = newVal.toUpperCase();
                         }
                     });
 
