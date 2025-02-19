@@ -1,27 +1,21 @@
 <?php 
 
 function snn_custom_inline_styles_and_scripts_improved() {
-    // Get options from the settings panel.
     $options = get_option('snn_editor_settings');
 
-    // Check if 'snn_bricks_builder_color_fix' is enabled and if URL has ?bricks=run.
     if (
         isset($options['snn_bricks_builder_color_fix']) &&
         $options['snn_bricks_builder_color_fix'] &&
         isset($_GET['bricks']) &&
-        $_GET['bricks'] === 'run'
+        $_GET['bricks'] === 'run' 
     ) {
-        // Retrieve the global color sync variables (if any)
-        // Change default value from [] to false to differentiate between never set and intentionally empty.
         $global_colors = get_option('snn_global_color_sync_variables', false);
 
-        // For security: create a nonce for the AJAX save action.
         $nonce = wp_create_nonce('snn_save_colors_nonce');
         ?>
  
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                // Helper function to convert any valid CSS color to a hex string.
                 function cssColorToHex(color) {
                     var dummy = document.createElement("div");
                     dummy.style.color = color;
@@ -38,36 +32,83 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     return null;
                 }
 
+                function hexToHsl(hex) {
+                    if (/^#([A-Fa-f0-9]{3})$/.test(hex)) {
+                        hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+                    }
+                    var r = parseInt(hex.substr(1,2),16) / 255;
+                    var g = parseInt(hex.substr(3,2),16) / 255;
+                    var b = parseInt(hex.substr(5,2),16) / 255;
+                    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+                    var h, s, l = (max + min) / 2;
+                    if (max === min) {
+                        h = s = 0;
+                    } else {
+                        var d = max - min;
+                        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                        switch (max) {
+                            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                            case g: h = (b - r) / d + 2; break;
+                            case b: h = (r - g) / d + 4; break;
+                        }
+                        h /= 6;
+                    }
+                    return { h: h, s: s, l: l };
+                }
+
+                function hslToHex(h, s, l) {
+                    function hue2rgb(p, q, t) {
+                        if(t < 0) t += 1;
+                        if(t > 1) t -= 1;
+                        if(t < 1/6) return p + (q - p) * 6 * t;
+                        if(t < 1/2) return q;
+                        if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                        return p;
+                    }
+                    var r, g, b;
+                    if(s === 0) {
+                        r = g = b = l;
+                    } else {
+                        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                        var p = 2 * l - q;
+                        r = hue2rgb(p, q, h + 1/3);
+                        g = hue2rgb(p, q, h);
+                        b = hue2rgb(p, q, h - 1/3);
+                    }
+                    var toHex = function(x){
+                        var hexVal = Math.round(x * 255).toString(16);
+                        return hexVal.padStart(2, "0");
+                    };
+                    return "#" + toHex(r) + toHex(g) + toHex(b);
+                }
+
+                function lightenColor(hex, fraction) {
+                    var hsl = hexToHsl(hex);
+                    hsl.l = hsl.l + (1 - hsl.l) * fraction;
+                    return hslToHex(hsl.h, hsl.s, hsl.l);
+                }
+
+                function darkenColor(hex, fraction) {
+                    var hsl = hexToHsl(hex);
+                    hsl.l = hsl.l * (1 - fraction);
+                    return hslToHex(hsl.h, hsl.s, hsl.l);
+                }
+
                 // Insert SNN button into the Bricks toolbar.
                 function insertSnnListItem(toolbar) {
-                    // Determine the UL element that holds the li items.
                     var ul = (toolbar.tagName.toLowerCase() === "ul") ? toolbar : toolbar.querySelector("ul");
-                    if (!ul) {
-                        return;
-                    }
-                    
-                    // Avoid inserting duplicate SNN li element.
-                    if (ul.querySelector(".snn-enhance-li")) {
-                        return;
-                    }
-                    
-                    // Create the new li element.
+                    if (!ul) return;
+                    if (ul.querySelector(".snn-enhance-li")) return;
                     var li = document.createElement("li");
                     li.className = "snn-enhance-li";
                     li.tabIndex = 0;
                     li.setAttribute("data-balloon", "SNN-BRX");
                     li.setAttribute("data-balloon-pos", "bottom");
-                    li.innerHTML = 'SNN'; 
-                    
-                    // Click event to open the popup.
+                    li.innerHTML = 'SNN';
                     li.addEventListener("click", function() {
                         var popup = document.querySelector("#snn-popup");
-                        if (popup) {
-                            popup.classList.add("active");
-                        }
+                        if (popup) popup.classList.add("active");
                     });
-                    
-                    // Always insert at the desired position.
                     if (ul.children.length >= 7) {
                         ul.insertBefore(li, ul.children[6]);
                     } else {
@@ -110,71 +151,130 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 });
                 observer.observe(document.body, { childList: true, subtree: true });
 
-                // Close popup when the close button is clicked.
                 document.addEventListener("click", function(e) {
                     if (e.target && e.target.classList.contains("snn-close-button")) {
                         var popup = document.querySelector("#snn-popup");
-                        if (popup) {
-                            popup.classList.remove("active");
-                        }
+                        if (popup) popup.classList.remove("active");
                     }
                 });
 
-                // ----- Repeater Functionality for Global Color Variables -----
-                // Function to create a new color row with a static auto-generated name,
-                // a text input for color value (supports any valid CSS color or CSS variable),
-                // a color picker (updated if a valid color is detected), and a remove button.
-                function createColorRow(hex = "") {
+                function createColorRow(hex = "", shadeValue = "") {
                     function expandShortHex(hexVal) {
                         return "#" + hexVal[1] + hexVal[1] + hexVal[2] + hexVal[2] + hexVal[3] + hexVal[3];
                     }
                     var displayValue = "";
                     var colorPickerValue = "";
+                    var isValidHex = false;
                     if (hex) {
                         if (/^#([0-9A-Fa-f]{3})$/.test(hex)) {
                             displayValue = expandShortHex(hex).toUpperCase();
                             colorPickerValue = displayValue;
+                            isValidHex = true;
                         } else if (/^#([0-9A-Fa-f]{6})$/.test(hex)) {
                             displayValue = hex.toUpperCase();
                             colorPickerValue = displayValue;
+                            isValidHex = true;
                         } else {
+                            // For non-hex inputs, we display the input value and convert it for the color picker,
+                            // but we do not consider it a valid hex literal.
                             displayValue = hex;
                             var converted = cssColorToHex(hex);
                             if (converted) {
                                 colorPickerValue = converted;
                             }
+                            isValidHex = false;
                         }
                     }
-                    var colorValueAttr = colorPickerValue ? `value="${colorPickerValue}"` : "";
                     var row = document.createElement("div");
                     row.className = "snn-color-row";
-                    row.innerHTML = `
-                        <span class="snn-color-name-display"></span>
-                        <input type="text" class="snn-hex-input" placeholder="Enter CSS color" value="${displayValue}" />
-                        <input type="color" class="snn-color-picker" ${colorValueAttr} />
-                        <button class="snn-remove-color">Remove</button>
-                    `;
-                    // Sync text input and color picker.
-                    var hexInput = row.querySelector(".snn-hex-input");
-                    var colorPicker = row.querySelector(".snn-color-picker");
 
+                    var nameSpan = document.createElement("span");
+                    nameSpan.className = "snn-color-name-display";
+                    row.appendChild(nameSpan);
+
+                    var hexInput = document.createElement("input");
+                    hexInput.type = "text";
+                    hexInput.className = "snn-hex-input";
+                    hexInput.placeholder = "Enter CSS color";
+                    hexInput.value = displayValue;
+                    row.appendChild(hexInput);
+
+                    var colorPicker = document.createElement("input");
+                    colorPicker.type = "color";
+                    colorPicker.className = "snn-color-picker";
+                    colorPicker.value = colorPickerValue;
+                    row.appendChild(colorPicker);
+
+                    // Create remove button (shade input will be inserted before this if needed).
+                    var removeButton = document.createElement("button");
+                    removeButton.className = "snn-remove-color";
+                    removeButton.textContent = "Remove";
+
+                    // Conditionally add the shade input only if the original value is a valid hex literal.
+                    if (isValidHex) {
+                        var shadeInput = document.createElement("input");
+                        shadeInput.type = "number";
+                        shadeInput.className = "snn-shade-input";
+                        shadeInput.placeholder = "Shade n";
+                        shadeInput.style.width = "70px";
+                        shadeInput.min = "0";
+                        shadeInput.step = "1";
+                        shadeInput.value = shadeValue;
+                        row.appendChild(shadeInput);
+                    }
+                    row.appendChild(removeButton);
+
+                    // Update the shade input based on the hex input value.
                     hexInput.addEventListener("input", function() {
                         var inputVal = hexInput.value.trim();
-                        var converted = cssColorToHex(inputVal);
-                        if (converted) {
-                            colorPicker.value = converted;
+                        var validHex3 = /^#([0-9A-Fa-f]{3})$/;
+                        var validHex6 = /^#([0-9A-Fa-f]{6})$/;
+                        if (validHex3.test(inputVal)) {
+                            var newHex = expandShortHex(inputVal).toUpperCase();
+                            hexInput.value = newHex;
+                            colorPicker.value = newHex;
+                            if (!row.querySelector(".snn-shade-input")) {
+                                var newShadeInput = document.createElement("input");
+                                newShadeInput.type = "number";
+                                newShadeInput.className = "snn-shade-input";
+                                newShadeInput.placeholder = "Shade n";
+                                newShadeInput.style.width = "70px";
+                                newShadeInput.min = "0";
+                                newShadeInput.step = "1";
+                                newShadeInput.value = "";
+                                row.insertBefore(newShadeInput, removeButton);
+                            }
+                        } else if (validHex6.test(inputVal)) {
+                            var newHex = inputVal.toUpperCase();
+                            hexInput.value = newHex;
+                            colorPicker.value = newHex;
+                            if (!row.querySelector(".snn-shade-input")) {
+                                var newShadeInput = document.createElement("input");
+                                newShadeInput.type = "number";
+                                newShadeInput.className = "snn-shade-input";
+                                newShadeInput.placeholder = "Shade n";
+                                newShadeInput.style.width = "70px";
+                                newShadeInput.min = "0";
+                                newShadeInput.step = "1";
+                                newShadeInput.value = "";
+                                row.insertBefore(newShadeInput, removeButton);
+                            }
+                        } else {
+                            var existingShadeInput = row.querySelector(".snn-shade-input");
+                            if (existingShadeInput) {
+                                existingShadeInput.remove();
+                            }
                         }
                     });
                     
                     colorPicker.addEventListener("input", function() {
-                        // Only update the text input if its current value is already a valid hex.
-                        if (/^#([0-9A-Fa-f]{6})$/.test(hexInput.value.trim())) {
+                        var currentVal = hexInput.value.trim();
+                        if (/^#([0-9A-Fa-f]{3})$/.test(currentVal) || /^#([0-9A-Fa-f]{6})$/.test(currentVal)) {
                             hexInput.value = colorPicker.value.toUpperCase();
                         }
                     });
 
-                    // Remove button event.
-                    row.querySelector(".snn-remove-color").addEventListener("click", function() {
+                    removeButton.addEventListener("click", function() {
                         row.remove();
                         updateColorNames();
                     });
@@ -182,7 +282,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     return row;
                 }
 
-                // Function to update auto-generated color names for all rows.
                 function updateColorNames() {
                     var rows = document.querySelectorAll(".snn-color-row");
                     rows.forEach(function(row, index) {
@@ -196,19 +295,17 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 var repeaterContainer = document.getElementById("snn-color-repeater");
                 var addColorButton = document.getElementById("snn-add-color");
 
-                // Load existing colors from PHP.
                 var existingColors = <?php echo json_encode($global_colors); ?>;
                 if (existingColors === false) {
-                    // First time load: add one empty row.
                     repeaterContainer.appendChild(createColorRow());
                 } else if (Array.isArray(existingColors) && existingColors.length > 0) {
                     existingColors.forEach(function(colorItem) {
                         var hex = colorItem.hex ? colorItem.hex : "";
-                        var row = createColorRow(hex);
+                        var shadeVal = colorItem.shade ? colorItem.shade : "";
+                        var row = createColorRow(hex, shadeVal);
                         repeaterContainer.appendChild(row);
                     });
                 }
-                // If existingColors is an empty array (colors intentionally removed), do not add any row.
                 updateColorNames();
 
                 addColorButton.addEventListener("click", function() {
@@ -216,17 +313,17 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     updateColorNames();
                 });
 
-                // Save settings via AJAX when the "Save Settings" button is clicked.
                 var saveButton = document.querySelector(".snn-panel-button");
                 saveButton.addEventListener("click", function() {
                     var colorRows = document.querySelectorAll(".snn-color-row");
                     var colorsData = [];
                     colorRows.forEach(function(row, index) {
                         var hexValue = row.querySelector(".snn-hex-input").value.trim();
-                        // Auto-generate the color name based on the row order.
+                        var shadeInput = row.querySelector(".snn-shade-input");
+                        var shadeValue = shadeInput ? shadeInput.value.trim() : "";
                         var autoName = "snn-color-" + (index + 1);
                         if (hexValue) {
-                            colorsData.push({ name: autoName, hex: hexValue });
+                            colorsData.push({ name: autoName, hex: hexValue, shade: shadeValue });
                         }
                     });
 
@@ -242,7 +339,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                         var feedbackEl = document.querySelector(".snn-feedback-after-save");
                         if (data.success) {
                             feedbackEl.textContent = "Settings saved.";
-                            // Optionally update dynamic CSS variables on the page without reload.
                             updateDynamicCSSVariables(colorsData);
                             setTimeout(function() {
                                 feedbackEl.textContent = "";
@@ -264,7 +360,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     });
                 });
 
-                // Function to update dynamic CSS variables on the page based on new colors data.
                 function updateDynamicCSSVariables(colorsData) {
                     var styleEl = document.getElementById("snn-dynamic-colors");
                     if (!styleEl) {
@@ -272,9 +367,25 @@ function snn_custom_inline_styles_and_scripts_improved() {
                         styleEl.id = "snn-dynamic-colors";
                         document.head.appendChild(styleEl);
                     }
-                    var cssVars = ":root {";
+                    var cssVars = ":root {\n";
+                    
                     colorsData.forEach(function(color, index) {
-                        cssVars += "--snn-color-" + (index + 1) + ": " + color.hex + ";";
+                        var baseVarName = "--snn-color-" + (index + 1);
+                        cssVars += "  " + baseVarName + ": " + color.hex + ";\n";
+
+                        var shadeCount = parseInt(color.shade, 10);
+                        if (!isNaN(shadeCount) && shadeCount > 0) {
+                            for (var i = 1; i <= shadeCount; i++) {
+                                var fraction = i / (shadeCount + 1);
+                                var lightHex = lightenColor(color.hex, fraction);
+                                cssVars += "  " + baseVarName + "-light-" + i + ": " + lightHex + ";\n";
+                            }
+                            for (var i = 1; i <= shadeCount; i++) {
+                                var fraction = i / (shadeCount + 1);
+                                var darkHex = darkenColor(color.hex, fraction);
+                                cssVars += "  " + baseVarName + "-dark-" + i + ": " + darkHex + ";\n";
+                            }
+                        }
                     });
                     cssVars += "}";
                     styleEl.textContent = cssVars;
@@ -398,7 +509,8 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 align-items: center;
                 margin-bottom: 4px;
             }
-            .snn-color-row .snn-color-name-display {
+            .snn-color-row .snn-color-name-display ,
+            .snn-color-row .snn-shade-input{
                 width: 120px;
                 text-align: center;
                 font-size: 14px;
@@ -407,6 +519,8 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 line-height: 32px;
                 height: 32px;
                 color: #868686;
+                border:none;
+                padding:0
             }
             .snn-color-row input[type="text"] {
                 padding: 5px;
@@ -418,7 +532,8 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 border: 0;
                 line-height: 22px;
             }
-            .snn-color-row input[type="text"]::placeholder {
+            .snn-color-row input[type="text"]::placeholder ,
+            .snn-color-row .snn-shade-input::placeholder {
                 color: #ffffff44;
             }
             .snn-color-row input[type="color"] {
@@ -452,10 +567,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 margin-bottom: 10px;
                 font-size: 14px;
                 color: #0f0;
-            }
-            .snn-feedback-after-save:hover {
-                background-color: var(--builder-color-accent);
-                color: black;
             }
             .snn-settings-content-wrapper-section-title {
                 margin-bottom: 5px;
@@ -518,71 +629,67 @@ add_action('wp_footer', 'snn_popup_container_improved');
 
 // AJAX handler for saving the color settings.
 function snn_save_color_settings_improved() {
-    // Check user capabilities.
     if ( ! current_user_can( 'manage_options' ) ) {
         wp_send_json_error( 'Unauthorized' );
         wp_die();
     }
-
-    // Verify nonce for security.
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'snn_save_colors_nonce' ) ) {
         wp_send_json_error('Invalid nonce');
         wp_die();
     }
-
     if ( ! isset( $_POST['colors'] ) ) {
         wp_send_json_error('No colors data provided');
         wp_die();
     }
-
     $colors = json_decode( stripslashes( $_POST['colors'] ), true );
-
     if ( ! is_array( $colors ) ) {
         wp_send_json_error('Invalid colors data');
         wp_die();
     }
-
-    // Save the colors into the option "snn_global_color_sync_variables".
     update_option( 'snn_global_color_sync_variables', $colors );
-
     wp_send_json_success('Settings saved');
     wp_die();
 }
 add_action('wp_ajax_snn_save_colors_improved', 'snn_save_color_settings_improved');
 
 
-// Function to output dynamic CSS variables based on saved colors in both head and footer.
-// No default color is printed if no color is saved.
+// Function to output dynamic CSS variables based on saved colors (including dark/light shades).
 function snn_dynamic_color_variables_roots() {
     $colors = get_option('snn_global_color_sync_variables', []);
     if ( ! empty($colors) && is_array($colors) ) {
-         echo '<style id="snn-dynamic-colors">';
-         echo '
-:root {
-';
+         echo '<style id="snn-dynamic-colors">'."\n";
+         echo ":root {\n";
          $i = 1;
          foreach ( $colors as $color ) {
             $hex = isset($color['hex']) ? $color['hex'] : '';
-            if( $hex !== '' ){
-                echo '  --snn-color-' . $i . ': ' . $hex . ';
-';
+            if( $hex === '' ){
+                continue;
+            }
+            $baseVar = '--snn-color-' . $i;
+            echo "  ".$baseVar.": ".$hex.";\n";
+            $shadeCount = isset($color['shade']) ? intval($color['shade']) : 0;
+            if ($shadeCount > 0) {
+                for ($j = 1; $j <= $shadeCount; $j++) {
+                    $fraction = $j / ($shadeCount + 1);
+                    $lightHex = snn_lighten_color($hex, $fraction);
+                    echo "  ".$baseVar."-light-".$j.": ".$lightHex.";\n";
+                }
+                for ($j = 1; $j <= $shadeCount; $j++) {
+                    $fraction = $j / ($shadeCount + 1);
+                    $darkHex = snn_darken_color($hex, $fraction);
+                    echo "  ".$baseVar."-dark-".$j.": ".$darkHex.";\n";
+                }
             }
             $i++;
          }
-         echo '}';
-         echo '
-</style>';
+         echo "}\n</style>\n";
     }
 }
 add_action( 'wp_head', 'snn_dynamic_color_variables_roots', 1 );
 add_action( 'wp_footer', 'snn_dynamic_color_variables_roots', 9999 );
 
 
-// --------------------------------------------------------------------------
-// New function: Inject colors into the Bricks Builder color palette
-// This script will run as the last script in the footer so that it seamlessly
-// integrates with Bricks Builder's own data. We now only use the colors from
-// "snn_global_color_sync_variables" and build our own names to match the CSS variables.
+// Inject colors (including shades) into the Bricks Builder color palette.
 function snn_inject_bricks_color_palette() {
     $options = get_option('snn_editor_settings');
     if (
@@ -600,17 +707,33 @@ if (typeof bricksData !== 'undefined' && bricksData.loadData && bricksData.loadD
     bricksData.loadData.colorPalette[0].colors.unshift(
 ";
             $color_objects = [];
-            $index = 1;
-            foreach ($colors as $color) {
+            foreach ($colors as $index => $color) {
                 if (isset($color['hex']) && $color['hex'] !== '') {
-                    // Generate our own variable name matching the dynamic CSS output.
-                    $js_var = 'snn-color-' . $index;
-                    $color_objects[] = '    {
-        "raw": "var(--' . $js_var . ')",
-        "id": "snn1' . $index . '",
-        "name": "' . $js_var . '"
-    }';
-                    $index++;
+                    $varName = 'snn-color-'.($index + 1);
+                    $color_objects[] = '        {
+            "raw": "var(--'.$varName.')",
+            "id": "snn1'.$index.'",
+            "name": "'.$varName.'"
+        }';
+                    $shadeCount = isset($color['shade']) ? intval($color['shade']) : 0;
+                    if ($shadeCount > 0) {
+                        for ($i = 1; $i <= $shadeCount; $i++) {
+                            $lightVar = $varName.'-light-'.$i;
+                            $color_objects[] = '        {
+                "raw": "var(--'.$lightVar.')",
+                "id": "snn1light'.$index.'-'.$i.'",
+                "name": "'.$lightVar.'"
+            }';
+                        }
+                        for ($i = 1; $i <= $shadeCount; $i++) {
+                            $darkVar = $varName.'-dark-'.$i;
+                            $color_objects[] = '        {
+                "raw": "var(--'.$darkVar.')",
+                "id": "snn1dark'.$index.'-'.$i.'",
+                "name": "'.$darkVar.'"
+            }';
+                        }
+                    }
                 }
             }
             echo "\n" . implode(",\n", $color_objects) . "\n);";
@@ -622,4 +745,87 @@ if (typeof bricksData !== 'undefined' && bricksData.loadData && bricksData.loadD
     }
 }
 add_action('wp_footer', 'snn_inject_bricks_color_palette', 100000);
+
+
+
+if ( ! function_exists('snn_hex_to_hsl') ) {
+    function snn_hex_to_hsl($hex) {
+        if (preg_match('/^#([A-Fa-f0-9]{3})$/', $hex)) {
+            $hex = '#'.$hex[1].$hex[1].$hex[2].$hex[2].$hex[3].$hex[3];
+        }
+        $r = hexdec(substr($hex,1,2)) / 255;
+        $g = hexdec(substr($hex,3,2)) / 255;
+        $b = hexdec(substr($hex,5,2)) / 255;
+        $max = max($r,$g,$b);
+        $min = min($r,$g,$b);
+        $h; 
+        $s;
+        $l = ($max + $min) / 2;
+        if($max == $min){
+            $h = $s = 0;
+        } else {
+            $d = $max - $min;
+            $s = $l > 0.5 ? $d / (2 - $max - $min) : $d / ($max + $min);
+            switch($max){
+                case $r:
+                    $h = ($g - $b) / $d + ($g < $b ? 6 : 0); 
+                    break;
+                case $g: 
+                    $h = ($b - $r) / $d + 2; 
+                    break;
+                case $b: 
+                    $h = ($r - $g) / $d + 4; 
+                    break;
+            }
+            $h /= 6;
+        }
+        return array($h, $s, $l);
+    }
+}
+
+if ( ! function_exists('snn_hsl_to_hex') ) {
+    function snn_hsl_to_hex($h, $s, $l) {
+        $r; 
+        $g; 
+        $b;
+        if($s == 0){
+            $r = $g = $b = $l;
+        } else {
+            $hue2rgb = function($p, $q, $t) use (&$hue2rgb) {
+                if($t < 0) $t += 1;
+                if($t > 1) $t -= 1;
+                if($t < 1/6) return $p + ($q - $p) * 6 * $t;
+                if($t < 1/2) return $q;
+                if($t < 2/3) return $p + ($q - $p) * (2/3 - $t) * 6;
+                return $p;
+            };
+            $q = $l < 0.5 ? $l * (1 + $s) : $l + $s - $l * $s;
+            $p = 2 * $l - $q;
+            $r = $hue2rgb($p, $q, $h + 1/3);
+            $g = $hue2rgb($p, $q, $h);
+            $b = $hue2rgb($p, $q, $h - 1/3);
+        }
+        $toHex = function($x){
+            $hexVal = dechex((int)round($x * 255));
+            return str_pad($hexVal, 2, "0", STR_PAD_LEFT);
+        };
+        return "#".$toHex($r).$toHex($g).$toHex($b);
+    }
+}
+
+if ( ! function_exists('snn_lighten_color') ) {
+    function snn_lighten_color($hex, $fraction) {
+        list($h, $s, $l) = snn_hex_to_hsl($hex);
+        $l = $l + (1 - $l) * $fraction;
+        return snn_hsl_to_hex($h, $s, $l);
+    }
+}
+
+if ( ! function_exists('snn_darken_color') ) {
+    function snn_darken_color($hex, $fraction) {
+        list($h, $s, $l) = snn_hex_to_hsl($hex);
+        $l = $l * (1 - $fraction);
+        return snn_hsl_to_hex($h, $s, $l);
+    }
+}
 ?>
