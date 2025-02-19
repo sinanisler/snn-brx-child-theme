@@ -105,7 +105,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     li.tabIndex = 0;
                     li.setAttribute("data-balloon", "SNN-BRX");
                     li.setAttribute("data-balloon-pos", "bottom");
-                    li.innerHTML = 'SNN';
+                    li.innerHTML = 'S';
                     li.addEventListener("click", function() {
                         var popup = document.querySelector("#snn-popup");
                         if (popup) popup.classList.add("active");
@@ -433,9 +433,10 @@ function snn_custom_inline_styles_and_scripts_improved() {
             .snn-enhance-li {
                 width:26px !important;
                 padding-left: 3px;
-                font-size: 12px;
+                font-size: 21px;
                 letter-spacing: -0.3px;
-                padding-top: 1px;
+                padding-top: 0px;
+                color: #b0b4b7;
             }
             .snn-enhance-li i{
                 font-size: 19px;
