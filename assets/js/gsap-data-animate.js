@@ -129,6 +129,9 @@ window.onload = function () {
             stagger: options.stagger ? getStaggerValue(options) : 0,
             ...(hasRotate ? { force3D: false } : {})
           };
+          if(options.stagger) {
+            animationProps.immediateRender = false;
+          }
           timeline.to(
             splitText(element, options),
             addVisibilityCallback(animationProps),
@@ -183,8 +186,17 @@ window.onload = function () {
           paused: options.scroll === 'false',
           ...(hasRotate ? { force3D: false } : {})
         };
+        // If using a stagger, prevent auto‑rendering and manually apply the starting state.
+        if (options.stagger) {
+          toProps.immediateRender = false;
+        }
+        // Store targets so we only call splitText() once.
+        const targets = splitText(element, options);
+        if (options.stagger) {
+          gsap.set(targets, fromProps);
+        }
         const tween = gsap.fromTo(
-          splitText(element, options),
+          targets,
           fromProps,
           addVisibilityCallback(toProps)
         );
@@ -273,7 +285,7 @@ window.onload = function () {
         toggleClass: options.toggleClass || null,
         pinSpacing: options.pinSpacing || 'margin',
         invalidateOnRefresh: true,
-        immediateRender: true,
+        immediateRender: options.stagger ? false : true,
         animation: gsap.timeline({ paused: true })
       };
     }
@@ -295,7 +307,12 @@ window.onload = function () {
     }
 
     function splitText(element, options) {
+      // If no splittext is provided, check dynamically for immediate child elements.
       if (!options.splittext) {
+        const childElements = element.children;
+        if (options.stagger && childElements.length > 1) {
+          return childElements;
+        }
         return element;
       }
       const type = options.splittext.toLowerCase();
