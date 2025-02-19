@@ -67,15 +67,11 @@ window.onload = function () {
 
       const firstOptions = parseAnimationOptions(animations[0]);
 
-      // Branch 1: When trigger is explicitly set to "true"
       if (firstOptions.trigger === 'true') {
         const timeline = gsap.timeline({ paused: true });
-
         animations.forEach(animation => {
           const options = parseAnimationOptions(animation);
           const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
-
-          // Compute rotate value
           const rotateProp = options.endStyles.rotate !== undefined
             ? { rotate: parseFloat(options.endStyles.rotate) }
             : (options.startStyles.rotate !== undefined
@@ -83,10 +79,8 @@ window.onload = function () {
                 : (options.r || options.rotate
                     ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
                     : {}));
-
           let cleanEndStyles = { ...options.endStyles };
           delete cleanEndStyles.rotate;
-
           const animationProps = {
             ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
             ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
@@ -99,24 +93,21 @@ window.onload = function () {
             stagger: options.stagger ? getStaggerValue(options) : 0,
             ...(hasRotate ? { force3D: false } : {})
           };
-
-          timeline.to(splitText(element, options), addVisibilityCallback(animationProps));
+          timeline.to(
+            splitText(element, options),
+            addVisibilityCallback(animationProps)
+          );
         });
-
         element._gsapAnimationInstance = timeline;
-
       } else if (animations.length > 1) {
         gsap.set(splitText(element, firstOptions), firstOptions.startStyles);
-
         const timeline = gsap.timeline({
           paused: firstOptions.scroll === 'false',
           scrollTrigger: createScrollTriggerConfig(firstOptions, element)
         });
-
         animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
           const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
-
           const rotateProp = options.endStyles.rotate !== undefined
             ? { rotate: parseFloat(options.endStyles.rotate) }
             : (options.startStyles.rotate !== undefined
@@ -124,10 +115,8 @@ window.onload = function () {
                 : (options.r || options.rotate
                     ? { rotate: randomizeValue(options.r || options.rotate, options.rand === 'true') }
                     : {}));
-
           let cleanEndStyles = { ...options.endStyles };
           delete cleanEndStyles.rotate;
-
           const animationProps = {
             ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
             ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
@@ -140,34 +129,27 @@ window.onload = function () {
             stagger: options.stagger ? getStaggerValue(options) : 0,
             ...(hasRotate ? { force3D: false } : {})
           };
-
           timeline.to(
             splitText(element, options),
             addVisibilityCallback(animationProps),
             index > 0 ? `+=${options.delay || 0}` : 0
           );
         });
-
         element._gsapAnimationInstance = timeline;
-
         if (firstOptions.scroll === 'false' && firstOptions.loop === 'true') {
           timeline.repeat(-1).yoyo(true);
         }
         if (firstOptions.scroll === 'false') {
           observeIfScrollFalse(element, timeline);
         }
-
       } else {
         const options = parseAnimationOptions(animations[0]);
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
         const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
-
         let cleanStartStyles = { ...options.startStyles };
         delete cleanStartStyles.rotate;
-
         let cleanEndStyles = { ...options.endStyles };
         delete cleanEndStyles.rotate;
-
         const fromProps = {
           ...(options.x ? { x: randomizeValue(options.x, options.rand === 'true') } : {}),
           ...(options.y ? { y: randomizeValue(options.y, options.rand === 'true') } : {}),
@@ -181,7 +163,6 @@ window.onload = function () {
           ...cleanStartStyles,
           ...(hasRotate ? { force3D: false } : {})
         };
-
         const toProps = {
           ...(options.x ? { x: 0 } : {}),
           ...(options.y ? { y: 0 } : {}),
@@ -202,15 +183,12 @@ window.onload = function () {
           paused: options.scroll === 'false',
           ...(hasRotate ? { force3D: false } : {})
         };
-
         const tween = gsap.fromTo(
           splitText(element, options),
           fromProps,
           addVisibilityCallback(toProps)
         );
-
         element._gsapAnimationInstance = tween;
-
         if (options.scroll === 'false' && options.loop === 'true') {
           tween.repeat(-1).yoyo(true);
         }
@@ -241,7 +219,6 @@ window.onload = function () {
           }
           return acc;
         }
-
         let index = option.indexOf(':');
         if (index === -1) {
           return acc;
@@ -281,14 +258,11 @@ window.onload = function () {
       const defaultStart = 'top 60%';
       const defaultEnd = 'bottom 40%';
       const isBodyTrigger = options.trigger === 'body';
-
       if (options.scroll === 'false' || options.trigger === 'true') {
         return false;
       }
-
       const finalStart = parseStartEndValue(options.start, isBodyTrigger ? 'top top' : defaultStart);
-      const finalEnd   = parseStartEndValue(options.end,   isBodyTrigger ? 'bottom bottom' : defaultEnd);
-
+      const finalEnd = parseStartEndValue(options.end, isBodyTrigger ? 'bottom bottom' : defaultEnd);
       return {
         trigger: isBodyTrigger ? document.body : element,
         start: finalStart,
@@ -321,21 +295,30 @@ window.onload = function () {
     }
 
     function splitText(element, options) {
-      const shouldSplitText = options.splittext === 'true';
-      if (shouldSplitText) {
-        const text = element.innerText;
-        const chars = text.split('');
-        const startStylesString = convertStylesToString(options.startStyles);
-        element.innerHTML = chars
-          .map(char =>
-            char === ' '
-              ? `<span style="display:inline-block; position:relative;">&nbsp;</span>`
-              : `<span style="display:inline-block; position:relative; ${startStylesString}">${char}</span>`
-          )
-          .join('');
-        return element.children;
+      if (!options.splittext) {
+        return element;
       }
-      return element;
+      const type = options.splittext.toLowerCase();
+      const text = element.innerText;
+      let splitted = [];
+      if (type === 'true') {
+        splitted = text.split('');
+      } else if (type === 'word') {
+        splitted = text.split(/(\s+)/);
+      } else {
+        return element;
+      }
+      const startStylesString = convertStylesToString(options.startStyles);
+      element.innerHTML = splitted
+        .map(part => {
+          if (part.trim() === '') {
+            return `<span style="display:inline-block; position:relative;">${part}</span>`;
+          } else {
+            return `<span style="display:inline-block; position:relative; ${startStylesString}">${part}</span>`;
+          }
+        })
+        .join('');
+      return element.children;
     }
 
     function convertStylesToString(styles) {
@@ -350,5 +333,6 @@ window.onload = function () {
       });
       return styleString.trim();
     }
+
   }, 10);
 };
