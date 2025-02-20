@@ -29,17 +29,14 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $value = trim( $value );
 
-        // Allow special values like 'auto' or 'initial'
         if ( preg_match( '/^(auto|initial|inherit|unset)$/', $value ) ) {
             return $value;
         }
 
-        // Check if value contains any unit or is a CSS function
         if ( preg_match( '/[a-zA-Z%()]/', $value ) ) {
             return $value;
         }
 
-        // Default to pixels if no unit specified and it's a numeric value
         return is_numeric( $value ) ? $value . 'px' : $value;
     }
 
@@ -194,6 +191,19 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'placeholder' => esc_html__( 'Select', 'bricks' ),
         ];
 
+        $this->controls['pin'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Pin', 'bricks' ),
+            'type'        => 'select',
+            'options'     => [
+                'true'  => esc_html__( 'Yes', 'bricks' ),
+                'false' => esc_html__( 'No', 'bricks' ),
+            ],
+            'default'     => '',
+            'inline'      => true,
+            'placeholder' => esc_html__( 'Select', 'bricks' ),
+        ];
+
         $this->controls['duration'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Duration', 'bricks' ),
@@ -220,6 +230,14 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
             'inline'      => true,
         ];
 
+        $this->controls['stagger'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Stagger', 'bricks' ),
+            'type'        => 'text',
+            'placeholder' => '1, 2',
+            'inline'      => true,
+        ];
+
         $this->controls['markers'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Markers', 'bricks' ),
@@ -235,22 +253,16 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $this->controls['scroll_start'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Scroll Start (%)', 'bricks' ),
-            'type'        => 'number',
-            'min'         => 0,
-            'max'         => 100,
-            'step'        => 1,
-            'placeholder' => '40',
+            'label'       => esc_html__( 'Scroll Start', 'bricks' ),
+            'type'        => 'text',
+            'placeholder' => 'top 40% or +=2000px',
         ];
 
         $this->controls['scroll_end'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Scroll End (%)', 'bricks' ),
-            'type'        => 'number',
-            'min'         => 0,
-            'max'         => 100,
-            'step'        => 1,
-            'placeholder' => '60',
+            'label'       => esc_html__( 'Scroll End', 'bricks' ),
+            'type'        => 'text',
+            'placeholder' => 'bottom 60% or +=2000px',
         ];
     }
 
@@ -258,21 +270,20 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
         $root_classes = ['snn-gsap-animations-wrapper'];
         $this->set_attribute( '_root', 'class', $root_classes );
 
-        $gsap_animations = isset( $this->settings['gsap_animations'] ) ? $this->settings['gsap_animations'] : [];
+        $gsap_animations   = isset( $this->settings['gsap_animations'] ) ? $this->settings['gsap_animations'] : [];
         $animation_strings = [];
 
-        foreach ( $gsap_animations as $anim ) {
-            $props = [];
-            $transform_start = [];
-            $transform_end   = [];
+        foreach ( $gsap_animations as $index => $anim ) {
+            $props            = [];
+            $transform_start  = [];
+            $transform_end    = [];
 
-            // Handle X/Y transforms
             foreach ( ['x', 'y'] as $axis ) {
                 foreach ( ['start', 'end'] as $state ) {
                     $key = "{$axis}_{$state}";
                     if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
-                        $value = $this->parse_unit_value( $anim[ $key ] );
-                        $transform = "translate" . strtoupper( $axis ) . "($value)";
+                        $value      = $this->parse_unit_value( $anim[ $key ] );
+                        $transform  = "translate" . strtoupper( $axis ) . "($value)";
                         if ( $state === 'start' ) {
                             $transform_start[] = $transform;
                         } else {
@@ -282,25 +293,22 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 }
             }
 
-            // Handle scale as separate property using the (value) format
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-scale";
                 if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
-                    $value = $anim[ $key ];
-                    $props[] = "style_{$state}-scale(" . $value . ")";
+                    $value    = $anim[ $key ];
+                    $props[]  = "style_{$state}-scale($value)";
                 }
             }
 
-            // Handle rotate as separate property using the (value) format
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-rotate";
                 if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
-                    $value = $anim[ $key ];
-                    $props[] = "style_{$state}-rotate(" . $value . "deg)";
+                    $value    = $anim[ $key ];
+                    $props[]  = "style_{$state}-rotate({$value}deg)";
                 }
             }
 
-            // Add combined transform properties if any translations exist
             if ( ! empty( $transform_start ) ) {
                 $props[] = "style_start-transform:" . implode( ' ', $transform_start );
             }
@@ -308,64 +316,61 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                 $props[] = "style_end-transform:" . implode( ' ', $transform_end );
             }
 
-            // Handle opacity as separate property using the (value) format
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-opacity";
                 if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
-                    $value = $anim[ $key ];
-                    $props[] = "style_{$state}-opacity(" . $value . ")";
+                    $value    = $anim[ $key ];
+                    $props[]  = "style_{$state}-opacity($value)";
                 }
             }
 
-            // Handle filters
             $filters = [
                 'start' => [],
                 'end'   => []
             ];
 
-            // Blur filter
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-filter";
                 if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
-                    $value = $this->parse_unit_value( $anim[ $key ] );
+                    $value                = $this->parse_unit_value( $anim[ $key ] );
                     $filters[ $state ][] = "blur($value)";
                 }
             }
 
-            // Grayscale filter
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}-grayscale";
                 if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
-                    $value = $anim[ $key ];
+                    $value                = $anim[ $key ];
                     $filters[ $state ][] = "grayscale({$value}%)";
                 }
             }
 
-            // Add filter properties
             foreach ( ['start', 'end'] as $state ) {
                 if ( ! empty( $filters[ $state ] ) ) {
                     $props[] = "style_{$state}-filter:" . implode( ' ', $filters[ $state ] );
                 }
             }
 
-            // Process custom CSS inputs
             foreach ( ['start', 'end'] as $state ) {
                 $key = "style_{$state}_custom";
                 if ( isset( $anim[$key] ) && $anim[$key] !== '' ) {
-                    $custom_css = $anim[ $key ];
+                    $custom_css   = $anim[ $key ];
                     $declarations = array_map( 'trim', explode( ';', $custom_css ) );
-
                     foreach ( $declarations as $declaration ) {
                         if ( $declaration !== '' ) {
                             $parts = array_map( 'trim', explode( ':', $declaration, 2 ) );
                             if ( count( $parts ) === 2 ) {
                                 list( $css_prop, $css_value ) = $parts;
                                 $gsap_prop = str_replace( '_', '-', $css_prop );
-                                $props[] = "style_{$state}-{$gsap_prop}:" . $css_value;
+                                $props[]   = "style_{$state}-{$gsap_prop}:" . $css_value;
                             }
                         }
                     }
                 }
+            }
+
+            if ( $index === 1 && isset( $this->settings['stagger'] ) && $this->settings['stagger'] !== '' ) {
+                array_unshift( $props, "stagger:" . $this->settings['stagger'] );
             }
 
             if ( ! empty( $props ) ) {
@@ -375,47 +380,51 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $global_settings = [];
 
-        // Check if loop is set to true; add it at the beginning if so.
         if ( isset( $this->settings['loop'] ) && $this->settings['loop'] === 'true' ) {
             array_unshift( $global_settings, "loop:true" );
         }
 
-        // Check if scroll is set; add the scroll setting.
         if ( isset( $this->settings['scroll'] ) && $this->settings['scroll'] !== '' ) {
             $global_settings[] = "scroll:" . ( $this->settings['scroll'] === 'true' ? 'true' : 'false' );
+        }
+
+        if ( isset( $this->settings['pin'] ) && $this->settings['pin'] !== '' ) {
+            $global_settings[] = "pin:" . ( $this->settings['pin'] === 'true' ? 'true' : 'false' );
         }
 
         if ( isset( $this->settings['markers'] ) ) {
             $global_settings[] = "markers:" . ( $this->settings['markers'] === 'true' ? 'true' : 'false' );
         }
 
-        if ( isset( $this->settings['scroll_start'] ) && $this->settings['scroll_start'] !== '' ) {
-            $global_settings[] = "start:'top " . $this->settings['scroll_start'] . "%'";
+        if ( ! empty( $this->settings['scroll_start'] ) ) {
+            $global_settings[] = "start:'" . $this->settings['scroll_start'] . "'";
+        }
+        if ( ! empty( $this->settings['scroll_end'] ) ) {
+            $global_settings[] = "end:'" . $this->settings['scroll_end'] . "'";
         }
 
-        if ( isset( $this->settings['scroll_end'] ) && $this->settings['scroll_end'] !== '' ) {
-            $global_settings[] = "end:'bottom " . $this->settings['scroll_end'] . "%'";
-        }
-
-        // Add duration if set
         if ( isset( $this->settings['duration'] ) && $this->settings['duration'] !== '' ) {
             $global_settings[] = "duration:" . $this->settings['duration'];
         }
 
-        // Add delay if set
         if ( isset( $this->settings['delay'] ) && $this->settings['delay'] !== '' ) {
             $global_settings[] = "delay:" . $this->settings['delay'];
         }
 
-        // Add scrub if set
         if ( isset( $this->settings['scrub'] ) && $this->settings['scrub'] !== '' ) {
             $global_settings[] = "scrub:" . $this->settings['scrub'];
         }
 
-        $global = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
-        $data_animate = $global . implode( ' ', $animation_strings );
+        if ( isset( $this->settings['stagger'] ) && $this->settings['stagger'] !== '' ) {
+            $global_settings[] = "stagger:" . $this->settings['stagger'];
+        }
 
-        $data_animate_attr = ! empty( $data_animate ) ? ' data-animate="' . esc_attr( $data_animate ) . '"' : '';
+        $global   = ! empty( $global_settings ) ? implode( ', ', $global_settings ) . ',' : '';
+        $data_all = $global . implode( ' ', $animation_strings );
+
+        $data_animate_attr = ! empty( $data_all ) 
+            ? ' data-animate="' . esc_attr( $data_all ) . '"' 
+            : '';
 
         echo '<div ' . $this->render_attributes('_root') . $data_animate_attr . '>';
         echo Frontend::render_children( $this );
