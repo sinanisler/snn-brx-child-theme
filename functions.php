@@ -60,42 +60,29 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/user-author-fields.php';
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
 
+
 // Register Custom Bricks Builder Elements
 add_action('init', function () {
-    $custom_html_css_script_file = SNN_PATH . 'includes/elements/custom-html-css-script.php';
-    if (file_exists($custom_html_css_script_file)) {
-        require_once $custom_html_css_script_file;
-        \Bricks\Elements::register_element($custom_html_css_script_file, 'custom-html-css-script', 'Custom_HTML_CSS_Script');
-    }
+    require_once SNN_PATH . 'includes/elements/custom-html-css-script.php';
+    \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-html-css-script.php', 'custom-html-css-script', 'Custom_HTML_CSS_Script');
 
-    $custom_maps_file = SNN_PATH . 'includes/elements/custom-maps.php';
-    if (file_exists($custom_maps_file)) {
-        require_once $custom_maps_file;
-        \Bricks\Elements::register_element($custom_maps_file);
-    }
+    require_once SNN_PATH . 'includes/elements/custom-maps.php';
+    \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-maps.php');
 
-    // Check if GSAP setting enabled or dont load elements
+
+
+
+    // if GSAP setting is enabled Register Elements
     $options = get_option('snn_other_settings');
-    if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
+    if (!empty($options['enqueue_gsap'])) {
+        require_once SNN_PATH . 'includes/elements/lottie-animation.php';
+        \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/lottie-animation.php');
 
-        $lottie_animation_file = SNN_PATH . 'includes/elements/lottie-animation.php';
-        if (file_exists($lottie_animation_file)) {
-            require_once $lottie_animation_file;
-            \Bricks\Elements::register_element($lottie_animation_file);
-        }
+        require_once SNN_PATH . 'includes/elements/gsap-animations.php';
+        \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations.php');
 
-        $gsap_animation_element = SNN_PATH . 'includes/elements/gsap-animations.php';
-        if (file_exists($gsap_animation_element)) {
-            require_once $gsap_animation_element;
-            \Bricks\Elements::register_element($gsap_animation_element);
-        }
-    
-        $gsap_animation_element = SNN_PATH . 'includes/elements/gsap-text-animations.php';
-        if (file_exists($gsap_animation_element)) {
-            require_once $gsap_animation_element;
-            \Bricks\Elements::register_element($gsap_animation_element);
-        }    
-
+        require_once SNN_PATH . 'includes/elements/gsap-text-animations.php';
+        \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-text-animations.php');
     }
 
 
