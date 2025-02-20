@@ -317,7 +317,7 @@ function bgcc_page() {
                             <input type="checkbox" name="bgcc_inline" id="bgcc_inline" <?php checked($load_inline, 1); ?>>
                             Load global classes CSS inline on frontend
                         </label>
-                        <p class="description">When enabled, all global classes will be output in minified form in the frontend. I would recommend using this with cache on slow hosting this feature might effect your sites performance.</p>
+                        <p class="desc">When enabled, all global classes will be output in minified form in the frontend. I would recommend using this with cache on slow hosting this feature might effect your sites performance.</p>
                     </div>
                     <div style="margin-bottom:50px;">
                         <h3>Bulk CSS</h3>
