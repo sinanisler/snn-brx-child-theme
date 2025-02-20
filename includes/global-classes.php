@@ -14,10 +14,8 @@ add_action('admin_menu', function () {
 
 add_action('admin_init', function () {
 
-    // Combined Save All Processing
     if (isset($_POST['bgcc_save_all']) && wp_verify_nonce($_POST['bgcc_nonce'], 'bgcc_save_all')) {
 
-        // Process Categories Save
         $postedCategories = $_POST['categories'] ?? null;
         $new_categories = [];
         if ($postedCategories && is_array($postedCategories)) {
@@ -34,7 +32,6 @@ add_action('admin_init', function () {
         }
         update_option('bricks_global_classes_categories', $new_categories);
 
-        // Process Classes Save – now using a single JSON field to avoid too many input variables.
         $existing_classes = get_option('bricks_global_classes', []);
         $oldClassById     = [];
         foreach ($existing_classes as $cl) {
@@ -48,7 +45,6 @@ add_action('admin_init', function () {
             foreach ($postedClasses as $cl) {
                 $classId   = !empty($cl['id']) ? sanitize_text_field($cl['id']) : bgcc_rand_id();
                 $className = !empty($cl['name']) ? sanitize_text_field($cl['name']) : '';
-                // Allow category to be empty.
                 $catId     = isset($cl['category']) ? sanitize_text_field($cl['category']) : '';
 
                 if ($className) {
@@ -76,7 +72,6 @@ add_action('admin_init', function () {
 
         update_option('bricks_global_classes', $new_classes);
 
-        // Process the new "Load inline" option.
         $inline = isset($_POST['bgcc_inline']) ? 1 : 0;
         update_option('bricks_global_classes_inline', $inline);
 
@@ -90,13 +85,6 @@ function bgcc_rand_id($len = 6) {
     return substr(str_shuffle('abcdefghijklmnopqrstuvwxyz0123456789'), 0, $len);
 }
 
-/**
- * Helper function to extract a block with balanced braces starting at a given position.
- *
- * @param string $css The CSS string.
- * @param int $startBracePos Position of the first "{".
- * @return array [$blockText, $endPos] where $blockText includes the braces.
- */
 function bgcc_extract_brace_block($css, $startBracePos) {
     $braceCount = 0;
     $len = strlen($css);
@@ -115,10 +103,8 @@ function bgcc_extract_brace_block($css, $startBracePos) {
 
 function bgcc_parse_css($css) {
     $settings = [];
-    // Remove comments.
     $css = preg_replace('/\/\*.*?\*\//s', '', trim($css));
 
-    // --- Extract any @keyframes blocks ---
     $settings['_keyframes'] = [];
     $offset = 0;
     while (($pos = strpos($css, '@keyframes', $offset)) !== false) {
@@ -132,12 +118,10 @@ function bgcc_parse_css($css) {
             $animationName = $m[1];
             $settings['_keyframes'][$animationName] = trim($fullBlock);
         }
-        // Remove the keyframes block from the CSS string.
         $css = substr_replace($css, '', $pos, $endPos - $pos);
         $offset = $pos;
     }
 
-    // --- Parse remaining CSS rules (for the main class rule) ---
     if (preg_match('/\{(.*)\}/s', $css, $m)) {
         $rules = explode(';', $m[1]);
     } else {
@@ -152,7 +136,7 @@ function bgcc_parse_css($css) {
         switch (strtolower($p)) {
             case 'color':
                 $hex = sanitize_hex_color($v);
-                if ($hex === null) { // fallback to text if not a valid hex
+                if ($hex === null) {
                     $hex = sanitize_text_field($v);
                 }
                 $settings['_typography']['color'] = [
@@ -223,7 +207,6 @@ function bgcc_gen_css($name, $s) {
         }
     }
     $css .= "}";
-    // Append any keyframes blocks if present.
     if (!empty($s['_keyframes']) && is_array($s['_keyframes'])) {
         foreach ($s['_keyframes'] as $keyframesBlock) {
             $css .= "\n\n" . $keyframesBlock;
@@ -285,14 +268,13 @@ function bgcc_page() {
     </style>
 
     <div class="wrap">
-        <h1>Bricks Global Classes Manager</h1>
+        <h1>Bricks Global Class and CSS Manager</h1>
         <?php settings_errors('bgcc_messages'); ?>
 
         <form method="post" id="bgcc-main-form">
             <?php wp_nonce_field('bgcc_save_all', 'bgcc_nonce'); ?>
 
             <div id="bgcc-container">
-                <!-- Left Column: Categories & Settings -->
                 <div id="categories-section">
                     <h2>Categories</h2>
                     <table class="widefat fixed" id="categories-table">
@@ -330,13 +312,12 @@ function bgcc_page() {
                         </tfoot>
                     </table>
 
-                    <!-- Moved Settings Section -->
                     <div class="inline-setting" style="margin-top:40px">
                         <label for="bgcc_inline">
                             <input type="checkbox" name="bgcc_inline" id="bgcc_inline" <?php checked($load_inline, 1); ?>>
                             Load global classes CSS inline on frontend
                         </label>
-                        <p class="description">When enabled, all global classes will be output in minified form in the footer of your site. I would recommend using this with cache on slow hosting this feature might effect your sites performance.</p>
+                        <p class="description">When enabled, all global classes will be output in minified form in the frontend. I would recommend using this with cache on slow hosting this feature might effect your sites performance.</p>
                     </div>
                     <div style="margin-bottom:50px;">
                         <h3>Bulk CSS</h3>
@@ -350,14 +331,11 @@ function bgcc_page() {
                         <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
                     </div>
 
-                    <!-- Combined Save All Button -->
                     <p id="top-save"><?php submit_button('Save All', 'primary', 'bgcc_save_all', false); ?></p>
                 </div>
 
-                <!-- Right Column: Classes -->
                 <div id="classes-section">
                     <h2>Classes</h2>
-                    <!-- Bulk Actions for Classes -->
                     <div id="bulk-actions" style="margin-bottom:10px;">
                         <button type="button" class="button" id="bulk-delete">Delete Selected</button>
                         <select id="bulk-category">
@@ -367,7 +345,6 @@ function bgcc_page() {
                             <?php endforeach; ?>
                         </select>
                         <button type="button" class="button" id="bulk-change-category">Apply</button>
-                        <!-- Real-time Search Input -->
                         <input type="text" id="bulk-search" placeholder="Search classes..." style="margin-left:20px; padding-left:5px;">
                     </div>
                     <table class="widefat fixed" id="classes-table">
@@ -426,7 +403,6 @@ function bgcc_page() {
             <input type="hidden" name="bgcc_classes_data" id="bgcc_classes_data" value="">
         </form>
 
-        <!-- Export Section -->
         <div id="export-section" style="margin-top:30px;">
             <h2>Export</h2>
             <p>Copy the CSS for all classes below to backup your class list:</p>
@@ -467,7 +443,6 @@ function bgcc_page() {
                 .join('');
         }
         
-        // Helper to update the classes table empty state.
         function updateClassesEmptyState() {
             if (classesTable.rows.length === 0) {
                 let row = classesTable.insertRow();
@@ -490,7 +465,6 @@ function bgcc_page() {
         });
     
         addClassBtn.addEventListener('click', () => {
-            // Remove no-classes message if present.
             const noClassesMsg = classesTable.querySelector('.no-classes');
             if (noClassesMsg) {
                 noClassesMsg.remove();
@@ -522,7 +496,6 @@ function bgcc_page() {
             if (e.target.classList.contains('remove-row')) {
                 const row = e.target.closest('tr');
                 row.remove();
-                // If the removed row is in the classes table, update empty state.
                 if (row.closest('tbody') === classesTable) {
                     updateClassesEmptyState();
                 }
@@ -535,20 +508,16 @@ function bgcc_page() {
                 alert('Please paste some CSS first.');
                 return;
             }
-            // Remove no-classes message if present.
             const noClassesMsg = classesTable.querySelector('.no-classes');
             if (noClassesMsg) {
                 noClassesMsg.remove();
             }
-            // Updated regex: capture comma-separated selectors and an optional keyframes block
             const regex = /((?:\.[A-Za-z0-9_\-]+\s*,\s*)*\.[A-Za-z0-9_\-]+)\s*\{([\s\S]*?)\}\s*(?:(@keyframes\s+[A-Za-z0-9_-]+\s*\{[\s\S]*?\}))?/g;
             let match, found = 0;
             while ((match = regex.exec(text)) !== null) {
                 found++;
-                // Split selectors by comma and trim
                 const selectors = match[1].split(',').map(s => s.trim());
                 const rules = match[2].trim();
-                // Optional keyframes block (if any)
                 const keyframesBlock = match[3] ? match[3].trim() : '';
                 selectors.forEach(selector => {
                     const className = selector.startsWith('.') ? selector.slice(1) : selector;
@@ -607,7 +576,6 @@ function bgcc_page() {
             });
         });
     
-        // Only toggle checkboxes in visible rows when "Select All" is used.
         selectAllCheckbox.addEventListener('change', function(){
             const rows = classesTable.querySelectorAll('tbody tr');
             rows.forEach(row => {
@@ -620,7 +588,6 @@ function bgcc_page() {
             });
         });
     
-        // Real-time search for classes table
         bulkSearchInput.addEventListener('input', function() {
             const filter = this.value.toLowerCase();
             const rows = classesTable.querySelectorAll('tr');
@@ -634,7 +601,6 @@ function bgcc_page() {
             });
         });
     
-        // On form submission, gather all class data into one JSON field and disable individual inputs.
         mainForm.addEventListener('submit', function(e) {
             let classesData = [];
             const rows = classesTable.querySelectorAll('tbody tr');
@@ -651,7 +617,6 @@ function bgcc_page() {
                     category: categorySelect.value,
                     css: cssTextarea.value
                 });
-                // Disable fields so they don't get submitted separately.
                 idInput.disabled = true;
                 nameInput.disabled = true;
                 categorySelect.disabled = true;
@@ -664,7 +629,6 @@ function bgcc_page() {
     <?php
 }
 
-// Output minified CSS in the frontend footer if enabled.
 if (!is_admin()) {
     add_action('wp_footer', 'bgcc_output_inline_css');
 }
@@ -678,7 +642,6 @@ function bgcc_output_inline_css() {
                 $css .= bgcc_gen_css($cl['name'], $cl['settings']);
             }
         }
-        // Simple minification: remove newlines and extra spaces.
         $minified = preg_replace('/\s+/', ' ', $css);
         echo '<style id="bgcc-inline-css">' . $minified . '</style>';
     }
