@@ -1,12 +1,5 @@
 <?php     
 
-/**
-  * Define Constants
-  *
-  * These mimic Bricks Builder original constants for ease of use.
-  *
-  * Please mind the trailing '/' or there be dragons.
-  */
 define( 'SNN_PATH', trailingslashit( get_stylesheet_directory() ) );    // SNN dir for require_once files
 define( 'SNN_PATH_ASSETS', trailingslashit( SNN_PATH . 'assets' ) );    // SNN assets dir
 define( 'SNN_URL', trailingslashit( get_stylesheet_directory_uri() ) ); // SNN URL for enqueue files
@@ -65,6 +58,9 @@ require_once SNN_PATH . 'includes/utils.php';
 add_action('init', function () {
     require_once SNN_PATH . 'includes/elements/custom-html-css-script.php';
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-html-css-script.php', 'custom-html-css-script', 'Custom_HTML_CSS_Script');
+
+    require_once SNN_PATH . 'includes/elements/custom-maps.php';
+    \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-maps.php');
 
     require_once SNN_PATH . 'includes/elements/custom-maps.php';
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-maps.php');
