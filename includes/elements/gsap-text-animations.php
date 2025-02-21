@@ -83,6 +83,12 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
                 'y:2000px' => esc_html__('Slide 2000px bottom', 'bricks'),
 
 
+                'x:2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px right and fade in', 'bricks'),
+                'x:-2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px left and fade in', 'bricks'),
+                'y:-2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px top and fade in', 'bricks'),
+                'y:2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px bottom and fade in', 'bricks'),
+
+
                 // Split text animations (cleaned of splittext and stagger settings):
                 'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(180deg), style_end-transform:rotate(0deg)' =>
                     esc_html__('Split text fade in (rotate 180°)', 'bricks'),
