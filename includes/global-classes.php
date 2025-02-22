@@ -275,27 +275,34 @@ function bgcc_page() {
             width: 300px;
         }
         /* Tabs styling for right section */
-        #right-tabs {
-            border: 1px solid #ccc;
+        #right-tabs { 
         }
         #right-tabs ul.tabs {
             list-style: none;
             margin: 0;
             padding: 0;
-            display: flex;
-            border-bottom: 1px solid #ccc;
+            display: flex;  
         }
         #right-tabs ul.tabs li {
             padding: 10px 20px;
             cursor: pointer;
+            margin-bottom:0;
+            background:#dcdcde;
+            color:#50575e;
+            font-weight: bold;
+            top:1px;
+            position:relative;
         }
         #right-tabs ul.tabs li.active {
             background: #f1f1f1;
             font-weight: bold;
+            border:solid 1px #c3c4c7;
+            border-bottom:none;
         }
         .tab-content {
             display: none;
             padding: 20px;
+            border:solid 1px #c3c4c7;
         }
         .tab-content.active {
             display: block;
