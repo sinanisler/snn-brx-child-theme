@@ -26,7 +26,10 @@ function snn_options_page() {
     if ( isset($_POST['snn_options_nonce']) && wp_verify_nonce( $_POST['snn_options_nonce'], 'snn_save_options' ) ) {
         $options = array();
         $options['snn_cookie_settings_enable_cookie_banner'] = isset($_POST['snn_cookie_settings_enable_cookie_banner']) ? 'yes' : 'no';
-        $options['snn_cookie_settings_disable_for_logged_in'] = isset($_POST['snn_cookie_settings_disable_for_logged_in']) ? 'yes' : 'no';
+        $options['snn_cookie_settings_disable_for_logged_in']  = isset($_POST['snn_cookie_settings_disable_for_logged_in']) ? 'yes' : 'no';
+        // NEW: Disable Scripts for Logged-In Users option
+        $options['snn_cookie_settings_disable_scripts_for_logged_in'] = isset($_POST['snn_cookie_settings_disable_scripts_for_logged_in']) ? 'yes' : 'no';
+
         $options['snn_cookie_settings_banner_description']   = isset($_POST['snn_cookie_settings_banner_description']) ? wp_kses_post( wp_unslash($_POST['snn_cookie_settings_banner_description']) ) : '';
         $options['snn_cookie_settings_accept_button']        = isset($_POST['snn_cookie_settings_accept_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_accept_button']) ) : '';
         $options['snn_cookie_settings_deny_button']          = isset($_POST['snn_cookie_settings_deny_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_deny_button']) ) : '';
@@ -65,6 +68,7 @@ function snn_options_page() {
         $options = array(
             'snn_cookie_settings_enable_cookie_banner' => 'no',
             'snn_cookie_settings_disable_for_logged_in'  => 'no',
+            'snn_cookie_settings_disable_scripts_for_logged_in' => 'no',
             'snn_cookie_settings_banner_description'   => 'This website uses cookies for analytics and functionality.',
             'snn_cookie_settings_accept_button'        => 'Accept',
             'snn_cookie_settings_deny_button'          => 'Deny',
@@ -116,6 +120,13 @@ function snn_options_page() {
                         <td>
                             <input type="checkbox" name="snn_cookie_settings_disable_for_logged_in" value="yes" <?php checked((isset($options['snn_cookie_settings_disable_for_logged_in']) ? $options['snn_cookie_settings_disable_for_logged_in'] : 'no'), 'yes'); ?>>
                             <span class="description">Check to disable the Cookie Banner for users who are logged in.</span>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Disable Scripts for Logged-In Users</th>
+                        <td>
+                            <input type="checkbox" name="snn_cookie_settings_disable_scripts_for_logged_in" value="yes" <?php checked((isset($options['snn_cookie_settings_disable_scripts_for_logged_in']) ? $options['snn_cookie_settings_disable_scripts_for_logged_in'] : 'no'), 'yes'); ?>>
+                            <span class="description">Check to disable the scripts loading for logged-in users.</span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -494,6 +505,10 @@ add_action('wp_footer', 'snn_output_cookie_banner');
 
 function snn_output_service_scripts() {
     $options = get_option( SNN_OPTIONS );
+    if ( is_user_logged_in() && !empty($options['snn_cookie_settings_disable_scripts_for_logged_in']) && $options['snn_cookie_settings_disable_scripts_for_logged_in'] === 'yes' ) {
+         return;
+    }
+    
     if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) {
         foreach ( $options['snn_cookie_settings_services'] as $index => $service ) {
             if ( ! empty( $service['script'] ) ) {
@@ -515,6 +530,9 @@ add_action('wp_footer', 'snn_output_service_scripts', 99);
 
 function snn_output_banner_js() {
     $options = get_option(SNN_OPTIONS);
+    if ( is_user_logged_in() && !empty($options['snn_cookie_settings_disable_scripts_for_logged_in']) && $options['snn_cookie_settings_disable_scripts_for_logged_in'] === 'yes' ) {
+         return;
+    }
     $cookie_banner_enabled = ( isset($options['snn_cookie_settings_enable_cookie_banner']) && $options['snn_cookie_settings_enable_cookie_banner'] === 'yes' ) ? 'true' : 'false';
     ?>
     <script>
