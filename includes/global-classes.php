@@ -1066,7 +1066,15 @@ function bgcc_output_inline_css() {
         }
         // Minify by collapsing multiple spaces
         $minified = preg_replace('/\s+/', ' ', $css);
-        echo '<style id="bgcc-inline-css">' . $minified . '</style>';
+        echo '
+        
+
+<style id="bgcc-inline-css" class="snn-global-classes-frontend">
+' . $minified . '
+</style>
+
+
+';
     }
 }
 
