@@ -75,6 +75,19 @@ add_action('admin_init', function () {
         $inline = isset($_POST['bgcc_inline']) ? 1 : 0;
         update_option('bricks_global_classes_inline', $inline);
 
+        // Process external resources (JS/CSS URLs)
+        $external_resources_post = $_POST['external_resources'] ?? [];
+        $new_external_resources = [];
+        if (is_array($external_resources_post)) {
+            foreach ($external_resources_post as $resource) {
+                $resource = esc_url_raw(trim($resource));
+                if ($resource) {
+                    $new_external_resources[] = $resource;
+                }
+            }
+        }
+        update_option('bricks_global_classes_external_resources', $new_external_resources);
+
         add_settings_error('bgcc_messages', 'bgcc_save_message', 'Settings Saved', 'updated');
         wp_redirect(add_query_arg(['page' => 'bricks-global-classes', 'updated' => 'true'], admin_url('admin.php')));
         exit;
@@ -244,7 +257,8 @@ function bgcc_page() {
             font-family: monospace;
         }
         /* Style for the no classes message */
-        .no-classes td {
+        .no-classes td,
+        .no-resources td {
             padding: 15px;
             font-style: italic;
             color: #555;
@@ -319,6 +333,49 @@ function bgcc_page() {
                         </label>
                         <p class="desc">When enabled, all global classes will be output in minified form in the frontend. I would recommend using this with cache on slow hosting this feature might effect your sites performance.</p>
                     </div>
+
+                    <!-- New External Resources Section -->
+                    <div id="external-resources-section" style="margin-top:40px;">
+                        <h2>External CDN Resources</h2>
+                        <p>Enter the URL for external JS or CSS resources to load on the frontend. CSS files will load in the head and JS files in the footer.</p>
+                        <table class="widefat fixed" id="external-resources-table">
+                            <thead>
+                                <tr>
+                                    <th>Resource URL</th>
+                                    <th style="width:100px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $external_resources = get_option('bricks_global_classes_external_resources', []);
+                                if ($external_resources) :
+                                    foreach ($external_resources as $i => $resource) : ?>
+                                        <tr>
+                                            <td>
+                                                <input type="text" name="external_resources[<?php echo $i; ?>]" value="<?php echo esc_attr($resource); ?>" style="width: 90%;" placeholder="https://example.com/script.js">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="button button-danger remove-row">Remove</button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach;
+                                else : ?>
+                                    <tr class="no-resources">
+                                        <td colspan="2" style="text-align: center;">No external resources added yet. Click "Add External Resource" to create one.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2">
+                                        <button type="button" class="button button-secondary" id="add-external-resource">Add External Resource</button>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <!-- End External Resources Section -->
+
                     <div style="margin-bottom:50px;">
                         <h3>Bulk CSS</h3>
                         <p>
@@ -422,8 +479,10 @@ function bgcc_page() {
     document.addEventListener('DOMContentLoaded', function () {
         const categoriesTable = document.getElementById('categories-table').querySelector('tbody');
         const classesTable = document.getElementById('classes-table').querySelector('tbody');
+        const externalResourcesTable = document.getElementById('external-resources-table').querySelector('tbody');
         const addCategoryBtn = document.getElementById('add-category');
         const addClassBtn = document.getElementById('add-class');
+        const addExternalResourceBtn = document.getElementById('add-external-resource');
         const generateBtn = document.getElementById('generate-classes');
         const bulkCssTextarea = document.getElementById('bulk-css');
         const bulkDeleteBtn = document.getElementById('bulk-delete');
@@ -448,6 +507,14 @@ function bgcc_page() {
                 let row = classesTable.insertRow();
                 row.classList.add('no-classes');
                 row.innerHTML = '<td colspan="5" style="text-align: center;">No classes added yet. Click "Add" to create a class.</td>';
+            }
+        }
+        
+        function updateExternalResourcesEmptyState() {
+            if (externalResourcesTable.rows.length === 0) {
+                let row = externalResourcesTable.insertRow();
+                row.classList.add('no-resources');
+                row.innerHTML = '<td colspan="2" style="text-align: center;">No external resources added yet. Click "Add External Resource" to create one.</td>';
             }
         }
     
@@ -492,12 +559,31 @@ function bgcc_page() {
                 </td>`;
         });
     
+        addExternalResourceBtn.addEventListener('click', () => {
+            const idx = externalResourcesTable.rows.length;
+            const noResourcesRow = externalResourcesTable.querySelector('.no-resources');
+            if (noResourcesRow) {
+                noResourcesRow.remove();
+            }
+            const row = externalResourcesTable.insertRow(-1);
+            row.innerHTML = `
+                <td>
+                    <input type="text" name="external_resources[${idx}]" style="width: 90%;" placeholder="https://example.com/script.js">
+                </td>
+                <td>
+                    <button type="button" class="button button-danger remove-row">Remove</button>
+                </td>`;
+        });
+    
         document.body.addEventListener('click', function (e) {
             if (e.target.classList.contains('remove-row')) {
                 const row = e.target.closest('tr');
+                const tbody = row.closest('tbody');
                 row.remove();
-                if (row.closest('tbody') === classesTable) {
+                if (tbody === classesTable) {
                     updateClassesEmptyState();
+                } else if (tbody === externalResourcesTable) {
+                    updateExternalResourcesEmptyState();
                 }
             }
         });
@@ -630,7 +716,12 @@ function bgcc_page() {
 }
 
 if (!is_admin()) {
+    // Output inline CSS for global classes in footer
     add_action('wp_footer', 'bgcc_output_inline_css');
+    // Output external CSS resources in head
+    add_action('wp_head', 'bgcc_output_external_css');
+    // Output external JS resources in footer
+    add_action('wp_footer', 'bgcc_output_external_js');
 }
 
 function bgcc_output_inline_css() {
@@ -644,6 +735,28 @@ function bgcc_output_inline_css() {
         }
         $minified = preg_replace('/\s+/', ' ', $css);
         echo '<style id="bgcc-inline-css">' . $minified . '</style>';
+    }
+}
+
+function bgcc_output_external_css() {
+    $external_resources = get_option('bricks_global_classes_external_resources', []);
+    if ($external_resources && is_array($external_resources)) {
+        foreach ($external_resources as $resource) {
+            if (stripos($resource, '.css') !== false) {
+                echo '<link rel="stylesheet" href="' . esc_url($resource) . '" />' . "\n";
+            }
+        }
+    }
+}
+
+function bgcc_output_external_js() {
+    $external_resources = get_option('bricks_global_classes_external_resources', []);
+    if ($external_resources && is_array($external_resources)) {
+        foreach ($external_resources as $resource) {
+            if (stripos($resource, '.js') !== false) {
+                echo '<script src="' . esc_url($resource) . '"></script>' . "\n";
+            }
+        }
     }
 }
 ?>
