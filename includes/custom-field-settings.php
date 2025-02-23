@@ -28,12 +28,10 @@ function snn_custom_fields_page_callback() {
         $new_fields = [];
         if (!empty($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
             foreach ($_POST['custom_fields'] as $field) {
-                $has_post_type = !empty($field['post_type']) && is_array($field['post_type']);
-                $has_taxonomies = !empty($field['taxonomies']) && is_array($field['taxonomies']);
-
-                if (!empty($field['name']) && !empty($field['type']) && !empty($field['group_name']) && ($has_post_type || $has_taxonomies)) {
-                    $post_types_selected = $has_post_type ? array_map('sanitize_text_field', $field['post_type']) : [];
-                    $taxonomies_selected = $has_taxonomies ? array_map('sanitize_text_field', $field['taxonomies']) : [];
+                // Remove the requirement for post type or taxonomy to allow saving even if none is selected.
+                if (!empty($field['name']) && !empty($field['type']) && !empty($field['group_name'])) {
+                    $post_types_selected = isset($field['post_type']) && is_array($field['post_type']) ? array_map('sanitize_text_field', $field['post_type']) : [];
+                    $taxonomies_selected = isset($field['taxonomies']) && is_array($field['taxonomies']) ? array_map('sanitize_text_field', $field['taxonomies']) : [];
 
                     // PHP-side sanitization remains as a fallback.
                     $new_fields[] = [
