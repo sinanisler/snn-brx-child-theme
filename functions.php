@@ -63,6 +63,8 @@ add_action('init', function () {
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-maps.php');
 
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/advanced-image.php');
+    
+    \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/smoke-text.php');
 
 
     
