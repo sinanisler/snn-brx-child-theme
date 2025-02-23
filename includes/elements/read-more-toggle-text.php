@@ -22,7 +22,7 @@ class Prefix_Element_Toggle_Text extends Element {
             'tab'           => 'content',
             'label'         => esc_html__( 'Text Content', 'bricks' ),
             'type'          => 'editor',
-            'default'       => esc_html__( 'Lorem ipsum dolor sinan amet...', 'bricks' ),
+            'default'       => esc_html__( 'Lorem ipsum dolor sit amet...', 'bricks' ),
             'inlineEditing' => true,
         ];
 
@@ -42,10 +42,10 @@ class Prefix_Element_Toggle_Text extends Element {
             'placeholder' => '#my-button',
             'description' => "
                 <p data-control='info'>
-                    Add button and copy the ID here to make the toggle work.<br><br>
-                    Button icon animate css: <br>
+                    Add a button and copy the ID here to make the toggle work.<br><br>
+                    Button icon animate CSS: <br>
                     %root%.active-toggle-text i{ <br>
-                        rotate:180deg <br>
+                        rotate:180deg; <br>
                     }
                 </p>
             ",
@@ -97,26 +97,30 @@ class Prefix_Element_Toggle_Text extends Element {
                 const content = container.querySelector(".toggle-text-content");
                 if (!content) return;
 
-                const button = document.querySelector(<?php echo json_encode( $button_selector ); ?>);
-                if (!button) return;
+                <?php if ( ! empty( $button_selector ) ) : ?>
+                    const button = document.querySelector(<?php echo json_encode( $button_selector ); ?>);
+                    if (!button) return;
 
-                const collapsedHeight = <?php echo json_encode( $text_height ); ?>;
-                content.style.maxHeight = collapsedHeight + "px";
+                    const collapsedHeight = <?php echo json_encode( $text_height ); ?>;
+                    content.style.maxHeight = collapsedHeight + "px";
 
-                let isExpanded = false;
+                    let isExpanded = false;
 
-                button.addEventListener("click", function() {
-                    if (isExpanded) {
-                        content.style.maxHeight = collapsedHeight + "px";
-                        button.classList.remove("active-toggle-text");
-                        button.setAttribute("aria-expanded", "false");
-                    } else {
-                        content.style.maxHeight = content.scrollHeight + "px";
-                        button.classList.add("active-toggle-text");
-                        button.setAttribute("aria-expanded", "true");
-                    }
-                    isExpanded = !isExpanded;
-                });
+                    button.addEventListener("click", function() {
+                        if (isExpanded) {
+                            content.style.maxHeight = collapsedHeight + "px";
+                            button.classList.remove("active-toggle-text");
+                            button.setAttribute("aria-expanded", "false");
+                        } else {
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            button.classList.add("active-toggle-text");
+                            button.setAttribute("aria-expanded", "true");
+                        }
+                        isExpanded = !isExpanded;
+                    });
+                <?php else : ?>
+                    // console.warn("Button selector is not defined.");
+                <?php endif; ?>
             });
         </script>
         <?php
