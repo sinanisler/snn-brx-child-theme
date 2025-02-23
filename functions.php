@@ -66,6 +66,7 @@ add_action('init', function () {
     
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/smoke-text.php');
 
+    \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/read-more-toggle-text.php');
 
     
 
