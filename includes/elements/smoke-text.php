@@ -30,7 +30,7 @@ class Prefix_Element_Smoke_Text extends \Bricks\Element {
             'rows'        => 5, // Default number of rows
             'spellcheck'  => true, // Enable spellcheck
             'inlineEditing' => true, // Allow inline editing
-            'default'     => esc_html__('Hover Me!', 'bricks'),
+            'default'     => esc_html__('Lorem ipsum dolor sinan amet.', 'bricks'),
         ];
 
         // Typography control for text styling
