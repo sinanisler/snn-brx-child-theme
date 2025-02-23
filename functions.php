@@ -56,28 +56,24 @@ require_once SNN_PATH . 'includes/utils.php';
 
 // Register Custom Bricks Builder Elements
 add_action('init', function () {
-    require_once SNN_PATH . 'includes/elements/custom-html-css-script.php';
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-html-css-script.php', 'custom-html-css-script', 'Custom_HTML_CSS_Script');
 
-    require_once SNN_PATH . 'includes/elements/custom-maps.php';
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-maps.php');
 
-    require_once SNN_PATH . 'includes/elements/custom-maps.php';
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-maps.php');
 
+    \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/advanced-image.php');
 
 
+    
 
     // if GSAP setting is enabled Register Elements
     $options = get_option('snn_other_settings');
     if (!empty($options['enqueue_gsap'])) {
-        require_once SNN_PATH . 'includes/elements/lottie-animation.php';
         \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/lottie-animation.php');
 
-        require_once SNN_PATH . 'includes/elements/gsap-animations.php';
         \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations.php');
 
-        require_once SNN_PATH . 'includes/elements/gsap-text-animations.php';
         \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-text-animations.php');
     }
 
