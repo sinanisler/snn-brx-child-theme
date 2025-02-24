@@ -1,12 +1,14 @@
-<?php     
-
-define( 'SNN_PATH', trailingslashit( get_stylesheet_directory() ) );    // SNN dir for require_once files
-define( 'SNN_PATH_ASSETS', trailingslashit( SNN_PATH . 'assets' ) );    // SNN assets dir
-define( 'SNN_URL', trailingslashit( get_stylesheet_directory_uri() ) ); // SNN URL for enqueue files
-define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );      // SNN assets URL
-
+<?php   
+// DO NOT TOUCH 5 LINES
+// On each release automaticly increases the 
 // Use custom-codes-here.php file for adding your custom JS and CSS codes.
-require_once SNN_PATH . 'custom-codes-here.php';
+require_once SNN_PATH . 'custom-codes-here-000.php';
+
+
+define( 'SNN_PATH', trailingslashit( get_stylesheet_directory() ) );    
+define( 'SNN_PATH_ASSETS', trailingslashit( SNN_PATH . 'assets' ) );    
+define( 'SNN_URL', trailingslashit( get_stylesheet_directory_uri() ) ); 
+define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );     
 
 // Main Features and Settings
 require_once SNN_PATH . 'includes/settings-page.php';

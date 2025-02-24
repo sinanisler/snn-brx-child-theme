@@ -62,7 +62,7 @@ jobs:
           MINOR=${version_parts[1]}
           
           # Define the threshold for minor version
-          THRESHOLD=999
+          THRESHOLD=99999
           
           if [ "$MINOR" -ge "$THRESHOLD" ]; then
             # Reset minor to 0 and increment major
@@ -100,12 +100,31 @@ jobs:
       - name: Display current style.css after update
         run: cat style.css
 
+      - name: Update functions.php and rename file
+        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
+        run: |
+          # Grab the new version
+          updated_version=$(grep -oP 'Version:\s*\\K[0-9.]+' style.css)
+          # Remove the dot(s) for the "000" style
+          updated_version_nodot=$(echo "$updated_version" | sed 's/\.//g')
+
+          echo "Will replace 'custom-codes-here-000.php' with 'custom-codes-here-${updated_version_nodot}.php' in functions.php"
+
+          # Update line 5 in functions.php
+          # This assumes line 5 is exactly the require statement; adjust if needed
+          sed -i "5s|custom-codes-here-[0-9]*\.php|custom-codes-here-${updated_version_nodot}.php|" functions.php
+
+          # Rename the file "custom-codes-here-000.php" if it exists
+          if [ -f "custom-codes-here-000.php" ]; then
+            mv "custom-codes-here-000.php" "custom-codes-here-${updated_version_nodot}.php"
+          fi
+
       - name: Commit changes
         if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add style.css
+          git add style.css functions.php custom-codes-here-*.php
           git commit -m "Bump version to ${{ env.new_version }}"
           git push
 
