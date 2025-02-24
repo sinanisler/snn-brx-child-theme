@@ -22,7 +22,7 @@ class Prefix_Element_Toggle_Text extends Element {
             'tab'           => 'content',
             'label'         => esc_html__( 'Text Content', 'bricks' ),
             'type'          => 'editor',
-            'default'       => esc_html__( 'Lorem ipsum dolor sit amet...', 'bricks' ),
+            'default'       => esc_html__( 'Lorem ipsum dolor sinan amet...', 'bricks' ),
             'inlineEditing' => true,
         ];
 
