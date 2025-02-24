@@ -103,15 +103,14 @@ jobs:
       - name: Update functions.php and rename file
         if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
         run: |
-          # Grab the new version
-          updated_version=$(grep -oP 'Version:\s*\\K[0-9.]+' style.css)
-          # Remove the dot(s) for the "000" style
+          # Grab the new version from style.css
+          updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+          # Remove the dot(s) for the "000" style requirement (e.g. 1.4 becomes 14)
           updated_version_nodot=$(echo "$updated_version" | sed 's/\.//g')
 
           echo "Will replace 'custom-codes-here-000.php' with 'custom-codes-here-${updated_version_nodot}.php' in functions.php"
 
-          # Update line 5 in functions.php
-          # This assumes line 5 is exactly the require statement; adjust if needed
+          # Update line 5 in functions.php (assumes the require statement is on line 5)
           sed -i "5s|custom-codes-here-[0-9]*\.php|custom-codes-here-${updated_version_nodot}.php|" functions.php
 
           # Rename the file "custom-codes-here-000.php" if it exists
