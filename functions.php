@@ -68,7 +68,8 @@ add_action('init', function () {
 
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/read-more-toggle-text.php');
 
-    
+    \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/animated-vfx-text.php');
+
 
     // if GSAP setting is enabled Register Elements
     $options = get_option('snn_other_settings');
