@@ -1,14 +1,13 @@
 <?php   
-// DO NOT TOUCH 5 LINES
-// On each release automaticly increases the 
-// Use custom-codes-here.php file for adding your custom JS and CSS codes.
-require_once SNN_PATH . 'custom-codes-here-0208.php';
-
-
 define( 'SNN_PATH', trailingslashit( get_stylesheet_directory() ) );    
 define( 'SNN_PATH_ASSETS', trailingslashit( SNN_PATH . 'assets' ) );    
 define( 'SNN_URL', trailingslashit( get_stylesheet_directory_uri() ) ); 
-define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );     
+define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );  
+
+
+// Use custom-codes-here.php file for adding your custom JS and CSS codes.
+require_once SNN_PATH . 'custom-codes-here.php';
+   
 
 // Main Features and Settings
 require_once SNN_PATH . 'includes/settings-page.php';
