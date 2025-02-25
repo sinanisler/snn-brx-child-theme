@@ -1,7 +1,5 @@
 <?php
 
-
-
 function snn_register_404_logs_post_type() {
     register_post_type('snn_404_logs', array(
         'public'  => false,
@@ -9,9 +7,6 @@ function snn_register_404_logs_post_type() {
     ));
 }
 add_action('init', 'snn_register_404_logs_post_type');
-
-
-
 
 function snn_add_404_logs_page() {
     add_submenu_page(
@@ -25,14 +20,10 @@ function snn_add_404_logs_page() {
 }
 add_action('admin_menu', 'snn_add_404_logs_page');
 
-
-
-
 function snn_handle_404_logs_actions() {
     if (!current_user_can('manage_options')) {
         return;
     }
-
 
     if (isset($_POST['snn_404_logging_submit'])) {
         if (isset($_POST['snn_404_logging_enabled'])) {
@@ -42,7 +33,6 @@ function snn_handle_404_logs_actions() {
         }
     }
 
-
     if (isset($_POST['snn_404_log_size_limit'])) {
         $size_limit = intval($_POST['snn_404_log_size_limit']);
         if ($size_limit < 1) {
@@ -50,7 +40,6 @@ function snn_handle_404_logs_actions() {
         }
         update_option('snn_404_log_size_limit', $size_limit);
     }
-
 
     if (isset($_POST['snn_clear_404_logs'])) {
         $args = array(
@@ -67,13 +56,8 @@ function snn_handle_404_logs_actions() {
 }
 add_action('admin_init', 'snn_handle_404_logs_actions');
 
-
-
-
 function snn_404_normalize_path($url) {
-
     $url = preg_replace('/^https?:\/\/[^\/]+/i', '', $url);
-
 
     if (substr($url, 0, 1) !== '/') {
         $url = '/' . $url;
@@ -85,14 +69,9 @@ function snn_404_normalize_path($url) {
     return strtolower($url);
 }
 
-
-
-
 function snn_has_301_redirect($request_uri) {
-
     $normalized_path = snn_404_normalize_path($request_uri);
     $path_without_query = strtok($normalized_path, '?');
-
 
     $redirects = get_posts(array(
         'post_type'      => 'snn_301_redirects',
@@ -108,9 +87,6 @@ function snn_has_301_redirect($request_uri) {
 
     return !empty($redirects);
 }
-
-
-
 
 function snn_cleanup_old_logs($limit) {
     $args = array(
@@ -132,18 +108,12 @@ function snn_cleanup_old_logs($limit) {
     }
 }
 
-
-
-
 function snn_log_404_error() {
-
     if (is_404() && get_option('snn_404_logging_enabled') === '1') {
-
 
         if (snn_has_301_redirect($_SERVER['REQUEST_URI'])) {
             return;
         }
-
 
         $size_limit = get_option('snn_404_log_size_limit', 100);
         snn_cleanup_old_logs($size_limit);
@@ -167,9 +137,6 @@ function snn_log_404_error() {
 }
 add_action('template_redirect', 'snn_log_404_error');
 
-
-
-
 function snn_render_404_logs_page() {
     $logging_enabled = get_option('snn_404_logging_enabled') === '1';
     $log_size_limit  = get_option('snn_404_log_size_limit', 100);
@@ -179,18 +146,14 @@ function snn_render_404_logs_page() {
 
         <form method="post" action="">
             <label>
-
-            <input type="checkbox" name="snn_404_logging_enabled"
-                       <?php checked($logging_enabled); ?>>
+                <input type="checkbox" name="snn_404_logging_enabled" <?php checked($logging_enabled); ?>>
                 Enable 404 Logging
             </label>
             <br><br>
 
             <label>
                 Maximum number of logs to keep:
-                <input type="number" name="snn_404_log_size_limit"
-                       value="<?php echo esc_attr($log_size_limit); ?>"
-                       min="1" style="width: 100px;">
+                <input type="number" name="snn_404_log_size_limit" value="<?php echo esc_attr($log_size_limit); ?>" min="1" style="width: 100px;">
             </label>
             <br><br>
 
@@ -218,7 +181,7 @@ function snn_render_404_logs_page() {
                     <?php
                     $args = array(
                         'post_type'      => 'snn_404_logs',
-                        'posts_per_page' => 100,
+                        'posts_per_page' => $log_size_limit,
                         'orderby'        => 'date',
                         'order'          => 'DESC'
                     );
@@ -230,8 +193,7 @@ function snn_render_404_logs_page() {
                             <td><?php echo esc_html(get_post_meta($log->ID, 'url', true)); ?></td>
                             <td><?php echo esc_html(get_post_meta($log->ID, 'referrer', true)); ?></td>
                             <td>
-                                <a href="https://radar.cloudflare.com/ip/<?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>"
-                                   target="_blank">
+                                <a href="https://radar.cloudflare.com/ip/<?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>" target="_blank">
                                     <?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>
                                 </a>
                             </td>
