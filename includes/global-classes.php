@@ -458,7 +458,7 @@ function bgcc_page() {
                         <!-- Bulk CSS block -->
                         <div style="margin-bottom:20px;">
                             <h3>Bulk CSS</h3>
-                            <p>Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>) and click "Generate Classes".<br>Multiple selectors (comma-separated) and <code>@keyframes</code> blocks are supported.</p>
+                            <p>Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>) and click "Generate Classes".<br>Multiple selectors (comma‐separated) and both <code>@media</code> and <code>@keyframes</code> blocks are supported.</p>
                             <textarea id="bulk-css" rows="4" style="width:100%; font-family:monospace;"></textarea>
                             <br><br>
                             <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
@@ -678,6 +678,25 @@ function bgcc_page() {
                 .join('');
         }
 
+        // Helper: extract a full block (for keyframes) by counting braces
+        function extractFullBlock(css, startIndex) {
+            let firstBrace = css.indexOf('{', startIndex);
+            if (firstBrace === -1) return { block: "", end: startIndex };
+            let braceCount = 0;
+            let pos = firstBrace;
+            for (; pos < css.length; pos++) {
+                if (css[pos] === '{') {
+                    braceCount++;
+                } else if (css[pos] === '}') {
+                    braceCount--;
+                    if (braceCount === 0) {
+                        return { block: css.substring(startIndex, pos + 1), end: pos + 1 };
+                    }
+                }
+            }
+            return { block: css.substring(startIndex), end: css.length };
+        }
+
         // Helpers: update "no data" rows
         function updateClassesEmptyState() {
             if (classesTable.rows.length === 0) {
@@ -812,44 +831,108 @@ function bgcc_page() {
             if (noClassesMsg) {
                 noClassesMsg.remove();
             }
-            // Regex that captures class definitions and optional keyframes after
-            const regex = /((?:\.[A-Za-z0-9_\-]+\s*,\s*)*\.[A-Za-z0-9_\-]+)\s*\{([\s\S]*?)\}\s*(?:(@keyframes\s+[A-Za-z0-9_-]+\s*\{[\s\S]*?\}))?/g;
-            let match, found = 0;
-            while ((match = regex.exec(text)) !== null) {
-                found++;
-                const selectors = match[1].split(',').map(s => s.trim());
-                const rules = match[2].trim();
-                const keyframesBlock = match[3] ? match[3].trim() : '';
-                selectors.forEach(selector => {
-                    const className = selector.startsWith('.') ? selector.slice(1) : selector;
-                    const idx = classesTable.rows.length;
-                    const row = classesTable.insertRow(-1);
-                    let options = '<option value="">— None —</option>';
-                    categories.forEach(c => {
-                        options += `<option value="${c.id}">${c.name}</option>`;
-                    });
-                    let finalCSS = '.' + className + ' {\n' + rules + '\n}';
-                    if(keyframesBlock){
-                        finalCSS += "\n\n" + keyframesBlock;
+            // Helper to extract media blocks from the CSS text
+            function extractMediaBlocks(css) {
+                let mediaBlocks = [];
+                let remaining = css;
+                let regex = /@media\s*([^{]+)\{/g;
+                let match;
+                while ((match = regex.exec(remaining)) !== null) {
+                    let startIndex = match.index;
+                    let condition = match[1].trim();
+                    let braceCount = 1;
+                    let i = regex.lastIndex;
+                    while (i < remaining.length && braceCount > 0) {
+                        if (remaining[i] === '{') braceCount++;
+                        else if (remaining[i] === '}') braceCount--;
+                        i++;
                     }
-                    row.innerHTML = `
-                        <td><input type="checkbox" class="bulk-select"></td>
-                        <td>
-                            <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
-                            <input type="text" name="classes[${idx}][name]" value="${className}" required>
-                        </td>
-                        <td>
-                            <select name="classes[${idx}][category]">${options}</select>
-                        </td>
-                        <td>
-                            <textarea name="classes[${idx}][css]" rows="5" required>${finalCSS}</textarea>
-                        </td>
-                        <td>
-                            <button type="button" class="button button-danger remove-row">Remove</button>
-                        </td>`;
-                });
+                    let mediaBlock = remaining.substring(startIndex, i);
+                    mediaBlocks.push({ condition, block: mediaBlock });
+                    remaining = remaining.substring(0, startIndex) + remaining.substring(i);
+                    regex.lastIndex = startIndex;
+                }
+                return { remaining, mediaBlocks };
             }
-            // alert(found + ' CSS block(s) generated from Bulk CSS.');
+            
+            const { remaining: topCss, mediaBlocks } = extractMediaBlocks(text);
+            
+            // Improved function to process CSS rules with robust keyframes extraction
+            function processCssRules(cssText, wrapWithMedia) {
+                const classRuleRegex = /((?:\.[A-Za-z0-9_\-]+\s*,\s*)*\.[A-Za-z0-9_\-]+)\s*\{([\s\S]*?)\}/g;
+                let match;
+                while ((match = classRuleRegex.exec(cssText)) !== null) {
+                    const selectors = match[1].split(',').map(s => s.trim());
+                    const rules = match[2].trim();
+                    let keyframes = "";
+                    
+                    // Set current pointer to the end of the class rule
+                    let currentIndex = classRuleRegex.lastIndex;
+                    // Skip any whitespace
+                    while (currentIndex < cssText.length && /\s/.test(cssText[currentIndex])) {
+                        currentIndex++;
+                    }
+                    // Check if the next block is a keyframes block (supports @keyframes and @-webkit-keyframes)
+                    while (currentIndex < cssText.length &&
+                        (cssText.substring(currentIndex).startsWith('@keyframes') ||
+                         cssText.substring(currentIndex).startsWith('@-webkit-keyframes'))
+                    ) {
+                        let extraction = extractFullBlock(cssText, currentIndex);
+                        keyframes += "\n\n" + extraction.block.trim();
+                        currentIndex = extraction.end;
+                        classRuleRegex.lastIndex = currentIndex;
+                        // Skip any whitespace between keyframes blocks
+                        while (currentIndex < cssText.length && /\s/.test(cssText[currentIndex])) {
+                            currentIndex++;
+                        }
+                    }
+                    
+                    selectors.forEach(selector => {
+                        const className = selector.startsWith('.') ? selector.slice(1) : selector;
+                        const idx = classesTable.rows.length;
+                        let options = '<option value="">— None —</option>';
+                        categories.forEach(c => {
+                            options += `<option value="${c.id}">${c.name}</option>`;
+                        });
+                        let classCss = '.' + className + ' {\n' + rules + '\n}';
+                        if (keyframes) {
+                            classCss += "\n\n" + keyframes;
+                        }
+                        if (wrapWithMedia) {
+                            classCss = `@media ${wrapWithMedia} {\n` + classCss + '\n}';
+                        }
+                        const row = classesTable.insertRow(-1);
+                        row.innerHTML = `
+                            <td><input type="checkbox" class="bulk-select"></td>
+                            <td>
+                                <input type="hidden" name="classes[${idx}][id]" value="${bgccRandId()}">
+                                <input type="text" name="classes[${idx}][name]" value="${className}" required>
+                            </td>
+                            <td>
+                                <select name="classes[${idx}][category]">${options}</select>
+                            </td>
+                            <td>
+                                <textarea name="classes[${idx}][css]" rows="5" required>${classCss}</textarea>
+                            </td>
+                            <td>
+                                <button type="button" class="button button-danger remove-row">Remove</button>
+                            </td>`;
+                    });
+                }
+            }
+            
+            // Process top-level CSS rules (which now include any trailing keyframes)
+            processCssRules(topCss, null);
+            
+            // Process each media block separately
+            mediaBlocks.forEach(media => {
+                // Remove the outer @media declaration and final closing brace to get inner content.
+                let block = media.block;
+                let firstBrace = block.indexOf('{');
+                let innerContent = block.substring(firstBrace + 1, block.lastIndexOf('}'));
+                // Process the rules inside the media block and wrap them with the media condition.
+                processCssRules(innerContent, '(' + media.condition + ')');
+            });
         });
 
         // Bulk Variables => Generate Variables
@@ -872,7 +955,6 @@ function bgcc_page() {
 
                 // Only process if it starts with --
                 if (!varName.startsWith('--')) {
-                    // Skip lines that are not valid CSS variables
                     continue;
                 }
 
@@ -894,7 +976,6 @@ function bgcc_page() {
                         <button type="button" class="button button-danger remove-row">Remove</button>
                     </td>`;
             }
-            // alert(found + ' variable(s) generated from Bulk Variables.');
         });
 
         // Bulk Delete (Classes)

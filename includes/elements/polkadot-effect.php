@@ -19,7 +19,7 @@ class Prefix_Element_Halftone extends \Bricks\Element {
 	public function set_controls() {
 		$this->controls['exampleImage'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Image/Video', 'bricks' ),
+			'label' => esc_html__( 'Image', 'bricks' ),
 			'type'  => 'image',
 		];
 		$this->controls['grid_size'] = [
