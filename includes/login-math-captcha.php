@@ -80,6 +80,7 @@ function snn_add_math_captcha() {
     }
 }
 
+// Add captcha to various WP forms.
 add_action( 'login_form', 'snn_add_math_captcha' );
 add_action( 'register_form', 'snn_add_math_captcha' );
 add_action( 'lostpassword_form', 'snn_add_math_captcha' );
@@ -163,4 +164,29 @@ function snn_validate_lostpassword_captcha( $errors, $user_login ) {
     return $errors;
 }
 add_filter( 'lostpassword_post_errors', 'snn_validate_lostpassword_captcha', 10, 2 );
+
+
+
+function snn_add_math_captcha_to_comment_textarea( $comment_field ) {
+    if ( ! is_user_logged_in() ) {
+        ob_start();
+        snn_add_math_captcha();
+        $captcha = ob_get_clean();
+        return $comment_field . $captcha;
+    }
+    return $comment_field;
+}
+add_filter( 'comment_form_field_comment', 'snn_add_math_captcha_to_comment_textarea' );
+
+function snn_validate_comment_captcha( $commentdata ) {
+    $options = get_option( 'snn_security_options' );
+
+    if ( ! empty( $options['enable_math_captcha'] ) && ! is_user_logged_in() ) {
+        if ( ! snn_check_captcha() ) {
+            wp_die(__("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn"));
+        }
+    }
+    return $commentdata;
+}
+add_filter( 'preprocess_comment', 'snn_validate_comment_captcha' );
 ?>
