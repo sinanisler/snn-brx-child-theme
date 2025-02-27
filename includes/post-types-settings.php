@@ -10,7 +10,7 @@ function snn_add_custom_post_types_submenu() {
         'snn-settings',                   
         'Register Post Types',             
         'Post Types',                      
-        'manage_options',                 
+        'manage_options',                  
         'snn-custom-post-types',           
         'snn_render_custom_post_types_page'
     );
@@ -84,11 +84,15 @@ function snn_render_custom_post_types_page() {
                             <button type="button" class="move-down" title="Move Down">▼</button>
                             <button type="button" class="remove-post-type" title="Remove Post Type">Remove</button>
                         </div>
-                        <label>Post Type Name</label>
-                        <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][name]" placeholder="Post Type Name" value="<?php echo esc_attr( $post_type['name'] ); ?>" />
+                        <div class="post-type-name">
+                            <label>Post Type Name</label><br>
+                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][name]" placeholder="Post Type Name" value="<?php echo esc_attr( $post_type['name'] ); ?>" />
+                        </div>
 
-                        <label>Post Type Slug</label>
-                        <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="post-slug" value="<?php echo esc_attr( $post_type['slug'] ); ?>" />
+                        <div class="post-type-slug">
+                            <label>Post Type Slug</label><br>
+                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="post-slug" value="<?php echo esc_attr( $post_type['slug'] ); ?>" />
+                        </div>
 
                         <label>Private</label>
                         <div class="checkbox-container">
@@ -188,17 +192,18 @@ function snn_render_custom_post_types_page() {
                         <button type="button" class="move-down" title="Move Down">▼</button>
                         <button type="button" class="remove-post-type" title="Remove Post Type">Remove</button>
                     </div>
-                    <label>Post Type Name</label>
-                    <input type="text" name="custom_post_types[${newIndex}][name]" placeholder="Post Type Name" />
-
-                    <label>Post Type Slug</label>
-                    <input type="text" name="custom_post_types[${newIndex}][slug]" placeholder="post-slug" />
-
+                    <div class="post-type-name">
+                        <label>Post Type Name</label><br>
+                        <input type="text" name="custom_post_types[${newIndex}][name]" placeholder="Post Type Name" />
+                    </div>
+                    <div class="post-type-slug">
+                        <label>Post Type Slug</label><br>
+                        <input type="text" name="custom_post_types[${newIndex}][slug]" placeholder="post-slug" />
+                    </div>
                     <label>Private</label>
                     <div class="checkbox-container">
                         <input type="checkbox" name="custom_post_types[${newIndex}][private]" />
                     </div>
-
                     <!-- Supports Section -->
                     ${generateSupportsHTML(newIndex)}
                     <!-- End of Supports Section -->
@@ -259,7 +264,7 @@ function snn_render_custom_post_types_page() {
             }
             .custom-post-type-row input, .custom-post-type-row select {
                 flex: 1;
-                min-width: 150px;
+                width: 300px;
                 padding: 5px;
                 border: 1px solid #ccc;
                 border-radius: 3px;
@@ -286,8 +291,12 @@ function snn_render_custom_post_types_page() {
                 width:100%;
                 display: flex;
                 gap: 10px;
-                flex-direction: row-reverse;
+                flex-wrap: wrap;
+                padding-left:155px;
             }
+
+            @media(max-width:768px){ .supports-section { padding-left:0; } }
+
             .custom-post-type-row button{
                 cursor:pointer;
                 border:solid 1px gray;
