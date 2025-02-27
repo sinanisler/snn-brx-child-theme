@@ -63,12 +63,14 @@ function snn_render_taxonomies_page() {
                             <button type="button" class="move-down" title="Move Down">▼</button>
                             <button type="button" class="remove-taxonomy" title="Remove Taxonomy">Remove</button>
                         </div>
-                        <label>Taxonomy Name</label>
-                        <input type="text" name="taxonomies[<?php echo esc_attr( $index ); ?>][name]" placeholder="Taxonomy Name" value="<?php echo esc_attr( $taxonomy['name'] ); ?>" />
-
-                        <label>Taxonomy Slug</label>
-                        <input type="text" class="taxonomy-slug" name="taxonomies[<?php echo esc_attr( $index ); ?>][slug]" placeholder="taxonomy-slug" value="<?php echo esc_attr( $taxonomy['slug'] ); ?>" />
-
+                        <div class="field-group">
+                            <label>Taxonomy Name</label><br>
+                            <input type="text" name="taxonomies[<?php echo esc_attr( $index ); ?>][name]" placeholder="Taxonomy Name" value="<?php echo esc_attr( $taxonomy['name'] ); ?>" />
+                        </div>
+                        <div class="field-group">
+                            <label>Taxonomy Slug</label><br>
+                            <input type="text" class="taxonomy-slug" name="taxonomies[<?php echo esc_attr( $index ); ?>][slug]" placeholder="taxonomy-slug" value="<?php echo esc_attr( $taxonomy['slug'] ); ?>" />
+                        </div>
                         <label>Hierarchical</label>
                         <div class="checkbox-container">
                             <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][hierarchical]" <?php checked( $taxonomy['hierarchical'], 1 ); ?> />
@@ -144,17 +146,18 @@ function snn_render_taxonomies_page() {
                         <button type="button" class="move-down" title="Move Down">▼</button>
                         <button type="button" class="remove-taxonomy" title="Remove Taxonomy">Remove</button>
                     </div>
-                    <label>Taxonomy Name</label>
-                    <input type="text" name="taxonomies[${newIndex}][name]" placeholder="Taxonomy Name" />
-
-                    <label>Taxonomy Slug</label>
-                    <input type="text" class="taxonomy-slug" name="taxonomies[${newIndex}][slug]" placeholder="taxonomy-slug" />
-
+                    <div class="field-group">
+                        <label>Taxonomy Name</label><br>
+                        <input type="text" name="taxonomies[${newIndex}][name]" placeholder="Taxonomy Name" />
+                    </div>
+                    <div class="field-group">
+                        <label>Taxonomy Slug</label><br>
+                        <input type="text" class="taxonomy-slug" name="taxonomies[${newIndex}][slug]" placeholder="taxonomy-slug" />
+                    </div>
                     <label>Hierarchical</label>
                     <div class="checkbox-container">
                         <input type="checkbox" name="taxonomies[${newIndex}][hierarchical]" />
                     </div>
-
                     <label>Associated Post Types</label>
                     <select name="taxonomies[${newIndex}][post_types][]" multiple>
                         <?php
@@ -243,6 +246,9 @@ function snn_render_taxonomies_page() {
             }
             .buttons button:hover {
                 background: white;
+            }
+            .taxonomy-row [type="text"]{
+                width:240px;
             }
         </style>
     </div>
