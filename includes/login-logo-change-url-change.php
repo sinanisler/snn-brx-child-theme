@@ -38,7 +38,7 @@ function snn_settings_sanitize($input) {
 function snn_login_logo_url_callback() {
     $options = get_option('snn_settings');
     ?>
-    <input type="text" name="snn_settings[login_logo_url]" value="<?php echo esc_attr($options['login_logo_url'] ?? ''); ?>" placeholder="https://website.com/image.png" style="width:300px">
+    <input type="text" name="snn_settings[login_logo_url]" value="<?php echo esc_attr($options['login_logo_url'] ?? ''); ?>" placeholder="https://website.com/image.png" style="width:100%">
     <p>Enter the URL for the login page logo image. (.png, .jpg)</p>
     <?php
 }
@@ -46,7 +46,7 @@ function snn_login_logo_url_callback() {
 function snn_custom_logo_url_callback() {
     $options = get_option('snn_settings');
     ?>
-    <input type="text" name="snn_settings[custom_logo_url]" value="<?php echo esc_attr($options['custom_logo_url'] ?? ''); ?>" placeholder="https://yourwebsite.com" style="width:300px">
+    <input type="text" name="snn_settings[custom_logo_url]" value="<?php echo esc_attr($options['custom_logo_url'] ?? ''); ?>" placeholder="https://yourwebsite.com" style="width:100%">
     <p>Enter the URL where the logo should link on the login page.</p>
     <?php
 }
