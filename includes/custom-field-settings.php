@@ -73,45 +73,56 @@ function snn_custom_fields_page_callback() {
                                 <button type="button" class="remove-field">Remove</button>
                             </div>
 
-                            <label>Group Name</label>
-                            <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" value="<?php echo isset($field['group_name']) ? esc_attr($field['group_name']) : ''; ?>" />
+                            <div class="field-group">
+                                <label>Group Name</label><br>
+                                <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" value="<?php echo isset($field['group_name']) ? esc_attr($field['group_name']) : ''; ?>" />
+                            </div>
 
-                            <label>Field Name</label>
-                            <!-- The Field Name inputs use the placeholder "Field Name" for our realtime sanitizer -->
-                            <input type="text" name="custom_fields[<?php echo $index; ?>][name]" placeholder="Field Name" value="<?php echo esc_attr($field['name']); ?>" />
+                            <div class="field-group">
+                                <label>Field Name</label><br>
+                                <!-- The Field Name inputs use the placeholder "Field Name" for our realtime sanitizer -->
+                                <input type="text" name="custom_fields[<?php echo $index; ?>][name]" placeholder="Field Name" value="<?php echo esc_attr($field['name']); ?>" />
+                            </div>
 
-                            <label>Field Type</label>
-                            <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
-                                <option value="text"      <?php selected($field['type'], 'text'); ?>>Text</option>
-                                <option value="number"    <?php selected($field['type'], 'number'); ?>>Number</option>
-                                <option value="textarea"  <?php selected($field['type'], 'textarea'); ?>>Textarea</option>
-                                <option value="rich_text" <?php selected($field['type'], 'rich_text'); ?>>Rich Text</option>
-                                <option value="media"     <?php selected($field['type'], 'media'); ?>>Media</option>
-                                <option value="date"      <?php selected($field['type'], 'date'); ?>>Date</option>
-                                <option value="color"     <?php selected($field['type'], 'color'); ?>>Color</option>
-                            </select>
+                            <div class="field-group">
+                                <label>Field Type</label><br>
+                                <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
+                                    <option value="text"      <?php selected($field['type'], 'text'); ?>>Text</option>
+                                    <option value="number"    <?php selected($field['type'], 'number'); ?>>Number</option>
+                                    <option value="textarea"  <?php selected($field['type'], 'textarea'); ?>>Textarea</option>
+                                    <option value="rich_text" <?php selected($field['type'], 'rich_text'); ?>>Rich Text</option>
+                                    <option value="media"     <?php selected($field['type'], 'media'); ?>>Media</option>
+                                    <option value="date"      <?php selected($field['type'], 'date'); ?>>Date</option>
+                                    <option value="color"     <?php selected($field['type'], 'color'); ?>>Color</option>
+                                </select>
+                            </div>
 
-                            <label>Post Types</label>
-                            <select name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
-                                <?php foreach ($post_types as $post_type) : ?>
-                                    <option value="<?php echo esc_attr($post_type->name); ?>" <?php echo (!empty($field['post_type']) && in_array($post_type->name, $field['post_type'])) ? 'selected' : ''; ?>>
-                                        <?php echo esc_html($post_type->label); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <div class="field-group">
+                                <label>Post Types</label><br>
+                                <select name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
+                                    <?php foreach ($post_types as $post_type) : ?>
+                                        <option value="<?php echo esc_attr($post_type->name); ?>" <?php echo (!empty($field['post_type']) && in_array($post_type->name, $field['post_type'])) ? 'selected' : ''; ?>>
+                                            <?php echo esc_html($post_type->label); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
 
-                            <label>Taxonomies</label>
-                            <select name="custom_fields[<?php echo $index; ?>][taxonomies][]" multiple>
-                                <?php foreach ($taxonomies as $tax) : ?>
-                                    <option value="<?php echo esc_attr($tax->name); ?>" <?php echo (!empty($field['taxonomies']) && in_array($tax->name, $field['taxonomies'])) ? 'selected' : ''; ?>>
-                                        <?php echo esc_html($tax->label); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <div class="field-group">
+                                <label>Taxonomies</label><br>
+                                <select name="custom_fields[<?php echo $index; ?>][taxonomies][]" multiple>
+                                    <?php foreach ($taxonomies as $tax) : ?>
+                                        <option value="<?php echo esc_attr($tax->name); ?>" <?php echo (!empty($field['taxonomies']) && in_array($tax->name, $field['taxonomies'])) ? 'selected' : ''; ?>>
+                                            <?php echo esc_html($tax->label); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
 
-                            <label>Repeater</label>
-                            <input type="checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" <?php checked(!empty($field['repeater'])); ?> <?php echo $field['type'] === 'rich_text' ? 'disabled' : ''; ?> />
-
+                            <div class="field-group">
+                                <label>Repeater</label><br>
+                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" <?php checked(!empty($field['repeater'])); ?> <?php echo $field['type'] === 'rich_text' ? 'disabled' : ''; ?> />
+                            </div>
                         </div>
                         <?php
                     }
@@ -147,46 +158,57 @@ function snn_custom_fields_page_callback() {
                 newRow.classList.add('custom-field-row');
                 newRow.dataset.index = newIndex;
                 newRow.innerHTML = `
-
                     <div class="buttons">
                         <button type="button" class="move-up">▲</button>
                         <button type="button" class="move-down">▼</button>
                         <button type="button" class="remove-field">Remove</button>
                     </div>
 
-                    <label>Group Name</label>
-                    <input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name" />
+                    <div class="field-group">
+                        <label>Group Name</label><br>
+                        <input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name" />
+                    </div>
 
-                    <label>Field Name</label>
-                    <input type="text" name="custom_fields[${newIndex}][name]" placeholder="Field Name" />
+                    <div class="field-group">
+                        <label>Field Name</label><br>
+                        <input type="text" name="custom_fields[${newIndex}][name]" placeholder="Field Name" />
+                    </div>
 
-                    <label>Field Type</label>
-                    <select name="custom_fields[${newIndex}][type]" class="field-type-select">
-                        <option value="text">Text</option>
-                        <option value="number">Number</option>
-                        <option value="textarea">Textarea</option>
-                        <option value="rich_text">Rich Text</option>
-                        <option value="media">Media</option>
-                        <option value="date">Date</option>
-                        <option value="color">Color</option>
-                    </select>
+                    <div class="field-group">
+                        <label>Field Type</label><br>
+                        <select name="custom_fields[${newIndex}][type]" class="field-type-select">
+                            <option value="text">Text</option>
+                            <option value="number">Number</option>
+                            <option value="textarea">Textarea</option>
+                            <option value="rich_text">Rich Text</option>
+                            <option value="media">Media</option>
+                            <option value="date">Date</option>
+                            <option value="color">Color</option>
+                        </select>
+                    </div>
 
-                    <label>Post Types</label>
-                    <select name="custom_fields[${newIndex}][post_type][]" multiple>
-                        <?php foreach ($post_types as $post_type) : ?>
-                            <option value="<?php echo esc_js($post_type->name); ?>"><?php echo esc_js($post_type->label); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="field-group">
+                        <label>Post Types</label><br>
+                        <select name="custom_fields[${newIndex}][post_type][]" multiple>
+                            <?php foreach ($post_types as $post_type) : ?>
+                                <option value="<?php echo esc_js($post_type->name); ?>"><?php echo esc_js($post_type->label); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-                    <label>Taxonomies</label>
-                    <select name="custom_fields[${newIndex}][taxonomies][]" multiple>
-                        <?php foreach ($taxonomies as $tax) : ?>
-                            <option value="<?php echo esc_js($tax->name); ?>"><?php echo esc_js($tax->label); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="field-group">
+                        <label>Taxonomies</label><br>
+                        <select name="custom_fields[${newIndex}][taxonomies][]" multiple>
+                            <?php foreach ($taxonomies as $tax) : ?>
+                                <option value="<?php echo esc_js($tax->name); ?>"><?php echo esc_js($tax->label); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-                    <label>Repeater</label>
-                    <input type="checkbox" name="custom_fields[${newIndex}][repeater]" disabled />
+                    <div class="field-group">
+                        <label>Repeater</label><br>
+                        <input type="checkbox" name="custom_fields[${newIndex}][repeater]" disabled />
+                    </div>
                 `;
                 fieldContainer.appendChild(newRow);
                 updateFieldIndexes();
@@ -299,6 +321,9 @@ function snn_custom_fields_page_callback() {
         </script>
 
         <style>
+            .custom-field-row [type="text"]{
+                width:240px;
+            }
             .custom-field-row {
                 display: flex;
                 flex-wrap: wrap;
