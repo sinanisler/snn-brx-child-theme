@@ -351,7 +351,7 @@ function bgcc_page() {
     </style>
 
     <div class="wrap">
-        <h1>Bricks Global Class and CSS Manager</h1>
+        <h1>Bricks Global Class and CSS Manager - <b style="color:red">EXPERIMENTAL dont use on prod just yet</b></h1>
         <?php settings_errors('bgcc_messages'); ?>
 
         <form method="post" id="bgcc-main-form">
