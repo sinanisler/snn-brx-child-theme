@@ -1,13 +1,9 @@
 <?php
-/**
- * Global Variables Manager
- * Handles CSS variable definitions.
- */
 
 add_action('admin_menu', function () {
     add_submenu_page(
         'snn-settings',
-        'Global Variables Manager',
+        'Global Variables',
         'Global Variables',
         'manage_options',
         'bricks-global-variables',
@@ -27,7 +23,6 @@ add_action('admin_init', function () {
                 $varName  = !empty($var['name']) ? sanitize_text_field($var['name']) : '';
                 $varValue = isset($var['value']) ? sanitize_text_field($var['value']) : '';
                 $varName  = trim($varName);
-                // Only import valid CSS variables that start with "--"
                 if ($varName && substr($varName, 0, 2) === '--') {
                     $new_variables[] = [
                         'id'    => $varId,
@@ -75,7 +70,7 @@ function bgv_page() {
     </style>
 
     <div class="wrap">
-        <h1>Global Variables Manager - <b style="color:red">EXPERIMENTAL</b></h1>
+        <h1>Global Variables - <b style="color:red">EXPERIMENTAL</b></h1>
         <?php settings_errors('bgv_messages'); ?>
 
         <form method="post" id="bgv-main-form">

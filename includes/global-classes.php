@@ -3,7 +3,7 @@
 add_action('admin_menu', function () {
     add_submenu_page(
         'snn-settings',
-        'Global Classes Manager',
+        'Global Classes',
         'Global Classes',
         'manage_options',
         'bricks-global-classes',
@@ -262,7 +262,7 @@ function bgcc_page() {
     </style>
 
     <div class="wrap">
-        <h1>Global Classes Manager - <b style="color:red">EXPERIMENTAL</b></h1>
+        <h1>Global Classes - <b style="color:red">EXPERIMENTAL</b></h1>
         <?php settings_errors('bgcc_messages'); ?>
 
         <form method="post" id="bgcc-main-form">
