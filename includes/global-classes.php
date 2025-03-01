@@ -33,43 +33,44 @@ add_action('admin_init', function () {
         }
         update_option('bricks_global_classes_categories', $new_categories);
 
-        // Process Classes
+        // Process Classes (using the posted "classes" array directly)
         $existing_classes = get_option('bricks_global_classes', []);
         $oldClassById     = [];
         foreach ($existing_classes as $cl) {
             $oldClassById[$cl['id']] = $cl;
         }
-        $classes_json  = $_POST['bgcc_classes_data'] ?? '';
-        if (!empty($classes_json)) {
-            $postedClasses = json_decode($classes_json, true);
-            $new_classes   = [];
-            if ($postedClasses && is_array($postedClasses)) {
-                foreach ($postedClasses as $cl) {
-                    $classId   = !empty($cl['id']) ? sanitize_text_field($cl['id']) : bgcc_rand_id();
-                    $className = !empty($cl['name']) ? sanitize_text_field($cl['name']) : '';
-                    $catId     = isset($cl['category']) ? sanitize_text_field($cl['category']) : '';
+        $postedClasses = $_POST['classes'] ?? null;
+        if ($postedClasses && is_array($postedClasses)) {
+            $new_classes = [];
+            foreach ($postedClasses as $cl) {
+                $classId   = !empty($cl['id']) ? sanitize_text_field($cl['id']) : bgcc_rand_id();
+                $className = !empty($cl['name']) ? sanitize_text_field($cl['name']) : '';
+                $catId     = isset($cl['category']) ? sanitize_text_field($cl['category']) : '';
 
-                    if ($className) {
-                        // Use the dynamic CSS parser to get settings.
-                        $parsedSettings = bgcc_parse_css($cl['css'] ?? '');
-                        if (isset($oldClassById[$classId])) {
-                            $oldSettings = $oldClassById[$classId]['settings'] ?? [];
-                            // Example: preserve an existing color reference if set.
-                            if (!empty($oldSettings['_raw']['color']) && !empty($parsedSettings['_raw']['color'])) {
-                                $oldColor = $oldSettings['_raw']['color'];
-                                $parsedSettings['_raw']['color'] = $oldColor;
-                            }
-                            $parsedSettings = array_replace_recursive($oldSettings, $parsedSettings);
-                        }
-                        $new_classes[] = [
-                            'id'       => $classId,
-                            'name'     => $className,
-                            'settings' => $parsedSettings,
-                            'category' => $catId,
-                            'modified' => time(),
-                            'user_id'  => get_current_user_id(),
-                        ];
+                if ($className) {
+                    // Parse the generated CSS to get settings.
+                    $parsedSettings = bgcc_parse_css($cl['css_generated'] ?? '');
+                    // Preserve any custom CSS in a separate key.
+                    if (!empty($cl['css_custom'])) {
+                        $parsedSettings['_cssCustom'] = sanitize_textarea_field($cl['css_custom']);
                     }
+                    if (isset($oldClassById[$classId])) {
+                        $oldSettings = $oldClassById[$classId]['settings'] ?? [];
+                        // Example: preserve an existing color reference if set.
+                        if (!empty($oldSettings['_raw']['color']) && !empty($parsedSettings['_raw']['color'])) {
+                            $oldColor = $oldSettings['_raw']['color'];
+                            $parsedSettings['_raw']['color'] = $oldColor;
+                        }
+                        $parsedSettings = array_replace_recursive($oldSettings, $parsedSettings);
+                    }
+                    $new_classes[] = [
+                        'id'       => $classId,
+                        'name'     => $className,
+                        'settings' => $parsedSettings,
+                        'category' => $catId,
+                        'modified' => time(),
+                        'user_id'  => get_current_user_id(),
+                    ];
                 }
             }
         } else {
@@ -78,29 +79,25 @@ add_action('admin_init', function () {
         }
         update_option('bricks_global_classes', $new_classes);
 
-        // Process Variables
-        $variables_json = $_POST['bgcc_variables_data'] ?? '';
-        if (!empty($variables_json)) {
-            $postedVariables = json_decode($variables_json, true);
-            $new_variables   = [];
-            if ($postedVariables && is_array($postedVariables)) {
-                foreach ($postedVariables as $var) {
-                    $varId    = !empty($var['id']) ? sanitize_text_field($var['id']) : bgcc_rand_id();
-                    $varName  = !empty($var['name']) ? sanitize_text_field($var['name']) : '';
-                    $varValue = isset($var['value']) ? sanitize_text_field($var['value']) : '';
-                    $varName  = trim($varName);
-                    // Only import valid CSS variables that start with "--"
-                    if ($varName && substr($varName, 0, 2) === '--') {
-                        $new_variables[] = [
-                            'id'    => $varId,
-                            'name'  => $varName,
-                            'value' => $varValue,
-                        ];
-                    }
+        // Process Variables (using the posted "variables" array directly)
+        $postedVariables = $_POST['variables'] ?? null;
+        if ($postedVariables && is_array($postedVariables)) {
+            $new_variables = [];
+            foreach ($postedVariables as $var) {
+                $varId    = !empty($var['id']) ? sanitize_text_field($var['id']) : bgcc_rand_id();
+                $varName  = !empty($var['name']) ? sanitize_text_field($var['name']) : '';
+                $varValue = isset($var['value']) ? sanitize_text_field($var['value']) : '';
+                $varName  = trim($varName);
+                // Only import valid CSS variables that start with "--"
+                if ($varName && substr($varName, 0, 2) === '--') {
+                    $new_variables[] = [
+                        'id'    => $varId,
+                        'name'  => $varName,
+                        'value' => $varValue,
+                    ];
                 }
             }
         } else {
-            // If no variables data was posted, keep the existing variables intact.
             $new_variables = get_option('bricks_global_variables', []);
         }
         update_option('bricks_global_variables', $new_variables);
@@ -176,7 +173,7 @@ function flatten_value($value) {
 }
 
 // ----------------------------------------------------------------------
-// Dynamic CSS Parser – reads raw CSS text into a settings array
+// Dynamic CSS Parser - reads raw CSS text into a settings array
 // ----------------------------------------------------------------------
 function bgcc_parse_css($css) {
     $settings = [];
@@ -225,32 +222,14 @@ function bgcc_parse_css($css) {
 }
 
 // ----------------------------------------------------------------------
-// Dynamic CSS Generator – outputs CSS from a settings array.
+// Dynamic CSS Generator - outputs CSS from a settings array.
 // Supports both previously parsed _raw data and legacy grouped keys.
 // ----------------------------------------------------------------------
 function bgcc_gen_css($name, $s) {
-    // If a custom CSS block exists, return it directly
-    if (isset($s['_cssCustom']) && !empty($s['_cssCustom'])) {
-        return $s['_cssCustom'];
-    }
-    $css = '.' . $name . " {\n";
-    if (isset($s['_raw']) && is_array($s['_raw']) && count($s['_raw']) > 0) {
-         foreach ($s['_raw'] as $prop => $val) {
-              $css .= "  {$prop}: " . flatten_value($val) . ";\n";
-         }
-    } else {
-         // Fall back to generative conversion for legacy settings
-         $css .= bgcc_generate_css_from_settings($s);
-    }
-    $css .= "}";
-    
-    // Append any @keyframes blocks for this class
-    if (!empty($s['_keyframes']) && is_array($s['_keyframes'])) {
-         foreach ($s['_keyframes'] as $keyframesBlock) {
-              $css .= "\n\n" . $keyframesBlock;
-         }
-    }
-    return $css;
+    // Output the generated CSS (based on settings).
+    // The custom CSS is handled separately.
+    $generated = bgcc_generate_css_from_settings($s);
+    return $generated;
 }
 
 // ----------------------------------------------------------------------
@@ -555,7 +534,7 @@ function bgcc_page() {
                                     <th style="width:30px"><input type="checkbox" id="select-all"></th>
                                     <th>Name</th>
                                     <th>Category (Optional)</th>
-                                    <th>CSS</th>
+                                    <th>CSS (Generated / Custom)</th>
                                     <th style="width:100px">Actions</th>
                                 </tr>
                             </thead>
@@ -579,7 +558,8 @@ function bgcc_page() {
                                                 </select>
                                             </td>
                                             <td>
-                                                <textarea name="classes[<?php echo $i; ?>][css]" rows="5" placeholder=".classname { /* CSS */ }" required><?php echo esc_textarea(bgcc_gen_css($cl['name'], $cl['settings'])); ?></textarea>
+                                                <textarea name="classes[<?php echo $i; ?>][css_generated]" rows="5" placeholder="Generated CSS" required><?php echo esc_textarea(bgcc_generate_css_from_settings($cl['settings'])); ?></textarea>
+                                                <textarea name="classes[<?php echo $i; ?>][css_custom]" rows="5" placeholder="Custom CSS"><?php echo isset($cl['settings']['_cssCustom']) ? esc_textarea($cl['settings']['_cssCustom']) : ''; ?></textarea>
                                             </td>
                                             <td>
                                                 <button type="button" class="button button-danger remove-row">Remove</button>
@@ -664,9 +644,6 @@ function bgcc_page() {
                     </div>
                 </div>
             </div>
-
-            <input type="hidden" name="bgcc_classes_data" id="bgcc_classes_data" value="">
-            <input type="hidden" name="bgcc_variables_data" id="bgcc_variables_data" value="">
         </form>
 
         <div id="export-section" style="margin-top:30px;">
@@ -676,7 +653,7 @@ function bgcc_page() {
                 $export_css = '';
                 if ($classes) {
                     foreach ($classes as $cl) {
-                        $export_css .= bgcc_gen_css($cl['name'], $cl['settings']) . "\n\n";
+                        $export_css .= bgcc_generate_css_from_settings($cl['settings']) . "\n\n";
                     }
                 }
                 echo esc_textarea($export_css);
@@ -725,15 +702,6 @@ function bgcc_page() {
         const bulkDeleteVariablesBtn = document.getElementById('bulk-delete-variables');
         const selectAllVariablesCheckbox = document.getElementById('select-all-variables');
         const bulkSearchVariablesInput = document.getElementById('bulk-search-variables');
-
-        // Hidden form fields
-        const mainForm = document.getElementById('bgcc-main-form');
-        const classesDataInput = document.getElementById('bgcc_classes_data');
-        const variablesDataInput = document.getElementById('bgcc_variables_data');
-
-        // Bulk textareas
-        const bulkCssTextarea = document.getElementById('bulk-css');
-        const bulkVariablesTextarea = document.getElementById('bulk-variables');
 
         // Tabs
         const tabs = document.querySelectorAll('#right-tabs ul.tabs li');
@@ -829,7 +797,8 @@ function bgcc_page() {
                     <select name="classes[${idx}][category]">${options}</select>
                 </td>
                 <td>
-                    <textarea name="classes[${idx}][css]" rows="5" placeholder=".classname { /* CSS */ }" required></textarea>
+                    <textarea name="classes[${idx}][css_generated]" rows="5" placeholder="Generated CSS" required></textarea>
+                    <textarea name="classes[${idx}][css_custom]" rows="5" placeholder="Custom CSS"></textarea>
                 </td>
                 <td>
                     <button type="button" class="button button-danger remove-row">Remove</button>
@@ -985,7 +954,8 @@ function bgcc_page() {
                                 <select name="classes[${idx}][category]">${options}</select>
                             </td>
                             <td>
-                                <textarea name="classes[${idx}][css]" rows="5" required>${classCss}</textarea>
+                                <textarea name="classes[${idx}][css_generated]" rows="5" required>${classCss}</textarea>
+                                <textarea name="classes[${idx}][css_custom]" rows="5" placeholder="Custom CSS"></textarea>
                             </td>
                             <td>
                                 <button type="button" class="button button-danger remove-row">Remove</button>
@@ -1150,54 +1120,6 @@ function bgcc_page() {
                 document.getElementById(this.getAttribute('data-tab')).classList.add('active');
             });
         });
-
-        // Before form submit, assemble JSON data for classes & variables
-        mainForm.addEventListener('submit', function(e) {
-            // Gather classes data
-            let classesData = [];
-            const classRows = classesTable.querySelectorAll('tbody tr');
-            classRows.forEach(row => {
-                if (row.classList.contains('no-classes')) return;
-                const idInput = row.querySelector('input[name*="[id]"]');
-                const nameInput = row.querySelector('input[name*="[name]"]');
-                const categorySelect = row.querySelector('select[name*="[category]"]');
-                const cssTextarea = row.querySelector('textarea[name*="[css]"]');
-                if (!idInput || !nameInput || !categorySelect || !cssTextarea) return;
-                classesData.push({
-                    id: idInput.value,
-                    name: nameInput.value,
-                    category: categorySelect.value,
-                    css: cssTextarea.value
-                });
-                // Disable these so they don't send as standard form fields
-                idInput.disabled = true;
-                nameInput.disabled = true;
-                categorySelect.disabled = true;
-                cssTextarea.disabled = true;
-            });
-            classesDataInput.value = JSON.stringify(classesData);
-
-            // Gather variables data
-            let variablesData = [];
-            const variableRows = variablesTable.querySelectorAll('tbody tr');
-            variableRows.forEach(row => {
-                if (row.classList.contains('no-variables')) return;
-                const idInput = row.querySelector('input[name*="[id]"]');
-                const nameInput = row.querySelector('input[name*="[name]"]');
-                const valueInput = row.querySelector('input[name*="[value]"]');
-                if (!idInput || !nameInput || !valueInput) return;
-                variablesData.push({
-                    id: idInput.value,
-                    name: nameInput.value,
-                    value: valueInput.value
-                });
-                // Disable these so they don't send as standard form fields
-                idInput.disabled = true;
-                nameInput.disabled = true;
-                valueInput.disabled = true;
-            });
-            variablesDataInput.value = JSON.stringify(variablesData);
-        });
     });
     </script>
     <?php
@@ -1222,7 +1144,10 @@ function bgcc_output_inline_css() {
         $css = '';
         if ($classes) {
             foreach ($classes as $cl) {
-                $css .= bgcc_gen_css($cl['name'], $cl['settings']);
+                // Combine generated CSS and custom CSS (if any) for frontend output.
+                $generated = bgcc_generate_css_from_settings($cl['settings']);
+                $custom = isset($cl['settings']['_cssCustom']) ? $cl['settings']['_cssCustom'] : '';
+                $css .= $generated . "\n" . $custom;
             }
         }
         // Minify by collapsing multiple spaces
