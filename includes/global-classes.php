@@ -40,60 +40,68 @@ add_action('admin_init', function () {
             $oldClassById[$cl['id']] = $cl;
         }
         $classes_json  = $_POST['bgcc_classes_data'] ?? '';
-        $postedClasses = json_decode(stripslashes($classes_json), true);
-        $new_classes   = [];
+        if (!empty($classes_json)) {
+            $postedClasses = json_decode($classes_json, true);
+            $new_classes   = [];
+            if ($postedClasses && is_array($postedClasses)) {
+                foreach ($postedClasses as $cl) {
+                    $classId   = !empty($cl['id']) ? sanitize_text_field($cl['id']) : bgcc_rand_id();
+                    $className = !empty($cl['name']) ? sanitize_text_field($cl['name']) : '';
+                    $catId     = isset($cl['category']) ? sanitize_text_field($cl['category']) : '';
 
-        if ($postedClasses && is_array($postedClasses)) {
-            foreach ($postedClasses as $cl) {
-                $classId   = !empty($cl['id']) ? sanitize_text_field($cl['id']) : bgcc_rand_id();
-                $className = !empty($cl['name']) ? sanitize_text_field($cl['name']) : '';
-                $catId     = isset($cl['category']) ? sanitize_text_field($cl['category']) : '';
-
-                if ($className) {
-                    $parsedSettings = bgcc_parse_css($cl['css'] ?? '');
-                    if (isset($oldClassById[$classId])) {
-                        $oldSettings = $oldClassById[$classId]['settings'] ?? [];
-                        // Keep any existing color references (IDs/names) if they exist
-                        if (!empty($oldSettings['_typography']['color']) && !empty($parsedSettings['_typography']['color'])) {
-                            $oldColor = $oldSettings['_typography']['color'];
-                            $parsedSettings['_typography']['color']['id']   = $oldColor['id'];
-                            $parsedSettings['_typography']['color']['name'] = $oldColor['name'];
+                    if ($className) {
+                        // Use the dynamic CSS parser to get settings.
+                        $parsedSettings = bgcc_parse_css($cl['css'] ?? '');
+                        if (isset($oldClassById[$classId])) {
+                            $oldSettings = $oldClassById[$classId]['settings'] ?? [];
+                            // Example: preserve an existing color reference if set.
+                            if (!empty($oldSettings['_raw']['color']) && !empty($parsedSettings['_raw']['color'])) {
+                                $oldColor = $oldSettings['_raw']['color'];
+                                $parsedSettings['_raw']['color'] = $oldColor;
+                            }
+                            $parsedSettings = array_replace_recursive($oldSettings, $parsedSettings);
                         }
-                        $parsedSettings = array_replace_recursive($oldSettings, $parsedSettings);
+                        $new_classes[] = [
+                            'id'       => $classId,
+                            'name'     => $className,
+                            'settings' => $parsedSettings,
+                            'category' => $catId,
+                            'modified' => time(),
+                            'user_id'  => get_current_user_id(),
+                        ];
                     }
-                    $new_classes[] = [
-                        'id'       => $classId,
-                        'name'     => $className,
-                        'settings' => $parsedSettings,
-                        'category' => $catId,
-                        'modified' => time(),
-                        'user_id'  => get_current_user_id(),
-                    ];
                 }
             }
+        } else {
+            // If no classes data was posted, keep the existing classes intact.
+            $new_classes = $existing_classes;
         }
-
         update_option('bricks_global_classes', $new_classes);
 
         // Process Variables
         $variables_json = $_POST['bgcc_variables_data'] ?? '';
-        $postedVariables = json_decode(stripslashes($variables_json), true);
-        $new_variables   = [];
-        if ($postedVariables && is_array($postedVariables)) {
-            foreach ($postedVariables as $var) {
-                $varId    = !empty($var['id']) ? sanitize_text_field($var['id']) : bgcc_rand_id();
-                $varName  = !empty($var['name']) ? sanitize_text_field($var['name']) : '';
-                $varValue = isset($var['value']) ? sanitize_text_field($var['value']) : '';
-                $varName  = trim($varName);
-                // Only import valid CSS variables that start with "--"
-                if ($varName && substr($varName, 0, 2) === '--') {
-                    $new_variables[] = [
-                        'id'    => $varId,
-                        'name'  => $varName,
-                        'value' => $varValue,
-                    ];
+        if (!empty($variables_json)) {
+            $postedVariables = json_decode($variables_json, true);
+            $new_variables   = [];
+            if ($postedVariables && is_array($postedVariables)) {
+                foreach ($postedVariables as $var) {
+                    $varId    = !empty($var['id']) ? sanitize_text_field($var['id']) : bgcc_rand_id();
+                    $varName  = !empty($var['name']) ? sanitize_text_field($var['name']) : '';
+                    $varValue = isset($var['value']) ? sanitize_text_field($var['value']) : '';
+                    $varName  = trim($varName);
+                    // Only import valid CSS variables that start with "--"
+                    if ($varName && substr($varName, 0, 2) === '--') {
+                        $new_variables[] = [
+                            'id'    => $varId,
+                            'name'  => $varName,
+                            'value' => $varValue,
+                        ];
+                    }
                 }
             }
+        } else {
+            // If no variables data was posted, keep the existing variables intact.
+            $new_variables = get_option('bricks_global_variables', []);
         }
         update_option('bricks_global_variables', $new_variables);
 
@@ -140,10 +148,45 @@ function bgcc_extract_brace_block($css, $startBracePos) {
     return [substr($css, $startBracePos), $len];
 }
 
+// ----------------------------------------------------------------------
+// Helper: Recursively flatten an array into a string.
+// If the value is not an array, it returns it as is.
+// If the array has a 'raw' key, that value is returned.
+// For indexed arrays, the values are joined by a comma.
+// For associative arrays, key-value pairs are joined by "; ".
+// ----------------------------------------------------------------------
+function flatten_value($value) {
+    if (!is_array($value)) {
+        return $value;
+    }
+    if (isset($value['raw'])) {
+        return $value['raw'];
+    }
+    // If indexed, join elements with a comma.
+    if (array_keys($value) === range(0, count($value) - 1)) {
+        $flattened = array_map('flatten_value', $value);
+        return implode(', ', $flattened);
+    }
+    // For associative arrays, join key: value pairs.
+    $flattened = [];
+    foreach ($value as $k => $v) {
+        $flattened[] = $k . ': ' . flatten_value($v);
+    }
+    return implode('; ', $flattened);
+}
+
+// ----------------------------------------------------------------------
+// Dynamic CSS Parser – reads raw CSS text into a settings array
+// ----------------------------------------------------------------------
 function bgcc_parse_css($css) {
     $settings = [];
+    // Store all CSS properties in a generic _raw array (if applicable)
+    $settings['_raw'] = [];
+
+    // Remove comments from the CSS
     $css = preg_replace('/\/\*.*?\*\//s', '', trim($css));
 
+    // Process keyframes blocks first and remove them from the CSS string
     $settings['_keyframes'] = [];
     $offset = 0;
     while (($pos = strpos($css, '@keyframes', $offset)) !== false) {
@@ -161,101 +204,132 @@ function bgcc_parse_css($css) {
         $offset = $pos;
     }
 
-    // Grab everything between braces if possible
+    // Extract CSS rules. If there are braces, use the inner content; otherwise, process the whole string.
     if (preg_match('/\{(.*)\}/s', $css, $m)) {
         $rules = explode(';', $m[1]);
     } else {
         $rules = explode(';', $css);
     }
+
+    // Process each rule dynamically without a manual switch-case
     foreach ($rules as $r) {
         $r = trim($r);
         if (!$r || strpos($r, ':') === false) {
             continue;
         }
-        list($p, $v) = array_map('trim', explode(':', $r, 2));
-        switch (strtolower($p)) {
-            case 'color':
-                $hex = sanitize_hex_color($v);
-                if ($hex === null) {
-                    $hex = sanitize_text_field($v);
-                }
-                $settings['_typography']['color'] = [
-                    'hex'  => $hex,
-                    'id'   => bgcc_rand_id(),
-                    'name' => 'Custom Color'
-                ];
-                break;
-            case 'background-color':
-                $hex = sanitize_hex_color($v);
-                if ($hex === null) {
-                    $hex = sanitize_text_field($v);
-                }
-                $settings['_background']['color'] = [
-                    'hex'  => $hex,
-                    'id'   => bgcc_rand_id(),
-                    'name' => 'Custom BG'
-                ];
-                break;
-            case 'text-align':
-                if (in_array(strtolower($v), ['left', 'center', 'right', 'justify'])) {
-                    $settings['_typography']['text-align'] = strtolower($v);
-                }
-                break;
-            case 'text-transform':
-                if (in_array(strtolower($v), ['none', 'capitalize', 'uppercase', 'lowercase'])) {
-                    $settings['_typography']['text-transform'] = strtolower($v);
-                }
-                break;
-            case 'font-weight':
-                $settings['_typography']['font-weight'] = sanitize_text_field($v);
-                break;
-            case 'border':
-                $settings['_border']['border'] = sanitize_text_field($v);
-                break;
-            default:
-                // Store any unknown/unsupported props in _custom_css
-                $settings['_custom_css'][sanitize_text_field($p)] = sanitize_text_field($v);
-        }
+        list($property, $value) = array_map('trim', explode(':', $r, 2));
+        // Simply store the property and value in the generic _raw array
+        $settings['_raw'][sanitize_text_field($property)] = sanitize_text_field($value);
     }
     return $settings;
 }
 
+// ----------------------------------------------------------------------
+// Dynamic CSS Generator – outputs CSS from a settings array.
+// Supports both previously parsed _raw data and legacy grouped keys.
+// ----------------------------------------------------------------------
 function bgcc_gen_css($name, $s) {
+    // If a custom CSS block exists, return it directly
+    if (isset($s['_cssCustom']) && !empty($s['_cssCustom'])) {
+        return $s['_cssCustom'];
+    }
     $css = '.' . $name . " {\n";
-    if (!empty($s['_typography'])) {
-        if (!empty($s['_typography']['text-align'])) {
-            $css .= "  text-align: {$s['_typography']['text-align']};\n";
-        }
-        if (!empty($s['_typography']['text-transform'])) {
-            $css .= "  text-transform: {$s['_typography']['text-transform']};\n";
-        }
-        if (!empty($s['_typography']['color']['hex'])) {
-            $css .= "  color: {$s['_typography']['color']['hex']};\n";
-        }
-        if (!empty($s['_typography']['font-weight'])) {
-            $css .= "  font-weight: {$s['_typography']['font-weight']};\n";
-        }
-    }
-    if (!empty($s['_background']['color']['hex'])) {
-        $css .= "  background-color: {$s['_background']['color']['hex']};\n";
-    }
-    if (!empty($s['_border']['border'])) {
-        $css .= "  border: {$s['_border']['border']};\n";
-    }
-    if (!empty($s['_custom_css']) && is_array($s['_custom_css'])) {
-        foreach ($s['_custom_css'] as $p => $v) {
-            $css .= "  {$p}: {$v};\n";
-        }
+    if (isset($s['_raw']) && is_array($s['_raw']) && count($s['_raw']) > 0) {
+         foreach ($s['_raw'] as $prop => $val) {
+              $css .= "  {$prop}: " . flatten_value($val) . ";\n";
+         }
+    } else {
+         // Fall back to generative conversion for legacy settings
+         $css .= bgcc_generate_css_from_settings($s);
     }
     $css .= "}";
-
+    
     // Append any @keyframes blocks for this class
     if (!empty($s['_keyframes']) && is_array($s['_keyframes'])) {
-        foreach ($s['_keyframes'] as $keyframesBlock) {
-            $css .= "\n\n" . $keyframesBlock;
-        }
+         foreach ($s['_keyframes'] as $keyframesBlock) {
+              $css .= "\n\n" . $keyframesBlock;
+         }
     }
     return $css;
+}
+
+// ----------------------------------------------------------------------
+// Convert a settings array (legacy structure) into CSS rules generatively.
+// This function flattens common grouped keys and outputs valid CSS.
+// ----------------------------------------------------------------------
+function bgcc_generate_css_from_settings($settings) {
+    $cssLines = "";
+    // Define group keys that should be flattened without a prefix
+    $flat_groups = array('_typography', '_background', '_border', '_boxShadow', '_gradient', '_transform');
+    foreach ($settings as $key => $value) {
+         if (in_array($key, ['_cssCustom', '_keyframes'])) continue;
+         
+         // Handle margin and padding as special shorthand if possible
+         if (in_array($key, ['_margin', '_padding'])) {
+              if (is_array($value) && isset($value['top'], $value['right'], $value['bottom'], $value['left'])) {
+                  $prop = str_replace('_', '-', strtolower(ltrim($key, '_')));
+                  $cssLines .= "  {$prop}: {$value['top']} {$value['right']} {$value['bottom']} {$value['left']};\n";
+              } else {
+                  // Fallback: flatten subkeys
+                  foreach ($value as $subKey => $subVal) {
+                      $prop = convertKeyToCssProperty($subKey);
+                      $cssLines .= "  {$prop}: " . flatten_value($subVal) . ";\n";
+                  }
+              }
+         }
+         // Flatten known group keys without the group name prefix
+         else if (in_array($key, $flat_groups)) {
+              if (is_array($value)) {
+                  foreach ($value as $subKey => $subVal) {
+                      if (is_array($subVal) && isset($subVal['raw'])) {
+                          $prop = convertKeyToCssProperty($subKey);
+                          $cssLines .= "  {$prop}: " . $subVal['raw'] . ";\n";
+                      } else if (!is_array($subVal)) {
+                          $prop = convertKeyToCssProperty($subKey);
+                          $cssLines .= "  {$prop}: {$subVal};\n";
+                      } else {
+                          // If nested further, flatten with a combined key
+                          foreach ($subVal as $subSubKey => $subSubVal) {
+                              $prop = convertKeyToCssProperty($subKey . '-' . $subSubKey);
+                              $cssLines .= "  {$prop}: " . flatten_value($subSubVal) . ";\n";
+                          }
+                      }
+                  }
+              }
+         }
+         // For other keys
+         else {
+             if (!is_array($value)) {
+                 $prop = convertKeyToCssProperty($key);
+                 $cssLines .= "  {$prop}: {$value};\n";
+             } else {
+                 // Flatten generic arrays with group prefix
+                 foreach ($value as $subKey => $subVal) {
+                     if (is_array($subVal) && isset($subVal['raw'])) {
+                          $prop = convertKeyToCssProperty($key . '-' . $subKey);
+                          $cssLines .= "  {$prop}: " . $subVal['raw'] . ";\n";
+                     } else if (!is_array($subVal)) {
+                          $prop = convertKeyToCssProperty($key . '-' . $subKey);
+                          $cssLines .= "  {$prop}: {$subVal};\n";
+                     } else {
+                          $prop = convertKeyToCssProperty($key . '-' . $subKey);
+                          $cssLines .= "  {$prop}: " . flatten_value($subVal) . ";\n";
+                     }
+                 }
+             }
+         }
+    }
+    return $cssLines;
+}
+
+// ----------------------------------------------------------------------
+// Helper: Convert a key to a CSS property name.
+// Removes leading underscores and converts camelCase to kebab-case.
+// ----------------------------------------------------------------------
+function convertKeyToCssProperty($key) {
+    $key = ltrim($key, '_');
+    $key = preg_replace('/([a-z])([A-Z])/', '$1-$2', $key);
+    return strtolower($key);
 }
 
 function bgcc_page() {
@@ -275,8 +349,7 @@ function bgcc_page() {
             width: 300px;
         }
         /* Tabs styling for right section */
-        #right-tabs { 
-        }
+        #right-tabs { }
         #right-tabs ul.tabs {
             list-style: none;
             margin: 0;
@@ -286,23 +359,23 @@ function bgcc_page() {
         #right-tabs ul.tabs li {
             padding: 10px 20px;
             cursor: pointer;
-            margin-bottom:0;
-            background:#dcdcde;
-            color:#50575e;
+            margin-bottom: 0;
+            background: #dcdcde;
+            color: #50575e;
             font-weight: bold;
-            top:1px;
-            position:relative;
+            top: 1px;
+            position: relative;
         }
         #right-tabs ul.tabs li.active {
             background: #f1f1f1;
             font-weight: bold;
-            border:solid 1px #c3c4c7;
-            border-bottom:none;
+            border: solid 1px #c3c4c7;
+            border-bottom: none;
         }
         .tab-content {
             display: none;
             padding: 20px;
-            border:solid 1px #c3c4c7;
+            border: solid 1px #c3c4c7;
         }
         .tab-content.active {
             display: block;
@@ -458,7 +531,7 @@ function bgcc_page() {
                         <!-- Bulk CSS block -->
                         <div style="margin-bottom:20px;">
                             <h3>Bulk CSS</h3>
-                            <p>Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>) and click "Generate Classes".<br>Multiple selectors (comma‐separated) and both <code>@media</code> and <code>@keyframes</code> blocks are supported.</p>
+                            <p>Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>) and click "Generate Classes".<br>Multiple selectors (comma separated) and both <code>@media</code> and <code>@keyframes</code> blocks are supported.</p>
                             <textarea id="bulk-css" rows="4" style="width:100%; font-family:monospace;"></textarea>
                             <br><br>
                             <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
@@ -467,7 +540,7 @@ function bgcc_page() {
                         <div id="bulk-actions" style="margin-bottom:10px;">
                             <button type="button" class="button" id="bulk-delete">Delete Selected</button>
                             <select id="bulk-category">
-                                <option value="">— Change Category To —</option>
+                                <option value="">- Change Category To -</option>
                                 <?php foreach ($categories as $cat) : ?>
                                     <option value="<?php echo esc_attr($cat['id']); ?>"><?php echo esc_html($cat['name']); ?></option>
                                 <?php endforeach; ?>
@@ -497,7 +570,7 @@ function bgcc_page() {
                                             </td>
                                             <td>
                                                 <select name="classes[<?php echo $i; ?>][category]">
-                                                    <option value="">— None —</option>
+                                                    <option value="">- None -</option>
                                                     <?php foreach ($categories as $cat) : ?>
                                                         <option value="<?php echo esc_attr($cat['id']); ?>" <?php selected($cl['category'], $cat['id']); ?>>
                                                             <?php echo esc_html($cat['name']); ?>
@@ -742,7 +815,7 @@ function bgcc_page() {
             }
             const idx = classesTable.rows.length;
             const row = classesTable.insertRow(-1);
-            let options = '<option value="">— None —</option>';
+            let options = '<option value="">- None -</option>';
             categories.forEach(c => {
                 options += `<option value="${c.id}">${c.name}</option>`;
             });
@@ -890,7 +963,7 @@ function bgcc_page() {
                     selectors.forEach(selector => {
                         const className = selector.startsWith('.') ? selector.slice(1) : selector;
                         const idx = classesTable.rows.length;
-                        let options = '<option value="">— None —</option>';
+                        let options = '<option value="">- None -</option>';
                         categories.forEach(c => {
                             options += `<option value="${c.id}">${c.name}</option>`;
                         });
@@ -948,7 +1021,7 @@ function bgcc_page() {
             }
             // Regex to capture lines like "--my-var: #cccccc;"
             const regex = /([\w-]+)\s*:\s*([^;]+);?/g;
-            let match, found = 0;
+            let match;
             while ((match = regex.exec(text)) !== null) {
                 const varName = match[1].trim();
                 const varValue = match[2].trim();
@@ -958,7 +1031,6 @@ function bgcc_page() {
                     continue;
                 }
 
-                found++;
                 const idx = variablesTable.rows.length;
                 const row = variablesTable.insertRow(-1);
                 row.innerHTML = `
@@ -1131,8 +1203,9 @@ function bgcc_page() {
     <?php
 }
 
+// ----------------------------------------------------------------------
 // FRONTEND OUTPUT
-//----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 if (!is_admin()) {
     // Output inline CSS for global classes in footer
@@ -1154,15 +1227,7 @@ function bgcc_output_inline_css() {
         }
         // Minify by collapsing multiple spaces
         $minified = preg_replace('/\s+/', ' ', $css);
-        echo '
-        
-
-<style id="bgcc-inline-css" class="snn-global-classes-frontend">
-' . $minified . '
-</style>
-
-
-';
+        echo '<style id="bgcc-inline-css" class="snn-global-classes-frontend">' . $minified . '</style>';
     }
 }
 
