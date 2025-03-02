@@ -176,21 +176,30 @@ function snn_render_301_redirects_page() {
         echo '<div class="notice notice-success"><p>All logs have been cleared!</p></div>';
     }
 
-    // Handle Update Maximum Logs to Keep
-    if (isset($_POST['update_max_logs']) && check_admin_referer('snn_301_update_max_logs_nonce')) {
+    // Handle Update Settings (Maximum Logs & Days to Keep Logs)
+    if (isset($_POST['save_settings']) && check_admin_referer('snn_301_update_settings_nonce')) {
         $max_logs = intval($_POST['max_logs_to_keep']);
+        $days_to_keep = intval($_POST['days_to_keep_logs']);
+        $error = false;
         if ($max_logs < 1) {
             echo '<div class="notice notice-error"><p>The maximum number of logs must be at least 1.</p></div>';
-        } else {
+            $error = true;
+        }
+        if ($days_to_keep < 1) {
+            echo '<div class="notice notice-error"><p>The number of days must be at least 1.</p></div>';
+            $error = true;
+        }
+        if (!$error) {
             update_option('snn_max_logs_to_keep', $max_logs);
-            echo '<div class="notice notice-success"><p>Maximum number of logs to keep updated successfully!</p></div>';
+            update_option('snn_days_to_keep_logs', $days_to_keep);
+            echo '<div class="notice notice-success"><p>Settings updated successfully!</p></div>';
         }
     }
 
-    // Retrieve the maximum number of logs to keep, default to 100
     $max_logs = get_option('snn_max_logs_to_keep', 100);
 
-    // Query the latest logs based on the maximum setting
+    $days_to_keep = get_option('snn_days_to_keep_logs', 30);
+
     $recent_logs = get_posts(array(
         'post_type'      => 'snn_redirect_logs',
         'posts_per_page' => $max_logs,
@@ -309,7 +318,6 @@ function snn_render_301_redirects_page() {
                                 </button>
                             </td>
                         </tr>
-                        <tr></tr>
                         <!-- Inline Edit Form Row -->
                         <tr id="edit-form-row-<?php echo esc_attr($redirect_id); ?>" style="display: none;">
                             <td colspan="5">
@@ -348,13 +356,11 @@ function snn_render_301_redirects_page() {
             <?php endif; ?>
         </div>
 
-        <!-- Tab 2: Recent Redirect Logs -->
         <div id="tab2" class="tab-content" style="display: none;">
             <h2>Recent Redirect Logs</h2>
 
-            <!-- Maximum Number of Logs to Keep Form -->
             <form method="post" action="" style="margin-bottom: 2em;">
-                <?php wp_nonce_field('snn_301_update_max_logs_nonce'); ?>
+                <?php wp_nonce_field('snn_301_update_settings_nonce'); ?>
                 <table class="form-table1">
                     <tr>
                         <th scope="row"><label for="max_logs_to_keep">Maximum number of logs to keep</label></th>
@@ -362,13 +368,18 @@ function snn_render_301_redirects_page() {
                             <input type="number" id="max_logs_to_keep" name="max_logs_to_keep" value="<?php echo esc_attr($max_logs); ?>" min="1" class="small-text">
                         </td>
                     </tr>
+                    <tr>
+                        <th scope="row"><label for="days_to_keep_logs">Days to keep logs</label></th>
+                        <td>
+                            <input type="number" id="days_to_keep_logs" name="days_to_keep_logs" value="<?php echo esc_attr($days_to_keep); ?>" min="1" class="small-text">
+                        </td>
+                    </tr>
                 </table>
                 <p class="submit" style="margin-top:0; padding-top:0">
-                    <input type="submit" name="update_max_logs" class="button button-primary" value="Update Maximum Logs">
+                    <input type="submit" name="save_settings" class="button button-primary" value="Save Settings">
                 </p>
             </form>
 
-            <!-- Clear All Logs Form -->
             <form method="post" action="" style="margin-bottom: 1em;">
                 <?php wp_nonce_field('snn_301_clear_logs_nonce'); ?>
                 <input type="submit" name="clear_all_logs" class="button button-secondary" value="Clear All Logs"
@@ -558,7 +569,7 @@ function snn_handle_301_redirects() {
         }
     }
 }
-// FIX: Lower the priority so this runs before canonical redirects.
+// Lower the priority so this runs before canonical redirects.
 add_action('template_redirect', 'snn_handle_301_redirects', 0);
 
 function snn_log_redirect($redirect_from, $redirect_to) {
@@ -579,35 +590,53 @@ function snn_log_redirect($redirect_from, $redirect_to) {
         $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
         update_post_meta($log_id, 'user_agent', $user_agent);
 
-        // Enforce the maximum number of logs to keep
+        // Enforce the maximum number of logs and delete logs older than the set number of days
         snn_enforce_max_logs();
     }
 }
 
 function snn_enforce_max_logs() {
-    $max_logs = get_option('snn_max_logs_to_keep', 100);
+    $days_to_keep = get_option('snn_days_to_keep_logs', 0);
+    if ($days_to_keep > 0) {
+         $date_threshold = date('Y-m-d H:i:s', strtotime("-$days_to_keep days"));
+         $old_logs = get_posts(array(
+             'post_type'      => 'snn_redirect_logs',
+             'posts_per_page' => -1,
+             'post_status'    => 'publish',
+             'date_query'     => array(
+                 array(
+                     'column' => 'post_date',
+                     'before' => $date_threshold,
+                 ),
+             ),
+             'fields'         => 'ids',
+         ));
+         if (!empty($old_logs)) {
+             foreach ($old_logs as $log_id) {
+                 wp_delete_post($log_id, true);
+             }
+         }
+    }
 
-    // Get total number of logs
+    $max_logs = get_option('snn_max_logs_to_keep', 100);
     $total_logs = wp_count_posts('snn_redirect_logs')->publish;
 
     if ($total_logs > $max_logs) {
-        $logs_to_delete = $total_logs - $max_logs;
+         $logs_to_delete = $total_logs - $max_logs;
+         $old_logs = get_posts(array(
+             'post_type'      => 'snn_redirect_logs',
+             'posts_per_page' => $logs_to_delete,
+             'orderby'        => 'date',
+             'order'          => 'ASC',
+             'post_status'    => 'publish',
+             'fields'         => 'ids',
+         ));
 
-        // Get the oldest logs
-        $old_logs = get_posts(array(
-            'post_type'      => 'snn_redirect_logs',
-            'posts_per_page' => $logs_to_delete,
-            'orderby'        => 'date',
-            'order'          => 'ASC',
-            'post_status'    => 'publish',
-            'fields'         => 'ids', // Only get post IDs
-        ));
-
-        if (!empty($old_logs)) {
-            foreach ($old_logs as $log_id) {
-                wp_delete_post($log_id, true);
-            }
-        }
+         if (!empty($old_logs)) {
+             foreach ($old_logs as $log_id) {
+                 wp_delete_post($log_id, true);
+             }
+         }
     }
 }
 
