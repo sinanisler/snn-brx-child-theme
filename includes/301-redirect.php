@@ -363,13 +363,13 @@ function snn_render_301_redirects_page() {
                 <?php wp_nonce_field('snn_301_update_settings_nonce'); ?>
                 <table class="form-table1">
                     <tr>
-                        <th scope="row"><label for="max_logs_to_keep">Maximum number of logs to keep</label></th>
+                        <th scope="row"><label for="max_logs_to_keep">Max number of logs to keep</label></th>
                         <td>
                             <input type="number" id="max_logs_to_keep" name="max_logs_to_keep" value="<?php echo esc_attr($max_logs); ?>" min="1" class="small-text">
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row"><label for="days_to_keep_logs">Days to keep logs</label></th>
+                        <th scope="row"><label for="days_to_keep_logs">Max days to keep logs</label></th>
                         <td>
                             <input type="number" id="days_to_keep_logs" name="days_to_keep_logs" value="<?php echo esc_attr($days_to_keep); ?>" min="1" class="small-text">
                         </td>
