@@ -308,7 +308,7 @@ function bgcc_classes_page() {
     </style>
 
     <div class="wrap">
-        <h1>Global Class Manager</h1>
+        <h1>Global Class Manager  <b style="color:red">EXPERIMENTAL</b></h1>
         <?php settings_errors('bgcc_messages'); ?>
         <form method="post" id="bgcc-main-form">
             <?php wp_nonce_field('bgcc_classes_save', 'bgcc_classes_nonce'); ?>

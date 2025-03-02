@@ -1,7 +1,5 @@
 <?php
-/**
- * Plugin Name: Global Variables Manager
- */
+
 
 add_action('admin_menu', function () {
     add_submenu_page(
@@ -123,7 +121,7 @@ function bgcc_variables_page() {
         }
     </style>
     <div class="wrap">
-        <h1>Global Variables Manager</h1>
+        <h1>Global Variables Manager <b style="color:red">EXPERIMENTAL</b></h1>
         <?php settings_errors('bgcc_messages'); ?>
         <form method="post" id="bgcc-variables-form">
             <?php wp_nonce_field('bgcc_variables_save', 'bgcc_variables_nonce'); ?>
@@ -235,17 +233,44 @@ function bgcc_variables_page() {
                     <h2>Export Variables</h2>
                     <p>Copy the variable definitions below to back up your variables:</p>
                     <textarea readonly rows="10"><?php 
-                        $export_variables = '';
-                        if ($variables) {
-                            foreach ($variables as $var) {
-                                $export_variables .= $var['name'] . ': ' . $var['value'];
-                                if (isset($var['category']) && $var['category'] !== '') {
-                                    $export_variables .= ' [' . $var['category'] . ']';
+                        // Group variables by category.
+                        $groups = [];
+                        if ($variables && is_array($variables)) {
+                            foreach($variables as $var) {
+                                $cat = (!empty($var['category'])) ? $var['category'] : 'none';
+                                if (!isset($groups[$cat])) {
+                                    $groups[$cat] = [];
                                 }
-                                $export_variables .= ";\n";
+                                $groups[$cat][] = $var;
                             }
                         }
-                        echo esc_textarea($export_variables);
+                        
+                        $export_output = '';
+                        foreach ($groups as $cat => $vars) {
+                            if ($cat === 'none') {
+                                $selector = ':root';
+                            } else {
+                                // Look up the category name from the saved categories.
+                                $cat_name = $cat;
+                                if ($categories && is_array($categories)) {
+                                    foreach ($categories as $c) {
+                                        if ($c['id'] === $cat) {
+                                            $cat_name = $c['name'];
+                                            break;
+                                        }
+                                    }
+                                }
+                                // Generate a simple CSS class selector from the category name.
+                                $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $cat_name));
+                                $selector = '.' . $slug;
+                            }
+                            $export_output .= $selector . " {\n";
+                            foreach ($vars as $var) {
+                                $export_output .= "    " . $var['name'] . ": " . $var['value'] . ";\n";
+                            }
+                            $export_output .= "}\n\n";
+                        }
+                        echo esc_textarea($export_output);
                     ?></textarea>
                 </div>
             </div>
