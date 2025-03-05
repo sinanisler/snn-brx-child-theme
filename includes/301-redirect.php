@@ -395,6 +395,7 @@ function snn_render_301_redirects_page() {
                             <th>Redirected URL</th>
                             <th>IP Address</th>
                             <th>User Agent</th>
+                            <th>Referral</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -406,6 +407,7 @@ function snn_render_301_redirects_page() {
                                 $created_date  = get_post_meta($log->ID, 'created_date', true);
                                 $ip_address    = get_post_meta($log->ID, 'ip_address', true);
                                 $user_agent    = get_post_meta($log->ID, 'user_agent', true);
+                                $referral      = get_post_meta($log->ID, 'referral', true);
                             ?>
                             <tr>
                                 <td><?php echo esc_html($created_date); ?></td>
@@ -425,6 +427,7 @@ function snn_render_301_redirects_page() {
                                     </a>
                                 </td>
                                 <td><?php echo esc_html($user_agent); ?></td>
+                                <td><?php echo esc_html($referral); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -577,7 +580,7 @@ function snn_log_redirect($redirect_from, $redirect_to) {
         'post_type'   => 'snn_redirect_logs',
         'post_title'  => 'Redirect from ' . $redirect_from . ' to ' . $redirect_to,
         'post_status' => 'publish',
-        'post_author' => 0, // System-generated
+        'post_author' => 0,
     );
 
     $log_id = wp_insert_post($log_post);
@@ -589,8 +592,9 @@ function snn_log_redirect($redirect_from, $redirect_to) {
         update_post_meta($log_id, 'ip_address', snn_get_client_ip());
         $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
         update_post_meta($log_id, 'user_agent', $user_agent);
+        $referral = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+        update_post_meta($log_id, 'referral', $referral);
 
-        // Enforce the maximum number of logs and delete logs older than the set number of days
         snn_enforce_max_logs();
     }
 }
@@ -642,13 +646,10 @@ function snn_enforce_max_logs() {
 
 function snn_get_client_ip() {
     if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-        // IP from shared internet
         $ip = $_SERVER['HTTP_CLIENT_IP'];
     } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        // IP passed from proxy
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
     } else {
-        // Regular IP
         $ip = $_SERVER['REMOTE_ADDR'];
     }
     return sanitize_text_field($ip);
