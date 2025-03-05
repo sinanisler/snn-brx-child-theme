@@ -31,6 +31,13 @@ function snn_handle_404_logs_actions() {
         } else {
             update_option('snn_404_logging_enabled', '0');
         }
+
+        // Handle disable bot/crawler logging option
+        if (isset($_POST['snn_disable_bot_logging'])) {
+            update_option('snn_disable_bot_logging', '1');
+        } else {
+            update_option('snn_disable_bot_logging', '0');
+        }
     }
 
     if (isset($_POST['snn_404_log_size_limit'])) {
@@ -115,6 +122,14 @@ function snn_log_404_error() {
             return;
         }
 
+        // Check if bot/crawler logging is disabled and skip if the user agent contains "bot", "crawler", or "robot"
+        if (get_option('snn_disable_bot_logging') === '1' && isset($_SERVER['HTTP_USER_AGENT'])) {
+            $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+            if (strpos($user_agent, 'bot') !== false || strpos($user_agent, 'crawler') !== false || strpos($user_agent, 'robot') !== false) {
+                return;
+            }
+        }
+
         $size_limit = get_option('snn_404_log_size_limit', 100);
         snn_cleanup_old_logs($size_limit);
 
@@ -140,6 +155,7 @@ add_action('template_redirect', 'snn_log_404_error');
 function snn_render_404_logs_page() {
     $logging_enabled = get_option('snn_404_logging_enabled') === '1';
     $log_size_limit  = get_option('snn_404_log_size_limit', 100);
+    $disable_bot_logging = get_option('snn_disable_bot_logging') === '1';
     ?>
     <div class="wrap">
         <h1>404 Logs</h1>
@@ -154,6 +170,12 @@ function snn_render_404_logs_page() {
             <label>
                 Maximum number of logs to keep:
                 <input type="number" name="snn_404_log_size_limit" value="<?php echo esc_attr($log_size_limit); ?>" min="1" style="width: 100px;">
+            </label>
+            <br><br>
+
+            <label>
+                <input type="checkbox" name="snn_disable_bot_logging" <?php checked($disable_bot_logging); ?>>
+                Disable Bot/Crawler Logging (Dont enable this if the website is new collect some urls first)
             </label>
             <br><br>
 
