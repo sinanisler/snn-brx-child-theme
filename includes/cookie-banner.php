@@ -30,7 +30,22 @@ function snn_options_page() {
         // NEW: Disable Scripts for Logged-In Users option
         $options['snn_cookie_settings_disable_scripts_for_logged_in'] = isset($_POST['snn_cookie_settings_disable_scripts_for_logged_in']) ? 'yes' : 'no';
 
-        $options['snn_cookie_settings_banner_description']   = isset($_POST['snn_cookie_settings_banner_description']) ? wp_kses_post( wp_unslash($_POST['snn_cookie_settings_banner_description']) ) : '';
+        // Allow <p> tags with style and class, plus basic tags.
+        $allowed = array(
+            'p' => array(
+                'style' => array(),
+                'class' => array(),
+            ),
+            'br' => array(),
+            'strong' => array(),
+            'em' => array(),
+            'a' => array(
+                'href' => array(),
+                'title' => array(),
+            ),
+        );
+        $options['snn_cookie_settings_banner_description'] = isset($_POST['snn_cookie_settings_banner_description']) ? wp_kses( wp_unslash($_POST['snn_cookie_settings_banner_description']), $allowed ) : '';
+        
         $options['snn_cookie_settings_accept_button']        = isset($_POST['snn_cookie_settings_accept_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_accept_button']) ) : '';
         $options['snn_cookie_settings_deny_button']          = isset($_POST['snn_cookie_settings_deny_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_deny_button']) ) : '';
         $options['snn_cookie_settings_preferences_button']   = isset($_POST['snn_cookie_settings_preferences_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_preferences_button']) ) : '';
@@ -477,7 +492,7 @@ function snn_output_cookie_banner() {
                         <span class="snn-service-name">
                             <?php echo esc_html( $service['name'] ); ?>
                             <?php if ( isset($service['mandatory']) && $service['mandatory'] === 'yes' ) { ?>
-                                <span  > 
+                                <span>
                                         <?php _e('*', 'snn-cookie-banner'); ?> 
                                 </span>
                             <?php } ?>
@@ -491,7 +506,25 @@ function snn_output_cookie_banner() {
                 </ul>
             <?php } ?>
         </div>
-        <p class="snn-banner-text"><?php echo esc_html( isset($options['snn_cookie_settings_banner_description']) ? wp_strip_all_tags($options['snn_cookie_settings_banner_description']) : '' ); ?></p>
+        <div class="snn-banner-text">
+            <?php 
+            // Output the banner description allowing inline styles.
+            $allowed = array(
+                'p' => array(
+                    'style' => array(),
+                    'class' => array(),
+                ),
+                'br' => array(),
+                'strong' => array(),
+                'em' => array(),
+                'a' => array(
+                    'href' => array(),
+                    'title' => array(),
+                ),
+            );
+            echo wp_kses( $options['snn_cookie_settings_banner_description'], $allowed );
+            ?>
+        </div>
         <div class="snn-banner-buttons">
             <button class="snn-button snn-accept"><?php echo esc_html( isset($options['snn_cookie_settings_accept_button']) ? $options['snn_cookie_settings_accept_button'] : __('Accept', 'snn-cookie-banner') ); ?></button>
             <button class="snn-button snn-deny"><?php echo esc_html( isset($options['snn_cookie_settings_deny_button']) ? $options['snn_cookie_settings_deny_button'] : __('Deny', 'snn-cookie-banner') ); ?></button>
