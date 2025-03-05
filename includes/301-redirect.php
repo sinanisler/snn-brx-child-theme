@@ -197,9 +197,7 @@ function snn_render_301_redirects_page() {
     }
 
     $max_logs = get_option('snn_max_logs_to_keep', 100);
-
     $days_to_keep = get_option('snn_days_to_keep_logs', 30);
-
     $recent_logs = get_posts(array(
         'post_type'      => 'snn_redirect_logs',
         'posts_per_page' => $max_logs,
@@ -233,7 +231,7 @@ function snn_render_301_redirects_page() {
                             <tr>
                                 <th>
                                     <label for="redirect_from">Redirect From</label>
-                                    <p class="description">Enter the path (e.g., /old-page or /category/old-post)</p>
+                                    <p class="description">Enter the path (e.g., /old-page or /category/old-post). Use /* at the end to match everything after.</p>
                                 </th>
                                 <td>
                                     <input type="text" id="redirect_from" name="redirect_from" class="regular-text" required>
@@ -242,7 +240,7 @@ function snn_render_301_redirects_page() {
                             <tr>
                                 <th>
                                     <label for="redirect_to">Redirect To</label>
-                                    <p class="description">Enter the full URL or path (e.g., https://example.com/new-page or /new-page)</p>
+                                    <p class="description">Enter the full URL or path (e.g., https://example.com/new-page or /new-page). Use /* at the end if you used /* in the "Redirect From."</p>
                                 </th>
                                 <td>
                                     <input type="text" id="redirect_to" name="redirect_to" class="regular-text" required>
@@ -259,7 +257,6 @@ function snn_render_301_redirects_page() {
 
             <!-- Existing Redirects Table -->
             <?php
-            // Order by clicks in descending order so the most clicked are on top
             $redirects = get_posts(array(
                 'post_type'      => 'snn_301_redirects',
                 'posts_per_page' => -1,
@@ -306,7 +303,6 @@ function snn_render_301_redirects_page() {
                                     <input type="hidden" name="redirect_id" value="<?php echo esc_attr($redirect_id); ?>">
                                     <input type="submit" name="delete_redirect" class="button button-small button-link-delete" value="Delete" onclick="return confirm('Are you sure you want to delete this redirect?');">
                                 </form>
-
                                 <button
                                     type="button"
                                     class="button button-small edit-redirect"
@@ -325,7 +321,6 @@ function snn_render_301_redirects_page() {
                                     <?php wp_nonce_field('snn_301_redirect_edit_nonce'); ?>
                                     <input type="hidden" name="edit_redirect" value="1">
                                     <input type="hidden" name="redirect_id" value="<?php echo esc_attr($redirect_id); ?>">
-
                                     <table class="form-table" style="margin: 0;">
                                         <tr>
                                             <th>Redirect From</th>
@@ -340,7 +335,6 @@ function snn_render_301_redirects_page() {
                                             </td>
                                         </tr>
                                     </table>
-
                                     <p class="submit">
                                         <button type="submit" class="button button-primary">Save</button>
                                         <button type="button" class="button cancel-edit" data-redirect-id="<?php echo esc_attr($redirect_id); ?>">Cancel</button>
@@ -356,6 +350,7 @@ function snn_render_301_redirects_page() {
             <?php endif; ?>
         </div>
 
+        <!-- Tab 2: Recent Redirect Logs -->
         <div id="tab2" class="tab-content" style="display: none;">
             <h2>Recent Redirect Logs</h2>
 
@@ -401,7 +396,6 @@ function snn_render_301_redirects_page() {
                     <tbody>
                         <?php foreach ($recent_logs as $log): ?>
                             <?php
-                                // Get log meta
                                 $redirect_from = get_post_meta($log->ID, 'redirect_from', true);
                                 $redirect_to   = get_post_meta($log->ID, 'redirect_to', true);
                                 $created_date  = get_post_meta($log->ID, 'created_date', true);
@@ -441,7 +435,6 @@ function snn_render_301_redirects_page() {
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-
         // Simple tab switching
         const tabLinks = document.querySelectorAll('.nav-tab');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -476,26 +469,23 @@ function snn_render_301_redirects_page() {
 
         // Edit button click event
         const editRedirectButtons = document.querySelectorAll('.edit-redirect');
-            editRedirectButtons.forEach(function(button) {
-                button.addEventListener('click', function() {
-                    const redirectId   = this.dataset.redirectId;
-                    const redirectFrom = this.dataset.redirectFrom;
-                    const redirectTo   = this.dataset.redirectTo;
+        editRedirectButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                const redirectId   = this.dataset.redirectId;
+                const redirectFrom = this.dataset.redirectFrom;
+                const redirectTo   = this.dataset.redirectTo;
 
-                    // Hide any open edit forms
-                    hideAllEditForms();
+                hideAllEditForms();
 
-                    // Show the relevant edit form row
-                    const editFormRow = document.getElementById('edit-form-row-' + redirectId);
-                    if (editFormRow) {
-                        editFormRow.style.display = 'table-row';
-                    }
+                const editFormRow = document.getElementById('edit-form-row-' + redirectId);
+                if (editFormRow) {
+                    editFormRow.style.display = 'table-row';
+                }
 
-                    // Populate fields
-                    document.getElementById('edit-redirect-from-' + redirectId).value = redirectFrom;
-                    document.getElementById('edit-redirect-to-' + redirectId).value   = redirectTo;
-                });
+                document.getElementById('edit-redirect-from-' + redirectId).value = redirectFrom;
+                document.getElementById('edit-redirect-to-' + redirectId).value   = redirectTo;
             });
+        });
 
         // Cancel edit
         const cancelEditButtons = document.querySelectorAll('.cancel-edit');
@@ -544,35 +534,66 @@ function snn_handle_301_redirects() {
         'posts_per_page' => -1
     ));
 
+    // First process exact (non-wildcard) redirects
     foreach ($redirects as $redirect) {
         $redirect_from = get_post_meta($redirect->ID, 'redirect_from', true);
-        $redirect_to   = get_post_meta($redirect->ID, 'redirect_to', true);
-
-        // Match the requested path
-        if ($redirect_from === $current_path || $redirect_from === $current_path . '?' . $query_string) {
-            if ($query_string) {
-                $redirect_to .= (strpos($redirect_to, '?') !== false) ? '&' : '?';
-                $redirect_to .= $query_string;
+        if (substr($redirect_from, -2) !== '/*') {
+            if ($redirect_from === $current_path || $redirect_from === $current_path . '?' . $query_string) {
+                $redirect_to = get_post_meta($redirect->ID, 'redirect_to', true);
+                if ($query_string) {
+                    $redirect_to .= (strpos($redirect_to, '?') !== false) ? '&' : '?';
+                    $redirect_to .= $query_string;
+                }
+                if (strpos($redirect_to, 'http') !== 0) {
+                    $redirect_to = home_url($redirect_to);
+                }
+                $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
+                update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
+                snn_log_redirect($redirect_from, $redirect_to);
+                nocache_headers();
+                wp_redirect($redirect_to, 301);
+                exit;
             }
-            if (strpos($redirect_to, 'http') !== 0) {
-                $redirect_to = home_url($redirect_to);
+        }
+    }
+
+    // Then process wildcard redirects (redirects ending with "/*")
+    foreach ($redirects as $redirect) {
+        $redirect_from = get_post_meta($redirect->ID, 'redirect_from', true);
+        if (substr($redirect_from, -2) === '/*') {
+            $redirect_to = get_post_meta($redirect->ID, 'redirect_to', true);
+            $base_from = substr($redirect_from, 0, -2);
+            if ($current_path === $base_from || strpos($current_path, $base_from . '/') === 0) {
+                $leftover = '';
+                if (strlen($current_path) > strlen($base_from)) {
+                    $leftover = substr($current_path, strlen($base_from));
+                }
+                $leftover = ltrim($leftover, '/');
+                $base_to = $redirect_to;
+                if (substr($redirect_to, -2) === '/*') {
+                    $base_to = substr($redirect_to, 0, -2);
+                }
+                $final_destination = rtrim($base_to, '/');
+                if ($leftover !== '') {
+                    $final_destination .= '/' . $leftover;
+                }
+                if ($query_string) {
+                    $final_destination .= (strpos($final_destination, '?') !== false) ? '&' : '?';
+                    $final_destination .= $query_string;
+                }
+                if (strpos($final_destination, 'http') !== 0) {
+                    $final_destination = home_url($final_destination);
+                }
+                $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
+                update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
+                snn_log_redirect($current_path, $final_destination);
+                nocache_headers();
+                wp_redirect($final_destination, 301);
+                exit;
             }
-
-            // Increment the clicks (stored in the 301 rules post)
-            $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
-            update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
-
-            // Log this redirect individually
-            snn_log_redirect($redirect_from, $redirect_to);
-
-            // Perform the 301 redirect
-            nocache_headers();
-            wp_redirect($redirect_to, 301);
-            exit;
         }
     }
 }
-// Lower the priority so this runs before canonical redirects.
 add_action('template_redirect', 'snn_handle_301_redirects', 0);
 
 function snn_log_redirect($redirect_from, $redirect_to) {
@@ -595,52 +616,53 @@ function snn_log_redirect($redirect_from, $redirect_to) {
         $referral = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
         update_post_meta($log_id, 'referral', $referral);
 
+        // Enforce the maximum number of logs and remove old ones if needed
         snn_enforce_max_logs();
     }
 }
 
 function snn_enforce_max_logs() {
-    $days_to_keep = get_option('snn_days_to_keep_logs', 0);
+    $days_to_keep = get_option('snn_days_to_keep_logs', 30);
     if ($days_to_keep > 0) {
-         $date_threshold = date('Y-m-d H:i:s', strtotime("-$days_to_keep days"));
-         $old_logs = get_posts(array(
-             'post_type'      => 'snn_redirect_logs',
-             'posts_per_page' => -1,
-             'post_status'    => 'publish',
-             'date_query'     => array(
-                 array(
-                     'column' => 'post_date',
-                     'before' => $date_threshold,
-                 ),
-             ),
-             'fields'         => 'ids',
-         ));
-         if (!empty($old_logs)) {
-             foreach ($old_logs as $log_id) {
-                 wp_delete_post($log_id, true);
-             }
-         }
+        $date_threshold = date('Y-m-d H:i:s', strtotime("-$days_to_keep days"));
+        $old_logs = get_posts(array(
+            'post_type'      => 'snn_redirect_logs',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'date_query'     => array(
+                array(
+                    'column' => 'post_date',
+                    'before' => $date_threshold,
+                ),
+            ),
+            'fields'         => 'ids',
+        ));
+        if (!empty($old_logs)) {
+            foreach ($old_logs as $log_id) {
+                wp_delete_post($log_id, true);
+            }
+        }
     }
 
     $max_logs = get_option('snn_max_logs_to_keep', 100);
     $total_logs = wp_count_posts('snn_redirect_logs')->publish;
 
     if ($total_logs > $max_logs) {
-         $logs_to_delete = $total_logs - $max_logs;
-         $old_logs = get_posts(array(
-             'post_type'      => 'snn_redirect_logs',
-             'posts_per_page' => $logs_to_delete,
-             'orderby'        => 'date',
-             'order'          => 'ASC',
-             'post_status'    => 'publish',
-             'fields'         => 'ids',
-         ));
+        $logs_to_delete = $total_logs - $max_logs;
+        $old_logs = get_posts(array(
+            'post_type'      => 'snn_redirect_logs',
+            'posts_per_page' => $logs_to_delete,
+            'orderby'        => 'date',
+            'order'          => 'ASC',
+            'post_status'    => 'publish',
+            'fields'         => 'ids',
+        ));
 
-         if (!empty($old_logs)) {
-             foreach ($old_logs as $log_id) {
-                 wp_delete_post($log_id, true);
-             }
-         }
+        if (!empty($old_logs)) {
+            foreach ($old_logs as $log_id) {
+                wp_delete_post($log_id, true);
+            }
+        }
     }
 }
 
