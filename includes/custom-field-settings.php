@@ -41,6 +41,7 @@ function snn_custom_fields_page_callback() {
                         'post_type'  => $post_types_selected,
                         'taxonomies' => $taxonomies_selected,
                         'repeater'   => !empty($field['repeater']) ? 1 : 0,
+                        'author'     => !empty($field['author']) ? 1 : 0,
                     ];
                 }
             }
@@ -49,7 +50,6 @@ function snn_custom_fields_page_callback() {
         $custom_fields = $new_fields;
         echo '<div class="updated"><p>Custom fields saved successfully.</p></div>';
     }
-
     ?>
     <div class="wrap">
         <h1>Manage Custom Fields</h1>
@@ -57,8 +57,8 @@ function snn_custom_fields_page_callback() {
             <?php wp_nonce_field('snn_custom_fields_save', 'snn_custom_fields_nonce'); ?>
 
             <div id="custom-field-settings">
-                <p>Define custom fields with group name, field name, field type, and post type or taxonomy:<br>
-                    Select one or more to register same Custom Field to Post Types or Taxonomies.<br>
+                <p>Define custom fields with group name, field name, field type, and post type, taxonomy, or author:<br>
+                    Select one or more to register same Custom Field to Post Types, Taxonomies, or Author.<br>
                     Press CTRL/CMD to select multiple or to remove selection.
                 </p>
                 <?php
@@ -80,7 +80,6 @@ function snn_custom_fields_page_callback() {
 
                             <div class="field-group">
                                 <label>Field Name</label><br>
-                                <!-- The Field Name inputs use the placeholder "Field Name" for our realtime sanitizer -->
                                 <input type="text" name="custom_fields[<?php echo $index; ?>][name]" placeholder="Field Name" value="<?php echo esc_attr($field['name']); ?>" />
                             </div>
 
@@ -120,6 +119,11 @@ function snn_custom_fields_page_callback() {
                             </div>
 
                             <div class="field-group">
+                                <label>Author</label><br>
+                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][author]" <?php checked(!empty($field['author'])); ?> />
+                            </div>
+
+                            <div class="field-group">
                                 <label>Repeater</label><br>
                                 <input type="checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" <?php checked(!empty($field['repeater'])); ?> <?php echo $field['type'] === 'rich_text' ? 'disabled' : ''; ?> />
                             </div>
@@ -134,7 +138,6 @@ function snn_custom_fields_page_callback() {
             <?php submit_button('Save Custom Fields'); ?>
         </form>
 
-        <!-- Existing JavaScript for moving/removing/adding field rows -->
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             const fieldContainer = document.getElementById('custom-field-settings');
@@ -206,6 +209,11 @@ function snn_custom_fields_page_callback() {
                     </div>
 
                     <div class="field-group">
+                        <label>Author</label><br>
+                        <input type="checkbox" name="custom_fields[${newIndex}][author]" />
+                    </div>
+
+                    <div class="field-group">
                         <label>Repeater</label><br>
                         <input type="checkbox" name="custom_fields[${newIndex}][repeater]" disabled />
                     </div>
@@ -259,33 +267,27 @@ function snn_custom_fields_page_callback() {
         });
         </script>
 
-        <!-- New native JavaScript for realtime field name sanitization -->
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Function to replace spaces with underscores and remove unwanted characters
             function sanitizeFieldName(value) {
                 value = value.trim();
-                value = value.replace(/\s+/g, '_'); // Replace any whitespace with an underscore
-                value = value.replace(/[^A-Za-z0-9_]/g, ''); // Remove non-latin letters, digits, or underscores
+                value = value.replace(/\s+/g, '_');
+                value = value.replace(/[^A-Za-z0-9_]/g, '');
                 return value;
             }
             
-            // Attach both keydown and input event listeners to a Field Name input element.
             function attachFieldNameSanitizer(input) {
-                // On keydown: if the user presses space, insert an underscore instead.
                 input.addEventListener('keydown', function(e) {
                     if (e.key === ' ') {
                         e.preventDefault();
                         var start = input.selectionStart;
                         var end = input.selectionEnd;
                         var value = input.value;
-                        // Insert underscore at the caret position
                         input.value = value.substring(0, start) + '_' + value.substring(end);
                         input.setSelectionRange(start + 1, start + 1);
                     }
                 });
                 
-                // On input: sanitize the value (useful for pasted content)
                 input.addEventListener('input', function(e) {
                     var sanitized = sanitizeFieldName(e.target.value);
                     if (e.target.value !== sanitized) {
@@ -294,13 +296,11 @@ function snn_custom_fields_page_callback() {
                 });
             }
             
-            // Attach the sanitizer to all existing Field Name inputs (identified by placeholder "Field Name")
             var fieldNameInputs = document.querySelectorAll('input[placeholder="Field Name"]');
             fieldNameInputs.forEach(function(input) {
                 attachFieldNameSanitizer(input);
             });
             
-            // Observe for dynamically added Field Name inputs and attach the sanitizer
             var fieldContainer = document.getElementById('custom-field-settings');
             if (fieldContainer) {
                 var observer = new MutationObserver(function(mutations) {
@@ -472,7 +472,6 @@ function snn_register_dynamic_metaboxes() {
                         }
                         echo '</div>';
                         ?>
-
                         <style>
                             .snn-custom-field {
                                 display: grid;
@@ -484,7 +483,6 @@ function snn_register_dynamic_metaboxes() {
                                 height: 100px;
                             }
                         </style>
-
                         <?php
                     }
                 },
@@ -655,12 +653,6 @@ function snn_render_field_input($field, $value = '', $index = '') {
     }
 }
 
-/**
- * Get the appropriate Dashicon class for a given MIME type.
- *
- * @param string $mime_type The MIME type of the file.
- * @return string The Dashicon class name.
- */
 function snn_get_dashicon_for_mime($mime_type) {
     $mime_to_dashicon = [
         'application/pdf' => 'dashicons-media-document',
@@ -868,5 +860,68 @@ function snn_save_dynamic_metabox_data($post_id) {
     }
 }
 add_action('save_post', 'snn_save_dynamic_metabox_data');
+
+/* New functions for author custom fields */
+
+function snn_register_user_custom_fields() {
+    $custom_fields = get_option('snn_custom_fields', []);
+    $user_fields = array_filter($custom_fields, function($field) {
+        return !empty($field['author']);
+    });
+    if (empty($user_fields)) {
+        return;
+    }
+    add_action('show_user_profile', 'snn_render_user_custom_fields');
+    add_action('edit_user_profile', 'snn_render_user_custom_fields');
+    add_action('personal_options_update', 'snn_save_user_custom_fields');
+    add_action('edit_user_profile_update', 'snn_save_user_custom_fields');
+}
+add_action('init', 'snn_register_user_custom_fields');
+
+function snn_render_user_custom_fields($user) {
+    $custom_fields = get_option('snn_custom_fields', []);
+    $user_fields = array_filter($custom_fields, function($field) {
+        return !empty($field['author']);
+    });
+    if (empty($user_fields)) {
+        return;
+    }
+    echo '<h2>Custom Fields</h2>';
+    wp_nonce_field('snn_save_custom_fields', 'snn_custom_fields_nonce');
+    echo '<table class="form-table">';
+    foreach ($user_fields as $field) {
+        $field_name = $field['name'];
+        $value = get_user_meta($user->ID, $field_name, true);
+        echo '<tr>';
+        echo '<th><label for="'.esc_attr($field_name).'">'.esc_html($field_name).'</label></th>';
+        echo '<td>';
+        snn_render_field_input($field, $value);
+        echo '</td>';
+        echo '</tr>';
+    }
+    echo '</table>';
+}
+
+function snn_save_user_custom_fields($user_id) {
+    if (!current_user_can('edit_user', $user_id)) {
+        return false;
+    }
+    if (!isset($_POST['snn_custom_fields_nonce']) || !wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_save_custom_fields')) {
+        return;
+    }
+    $custom_fields = get_option('snn_custom_fields', []);
+    $user_fields = array_filter($custom_fields, function($field) {
+        return !empty($field['author']);
+    });
+    foreach ($user_fields as $field) {
+        $field_name = $field['name'];
+        if (isset($_POST['custom_fields'][$field_name])) {
+            $value = snn_sanitize_value_by_type($field['type'], $_POST['custom_fields'][$field_name]);
+            update_user_meta($user_id, $field_name, $value);
+        } else {
+            delete_user_meta($user_id, $field_name);
+        }
+    }
+}
 
 ?>
