@@ -491,6 +491,7 @@ function snn_register_dynamic_metaboxes() {
         }
     }
 
+    // Output repeater field JS (media upload handling removed from here)
     add_action('admin_footer', 'snn_output_repeater_field_js');
 }
 add_action('add_meta_boxes', 'snn_register_dynamic_metaboxes');
@@ -754,7 +755,42 @@ function snn_output_repeater_field_js() {
                 e.preventDefault();
                 $(this).closest('.repeater-item').remove();
             });
+        });
+    })(jQuery);
+    </script>
+    <?php
+}
 
+// Enqueue admin scripts on all admin pages that might render media fields.
+function snn_enqueue_admin_scripts($hook) {
+    $custom_fields = get_option('snn_custom_fields', []);
+    $media_field_exists = false;
+    if (!empty($custom_fields) && is_array($custom_fields)) {
+        foreach ($custom_fields as $field) {
+            if ($field['type'] === 'media') {
+                $media_field_exists = true;
+                break;
+            }
+        }
+    }
+    if ($media_field_exists) {
+        wp_enqueue_media();
+        add_action('admin_footer', 'snn_output_custom_media_uploader_js');
+    }
+}
+add_action('admin_enqueue_scripts', 'snn_enqueue_admin_scripts');
+
+function snn_output_custom_media_uploader_js() {
+    ?>
+    <style>
+    .media-uploader .media-preview {
+        max-width: 100px;
+        max-height: 100px;
+    }
+    </style>
+    <script>
+    (function($){
+        $(document).ready(function(){
             $('body').on('click', '.media-upload-button', function(e){
                 e.preventDefault();
                 var button = $(this);
@@ -773,10 +809,6 @@ function snn_output_repeater_field_js() {
                         button.siblings('.dashicons').remove();
                     } else {
                         button.siblings('.media-preview').remove();
-                        var dashiconClass = '<?php echo esc_js(snn_get_dashicon_for_mime('application/pdf')); ?>';
-                        button.siblings('.media-preview').remove();
-                        var dashicon = $('<span class="dashicons dashicons-media-default media-preview" style="font-size: 48px;"></span>');
-                        var mimeType = attachment.mime;
                         var dashiconMap = {
                             'application/pdf': 'dashicons-media-document',
                             'application/json': 'dashicons-editor-code',
@@ -786,10 +818,11 @@ function snn_output_repeater_field_js() {
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'dashicons-media-document',
                             'text/plain': 'dashicons-editor-paragraph',
                             'video/mp4': 'dashicons-video-alt3',
-                            'audio/mpeg': 'dashicons-format-audio',
+                            'audio/mpeg': 'dashicons-format-audio'
                         };
+                        var mimeType = attachment.mime;
                         var selectedDashicon = dashiconMap[mimeType] || 'dashicons-media-default';
-                        dashicon.removeClass('dashicons-media-default').addClass(selectedDashicon);
+                        var dashicon = $('<span class="dashicons '+selectedDashicon+' media-preview" style="font-size: 48px;"></span>');
                         button.before(dashicon);
                     }
                 })
@@ -800,14 +833,6 @@ function snn_output_repeater_field_js() {
     </script>
     <?php
 }
-
-function snn_enqueue_admin_scripts($hook) {
-    global $snn_media_fields_exist;
-    if ($snn_media_fields_exist && ('post.php' == $hook || 'post-new.php' == $hook)) {
-        wp_enqueue_media();
-    }
-}
-add_action('admin_enqueue_scripts', 'snn_enqueue_admin_scripts');
 
 function snn_save_dynamic_metabox_data($post_id) {
     if (!isset($_POST['snn_custom_fields_nonce']) || !wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_save_custom_fields')) {
