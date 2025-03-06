@@ -45,6 +45,23 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'default'     => '',
         ];
 
+        // DOM Element Tag Control for selecting h1, h2, h3, etc.
+        $this->controls['dom_element_tag'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__('DOM Element Tag', 'bricks'),
+            'type'        => 'select',
+            'options'     => [
+                'h1'   => esc_html__('H1', 'bricks'),
+                'h2'   => esc_html__('H2', 'bricks'),
+                'h3'   => esc_html__('H3', 'bricks'),
+                'h4'   => esc_html__('H4', 'bricks'),
+                'p'    => esc_html__('Paragraph', 'bricks'),
+                'span' => esc_html__('Span', 'bricks'),
+                'div'  => esc_html__('Div', 'bricks'),
+            ],
+            'default'     => 'div'
+        ];
+
         // Presets control with a list of predefined animations.
         // Note: Any keys already available as separate controls (loop, scroll, splittext, rand, pin, stagger, markers)
         // have been removed from these preset strings.
@@ -75,19 +92,15 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
                 'x:-50, y:0, duration:1, opacity:0.8, scale:1.1'       =>
                     esc_html__('Slide in from left', 'bricks'),
 
-
-
                 'x:2000px' => esc_html__('Slide 2000px right', 'bricks'),
                 'x:-2000px' => esc_html__('Slide 2000px left', 'bricks'),
                 'y:-2000px' => esc_html__('Slide 2000px top', 'bricks'),
                 'y:2000px' => esc_html__('Slide 2000px bottom', 'bricks'),
 
-
                 'x:2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px right and fade in', 'bricks'),
                 'x:-2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px left and fade in', 'bricks'),
                 'y:-2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px top and fade in', 'bricks'),
                 'y:2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px bottom and fade in', 'bricks'),
-
 
                 // Split text animations (cleaned of splittext and stagger settings):
                 'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(180deg), style_end-transform:rotate(0deg)' =>
@@ -302,11 +315,14 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         $data_animate = !empty($global_settings) ? implode(', ', $global_settings) : '';
         $data_animate_attr = !empty($data_animate) ? ' data-animate="' . esc_attr($data_animate) . '"' : '';
 
-        // Render the output
-        echo '<div ' . $this->render_attributes('_root') . $data_animate_attr . '>';
+        // Get the DOM element tag setting. Defaults to 'div' if not set.
+        $dom_element_tag = isset($this->settings['dom_element_tag']) && !empty($this->settings['dom_element_tag']) ? $this->settings['dom_element_tag'] : 'div';
+
+        // Render the output using the selected DOM element.
+        echo '<' . esc_html($dom_element_tag) . ' ' . $this->render_attributes('_root') . $data_animate_attr . '>';
         echo $text_content;
         echo Frontend::render_children($this);
-        echo '</div>';
+        echo '</' . esc_html($dom_element_tag) . '>';
     }
 
     /**
@@ -315,7 +331,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
     public static function render_builder() {
         ?>
         <script type="text/x-template" id="tmpl-bricks-element-gsap-text-animations">
-            <component :is="tag">
+            <component :is="element.settings.dom_element_tag || 'div'">
                 <div v-if="element.settings.text_content" class="snn-gsap-text-animations-wrapper">
                     {{ element.settings.text_content }}
                 </div>
