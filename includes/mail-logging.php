@@ -215,7 +215,7 @@ function snn_render_mail_logs_page() {
             echo '<td>' . esc_html($from) . '</td>';
             echo '<td>' . esc_html($to) . '</td>';
             echo '<td>' . esc_html($subject) . '</td>';
-            echo '<td class="log-message">' . esc_html($message) . '</td>';
+            echo '<td class="log-message"><iframe sandbox style="width:100%; height:250px; border:none;" srcdoc="' . esc_attr($message) . '"></iframe></td>';
 
             if (is_array($headers_data)) {
                 echo '<td>' . esc_html(implode(', ', $headers_data)) . '</td>';
@@ -235,7 +235,6 @@ function snn_render_mail_logs_page() {
 <style>
 .log-message {
     max-height: 250px;
-    overflow: auto;
     display: block;
 }
 
@@ -248,8 +247,8 @@ function snn_render_mail_logs_page() {
 .message {
     width: 500px;
 }
-#snn_clear_mail_logs{
-width:100px;
+#snn_clear_mail_logs {
+    width: 100px;
 }
 </style>
 <?php
