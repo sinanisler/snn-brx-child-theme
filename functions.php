@@ -74,6 +74,8 @@
 
   \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/polkadot-effect.php');
 
+  \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/animated-heading.php');
+
 
   // if GSAP setting is enabled Register Elements
   $options = get_option('snn_other_settings');
