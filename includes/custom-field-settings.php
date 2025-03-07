@@ -12,12 +12,14 @@ function snn_add_custom_fields_submenu() {
 }
 add_action('admin_menu', 'snn_add_custom_fields_submenu', 10);
 
-add_filter(
-    'wp_default_editor',
-    function () {
+if ( ! function_exists( 'is_plugin_active' ) ) {
+    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+}
+if ( ! is_plugin_active( 'classic-editor/classic-editor.php' ) ) {
+    add_filter('wp_default_editor', function () {
         return 'html';
-    }
-);
+    });
+}
 
 function snn_custom_fields_page_callback() {
     $custom_fields = get_option('snn_custom_fields', []);
