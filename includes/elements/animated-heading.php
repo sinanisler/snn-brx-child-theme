@@ -161,7 +161,7 @@ class Animated_Headline_Element extends Element {
             'options' => [
                 'option4' => esc_html__('Underline', 'bricks'),
                 'option1' => esc_html__('Underline Zigzag', 'bricks'),
-                'option3' => esc_html__('Underline Wavevy', 'bricks'),
+                'option3' => esc_html__('Underline Wavey', 'bricks'),
                 'option2' => esc_html__('Circle', 'bricks'),
                 'option5' => esc_html__('Double Line', 'bricks'),
                 'option6' => esc_html__('Strikethrough', 'bricks'),
