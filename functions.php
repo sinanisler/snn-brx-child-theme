@@ -75,8 +75,10 @@
   \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/polkadot-effect.php');
 
   \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/animated-heading.php');
-  
+
   \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/svg-text-path.php');
+
+  \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/timeline.php');
 
 
   // if GSAP setting is enabled Register Elements
