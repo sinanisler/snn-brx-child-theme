@@ -5,7 +5,7 @@ add_action('admin_menu', function () {
         'Global Classes Manager',
         'Global Classes',
         'manage_options',
-        'bricks-global-classes',
+        'snn-classes',
         'bgcc_classes_page',
         99
     );
@@ -28,10 +28,10 @@ add_action('admin_init', function () {
                 }
             }
         }
-        update_option('bricks_global_classes_categories', $new_categories);
+        update_option('snn_classes_categories', $new_categories);
 
         // Ensure the existing classes option is an array
-        $existing_classes = get_option('bricks_global_classes', []);
+        $existing_classes = get_option('snn_classes', []);
         if (!is_array($existing_classes)) {
             $existing_classes = [];
         }
@@ -40,7 +40,7 @@ add_action('admin_init', function () {
             $oldClassById[$cl['id']] = $cl;
         }
         $postedClasses = $_POST['classes'] ?? null;
-        if (is_array($postedClasses)) { // Changed: if classes are posted, process them
+        if (is_array($postedClasses)) { // If classes are posted, process them
             $new_classes = [];
             foreach ($postedClasses as $cl) {
                 $classId   = !empty($cl['id']) ? sanitize_text_field($cl['id']) : bgcc_rand_id();
@@ -49,9 +49,7 @@ add_action('admin_init', function () {
 
                 if ($className) {
                     $parsedSettings = bgcc_parse_css($cl['css_generated'] ?? '');
-                    if (!empty($cl['css_custom'])) {
-                        $parsedSettings['_cssCustom'] = sanitize_textarea_field($cl['css_custom']);
-                    }
+                    // Removed custom CSS processing
                     if (isset($oldClassById[$classId])) {
                         $oldSettings = $oldClassById[$classId]['settings'] ?? [];
                         if (!empty($oldSettings['_raw']['color']) && !empty($parsedSettings['_raw']['color'])) {
@@ -71,26 +69,13 @@ add_action('admin_init', function () {
                 }
             }
         } else {
-            // Changed: if no classes are posted, update with an empty array
+            // If no classes are posted, update with an empty array
             $new_classes = [];
         }
-        update_option('bricks_global_classes', $new_classes);
-
-        // Process external resources (JS/CSS URLs)
-        $external_resources_post = $_POST['external_resources'] ?? [];
-        $new_external_resources = [];
-        if (is_array($external_resources_post)) {
-            foreach ($external_resources_post as $resource) {
-                $resource = esc_url_raw(trim($resource));
-                if ($resource) {
-                    $new_external_resources[] = $resource;
-                }
-            }
-        }
-        update_option('bricks_global_classes_external_resources', $new_external_resources);
+        update_option('snn_classes', $new_classes);
 
         add_settings_error('bgcc_messages', 'bgcc_save_message', 'Settings Saved', 'updated');
-        wp_redirect(add_query_arg(['page' => 'bricks-global-classes', 'updated' => 'true'], admin_url('admin.php')));
+        wp_redirect(add_query_arg(['page' => 'snn-classes', 'updated' => 'true'], admin_url('admin.php')));
         exit;
     }
 });
@@ -255,17 +240,13 @@ function convertKeyToCssProperty($key) {
 
 // ADMIN PAGE: Classes UI
 function bgcc_classes_page() {
-    $categories = get_option('bricks_global_classes_categories', []);
+    $categories = get_option('snn_classes_categories', []);
     if (!is_array($categories)) {
         $categories = [];
     }
-    $classes = get_option('bricks_global_classes', []);
+    $classes = get_option('snn_classes', []);
     if (!is_array($classes)) {
         $classes = [];
-    }
-    $external_resources = get_option('bricks_global_classes_external_resources', []);
-    if (!is_array($external_resources)) {
-        $external_resources = [];
     }
     ?>
     <style>
@@ -292,8 +273,7 @@ function bgcc_classes_page() {
             width: 100%;
             font-family: monospace;
         }
-        .no-classes td,
-        .no-resources td {
+        .no-classes td {
             padding: 15px;
             font-style: italic;
             color: #555;
@@ -350,46 +330,7 @@ function bgcc_classes_page() {
                         </tfoot>
                     </table>
 
-                    <!-- External CDN Resources Section -->
-                    <div id="external-resources-section" style="margin-top:40px;">
-                        <h2>External CDN Resources</h2>
-                        <p>JS or CSS external URL resources to load on the frontend.</p>
-                        <table class="widefat fixed" id="external-resources-table">
-                            <thead>
-                                <tr>
-                                    <th>Resource URL</th>
-                                    <th style="width:100px">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if ($external_resources && count($external_resources) > 0) : ?>
-                                    <?php foreach ($external_resources as $i => $resource) : ?>
-                                        <tr>
-                                            <td>
-                                                <input type="text" name="external_resources[<?php echo $i; ?>]" value="<?php echo esc_attr($resource); ?>" style="width: 90%;" placeholder="https://example.com/script.js">
-                                            </td>
-                                            <td>
-                                                <button type="button" class="button button-danger remove-row">Remove</button>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else : ?>
-                                    <tr class="no-resources">
-                                        <td colspan="2" style="text-align: center;">No external resources added yet. Click "Add External Resource" to create one.</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="2">
-                                        <button type="button" class="button button-secondary" id="add-external-resource">Add External Resource</button>
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                    <!-- Bulk CSS Section moved here -->
+                    <!-- Bulk CSS Section -->
                     <div style="margin-top:40px;">
                         <h3>Bulk CSS</h3>
                         <p>Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>) and click "Generate Classes".<br>
@@ -402,7 +343,7 @@ function bgcc_classes_page() {
 
                 <div id="classes-section">
                     <h2>Classes</h2>
-                    <!-- Bulk actions for classes with Save All moved here -->
+                    <!-- Bulk actions for classes with Save All -->
                     <div id="bulk-actions">
                         <?php submit_button('Save All', 'primary', 'bgcc_classes_save', false); ?>
                         <button type="button" class="button" id="bulk-delete">Delete Selected</button>
@@ -422,7 +363,7 @@ function bgcc_classes_page() {
                                 <th style="width:30px"><input type="checkbox" id="select-all"></th>
                                 <th>Name</th>
                                 <th>Category (Optional)</th>
-                                <th>CSS (Generated / Custom)</th>
+                                <th>CSS (Generated)</th>
                                 <th style="width:100px">Actions</th>
                             </tr>
                         </thead>
@@ -447,7 +388,6 @@ function bgcc_classes_page() {
                                         </td>
                                         <td>
                                             <textarea name="classes[<?php echo $i; ?>][css_generated]" rows="5" placeholder="Generated CSS" required><?php echo esc_textarea(bgcc_generate_css_from_settings($cl['settings'])); ?></textarea>
-                                            <textarea name="classes[<?php echo $i; ?>][css_custom]" rows="5" placeholder="Custom CSS"><?php echo isset($cl['settings']['_cssCustom']) ? esc_textarea($cl['settings']['_cssCustom']) : ''; ?></textarea>
                                         </td>
                                         <td>
                                             <button type="button" class="button button-danger remove-row">Remove</button>
@@ -480,7 +420,14 @@ function bgcc_classes_page() {
                 if (is_array($classes) && count($classes) > 0) {
                     foreach ($classes as $cl) {
                         if(isset($cl['settings'])) {
-                            $export_css .= bgcc_generate_css_from_settings($cl['settings']) . "\n\n";
+                            $selector = $cl['name'];
+                            // Ensure selector starts with a dot
+                            if (strpos($selector, '.') !== 0) {
+                                $selector = '.' . $selector;
+                            }
+                            $export_css .= $selector . " {\n" 
+                                        . bgcc_generate_css_from_settings($cl['settings']) 
+                                        . "}\n\n";
                         }
                     }
                 }
@@ -494,13 +441,11 @@ function bgcc_classes_page() {
         // DOM elements for Classes page
         const categoriesTable = document.getElementById('categories-table').querySelector('tbody');
         const classesTable = document.getElementById('classes-table').querySelector('tbody');
-        const externalResourcesTable = document.getElementById('external-resources-table').querySelector('tbody');
         const bulkCssTextarea = document.getElementById('bulk-css');
 
         // Buttons
         const addCategoryBtn = document.getElementById('add-category');
         const addClassBtn = document.getElementById('add-class');
-        const addExternalResourceBtn = document.getElementById('add-external-resource');
         const generateClassesBtn = document.getElementById('generate-classes');
 
         // Bulk actions: Classes
@@ -559,24 +504,6 @@ function bgcc_classes_page() {
                 </td>
                 <td>
                     <textarea name="classes[${idx}][css_generated]" rows="5" placeholder="Generated CSS" required></textarea>
-                    <textarea name="classes[${idx}][css_custom]" rows="5" placeholder="Custom CSS"></textarea>
-                </td>
-                <td>
-                    <button type="button" class="button button-danger remove-row">Remove</button>
-                </td>`;
-        });
-
-        // Add new external resource row
-        addExternalResourceBtn.addEventListener('click', () => {
-            const idx = externalResourcesTable.rows.length;
-            const noResourcesRow = externalResourcesTable.querySelector('.no-resources');
-            if (noResourcesRow) {
-                noResourcesRow.remove();
-            }
-            const row = externalResourcesTable.insertRow(-1);
-            row.innerHTML = `
-                <td>
-                    <input type="text" name="external_resources[${idx}]" style="width: 90%;" placeholder="https://example.com/script.js">
                 </td>
                 <td>
                     <button type="button" class="button button-danger remove-row">Remove</button>
@@ -594,12 +521,6 @@ function bgcc_classes_page() {
                         newRow.classList.add('no-classes');
                         newRow.innerHTML = '<td colspan="5" style="text-align: center;">No classes added yet. Click "Add" to create a class.</td>';
                     }
-                } else if (tbody === externalResourcesTable) {
-                    if (!externalResourcesTable.rows.length) {
-                        let newRow = externalResourcesTable.insertRow();
-                        newRow.classList.add('no-resources');
-                        newRow.innerHTML = '<td colspan="2" style="text-align: center;">No external resources added yet. Click "Add External Resource" to create one.</td>';
-                    }
                 }
             }
         });
@@ -615,6 +536,7 @@ function bgcc_classes_page() {
             if (noClassesMsg) {
                 noClassesMsg.remove();
             }
+            // Extract media blocks using a regex that supports complex conditions
             function extractMediaBlocks(css) {
                 let mediaBlocks = [];
                 let remaining = css;
@@ -638,8 +560,9 @@ function bgcc_classes_page() {
                 return { remaining, mediaBlocks };
             }
             const { remaining: topCss, mediaBlocks } = extractMediaBlocks(text);
+            // Updated regex to support more complex class selectors (with pseudo-classes, compound selectors, etc.)
             function processCssRules(cssText, wrapWithMedia) {
-                const classRuleRegex = /((?:\.[A-Za-z0-9_\-]+\s*,\s*)*\.[A-Za-z0-9_\-]+)\s*\{([\s\S]*?)\}/g;
+                const classRuleRegex = /(?:^|})\s*((?:\.[^,{]+\s*(?:,\s*\.[^,{]+\s*)*))\s*\{([\s\S]*?)\}/g;
                 let match;
                 while ((match = classRuleRegex.exec(cssText)) !== null) {
                     const selectors = match[1].split(',').map(s => s.trim());
@@ -678,13 +601,14 @@ function bgcc_classes_page() {
                         }
                     }
                     selectors.forEach(selector => {
+                        // Remove the leading dot for storing the name
                         const className = selector.startsWith('.') ? selector.slice(1) : selector;
                         const idx = classesTable.rows.length;
                         let options = '<option value="">- None -</option>';
                         categories.forEach(c => {
                             options += `<option value="${c.id}">${c.name}</option>`;
                         });
-                        let classCss = '.' + className + ' {\n' + rules + '\n}';
+                        let classCss = selector + ' {\n' + rules + '\n}';
                         if (keyframes) {
                             classCss += "\n\n" + keyframes;
                         }
@@ -703,7 +627,6 @@ function bgcc_classes_page() {
                             </td>
                             <td>
                                 <textarea name="classes[${idx}][css_generated]" rows="5" required>${classCss}</textarea>
-                                <textarea name="classes[${idx}][css_custom]" rows="5" placeholder="Custom CSS"></textarea>
                             </td>
                             <td>
                                 <button type="button" class="button button-danger remove-row">Remove</button>
@@ -780,32 +703,5 @@ function bgcc_classes_page() {
     });
     </script>
     <?php
-}
-
-if (!is_admin()) {
-    add_action('wp_head', 'bgcc_output_external_css');
-    add_action('wp_footer', 'bgcc_output_external_js');
-}
-
-function bgcc_output_external_css() {
-    $external_resources = get_option('bricks_global_classes_external_resources', []);
-    if (is_array($external_resources) && count($external_resources) > 0) {
-        foreach ($external_resources as $resource) {
-            if (stripos($resource, '.css') !== false) {
-                echo '<link rel="stylesheet" href="' . esc_url($resource) . '" />' . "\n";
-            }
-        }
-    }
-}
-
-function bgcc_output_external_js() {
-    $external_resources = get_option('bricks_global_classes_external_resources', []);
-    if (is_array($external_resources) && count($external_resources) > 0) {
-        foreach ($external_resources as $resource) {
-            if (stripos($resource, '.js') !== false) {
-                echo '<script src="' . esc_url($resource) . '"></script>' . "\n";
-            }
-        }
-    }
 }
 ?>
