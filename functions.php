@@ -4,8 +4,9 @@
   define( 'SNN_URL', trailingslashit( get_stylesheet_directory_uri() ) ); 
   define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );  
 
+  // DO NOT TOUCH THIS FILE 
+  // Use custom-codes-here.php file for adding your custom PHP, JS and CSS codes.
 
-  // DO NOT TOUCH THIS FILE Use custom-codes-here.php file for adding your custom JS and CSS codes.
   require_once SNN_PATH . 'custom-codes-here.php';
 
 
@@ -80,6 +81,7 @@
 
   \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/timeline.php');
 
+  \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/like-button.php');
 
   // if GSAP setting is enabled Register Elements
   $options = get_option('snn_other_settings');
