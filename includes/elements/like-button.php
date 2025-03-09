@@ -57,7 +57,7 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'type'        => 'text',
                 'label'       => esc_html__( 'Custom Identifier', 'bricks' ),
                 'default'     => '',
-                'description' => esc_html__( 'Leave blank to use element ID.', 'bricks' ),
+                'description' => esc_html__( 'Leave blank to use the current post ID.', 'bricks' ),
             ];
         }
 
@@ -65,29 +65,26 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             $icon_settings  = $this->settings['button_icon'] ?? [];
             $liked_icon_set = $this->settings['liked_icon'] ?? [];
 
-            // Get the custom identifier exactly as provided
+            // Retrieve the custom identifier as provided.
             $custom_identifier = $this->settings['identifier'] ?? '';
             if ( is_array( $custom_identifier ) && isset( $custom_identifier['raw'] ) ) {
                 $custom_identifier = $custom_identifier['raw'];
             }
             
-            // Use the custom identifier if available; otherwise, use the persistent Bricks element ID.
-            $identifier = ! empty( $custom_identifier ) ? $custom_identifier : 'like-button-' . $this->id;
+            // Use the custom identifier if available; otherwise, use the current post ID.
+            $identifier = ! empty( $custom_identifier ) ? $custom_identifier : get_the_ID();
 
-            // Get the like count and check if the current user has liked this item.
-            $like_count = function_exists( 'snn_get_like_count' ) ? snn_get_like_count( $identifier ) : 0;
-            $post       = snn_get_like_post( $identifier );
-            $liked      = false;
-            if ( $post ) {
-                $liked_ips = get_post_meta( $post->ID, '_snn_like_ips', true );
-                $liked     = is_array( $liked_ips ) && in_array( $_SERVER['REMOTE_ADDR'], $liked_ips, true );
-            }
+            // Retrieve like count and check if the current user's IP has already liked.
+            $like_count = snn_get_like_count( $identifier );
+            $liked_ips  = snn_get_like_ips( $identifier );
+            $liked      = in_array( $_SERVER['REMOTE_ADDR'], $liked_ips, true );
 
             // Set attributes on the root element.
             $this->set_attribute( '_root', 'class', [ 'brxe-like-button', 'like-button-element' ] );
             $this->set_attribute( '_root', 'data-identifier', $identifier );
+            $this->set_attribute( '_root', 'data-count', $like_count );
 
-            // Render the element.
+            // Render the like button element.
             echo '<div ' . $this->render_attributes( '_root' ) . ' onclick="snn_likeButton(this)">';
                 echo '<span class="button-icon default-icon" style="' . ( $liked ? 'display:none;' : 'display:inline;' ) . '">';
                     bricks_render_icon( $icon_settings );
@@ -98,67 +95,36 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 if ( ! empty( $this->settings['show_like_count'] ) ) {
                     echo '<span class="snn-like-count">' . intval( $like_count ) . '</span>';
                 }
-                // Include a hidden input with the identifier for use in JavaScript.
+                // Hidden input for JavaScript.
                 echo '<input type="hidden" class="like-button-identifier" value="' . $identifier . '">';
             echo '</div>';
         }
     }
 }
 
-// Register the Like Button element if Bricks is available.
 if ( function_exists( 'bricks' ) ) {
     bricks()->elements->register_element( new Like_Button_Element() );
 }
 
-/**
- * Register Custom Post Type for Storing Likes.
- */
-add_action( 'init', 'snn_register_like_post_type' );
-function snn_register_like_post_type() {
-    $args = [
-        'public'          => false,
-        'show_ui'         => false,
-        'capability_type' => 'post',
-        'supports'        => [ 'title' ],
-    ];
-    register_post_type( 'snn_like', $args );
+
+function snn_get_like_ips( $identifier ) {
+    $key = sanitize_key( 'snn_like_ips_' . $identifier );
+    $ips = get_option( $key, [] );
+    return is_array( $ips ) ? $ips : [];
 }
 
-/**
- * Helper function to retrieve or create a like record.
- */
-function snn_get_like_post( $identifier ) {
-    if ( ! is_string( $identifier ) ) {
-        $identifier = '';
-    }
-    $post = get_page_by_path( $identifier, OBJECT, 'snn_like' );
-    if ( ! $post ) {
-        $post_id = wp_insert_post( [
-            'post_title'  => $identifier,
-            'post_name'   => $identifier,
-            'post_type'   => 'snn_like',
-            'post_status' => 'private',
-        ] );
-        if ( ! is_wp_error( $post_id ) ) {
-            $post = get_post( $post_id );
-            update_post_meta( $post->ID, '_snn_like_count', 0 );
-            update_post_meta( $post->ID, '_snn_like_ips', [] );
-        }
-    }
-    return $post;
+
+function snn_update_like_ips( $identifier, $ips ) {
+    $key = sanitize_key( 'snn_like_ips_' . $identifier );
+    update_option( $key, $ips );
 }
 
-/**
- * Helper function to get the like count.
- */
+
 function snn_get_like_count( $identifier ) {
-    $post  = snn_get_like_post( $identifier );
-    return intval( get_post_meta( $post->ID, '_snn_like_count', true ) );
+    $ips = snn_get_like_ips( $identifier );
+    return count( $ips );
 }
 
-/**
- * REST API Endpoint to Handle Like Requests (Toggle Behavior).
- */
 add_action( 'rest_api_init', function() {
     register_rest_route( 'snn/v1', '/like', [
         'methods'             => 'POST',
@@ -178,39 +144,74 @@ function snn_handle_like( WP_REST_Request $request ) {
     }
 
     $user_ip = $_SERVER['REMOTE_ADDR'];
-    $post    = snn_get_like_post( $identifier );
-    if ( ! $post ) {
-        return new WP_Error( 'post_error', 'Could not create like record', [ 'status' => 500 ] );
-    }
-
-    $ips = get_post_meta( $post->ID, '_snn_like_ips', true );
-    if ( ! is_array( $ips ) ) {
-        $ips = [];
-    }
+    $ips     = snn_get_like_ips( $identifier );
 
     if ( in_array( $user_ip, $ips, true ) ) {
-        // User already liked; remove the like.
+        // Remove the IP if already liked.
         $ips   = array_diff( $ips, [ $user_ip ] );
         $liked = false;
     } else {
-        // Add the like.
+        // Add the IP to the array.
         $ips[] = $user_ip;
         $liked = true;
     }
+    // Re-index the array.
     $ips = array_values( $ips );
-    update_post_meta( $post->ID, '_snn_like_ips', $ips );
-    update_post_meta( $post->ID, '_snn_like_count', count( $ips ) );
+    snn_update_like_ips( $identifier, $ips );
 
     return rest_ensure_response( [ 'count' => count( $ips ), 'liked' => $liked ] );
 }
 
-/**
- * Inline JavaScript for AJAX Handling.
- */
+
 add_action( 'wp_footer', 'snn_inline_like_script' );
 function snn_inline_like_script() {
     ?>
     <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize like buttons on page load
+            const likeButtons = document.querySelectorAll('.brxe-like-button');
+            likeButtons.forEach(function(button) {
+                const identifier = button.getAttribute('data-identifier');
+                if (identifier) {
+                    // Check localStorage to see if this content was liked
+                    const isLiked = localStorage.getItem('snn_liked_' + identifier) === 'true';
+                    const serverCount = parseInt(button.getAttribute('data-count') || '0', 10);
+                    const wasLikedByIP = button.querySelector('.liked-icon').style.display === 'inline';
+                    const defaultIcon = button.querySelector('.default-icon');
+                    const likedIcon = button.querySelector('.liked-icon');
+                    const countSpan = button.querySelector('.snn-like-count');
+                    
+                    // Logic to handle count correction based on localStorage state
+                    let adjustedCount = serverCount;
+                    
+                    // If liked in localStorage but not counted in server (user liked on another device but not this one)
+                    if (isLiked && !wasLikedByIP) {
+                        // We need to get the stored count value if available
+                        const storedCount = localStorage.getItem('snn_like_count_' + identifier);
+                        if (storedCount) {
+                            adjustedCount = parseInt(storedCount, 10);
+                        }
+                    }
+                    
+                    // Update the UI
+                    if (defaultIcon && likedIcon) {
+                        if (isLiked) {
+                            defaultIcon.style.display = 'none';
+                            likedIcon.style.display = 'inline';
+                        } else {
+                            defaultIcon.style.display = 'inline';
+                            likedIcon.style.display = 'none';
+                        }
+                    }
+                    
+                    // Update count display
+                    if (countSpan) {
+                        countSpan.textContent = adjustedCount;
+                    }
+                }
+            });
+        });
+
         function snn_likeButton(el) {
             var identifier = el.getAttribute('data-identifier');
             if (el.getAttribute('data-processing') === 'true') {
@@ -230,9 +231,17 @@ function snn_inline_like_script() {
                         if (response.liked) {
                             defaultIcon.style.display = 'none';
                             likedIcon.style.display   = 'inline';
+                            // Save liked state to localStorage
+                            localStorage.setItem('snn_liked_' + identifier, 'true');
+                            // Save count to localStorage
+                            localStorage.setItem('snn_like_count_' + identifier, response.count);
                         } else {
                             defaultIcon.style.display = 'inline';
                             likedIcon.style.display   = 'none';
+                            // Remove liked state from localStorage
+                            localStorage.removeItem('snn_liked_' + identifier);
+                            // Save updated count to localStorage
+                            localStorage.setItem('snn_like_count_' + identifier, response.count);
                         }
                     }
                     var countSpan = el.querySelector('.snn-like-count');
@@ -250,4 +259,12 @@ function snn_inline_like_script() {
     </script>
     <?php
 }
+
+
+add_filter( 'rest_authentication_errors', function( $result ) {
+    if ( ! empty( $_SERVER['REQUEST_URI'] ) && strpos( $_SERVER['REQUEST_URI'], 'snn/v1/like' ) !== false ) {
+        return true;
+    }
+    return $result;
+}, 99 );
 ?>
