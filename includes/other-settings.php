@@ -1,5 +1,6 @@
 <?php
 
+// Add the Other Settings submenu page.
 function snn_add_other_settings_submenu() {
     add_submenu_page(
         'snn-settings',
@@ -54,6 +55,15 @@ function snn_register_other_settings() {
         'revisions_limit',
         'Limit Post Revisions',
         'snn_revisions_limit_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
+    // New field: Enable Custom Codes Backup.
+    add_settings_field(
+        'backup_custom_codes',
+        'Enable Custom Codes Backup',
+        'snn_backup_custom_codes_callback',
         'snn-other-settings',
         'snn_other_settings_section'
     );
@@ -119,6 +129,9 @@ function snn_sanitize_other_settings($input) {
         $sanitized['revisions_limit'] = '';
     }
 
+    // Sanitize new backup setting.
+    $sanitized['backup_custom_codes'] = isset($input['backup_custom_codes']) && $input['backup_custom_codes'] ? 1 : 0;
+
     $sanitized['auto_update_bricks'] = isset($input['auto_update_bricks']) && $input['auto_update_bricks'] ? 1 : 0;
     $sanitized['move_bricks_menu'] = isset($input['move_bricks_menu']) && $input['move_bricks_menu'] ? 1 : 0;
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
@@ -146,10 +159,10 @@ function snn_enqueue_gsap_callback() {
         Enabling this setting will enqueue the GSAP library and its associated scripts on your website.<br>
         GSAP is a powerful JavaScript animation library that allows you to create complex and interactive animations.<br><br>
         - Ability to create GSAP animations with just data-animate attributes.<br>
-        - gsap.min.js: The core GSAP library.<br>
-        - ScrollTrigger.min.js: A GSAP plugin that enables scroll-based animations.<br>
-        - gsap-data-animate.js: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.<br>
-        - lottie.min.js and Lottie Element<br><br>
+        - gsap.min.php: The core GSAP library.<br>
+        - ScrollTrigger.min.php: A GSAP plugin that enables scroll-based animations.<br>
+        - gsap-data-animate.php: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.<br>
+        - lottie.min.php and Lottie Element<br><br>
         Read <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki/GSAP-ScrollTrigger-Animations" target="_blank">
             Documentation and Examples</a> for more details.
     </p>
@@ -163,6 +176,17 @@ function snn_revisions_limit_callback() {
              : '';
     ?>
     <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="9999">
+    <?php
+}
+
+function snn_backup_custom_codes_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <input type="checkbox" name="snn_other_settings[backup_custom_codes]" value="1" <?php checked(1, isset($options['backup_custom_codes']) ? $options['backup_custom_codes'] : 0); ?>>
+    <p>
+        Enabling this setting will create daily backups of your <code>custom-codes-here.php</code> file for the last 14 days.<br>
+        The backup is saved in the database as plain text. Download links will be available in the Theme Editor when editing this file.
+    </p>
     <?php
 }
 
@@ -184,7 +208,7 @@ function snn_disable_comments_callback() {
     $options = get_option('snn_other_settings');
     ?>
     <label>
-        <input type="checkbox" name="snn_other_settings[disable_comments]" value="1" <?php checked(1, isset($options['disable_comments']) ? $options['disable_comments'] : 0); ?> >
+        <input type="checkbox" name="snn_other_settings[disable_comments]" value="1" <?php checked(1, isset($options['disable_comments']) ? $options['disable_comments'] : 0); ?>>
         Disable all comments on the site
     </label>
     <?php
@@ -379,7 +403,7 @@ add_action('wp_dashboard_setup', 'snn_maybe_add_dashboard_custom_metabox');
 /**
  * Display custom dashboard metabox content.
  *
- * If the textarea content contains any shortcode syntax, we “delay”
+ * If the textarea content contains any shortcode syntax, we "delay"
  * the execution of frontend head/footer actions so that all enqueued frontend
  * styles/scripts (even those added very late) are captured.
  *
@@ -395,7 +419,7 @@ function snn_display_custom_dashboard_metabox() {
     $content = str_replace('{homepage_url}', esc_url(home_url('/')), $content);
 
     // Check for shortcode syntax in the content.
-    if ( preg_match('/\[[^\]]+\]/', $content) ) {
+    if (preg_match('/\[[^\]]+\]/', $content)) {
 
         // Remove the deprecated admin bar header to avoid its notice.
         remove_action('wp_head', 'wp_admin_bar_header');
@@ -412,7 +436,7 @@ function snn_display_custom_dashboard_metabox() {
         $extra_resources = ob_get_clean();
 
         // Ensure the inline CSS with ID "bricks-frontend-inline-inline-css" is present.
-        if ( false === strpos($frontend_head, "bricks-frontend-inline-inline-css") ) {
+        if (false === strpos($frontend_head, "bricks-frontend-inline-inline-css")) {
             ob_start();
             wp_print_styles('bricks-frontend-inline-inline-css');
             $bricks_inline_css = ob_get_clean();
@@ -423,7 +447,7 @@ function snn_display_custom_dashboard_metabox() {
                 .postbox-header, #screen-meta-links {display:none}
                 .inside{margin:0 !important; padding:0 !important}
                 #wpcontent{padding-left:0 !important}
-                .wrap{margin:0 !important; width:100% !important; display:flex !important; flex-direction: column;     overflow-x: hidden;}
+                .wrap{margin:0 !important; width:100% !important; display:flex !important; flex-direction: column; overflow-x: hidden;}
                 #dashboard-widgets{padding:0 !important}
                 .wrap h1:first-of-type{display:none}
                 .postbox{border:none !important}
@@ -443,5 +467,144 @@ function snn_display_custom_dashboard_metabox() {
         echo do_shortcode($content);
     }
 }
+
+/**
+ * Custom admin sidebar for the Theme Editor page.
+ * When editing custom-codes-here.php in the child theme, and if the backup setting is enabled,
+ * this function stores a backup (if one does not exist for today) in the database as a string and lists
+ * download links for backups from the last 14 days.
+ */
+function custom_admin_sidebar() {
+    // Ensure we are in the admin area.
+    if (!is_admin()) {
+        return;
+    }
+
+    // Get the current screen.
+    $screen = get_current_screen();
+    if ($screen->id !== 'theme-editor') {
+        return;
+    }
+
+    // Get URL parameters.
+    $file  = isset($_GET['file']) ? sanitize_text_field($_GET['file']) : '';
+    $theme = isset($_GET['theme']) ? sanitize_text_field($_GET['theme']) : '';
+
+    // Check if the correct file and theme are being edited.
+    if ($file !== 'custom-codes-here.php' || $theme !== 'snn-brx-child-theme') {
+        return;
+    }
+
+    // Check if the backup setting is enabled.
+    $options = get_option('snn_other_settings');
+    $backup_enabled = isset($options['backup_custom_codes']) && $options['backup_custom_codes'];
+
+    $backup_links_html = '';
+    if ($backup_enabled) {
+        // Get child theme directory and file.
+        $child_theme_dir = get_stylesheet_directory();
+        $custom_file = $child_theme_dir . '/custom-codes-here.php';
+
+        if (file_exists($custom_file)) {
+            // Read file content.
+            $content = file_get_contents($custom_file);
+            // Today's date.
+            $today = date('Y-m-d');
+            // Retrieve backups from the database.
+            $backups = get_option('snn_custom_codes_backups', array());
+
+            // If today's backup does not exist, add it.
+            if (!isset($backups[$today])) {
+                $backups[$today] = $content;
+            }
+
+            // Remove backups older than 14 days.
+            foreach ($backups as $date => $backup_content) {
+                if (strtotime($date) < strtotime('-14 days')) {
+                    unset($backups[$date]);
+                }
+            }
+            // Update the option.
+            update_option('snn_custom_codes_backups', $backups);
+
+            // Generate download links.
+            foreach ($backups as $date => $backup_content) {
+                $download_url = admin_url('admin-post.php?action=download_custom_codes_backup&backup_date=' . urlencode($date));
+                $backup_links_html .= '<li><a href="' . esc_url($download_url) . '" download>Backup from ' . esc_html($date) . '</a></li>';
+            }
+        }
+    }
+    ?>
+    <style>
+        /* Sidebar styling */
+        #custom-sidebar {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            width: 200px;
+            height: 150px;
+            background: #f1f1f1;
+            padding: 15px;
+            overflow-y: auto;
+            z-index: 9999;
+        }
+        #custom-sidebar h3 {
+            margin-top: 0;
+            font-size: 18px;
+        }
+        #custom-sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        #custom-sidebar ul li {
+            margin: 10px 0;
+        }
+        #wpbody-content {
+            margin-right: 260px; /* Push main content */
+        }
+    </style>
+
+    <div id="custom-sidebar" class="backup-list">
+        <h3>Custom Code Backups</h3>
+        <ul>
+            <?php 
+            if ($backup_enabled && !empty($backup_links_html)) {
+                echo $backup_links_html;
+            } else {
+                echo '<li>No backups available.</li>';
+            }
+            ?>
+        </ul>
+    </div>
+    <?php
+}
+add_action('admin_footer', 'custom_admin_sidebar');
+
+
+function snn_download_custom_codes_backup() {
+    if (!current_user_can('manage_options')) {
+        wp_die('Unauthorized request');
+    }
+
+    $date = isset($_GET['backup_date']) ? sanitize_text_field($_GET['backup_date']) : '';
+    if (empty($date)) {
+        wp_die('Invalid backup date');
+    }
+
+    $backups = get_option('snn_custom_codes_backups', array());
+    if (!isset($backups[$date])) {
+        wp_die('No backup found for this date');
+    }
+
+    $backup_content = $backups[$date];
+
+    header('Content-Description: File Transfer');
+    header('Content-Disposition: attachment; filename="custom-codes-here-' . $date . '.php"');
+    header('Content-Type: text/plain; charset=' . get_option('blog_charset'));
+    header('Content-Length: ' . strlen($backup_content));
+    echo $backup_content;
+    exit;
+}
+add_action('admin_post_download_custom_codes_backup', 'snn_download_custom_codes_backup');
 
 ?>
