@@ -138,8 +138,9 @@ function snn_sanitize_other_settings($input) {
     $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
 
+    // Save custom metabox content without any sanitization.
     if (isset($input['dashboard_custom_metabox_content'])) {
-        $sanitized['dashboard_custom_metabox_content'] = wp_kses_post($input['dashboard_custom_metabox_content']);
+        $sanitized['dashboard_custom_metabox_content'] = $input['dashboard_custom_metabox_content'];
     } else {
         $sanitized['dashboard_custom_metabox_content'] = '';
     }
@@ -240,9 +241,20 @@ function snn_dashboard_custom_metabox_content_callback() {
     $options = get_option('snn_other_settings');
     $content = isset($options['dashboard_custom_metabox_content']) ? $options['dashboard_custom_metabox_content'] : '';
     ?>
-    <textarea name="snn_other_settings[dashboard_custom_metabox_content]" rows="5" class="large-text" style="max-width:600px"><?php echo esc_textarea($content); ?></textarea>
+    <?php
+        // Use the WordPress editor (TinyMCE) for rich text input.
+        wp_editor($content, 'dashboard_custom_metabox_content', array(
+            'textarea_name' => 'snn_other_settings[dashboard_custom_metabox_content]',
+            'textarea_rows' => 10,
+            'tinymce'       => true,
+        ));
+    ?>
     <p>
-        Enter the HTML content for the custom dashboard metabox. You can include HTML tags for formatting, and now you can also paste shortcodes which will be executed.
+        Enter the HTML content for the custom dashboard metabox. 
+        <br>You can include HTML tags for formatting, and now you can also paste shortcodes which will be executed.
+        <style>
+            #wp-dashboard_custom_metabox_content-wrap{max-width:600px }
+        </style>
     </p>
     <?php
 }
@@ -443,14 +455,14 @@ function snn_display_custom_dashboard_metabox() {
             $frontend_head .= $bricks_inline_css;
             echo '
             <style>
-                .postbox-container{width:100% !important}
-                .postbox-header, #screen-meta-links {display:none}
-                .inside{margin:0 !important; padding:0 !important}
-                #wpcontent{padding-left:0 !important}
-                .wrap{margin:0 !important; width:100% !important; display:flex !important; flex-direction: column; overflow-x: hidden;}
-                #dashboard-widgets{padding:0 !important}
-                .wrap h1:first-of-type{display:none}
-                .postbox{border:none !important}
+                .postbox-container { width: 100% !important; }
+                .postbox-header, #screen-meta-links { display: none; }
+                .inside { margin: 0 !important; padding: 0 !important; }
+                #wpcontent { padding-left: 0 !important; }
+                .wrap { margin: 0 !important; width: 100% !important; display: flex !important; flex-direction: column; overflow-x: hidden; }
+                #dashboard-widgets { padding: 0 !important; }
+                .wrap h1:first-of-type { display: none; }
+                .postbox { border: none !important; }
             </style>
             ';
         }
@@ -579,7 +591,6 @@ function custom_admin_sidebar() {
     <?php
 }
 add_action('admin_footer', 'custom_admin_sidebar');
-
 
 function snn_download_custom_codes_backup() {
     if (!current_user_can('manage_options')) {
