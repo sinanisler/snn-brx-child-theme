@@ -270,7 +270,7 @@ class Animated_Headline_Element extends Element {
             .<?php echo $unique_class; ?> {
                 display: flex;
                 align-items: center;
-                gap: 5px;
+                gap: 1rem;
                 position: relative;
             }
             .<?php echo $unique_class; ?> .snn-headline-wrapper {

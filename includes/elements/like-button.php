@@ -33,14 +33,14 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'tab'     => 'content',
                 'type'    => 'icon',
                 'label'   => esc_html__( 'Button Icon', 'bricks' ),
-                'default' => [ 'library' => 'themify', 'icon' => 'ti-heart' ],
+                'default' => [ 'library' => 'fontawesomeRegular', 'icon' => 'fa fa-heart' ],
             ];
 
             $this->controls['liked_icon'] = [
                 'tab'     => 'content',
                 'type'    => 'icon',
                 'label'   => esc_html__( 'Liked Icon', 'bricks' ),
-                'default' => [ 'library' => 'themify', 'icon' => 'ti-heart-filled' ],
+                'default' => [ 'library' => 'fontawesomeSolid', 'icon' => 'fas fa-heart' ],
             ];
 
             $this->controls['show_like_count'] = [
@@ -79,15 +79,15 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             $this->set_attribute( '_root', 'data-count', $like_count );
             $this->set_attribute( '_root', 'data-liked', $liked ? 'true' : 'false' );
 
-            echo '<div ' . $this->render_attributes( '_root' ) . ' onclick="snn_likeButton(this)">';
-                echo '<span class="button-icon default-icon" style="' . ( $liked ? 'display:none;' : 'display:inline;' ) . '">';
+            echo '<div ' . $this->render_attributes( '_root' ) . ' onclick="snn_likeButton(this)"">';
+                echo '<span class="button-icon default-icon" style=" cursor:pointer; ' . ( $liked ? 'display:none;' : 'display:inline;' ) . '">';
                     bricks_render_icon( $icon_settings );
                 echo '</span>';
-                echo '<span class="button-icon liked-icon" style="' . ( $liked ? 'display:inline;' : 'display:none;' ) . '">';
+                echo '<span class="button-icon liked-icon" style=" cursor:pointer; ' . ( $liked ? 'display:inline;' : 'display:none;' ) . '">';
                     bricks_render_icon( $liked_icon_set );
                 echo '</span>';
                 if ( ! empty( $this->settings['show_like_count'] ) ) {
-                    echo '<span class="snn-like-count">' . intval( $like_count ) . '</span>';
+                    echo '<span class="snn-like-count" style="margin-left:1rem">' . intval( $like_count ) . '</span>';
                 }
             echo '</div>';
         }
