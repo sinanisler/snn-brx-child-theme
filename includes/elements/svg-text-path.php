@@ -51,15 +51,19 @@ class Svg_Text_Path_Element extends Element {
             'description' => esc_html__( 'Upload your own SVG path. <br>Create a 510px x 170px transparent rectangle, draw your path inside it, group and export it.', 'bricks' ),
         ];
 
-        // New number control to rotate the text (in degrees) with finer control.
+        // New slider control to rotate the text (in degrees).
         $this->controls['rotate'] = [
             'tab'     => 'content',
-            'type'    => 'number',
+            'type'    => 'slider',
             'label'   => esc_html__( 'Rotate Text', 'bricks' ),
-            'default' => 0,
-            'min'     => -180,
-            'max'     => 180,
-            'step'    => 1,
+            'units'   => [
+                'deg' => [
+                    'min'  => 0,
+                    'max'  => 360,
+                    'step' => 1,
+                ],
+            ],
+            'default' => '0deg',
         ];
 
         // New number control for the starting point (startOffset) of the text path.
@@ -85,6 +89,29 @@ class Svg_Text_Path_Element extends Element {
             'step'    => 0.1,
             'unit'    => 'px',
         ];
+        
+        // New control for path stroke color.
+        $this->controls['path_stroke_color'] = [
+            'tab'     => 'content',
+            'type'    => 'color',
+            'label'   => esc_html__( 'Path Stroke Color', 'bricks' ),
+            'default' => '#000000',
+        ];
+        
+        // New control for path stroke width.
+        $this->controls['path_stroke_width'] = [
+            'tab'     => 'content',
+            'type'    => 'slider',
+            'label'   => esc_html__( 'Path Stroke Width', 'bricks' ),
+            'units'   => [
+                'px' => [
+                    'min'  => 0,
+                    'max'  => 100,
+                    'step' => 0.1,
+                ],
+            ],
+            'default' => '0px',
+        ];
     }
 
     public function render() {
@@ -97,20 +124,24 @@ class Svg_Text_Path_Element extends Element {
         $rotate       = isset( $this->settings['rotate'] ) ? floatval( $this->settings['rotate'] ) : 0;
         $start_offset = isset( $this->settings['start_offset'] ) ? floatval( $this->settings['start_offset'] ) : 0;
         $word_spacing = isset( $this->settings['word_spacing'] ) ? floatval( $this->settings['word_spacing'] ) : 0;
+        
+        // Retrieve stroke color and stroke width.
+        $path_stroke_color = isset( $this->settings['path_stroke_color'] ) ? $this->settings['path_stroke_color'] : '#000000';
+        if ( is_array( $path_stroke_color ) ) {
+            $path_stroke_color = !empty( $path_stroke_color['rgba'] )
+                ? $path_stroke_color['rgba']
+                : ( !empty( $path_stroke_color['hex'] ) ? $path_stroke_color['hex'] : '#000000' );
+        }
+        
+        $stroke_width_value = isset( $this->settings['path_stroke_width'] ) ? $this->settings['path_stroke_width'] : '2px';
+        if ( is_array( $stroke_width_value ) ) {
+            $val  = isset( $stroke_width_value['value'] ) ? $stroke_width_value['value'] : '2';
+            $unit = isset( $stroke_width_value['unit'] ) ? $stroke_width_value['unit'] : 'px';
+            $stroke_width_value = $val . $unit;
+        }
 
-        // Build attributes for the <text> element for preset SVGs.
-        $text_attrs = '';
-        if ( $rotate !== 0 ) {
-            $text_attrs .= ' transform="rotate(' . esc_attr( $rotate ) . ')" style="transform-origin:center"';
-        }
-        if ( $word_spacing !== 0 ) {
-            // Note: If both rotation and word spacing exist, merge style attributes as needed.
-            if ( strpos( $text_attrs, 'style=' ) !== false ) {
-                $text_attrs = str_replace( 'style="', 'style="word-spacing: ' . esc_attr( $word_spacing ) . 'px; ', $text_attrs );
-            } else {
-                $text_attrs .= ' style="word-spacing: ' . esc_attr( $word_spacing ) . 'px;"';
-            }
-        }
+        // Use a CSS class for the <text> element instead of inline transform attributes.
+        $text_attrs = ' class="svg-text-path-text"';
 
         // Set attributes on the root element.
         $this->set_attribute( '_root', 'class', 'brxe-svg-text-path' );
@@ -159,21 +190,30 @@ class Svg_Text_Path_Element extends Element {
         ];
 
         echo '<div ' . $this->render_attributes( '_root' ) . '>';
-            // Inline style block now only targets the svg element with increased specificity.
             echo '<style>
   #' . esc_attr( $root_id ) . ' svg {
-    width: 100% !important;
-    height: auto !important;
-    position: relative !important;
-    left: 0 !important;
-    overflow: visible !important;
-  }
+    width: 100% ;
+    height: auto ;
+    position: relative ;
+    left: 0 ;
+    overflow: visible ;';
+            if ( $rotate !== 0 ) {
+                echo ' transform: rotate(' . esc_attr( $rotate ) . 'deg); transform-origin: center;';
+            }
+            echo ' }
   #' . esc_attr( $root_id ) . ' svg path {
-    fill: transparent !important;
+    fill: transparent ;
   }
   #' . esc_attr( $root_id ) . ' svg textPath {
-    fill: currentColor !important;
+    fill: currentColor ;
+    stroke: ' . esc_attr( $path_stroke_color ) . ' ;
+    stroke-width: ' . esc_attr( $stroke_width_value ) . ' ;
   }
+  #' . esc_attr( $root_id ) . ' svg text.svg-text-path-text {';
+            if ( $word_spacing !== 0 ) {
+                echo ' word-spacing: ' . esc_attr( $word_spacing ) . 'px;';
+            }
+            echo ' }
 </style>';
             echo '<div ' . $this->render_attributes( 'child' ) . '>';
                 if ( isset( $this->settings['custom_svg']['url'] ) && ! empty( $this->settings['custom_svg']['url'] ) ) {
@@ -202,19 +242,9 @@ class Svg_Text_Path_Element extends Element {
                             $generated_id = $path->getAttribute('id');
                         }
                         
-                        // Create a <text> element.
+                        // Create a <text> element and assign the CSS class.
                         $textElement = $doc->createElement('text');
-                        $styles = [];
-                        if ( $rotate !== 0 ) {
-                            $textElement->setAttribute('transform', 'rotate(' . esc_attr( $rotate ) . ')');
-                            $styles[] = 'transform-origin:center';
-                        }
-                        if ( $word_spacing !== 0 ) {
-                            $styles[] = 'word-spacing:' . esc_attr( $word_spacing ) . 'px';
-                        }
-                        if ( ! empty( $styles ) ) {
-                            $textElement->setAttribute('style', implode('; ', $styles) );
-                        }
+                        $textElement->setAttribute('class', 'svg-text-path-text');
                         
                         // Create the <textPath> element with the provided text.
                         $textPathElement = $doc->createElement('textPath', htmlspecialchars( $text ));
