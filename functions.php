@@ -71,6 +71,7 @@
   \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/svg-text-path.php');
   \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/timeline.php');
   \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/like-button.php');
+  \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/flip-box.php');
 
   
   // if GSAP setting is enabled Register Elements
