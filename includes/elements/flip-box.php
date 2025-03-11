@@ -37,6 +37,16 @@ class Flipbox_Element extends Element {
             ",
         ];
 
+        // Flipbox Perspective Control.
+        $this->controls['flipbox_perspective'] = [
+            'tab'         => 'content',
+            'type'        => 'number',
+            'label'       => esc_html__( 'Flipbox Perspective', 'bricks' ),
+            'default'     => '1000px',
+            'step'        => 1,
+            'unit'        => 'px',
+        ];
+
         // Flipbox Animation Control.
         $this->controls['flipbox_animation'] = [
             'tab'     => 'content',
@@ -60,8 +70,9 @@ class Flipbox_Element extends Element {
 
     public function render() {
         // Retrieve settings.
-        $height    = intval( $this->settings['flipbox_height'] ?? 250 );
-        $animation = $this->settings['flipbox_animation'] ?? 'left-to-right';
+        $height      = intval( $this->settings['flipbox_height'] ?? 250 );
+        $perspective = intval( $this->settings['flipbox_perspective'] ?? 1000 );
+        $animation   = $this->settings['flipbox_animation'] ?? 'left-to-right';
 
         // Set up root element attributes.
         $this->set_attribute( '_root', 'class', 'brxe-flipbox flip-container' );
@@ -78,7 +89,7 @@ class Flipbox_Element extends Element {
                 #' . esc_attr( $root_id ) . ' {
                     width: 100%;
                     height: ' . esc_attr( $height ) . 'px;
-                    perspective: 1000px;
+                    perspective: ' . esc_attr( $perspective ) . 'px;
                     cursor: pointer;
                 }
                 #' . esc_attr( $root_id ) . ' .flip-box {
