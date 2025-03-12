@@ -185,7 +185,7 @@ function snn_backup_custom_codes_callback() {
     ?>
     <input type="checkbox" name="snn_other_settings[backup_custom_codes]" value="1" <?php checked(1, isset($options['backup_custom_codes']) ? $options['backup_custom_codes'] : 0); ?>>
     <p>
-        Enabling this setting will create daily backups of your <code>custom-codes-here.php</code> file for the last 14 days.<br>
+        Enabling this setting will create daily backups of your <code>custom-codes-here.php</code> file for the last 30 days.<br>
         The backup is saved in the database as plain text. Download links will be available in the Theme Editor when editing this file.
     </p>
     <?php
@@ -484,7 +484,7 @@ function snn_display_custom_dashboard_metabox() {
  * Custom admin sidebar for the Theme Editor page.
  * When editing custom-codes-here.php in the child theme, and if the backup setting is enabled,
  * this function stores a backup (if one does not exist for today) in the database as a string and lists
- * download links for backups from the last 14 days.
+ * download links for backups from the last 30 days.
  */
 function custom_admin_sidebar() {
     // Ensure we are in the admin area.
@@ -530,9 +530,9 @@ function custom_admin_sidebar() {
                 $backups[$today] = $content;
             }
 
-            // Remove backups older than 14 days.
+            // Remove backups older than 30 days.
             foreach ($backups as $date => $backup_content) {
-                if (strtotime($date) < strtotime('-14 days')) {
+                if (strtotime($date) < strtotime('-30 days')) {
                     unset($backups[$date]);
                 }
             }
