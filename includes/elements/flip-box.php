@@ -7,7 +7,7 @@ use Bricks\Element;
 use Bricks\Frontend;
 
 class Flipbox_Element extends Element {
-    public $category       = 'basic';
+    public $category       = 'snn';
     public $name           = 'flipbox';
     public $icon           = 'ti-exchange-vertical';
     public $css_selector   = '.flip-container';
