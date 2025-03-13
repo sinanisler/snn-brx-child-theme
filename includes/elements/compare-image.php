@@ -261,6 +261,23 @@ class Prefix_Element_Compare_Image extends \Bricks\Element {
 
                 handle.addEventListener('mousedown', startDrag);
                 handle.addEventListener('touchstart', startDrag, { passive: false });
+
+                // New: Jump slider to clicked position when clicking outside the handle
+                container.addEventListener('click', (event) => {
+                    // Ignore clicks on the slider handle
+                    if (event.target.closest('.handle')) {
+                        return;
+                    }
+                    const bounds = container.getBoundingClientRect();
+                    let xPos = event.clientX - bounds.left;
+                    if (xPos < 0) xPos = 0;
+                    if (xPos > bounds.width) xPos = bounds.width;
+                    const ratio = xPos / bounds.width;
+                    handle.style.left = `calc(${(ratio * 100)}% - 16px)`;
+                    const rightClip = 100 - (ratio * 100);
+                    modifiedImg.style.clipPath = `inset(0 ${rightClip}% 0 0)`;
+                    modifiedImg.style.webkitClipPath = `inset(0 ${rightClip}% 0 0)`;
+                });
             })();
             </script>
         </div>
