@@ -1,4 +1,4 @@
-<?php             
+<?php              
 define( 'SNN_PATH', trailingslashit( get_stylesheet_directory() ) );    
 define( 'SNN_PATH_ASSETS', trailingslashit( SNN_PATH . 'assets' ) );    
 define( 'SNN_URL', trailingslashit( get_stylesheet_directory_uri() ) ); 
