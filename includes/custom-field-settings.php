@@ -16,7 +16,13 @@ if ( ! function_exists( 'is_plugin_active' ) ) {
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
 }
 if ( ! is_plugin_active( 'classic-editor/classic-editor.php' ) ) {
-    add_filter('wp_default_editor', function () {
+    add_filter('wp_default_editor', function ($editor) {
+        if ( function_exists('get_current_screen') ) {
+            $screen = get_current_screen();
+            if ( isset($screen->post_type) && $screen->post_type === 'product' ) {
+                return 'tinymce';
+            }
+        }
         return 'html';
     });
 }
