@@ -430,6 +430,28 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     cssVars += "}";
                     styleEl.textContent = cssVars;
                 }
+
+                document.addEventListener("click", function(e) {
+                    if (e.target.closest('.snn-enhance-li')) {
+                        return;
+                    }
+                    var popup = document.getElementById("snn-popup");
+                    var popupInner = document.getElementById("snn-popup-inner");
+                    if (popup && popup.classList.contains("active") && popupInner && !popupInner.contains(e.target)) {
+                        popup.classList.remove("active");
+                    }
+                });
+
+                document.addEventListener("keydown", function(e) {
+                    if (e.key === "Escape") {
+                        var popup = document.getElementById("snn-popup");
+                        if (popup && popup.classList.contains("active")) {
+                            popup.classList.remove("active");
+                        }
+                    }
+                });
+
+
             });
         </script>
 
