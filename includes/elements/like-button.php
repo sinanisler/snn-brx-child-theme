@@ -59,13 +59,23 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'default'     => '',
                 'description' => esc_html__( 'Leave blank to use current post ID.', 'bricks' ),
             ];
+
+            // New setting: Logged User Only
+            $this->controls['logged_user_only'] = [
+                'tab'     => 'content',
+                'type'    => 'checkbox',
+                'label'   => esc_html__( 'Logged User Only', 'bricks' ),
+                'inline'  => true,
+                'small'   => true,
+                'default' => false,
+            ];
         }
 
         public function render() {
-            $icon_settings  = $this->settings['button_icon'] ?? [];
-            $liked_icon_set = $this->settings['liked_icon'] ?? [];
+            $icon_settings      = $this->settings['button_icon'] ?? [];
+            $liked_icon_set     = $this->settings['liked_icon'] ?? [];
+            $custom_identifier  = $this->settings['identifier'] ?? '';
 
-            $custom_identifier = $this->settings['identifier'] ?? '';
             if ( is_array( $custom_identifier ) && isset( $custom_identifier['raw'] ) ) {
                 $custom_identifier = $custom_identifier['raw'];
             }
@@ -79,11 +89,24 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             $this->set_attribute( '_root', 'data-count', $like_count );
             $this->set_attribute( '_root', 'data-liked', $liked ? 'true' : 'false' );
 
-            echo '<div ' . $this->render_attributes( '_root' ) . ' onclick="snn_likeButton(this)"">';
-                echo '<span class="button-icon default-icon" style=" cursor:pointer; ' . ( $liked ? 'display:none;' : 'display:inline;' ) . '">';
+            // Pass the "Logged User Only" setting to the element
+            $logged_user_only = ! empty( $this->settings['logged_user_only'] );
+            $this->set_attribute( '_root', 'data-logged-only', $logged_user_only ? 'true' : 'false' );
+
+            // Set initial balloon text based on state
+            if ( $logged_user_only && ! is_user_logged_in() ) {
+                $balloon_text = esc_html__( 'Login to Like', 'bricks' );
+            } else {
+                $balloon_text = $liked ? esc_html__( 'Click to Unlike', 'bricks' ) : esc_html__( 'Click to Like', 'bricks' );
+            }
+            $this->set_attribute( '_root', 'data-balloon', $balloon_text );
+            $this->set_attribute( '_root', 'data-balloon-pos', 'top' );
+
+            echo '<div ' . $this->render_attributes( '_root' ) . ' onclick="snn_likeButton(this)" style="cursor:pointer;">';
+                echo '<span class="button-icon default-icon" style="' . ( $liked ? 'display:none;' : 'display:inline;' ) . '">';
                     bricks_render_icon( $icon_settings );
                 echo '</span>';
-                echo '<span class="button-icon liked-icon" style=" cursor:pointer; ' . ( $liked ? 'display:inline;' : 'display:none;' ) . '">';
+                echo '<span class="button-icon liked-icon" style="' . ( $liked ? 'display:inline;' : 'display:none;' ) . '">';
                     bricks_render_icon( $liked_icon_set );
                 echo '</span>';
                 if ( ! empty( $this->settings['show_like_count'] ) ) {
@@ -275,6 +298,7 @@ function snn_handle_like( WP_REST_Request $request ) {
     $user_identifier = snn_get_user_identifier();
     $likes_data = snn_get_likes_data( $identifier );
 
+    // Add or remove like
     if ( in_array( $user_identifier, $likes_data, true ) ) {
         $likes_data = array_values( array_diff( $likes_data, [ $user_identifier ] ) );
         $liked = false;
@@ -300,6 +324,9 @@ add_action('rest_authentication_errors', function ( $result ) {
 
 add_action( 'wp_footer', function () { ?>
 <script>
+// Expose to JS whether user is logged in
+var snn_is_logged_in = "<?php echo is_user_logged_in() ? 'true' : 'false'; ?>";
+
 // Initialize on page load - fetch status for all buttons
 document.addEventListener('DOMContentLoaded', function() {
     // For each like button on the page, check its current status
@@ -321,6 +348,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (countElement) {
                     countElement.textContent = data.count;
                 }
+                
+                // Update balloon text based on state
+                let balloonText;
+                if (button.getAttribute('data-logged-only') === 'true' && snn_is_logged_in === 'false') {
+                    balloonText = 'Login to Like';
+                } else {
+                    balloonText = data.liked ? 'Click to Unlike' : 'Click to Like';
+                }
+                button.setAttribute('data-balloon', balloonText);
+                button.setAttribute('data-balloon-pos', 'top');
             })
             .catch(error => console.error('Error checking like status:', error));
     });
@@ -328,7 +365,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function snn_likeButton(el) {
     const identifier = el.getAttribute('data-identifier');
-    
+    const loggedOnly = el.getAttribute('data-logged-only') === 'true';
+
+    // If "Logged User Only" is set and user is not logged in, show tooltip and exit
+    if (loggedOnly && snn_is_logged_in === 'false') {
+        alert('You must be logged in to like this post.');
+        return;
+    }
+
     // Show loading state
     el.classList.add('snn-loading');
     
@@ -352,6 +396,16 @@ function snn_likeButton(el) {
             countElement.textContent = data.count;
         }
         
+        // Update balloon text based on new state
+        let balloonText;
+        if (el.getAttribute('data-logged-only') === 'true' && snn_is_logged_in === 'false') {
+            balloonText = 'Login to Like';
+        } else {
+            balloonText = data.liked ? 'Click to Unlike' : 'Click to Like';
+        }
+        el.setAttribute('data-balloon', balloonText);
+        el.setAttribute('data-balloon-pos', 'top');
+
         // Remove loading state
         el.classList.remove('snn-loading');
     })
