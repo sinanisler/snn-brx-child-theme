@@ -124,6 +124,9 @@ class Timeline_Element extends Element {
         echo '<div ' . $this->render_attributes( '_root' ) . '>';
             // Inline style block using the new timeline CSS.
             echo '<style>
+                #' . esc_attr( $root_id ) . ' {
+                    width:100%;
+                }
                 #' . esc_attr( $root_id ) . ' .timeline-container {
                     width:100%;
                     margin: 0 auto;
