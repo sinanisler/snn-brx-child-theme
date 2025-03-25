@@ -29,7 +29,7 @@ if ( ! is_plugin_active( 'classic-editor/classic-editor.php' ) ) {
 
 function snn_custom_fields_page_callback() {
     $custom_fields = get_option('snn_custom_fields', []);
-    $post_types    = get_post_types(['public' => true], 'objects');
+    $post_types    = get_post_types(['public' => true], 'objects'); 
     $taxonomies    = get_taxonomies(['public' => true], 'objects');
 
     if (isset($_POST['snn_custom_fields_nonce']) && wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_custom_fields_save')) {
@@ -46,8 +46,8 @@ function snn_custom_fields_page_callback() {
                         'group_name' => sanitize_text_field($field['group_name']),
                         'name'       => sanitize_text_field($field['name']),
                         'type'       => sanitize_text_field($field['type']),
-                        'post_type'  => $post_types_selected,
-                        'taxonomies' => $taxonomies_selected,
+                        'post_type'  => $post_types_selected, 
+                        'taxonomies' => $taxonomies_selected, 
                         'repeater'   => !empty($field['repeater']) ? 1 : 0,
                         'author'     => !empty($field['author']) ? 1 : 0,
                     ];
@@ -63,7 +63,7 @@ function snn_custom_fields_page_callback() {
         <h1>Manage Custom Fields</h1>
         <form method="post">
             <?php wp_nonce_field('snn_custom_fields_save', 'snn_custom_fields_nonce'); ?>
-
+ 
             <div id="custom-field-settings">
                 <p>Define custom fields with group name, field name, field type, and post type, taxonomy, or author:<br>
                     Select one or more to register same Custom Field to Post Types, Taxonomies, or Author.<br>
@@ -399,7 +399,7 @@ function snn_custom_fields_page_callback() {
             .buttons button:hover{
                 background:white;
             }
-
+ 
             @media (max-width: 768px) {
                 .custom-field-row {
                     flex-direction: column;
@@ -870,7 +870,7 @@ function snn_save_dynamic_metabox_data($post_id) {
     foreach ($custom_fields as $field) {
         $field_name = $field['name'];
         if (!empty($field['post_type']) && in_array(get_post_type($post_id), $field['post_type'])) {
-
+ 
             if (!empty($field['repeater'])) {
                 if (isset($_POST['custom_fields'][$field_name]) && is_array($_POST['custom_fields'][$field_name])) {
                     $values = array_map(function($value) use ($field) {

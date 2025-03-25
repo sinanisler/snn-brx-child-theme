@@ -401,12 +401,12 @@ function snn_maybe_add_dashboard_custom_metabox() {
     $options = get_option('snn_other_settings');
     if (!empty($options['dashboard_custom_metabox_content'])) {
         add_meta_box(
-            'snn_custom_dashboard_metabox',
-            'Welcome',
-            'snn_display_custom_dashboard_metabox',
-            'dashboard',
-            'normal',
-            'high'
+            'snn_custom_dashboard_metabox', 
+            'Welcome', 
+            'snn_display_custom_dashboard_metabox', 
+            'dashboard', 
+            'normal', 
+            'high' 
         );
     }
 }

@@ -368,10 +368,10 @@ function snn_add_custom_css_js_to_media_page() {
                 color: red;
                 cursor: pointer;
                 margin-left: 10px;
-                display: none;
+                display: none; 
             }
             #media-categories-list li:hover .delete-category {
-                display: inline;
+                display: inline; 
             }
             #add-category-form  {
                 opacity:0.4
@@ -404,7 +404,7 @@ function snn_add_custom_css_js_to_media_page() {
                 line-height:1;
             }
             #the-list .title, .attachments .attachment .attachment-details {
-
+ 
             }
             #file_size , #date{
                 width:90px
@@ -455,7 +455,7 @@ function snn_add_custom_css_js_to_media_page() {
                                 document.getElementById('media-categories-list').appendChild(li);
                                 document.getElementById('new-category-name').value = '';
 
-                                location.reload();
+                                location.reload(); 
                             } else {
                                 alert(response.data);
                             }
@@ -487,7 +487,7 @@ function snn_add_custom_css_js_to_media_page() {
                                 if (response.success) {
                                     const li = deleteSpan.parentElement;
                                     li.parentElement.removeChild(li);
-                                    location.reload();
+                                    location.reload(); 
                                 } else {
                                     alert(response.data);
                                 }
@@ -718,7 +718,7 @@ function snn_assign_media_category() {
     }
 
     $existing_terms = wp_get_post_terms($media_id, 'media_taxonomy_categories', array('fields' => 'ids'));
-
+ 
     if (in_array($term_id, $existing_terms)) {
         $result = wp_remove_object_terms($media_id, $term_id, 'media_taxonomy_categories');
         if (is_wp_error($result)) {

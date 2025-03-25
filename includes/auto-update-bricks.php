@@ -31,4 +31,4 @@ function snn_auto_update_bricks_callback() {
     <input type="checkbox" name="snn_settings[auto_update_bricks]" value="1" <?php checked(isset($options['auto_update_bricks']), 1); ?>>
     <p>Enabling this setting will automatically update the Bricks theme whenever a new version is available.</p>
     <?php
-}
+} 

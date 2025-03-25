@@ -1,17 +1,17 @@
 <?php
 
 function snn_add_menu_page() {
-
+ 
     $dynamic_title = get_option('snn_menu_title', 'SNN Settings');
 
     add_menu_page(
-        'SNN Settings',
-        $dynamic_title,
-        'manage_options',
-        'snn-settings',
-        'snn_settings_page_callback',
-        '',
-        99
+        'SNN Settings', 
+        $dynamic_title, 
+        'manage_options', 
+        'snn-settings', 
+        'snn_settings_page_callback', 
+        '', 
+        99 
     );
 }
 add_action('admin_menu', 'snn_add_menu_page');
@@ -145,7 +145,7 @@ function snn_settings_page_callback() {
 }
 
 function snn_register_settings() {
-    register_setting('snn_settings_group', 'snn_menu_title');
+    register_setting('snn_settings_group', 'snn_menu_title'); 
 
     add_settings_section(
         'snn_general_section',
@@ -182,7 +182,7 @@ function mytheme_customize_register( $wp_customize ) {
 
     $wp_customize->add_control( 'footer_custom_css', array(
         'label'       => ' ',
-        'section'     => 'custom_css',
+        'section'     => 'custom_css', 
         'settings'    => 'footer_custom_css',
         'type'        => 'checkbox',
         'description' => ' ',

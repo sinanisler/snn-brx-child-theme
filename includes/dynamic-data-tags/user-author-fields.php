@@ -6,7 +6,7 @@
  * Usage:
  *  1) {current_user_field:field_name}
  *     - e.g. {current_user_field:name}, {current_user_field:firstname}, {current_user_field:lastname}, {current_user_field:email}
- *
+ * 
  *  2) {current_user_field:custom_field_name}
  *     - Example for fetching custom user meta fields.
  *

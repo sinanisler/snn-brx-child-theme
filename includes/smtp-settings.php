@@ -161,9 +161,9 @@ function custom_smtp_smtp_port_render() {
     $encryption = strtolower($options['smtp_encryption'] ?? 'none');
     $is_readonly = in_array($encryption, ['ssl', 'tls']) ? 'readonly' : '';
     ?>
-    <input type='number' name='custom_smtp_settings[smtp_port]'
-        value='<?php echo esc_attr($options['smtp_port'] ?? ''); ?>'
-        size='10'
+    <input type='number' name='custom_smtp_settings[smtp_port]' 
+        value='<?php echo esc_attr($options['smtp_port'] ?? ''); ?>' 
+        size='10' 
         <?php echo $is_readonly; ?>>
     <?php
 }
@@ -172,8 +172,8 @@ function custom_smtp_smtp_port_render() {
 function custom_smtp_smtp_username_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
-    <input type='text' name='custom_smtp_settings[smtp_username]'
-        value='<?php echo esc_attr($options['smtp_username'] ?? ''); ?>'
+    <input type='text' name='custom_smtp_settings[smtp_username]' 
+        value='<?php echo esc_attr($options['smtp_username'] ?? ''); ?>' 
         size='50'>
     <?php
 }
@@ -182,8 +182,8 @@ function custom_smtp_smtp_username_render() {
 function custom_smtp_smtp_password_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
-    <input type='password' name='custom_smtp_settings[smtp_password]'
-        value='<?php echo esc_attr($options['smtp_password'] ?? ''); ?>'
+    <input type='password' name='custom_smtp_settings[smtp_password]' 
+        value='<?php echo esc_attr($options['smtp_password'] ?? ''); ?>' 
         size='50'>
     <?php
 }
@@ -215,8 +215,8 @@ function custom_smtp_phpmailer_init($phpmailer) {
         $phpmailer->Port       = $options['smtp_port'] ?? 25;
         $phpmailer->Username   = $options['smtp_username'] ?? '';
         $phpmailer->Password   = $options['smtp_password'] ?? '';
-        $phpmailer->SMTPSecure = (!empty($options['smtp_encryption']) && strtolower($options['smtp_encryption']) !== 'none')
-            ? strtolower($options['smtp_encryption'])
+        $phpmailer->SMTPSecure = (!empty($options['smtp_encryption']) && strtolower($options['smtp_encryption']) !== 'none') 
+            ? strtolower($options['smtp_encryption']) 
             : '';
 
         // Set From to the same as username (or change as you see fit)
@@ -372,12 +372,12 @@ function custom_smtp_settings_page() {
                 <tr>
                     <th scope="row"><?php _e('Recipient Email', 'textdomain'); ?></th>
                     <td>
-                        <input
-                            type="email"
-                            name="test_email_address"
-                            value=""
-                            placeholder="<?php echo esc_attr__('you@example.com', 'textdomain'); ?>"
-                            size="40"
+                        <input 
+                            type="email" 
+                            name="test_email_address" 
+                            value="" 
+                            placeholder="<?php echo esc_attr__('you@example.com', 'textdomain'); ?>" 
+                            size="40" 
                         />
                     </td>
                 </tr>

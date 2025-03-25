@@ -166,13 +166,13 @@ function snn_render_404_logs_page() {
                 Enable 404 Logging
             </label>
             <br><br>
-
+ 
             <label>
                 Maximum number of logs to keep:
                 <input type="number" name="snn_404_log_size_limit" value="<?php echo esc_attr($log_size_limit); ?>" min="1" style="width: 100px;">
             </label>
             <br><br>
-
+ 
             <label>
                 <input type="checkbox" name="snn_disable_bot_logging" <?php checked($disable_bot_logging); ?>>
                 Disable Bot/Crawler Logging (Dont enable this if the website is new collect some urls first)

@@ -88,12 +88,12 @@ function snn_render_custom_post_types_page() {
                             <label>Post Type Name</label><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][name]" placeholder="Post Type Name" value="<?php echo esc_attr( $post_type['name'] ); ?>" />
                         </div>
-
+ 
                         <div class="post-type-slug">
                             <label>Post Type Slug</label><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="post-slug" value="<?php echo esc_attr( $post_type['slug'] ); ?>" />
                         </div>
-
+ 
                         <label>Private</label>
                         <div class="checkbox-container">
                             <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][private]" <?php checked( $post_type['private'], 1 ); ?> />
@@ -258,11 +258,11 @@ function snn_render_custom_post_types_page() {
                 border-radius: 4px;
                 background-color: #f9f9f9;
             }
-            .custom-post-type-row label {
+            .custom-post-type-row label { 
                 width: auto;
                 font-weight: bold;
             }
-            .custom-post-type-row input, .custom-post-type-row select {
+            .custom-post-type-row input, .custom-post-type-row select { 
                 flex: 1;
                 width: 300px;
                 padding: 5px;
@@ -304,7 +304,7 @@ function snn_render_custom_post_types_page() {
             }
             .custom-post-type-row button:hover{
                 background:none;
-                color:black;
+                color:black; 
                 border:solid 1px;
             }
         </style>

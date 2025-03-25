@@ -164,20 +164,20 @@ function snn_render_search_logs_page() {
 
         <form method="post" action="">
             <label>
-                <input type="checkbox" name="snn_search_logging_enabled"
+                <input type="checkbox" name="snn_search_logging_enabled" 
                        <?php checked($logging_enabled); ?>>
                 Enable Search Logging
             </label>
             <br><br>
-
+ 
             <label>
                 Maximum number of logs to keep:
-                <input type="number" name="snn_search_log_size_limit"
-                       value="<?php echo esc_attr($log_size_limit); ?>"
+                <input type="number" name="snn_search_log_size_limit" 
+                       value="<?php echo esc_attr($log_size_limit); ?>" 
                        min="1" style="width: 100px;">
             </label>
             <br><br>
-
+ 
             <?php submit_button('Save Changes', 'primary', 'snn_search_logging_submit', false); ?>
         </form>
 

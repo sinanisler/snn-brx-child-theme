@@ -1,6 +1,6 @@
 <?php
 // Custom Code Snippets File
-// If you have php snippet just paste here or
+// If you have php snippet just paste here or 
 // if you have CSS or JS code paste depending on the output location you need
 
 
@@ -41,4 +41,4 @@ function snn_custom_css() { ?>
 
 </script>
 <?php }
-add_action('admin_head', 'snn_custom_css');
+add_action('admin_head', 'snn_custom_css'); 

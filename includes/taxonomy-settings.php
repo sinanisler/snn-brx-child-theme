@@ -8,12 +8,12 @@ add_action( 'admin_menu', 'snn_add_taxonomy_submenu' );
 
 function snn_add_taxonomy_submenu() {
     add_submenu_page(
-        'snn-settings',
-        'Register Taxonomies',
-        'Taxonomies',
-        'manage_options',
-        'snn-taxonomies',
-        'snn_render_taxonomies_page'
+        'snn-settings', 
+        'Register Taxonomies', 
+        'Taxonomies', 
+        'manage_options', 
+        'snn-taxonomies', 
+        'snn_render_taxonomies_page' 
     );
 }
 
@@ -214,11 +214,11 @@ function snn_render_taxonomies_page() {
                 border-radius: 4px;
                 background-color: #f9f9f9;
             }
-            .taxonomy-row label {
+            .taxonomy-row label { 
                 width: auto;
                 font-weight: bold;
             }
-            .taxonomy-row input, .taxonomy-row select {
+            .taxonomy-row input, .taxonomy-row select { 
                 flex: 1;
                 min-width: 150px;
                 padding: 5px;

@@ -52,4 +52,4 @@ function render_taxonomy_term_slug_in_content( $content, $post, $context = 'text
         }
     }
     return $content;
-}
+} 
