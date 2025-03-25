@@ -98,6 +98,28 @@ if ( function_exists( 'bricks' ) ) {
     bricks()->elements->register_element( new Like_Button_Element() );
 }
 
+// Rate limiting function for DDoS protection
+function snn_rate_limit() {
+    $ip = snn_get_real_ip();
+    $transient_key = 'snn_rate_' . md5( $ip );
+    $limit = 30; // Maximum requests per minute
+    $time_window = 60; // Time window in seconds
+
+    $request_count = get_transient( $transient_key );
+    if ( $request_count === false ) {
+        $request_count = 1;
+        set_transient( $transient_key, $request_count, $time_window );
+    } else {
+        $request_count++;
+        set_transient( $transient_key, $request_count, $time_window );
+    }
+
+    if ( $request_count > $limit ) {
+        return new WP_Error( 'rate_limit_exceeded', 'Rate limit exceeded. Please try again later.', array( 'status' => 429 ) );
+    }
+    return true;
+}
+
 // Ensure we get a consistent IP address
 function snn_get_real_ip() {
     // Check for various server headers that might contain the real IP
@@ -111,13 +133,13 @@ function snn_get_real_ip() {
         'REMOTE_ADDR'
     ];
 
-    foreach ($ip_headers as $header) {
-        if (!empty($_SERVER[$header])) {
-            $ips = explode(',', $_SERVER[$header]);
-            $ip = trim($ips[0]);
+    foreach ( $ip_headers as $header ) {
+        if ( ! empty( $_SERVER[ $header ] ) ) {
+            $ips = explode( ',', $_SERVER[ $header ] );
+            $ip = trim( $ips[0] );
             
             // Validate IP format
-            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
                 return $ip;
             }
         }
@@ -127,7 +149,7 @@ function snn_get_real_ip() {
 }
 
 function snn_get_user_identifier() {
-    if (is_user_logged_in()) {
+    if ( is_user_logged_in() ) {
         return 'user_' . get_current_user_id();
     } else {
         // Use real IP address with improved detection
@@ -140,9 +162,9 @@ function snn_get_likes_data( $identifier ) {
     $data = get_option( $key, [] );
     
     // Make sure it's an array
-    if (!is_array($data)) {
+    if ( ! is_array( $data ) ) {
         $data = [];
-        snn_update_likes_data($identifier, $data);
+        snn_update_likes_data( $identifier, $data );
     }
     
     return $data;
@@ -152,12 +174,12 @@ function snn_update_likes_data( $identifier, $data ) {
     $key = sanitize_key( 'snn_likes_data_' . $identifier );
     
     // Ensure the data is properly formatted
-    if (!is_array($data)) {
+    if ( ! is_array( $data ) ) {
         $data = [];
     }
     
     // Remove any duplicates
-    $data = array_unique($data);
+    $data = array_unique( $data );
     
     // Use autoload = no for better performance
     update_option( $key, $data, 'no' );
@@ -185,11 +207,11 @@ function snn_get_user_likes() {
         "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE 'snn_likes_data_%'"
     );
     
-    foreach ($like_options as $option) {
-        $data = maybe_unserialize($option->option_value);
-        if (is_array($data) && in_array($user_identifier, $data, true)) {
+    foreach ( $like_options as $option ) {
+        $data = maybe_unserialize( $option->option_value );
+        if ( is_array( $data ) && in_array( $user_identifier, $data, true ) ) {
             // Extract identifier from option name
-            $identifier = str_replace('snn_likes_data_', '', $option->option_name);
+            $identifier = str_replace( 'snn_likes_data_', '', $option->option_name );
             $likes[] = $identifier;
         }
     }
@@ -213,10 +235,15 @@ add_action( 'rest_api_init', function() {
 } );
 
 function snn_get_likes_endpoint( WP_REST_Request $request ) {
+    $rate_limit = snn_rate_limit();
+    if ( is_wp_error( $rate_limit ) ) {
+        return $rate_limit;
+    }
+
     // Get identifier from request
     $identifier = sanitize_text_field( $request->get_param( 'identifier' ) );
     
-    if (!empty($identifier)) {
+    if ( ! empty( $identifier ) ) {
         // Return data for specific identifier
         $like_count = snn_get_like_count( $identifier );
         $liked = snn_has_user_liked( $identifier );
@@ -234,6 +261,11 @@ function snn_get_likes_endpoint( WP_REST_Request $request ) {
 }
 
 function snn_handle_like( WP_REST_Request $request ) {
+    $rate_limit = snn_rate_limit();
+    if ( is_wp_error( $rate_limit ) ) {
+        return $rate_limit;
+    }
+
     $identifier = sanitize_text_field( $request->get_param( 'identifier' ) );
 
     if ( empty( $identifier ) ) {
