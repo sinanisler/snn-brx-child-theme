@@ -57,29 +57,10 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'type'        => 'text',
                 'label'       => esc_html__( 'Custom Identifier', 'bricks' ),
                 'default'     => '',
-                'description' => esc_html__( 'Leave blank to use current post ID.', 'bricks' ),
-            ];
-
-            // New setting: Logged User Only
-            $this->controls['logged_user_only'] = [
-                'tab'     => 'content',
-                'type'    => 'checkbox',
-                'label'   => esc_html__( 'Logged User Only', 'bricks' ),
-                'inline'  => true,
-                'small'   => true,
-                'default' => false,
+                'description' => 'Leave blank to use current post ID. <br><br>',
             ];
 
             // New settings for custom balloon texts
-            $this->controls['balloon_text_login'] = [
-                'tab'         => 'content',
-                'type'        => 'text',
-                'label'       => esc_html__( 'Balloon Text (Not Logged In)', 'bricks' ),
-                'default'     => esc_html__( 'Login to Like', 'bricks' ),
-                'placeholder' => esc_html__( 'Login to Like', 'bricks' ),
-                
-            ];
-
             $this->controls['balloon_text_like'] = [
                 'tab'         => 'content',
                 'type'        => 'text',
@@ -94,6 +75,39 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'label'       => esc_html__( 'Balloon Text (Unlike)', 'bricks' ),
                 'default'     => esc_html__( 'Unlike', 'bricks' ),
                 'placeholder' => esc_html__( 'Unlike', 'bricks' ),
+                'description' => '',
+            ];
+
+            $this->controls['balloon_text_login_to_like'] = [
+                'tab'         => 'content',
+                'type'        => 'text',
+                'label'       => esc_html__( 'Balloon Text (Logged Only)', 'bricks' ),
+                'default'     => esc_html__( 'Login to Like', 'bricks' ),
+                'placeholder' => esc_html__( 'Login to Like', 'bricks' ),
+                'description' => '<br><br>',
+            ];
+
+            // New setting: Logged User Only
+            $this->controls['logged_user_only'] = [
+                'tab'     => 'content',
+                'type'    => 'checkbox',
+                'label'   => esc_html__( 'Logged User Only', 'bricks' ),
+                'inline'  => true,
+                'small'   => true,
+                'default' => false,
+                'description' => "
+<pre data-control='info' style='line-height:1'>
+When this feature is enabled likes are stored within the post meta and user meta.
+- post meta: _snn_liked_by = array( userID, userID, ... )
+- user meta:  _snn_liked_posts = array( postID, postID, ... )
+- For example for query: Meta Key: _snn_liked_by  and  Compare: LIKE
+
+After that we can get the custom field and count the array to get total likes for the post
+
+\$like_count = get_post_meta( get_the_ID(), '_snn_liked_by', true );
+echo  count( \$like_count );
+</pre>
+                ",
             ];
         }
 
@@ -107,36 +121,37 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             }
             $identifier = ! empty( $custom_identifier ) ? $custom_identifier : get_the_ID();
 
-            $like_count = snn_get_like_count( $identifier );
-            $liked      = snn_has_user_liked( $identifier );
+            // Retrieve the "Logged User Only" setting
+            $logged_user_only = ! empty( $this->settings['logged_user_only'] );
+
+            $like_count = snn_get_like_count( $identifier, $logged_user_only );
+            $liked      = snn_has_user_liked( $identifier, $logged_user_only );
 
             // Retrieve balloon text settings
-            $balloon_text_login = ! empty( $this->settings['balloon_text_login'] ) ? $this->settings['balloon_text_login'] : esc_html__( 'Login to Like', 'bricks' );
-            $balloon_text_like = ! empty( $this->settings['balloon_text_like'] ) ? $this->settings['balloon_text_like'] : esc_html__( 'Click to Like', 'bricks' );
+            $balloon_text_like   = ! empty( $this->settings['balloon_text_like'] ) ? $this->settings['balloon_text_like'] : esc_html__( 'Click to Like', 'bricks' );
             $balloon_text_unlike = ! empty( $this->settings['balloon_text_unlike'] ) ? $this->settings['balloon_text_unlike'] : esc_html__( 'Click to Unlike', 'bricks' );
+            $balloon_text_login  = ! empty( $this->settings['balloon_text_login_to_like'] ) ? $this->settings['balloon_text_login_to_like'] : esc_html__( 'Login to Like', 'bricks' );
 
-            $this->set_attribute( '_root', 'class', [ 'brxe-like-button', 'like-button-element' ] );
-            $this->set_attribute( '_root', 'data-identifier', $identifier );
-            $this->set_attribute( '_root', 'data-count', $like_count );
-            $this->set_attribute( '_root', 'data-liked', $liked ? 'true' : 'false' );
-
-            // Pass the "Logged User Only" setting to the element
-            $logged_user_only = ! empty( $this->settings['logged_user_only'] );
-            $this->set_attribute( '_root', 'data-logged-only', $logged_user_only ? 'true' : 'false' );
-
-            // Set balloon text based on state
+            // Set balloon text based on state:
+            // If "Logged User Only" is enabled and the user is not logged in, use the login text.
             if ( $logged_user_only && ! is_user_logged_in() ) {
                 $balloon_text = $balloon_text_login;
             } else {
                 $balloon_text = $liked ? $balloon_text_unlike : $balloon_text_like;
             }
+
+            $this->set_attribute( '_root', 'class', [ 'brxe-like-button', 'like-button-element' ] );
+            $this->set_attribute( '_root', 'data-identifier', $identifier );
+            $this->set_attribute( '_root', 'data-count', $like_count );
+            $this->set_attribute( '_root', 'data-liked', $liked ? 'true' : 'false' );
+            $this->set_attribute( '_root', 'data-logged-only', $logged_user_only ? 'true' : 'false' );
+
+            // Set balloon text attributes
             $this->set_attribute( '_root', 'data-balloon', $balloon_text );
             $this->set_attribute( '_root', 'data-balloon-pos', 'top' );
-
-            // Pass custom balloon texts to the element for JS usage
-            $this->set_attribute( '_root', 'data-balloon-text-login', $balloon_text_login );
             $this->set_attribute( '_root', 'data-balloon-text-like', $balloon_text_like );
             $this->set_attribute( '_root', 'data-balloon-text-unlike', $balloon_text_unlike );
+            $this->set_attribute( '_root', 'data-balloon-text-login-to-like', $balloon_text_login );
 
             echo '<div ' . $this->render_attributes( '_root' ) . ' onclick="snn_likeButton(this)" style="cursor:pointer;">';
                 echo '<span class="button-icon default-icon" style="' . ( $liked ? 'display:none;' : 'display:inline;' ) . '">';
@@ -157,7 +172,9 @@ if ( function_exists( 'bricks' ) ) {
     bricks()->elements->register_element( new Like_Button_Element() );
 }
 
-// Rate limiting function for DDoS protection
+/**
+ * RATE LIMITING SECTION (DDoS protection)
+ */
 function snn_rate_limit() {
     $ip = snn_get_real_ip();
     $transient_key = 'snn_rate_' . md5( $ip );
@@ -179,9 +196,7 @@ function snn_rate_limit() {
     return true;
 }
 
-// Ensure we get a consistent IP address
 function snn_get_real_ip() {
-    // Check for various server headers that might contain the real IP
     $ip_headers = [
         'HTTP_CLIENT_IP',
         'HTTP_X_FORWARDED_FOR',
@@ -196,88 +211,190 @@ function snn_get_real_ip() {
         if ( ! empty( $_SERVER[ $header ] ) ) {
             $ips = explode( ',', $_SERVER[ $header ] );
             $ip = trim( $ips[0] );
-            
-            // Validate IP format
             if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
                 return $ip;
             }
         }
     }
 
-    return $_SERVER['REMOTE_ADDR']; // Default fallback
+    return $_SERVER['REMOTE_ADDR'];
 }
 
+/**
+ * ===============
+ * OLD STORAGE (IP-based) for fallback if "Logged User Only" is NOT enabled
+ * ===============
+ */
+function snn_get_likes_data_legacy( $identifier ) {
+    $key = sanitize_key( 'snn_likes_data_' . $identifier );
+    $data = get_option( $key, [] );
+    
+    if ( ! is_array( $data ) ) {
+        $data = [];
+        snn_update_likes_data_legacy( $identifier, $data );
+    }
+    return $data;
+}
+function snn_update_likes_data_legacy( $identifier, $data ) {
+    $key = sanitize_key( 'snn_likes_data_' . $identifier );
+    if ( ! is_array( $data ) ) {
+        $data = [];
+    }
+    $data = array_unique( $data );
+    update_option( $key, $data, 'no' );
+}
+function snn_get_like_count_legacy( $identifier ) {
+    $likes = snn_get_likes_data_legacy( $identifier );
+    return count( $likes );
+}
+function snn_has_user_liked_legacy( $identifier ) {
+    $user_identifier = snn_get_user_identifier();
+    $likes = snn_get_likes_data_legacy( $identifier );
+    return in_array( $user_identifier, $likes, true );
+}
+
+/**
+ * ===============
+ * NEW STORAGE (User-based) for "Logged User Only" = true
+ * ===============
+ * Here we store:
+ *   - In the post's meta: _snn_liked_by = array( userID, userID, ... )
+ *   - In the user meta:  _snn_liked_posts = array( postID, postID, ... )
+ */
+function snn_get_likes_data_user_based( $post_id ) {
+    $liked_by = get_post_meta( $post_id, '_snn_liked_by', true );
+    if ( ! is_array( $liked_by ) ) {
+        $liked_by = [];
+    }
+    return $liked_by;
+}
+function snn_get_like_count_user_based( $post_id ) {
+    $liked_by = snn_get_likes_data_user_based( $post_id );
+    return count( $liked_by );
+}
+function snn_user_has_liked_post( $post_id, $user_id ) {
+    $liked_by = snn_get_likes_data_user_based( $post_id );
+    return in_array( $user_id, $liked_by, true );
+}
+function snn_update_post_like( $post_id, $user_id, $is_liking = true ) {
+    $liked_by = snn_get_likes_data_user_based( $post_id );
+    $liked_by = array_map( 'intval', $liked_by ); // ensure ints
+
+    if ( $is_liking ) {
+        if ( ! in_array( $user_id, $liked_by, true ) ) {
+            $liked_by[] = $user_id;
+        }
+    } else {
+        // remove user
+        $liked_by = array_diff( $liked_by, [ $user_id ] );
+    }
+    $liked_by = array_unique( $liked_by );
+    update_post_meta( $post_id, '_snn_liked_by', $liked_by );
+}
+function snn_update_user_like( $user_id, $post_id, $is_liking = true ) {
+    $liked_posts = get_user_meta( $user_id, '_snn_liked_posts', true );
+    if ( ! is_array( $liked_posts ) ) {
+        $liked_posts = [];
+    }
+    $liked_posts = array_map( 'intval', $liked_posts );
+
+    if ( $is_liking ) {
+        if ( ! in_array( $post_id, $liked_posts, true ) ) {
+            $liked_posts[] = $post_id;
+        }
+    } else {
+        $liked_posts = array_diff( $liked_posts, [ $post_id ] );
+    }
+    $liked_posts = array_unique( $liked_posts );
+    update_user_meta( $user_id, '_snn_liked_posts', $liked_posts );
+}
+
+/**
+ * ===============
+ * SHARED WRAPPERS
+ * ===============
+ */
 function snn_get_user_identifier() {
     if ( is_user_logged_in() ) {
         return 'user_' . get_current_user_id();
     } else {
-        // Use real IP address with improved detection
         return 'ip_' . snn_get_real_ip();
     }
 }
 
-function snn_get_likes_data( $identifier ) {
-    $key = sanitize_key( 'snn_likes_data_' . $identifier );
-    $data = get_option( $key, [] );
-    
-    // Make sure it's an array
-    if ( ! is_array( $data ) ) {
-        $data = [];
-        snn_update_likes_data( $identifier, $data );
+/**
+ * Main get_like_count function that checks if "logged_user_only" is set
+ */
+function snn_get_like_count( $identifier, $logged_user_only = false ) {
+    if ( $logged_user_only ) {
+        // We expect $identifier to be a post ID if using user-based approach
+        $post_id = absint( $identifier );
+        if ( $post_id < 1 ) {
+            return 0;
+        }
+        return snn_get_like_count_user_based( $post_id );
+    } else {
+        // fallback: IP-based
+        return snn_get_like_count_legacy( $identifier );
     }
-    
-    return $data;
 }
 
-function snn_update_likes_data( $identifier, $data ) {
-    $key = sanitize_key( 'snn_likes_data_' . $identifier );
-    
-    // Ensure the data is properly formatted
-    if ( ! is_array( $data ) ) {
-        $data = [];
+/**
+ * Main has_user_liked function that checks if "logged_user_only" is set
+ */
+function snn_has_user_liked( $identifier, $logged_user_only = false ) {
+    if ( $logged_user_only ) {
+        // must be logged in
+        if ( ! is_user_logged_in() ) {
+            return false;
+        }
+        $post_id = absint( $identifier );
+        if ( $post_id < 1 ) {
+            return false;
+        }
+        $user_id = get_current_user_id();
+        return snn_user_has_liked_post( $post_id, $user_id );
+    } else {
+        return snn_has_user_liked_legacy( $identifier );
     }
-    
-    // Remove any duplicates
-    $data = array_unique( $data );
-    
-    // Use autoload = no for better performance
-    update_option( $key, $data, 'no' );
 }
 
-function snn_get_like_count( $identifier ) {
-    $likes = snn_get_likes_data( $identifier );
-    return count( $likes );
-}
-
-function snn_has_user_liked( $identifier ) {
-    $user_identifier = snn_get_user_identifier();
-    $likes = snn_get_likes_data( $identifier );
-    return in_array( $user_identifier, $likes, true );
-}
-
-// Get all likes for the current user's IP
-function snn_get_user_likes() {
+/**
+ * For retrieving all user-likes in the IP-based system
+ */
+function snn_get_user_likes_legacy() {
     global $wpdb;
     $user_identifier = snn_get_user_identifier();
     $likes = [];
-    
-    // Get all like data from database
+
     $like_options = $wpdb->get_results(
         "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE 'snn_likes_data_%'"
     );
-    
+
     foreach ( $like_options as $option ) {
         $data = maybe_unserialize( $option->option_value );
         if ( is_array( $data ) && in_array( $user_identifier, $data, true ) ) {
-            // Extract identifier from option name
             $identifier = str_replace( 'snn_likes_data_', '', $option->option_name );
             $likes[] = $identifier;
         }
     }
-    
     return $likes;
 }
 
+/**
+ * For retrieving all user-likes in user-based system
+ */
+function snn_get_user_likes_user_based( $user_id ) {
+    $liked_posts = get_user_meta( $user_id, '_snn_liked_posts', true );
+    if ( ! is_array( $liked_posts ) ) {
+        return [];
+    }
+    return array_map( 'intval', $liked_posts );
+}
+
+/**
+ * REGISTER REST ENDPOINTS
+ */
 add_action( 'rest_api_init', function() {
     register_rest_route( 'snn/v1', '/like', [
         'methods'             => 'POST',
@@ -285,7 +402,6 @@ add_action( 'rest_api_init', function() {
         'permission_callback' => '__return_true',
     ] );
     
-    // Add endpoint to get likes
     register_rest_route( 'snn/v1', '/get-likes', [
         'methods'             => 'GET',
         'callback'            => 'snn_get_likes_endpoint',
@@ -293,62 +409,101 @@ add_action( 'rest_api_init', function() {
     ] );
 } );
 
+/**
+ * GET-LIKES endpoint
+ */
 function snn_get_likes_endpoint( WP_REST_Request $request ) {
     $rate_limit = snn_rate_limit();
     if ( is_wp_error( $rate_limit ) ) {
         return $rate_limit;
     }
 
-    // Get identifier from request
-    $identifier = sanitize_text_field( $request->get_param( 'identifier' ) );
-    
+    $identifier  = sanitize_text_field( $request->get_param( 'identifier' ) );
+    $logged_only = $request->get_param( 'loggedOnly' ) === 'true';
+
     if ( ! empty( $identifier ) ) {
-        // Return data for specific identifier
-        $like_count = snn_get_like_count( $identifier );
-        $liked = snn_has_user_liked( $identifier );
+        $like_count = snn_get_like_count( $identifier, $logged_only );
+        $liked      = snn_has_user_liked( $identifier, $logged_only );
         
         return rest_ensure_response([
             'count' => $like_count,
             'liked' => $liked,
         ]);
     } else {
-        // Return all user likes if no identifier specified
-        return rest_ensure_response([
-            'userLikes' => snn_get_user_likes(),
-        ]);
+        if ( $logged_only && is_user_logged_in() ) {
+            $user_id    = get_current_user_id();
+            $user_likes = snn_get_user_likes_user_based( $user_id );
+            return rest_ensure_response([
+                'userLikes' => $user_likes,
+            ]);
+        } else {
+            return rest_ensure_response([
+                'userLikes' => snn_get_user_likes_legacy(),
+            ]);
+        }
     }
 }
 
+/**
+ * LIKE/UNLIKE endpoint
+ */
 function snn_handle_like( WP_REST_Request $request ) {
     $rate_limit = snn_rate_limit();
     if ( is_wp_error( $rate_limit ) ) {
         return $rate_limit;
     }
 
-    $identifier = sanitize_text_field( $request->get_param( 'identifier' ) );
+    $identifier  = sanitize_text_field( $request->get_param( 'identifier' ) );
+    $logged_only = $request->get_param( 'loggedOnly' ) === 'true';
 
     if ( empty( $identifier ) ) {
         return new WP_Error( 'no_identifier', 'No identifier provided', [ 'status' => 400 ] );
     }
 
-    $user_identifier = snn_get_user_identifier();
-    $likes_data = snn_get_likes_data( $identifier );
+    if ( $logged_only ) {
+        if ( ! is_user_logged_in() ) {
+            return new WP_Error( 'not_logged_in', 'You must be logged in to like', [ 'status' => 403 ] );
+        }
+        $post_id = absint( $identifier );
+        if ( $post_id < 1 ) {
+            return new WP_Error( 'invalid_identifier', 'Invalid post identifier', [ 'status' => 400 ] );
+        }
 
-    // Add or remove like
-    if ( in_array( $user_identifier, $likes_data, true ) ) {
-        $likes_data = array_values( array_diff( $likes_data, [ $user_identifier ] ) );
-        $liked = false;
+        $user_id = get_current_user_id();
+        $user_has_liked = snn_user_has_liked_post( $post_id, $user_id );
+        if ( $user_has_liked ) {
+            snn_update_post_like( $post_id, $user_id, false );
+            snn_update_user_like( $user_id, $post_id, false );
+            $liked = false;
+        } else {
+            snn_update_post_like( $post_id, $user_id, true );
+            snn_update_user_like( $user_id, $post_id, true );
+            $liked = true;
+        }
+        $count = snn_get_like_count_user_based( $post_id );
+
+        return rest_ensure_response([
+            'count' => $count,
+            'liked' => $liked,
+        ]);
     } else {
-        $likes_data[] = $user_identifier;
-        $liked = true;
-    }
+        $user_identifier = snn_get_user_identifier();
+        $likes_data = snn_get_likes_data_legacy( $identifier );
 
-    snn_update_likes_data( $identifier, $likes_data );
-    
-    return rest_ensure_response([
-        'count' => count( $likes_data ),
-        'liked' => $liked,
-    ]);
+        if ( in_array( $user_identifier, $likes_data, true ) ) {
+            $likes_data = array_values( array_diff( $likes_data, [ $user_identifier ] ) );
+            $liked = false;
+        } else {
+            $likes_data[] = $user_identifier;
+            $liked = true;
+        }
+        snn_update_likes_data_legacy( $identifier, $likes_data );
+        
+        return rest_ensure_response([
+            'count' => count( $likes_data ),
+            'liked' => $liked,
+        ]);
+    }
 }
 
 add_action('rest_authentication_errors', function ( $result ) {
@@ -358,45 +513,46 @@ add_action('rest_authentication_errors', function ( $result ) {
     return $result;
 }, 99);
 
+/**
+ * FRONTEND JS (IN FOOTER)
+ */
 add_action( 'wp_footer', function () { ?>
 <script>
 // Expose to JS whether user is logged in
 var snn_is_logged_in = "<?php echo is_user_logged_in() ? 'true' : 'false'; ?>";
 
-// Initialize on page load - fetch status for all buttons
 document.addEventListener('DOMContentLoaded', function() {
-    // For each like button on the page, check its current status
     document.querySelectorAll('.brxe-like-button').forEach(function(button) {
         const identifier = button.getAttribute('data-identifier');
+        const loggedOnly = button.getAttribute('data-logged-only') === 'true';
         if (!identifier) return;
         
-        // Fetch current status from server
-        fetch('<?php echo rest_url('snn/v1/get-likes'); ?>?identifier=' + encodeURIComponent(identifier))
+        let url = "<?php echo rest_url('snn/v1/get-likes'); ?>?identifier=" + encodeURIComponent(identifier);
+        url += "&loggedOnly=" + (loggedOnly ? 'true' : 'false');
+
+        fetch(url)
             .then(response => response.json())
             .then(data => {
-                // Update UI
                 button.querySelector('.default-icon').style.display = data.liked ? 'none' : 'inline';
-                button.querySelector('.liked-icon').style.display = data.liked ? 'inline' : 'none';
+                button.querySelector('.liked-icon').style.display   = data.liked ? 'inline' : 'none';
                 button.setAttribute('data-liked', data.liked ? 'true' : 'false');
                 
-                // Update like count
                 const countElement = button.querySelector('.snn-like-count');
-                if (countElement) {
+                if (countElement && typeof data.count !== 'undefined') {
                     countElement.textContent = data.count;
                 }
                 
-                // Update balloon text based on state using custom texts
-                let loginText = button.getAttribute('data-balloon-text-login');
-                let likeText = button.getAttribute('data-balloon-text-like');
-                let unlikeText = button.getAttribute('data-balloon-text-unlike');
-                let balloonText;
-                if (button.getAttribute('data-logged-only') === 'true' && snn_is_logged_in === 'false') {
-                    balloonText = loginText;
+                if (loggedOnly && snn_is_logged_in === 'false') {
+                    let loginText = button.getAttribute('data-balloon-text-login-to-like');
+                    button.setAttribute('data-balloon', loginText);
+                    button.setAttribute('data-balloon-pos', 'top');
                 } else {
-                    balloonText = data.liked ? unlikeText : likeText;
+                    let likeText   = button.getAttribute('data-balloon-text-like');
+                    let unlikeText = button.getAttribute('data-balloon-text-unlike');
+                    let balloonText = data.liked ? unlikeText : likeText;
+                    button.setAttribute('data-balloon', balloonText);
+                    button.setAttribute('data-balloon-pos', 'top');
                 }
-                button.setAttribute('data-balloon', balloonText);
-                button.setAttribute('data-balloon-pos', 'top');
             })
             .catch(error => console.error('Error checking like status:', error));
     });
@@ -406,13 +562,11 @@ function snn_likeButton(el) {
     const identifier = el.getAttribute('data-identifier');
     const loggedOnly = el.getAttribute('data-logged-only') === 'true';
 
-    // If "Logged User Only" is set and user is not logged in, show tooltip and exit
     if (loggedOnly && snn_is_logged_in === 'false') {
-        // alert(el.getAttribute('data-balloon-text-login'));
+        // Optionally, you can provide a visual cue for non-logged in users here.
         return;
     }
 
-    // Show loading state
     el.classList.add('snn-loading');
     
     fetch('<?php echo rest_url('snn/v1/like'); ?>', {
@@ -420,35 +574,34 @@ function snn_likeButton(el) {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ identifier: identifier })
+        body: JSON.stringify({ 
+            identifier: identifier,
+            loggedOnly: loggedOnly ? 'true' : 'false'
+        })
     })
     .then(response => response.json())
     .then(data => {
-        // Update UI
         el.querySelector('.default-icon').style.display = data.liked ? 'none' : 'inline';
-        el.querySelector('.liked-icon').style.display = data.liked ? 'inline' : 'none';
+        el.querySelector('.liked-icon').style.display   = data.liked ? 'inline' : 'none';
         el.setAttribute('data-liked', data.liked ? 'true' : 'false');
         
-        // Update like count
         const countElement = el.querySelector('.snn-like-count');
-        if (countElement) {
+        if (countElement && typeof data.count !== 'undefined') {
             countElement.textContent = data.count;
         }
         
-        // Update balloon text based on new state using custom texts
-        let loginText = el.getAttribute('data-balloon-text-login');
-        let likeText = el.getAttribute('data-balloon-text-like');
-        let unlikeText = el.getAttribute('data-balloon-text-unlike');
-        let balloonText;
-        if (el.getAttribute('data-logged-only') === 'true' && snn_is_logged_in === 'false') {
-            balloonText = loginText;
+        if (loggedOnly && snn_is_logged_in === 'false') {
+            let loginText = el.getAttribute('data-balloon-text-login-to-like');
+            el.setAttribute('data-balloon', loginText);
+            el.setAttribute('data-balloon-pos', 'top');
         } else {
-            balloonText = data.liked ? unlikeText : likeText;
+            let likeText   = el.getAttribute('data-balloon-text-like');
+            let unlikeText = el.getAttribute('data-balloon-text-unlike');
+            let balloonText = data.liked ? unlikeText : likeText;
+            el.setAttribute('data-balloon', balloonText);
+            el.setAttribute('data-balloon-pos', 'top');
         }
-        el.setAttribute('data-balloon', balloonText);
-        el.setAttribute('data-balloon-pos', 'top');
 
-        // Remove loading state
         el.classList.remove('snn-loading');
     })
     .catch(error => {
