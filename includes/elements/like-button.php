@@ -66,7 +66,7 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'type'        => 'text',
                 'label'       => esc_html__( 'Balloon Text (Like)', 'bricks' ),
                 'default'     => esc_html__( 'Like', 'bricks' ),
-                'placeholder' => esc_html__( 'Like.', 'bricks' ),
+                'placeholder' => esc_html__( 'Like', 'bricks' ),
             ];
 
             $this->controls['balloon_text_unlike'] = [
@@ -96,17 +96,17 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'small'   => true,
                 'default' => false,
                 'description' => "
-<pre data-control='info' style='line-height:1'>
-When this feature is enabled likes are stored within the post meta and user meta.
-- post meta: _snn_liked_by = array( userID, userID, ... )
-- user meta:  _snn_liked_posts = array( postID, postID, ... )
-- For example for query: Meta Key: _snn_liked_by  and  Compare: LIKE
+<p data-control='info' style='line-height:1'>
+When this feature is enabled likes are stored within the post meta and user meta.<br>
+- post meta: _snn_liked_by = array( userID, userID, ... )<br>
+- user meta:  _snn_liked_posts = array( postID, postID, ... )<br>
+- For example for query: Meta Key: _snn_liked_by  and  Compare: LIKE<br><br>
 
-After that we can get the custom field and count the array to get total likes for the post
+After that we can get the custom field and count the array to get total likes for the post<br><br>
 
-\$like_count = get_post_meta( get_the_ID(), '_snn_liked_by', true );
+\$like_count = get_post_meta( get_the_ID(), '_snn_liked_by', true );<br>
 echo  count( \$like_count );
-</pre>
+</p>
                 ",
             ];
         }
