@@ -173,6 +173,46 @@ if ( function_exists( 'bricks' ) ) {
 }
 
 /**
+ * TOKEN HANDLING FUNCTIONS
+ */
+
+// Hook early to ensure the token is set before headers are sent.
+add_action('init', 'snn_init_dynamic_token');
+function snn_init_dynamic_token() {
+    snn_get_or_create_token();
+}
+
+function snn_get_or_create_token() {
+    // If token does not exist in cookie, create one.
+    if ( ! isset( $_COOKIE['snn_dynamic_token'] ) ) {
+        $token = bin2hex( random_bytes( 16 ) ); // 32-char hex token.
+        if ( ! headers_sent() ) {
+            setcookie( 'snn_dynamic_token', $token, time() + 3600, COOKIEPATH, COOKIE_DOMAIN );
+        }
+        set_transient( 'snn_token_' . $token, true, 3600 );
+        return $token;
+    }
+    $token = sanitize_text_field( $_COOKIE['snn_dynamic_token'] );
+    // Refresh token if expired.
+    if ( ! get_transient( 'snn_token_' . $token ) ) {
+        $token = bin2hex( random_bytes( 16 ) );
+        if ( ! headers_sent() ) {
+            setcookie( 'snn_dynamic_token', $token, time() + 3600, COOKIEPATH, COOKIE_DOMAIN );
+        }
+        set_transient( 'snn_token_' . $token, true, 3600 );
+    }
+    return $token;
+}
+
+function snn_validate_token( $token ) {
+    $token = sanitize_text_field( $token );
+    if ( get_transient( 'snn_token_' . $token ) ) {
+        return true;
+    }
+    return new WP_Error( 'invalid_token', 'Invalid or expired token', [ 'status' => 403 ] );
+}
+
+/**
  * RATE LIMITING SECTION (DDoS protection)
  */
 function snn_rate_limit() {
@@ -257,9 +297,6 @@ function snn_has_user_liked_legacy( $identifier ) {
  * ===============
  * NEW STORAGE (User-based) for "Logged User Only" = true
  * ===============
- * Here we store:
- *   - In the post's meta: _snn_liked_by = array( userID, userID, ... )
- *   - In the user meta:  _snn_liked_posts = array( postID, postID, ... )
  */
 function snn_get_likes_data_user_based( $post_id ) {
     $liked_by = get_post_meta( $post_id, '_snn_liked_by', true );
@@ -278,14 +315,13 @@ function snn_user_has_liked_post( $post_id, $user_id ) {
 }
 function snn_update_post_like( $post_id, $user_id, $is_liking = true ) {
     $liked_by = snn_get_likes_data_user_based( $post_id );
-    $liked_by = array_map( 'intval', $liked_by ); // ensure ints
+    $liked_by = array_map( 'intval', $liked_by );
 
     if ( $is_liking ) {
         if ( ! in_array( $user_id, $liked_by, true ) ) {
             $liked_by[] = $user_id;
         }
     } else {
-        // remove user
         $liked_by = array_diff( $liked_by, [ $user_id ] );
     }
     $liked_by = array_unique( $liked_by );
@@ -327,14 +363,12 @@ function snn_get_user_identifier() {
  */
 function snn_get_like_count( $identifier, $logged_user_only = false ) {
     if ( $logged_user_only ) {
-        // We expect $identifier to be a post ID if using user-based approach
         $post_id = absint( $identifier );
         if ( $post_id < 1 ) {
             return 0;
         }
         return snn_get_like_count_user_based( $post_id );
     } else {
-        // fallback: IP-based
         return snn_get_like_count_legacy( $identifier );
     }
 }
@@ -344,7 +378,6 @@ function snn_get_like_count( $identifier, $logged_user_only = false ) {
  */
 function snn_has_user_liked( $identifier, $logged_user_only = false ) {
     if ( $logged_user_only ) {
-        // must be logged in
         if ( ! is_user_logged_in() ) {
             return false;
         }
@@ -393,26 +426,32 @@ function snn_get_user_likes_user_based( $user_id ) {
 }
 
 /**
- * REGISTER REST ENDPOINTS
+ * REGISTER REST ENDPOINTS with dynamic token
  */
 add_action( 'rest_api_init', function() {
-    register_rest_route( 'snn/v1', '/like', [
+    register_rest_route( 'snn/v1', '/(?P<token>[a-zA-Z0-9]{32})/like', [
         'methods'             => 'POST',
         'callback'            => 'snn_handle_like',
         'permission_callback' => '__return_true',
-    ] );
+    ]);
     
-    register_rest_route( 'snn/v1', '/get-likes', [
+    register_rest_route( 'snn/v1', '/(?P<token>[a-zA-Z0-9]{32})/get-likes', [
         'methods'             => 'GET',
         'callback'            => 'snn_get_likes_endpoint',
         'permission_callback' => '__return_true',
-    ] );
+    ]);
 } );
 
 /**
  * GET-LIKES endpoint
  */
 function snn_get_likes_endpoint( WP_REST_Request $request ) {
+    $token = $request->get_param( 'token' );
+    $token_validation = snn_validate_token( $token );
+    if ( is_wp_error( $token_validation ) ) {
+        return $token_validation;
+    }
+
     $rate_limit = snn_rate_limit();
     if ( is_wp_error( $rate_limit ) ) {
         return $rate_limit;
@@ -448,6 +487,12 @@ function snn_get_likes_endpoint( WP_REST_Request $request ) {
  * LIKE/UNLIKE endpoint
  */
 function snn_handle_like( WP_REST_Request $request ) {
+    $token = $request->get_param( 'token' );
+    $token_validation = snn_validate_token( $token );
+    if ( is_wp_error( $token_validation ) ) {
+        return $token_validation;
+    }
+
     $rate_limit = snn_rate_limit();
     if ( is_wp_error( $rate_limit ) ) {
         return $rate_limit;
@@ -516,10 +561,21 @@ add_action('rest_authentication_errors', function ( $result ) {
 /**
  * FRONTEND JS (IN FOOTER)
  */
-add_action( 'wp_footer', function () { ?>
+add_action( 'wp_footer', function () { 
+    // Get the dynamic token from the server (and create it if not exists)
+    $token = snn_get_or_create_token();
+    ?>
 <script>
-// Expose to JS whether user is logged in
+// Expose to JS whether user is logged in and the dynamic token
 var snn_is_logged_in = "<?php echo is_user_logged_in() ? 'true' : 'false'; ?>";
+var snn_token = "<?php echo $token; ?>";
+
+// Save token to localStorage if not already present.
+if(!localStorage.getItem('snn_token')) {
+    localStorage.setItem('snn_token', snn_token);
+} else {
+    snn_token = localStorage.getItem('snn_token');
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.brxe-like-button').forEach(function(button) {
@@ -527,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const loggedOnly = button.getAttribute('data-logged-only') === 'true';
         if (!identifier) return;
         
-        let url = "<?php echo rest_url('snn/v1/get-likes'); ?>?identifier=" + encodeURIComponent(identifier);
+        let url = "<?php echo rest_url('snn/v1/'); ?>" + snn_token + "/get-likes?identifier=" + encodeURIComponent(identifier);
         url += "&loggedOnly=" + (loggedOnly ? 'true' : 'false');
 
         fetch(url)
@@ -569,7 +625,7 @@ function snn_likeButton(el) {
 
     el.classList.add('snn-loading');
     
-    fetch('<?php echo rest_url('snn/v1/like'); ?>', {
+    fetch("<?php echo rest_url('snn/v1/'); ?>" + snn_token + "/like", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -617,5 +673,6 @@ function snn_likeButton(el) {
     pointer-events: none;
 }
 </style>
-<?php });
+<?php 
+});
 ?>
