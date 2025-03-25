@@ -69,6 +69,32 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'small'   => true,
                 'default' => false,
             ];
+
+            // New settings for custom balloon texts
+            $this->controls['balloon_text_login'] = [
+                'tab'         => 'content',
+                'type'        => 'text',
+                'label'       => esc_html__( 'Balloon Text (Not Logged In)', 'bricks' ),
+                'default'     => esc_html__( 'Login to Like', 'bricks' ),
+                'placeholder' => esc_html__( 'Login to Like', 'bricks' ),
+                
+            ];
+
+            $this->controls['balloon_text_like'] = [
+                'tab'         => 'content',
+                'type'        => 'text',
+                'label'       => esc_html__( 'Balloon Text (Like)', 'bricks' ),
+                'default'     => esc_html__( 'Like', 'bricks' ),
+                'placeholder' => esc_html__( 'Like.', 'bricks' ),
+            ];
+
+            $this->controls['balloon_text_unlike'] = [
+                'tab'         => 'content',
+                'type'        => 'text',
+                'label'       => esc_html__( 'Balloon Text (Unlike)', 'bricks' ),
+                'default'     => esc_html__( 'Unlike', 'bricks' ),
+                'placeholder' => esc_html__( 'Unlike', 'bricks' ),
+            ];
         }
 
         public function render() {
@@ -84,6 +110,11 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             $like_count = snn_get_like_count( $identifier );
             $liked      = snn_has_user_liked( $identifier );
 
+            // Retrieve balloon text settings
+            $balloon_text_login = ! empty( $this->settings['balloon_text_login'] ) ? $this->settings['balloon_text_login'] : esc_html__( 'Login to Like', 'bricks' );
+            $balloon_text_like = ! empty( $this->settings['balloon_text_like'] ) ? $this->settings['balloon_text_like'] : esc_html__( 'Click to Like', 'bricks' );
+            $balloon_text_unlike = ! empty( $this->settings['balloon_text_unlike'] ) ? $this->settings['balloon_text_unlike'] : esc_html__( 'Click to Unlike', 'bricks' );
+
             $this->set_attribute( '_root', 'class', [ 'brxe-like-button', 'like-button-element' ] );
             $this->set_attribute( '_root', 'data-identifier', $identifier );
             $this->set_attribute( '_root', 'data-count', $like_count );
@@ -93,14 +124,19 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             $logged_user_only = ! empty( $this->settings['logged_user_only'] );
             $this->set_attribute( '_root', 'data-logged-only', $logged_user_only ? 'true' : 'false' );
 
-            // Set initial balloon text based on state
+            // Set balloon text based on state
             if ( $logged_user_only && ! is_user_logged_in() ) {
-                $balloon_text = esc_html__( 'Login to Like', 'bricks' );
+                $balloon_text = $balloon_text_login;
             } else {
-                $balloon_text = $liked ? esc_html__( 'Click to Unlike', 'bricks' ) : esc_html__( 'Click to Like', 'bricks' );
+                $balloon_text = $liked ? $balloon_text_unlike : $balloon_text_like;
             }
             $this->set_attribute( '_root', 'data-balloon', $balloon_text );
             $this->set_attribute( '_root', 'data-balloon-pos', 'top' );
+
+            // Pass custom balloon texts to the element for JS usage
+            $this->set_attribute( '_root', 'data-balloon-text-login', $balloon_text_login );
+            $this->set_attribute( '_root', 'data-balloon-text-like', $balloon_text_like );
+            $this->set_attribute( '_root', 'data-balloon-text-unlike', $balloon_text_unlike );
 
             echo '<div ' . $this->render_attributes( '_root' ) . ' onclick="snn_likeButton(this)" style="cursor:pointer;">';
                 echo '<span class="button-icon default-icon" style="' . ( $liked ? 'display:none;' : 'display:inline;' ) . '">';
@@ -349,12 +385,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     countElement.textContent = data.count;
                 }
                 
-                // Update balloon text based on state
+                // Update balloon text based on state using custom texts
+                let loginText = button.getAttribute('data-balloon-text-login');
+                let likeText = button.getAttribute('data-balloon-text-like');
+                let unlikeText = button.getAttribute('data-balloon-text-unlike');
                 let balloonText;
                 if (button.getAttribute('data-logged-only') === 'true' && snn_is_logged_in === 'false') {
-                    balloonText = 'Login to Like';
+                    balloonText = loginText;
                 } else {
-                    balloonText = data.liked ? 'Click to Unlike' : 'Click to Like';
+                    balloonText = data.liked ? unlikeText : likeText;
                 }
                 button.setAttribute('data-balloon', balloonText);
                 button.setAttribute('data-balloon-pos', 'top');
@@ -369,7 +408,7 @@ function snn_likeButton(el) {
 
     // If "Logged User Only" is set and user is not logged in, show tooltip and exit
     if (loggedOnly && snn_is_logged_in === 'false') {
-        alert('You must be logged in to like this post.');
+        // alert(el.getAttribute('data-balloon-text-login'));
         return;
     }
 
@@ -396,12 +435,15 @@ function snn_likeButton(el) {
             countElement.textContent = data.count;
         }
         
-        // Update balloon text based on new state
+        // Update balloon text based on new state using custom texts
+        let loginText = el.getAttribute('data-balloon-text-login');
+        let likeText = el.getAttribute('data-balloon-text-like');
+        let unlikeText = el.getAttribute('data-balloon-text-unlike');
         let balloonText;
         if (el.getAttribute('data-logged-only') === 'true' && snn_is_logged_in === 'false') {
-            balloonText = 'Login to Like';
+            balloonText = loginText;
         } else {
-            balloonText = data.liked ? 'Click to Unlike' : 'Click to Like';
+            balloonText = data.liked ? unlikeText : likeText;
         }
         el.setAttribute('data-balloon', balloonText);
         el.setAttribute('data-balloon-pos', 'top');
