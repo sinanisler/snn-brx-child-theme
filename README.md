@@ -10,7 +10,7 @@
 SNN BRX theme adds theme settings, security settings and lots of plugin eliminating features with it. 
 
 
-### [Video Tutorial](https://www.youtube.com/watch?v=PssxfHxDdmY) 
+### [Video Tutorial](https://www.youtube.com/watch?v=d7BfxelujfI) 
 
 ### [Features](https://sinanisler.com/snn-brx/) 
 
