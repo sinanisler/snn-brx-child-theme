@@ -122,11 +122,36 @@ function snn_log_404_error() {
             return;
         }
 
-        // Check if bot/crawler logging is disabled and skip if the user agent contains "bot", "crawler", or "robot"
         if (get_option('snn_disable_bot_logging') === '1' && isset($_SERVER['HTTP_USER_AGENT'])) {
             $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
-            if (strpos($user_agent, 'bot') !== false || strpos($user_agent, 'crawler') !== false || strpos($user_agent, 'robot') !== false) {
-                return;
+            $bots = array(
+                'gptbot',
+                'googlebot',
+                'yandexbot',
+                'bytespider',
+                'spider',
+                'anthill',
+                'petalbot',
+                'semrushbot',
+                'ahrefsbot',
+                'bingbot',
+                'imagesiftbot',
+                'barkrowler',
+                'awariosmartbot',
+                'sogou',
+                'timpibot',
+                'seznambot',
+                'twitterbot',
+                'xbot',
+                'dataforseobot',
+                'meta-externalagent',
+                'facebook'
+            );
+
+            foreach ($bots as $bot) {
+                if (strpos($user_agent, $bot) !== false) {
+                    return;
+                }
             }
         }
 
@@ -175,7 +200,7 @@ function snn_render_404_logs_page() {
  
             <label>
                 <input type="checkbox" name="snn_disable_bot_logging" <?php checked($disable_bot_logging); ?>>
-                Disable Bot/Crawler Logging (Dont enable this if the website is new collect some urls first)
+                Disable Bot/Crawler Logging (Don't enable this if the website is new; collect some URLs first)
             </label>
             <br><br>
 
