@@ -100,12 +100,10 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
 When this feature is enabled likes are stored within the post meta and user meta.<br>
 - post meta: _snn_liked_by = array( userID, userID, ... )<br>
 - user meta:  _snn_liked_posts = array( postID, postID, ... )<br>
-- For example for query: Meta Key: _snn_liked_by  and  Compare: LIKE<br><br>
-
+- For example for query: Meta Key: _snn_liked_by and Compare: LIKE<br><br>
 After that we can get the custom field and count the array to get total likes for the post<br><br>
-
 \$like_count = get_post_meta( get_the_ID(), '_snn_liked_by', true );<br>
-echo  count( \$like_count );
+echo count( \$like_count );
 </p>
                 ",
             ];
@@ -187,7 +185,8 @@ function snn_get_or_create_token() {
     if ( ! isset( $_COOKIE['snn_dynamic_token'] ) ) {
         $token = bin2hex( random_bytes( 16 ) ); // 32-char hex token.
         if ( ! headers_sent() ) {
-            setcookie( 'snn_dynamic_token', $token, time() + 3600, COOKIEPATH, COOKIE_DOMAIN );
+            // For localhost, use '/' for path.
+            setcookie( 'snn_dynamic_token', $token, time() + 3600, '/' );
         }
         set_transient( 'snn_token_' . $token, true, 3600 );
         return $token;
@@ -197,45 +196,21 @@ function snn_get_or_create_token() {
     if ( ! get_transient( 'snn_token_' . $token ) ) {
         $token = bin2hex( random_bytes( 16 ) );
         if ( ! headers_sent() ) {
-            setcookie( 'snn_dynamic_token', $token, time() + 3600, COOKIEPATH, COOKIE_DOMAIN );
+            setcookie( 'snn_dynamic_token', $token, time() + 3600, '/' );
         }
         set_transient( 'snn_token_' . $token, true, 3600 );
     }
     return $token;
 }
 
+// Note: The token validation function is no longer used.
 function snn_validate_token( $token ) {
-    $token = sanitize_text_field( $token );
-    if ( get_transient( 'snn_token_' . $token ) ) {
-        return true;
-    }
-    return new WP_Error( 'invalid_token', 'Invalid or expired token', [ 'status' => 403 ] );
-}
-
-/**
- * RATE LIMITING SECTION (DDoS protection)
- */
-function snn_rate_limit() {
-    $ip = snn_get_real_ip();
-    $transient_key = 'snn_rate_' . md5( $ip );
-    $limit = 30; // Maximum requests per minute
-    $time_window = 60; // Time window in seconds
-
-    $request_count = get_transient( $transient_key );
-    if ( $request_count === false ) {
-        $request_count = 1;
-        set_transient( $transient_key, $request_count, $time_window );
-    } else {
-        $request_count++;
-        set_transient( $transient_key, $request_count, $time_window );
-    }
-
-    if ( $request_count > $limit ) {
-        return new WP_Error( 'rate_limit_exceeded', 'Rate limit exceeded. Please try again later.', array( 'status' => 429 ) );
-    }
     return true;
 }
 
+/**
+ * REAL IP RETRIEVAL
+ */
 function snn_get_real_ip() {
     $ip_headers = [
         'HTTP_CLIENT_IP',
@@ -446,17 +421,7 @@ add_action( 'rest_api_init', function() {
  * GET-LIKES endpoint
  */
 function snn_get_likes_endpoint( WP_REST_Request $request ) {
-    $token = $request->get_param( 'token' );
-    $token_validation = snn_validate_token( $token );
-    if ( is_wp_error( $token_validation ) ) {
-        return $token_validation;
-    }
-
-    $rate_limit = snn_rate_limit();
-    if ( is_wp_error( $rate_limit ) ) {
-        return $rate_limit;
-    }
-
+    // Token validation removed.
     $identifier  = sanitize_text_field( $request->get_param( 'identifier' ) );
     $logged_only = $request->get_param( 'loggedOnly' ) === 'true';
 
@@ -487,17 +452,7 @@ function snn_get_likes_endpoint( WP_REST_Request $request ) {
  * LIKE/UNLIKE endpoint
  */
 function snn_handle_like( WP_REST_Request $request ) {
-    $token = $request->get_param( 'token' );
-    $token_validation = snn_validate_token( $token );
-    if ( is_wp_error( $token_validation ) ) {
-        return $token_validation;
-    }
-
-    $rate_limit = snn_rate_limit();
-    if ( is_wp_error( $rate_limit ) ) {
-        return $rate_limit;
-    }
-
+    // Token validation removed.
     $identifier  = sanitize_text_field( $request->get_param( 'identifier' ) );
     $logged_only = $request->get_param( 'loggedOnly' ) === 'true';
 
@@ -619,7 +574,7 @@ function snn_likeButton(el) {
     const loggedOnly = el.getAttribute('data-logged-only') === 'true';
 
     if (loggedOnly && snn_is_logged_in === 'false') {
-        // Optionally, you can provide a visual cue for non-logged in users here.
+        // Optionally, provide a visual cue for non-logged in users
         return;
     }
 
