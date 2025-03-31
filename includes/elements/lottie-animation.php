@@ -22,10 +22,10 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 
         // Lottie JSON Upload
         $this->controls['lottie_json'] = [
-            'tab'    => 'content',
-            'label'  => esc_html__( 'Lottie JSON File', 'bricks' ),
-            'type'   => 'file',
-            'accept' => '.json',
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Lottie JSON File', 'bricks' ),
+            'type'        => 'file',
+            'accept'      => '.json',
             'description' => "Upload your Lottie JSON file here",
         ];
 
@@ -53,6 +53,17 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         $this->controls['play_on_hover'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Play on Hover', 'bricks' ),
+            'type'        => 'checkbox',
+            'inline'      => true,
+            'small'       => true,
+            'default'     => false,
+            'description' => "",
+        ];
+
+        // Reset State on Mouse Leave (New Control)
+        $this->controls['reset_on_mouse_leave'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Reset/Reverse State on Mouse Leave', 'bricks' ),
             'type'        => 'checkbox',
             'inline'      => true,
             'small'       => true,
@@ -177,6 +188,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         $autoplay         = ! empty($this->settings['autoplay']) ? 'true' : 'false';
 
         $play_on_hover    = ! empty($this->settings['play_on_hover']) ? 'true' : 'false';
+        $reset_on_mouse_leave = ! empty($this->settings['reset_on_mouse_leave']) ? 'true' : 'false';
         $pause_on_mouse_leave = ! empty($this->settings['pause_on_mouse_leave']) ? 'true' : 'false';
         $play_on_click    = ! empty($this->settings['play_on_click']) ? 'true' : 'false';
 
@@ -231,8 +243,10 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
                 }
             });
 
+            // Set the initial speed
             lottieAnimation.setSpeed(<?php echo esc_js($animation_speed); ?>);
 
+            // If scroll trigger is enabled, attach the ScrollTrigger logic
             <?php if ( $scroll_trigger ): ?>
             gsap.registerPlugin(ScrollTrigger);
             gsap.to({}, {
@@ -250,20 +264,56 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             });
             <?php endif; ?>
 
+            // Named resetListener to avoid infinite loops
+            function resetListener() {
+                // Once we're at or before frame 1, consider that "fully reversed"
+                if (lottieAnimation.currentFrame <= 1) {
+                    // Remove the listener first to avoid re-entry
+                    lottieAnimation.removeEventListener('enterFrame', resetListener);
+
+                    // Stop exactly at frame 0
+                    lottieAnimation.goToAndStop(0, true);
+
+                    // Restore direction to forward
+                    lottieAnimation.setDirection(1);
+                }
+            }
+
+            // Handle Play on Hover
             if ('<?php echo esc_js($play_on_hover); ?>' === 'true') {
                 var container = document.getElementById('<?php echo esc_js($animation_id); ?>');
+
                 container.addEventListener('mouseenter', function() {
-                    // Changed from goToAndPlay(0, true) to play() to resume from paused state
-                    lottieAnimation.play();
+                    // If reset_on_mouse_leave is enabled, we always start fresh from 0
+                    if ('<?php echo esc_js($reset_on_mouse_leave); ?>' === 'true') {
+                        lottieAnimation.goToAndPlay(0, true);
+                    } else {
+                        // Otherwise just continue playing wherever it left off
+                        lottieAnimation.play();
+                    }
                 });
 
                 container.addEventListener('mouseleave', function() {
-                    if ('<?php echo esc_js($pause_on_mouse_leave); ?>' === 'true') {
+                    // If reset is enabled, reverse back to the start
+                    if ('<?php echo esc_js($reset_on_mouse_leave); ?>' === 'true') {
+                        // Remove any old references to the reset listener
+                        lottieAnimation.removeEventListener('enterFrame', resetListener);
+
+                        // Reverse direction and start playing
+                        lottieAnimation.setDirection(-1);
+                        lottieAnimation.play();
+
+                        // Attach the named listener to detect when we've hit frame ~0
+                        lottieAnimation.addEventListener('enterFrame', resetListener);
+
+                    } else if ('<?php echo esc_js($pause_on_mouse_leave); ?>' === 'true') {
+                        // If not resetting, but we do want to pause
                         lottieAnimation.pause();
                     }
                 });
             }
 
+            // Handle Play on Click
             if ('<?php echo esc_js($play_on_click); ?>' === 'true') {
                 var container = document.getElementById('<?php echo esc_js($animation_id); ?>');
 
