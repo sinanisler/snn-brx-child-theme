@@ -95,6 +95,20 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     return hslToHex(hsl.h, hsl.s, hsl.l);
                 }
 
+                // Function to return the auto-generated color name based on index.
+                function getAutoColorName(index) {
+                    const names = [
+                        "primary-color", "secondary-color", "tertiary-color", "quaternary-color", 
+                        "quinary-color", "senary-color", "septenary-color", "octonary-color", 
+                        "nonary-color", "denary-color"
+                    ];
+                    if (index < names.length) {
+                        return names[index];
+                    } else {
+                        return "color-" + (index + 1);
+                    }
+                }
+
                 // Insert SNN button into the Bricks toolbar.
                 function insertSnnListItem(toolbar) {
                     var ul = (toolbar.tagName.toLowerCase() === "ul") ? toolbar : toolbar.querySelector("ul");
@@ -301,7 +315,9 @@ function snn_custom_inline_styles_and_scripts_improved() {
                         }
                     });
 
-                    removeButton.addEventListener("click", function() {
+                    removeButton.addEventListener("click", function(e) {
+                        // Prevent the click from propagating to any parent elements (which might close the panel)
+                        e.stopPropagation();
                         row.remove();
                         updateColorNames();
                     });
@@ -309,13 +325,14 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     return row;
                 }
 
+                // Update color names using the new naming scheme.
                 function updateColorNames() {
                     var rows = document.querySelectorAll(".snn-color-row");
                     rows.forEach(function(row, index) {
                         var nameInput = row.querySelector(".snn-color-name-input");
                         if (nameInput && document.activeElement !== nameInput) {
                             if(nameInput.value.trim() === "") {
-                                nameInput.value = "snn-color-" + (index + 1);
+                                nameInput.value = getAutoColorName(index);
                             }
                         }
                     });
@@ -359,7 +376,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                         var nameInput = row.querySelector(".snn-color-name-input");
                         var customName = nameInput ? nameInput.value.trim() : "";
                         if (!customName) { 
-                            customName = "snn-color-" + (index + 1); 
+                            customName = getAutoColorName(index);
                         }
                         if (hexValue) {
                             colorsData.push({ name: customName, hex: hexValue, shade: shadeValue });
@@ -409,7 +426,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     var cssVars = ":root {\n";
                     
                     colorsData.forEach(function(color, index) {
-                        var customName = color.name ? color.name : "snn-color-" + (index + 1);
+                        var customName = color.name ? color.name : getAutoColorName(index);
                         var baseVarName = "--" + customName;
                         cssVars += "  " + baseVarName + ": " + color.hex + ";\n";
 
