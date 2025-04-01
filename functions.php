@@ -17,6 +17,7 @@ require_once SNN_PATH . 'includes/security-page.php';
 require_once SNN_PATH . 'includes/post-types-settings.php';
 require_once SNN_PATH . 'includes/custom-field-settings.php';
 require_once SNN_PATH . 'includes/taxonomy-settings.php';
+//require_once SNN_PATH . 'includes/seo-settings.php';
 require_once SNN_PATH . 'includes/login-settings.php';
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 require_once SNN_PATH . 'includes/remove-wp-version.php';
