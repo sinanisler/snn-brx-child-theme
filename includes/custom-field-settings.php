@@ -1276,68 +1276,97 @@ function snn_output_dynamic_field_js() {
 
 
         <?php if ($snn_media_fields_exist): ?>
-        var mediaUploader;
+        
+            var mediaUploader;
 
-         function setupMediaUploader(context) {
+            function setupMediaUploader(context) {
+                $(context).on('click', '.media-upload-button', function(e) {
+                    e.preventDefault();
+                    var $button = $(this);
+                    var $uploaderContainer = $button.closest('.media-uploader');
+                    var $previewWrapper = $uploaderContainer.find('.media-preview-wrapper');
+                    var $removeButton = $uploaderContainer.find('.media-remove-button');
+                    var isRepeater = $button.closest('.repeater-container').length > 0;
 
-             $(context).on('click', '.media-upload-button', function(e) {
-                e.preventDefault();
-                 var $button = $(this);
-                 var $uploaderContainer = $button.closest('.media-uploader');
-                 var $valueField = $uploaderContainer.find('.media-value-field');
-                 var $previewWrapper = $uploaderContainer.find('.media-preview-wrapper');
-                 var $removeButton = $uploaderContainer.find('.media-remove-button');
-
-                if (mediaUploader) {
-                    mediaUploader.off('select');
-                } else {
                     mediaUploader = wp.media({
                         title: 'Choose Media',
-                        button: { text: 'Choose Media' },
-                        multiple: false
+                        button: { text: 'Insert Media' },
+                        multiple: isRepeater // allows multiple selection only if repeater
                     });
-                 }
 
+                    mediaUploader.on('select', function() {
+                        var attachments = mediaUploader.state().get('selection').toArray();
 
-                mediaUploader.on('select', function() {
-                    var attachment = mediaUploader.state().get('selection').first().toJSON();
-                    $valueField.val(attachment.id);
+                        if (isRepeater) {
+                            var $repeaterContainer = $button.closest('.repeater-container');
+                            var $templateItem = $repeaterContainer.find('.repeater-item:first');
+                            attachments.forEach(function(attachment, index) {
+                                var attachmentJSON = attachment.toJSON();
+                                var $item;
 
+                                if (index === 0 && !$templateItem.find('.media-value-field').val()) {
+                                    $item = $templateItem;
+                                } else {
+                                    $item = $templateItem.clone();
+                                    $item.insertAfter($repeaterContainer.find('.repeater-item:last'));
+                                }
 
-                     var previewHtml = '';
-                     if (attachment.type === 'image') {
-                         var thumbnailUrl = attachment.sizes && attachment.sizes.thumbnail ? attachment.sizes.thumbnail.url : attachment.url;
-                         previewHtml = '<img src="' + thumbnailUrl + '" class="media-preview" style="max-width: 100px; max-height: 100px;" />';
-                     } else {
+                                var $valueField = $item.find('.media-value-field');
+                                var $itemPreviewWrapper = $item.find('.media-preview-wrapper');
+                                var $itemRemoveButton = $item.find('.media-remove-button');
 
-                         var icon = attachment.icon || 'dashicons-media-default';
-                          if (icon.includes('.png') || icon.includes('.jpg') || icon.includes('.svg') ) {
-                             previewHtml = '<img src="' + icon + '" class="media-preview" style="max-width: 60px; max-height: 60px;" />';
-                          } else {
-                            previewHtml = '<span class="dashicons ' + icon + ' media-preview" style="font-size: 48px; width:auto; height:auto; display:inline-block;"></span>';
-                          }
-                     }
-                     $previewWrapper.html(previewHtml);
-                     $removeButton.show();
+                                $valueField.val(attachmentJSON.id);
+
+                                var previewHtml = '';
+                                if (attachmentJSON.type === 'image') {
+                                    var thumbnailUrl = attachmentJSON.sizes && attachmentJSON.sizes.thumbnail ? attachmentJSON.sizes.thumbnail.url : attachmentJSON.url;
+                                    previewHtml = '<img src="' + thumbnailUrl + '" class="media-preview" style="max-width:100px;max-height:100px;" />';
+                                } else {
+                                    var icon = attachmentJSON.icon || 'dashicons-media-default';
+                                    previewHtml = '<span class="dashicons ' + icon + ' media-preview" style="font-size:48px;width:auto;height:auto;"></span>';
+                                }
+
+                                $itemPreviewWrapper.html(previewHtml);
+                                $itemRemoveButton.show();
+                            });
+
+                            setupRepeaters($repeaterContainer); // Reinitialize repeaters
+                        } else {
+                            var attachment = attachments[0].toJSON();
+                            var $valueField = $uploaderContainer.find('.media-value-field');
+
+                            $valueField.val(attachment.id);
+
+                            var previewHtml = '';
+                            if (attachment.type === 'image') {
+                                var thumbnailUrl = attachment.sizes && attachment.sizes.thumbnail ? attachment.sizes.thumbnail.url : attachment.url;
+                                previewHtml = '<img src="' + thumbnailUrl + '" class="media-preview" style="max-width:100px;max-height:100px;" />';
+                            } else {
+                                var icon = attachment.icon || 'dashicons-media-default';
+                                previewHtml = '<span class="dashicons ' + icon + ' media-preview" style="font-size:48px;width:auto;height:auto;"></span>';
+                            }
+
+                            $previewWrapper.html(previewHtml);
+                            $removeButton.show();
+                        }
+                    });
+
+                    mediaUploader.open();
                 });
 
+                $(context).on('click', '.media-remove-button', function(e) {
+                    e.preventDefault();
+                    var $button = $(this);
+                    var $uploaderContainer = $button.closest('.media-uploader');
+                    var $valueField = $uploaderContainer.find('.media-value-field');
+                    var $previewWrapper = $uploaderContainer.find('.media-preview-wrapper');
 
-                mediaUploader.open();
-            });
+                    $valueField.val('');
+                    $previewWrapper.html('');
+                    $button.hide();
+                });
+            }
 
-
-             $(context).on('click', '.media-remove-button', function(e) {
-                 e.preventDefault();
-                 var $button = $(this);
-                 var $uploaderContainer = $button.closest('.media-uploader');
-                 var $valueField = $uploaderContainer.find('.media-value-field');
-                 var $previewWrapper = $uploaderContainer.find('.media-preview-wrapper');
-
-                 $valueField.val('');
-                 $previewWrapper.html('<img src="" class="media-preview" style="display: none;" />');
-                 $button.hide();
-             });
-         }
          setupMediaUploader(document);
         <?php endif; ?>
 
