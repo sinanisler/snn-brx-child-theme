@@ -43,6 +43,22 @@ function snn_enqueue_scripts_for_custom_fields_page($hook_suffix) {
 }
 
 // ------------------------------------------------
+// 2.1) ENQUEUE SCRIPTS ON TAXONOMY & AUTHOR PAGES
+// ------------------------------------------------
+add_action('admin_enqueue_scripts', 'snn_enqueue_taxonomy_author_assets');
+function snn_enqueue_taxonomy_author_assets($hook) {
+    // Common pages: term.php, edit-tags.php = Taxonomy editing
+    // profile.php, user-edit.php = Author profile
+    if ( in_array($hook, ['term.php', 'edit-tags.php', 'profile.php', 'user-edit.php'], true) ) {
+        wp_enqueue_media();                 // Ensure Media Uploader works
+        wp_enqueue_style('wp-color-picker'); // Ensure Color Picker CSS
+        wp_enqueue_script('wp-color-picker'); 
+        // Our dynamic field JS (repeater, media button, color pickers)
+        add_action('admin_footer', 'snn_output_dynamic_field_js');
+    }
+}
+
+// ------------------------------------------------
 // 3) ADMIN PAGE CALLBACK
 // ------------------------------------------------
 function snn_custom_fields_page_callback() {
@@ -193,6 +209,7 @@ function snn_custom_fields_page_callback() {
             <?php submit_button('Save Custom Fields'); ?>
         </form>
 
+        <!-- The JS below handles dynamic adding/removing/moving of custom fields on the admin page -->
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             const fieldContainer = document.getElementById('custom-field-settings');
@@ -597,7 +614,7 @@ function snn_render_metabox_content($post, $metabox) {
              . (!empty($field['repeater']) ? ' snn-is-repeater' : '') 
              . '" style="width:calc(' . $col_width . '% - 30px);margin-right:20px;box-sizing:border-box;">';
 
-        echo '<label class="snn-field-label" for="' . esc_attr($field_name) . '_0">'
+        echo '<label class="snn-field-label" for="' . esc_attr($field_name . '_0') . '">'
              . esc_html(ucwords(str_replace('_',' ',$field_name))) . '</label>';
 
         // If repeater:
@@ -640,7 +657,7 @@ function snn_render_metabox_content($post, $metabox) {
     <style>
     .snn-field-wrap {
         padding: 10px; 
-        border: 1px solid #eee; 
+        border: 1px solid #eee !important; 
         border-radius: 5px; 
         background: #fff;
         margin-bottom: 15px;
@@ -750,14 +767,8 @@ function snn_render_metabox_content($post, $metabox) {
 function snn_render_field_input($field, $value = '', $index = '0') {
     $field_name = $field['name'];
     $field_type = $field['type'];
-
-    // If this is a repeater template row with placeholder index
     $is_template = ($index === '__index__');
 
-    // For name/id attributes
-    $input_id = esc_attr($field_name . '_' . $index);
-
-    // If we are in the "repeater" context
     if (!empty($field['repeater']) && !$is_template) {
         // e.g. custom_fields[fieldname][2]
         $name_attribute = 'custom_fields[' . esc_attr($field_name) . '][' . intval($index) . ']';
@@ -768,7 +779,6 @@ function snn_render_field_input($field, $value = '', $index = '0') {
         // If single checkboxes with multiple choices
         $name_attribute = 'custom_fields[' . esc_attr($field_name) . '][]';
     } else {
-        // Normal (non-repeater, non-multiple-check)
         $name_attribute = 'custom_fields[' . esc_attr($field_name) . ']';
     }
 
@@ -790,17 +800,18 @@ function snn_render_field_input($field, $value = '', $index = '0') {
 
     switch ($field_type) {
         case 'text':
-            echo '<input type="text" id="' . $input_id . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
+            echo '<input type="text" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
 
         case 'number':
-            echo '<input type="number" id="' . $input_id . '" name="' . esc_attr($name_attribute) 
-                 . '" value="' . esc_attr($value) . '" step="any" />';
+            echo '<input type="number" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" step="any" />';
             break;
 
         case 'textarea':
-            echo '<textarea id="' . $input_id . '" name="' . esc_attr($name_attribute) . '">'
-                 . esc_textarea($value) . '</textarea>';
+            echo '<textarea id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '">' . esc_textarea($value) . '</textarea>';
             break;
 
         case 'rich_text':
@@ -833,8 +844,8 @@ function snn_render_field_input($field, $value = '', $index = '0') {
                 }
             }
             echo '<div class="media-uploader">';
-            echo '<input type="hidden" class="media-value-field" id="' . $input_id . '" name="' 
-                 . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
+            echo '<input type="hidden" class="media-value-field" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             echo '<span class="media-preview-wrapper" style="width:50px; height:50px;">';
             if ($img_src) {
                 echo '<img src="' . esc_url($img_src) . '" class="media-preview" style="max-width:50px;max-height:50px;" />';
@@ -851,17 +862,19 @@ function snn_render_field_input($field, $value = '', $index = '0') {
             break;
 
         case 'date':
-            echo '<input type="date" id="' . $input_id . '" name="' . esc_attr($name_attribute) . '" value="' 
-                 . esc_attr($value) . '" placeholder="YYYY-MM-DD" class="snn-datepicker" />';
+            echo '<input type="date" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
+                 . '" placeholder="YYYY-MM-DD" class="snn-datepicker" />';
             break;
 
         case 'color':
-            echo '<input type="text" id="' . $input_id . '" name="' . esc_attr($name_attribute) 
-                 . '" value="' . esc_attr($value) . '" class="snn-color-picker" data-default-color="#ffffff" />';
+            echo '<input type="text" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
+                 . '" class="snn-color-picker" data-default-color="#ffffff" />';
             break;
 
         case 'select':
-            echo '<select id="' . $input_id . '" name="' . esc_attr($name_attribute) . '">';
+            echo '<select id="' . esc_attr($field_name . '_' . $index) . '" name="' . esc_attr($name_attribute) . '">';
             echo '<option value="">-- Select --</option>';
             if (!empty($choices)) {
                 foreach ($choices as $val => $label) {
@@ -879,12 +892,13 @@ function snn_render_field_input($field, $value = '', $index = '0') {
             if (!empty($choices)) {
                 $i = 0;
                 foreach ($choices as $val => $label) {
-                    $choice_id = $input_id . '_' . $i++;
+                    $choice_id = $field_name . '_' . $index . '_' . $i++;
                     $is_checked = in_array($val, $checked_values);
                     echo '<span class="choice-item">';
-                    echo '<input type="checkbox" id="' . $choice_id . '" name="' . esc_attr($name_attribute) 
+                    echo '<input type="checkbox" id="' . esc_attr($choice_id) 
+                         . '" name="' . esc_attr($name_attribute) 
                          . '" value="' . esc_attr($val) . '" ' . ($is_checked?'checked':'') . ' />';
-                    echo '<label for="' . $choice_id . '">' . esc_html($label) . '</label>';
+                    echo '<label for="' . esc_attr($choice_id) . '">' . esc_html($label) . '</label>';
                     echo '</span>';
                 }
             } else {
@@ -899,15 +913,16 @@ function snn_render_field_input($field, $value = '', $index = '0') {
             if (!empty($choices)) {
                 $i=0;
                 foreach ($choices as $val => $label) {
-                    $choice_id = $input_id . '_' . $i++;
-                    // if repeater, name is custom_fields[field_name][index]
+                    $choice_id = $field_name . '_' . $index . '_' . $i++;
+                    // if repeater, name might be custom_fields[field_name][index]
                     $radio_name = (!empty($field['repeater']) && !$is_template)
                                   ? 'custom_fields[' . esc_attr($field_name) . ']['.intval($index).']'
                                   : $name_attribute;
                     echo '<span class="choice-item">';
-                    echo '<input type="radio" id="' . $choice_id . '" name="' . esc_attr($radio_name) 
+                    echo '<input type="radio" id="' . esc_attr($choice_id) 
+                         . '" name="' . esc_attr($radio_name) 
                          . '" value="' . esc_attr($val) . '" ' . checked($value, $val, false) . ' />';
-                    echo '<label for="' . $choice_id . '">' . esc_html($label) . '</label>';
+                    echo '<label for="' . esc_attr($choice_id) . '">' . esc_html($label) . '</label>';
                     echo '</span>';
                 }
             } else {
@@ -919,23 +934,25 @@ function snn_render_field_input($field, $value = '', $index = '0') {
         case 'true_false':
             // boolean toggle
             echo '<input type="hidden" name="' . esc_attr($name_attribute) . '" value="0" />';
-            echo '<input type="checkbox" id="' . $input_id . '" name="' . esc_attr($name_attribute) 
-                 . '" value="1" ' . checked($value, '1', false) . ' />';
+            echo '<input type="checkbox" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="1" ' . checked($value, '1', false) . ' />';
             break;
 
         case 'url':
-            echo '<input type="url" id="' . $input_id . '" name="' . esc_attr($name_attribute) 
-                 . '" value="' . esc_attr($value) . '" placeholder="https://example.com" />';
+            echo '<input type="url" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
+                 . '" placeholder="https://example.com" />';
             break;
 
         case 'email':
-            echo '<input type="email" id="' . $input_id . '" name="' . esc_attr($name_attribute) 
-                 . '" value="' . esc_attr($value) . '" placeholder="name@example.com" />';
+            echo '<input type="email" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
+                 . '" placeholder="name@example.com" />';
             break;
 
-        default:
-            // fallback text
-            echo '<input type="text" id="' . $input_id . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
+        default: // fallback
+            echo '<input type="text" id="' . esc_attr($field_name . '_' . $index) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
     }
 }
@@ -979,7 +996,6 @@ function snn_save_custom_fields_meta($post_id) {
         if (isset($posted_data[$field_name])) {
             // If it's an array (repeater or multiple checkboxes, etc.)
             if (is_array($posted_data[$field_name])) {
-                // Sanitize each item
                 $sanitized_values = array_map(function($item) use ($field) {
                     return snn_sanitize_value_by_type($field['type'], $item);
                 }, $posted_data[$field_name]);
@@ -1000,7 +1016,6 @@ function snn_save_custom_fields_meta($post_id) {
             }
         } else {
             // If not set in $_POST
-            // For "true_false," default to 0
             if ($field['type'] === 'true_false') {
                 update_post_meta($post_id, $field_name, '0');
             } else {
@@ -1025,28 +1040,34 @@ function snn_register_dynamic_taxonomy_fields() {
             if (!empty($field['taxonomies']) && is_array($field['taxonomies'])) {
                 foreach ($field['taxonomies'] as $tax) {
                     add_action($tax . '_add_form_fields', function() use ($field) {
+                        $col_width = !empty($field['column_width']) ? intval($field['column_width']) : 100;
                         ?>
-                        <div class="form-field snn-tax-field snn-field-type-<?php echo esc_attr($field['type']); ?>">
-                            <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
-                            <?php snn_render_field_input($field, '', '0'); ?>
+                        <!-- Wrap in snn-metabox-wrapper & snn-field-wrap -->
+                        <div class="form-field snn-metabox-wrapper" style="display:flex;flex-wrap:wrap;">
+                            <div class="snn-field-wrap" style="width:calc(<?php echo $col_width; ?>% - 30px);margin-right:20px;box-sizing:border-box;">
+                                <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
+                                <?php snn_render_field_input($field, '', '0'); ?>
+                            </div>
                         </div>
                         <?php
                     }, 10, 1);
 
                     add_action($tax . '_edit_form_fields', function($term) use ($field) {
                         $value = get_term_meta($term->term_id, $field['name'], true);
+                        $col_width = !empty($field['column_width']) ? intval($field['column_width']) : 100;
                         ?>
-                        <tr class="form-field snn-tax-field snn-field-type-<?php echo esc_attr($field['type']); ?>">
-                            <th scope="row">
-                                <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
-                            </th>
-                            <td>
-                                <?php snn_render_field_input($field, $value, '0'); ?>
+                        <tr class="form-field snn-metabox-wrapper" style="display:flex;flex-wrap:wrap;">
+                            <td style="width:100%;padding:0;">
+                                <div class="snn-field-wrap" style="width:calc(<?php echo $col_width; ?>% - 30px);margin-right:20px;box-sizing:border-box;">
+                                    <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
+                                    <?php snn_render_field_input($field, $value, '0'); ?>
+                                </div>
                             </td>
                         </tr>
                         <?php
                     }, 10, 1);
 
+                    // Save
                     add_action('created_' . $tax, 'snn_save_taxonomy_field_data', 10, 1);
                     add_action('edited_' . $tax, 'snn_save_taxonomy_field_data', 10, 1);
                 }
@@ -1064,30 +1085,31 @@ function snn_print_tax_styles() {
     }
     ?>
     <style>
-    .snn-tax-field {
-        margin-bottom: 15px;
+    .snn-metabox-wrapper {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 5px;
+        padding: 10px;
     }
-    .snn-tax-field label {
+    .snn-field-wrap label {
         display: block;
         font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .snn-field-wrap input[type="text"],
+    .snn-field-wrap input[type="number"],
+    .snn-field-wrap input[type="url"],
+    .snn-field-wrap input[type="email"],
+    .snn-field-wrap input[type="date"],
+    .snn-field-wrap select,
+    .snn-field-wrap textarea {
+        width: 100%;
+        max-width: 600px;
+        padding: 8px;
         margin-bottom: 5px;
     }
-    .snn-tax-field input[type="text"],
-    .snn-tax-field input[type="number"],
-    .snn-tax-field input[type="url"],
-    .snn-tax-field input[type="email"],
-    .snn-tax-field input[type="date"],
-    .snn-tax-field select,
-    .snn-tax-field textarea {
-        width: 95%;
-        max-width: 400px;
-        padding: 6px;
-    }
-    .snn-tax-field textarea {
+    .snn-field-wrap textarea {
         min-height: 80px;
-    }
-    .snn-tax-field input[type="checkbox"] {
-        width: auto;
     }
     </style>
     <?php
@@ -1191,72 +1213,52 @@ function snn_display_author_custom_fields($user) {
     ?>
     <h2>Custom Author Information</h2>
     <?php wp_nonce_field('snn_save_author_fields', 'snn_author_fields_nonce'); ?>
-    <table class="form-table snn-author-fields">
+    <!-- We'll mimic the .snn-metabox-wrapper style for consistent UI -->
+    <div class="snn-metabox-wrapper" style="display:flex;flex-wrap:wrap;">
         <?php
         foreach ($author_fields as $field) {
             $field_name = $field['name'];
             $value      = get_user_meta($user->ID, $field_name, true);
+            $col_width  = !empty($field['column_width']) ? intval($field['column_width']) : 100;
             ?>
-            <tr class="snn-field-wrap snn-field-type-<?php echo esc_attr($field['type']); ?>">
-                <th>
-                    <label><?php echo esc_html(ucwords(str_replace('_',' ',$field_name))); ?></label>
-                </th>
-                <td>
-                    <?php snn_render_field_input($field, $value, '0'); ?>
-                </td>
-            </tr>
+            <div class="snn-field-wrap snn-field-type-<?php echo esc_attr($field['type']); ?>"
+                 style="width:calc(<?php echo $col_width; ?>% - 30px);margin-right:20px;box-sizing:border-box;">
+                <label><?php echo esc_html(ucwords(str_replace('_',' ',$field_name))); ?></label>
+                <?php snn_render_field_input($field, $value, '0'); ?>
+            </div>
             <?php
         }
         ?>
-    </table>
+    </div>
     <style>
-    .snn-author-fields .snn-field-wrap td input[type="text"],
-    .snn-author-fields .snn-field-wrap td input[type="number"],
-    .snn-author-fields .snn-field-wrap td input[type="url"],
-    .snn-author-fields .snn-field-wrap td input[type="email"],
-    .snn-author-fields .snn-field-wrap td input[type="date"],
-    .snn-author-fields .snn-field-wrap td select,
-    .snn-author-fields .snn-field-wrap td textarea {
-        width: 95%;
+    .snn-metabox-wrapper {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+    .snn-field-wrap label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .snn-field-wrap input[type="text"],
+    .snn-field-wrap input[type="number"],
+    .snn-field-wrap input[type="url"],
+    .snn-field-wrap input[type="email"],
+    .snn-field-wrap input[type="date"],
+    .snn-field-wrap select,
+    .snn-field-wrap textarea {
+        width: 100%;
         max-width: 400px;
         padding: 6px;
     }
-    .snn-author-fields .snn-field-wrap td textarea {
+    .snn-field-wrap textarea {
         min-height: 80px;
     }
-    .snn-author-fields .snn-field-wrap td input[type="checkbox"] {
+    .snn-field-wrap input[type="checkbox"] {
         width: auto;
-    }
-    .snn-author-fields .snn-field-type-media .media-uploader {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-    .snn-author-fields .snn-field-type-media .media-preview {
-        max-width: 60px; 
-        max-height: 60px;
-        vertical-align: middle;
-    }
-    .snn-author-fields .snn-field-type-media .media-preview .dashicons {
-        font-size: 40px; 
-        width: 40px; 
-        height: 40px; 
-        vertical-align: middle;
-    }
-    .snn-author-fields .snn-field-type-media .media-uploader button {
-        vertical-align: middle;
-    }
-    .snn-author-fields .snn-field-type-checkbox .choice-item,
-    .snn-author-fields .snn-field-type-radio .choice-item {
-        display: inline-block; 
-        margin-right: 15px; 
-        margin-bottom: 3px;
-    }
-    .snn-author-fields .snn-field-type-checkbox .choice-item input,
-    .snn-author-fields .snn-field-type-radio .choice-item input {
-        margin-right: 4px; 
-        vertical-align: middle;
     }
     </style>
     <?php
@@ -1427,7 +1429,6 @@ function snn_output_dynamic_field_js() {
                         // Replace "__index__" or old numeric index with the new index
                         var nameAttr = 'custom_fields['+ fieldName +']['+ index +']';
                         $(this).attr('name', nameAttr);
-                        // Also fix the ID
                         $(this).attr('id', fieldName + '_' + index);
                     }
                 });
@@ -1439,8 +1440,62 @@ function snn_output_dynamic_field_js() {
             $('.snn-color-picker').wpColorPicker();
         }
 
+        // -----------------------------------------------------------------
+        // NEW: Force all wp_editor instances to open in the HTML (Text) tab
+        // on post edit screens (post-new.php and post.php) for post type "post"
+        // -----------------------------------------------------------------
+        if (typeof switchEditors !== 'undefined') {
+            $('.wp-editor-wrap').each(function() {
+                var editorID = $(this).attr('id').replace('-wrap', '');
+                switchEditors.go(editorID, 'html');
+            });
+        }
+
+
+
+
+        
+        // Optional: For dynamically added editors in repeater items, add a slight delay
+        $(document).on('click', '.add-repeater-item', function() {
+            setTimeout(function() {
+                if (typeof switchEditors !== 'undefined') {
+                    $('.wp-editor-wrap').each(function() {
+                        var editorID = $(this).attr('id').replace('-wrap', '');
+                        switchEditors.go(editorID, 'html');
+                    });
+                }
+            }, 200);
+        });
+
     });
     </script>
     <?php
+}
+
+// -----------------------------------------------------------------
+// NEW: INIT TINYMCE EDITOR ON TEXT/HTML TAB BY DEFAULT ON POST EDIT SCREENS
+// -----------------------------------------------------------------
+add_action('admin_footer', 'snn_init_tinymce_html_default', 100);
+function snn_init_tinymce_html_default() {
+    global $pagenow;
+    // Only on post-new.php and post.php screens
+    if (in_array($pagenow, ['post-new.php', 'post.php'])) {
+        // Ensure we are editing a "post" type page
+        $screen = get_current_screen();
+        if ( isset($screen->post_type) && $screen->post_type === 'post' ) {
+            ?>
+            <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                if (typeof switchEditors !== 'undefined') {
+                    $('.wp-editor-wrap').each(function() {
+                        var editorID = $(this).attr('id').replace('-wrap','');
+                        switchEditors.go(editorID, 'html');
+                    });
+                }
+            });
+            </script>
+            <?php
+        }
+    }
 }
 ?>

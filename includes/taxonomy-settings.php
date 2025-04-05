@@ -34,6 +34,7 @@ function snn_render_taxonomies_page() {
                         'slug'         => sanitize_title( $taxonomy['slug'] ),
                         'hierarchical' => isset( $taxonomy['hierarchical'] ) ? 1 : 0,
                         'post_types'   => array_map( 'sanitize_text_field', $taxonomy['post_types'] ),
+                        'add_columns'  => isset( $taxonomy['add_columns'] ) ? 1 : 0,
                     );
                 }
             }
@@ -75,7 +76,6 @@ function snn_render_taxonomies_page() {
                         <div class="checkbox-container">
                             <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][hierarchical]" <?php checked( $taxonomy['hierarchical'], 1 ); ?> />
                         </div>
-
                         <label>Link Post Types</label>
                         <select name="taxonomies[<?php echo esc_attr( $index ); ?>][post_types][]" multiple>
                             <?php foreach ( $registered_post_types as $post_type ) : ?>
@@ -84,6 +84,10 @@ function snn_render_taxonomies_page() {
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <div class="field-group">
+                            <label>Show Columns</label><br>
+                            <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][add_columns]" <?php checked( isset( $taxonomy['add_columns'] ) ? $taxonomy['add_columns'] : 0, 1 ); ?> />
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -168,6 +172,10 @@ function snn_render_taxonomies_page() {
                             <option value="<?php echo esc_attr( $post_type->name ); ?>"><?php echo esc_html( $post_type->label ); ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <div class="field-group">
+                        <label>Add Columns</label><br>
+                        <input type="checkbox" name="taxonomies[${newIndex}][add_columns]" />
+                    </div>
                 `;
                 fieldContainer.appendChild(newRow);
             });
@@ -290,7 +298,7 @@ function snn_register_custom_taxonomies() {
             'hierarchical'      => (bool) $taxonomy['hierarchical'],
             'public'            => true,
             'show_ui'           => true,
-            'show_admin_column' => true,
+            'show_admin_column' => ( isset( $taxonomy['add_columns'] ) && $taxonomy['add_columns'] == 1 ) ? true : false,
             'show_in_rest'      => true,
             'rewrite'           => array( 'slug' => $taxonomy['slug'] ),
         );
