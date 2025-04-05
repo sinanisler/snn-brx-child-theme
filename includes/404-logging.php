@@ -38,6 +38,12 @@ function snn_handle_404_logs_actions() {
         } else {
             update_option('snn_disable_bot_logging', '0');
         }
+
+        // Save bot blocklist from textarea
+        if (isset($_POST['snn_bot_blocklist'])) {
+            $bot_blocklist = sanitize_textarea_field($_POST['snn_bot_blocklist']);
+            update_option('snn_bot_logging_blocklist', $bot_blocklist);
+        }
     }
 
     if (isset($_POST['snn_404_log_size_limit'])) {
@@ -61,7 +67,7 @@ function snn_handle_404_logs_actions() {
         }
     }
     
-    // New feature: Delete logs based on IP or User Agent match
+    // Delete logs based on IP or User Agent match
     if (isset($_POST['snn_delete_logs']) && !empty($_POST['snn_delete_logs_value'])) {
         $delete_value = sanitize_text_field($_POST['snn_delete_logs_value']);
         $args = array(
@@ -150,32 +156,16 @@ function snn_log_404_error() {
 
         if (get_option('snn_disable_bot_logging') === '1' && isset($_SERVER['HTTP_USER_AGENT'])) {
             $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
-            $bots = array(
-                'gptbot',
-                'googlebot',
-                'yandexbot',
-                'bytespider',
-                'spider',
-                'anthill',
-                'petalbot',
-                'semrushbot',
-                'ahrefsbot',
-                'bingbot',
-                'imagesiftbot',
-                'barkrowler',
-                'awariosmartbot',
-                'sogou',
-                'timpibot',
-                'seznambot',
-                'twitterbot',
-                'xbot',
-                'dataforseobot',
-                'meta-externalagent',
-                'facebook'
-            );
+            
+            // Retrieve bot blocklist from option or use default list if not set
+            $bot_blocklist = get_option('snn_bot_logging_blocklist', '');
+            if (empty($bot_blocklist)) {
+                $bot_blocklist = "gptbot\ngooglebot\nyandexbot\nbytespider\nspider\nanthill\npetalbot\nsemrushbot\nahrefsbot\nbingbot\nimagesiftbot\nbarkrowler\nawariosmartbot\nsogou\ntimpibot\nseznambot\ntwitterbot\nxbot\ndataforseobot\nmeta-externalagent\nfacebook";
+            }
+            $bots = array_filter(array_map('trim', explode("\n", $bot_blocklist)));
 
             foreach ($bots as $bot) {
-                if (strpos($user_agent, $bot) !== false) {
+                if (!empty($bot) && strpos($user_agent, strtolower($bot)) !== false) {
                     return;
                 }
             }
@@ -207,6 +197,10 @@ function snn_render_404_logs_page() {
     $logging_enabled     = get_option('snn_404_logging_enabled') === '1';
     $log_size_limit      = get_option('snn_404_log_size_limit', 100);
     $disable_bot_logging = get_option('snn_disable_bot_logging') === '1';
+    $bot_blocklist = get_option('snn_bot_logging_blocklist', '');
+    if (empty($bot_blocklist)) {
+        $bot_blocklist = "gptbot\ngooglebot\nyandexbot\nbytespider\nspider\nanthill\npetalbot\nsemrushbot\nahrefsbot\nbingbot\nimagesiftbot\nbarkrowler\nawariosmartbot\nsogou\ntimpibot\nseznambot\ntwitterbot\nxbot\ndataforseobot\nmeta-externalagent\nfacebook";
+    }
     ?>
     <div class="wrap">
         <h1>404 Logs</h1>
@@ -229,8 +223,12 @@ function snn_render_404_logs_page() {
                     <p>
                         <label>
                             <input type="checkbox" name="snn_disable_bot_logging" <?php checked($disable_bot_logging); ?>>
-                            Disable Bot/Crawler Logging (Don't enable this if the website is new; collect some URLs first)
+                            Disable Bots/Robots Logging (Don't enable this if the website is new; collect some URLs first for SEO)
                         </label>
+                    </p>
+                    <p id="bot_blocklist_container" <?php if (!$disable_bot_logging) echo 'style="display:none;"'; ?>>
+                        <label for="snn_bot_blocklist">Bot Logs Blocklist (one per line):</label><br>
+                        <textarea name="snn_bot_blocklist" id="snn_bot_blocklist" rows="4" cols="50"><?php echo esc_textarea($bot_blocklist); ?></textarea>
                     </p>
                     <?php submit_button('Save Changes', 'primary', 'snn_404_logging_submit', false); ?>
                 </form>
@@ -292,6 +290,25 @@ function snn_render_404_logs_page() {
             </table>
         <?php endif; ?>
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var checkbox = document.querySelector('input[name="snn_disable_bot_logging"]');
+        var botBlocklistContainer = document.getElementById('bot_blocklist_container');
+        
+        function toggleBotBlocklist() {
+            if (checkbox.checked) {
+                botBlocklistContainer.style.display = 'block';
+            } else {
+                botBlocklistContainer.style.display = 'none';
+            }
+        }
+        
+        if (checkbox && botBlocklistContainer) {
+            checkbox.addEventListener('change', toggleBotBlocklist);
+            toggleBotBlocklist();
+        }
+    });
+    </script>
     <?php
 }
 ?>
