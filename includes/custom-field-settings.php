@@ -1045,7 +1045,7 @@ function snn_register_dynamic_taxonomy_fields() {
                         ?>
                         <!-- Wrap in snn-metabox-wrapper & snn-field-wrap -->
                         <div class="form-field snn-metabox-wrapper" style="display:flex;flex-wrap:wrap;">
-                            <div class="snn-field-wrap" style="width:calc(<?php echo $col_width; ?>% - 30px);margin-right:20px;box-sizing:border-box;">
+                            <div class="snn-field-wrap" style="width:100%;margin-right:20px;box-sizing:border-box; padding:10px">
                                 <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
                                 <?php snn_render_field_input($field, '', '0'); ?>
                             </div>
@@ -1057,9 +1057,10 @@ function snn_register_dynamic_taxonomy_fields() {
                         $value = get_term_meta($term->term_id, $field['name'], true);
                         $col_width = !empty($field['column_width']) ? intval($field['column_width']) : 100;
                         ?>
-                        <tr class="form-field snn-metabox-wrapper" style="display:flex;flex-wrap:wrap;">
-                            <td style="width:100%;padding:0;">
-                                <div class="snn-field-wrap" style="width:calc(<?php echo $col_width; ?>% - 30px);margin-right:20px;box-sizing:border-box;">
+                        <tr class="form-field snn-metabox-wrapper" >
+                            <th scope="row"></th>
+                            <td style="width:100%;padding:10px;">
+                                <div class="snn-field-wrap" style="width:100%;margin-right:20px;box-sizing:border-box;">
                                     <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
                                     <?php snn_render_field_input($field, $value, '0'); ?>
                                 </div>
@@ -1495,4 +1496,79 @@ function snn_init_tinymce_html_default() {
         }
     }
 }
+
+
+
+
+add_action('admin_enqueue_scripts', function ($hook) {
+    if (in_array($hook, ['edit-tags.php', 'term.php'], true)) {
+        add_action('admin_footer', function () {
+            ?>
+            <script>
+            jQuery(document).ready(function($) {
+
+                // 1. Detect taxonomy form submissions (add/edit)
+                $('form').on('submit', function(event) {
+                    const action = $(this).attr('action') || '';
+                    if (action.includes('edit-tags.php')) {
+                        const form = this;
+                        const $submitButton = $(form).find('input[type="submit"], button[type="submit"]');
+                        
+                        // Avoid multiple reloads
+                        $submitButton.prop('disabled', true);
+                        
+                        // Wait for AJAX response, then reload
+                        setTimeout(function () {
+                            location.reload();
+                        }, 500);
+                    }
+                });
+
+                // 2. Detect delete links
+                $(document).on('click', '.delete-tag', function(event) {
+                    event.preventDefault();
+                    const url = $(this).attr('href');
+
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        $.post(url, { action: 'delete-tag' }, function () {
+                            location.reload();
+                        });
+                    }
+                });
+
+                // 3. Optional: Hook into ajaxComplete for extra safety (optional but recommended)
+                $(document).ajaxComplete(function(event, xhr, settings) {
+                    if (settings && settings.url && settings.url.includes('edit-tags.php')) {
+                        location.reload();
+                    }
+                });
+
+            });
+            </script>
+            <?php
+        });
+    }
+});
+function snn_taxonomy_overview_js() {
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        // Listen for any AJAX call that handles taxonomy term actions.
+        $(document).ajaxComplete(function(event, xhr, settings) {
+            // Check if the AJAX request is for adding, updating, or deleting a taxonomy term.
+            if (settings.data && (
+                settings.data.indexOf('action=add-tag') !== -1 ||
+                settings.data.indexOf('action=delete-tag') !== -1 ||
+                settings.data.indexOf('action=update-tag') !== -1
+            )) {
+                // Refresh the page to update the taxonomy overview.
+                window.location.reload();
+            }
+        });
+    });
+    </script>
+    <?php
+}
+add_action('admin_footer-edit-tags.php', 'snn_taxonomy_overview_js');
+
 ?>
