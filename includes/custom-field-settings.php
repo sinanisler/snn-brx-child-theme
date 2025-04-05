@@ -134,6 +134,14 @@ function snn_custom_fields_page_callback() {
                                        placeholder="Field Name" 
                                        value="<?php echo esc_attr($field['name']); ?>" />
                             </div>
+                            <!-- Moved Width (%) field here, immediately after Field Name -->
+                            <div class="field-group">
+                                <label>Width (%)</label><br>
+                                <input style="width:70px" type="number" min="10" max="100"
+                                       name="custom_fields[<?php echo $index; ?>][column_width]" 
+                                       placeholder="25" 
+                                       value="<?php echo esc_attr($field['column_width'] ?? ''); ?>" />
+                            </div>
                             <div class="field-group">
                                 <label>Field Type</label><br>
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
@@ -190,13 +198,6 @@ function snn_custom_fields_page_callback() {
                                 <input type="checkbox" class="repeater-checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" value="1"
                                        <?php checked(!empty($field['repeater'])); echo $is_repeater_disabled_type ? ' disabled' : ''; ?>
                                        title="<?php echo esc_attr($repeater_title); ?>" />
-                            </div>
-                            <div class="field-group">
-                                <label>Width (%)</label><br>
-                                <input style="width:80px" type="number" min="10" max="100"
-                                       name="custom_fields[<?php echo $index; ?>][column_width]" 
-                                       placeholder="25" 
-                                       value="<?php echo esc_attr($field['column_width'] ?? ''); ?>" />
                             </div>
                         </div>
                         <?php
@@ -261,6 +262,7 @@ function snn_custom_fields_page_callback() {
                     </div>
                     <div class="field-group"><label>Group Name</label><br><input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name"></div>
                     <div class="field-group"><label>Field Name</label><br><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="Field Name"></div>
+                    <div class="field-group"><label>Width (%)</label><br><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
                     <div class="field-group">
                         <label>Field Type</label><br>
                         <select name="custom_fields[${newIndex}][type]" class="field-type-select" style="width:140px">
@@ -295,7 +297,6 @@ function snn_custom_fields_page_callback() {
                     </select></div>
                     <div class="field-group"><label>Author</label><br><input type="checkbox" name="custom_fields[${newIndex}][author]" value="1"></div>
                     <div class="field-group"><label>Repeater</label><br><input type="checkbox" class="repeater-checkbox" name="custom_fields[${newIndex}][repeater]" value="1"></div>
-                    <div class="field-group"><label>Width (%)</label><br><input style="width:80px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
                 `;
                 fieldContainer.appendChild(newRow);
                 attachFieldNameSanitizer(newRow.querySelector('.sanitize-key'));
@@ -1451,16 +1452,12 @@ function snn_output_dynamic_field_js() {
             });
         }
 
-
-
-
-        
         // Optional: For dynamically added editors in repeater items, add a slight delay
         $(document).on('click', '.add-repeater-item', function() {
             setTimeout(function() {
                 if (typeof switchEditors !== 'undefined') {
                     $('.wp-editor-wrap').each(function() {
-                        var editorID = $(this).attr('id').replace('-wrap', '');
+                        var editorID = $(this).attr('id').replace('-wrap','');
                         switchEditors.go(editorID, 'html');
                     });
                 }
