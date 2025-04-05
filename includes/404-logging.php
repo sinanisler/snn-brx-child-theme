@@ -60,6 +60,32 @@ function snn_handle_404_logs_actions() {
             wp_delete_post($log->ID, true);
         }
     }
+    
+    // New feature: Delete logs based on IP or User Agent match
+    if (isset($_POST['snn_delete_logs']) && !empty($_POST['snn_delete_logs_value'])) {
+        $delete_value = sanitize_text_field($_POST['snn_delete_logs_value']);
+        $args = array(
+            'post_type'      => 'snn_404_logs',
+            'posts_per_page' => -1,
+            'meta_query'     => array(
+                'relation' => 'OR',
+                array(
+                    'key'     => 'ip_address',
+                    'value'   => $delete_value,
+                    'compare' => '='
+                ),
+                array(
+                    'key'     => 'user_agent',
+                    'value'   => $delete_value,
+                    'compare' => 'LIKE'
+                )
+            )
+        );
+        $logs = get_posts($args);
+        foreach ($logs as $log) {
+            wp_delete_post($log->ID, true);
+        }
+    }
 }
 add_action('admin_init', 'snn_handle_404_logs_actions');
 
@@ -178,42 +204,55 @@ function snn_log_404_error() {
 add_action('template_redirect', 'snn_log_404_error');
 
 function snn_render_404_logs_page() {
-    $logging_enabled = get_option('snn_404_logging_enabled') === '1';
-    $log_size_limit  = get_option('snn_404_log_size_limit', 100);
+    $logging_enabled     = get_option('snn_404_logging_enabled') === '1';
+    $log_size_limit      = get_option('snn_404_log_size_limit', 100);
     $disable_bot_logging = get_option('snn_disable_bot_logging') === '1';
     ?>
     <div class="wrap">
         <h1>404 Logs</h1>
-
-        <form method="post" action="">
-            <label>
-                <input type="checkbox" name="snn_404_logging_enabled" <?php checked($logging_enabled); ?>>
-                Enable 404 Logging
-            </label>
-            <br><br>
- 
-            <label>
-                Maximum number of logs to keep:
-                <input type="number" name="snn_404_log_size_limit" value="<?php echo esc_attr($log_size_limit); ?>" min="1" style="width: 100px;">
-            </label>
-            <br><br>
- 
-            <label>
-                <input type="checkbox" name="snn_disable_bot_logging" <?php checked($disable_bot_logging); ?>>
-                Disable Bot/Crawler Logging (Don't enable this if the website is new; collect some URLs first)
-            </label>
-            <br><br>
-
-            <?php submit_button('Save Changes', 'primary', 'snn_404_logging_submit', false); ?>
-        </form>
-
-        <?php if ($logging_enabled): ?>
-            <div class="tablenav top">
-                <form method="post" action="" style="float: left;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div style="flex: 1; margin-right: 20px;">
+                <!-- Settings Form -->
+                <form method="post" action="">
+                    <p>
+                        <label>
+                            <input type="checkbox" name="snn_404_logging_enabled" <?php checked($logging_enabled); ?>>
+                            Enable 404 Logging
+                        </label>
+                    </p>
+                    <p>
+                        <label>
+                            Maximum number of logs to keep:
+                            <input type="number" name="snn_404_log_size_limit" value="<?php echo esc_attr($log_size_limit); ?>" min="1" style="width: 100px;">
+                        </label>
+                    </p>
+                    <p>
+                        <label>
+                            <input type="checkbox" name="snn_disable_bot_logging" <?php checked($disable_bot_logging); ?>>
+                            Disable Bot/Crawler Logging (Don't enable this if the website is new; collect some URLs first)
+                        </label>
+                    </p>
+                    <?php submit_button('Save Changes', 'primary', 'snn_404_logging_submit', false); ?>
+                </form>
+                <br>
+                <form method="post" action="">
                     <?php submit_button('Clear All Logs', 'delete', 'snn_clear_404_logs', false); ?>
                 </form>
             </div>
-
+            <div style="flex: 1;">
+                <!-- Delete Logs by IP or User Agent Form -->
+                <h2>Delete Logs by IP or User Agent</h2>
+                <p>Enter an IP address or a part of a user agent string (e.g. "bingbot") to remove all matching logs.</p>
+                <form method="post" action="">
+                    <p>
+                        <label for="snn_delete_logs_value">IP or User Agent:</label>
+                        <input type="text" name="snn_delete_logs_value" id="snn_delete_logs_value" placeholder="Enter value">
+                    </p>
+                    <?php submit_button('Delete Logs', 'delete', 'snn_delete_logs', false); ?>
+                </form>
+            </div>
+        </div>
+        <?php if ($logging_enabled): ?>
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
@@ -255,3 +294,4 @@ function snn_render_404_logs_page() {
     </div>
     <?php
 }
+?>
