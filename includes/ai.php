@@ -283,6 +283,9 @@ function snn_add_ai_script_to_footer() {
             padding: 3px 5px;
             font-size:16px;
         }
+        [data-control="query"] .snn-ai-button{
+            display:none
+        }
         .snn-ai-button:hover {
             background-color: var(--builder-bg-accent);
             color: var(--builder-color-accent);
