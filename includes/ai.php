@@ -51,7 +51,6 @@ function snn_render_ai_settings() {
     }
 
     $action_presets = array_values($action_presets);
-
     ?>
     <div class="wrap">
         <h1><?php esc_html_e('AI Settings', 'snn'); ?></h1>
@@ -93,11 +92,11 @@ function snn_render_ai_settings() {
                             <label for="snn_openai_model"><?php esc_html_e('OpenAI Model', 'snn'); ?></label>
                         </th>
                         <td>
-                             <select name="snn_openai_model" id="snn_openai_model">
+                            <select name="snn_openai_model" id="snn_openai_model">
                                 <option value="gpt-4o-mini" <?php selected($openai_model, 'gpt-4o-mini'); ?>>gpt-4o-mini (128k context)</option>
                                 <option value="o3-mini"    <?php selected($openai_model, 'o3-mini'); ?>>o3-mini (200k context)</option>
                                 <option value="o1-mini"    <?php selected($openai_model, 'o1-mini'); ?>>o1-mini (128k context)</option>
-                                <option value="gpt-4o"      <?php selected($openai_model, 'gpt-4o'); ?>>gpt-4o (128k context)</option>
+                                <option value="gpt-4o"     <?php selected($openai_model, 'gpt-4o'); ?>>gpt-4o (128k context)</option>
                                 <option value="o1"         <?php selected($openai_model, 'o1'); ?>>o1 (128k context)</option>
                             </select>
                             <p class="description">
@@ -124,13 +123,16 @@ function snn_render_ai_settings() {
                 </table>
 
                 <h2><?php esc_html_e('Action Prompts', 'snn'); ?></h2>
-                <p><?php esc_html_e('Add, edit, or remove AI action prompts. These presets will be available as selectable buttons in the AI overlay.', 'snn'); ?></p>
+                <p><?php esc_html_e('Add, edit, remove, or drag-and-drop to reorder AI action prompts. These presets will be available as selectable buttons in the AI overlay.', 'snn'); ?></p>
 
                 <table class="form-table" id="snn-ai-action-presets-table">
                     <tbody>
                     <?php if (!empty($action_presets)) : ?>
                         <?php foreach ($action_presets as $index => $preset) : ?>
-                            <tr class="snn-ai-action-preset-row">
+                            <tr class="snn-ai-action-preset-row" draggable="true">
+                                <!-- DRAG HANDLE -->
+                                <td class="snn-ai-drag-handle" style="padding:0; width: 30px; text-align:center; cursor: move;">&#8942;</td>
+
                                 <td style="padding:0">
                                     <input type="text"
                                            name="snn_ai_action_presets[<?php echo $index; ?>][name]"
@@ -152,7 +154,7 @@ function snn_render_ai_settings() {
                     <?php endif; ?>
                     </tbody>
                 </table>
-                 <p>
+                <p>
                     <button type="button" class="button" id="snn-ai-add-preset"><?php esc_html_e('Add Preset', 'snn'); ?></button>
                 </p>
             </div>
@@ -177,6 +179,10 @@ function snn_render_ai_settings() {
             #openai-settings #snn_system_prompt {
                 min-height: 200px;
             }
+            /* Extra highlight for dragging */
+            .snn-drag-over-row {
+                outline: 2px dashed #0073aa;
+            }
             </style>
 
             <?php submit_button(__('Save AI Settings', 'snn')); ?>
@@ -200,7 +206,7 @@ function snn_render_ai_settings() {
             const presetsTableBody = document.querySelector('#snn-ai-action-presets-table tbody');
 
             function updatePresetIndices() {
-                 if (!presetsTableBody) return;
+                if (!presetsTableBody) return;
                 const rows = presetsTableBody.querySelectorAll('tr.snn-ai-action-preset-row');
                 rows.forEach((row, index) => {
                     const nameInput = row.querySelector('.preset-name-input');
@@ -210,12 +216,15 @@ function snn_render_ai_settings() {
                 });
             }
 
+            // ADD PRESET
             if (addPresetButton && presetsTableBody) {
                 addPresetButton.addEventListener('click', function() {
                     const newIndex = presetsTableBody.querySelectorAll('tr.snn-ai-action-preset-row').length;
                     const row = document.createElement('tr');
                     row.className = 'snn-ai-action-preset-row';
+                    row.setAttribute('draggable', 'true');
                     row.innerHTML = `
+                        <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor: move;">&#8942;</td>
                         <td style="padding:0">
                             <input type="text"
                                    name="snn_ai_action_presets[${newIndex}][name]"
@@ -233,10 +242,12 @@ function snn_render_ai_settings() {
                         </td>
                     `;
                     presetsTableBody.appendChild(row);
+                    updatePresetIndices();
                 });
             }
 
-             if (presetsTableBody) {
+            // REMOVE PRESET
+            if (presetsTableBody) {
                 presetsTableBody.addEventListener('click', function(e) {
                     if (e.target && e.target.classList.contains('snn-ai-remove-preset')) {
                         e.preventDefault();
@@ -247,9 +258,53 @@ function snn_render_ai_settings() {
                         }
                     }
                 });
+            }
 
-                 updatePresetIndices();
-             }
+            // DRAG & DROP REORDER
+            let draggingRow = null;
+            let placeholderRow = null;
+
+            if (presetsTableBody) {
+                presetsTableBody.addEventListener('dragstart', (e) => {
+                    const target = e.target;
+                    if (target && target.classList.contains('snn-ai-action-preset-row')) {
+                        draggingRow = target;
+                        // Some browsers require dataTransfer data to be set
+                        e.dataTransfer.setData('text/plain', '');
+                        e.dataTransfer.effectAllowed = 'move';
+                    }
+                });
+
+                presetsTableBody.addEventListener('dragover', (e) => {
+                    // By default, data/elements cannot be dropped in other elements in HTML5.
+                    // Prevent default to allow drop.
+                    e.preventDefault();
+                    const target = e.target.closest('tr.snn-ai-action-preset-row');
+                    if (target && target !== draggingRow) {
+                        // We'll insert placeholder above or below target
+                        const bounding = target.getBoundingClientRect();
+                        const offset = bounding.y + bounding.height / 2;
+                        if (e.clientY - offset > 0) {
+                            // user is dragging below the middle
+                            if (target.nextSibling !== draggingRow) {
+                                target.parentNode.insertBefore(draggingRow, target.nextSibling);
+                            }
+                        } else {
+                            // user is dragging above the middle
+                            if (target !== draggingRow.nextSibling) {
+                                target.parentNode.insertBefore(draggingRow, target);
+                            }
+                        }
+                    }
+                });
+
+                presetsTableBody.addEventListener('dragend', () => {
+                    draggingRow = null;
+                    updatePresetIndices();
+                });
+            }
+
+            updatePresetIndices();
         });
         </script>
     </div>
@@ -287,7 +342,6 @@ function snn_add_ai_script_to_footer() {
         $action_presets = $stored_action_presets;
     }
     $action_presets = array_values($action_presets);
-
     ?>
     <style>
         .snn-ai-button {
@@ -642,7 +696,7 @@ function snn_add_ai_script_to_footer() {
                 if(el) {
                     el.style.backgroundColor = '';
                     setTimeout(() => {
-                         if(el) el.style.transition = '';
+                        if(el) el.style.transition = '';
                     }, 300);
                 }
             }, 600);
@@ -664,14 +718,14 @@ function snn_add_ai_script_to_footer() {
             if (targetElement && targetType && editorTypes[targetType]) {
                 const existingContent = editorTypes[targetType].getContent(targetElement);
                 if (existingContent) {
-                     promptTextarea.value = existingContent.trim() + "\n";
-                     promptTextarea.focus();
-                     promptTextarea.scrollTop = 0;
-                 } else {
+                    promptTextarea.value = existingContent.trim() + "\n";
                     promptTextarea.focus();
-                 }
+                    promptTextarea.scrollTop = 0;
+                } else {
+                    promptTextarea.focus();
+                }
             }
-             updateSubmitButtonState();
+            updateSubmitButtonState();
         }
 
         function hideModal() {
@@ -684,7 +738,7 @@ function snn_add_ai_script_to_footer() {
             }
         }
 
-         function updateSubmitButtonState() {
+        function updateSubmitButtonState() {
             const hasPrompt = promptTextarea.value.trim().length > 0;
             const hasPresets = selectedPresets.length > 0;
             submitButton.disabled = isRequestPending || !(hasPrompt || hasPresets);
@@ -714,12 +768,12 @@ function snn_add_ai_script_to_footer() {
                     btn.classList.add('selected');
                     selectedPresets.push(presetData);
                 }
-                 updateSubmitButtonState();
+                updateSubmitButtonState();
             });
             actionsContainer.appendChild(btn);
         });
 
-         promptTextarea.addEventListener('input', updateSubmitButtonState);
+        promptTextarea.addEventListener('input', updateSubmitButtonState);
 
         submitButton.addEventListener('click', async function() {
             if (isRequestPending || !config.apiKey) {
@@ -744,36 +798,38 @@ function snn_add_ai_script_to_footer() {
                 messages.push({ role: 'system', content: config.systemPrompt });
             }
             let existingContent = '';
-             if (targetElement && targetType && editorTypes[targetType]) {
-                 existingContent = editorTypes[targetType].getContent(targetElement).trim();
-                 if (existingContent) {
+            if (targetElement && targetType && editorTypes[targetType]) {
+                existingContent = editorTypes[targetType].getContent(targetElement).trim();
+                if (existingContent) {
                     messages.push({ role: 'user', content: `The current content is:\n\`\`\`\n${existingContent}\n\`\`\`` });
-                 }
-             }
+                }
+            }
+
             let combinedUserInstruction = "";
             if (selectedPresets.length > 0) {
                 combinedUserInstruction += "Apply the following actions:\n";
                 selectedPresets.forEach(p => { combinedUserInstruction += `- ${p.prompt}\n`; });
-                 combinedUserInstruction += "\n";
+                combinedUserInstruction += "\n";
             }
             const userTypedPrompt = promptTextarea.value.replace(existingContent.trim() + "\n\n---\n", "").trim();
-             if (userTypedPrompt) {
-                 combinedUserInstruction += `Additional instructions: ${userTypedPrompt}`;
-             } else if (!combinedUserInstruction && existingContent) {
-             } else if (!combinedUserInstruction && !existingContent) {
-                 combinedUserInstruction = "Generate some relevant content.";
-             }
+            if (userTypedPrompt) {
+                combinedUserInstruction += `Additional instructions: ${userTypedPrompt}`;
+            } else if (!combinedUserInstruction && existingContent) {
+                // No new instructions but we have existing content
+            } else if (!combinedUserInstruction && !existingContent) {
+                combinedUserInstruction = "Generate some relevant content.";
+            }
 
-             if (combinedUserInstruction) {
+            if (combinedUserInstruction) {
                 messages.push({ role: 'user', content: combinedUserInstruction });
-             } else {
-                 console.warn("SNN AI: No instruction provided to AI.");
-                  isRequestPending = false;
-                  spinner.style.display = 'none';
-                  updateSubmitButtonState();
-                  alert("<?php echo esc_js(__('Please select a preset or type an instruction.', 'snn')); ?>");
-                  return;
-             }
+            } else {
+                console.warn("SNN AI: No instruction provided to AI.");
+                isRequestPending = false;
+                spinner.style.display = 'none';
+                updateSubmitButtonState();
+                alert("<?php echo esc_js(__('Please select a preset or type an instruction.', 'snn')); ?>");
+                return;
+            }
 
             try {
                 const response = await fetch(config.apiEndpoint, {
@@ -788,9 +844,9 @@ function snn_add_ai_script_to_footer() {
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     let errorMsg = `API Error: ${response.status} ${response.statusText}`;
-                     if (errorData.error && errorData.error.message) errorMsg += ` - ${errorData.error.message}`;
-                     else if (response.status === 401) errorMsg += ' - Check API key.';
-                     else if (response.status === 429) errorMsg += ' - Quota exceeded.';
+                    if (errorData.error && errorData.error.message) errorMsg += ` - ${errorData.error.message}`;
+                    else if (response.status === 401) errorMsg += ' - Check API key.';
+                    else if (response.status === 429) errorMsg += ' - Quota exceeded.';
                     throw new Error(errorMsg);
                 }
                 const data = await response.json();
@@ -808,7 +864,7 @@ function snn_add_ai_script_to_footer() {
             } catch (error) {
                 console.error('SNN AI Fetch Error:', error);
                 responseDiv.textContent = `Error: ${error.message}`;
-                 responseDiv.style.display = 'block';
+                responseDiv.style.display = 'block';
             } finally {
                 isRequestPending = false;
                 spinner.style.display = 'none';
@@ -833,9 +889,9 @@ function snn_add_ai_script_to_footer() {
         });
 
         function addAiButtonTo(element, type) {
-             if (element.querySelector(':scope > .snn-ai-button, :scope > .control-label > .snn-ai-button')) {
-                 return;
-             }
+            if (element.querySelector(':scope > .snn-ai-button, :scope > .control-label > .snn-ai-button')) {
+                return;
+            }
 
             const aiButton = document.createElement('span');
             aiButton.className = 'snn-ai-button';
@@ -845,15 +901,15 @@ function snn_add_ai_script_to_footer() {
 
             const controlLabel = element.querySelector('.control-label');
             if (controlLabel) {
-                 if (element.firstChild) {
+                if (element.firstChild) {
                     element.insertBefore(aiButton, element.firstChild);
-                 } else {
+                } else {
                     element.appendChild(aiButton);
-                 }
+                }
             } else if (element.firstChild) {
-                 element.insertBefore(aiButton, element.firstChild);
+                element.insertBefore(aiButton, element.firstChild);
             } else {
-                 element.appendChild(aiButton);
+                element.appendChild(aiButton);
             }
 
             aiButton.addEventListener('click', function(e) {
@@ -896,5 +952,3 @@ function snn_add_ai_script_to_footer() {
     <?php
 }
 add_action('wp_footer', 'snn_add_ai_script_to_footer');
-
-?>
