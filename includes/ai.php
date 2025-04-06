@@ -2,12 +2,12 @@
 
 function snn_add_ai_settings_submenu() {
     add_submenu_page(
-        'snn-settings',                  
-        'AI Settings',                    
-        'AI',                            
-        'manage_options',                 
-        'snn-ai-settings',                
-        'snn_render_ai_settings'          
+        'snn-settings',  // Parent slug
+        'AI Settings',   // Page title
+        'AI',            // Menu title
+        'manage_options',// Capability
+        'snn-ai-settings',// Menu slug
+        'snn_render_ai_settings' // Callback function
     );
 }
 add_action('admin_menu', 'snn_add_ai_settings_submenu');
@@ -16,6 +16,9 @@ function snn_register_ai_settings() {
     register_setting('snn_ai_settings_group', 'snn_ai_enabled');
     register_setting('snn_ai_settings_group', 'snn_openai_api_key');
     register_setting('snn_ai_settings_group', 'snn_openai_model');
+    register_setting('snn_ai_settings_group', 'snn_system_prompt');
+    // New setting for action presets (stored as an array)
+    register_setting('snn_ai_settings_group', 'snn_ai_action_presets');
 }
 add_action('admin_init', 'snn_register_ai_settings');
 
@@ -23,6 +26,30 @@ function snn_render_ai_settings() {
     $ai_enabled     = get_option('snn_ai_enabled', 'no');
     $openai_api_key = get_option('snn_openai_api_key', '');
     $openai_model   = get_option('snn_openai_model', 'gpt-4o-mini');
+    $system_prompt  = get_option('snn_system_prompt', 'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Generate with as same language as the content unless told otherwise. Only respond with the needed content and nothing else always!');
+
+    // Default presets if the user has NEVER saved any presets (the option is false)
+    $default_presets = [
+        ['name' => 'Title', 'prompt' => 'Generate a catchy title.'],
+        ['name' => 'Content', 'prompt' => 'Generate engaging content.'],
+        ['name' => 'Button', 'prompt' => 'Suggest a call-to-action button text.'],
+        ['name' => 'Funny', 'prompt' => 'Make it funny.'],
+        ['name' => 'Sad', 'prompt' => 'Make it sad.'],
+        ['name' => 'Business', 'prompt' => 'Make it professional and business-like.'],
+        ['name' => 'CSS', 'prompt' => 'Ignore all previous instructions. Write clean native CSS only. Always use selector %root%, no <style> tag.'],
+    ];
+
+    $stored_action_presets = get_option('snn_ai_action_presets', false);
+    if ($stored_action_presets === false) {
+        // Option has never been saved; use defaults
+        $action_presets = $default_presets;
+    } elseif (!is_array($stored_action_presets)) {
+        // If something invalid got saved, reset to an empty array
+        $action_presets = [];
+    } else {
+        // The user saved something valid (including possibly an empty array)
+        $action_presets = $stored_action_presets;
+    }
     ?>
     <div class="wrap">
         <h1>AI Settings</h1>
@@ -43,7 +70,8 @@ function snn_render_ai_settings() {
                 </tr>
             </table>
 
-            <div id="openai-settings" style="<?php echo ($ai_enabled === 'yes') ? '' : 'display:none;'; ?>">
+            <!-- Wrap the OpenAI API Settings and Action Presets in one container -->
+            <div id="openai-settings" style="display: <?php echo ($ai_enabled === 'yes') ? '' : 'none'; ?>;">
                 <h2>OpenAI API Settings</h2>
                 <table class="form-table">
                     <tr>
@@ -87,20 +115,97 @@ function snn_render_ai_settings() {
                             <p class="description">
                                 Select the OpenAI model to use. <br>
                                 The context length indicates the maximum number of tokens.<br>
-                                <a href="https://openai.com/api/pricing/" target="_blank" >OpenAI API Model Prices</a>
+                                <a href="https://openai.com/api/pricing/" target="_blank">OpenAI API Model Prices</a>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_system_prompt">System Prompt</label>
+                        </th>
+                        <td>
+                            <textarea name="snn_system_prompt" id="snn_system_prompt" class="regular-text" rows="5"><?php echo esc_textarea($system_prompt); ?></textarea>
+                            <p class="description">
+                                Enter the system prompt for AI interactions.
                             </p>
                         </td>
                     </tr>
                 </table>
-            </div>
 
+                <h2>Action Presets</h2>
+                <p>Add, edit, or remove AI action presets. These presets will be available as selectable buttons in the AI overlay.</p>
+                <table class="form-table" id="snn-ai-action-presets-table">
+                    <tbody>
+                    <?php if (!empty($action_presets)) : ?>
+                        <?php foreach ($action_presets as $index => $preset) : ?>
+                            <tr class="snn-ai-action-preset-row">
+                                <td style="padding:0">
+                                    <input type="text" name="snn_ai_action_presets[<?php echo $index; ?>][name]" value="<?php echo esc_attr($preset['name']); ?>" class="regular-text" />
+                                </td>
+                                <td style="padding:0">
+                                    <textarea name="snn_ai_action_presets[<?php echo $index; ?>][prompt]" rows="2" class="regular-text"><?php echo esc_textarea($preset['prompt']); ?></textarea>
+                                </td>
+                                <td style="padding:0">
+                                    <button class="button snn-ai-remove-preset">Remove</button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+                <p>
+                    <button type="button" class="button" id="snn-ai-add-preset">Add Preset</button>
+                </p>
+            </div>
+            <style>
+            #snn-ai-action-presets-table{
+                max-width:660px;
+            }
+            #snn-ai-action-presets-table td{
+                vertical-align: top;
+            }
+            .snn-ai-action-preset-row input.regular-text{
+                max-width: 220px;
+                height:46px;
+            }
+            #openai-settings #snn_system_prompt,
+            #openai-settings #snn_openai_model,
+            #openai-settings #snn_openai_api_key {
+                width:430px;
+                max-width:430px;
+            }
+            #openai-settings #snn_system_prompt{
+                min-height:200px;
+            }
+            </style>
+                        
             <?php submit_button(); ?>
         </form>
-        <script type="text/javascript">
-            document.getElementById('snn_ai_enabled').addEventListener('change', function() {
-                var openaiSettings = document.getElementById('openai-settings');
-                openaiSettings.style.display = this.checked ? 'block' : 'none';
-            });
+        <script>
+        document.getElementById('snn_ai_enabled').addEventListener('change', function() {
+            var openaiSettings = document.getElementById('openai-settings');
+            openaiSettings.style.display = this.checked ? '' : 'none';
+        });
+
+        // Repeater functionality for action presets
+        document.getElementById('snn-ai-add-preset').addEventListener('click', function() {
+            var tableBody = document.querySelector('#snn-ai-action-presets-table tbody');
+            var index = tableBody.children.length;
+            var row = document.createElement('tr');
+            row.className = 'snn-ai-action-preset-row';
+            row.innerHTML = '<td><label>Action Name:</label><input type="text" name="snn_ai_action_presets[' + index + '][name]" class="regular-text" /></td>' +
+                            '<td><label>Action Prompt:</label><textarea name="snn_ai_action_presets[' + index + '][prompt]" rows="2" class="regular-text"></textarea></td>' +
+                            '<td><button class="button snn-ai-remove-preset">Remove</button></td>';
+            tableBody.appendChild(row);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('snn-ai-remove-preset')) {
+                e.preventDefault();
+                var row = e.target.closest('tr');
+                row.parentNode.removeChild(row);
+            }
+        });
         </script>
     </div>
     <?php
@@ -109,21 +214,42 @@ function snn_render_ai_settings() {
 // Add script to footer when in admin and Bricks Builder is active
 function snn_add_ai_script_to_footer() {
     // Only add if user is an admin and we're in Bricks Builder
-    if (!current_user_can('manage_options') || !isset($_GET['bricks']) || $_GET['bricks'] !== 'run') {
+    if ( ! current_user_can('manage_options') || ! isset($_GET['bricks']) || $_GET['bricks'] !== 'run' ) {
         return;
     }
 
     // Get settings
-    $ai_enabled = get_option('snn_ai_enabled', 'no');
+    $ai_enabled     = get_option('snn_ai_enabled', 'no');
     $openai_api_key = get_option('snn_openai_api_key', '');
-    $openai_model = get_option('snn_openai_model', 'gpt-4o-mini');
+    $openai_model   = get_option('snn_openai_model', 'gpt-4o-mini');
+    $system_prompt  = get_option('snn_system_prompt', 'You are a helpful assistant that helps with content creation or manipulation. Never use markdown.');
 
-    // Only proceed if AI is enabled and API key is present
-    if ($ai_enabled !== 'yes' || empty($openai_api_key)) {
+    // If AI isn't enabled, don't load the script
+    if ($ai_enabled !== 'yes') {
         return;
     }
-    
-    // Add inline styles
+
+    // Retrieve action presets
+    $default_presets = [
+        ['name' => 'Title', 'prompt' => 'Generate a catchy title.'],
+        ['name' => 'Content', 'prompt' => 'Generate engaging content.'],
+        ['name' => 'Button', 'prompt' => 'Suggest a call-to-action button text.'],
+        ['name' => 'Funny', 'prompt' => 'Make it funny.'],
+        ['name' => 'Sad', 'prompt' => 'Make it sad.'],
+        ['name' => 'Business', 'prompt' => 'Make it professional and business-like.'],
+    ];
+
+    $stored_action_presets = get_option('snn_ai_action_presets', false);
+    if ($stored_action_presets === false) {
+        // Not saved yet, use defaults
+        $action_presets = $default_presets;
+    } elseif (!is_array($stored_action_presets)) {
+        // Corrupted or invalid, make empty
+        $action_presets = [];
+    } else {
+        // Re-index so JSON becomes a true array instead of an object
+        $action_presets = array_values($stored_action_presets);
+    }
     ?>
     <style>
         .snn-ai-button {
@@ -140,25 +266,27 @@ function snn_add_ai_script_to_footer() {
             position: absolute;
             right: 4px;
             top: 26px;
-            z-index:99
+            z-index: 99
         }
-
         [data-control="editor"] .snn-ai-button{
             top: auto;
-            bottom:20px;
+            bottom: 20px;
         }
-
         [data-control="text"] .snn-ai-button{
             top: auto;
             bottom: 6px;
             right:30px;
         }
-        
+        [data-control="code"] .snn-ai-button{
+            top: auto;
+            bottom: 32px;
+            padding: 3px 5px;
+            font-size:16px;
+        }
         .snn-ai-button:hover {
             background-color: var(--builder-bg-accent);
             color: var(--builder-color-accent);
         }
-        
         .snn-ai-overlay {
             display: none;
             position: fixed;
@@ -167,14 +295,13 @@ function snn_add_ai_script_to_footer() {
             width: 100%;
             z-index: 9999;
             justify-content: center;
-            font-size:14px;
-            line-height:1
+            font-size: 14px;
+            line-height: 1.2
         }
-        
         .snn-ai-modal {
             background-color: var(--builder-bg);
             color: var(--builder-color);
-            border-radius: 8px 8px 0 0;
+            border-radius: 4px 4px 0 0;
             width: 600px;
             max-width: 90%;
             max-height: 80vh;
@@ -183,69 +310,63 @@ function snn_add_ai_script_to_footer() {
             flex-direction: column;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
         }
-        
         .snn-ai-modal-header {
-            padding: 10px;
+            padding: 0px;
             background-color: var(--builder-bg-shade);
             display: flex;
             justify-content: flex-end;
             align-items: center;
         }
-        
         .snn-ai-modal-header h3 {
             margin: 0;
             font-size: 18px;
             color: var(--builder-color);
         }
-        
         .snn-ai-close {
             cursor: pointer;
             font-size: 20px;
             color: var(--builder-color-light);
-            float: right;
             line-height: 1;
+            margin-right: 10px;
+            top: 5px;
+            position: relative;
+            transform: scaleX(1.2);
         }
-        
         .snn-ai-modal-body {
             padding: 10px;
             overflow-y: auto;
             flex: 1;
         }
-        
         .snn-ai-prompt {
             width: 100%;
-            min-height: 100px;
-            padding: 10px;
+            min-height: 140px;
+            padding: 5px;
             border-radius: 4px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-family: inherit;
             resize: vertical;
             background-color: var(--builder-bg-light);
             color: var(--builder-color);
-            border:solid 1px #00000055;
+            border: solid 1px #00000055;
         }
-        
-        .snn-ai-options {
-            display: flex;
-            gap: 10px;
+        .snn-ai-actions-container {
             margin-bottom: 15px;
         }
-        
-        .snn-ai-action-type {
-            flex: 1;
-        }
-        
-        .snn-ai-action-type select {
-            background-color: var(--builder-bg-light);
-            color: var(--builder-color);
-            border-radius: 4px;
+        .snn-ai-action-button {
+            display: inline-block;
             padding: 5px;
-            border:solid 1px #00000055;
+            margin: 3px;
+            background-color: var(--builder-bg);
+            border: 1px solid #00000055;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--builder-color);
         }
-        .snn-ai-action-type option {
-            color: black;
+        .snn-ai-action-button.selected {
+            background-color: var(--builder-bg-accent);
+            color: var(--builder-color-accent);
+            border-color: var(--builder-color-accent);
         }
-        
         .snn-ai-submit, .snn-ai-copy, .snn-ai-apply {
             background-color: var(--builder-color-accent);
             color: var(--builder-bg);
@@ -255,35 +376,32 @@ function snn_add_ai_script_to_footer() {
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s ease;
-            border:solid 1px #00000000;
+            border: solid 1px #00000000;
         }
-        
         .snn-ai-submit:hover, .snn-ai-copy:hover, .snn-ai-apply:hover {
-            color:var(--builder-color-accent);
-            background:var(--builder-bg);
-            border:solid 1px #00000055;
+            color: var(--builder-color-accent);
+            background: var(--builder-bg);
+            border: solid 1px #00000055;
         }
-        
         .snn-ai-submit:disabled, .snn-ai-copy:disabled, .snn-ai-apply:disabled {
             background-color: #ccc;
             cursor: not-allowed;
         }
-        
         .snn-ai-response {
             padding: 15px;
             background-color: var(--builder-bg-light);
             border-radius: 4px;
             margin-top: 15px;
             display: none;
+            overflow: auto;
+            max-height: 100px;
         }
-        
         .snn-ai-response-actions {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
             margin-top: 15px;
         }
-        
         .snn-ai-spinner {
             display: none;
             margin: 20px auto;
@@ -294,7 +412,6 @@ function snn_add_ai_script_to_footer() {
             height: 30px;
             animation: snn-ai-spin 1s linear infinite;
         }
-        
         @keyframes snn-ai-spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -308,19 +425,8 @@ function snn_add_ai_script_to_footer() {
             </div>
             <div class="snn-ai-modal-body">
                 <div>
-                    <label for="snn-ai-prompt-textarea">What would you like the AI to do?</label>
-                    <textarea id="snn-ai-prompt-textarea" class="snn-ai-prompt" placeholder="e.g., 'Write a paragraph about sustainability', 'Fix grammar errors', 'Summarize this text'"></textarea>
-                </div>
-                <div class="snn-ai-options">
-                    <div class="snn-ai-action-type">
-                        <label for="snn-ai-action">Action:</label>
-                        <select id="snn-ai-action">
-                            <option value="generate">Generate new content</option>
-                            <option value="improve">Improve existing content</option>
-                            <option value="translate">Translate content</option>
-                            <option value="summarize">Summarize content</option>
-                        </select>
-                    </div>
+                    <div id="snn-ai-actions-container" class="snn-ai-actions-container"></div>
+                    <textarea id="snn-ai-prompt-textarea" class="snn-ai-prompt" placeholder="Enter your instructions..."></textarea>
                 </div>
                 <button id="snn-ai-submit" class="snn-ai-submit">Generate</button>
                 <div id="snn-ai-spinner" class="snn-ai-spinner"></div>
@@ -335,16 +441,47 @@ function snn_add_ai_script_to_footer() {
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Convert the PHP-encoded array to a JS variable (ensure it's an array)
+        let actionPresets = <?php echo json_encode($action_presets); ?>;
+        if (!Array.isArray(actionPresets)) {
+            actionPresets = [];
+        }
+
         const config = {
             apiKey: '<?php echo esc_js($openai_api_key); ?>',
-            model: '<?php echo esc_js($openai_model); ?>'
+            model: '<?php echo esc_js($openai_model); ?>',
+            systemPrompt: '<?php echo esc_js($system_prompt); ?>'
         };
-        
+
+        // Use an array to allow multiple selected presets
+        let selectedPresets = [];
+
+        // Populate preset buttons
+        const actionsContainer = document.getElementById('snn-ai-actions-container');
+        actionPresets.forEach(preset => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'snn-ai-action-button';
+            btn.textContent = preset.name;
+            btn.dataset.prompt = preset.prompt;
+            btn.addEventListener('click', function() {
+                // Toggle selection: if already selected, remove; otherwise add it.
+                if (btn.classList.contains('selected')) {
+                    btn.classList.remove('selected');
+                    selectedPresets = selectedPresets.filter(p => p.name !== preset.name);
+                } else {
+                    btn.classList.add('selected');
+                    selectedPresets.push({name: preset.name, prompt: preset.prompt});
+                }
+            });
+            actionsContainer.appendChild(btn);
+        });
+
         // Store the target element and its type
         let targetElement = null;
         let targetType = null;
         let aiResponse = null;
-        
+
         // Define supported editor types and their handlers
         const editorTypes = {
             'textarea': {
@@ -357,11 +494,8 @@ function snn_add_ai_script_to_footer() {
                     const textarea = element.querySelector('textarea');
                     if (textarea) {
                         textarea.value = content;
-                        // Trigger input event to make sure Bricks registers the change
                         const event = new Event('input', { bubbles: true });
                         textarea.dispatchEvent(event);
-                        
-                        // Visual feedback
                         textarea.style.transition = 'background-color 0.5s';
                         textarea.style.backgroundColor = '#00000055';
                         setTimeout(() => {
@@ -385,12 +519,41 @@ function snn_add_ai_script_to_footer() {
                     if (iframe && iframe.contentDocument) {
                         const tinymce = iframe.contentDocument.getElementById('tinymce');
                         if (tinymce) {
+                            // Set the new content
                             tinymce.innerHTML = content;
-                            // Create and dispatch input event
+                            // Dispatch input event to update editor
                             const event = new Event('input', { bubbles: true });
                             tinymce.dispatchEvent(event);
-                            
-                            // Visual feedback
+
+                            // Focus and move caret to the end of the content
+                            tinymce.focus();
+                            var range = tinymce.ownerDocument.createRange();
+                            range.selectNodeContents(tinymce);
+                            range.collapse(false);
+                            var sel = tinymce.ownerDocument.getSelection();
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+
+                            // Simulate pressing Enter to force tinymce to re-render the content
+                            var enterKeyEventDown = new KeyboardEvent('keydown', {
+                                key: 'Enter',
+                                code: 'Enter',
+                                keyCode: 13,
+                                which: 13,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            tinymce.dispatchEvent(enterKeyEventDown);
+                            var enterKeyEventUp = new KeyboardEvent('keyup', {
+                                key: 'Enter',
+                                code: 'Enter',
+                                keyCode: 13,
+                                which: 13,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            tinymce.dispatchEvent(enterKeyEventUp);
+
                             tinymce.style.transition = 'background-color 0.5s';
                             tinymce.style.backgroundColor = '#00000055';
                             setTimeout(() => {
@@ -410,11 +573,8 @@ function snn_add_ai_script_to_footer() {
                     const input = element.querySelector('input');
                     if (input) {
                         input.value = content;
-                        // Trigger input event to make sure Bricks registers the change
                         const event = new Event('input', { bubbles: true });
                         input.dispatchEvent(event);
-                        
-                        // Visual feedback
                         input.style.transition = 'background-color 0.5s';
                         input.style.backgroundColor = '#00000055';
                         setTimeout(() => {
@@ -422,9 +582,51 @@ function snn_add_ai_script_to_footer() {
                         }, 1500);
                     }
                 }
+            },
+            // "code" control now checks for a CodeMirror instance
+            'code': {
+                selector: '[data-control="code"]',
+                getContent: function(element) {
+                    // Check if a CodeMirror instance exists within the element
+                    const cmElement = element.querySelector('.CodeMirror');
+                    if (cmElement && cmElement.CodeMirror) {
+                        return cmElement.CodeMirror.getValue();
+                    } else {
+                        // Fallback to the textarea method if CodeMirror is not present
+                        const textarea = element.querySelector('textarea');
+                        if (textarea) {
+                            let codeVal = textarea.value.trim();
+                            if (!codeVal) {
+                                codeVal = textarea.placeholder || '';
+                            }
+                            return codeVal;
+                        }
+                        return '';
+                    }
+                },
+                setContent: function(element, content) {
+                    // Check if a CodeMirror instance exists within the element
+                    const cmElement = element.querySelector('.CodeMirror');
+                    if (cmElement && cmElement.CodeMirror) {
+                        cmElement.CodeMirror.setValue(content);
+                    } else {
+                        // Fallback to the textarea method if CodeMirror is not present
+                        const textarea = element.querySelector('textarea');
+                        if (textarea) {
+                            textarea.value = content;
+                            const event = new Event('input', { bubbles: true });
+                            textarea.dispatchEvent(event);
+                            textarea.style.transition = 'background-color 0.5s';
+                            textarea.style.backgroundColor = '#00000055';
+                            setTimeout(() => {
+                                textarea.style.backgroundColor = '';
+                            }, 1500);
+                        }
+                    }
+                }
             }
         };
-        
+
         // Observer to detect new elements being added to the DOM
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
@@ -432,15 +634,13 @@ function snn_add_ai_script_to_footer() {
                     for (let i = 0; i < mutation.addedNodes.length; i++) {
                         const node = mutation.addedNodes[i];
                         if (node.nodeType === Node.ELEMENT_NODE) {
-                            // Process each editor type
                             Object.keys(editorTypes).forEach(type => {
                                 const selector = editorTypes[type].selector;
-                                
-                                // Check if the added node itself matches or contains the selector
                                 if (node.matches && node.matches(selector)) {
                                     addAiButtonTo(node, type);
                                 } else {
-                                    const elements = node.querySelectorAll(selector);
+                                    // Check any children
+                                    const elements = node.querySelectorAll ? node.querySelectorAll(selector) : [];
                                     elements.forEach(el => addAiButtonTo(el, type));
                                 }
                             });
@@ -449,175 +649,105 @@ function snn_add_ai_script_to_footer() {
                 }
             });
         });
-        
-        // Start observing the document with the configured parameters
         observer.observe(document.body, { childList: true, subtree: true });
-        
-        // Initial scan for existing elements
+
+        // Initially attach AI button to all matching elements
         Object.keys(editorTypes).forEach(type => {
             const elements = document.querySelectorAll(editorTypes[type].selector);
             elements.forEach(el => addAiButtonTo(el, type));
         });
-        
-        // Function to add the AI button to an element
+
         function addAiButtonTo(element, type) {
-            // Check if button already exists
+            // Avoid duplication if the button was already added
             if (element.querySelector('.snn-ai-button')) {
-                return;
+                return; 
             }
-            
             const aiButton = document.createElement('span');
             aiButton.className = 'snn-ai-button';
             aiButton.textContent = 'AI';
             aiButton.setAttribute('data-balloon', 'Generate with AI');
             aiButton.setAttribute('data-balloon-pos', 'left');
             aiButton.setAttribute('data-editor-type', type);
-            
-            // Find the best place to insert the button
             const controlLabel = element.querySelector('.control-label');
             if (controlLabel) {
                 controlLabel.appendChild(aiButton);
             } else {
                 element.insertBefore(aiButton, element.firstChild);
             }
-            
-            // Add click event
             aiButton.addEventListener('click', function() {
                 openAiModal(element, type);
             });
         }
-        
-        // Function to open the AI modal
+
         function openAiModal(element, type) {
             targetElement = element;
             targetType = type;
-            
-            // Reset the form
+            // Clear the textarea and any previous response
             document.getElementById('snn-ai-prompt-textarea').value = '';
             document.getElementById('snn-ai-response').style.display = 'none';
             document.getElementById('snn-ai-apply').style.display = 'none';
             document.getElementById('snn-ai-copy').style.display = 'none';
-            
-            // Check if we should pre-fill the existing content
-            const action = document.getElementById('snn-ai-action').value;
-            if (action !== 'generate') {
-                const existingContent = editorTypes[type].getContent(element);
-                if (existingContent) {
-                    document.getElementById('snn-ai-prompt-textarea').value = 
-                        'Content to work with:\n\n' + existingContent;
-                }
+            // Clear any previously selected presets
+            document.querySelectorAll('.snn-ai-action-button').forEach(b => b.classList.remove('selected'));
+            selectedPresets = [];
+
+            // Optionally, you may prefill with existing content from the editor
+            const textarea = document.getElementById('snn-ai-prompt-textarea');
+            const existingContent = editorTypes[type].getContent(element);
+            if (existingContent) {
+                textarea.value = existingContent + "\n\n";
             }
-            
-            // Show the modal
             document.querySelector('.snn-ai-overlay').style.display = 'flex';
         }
-        
-        // Close button event
+
         document.querySelector('.snn-ai-close').addEventListener('click', function() {
             document.querySelector('.snn-ai-overlay').style.display = 'none';
         });
-        
-        // Action type change event
-        document.getElementById('snn-ai-action').addEventListener('change', function() {
-            const action = this.value;
-            const promptTextarea = document.getElementById('snn-ai-prompt-textarea');
-            
-            // If not generating new content and we have target content, pre-fill
-            if (action !== 'generate' && targetElement && targetType) {
-                const existingContent = editorTypes[targetType].getContent(targetElement);
-                if (existingContent) {
-                    promptTextarea.value = 'Content to work with:\n\n' + existingContent;
-                } else {
-                    promptTextarea.value = '';
-                }
-            } else {
-                promptTextarea.value = '';
-            }
-            
-            // Update placeholder based on action
-            switch(action) {
-                case 'improve':
-                    promptTextarea.placeholder = 'How would you like to improve the content? e.g., "Make it more formal", "Fix grammar"';
-                    break;
-                case 'translate':
-                    promptTextarea.placeholder = 'Which language would you like to translate to? e.g., "Translate to Spanish"';
-                    break;
-                case 'summarize':
-                    promptTextarea.placeholder = 'How would you like it summarized? e.g., "Summarize in 3 bullets", "Make it concise"';
-                    break;
-                default:
-                    promptTextarea.placeholder = 'e.g., "Write a paragraph about sustainability", "Create a product description"';
-            }
-        });
-        
-        // Submit button event
+
         document.getElementById('snn-ai-submit').addEventListener('click', function() {
             const promptText = document.getElementById('snn-ai-prompt-textarea').value.trim();
-            const action = document.getElementById('snn-ai-action').value;
-            
-            if (!promptText) {
-                alert('Please enter a prompt');
+            if (!promptText && selectedPresets.length === 0) {
+                alert('Please enter a prompt or select at least one action preset');
                 return;
             }
-            
-            // Show spinner, disable button
             this.disabled = true;
             document.getElementById('snn-ai-spinner').style.display = 'block';
             document.getElementById('snn-ai-response').style.display = 'none';
             document.getElementById('snn-ai-apply').style.display = 'none';
             document.getElementById('snn-ai-copy').style.display = 'none';
-            
-            // Prepare the prompt based on the action type
-            let fullPrompt = '';
-            const existingContent = targetElement && targetType ? editorTypes[targetType].getContent(targetElement) : '';
-            
-            switch(action) {
-                case 'improve':
-                    fullPrompt = `Improve the following content: ${promptText}\n\nYour improved version:`;
-                    break;
-                case 'translate':
-                    fullPrompt = `${promptText}\n\n${existingContent}\n\nTranslated content:`;
-                    break;
-                case 'summarize':
-                    fullPrompt = `${promptText}\n\n${existingContent}\n\nSummary:`;
-                    break;
-                default:
-                    fullPrompt = promptText;
+
+            // Build final prompt by concatenating selected preset prompts and the manual prompt text
+            let finalPrompt = '';
+            if (selectedPresets.length > 0) {
+                let combinedPresetPrompts = selectedPresets.map(p => p.prompt).join("\n");
+                finalPrompt = combinedPresetPrompts + (promptText ? "\n" + promptText : "");
+            } else {
+                finalPrompt = promptText;
             }
-            
-            // Make API request to OpenAI
-            callOpenAI(fullPrompt)
+
+            callOpenAI(finalPrompt)
                 .then(response => {
-                    // Hide spinner, enable button
                     document.getElementById('snn-ai-submit').disabled = false;
                     document.getElementById('snn-ai-spinner').style.display = 'none';
-                    
-                    // Display and store response
                     aiResponse = response;
                     const responseElement = document.getElementById('snn-ai-response');
                     responseElement.textContent = response;
                     responseElement.style.display = 'block';
-                    
-                    // Show apply and copy buttons
                     document.getElementById('snn-ai-apply').style.display = 'inline-block';
                     document.getElementById('snn-ai-copy').style.display = 'inline-block';
                 })
                 .catch(error => {
-                    // Handle error
                     document.getElementById('snn-ai-submit').disabled = false;
                     document.getElementById('snn-ai-spinner').style.display = 'none';
-                    
                     const responseElement = document.getElementById('snn-ai-response');
                     responseElement.textContent = 'Error: ' + error.message;
                     responseElement.style.display = 'block';
                 });
         });
-        
-        // Copy button event
+
         document.getElementById('snn-ai-copy').addEventListener('click', function() {
             if (aiResponse) {
                 navigator.clipboard.writeText(aiResponse).then(() => {
-                    // Visual feedback for copy
                     const originalText = this.textContent;
                     this.textContent = 'Copied!';
                     setTimeout(() => {
@@ -628,19 +758,14 @@ function snn_add_ai_script_to_footer() {
                 });
             }
         });
-        
-        // Apply button event
+
         document.getElementById('snn-ai-apply').addEventListener('click', function() {
             if (targetElement && targetType && aiResponse) {
-                // Apply content using the appropriate handler
                 editorTypes[targetType].setContent(targetElement, aiResponse);
-                
-                // Close the modal
                 document.querySelector('.snn-ai-overlay').style.display = 'none';
             }
         });
-        
-        // Function to call OpenAI API
+
         async function callOpenAI(prompt) {
             try {
                 const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -654,7 +779,7 @@ function snn_add_ai_script_to_footer() {
                         messages: [
                             {
                                 role: 'system',
-                                content: 'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Generate with as same language as the content unless told otherwise. Only respond with the needed content and nothing else always!'
+                                content: config.systemPrompt
                             },
                             {
                                 role: 'user',
@@ -664,12 +789,10 @@ function snn_add_ai_script_to_footer() {
                         temperature: 0.7
                     })
                 });
-                
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error?.message || 'API request failed');
                 }
-                
                 const data = await response.json();
                 return data.choices[0].message.content;
             } catch (error) {
@@ -683,3 +806,4 @@ function snn_add_ai_script_to_footer() {
 }
 add_action('wp_footer', 'snn_add_ai_script_to_footer');
 add_action('admin_footer', 'snn_add_ai_script_to_footer');
+?>
