@@ -7,7 +7,7 @@
 
 
 
-SNN BRX theme adds theme settings, security settings and lots of plugin eliminating features with it. 
+SNN BRX theme adds advanced wordpress features, site settings, theme settings, security settings and lots of plugin eliminating features with it. 
 
 
 ### [Video Tutorial](https://www.youtube.com/watch?v=d7BfxelujfI) 
