@@ -19,7 +19,6 @@ require_once SNN_PATH . 'includes/custom-field-settings.php';
 require_once SNN_PATH . 'includes/taxonomy-settings.php';
 //require_once SNN_PATH . 'includes/seo-settings.php';
 require_once SNN_PATH . 'includes/login-settings.php';
-require_once SNN_PATH . 'includes/block-editor-settings.php';
 require_once SNN_PATH . 'includes/remove-wp-version.php';
 require_once SNN_PATH . 'includes/disable-xmlrpc.php';
 require_once SNN_PATH . 'includes/disable-file-editing.php';
@@ -39,10 +38,12 @@ require_once SNN_PATH . 'includes/disable-gravatar.php';
 require_once SNN_PATH . 'includes/editor-settings.php'; 
 require_once SNN_PATH . 'includes/editor-color-global-sync.php'; 
 require_once SNN_PATH . 'includes/cookie-banner.php';
+require_once SNN_PATH . 'includes/block-editor-settings.php';
 // require_once SNN_PATH . 'includes/global-classes.php';
 // require_once SNN_PATH . 'includes/global-variables.php';
 require_once SNN_PATH . 'includes/editor-settings-panel.php';
 // require_once SNN_PATH . 'includes/accessibility-settings.php';
+require_once SNN_PATH . 'includes/ai.php';
 
 
 // Register Custom Dynamic Data Tags
