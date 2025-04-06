@@ -37,6 +37,8 @@ function snn_render_ai_settings() {
         ['name' => 'Funny',     'prompt' => 'Make it funny.'],
         ['name' => 'Sad',       'prompt' => 'Make it sad.'],
         ['name' => 'Business',  'prompt' => 'Make it professional and business-like.'],
+        ['name' => 'Shorter',   'prompt' => 'Make the following text significantly shorter while preserving the core meaning.'],
+        ['name' => 'Longer',    'prompt' => 'Make the following text significantly longer on the following text, adding more detail or explanation.'],
         ['name' => 'CSS',       'prompt' => 'Ignore all previous instructions. Write clean native CSS only. Always use selector %root%, no <style> tag.'],
         ['name' => 'HTML',      'prompt' => 'write html css and js if needed and you can use cdn lib if you wish. <html> <head> or <body> not needed.'],
     ];
