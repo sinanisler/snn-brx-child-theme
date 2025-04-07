@@ -135,20 +135,20 @@ function snn_render_ai_settings() {
                                 <!-- DRAG HANDLE -->
                                 <td class="snn-ai-drag-handle" style="padding:0; width: 30px; text-align:center; cursor: move;">&#8942;</td>
 
-                                <td style="padding:0">
+                                <td style="padding:2px">
                                     <input type="text"
                                            name="snn_ai_action_presets[<?php echo $index; ?>][name]"
                                            value="<?php echo esc_attr($preset['name']); ?>"
                                            placeholder="<?php esc_attr_e('Action Name', 'snn'); ?>"
                                            class="regular-text preset-name-input" />
                                 </td>
-                                <td style="padding:0">
+                                <td style="padding:2px">
                                     <textarea name="snn_ai_action_presets[<?php echo $index; ?>][prompt]"
                                               rows="2"
                                               placeholder="<?php esc_attr_e('Action Prompt', 'snn'); ?>"
                                               class="regular-text preset-prompt-input"><?php echo esc_textarea($preset['prompt']); ?></textarea>
                                 </td>
-                                <td style="padding:0">
+                                <td style="padding:2px">
                                     <button type="button" class="button snn-ai-remove-preset"><?php esc_html_e('Remove', 'snn'); ?></button>
                                 </td>
                             </tr>
