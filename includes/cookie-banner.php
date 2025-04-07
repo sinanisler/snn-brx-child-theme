@@ -6,6 +6,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define('SNN_OPTIONS', 'snn_cookie_settings_options');
 
+function snn_is_cookie_banner_enabled() {
+    $options = get_option( SNN_OPTIONS );
+    return ( !empty($options['snn_cookie_settings_enable_cookie_banner']) && $options['snn_cookie_settings_enable_cookie_banner'] === 'yes' );
+}
+
 function snn_add_cookie_settings_submenu() {
     add_submenu_page(
         'snn-settings',               
@@ -54,7 +59,6 @@ function snn_options_page() {
         $options['snn_cookie_settings_banner_text_color']    = isset($_POST['snn_cookie_settings_banner_text_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_text_color']) ) : '';
         $options['snn_cookie_settings_button_bg_color']      = isset($_POST['snn_cookie_settings_button_bg_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_bg_color']) ) : '';
         $options['snn_cookie_settings_button_text_color']    = isset($_POST['snn_cookie_settings_button_text_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_text_color']) ) : '';
-        
         
         $services = array();
         if ( isset($_POST['snn_cookie_settings_services']) && is_array($_POST['snn_cookie_settings_services']) ) {
@@ -535,8 +539,10 @@ function snn_output_cookie_banner() {
 }
 add_action('wp_footer', 'snn_output_cookie_banner');
 
-
 function snn_output_service_scripts() {
+    if ( ! snn_is_cookie_banner_enabled() ) {
+        return;
+    }
     $options = get_option( SNN_OPTIONS );
     if ( is_user_logged_in() && !empty($options['snn_cookie_settings_disable_scripts_for_logged_in']) && $options['snn_cookie_settings_disable_scripts_for_logged_in'] === 'yes' ) {
          return;
@@ -562,6 +568,9 @@ function snn_output_service_scripts() {
 add_action('wp_footer', 'snn_output_service_scripts', 99);
 
 function snn_output_banner_js() {
+    if ( ! snn_is_cookie_banner_enabled() ) {
+        return;
+    }
     $options = get_option(SNN_OPTIONS);
     if ( is_user_logged_in() && !empty($options['snn_cookie_settings_disable_scripts_for_logged_in']) && $options['snn_cookie_settings_disable_scripts_for_logged_in'] === 'yes' ) {
          return;
@@ -596,18 +605,6 @@ function snn_output_banner_js() {
         }
         
         var cookieBannerEnabled = <?php echo $cookie_banner_enabled; ?>;
-        if (!cookieBannerEnabled) {
-            var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
-            hiddenDivs.forEach(function(div){
-                var encoded = div.getAttribute('data-script');
-                var position = div.getAttribute('data-position') || 'body_bottom';
-                if (encoded) {
-                    var decoded = atob(encoded);
-                    injectScript(decoded, position);
-                }
-            });
-            return;
-        }
         
         function injectScript(decodedCode, position) {
             var tempDiv = document.createElement('div');
@@ -746,8 +743,10 @@ function snn_output_banner_js() {
 }
 add_action('wp_footer', 'snn_output_banner_js', 100);
 
-
 function snn_output_custom_css() {
+    if ( ! snn_is_cookie_banner_enabled() ) {
+        return;
+    }
     $options = get_option( SNN_OPTIONS );
     if ( !empty($options['snn_cookie_settings_custom_css']) ) {
         echo "<style id='snn-custom-css'>" . $options['snn_cookie_settings_custom_css'] . "</style>";
