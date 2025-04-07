@@ -845,11 +845,13 @@ function snn_render_field_input($field, $value = '', $index = '0') {
             break;
 
         case 'media':
+            // Logic to either display an image preview or a dashicon for non-images
             $img_src = '';
             $filename = '';
             $dashicon = 'dashicons-media-default'; // default icon
             if (!empty($value)) {
                 if (is_numeric($value)) {
+                    // It's an attachment ID
                     $attachment_id = intval($value);
                     $attachment = get_post($attachment_id);
                     if ($attachment) {
@@ -874,8 +876,21 @@ function snn_render_field_input($field, $value = '', $index = '0') {
                     }
                 } else {
                     // Assume $value is a URL (for full URL return)
-                    $img_src = esc_url($value);
                     $filename = basename($value);
+                    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                    if (in_array($extension, ['jpg','jpeg','png','gif','svg'])) {
+                        $img_src = esc_url($value);
+                    } elseif ($extension === 'pdf') {
+                        $dashicon = 'dashicons-media-document';
+                    } elseif (strpos($extension, 'xls') !== false || strpos($extension, 'xlsx') !== false) {
+                        $dashicon = 'dashicons-media-spreadsheet';
+                    } elseif (in_array($extension, ['mp4','mov','avi','wmv','m4v','mkv'])) {
+                        $dashicon = 'dashicons-media-video';
+                    } elseif (in_array($extension, ['mp3','wav','ogg','m4a','flac'])) {
+                        $dashicon = 'dashicons-media-audio';
+                    } else {
+                        $dashicon = 'dashicons-media-default';
+                    }
                 }
             }
 
@@ -884,13 +899,12 @@ function snn_render_field_input($field, $value = '', $index = '0') {
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             echo '<span class="media-preview-wrapper" style="width:50px; height:50px;">';
             if ($img_src) {
-                if (strpos($img_src, 'http') === 0) {
-                    echo '<img src="' . esc_url($img_src) . '" class="media-preview" style="max-width:50px;max-height:50px;" />';
-                } else {
-                    echo '<span class="dashicons ' . esc_attr($dashicon) . ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>';
-                }
+                // It's an actual image or SVG
+                echo '<img src="' . esc_url($img_src) . '" class="media-preview" style="max-width:50px;max-height:50px;" />';
             } else {
-                echo '<span class="dashicons ' . esc_attr($dashicon) . ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>';
+                // Show dashicon
+                echo '<span class="dashicons ' . esc_attr($dashicon) 
+                     . ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>';
             }
             echo '</span>';
             echo '<button type="button" class="button media-upload-button">Select</button>';
@@ -998,7 +1012,7 @@ function snn_render_field_input($field, $value = '', $index = '0') {
 }
 
 // ------------------------------------------------
-// 7) SAVE POST META
+// 7) SAVE POST META (FIX: keep existing if not posted)
 // ------------------------------------------------
 function snn_save_custom_fields_meta($post_id) {
     if (!isset($_POST['snn_custom_fields_nonce']) || !wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_save_custom_fields')) {
@@ -1055,11 +1069,11 @@ function snn_save_custom_fields_meta($post_id) {
                 }
             }
         } else {
-            // If not set in $_POST
+            // If field not posted, do NOT delete it; only reset if it's a true_false
             if ($field['type'] === 'true_false') {
                 update_post_meta($post_id, $field_name, '0');
             } else {
-                delete_post_meta($post_id, $field_name);
+                // keep existing
             }
         }
     }
@@ -1082,7 +1096,6 @@ function snn_register_dynamic_taxonomy_fields() {
                     add_action($tax . '_add_form_fields', function() use ($field) {
                         $col_width = !empty($field['column_width']) ? intval($field['column_width']) : 100;
                         ?>
-                        <!-- Wrap in snn-metabox-wrapper & snn-field-wrap -->
                         <div class="form-field snn-metabox-wrapper" style="display:flex;flex-wrap:wrap;">
                             <div class="snn-field-wrap" style="width:100%;margin-right:20px;box-sizing:border-box; padding:10px">
                                 <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
@@ -1200,10 +1213,11 @@ function snn_save_taxonomy_field_data($term_id) {
                 }
             }
         } else {
+            // NEW FIX: If not posted, do NOT delete. Only reset if true_false
             if ($field['type'] === 'true_false') {
                 update_term_meta($term_id, $field_name, '0');
             } else {
-                delete_term_meta($term_id, $field_name);
+                // keep existing
             }
         }
     }
@@ -1254,7 +1268,6 @@ function snn_display_author_custom_fields($user) {
     ?>
     <h2>Custom Author Information</h2>
     <?php wp_nonce_field('snn_save_author_fields', 'snn_author_fields_nonce'); ?>
-    <!-- We'll mimic the .snn-metabox-wrapper style for consistent UI -->
     <div class="snn-metabox-wrapper" style="display:flex;flex-wrap:wrap;">
         <?php
         foreach ($author_fields as $field) {
@@ -1264,7 +1277,7 @@ function snn_display_author_custom_fields($user) {
             ?>
             <div class="snn-field-wrap snn-field-type-<?php echo esc_attr($field['type']); ?>"
                  style="width:calc(<?php echo $col_width; ?>% - 30px);margin-right:20px;box-sizing:border-box;">
-                <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
+                <label><?php echo esc_html(ucwords(str_replace('_',' ',$field_name))); ?></label>
                 <?php snn_render_field_input($field, $value, '0'); ?>
             </div>
             <?php
@@ -1344,11 +1357,11 @@ function snn_save_author_custom_fields($user_id) {
                 }
             }
         } else {
-            // true_false default to 0
+            // NEW FIX: keep existing if not posted, unless true_false
             if ($field['type'] === 'true_false') {
                 update_user_meta($user_id, $field_name, '0');
             } else {
-                delete_user_meta($user_id, $field_name);
+                // keep existing
             }
         }
     }
@@ -1356,33 +1369,55 @@ function snn_save_author_custom_fields($user_id) {
 
 // ------------------------------------------------
 // 10) HELPER: SANITIZE VALUE BY TYPE
+//     **IMPORTANT FIX** for 'media' type with return_full_url
 // ------------------------------------------------
 function snn_sanitize_value_by_type($type, $value, $field = null) {
     switch ($type) {
         case 'rich_text':
             return wp_kses_post($value);
+
         case 'textarea':
             return sanitize_textarea_field($value);
+
         case 'media':
+            // If "Return Full URL" is checked, we want to store a URL. 
+            // The posted $value is the hidden field from the metabox, which can be either:
+            //   - numeric ID (if user has just selected from Media Library)
+            //   - already a URL (if loaded from DB after a previous save).
             if ($field && !empty($field['return_full_url'])) {
-                return $value ? esc_url_raw(wp_get_attachment_url(intval($value))) : '';
+                if (is_numeric($value)) {
+                    // Convert ID to actual URL
+                    $url = wp_get_attachment_url(intval($value));
+                    return $url ? esc_url_raw($url) : '';
+                } else {
+                    // Already a URL, keep it
+                    return $value ? esc_url_raw($value) : '';
+                }
             } else {
+                // Store as attachment ID if not returning full URL
                 return $value ? intval($value) : '';
             }
+            break;
+
         case 'number':
             return (is_numeric($value)) ? floatval($value) : '';
+
         case 'date':
         case 'color':
         case 'select':
         case 'radio':
         case 'checkbox':
             return sanitize_text_field($value);
+
         case 'true_false':
             return ($value == '1' || $value === true) ? '1' : '0';
+
         case 'url':
             return esc_url_raw($value);
+
         case 'email':
             return sanitize_email($value);
+
         default: // 'text'
             return sanitize_text_field($value);
     }
@@ -1417,10 +1452,32 @@ function snn_output_dynamic_field_js() {
 
             frame.on('select', function() {
                 var attachment = frame.state().get('selection').first().toJSON();
+                // We always fill the hidden field with the attachment ID (an integer).
+                // If the user set "return_full_url," then on saving, we'll convert the ID to the URL in the DB.
                 $input.val(attachment.id);
-                var thumbUrl = (attachment.sizes && attachment.sizes.thumbnail)
-                               ? attachment.sizes.thumbnail.url : attachment.url;
-                $preview.html('<img src="'+ thumbUrl +'" class="media-preview" style="max-width:50px;max-height:50px;">');
+
+                // Decide how to show preview
+                var mimeType = attachment.mime || '';
+                var imageURL = (attachment.sizes && attachment.sizes.thumbnail) ? attachment.sizes.thumbnail.url : attachment.url;
+                var dashicon = 'dashicons-media-default';
+
+                if (mimeType.indexOf('image/') === 0 || mimeType === 'image/svg+xml') {
+                    $preview.html('<img src="'+ imageURL +'" class="media-preview" style="max-width:50px;max-height:50px;">');
+                } else if (mimeType.indexOf('video/') === 0) {
+                    dashicon = 'dashicons-media-video';
+                    $preview.html('<span class="dashicons '+dashicon+' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                } else if (mimeType.indexOf('audio/') === 0) {
+                    dashicon = 'dashicons-media-audio';
+                    $preview.html('<span class="dashicons '+dashicon+' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                } else if (mimeType === 'application/pdf') {
+                    dashicon = 'dashicons-media-document';
+                    $preview.html('<span class="dashicons '+dashicon+' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                } else if (mimeType.indexOf('application/') === 0) {
+                    dashicon = 'dashicons-media-spreadsheet';
+                    $preview.html('<span class="dashicons '+dashicon+' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                } else {
+                    $preview.html('<span class="dashicons '+dashicon+' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                }
                 $remove.show();
             });
 
