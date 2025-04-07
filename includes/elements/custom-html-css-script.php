@@ -1,10 +1,12 @@
 <?php 
 if ( ! defined( 'ABSPATH' ) ) exit;
+
 class Custom_HTML_CSS_Script extends \Bricks\Element {
   public $category     = 'snn';
   public $name         = 'custom-html-css-script';
   public $icon         = 'fas fa-code'; 
   public $css_selector = '.snn-brx-html-css-script-wrapper';
+
   public function get_label() {
     return 'Custom Code HTML JS CSS';
   }
@@ -12,9 +14,7 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
   public function set_controls() {
     $this->controls['content'] = [
       'tab' => 'content',
-      'label' => '
-Custom HTML, CSS, and JS Code<br>
-      ',
+      'label' => 'Custom HTML, CSS, and JS Code<br>',
       'type' => 'code',
       'mode' => 'php',
       'default' => '
@@ -36,7 +36,7 @@ var sebas_sama = 6969;
 
   public function render() {
     echo "<div class='custom-html-css-script-wrapper' style='width:100%'>";
-    echo $this->settings['content']; // Direct output, consider security implications
+    echo $this->settings['content'] ?? '';
     echo "</div>";
   }
 }
