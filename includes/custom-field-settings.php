@@ -1,8 +1,5 @@
 <?php
 
-// ------------------------------------------------
-// 1) CREATE SUBMENU TO REGISTER FIELDS
-// ------------------------------------------------
 function snn_add_custom_fields_submenu() {
     add_submenu_page(
         'snn-settings',
@@ -15,7 +12,6 @@ function snn_add_custom_fields_submenu() {
 }
 add_action('admin_menu', 'snn_add_custom_fields_submenu', 10);
 
-// (Optional) Check if Classic Editor plugin is active. If NOT, disable block editor for products.
 if ( ! function_exists('is_plugin_active') ) {
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
 }
@@ -28,9 +24,6 @@ if ( ! is_plugin_active( 'classic-editor/classic-editor.php' ) ) {
     }, 10, 2);
 }
 
-// ------------------------------------------------
-// 2) ENQUEUE SCRIPTS FOR OUR CUSTOM FIELDS PAGE
-// ------------------------------------------------
 add_action('admin_enqueue_scripts', 'snn_enqueue_scripts_for_custom_fields_page');
 function snn_enqueue_scripts_for_custom_fields_page($hook_suffix) {
     // Submenu slug: snn-settings_page_snn-custom-fields
@@ -42,9 +35,6 @@ function snn_enqueue_scripts_for_custom_fields_page($hook_suffix) {
     }
 }
 
-// ------------------------------------------------
-// 2.1) ENQUEUE SCRIPTS ON TAXONOMY & AUTHOR PAGES
-// ------------------------------------------------
 add_action('admin_enqueue_scripts', 'snn_enqueue_taxonomy_author_assets');
 function snn_enqueue_taxonomy_author_assets($hook) {
     // Common pages: term.php, edit-tags.php = Taxonomy editing
@@ -58,9 +48,6 @@ function snn_enqueue_taxonomy_author_assets($hook) {
     }
 }
 
-// ------------------------------------------------
-// 3) ADMIN PAGE CALLBACK
-// ------------------------------------------------
 function snn_custom_fields_page_callback() {
     $custom_fields = get_option('snn_custom_fields', []);
     $post_types    = get_post_types(['public' => true], 'objects');
@@ -461,9 +448,6 @@ function snn_custom_fields_page_callback() {
     <?php
 }
 
-// ------------------------------------------------
-// 4) REGISTER DYNAMIC META BOXES FOR POSTS
-// ------------------------------------------------
 function snn_register_dynamic_metaboxes() {
     $custom_fields = get_option('snn_custom_fields', []);
     $grouped_fields = [];
@@ -591,9 +575,6 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
     }
 }
 
-// ------------------------------------------------
-// 5) METABOX CONTENT RENDER
-// ------------------------------------------------
 function snn_render_metabox_content($post, $metabox) {
     $fields = $metabox['args']['fields'];
     wp_nonce_field('snn_save_custom_fields', 'snn_custom_fields_nonce');
@@ -762,9 +743,6 @@ function snn_render_metabox_content($post, $metabox) {
     <?php
 }
 
-// ------------------------------------------------
-// 6) RENDER FIELD INPUT
-// ------------------------------------------------
 function snn_render_field_input($field, $value = '', $index = '0') {
     $field_name = $field['name'];
     $field_type = $field['type'];
@@ -827,12 +805,12 @@ function snn_render_field_input($field, $value = '', $index = '0') {
             break;
 
         case 'media':
-            $img_src   = '';
-            $filename  = '';
-            $dashicon  = 'dashicons-media-default';
+            $img_src = '';
+            $filename = '';
+            $dashicon = 'dashicons-media-default'; // default icon
             if (!empty($value) && is_numeric($value)) {
                 $attachment_id = intval($value);
-                $attachment    = get_post($attachment_id);
+                $attachment = get_post($attachment_id);
                 if ($attachment) {
                     $filename = esc_html(basename(get_attached_file($attachment_id)));
                     $mime_type = get_post_mime_type($attachment);
@@ -841,9 +819,18 @@ function snn_render_field_input($field, $value = '', $index = '0') {
                         if ($image) {
                             $img_src = $image[0];
                         }
+                    } elseif (strpos($mime_type, 'video/') === 0) {
+                        $dashicon = 'dashicons-media-video';
+                    } elseif (strpos($mime_type, 'audio/') === 0) {
+                        $dashicon = 'dashicons-media-audio';
+                    } elseif ($mime_type === 'application/pdf') {
+                        $dashicon = 'dashicons-media-document';
+                    } else {
+                        $dashicon = 'dashicons-media-default';
                     }
                 }
             }
+
             echo '<div class="media-uploader">';
             echo '<input type="hidden" class="media-value-field" id="' . esc_attr($field_name . '_' . $index) 
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
@@ -851,7 +838,7 @@ function snn_render_field_input($field, $value = '', $index = '0') {
             if ($img_src) {
                 echo '<img src="' . esc_url($img_src) . '" class="media-preview" style="max-width:50px;max-height:50px;" />';
             } else {
-                echo '<span class="dashicons ' . $dashicon . ' media-preview" style="width:50px;height:50px;font-size:50px;"></span>';
+                echo '<span class="dashicons ' . esc_attr($dashicon) . ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>';
             }
             echo '</span>';
             echo '<button type="button" class="button media-upload-button">Select</button>';
@@ -958,9 +945,6 @@ function snn_render_field_input($field, $value = '', $index = '0') {
     }
 }
 
-// ------------------------------------------------
-// 7) SAVE POST META
-// ------------------------------------------------
 function snn_save_custom_fields_meta($post_id) {
     if (!isset($_POST['snn_custom_fields_nonce']) || !wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_save_custom_fields')) {
         return $post_id;
@@ -1027,9 +1011,6 @@ function snn_save_custom_fields_meta($post_id) {
 }
 add_action('save_post', 'snn_save_custom_fields_meta');
 
-// ------------------------------------------------
-// 8) REGISTER DYNAMIC TAXONOMY FIELDS
-// ------------------------------------------------
 function snn_register_dynamic_taxonomy_fields() {
     $custom_fields = get_option('snn_custom_fields', []);
     if (!empty($custom_fields)) {
@@ -1170,9 +1151,6 @@ function snn_save_taxonomy_field_data($term_id) {
     }
 }
 
-// ------------------------------------------------
-// 9) CUSTOM FIELDS ON AUTHOR PROFILES
-// ------------------------------------------------
 function snn_add_author_profile_fields() {
     $custom_fields = get_option('snn_custom_fields', []);
     $author_fields = [];
@@ -1225,7 +1203,7 @@ function snn_display_author_custom_fields($user) {
             ?>
             <div class="snn-field-wrap snn-field-type-<?php echo esc_attr($field['type']); ?>"
                  style="width:calc(<?php echo $col_width; ?>% - 30px);margin-right:20px;box-sizing:border-box;">
-                <label><?php echo esc_html(ucwords(str_replace('_',' ',$field_name))); ?></label>
+                <label><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
                 <?php snn_render_field_input($field, $value, '0'); ?>
             </div>
             <?php
@@ -1315,9 +1293,6 @@ function snn_save_author_custom_fields($user_id) {
     }
 }
 
-// ------------------------------------------------
-// 10) HELPER: SANITIZE VALUE BY TYPE
-// ------------------------------------------------
 function snn_sanitize_value_by_type($type, $value) {
     switch ($type) {
         case 'rich_text':
@@ -1345,9 +1320,6 @@ function snn_sanitize_value_by_type($type, $value) {
     }
 }
 
-// ------------------------------------------------
-// 11) OUTPUT DYNAMIC JS FOR MEDIA/REPEATERS
-// ------------------------------------------------
 function snn_output_dynamic_field_js() {
     // Skip if AJAX or REST
     if (wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)) {
@@ -1375,9 +1347,27 @@ function snn_output_dynamic_field_js() {
             frame.on('select', function() {
                 var attachment = frame.state().get('selection').first().toJSON();
                 $input.val(attachment.id);
-                var thumbUrl = (attachment.sizes && attachment.sizes.thumbnail)
-                               ? attachment.sizes.thumbnail.url : attachment.url;
-                $preview.html('<img src="'+ thumbUrl +'" class="media-preview" style="max-width:50px;max-height:50px;">');
+                var dashicon = 'dashicons-media-default';
+                if (attachment.mime) {
+                    if (attachment.mime.indexOf('image/') === 0 || attachment.mime === 'image/svg+xml') {
+                        var thumbUrl = (attachment.sizes && attachment.sizes.thumbnail)
+                                       ? attachment.sizes.thumbnail.url : attachment.url;
+                        $preview.html('<img src="'+ thumbUrl +'" class="media-preview" style="max-width:50px;max-height:50px;">');
+                    } else if (attachment.mime.indexOf('video/') === 0) {
+                        dashicon = 'dashicons-media-video';
+                        $preview.html('<span class="dashicons ' + dashicon + ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                    } else if (attachment.mime.indexOf('audio/') === 0) {
+                        dashicon = 'dashicons-media-audio';
+                        $preview.html('<span class="dashicons ' + dashicon + ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                    } else if (attachment.mime === 'application/pdf') {
+                        dashicon = 'dashicons-media-document';
+                        $preview.html('<span class="dashicons ' + dashicon + ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                    } else {
+                        $preview.html('<span class="dashicons ' + dashicon + ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                    }
+                } else {
+                    $preview.html('<span class="dashicons ' + dashicon + ' media-preview" style="font-size:40px;line-height:50px;display:inline-block;width:50px;height:50px;text-align:center;"></span>');
+                }
                 $remove.show();
             });
 
@@ -1442,10 +1432,6 @@ function snn_output_dynamic_field_js() {
             $('.snn-color-picker').wpColorPicker();
         }
 
-        // -----------------------------------------------------------------
-        // NEW: Force all wp_editor instances to open in the HTML (Text) tab
-        // on post edit screens (post-new.php and post.php) for post type "post"
-        // -----------------------------------------------------------------
         if (typeof switchEditors !== 'undefined') {
             $('.wp-editor-wrap').each(function() {
                 var editorID = $(this).attr('id').replace('-wrap', '');
@@ -1470,9 +1456,6 @@ function snn_output_dynamic_field_js() {
     <?php
 }
 
-// -----------------------------------------------------------------
-// NEW: INIT TINYMCE EDITOR ON TEXT/HTML TAB BY DEFAULT ON POST EDIT SCREENS
-// -----------------------------------------------------------------
 add_action('admin_footer', 'snn_init_tinymce_html_default', 100);
 function snn_init_tinymce_html_default() {
     global $pagenow;
@@ -1496,9 +1479,6 @@ function snn_init_tinymce_html_default() {
         }
     }
 }
-
-
-
 
 add_action('admin_enqueue_scripts', function ($hook) {
     if (in_array($hook, ['edit-tags.php', 'term.php'], true)) {
