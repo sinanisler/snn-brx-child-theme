@@ -360,7 +360,7 @@ function snn_add_ai_script_to_footer() {
             position: absolute;
             right: 4px;
             top: 26px;
-            z-index: 99;
+            z-index: 1;
         }
         [data-control="editor"] .snn-ai-button {
             top: auto;
@@ -377,7 +377,9 @@ function snn_add_ai_script_to_footer() {
             padding: 3px 5px;
             font-size: 16px;
         }
-        [data-control="query"] .snn-ai-button {
+        [data-control="query"]  .snn-ai-button ,
+        [data-control="number"] .snn-ai-button 
+        {
             display: none;
         }
         .snn-ai-button:hover {
@@ -898,8 +900,10 @@ function snn_add_ai_script_to_footer() {
             const aiButton = document.createElement('span');
             aiButton.className = 'snn-ai-button';
             aiButton.textContent = 'AI';
-            aiButton.setAttribute('title', '<?php echo esc_js(__('Generate with AI', 'snn')); ?>');
             aiButton.setAttribute('data-editor-type', type);
+            aiButton.setAttribute('data-balloon', 'Generate with AI');
+            aiButton.setAttribute('data-balloon-pos', 'left');
+            
 
             const controlLabel = element.querySelector('.control-label');
             if (controlLabel) {
