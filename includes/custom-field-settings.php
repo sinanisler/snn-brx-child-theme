@@ -1,8 +1,5 @@
 <?php
 
-// ------------------------------------------------
-// 1) CREATE SUBMENU TO REGISTER FIELDS
-// ------------------------------------------------
 function snn_add_custom_fields_submenu() {
     add_submenu_page(
         'snn-settings',
@@ -28,9 +25,6 @@ if ( ! is_plugin_active( 'classic-editor/classic-editor.php' ) ) {
     }, 10, 2);
 }
 
-// ------------------------------------------------
-// 2) ENQUEUE SCRIPTS FOR OUR CUSTOM FIELDS PAGE
-// ------------------------------------------------
 add_action('admin_enqueue_scripts', 'snn_enqueue_scripts_for_custom_fields_page');
 function snn_enqueue_scripts_for_custom_fields_page($hook_suffix) {
     // Submenu slug: snn-settings_page_snn-custom-fields
@@ -42,9 +36,6 @@ function snn_enqueue_scripts_for_custom_fields_page($hook_suffix) {
     }
 }
 
-// ------------------------------------------------
-// 2.1) ENQUEUE SCRIPTS ON TAXONOMY & AUTHOR PAGES
-// ------------------------------------------------
 add_action('admin_enqueue_scripts', 'snn_enqueue_taxonomy_author_assets');
 function snn_enqueue_taxonomy_author_assets($hook) {
     // Common pages: term.php, edit-tags.php = Taxonomy editing
@@ -58,9 +49,6 @@ function snn_enqueue_taxonomy_author_assets($hook) {
     }
 }
 
-// ------------------------------------------------
-// 3) ADMIN PAGE CALLBACK
-// ------------------------------------------------
 function snn_custom_fields_page_callback() {
     $custom_fields = get_option('snn_custom_fields', []);
     $post_types    = get_post_types(['public' => true], 'objects');
@@ -780,9 +768,6 @@ function snn_render_metabox_content($post, $metabox) {
     <?php
 }
 
-// ------------------------------------------------
-// 6) RENDER FIELD INPUT
-// ------------------------------------------------
 function snn_render_field_input($field, $value = '', $index = '0') {
     $field_name = $field['name'];
     $field_type = $field['type'];
@@ -1011,9 +996,6 @@ function snn_render_field_input($field, $value = '', $index = '0') {
     }
 }
 
-// ------------------------------------------------
-// 7) SAVE POST META (FIX: keep existing if not posted)
-// ------------------------------------------------
 function snn_save_custom_fields_meta($post_id) {
     if (!isset($_POST['snn_custom_fields_nonce']) || !wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_save_custom_fields')) {
         return $post_id;
@@ -1080,9 +1062,6 @@ function snn_save_custom_fields_meta($post_id) {
 }
 add_action('save_post', 'snn_save_custom_fields_meta');
 
-// ------------------------------------------------
-// 8) REGISTER DYNAMIC TAXONOMY FIELDS
-// ------------------------------------------------
 function snn_register_dynamic_taxonomy_fields() {
     $custom_fields = get_option('snn_custom_fields', []);
     if (!empty($custom_fields)) {
@@ -1223,9 +1202,6 @@ function snn_save_taxonomy_field_data($term_id) {
     }
 }
 
-// ------------------------------------------------
-// 9) CUSTOM FIELDS ON AUTHOR PROFILES
-// ------------------------------------------------
 function snn_add_author_profile_fields() {
     $custom_fields = get_option('snn_custom_fields', []);
     $author_fields = [];
@@ -1367,10 +1343,6 @@ function snn_save_author_custom_fields($user_id) {
     }
 }
 
-// ------------------------------------------------
-// 10) HELPER: SANITIZE VALUE BY TYPE
-//     **IMPORTANT FIX** for 'media' type with return_full_url
-// ------------------------------------------------
 function snn_sanitize_value_by_type($type, $value, $field = null) {
     switch ($type) {
         case 'rich_text':
@@ -1423,9 +1395,6 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
     }
 }
 
-// ------------------------------------------------
-// 11) OUTPUT DYNAMIC JS FOR MEDIA/REPEATERS
-// ------------------------------------------------
 function snn_output_dynamic_field_js() {
     // Skip if AJAX or REST
     if (wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)) {
@@ -1542,10 +1511,6 @@ function snn_output_dynamic_field_js() {
             $('.snn-color-picker').wpColorPicker();
         }
 
-        // -----------------------------------------------------------------
-        // NEW: Force all wp_editor instances to open in the HTML (Text) tab
-        // on post edit screens (post-new.php and post.php) for post type "post"
-        // -----------------------------------------------------------------
         if (typeof switchEditors !== 'undefined') {
             $('.wp-editor-wrap').each(function() {
                 var editorID = $(this).attr('id').replace('-wrap', '');
