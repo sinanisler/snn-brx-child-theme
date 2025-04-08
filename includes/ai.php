@@ -39,7 +39,7 @@ function snn_render_ai_settings() {
         ['name' => 'Business',  'prompt' => 'Make it professional and business-like.'],
         ['name' => 'Shorter',   'prompt' => 'Make the following text significantly shorter while preserving the core meaning.'],
         ['name' => 'Longer',    'prompt' => 'Make the following text significantly longer on the following text, adding more detail or explanation.'],
-        ['name' => 'CSS',       'prompt' => 'Ignore all previous instructions. Write clean native CSS only. Always use selector %root%, no <style> tag.'],
+        ['name' => 'CSS',       'prompt' => 'Write clean native CSS only. Always use selector %root%, no <style> tag.'],
         ['name' => 'HTML',      'prompt' => 'write html css and js if needed and you can use cdn lib if you wish. <html> <head> or <body> not needed.'],
     ];
 
@@ -158,6 +158,7 @@ function snn_render_ai_settings() {
                 </table>
                 <p>
                     <button type="button" class="button" id="snn-ai-add-preset"><?php esc_html_e('Add Preset', 'snn'); ?></button>
+                    <button type="button" class="button" id="snn-ai-reset-presets" style="margin-left: 10px;"><?php esc_html_e('Reset Presets', 'snn'); ?></button>
                 </p>
             </div>
 
@@ -205,6 +206,7 @@ function snn_render_ai_settings() {
             }
 
             const addPresetButton = document.getElementById('snn-ai-add-preset');
+            const resetPresetButton = document.getElementById('snn-ai-reset-presets');
             const presetsTableBody = document.querySelector('#snn-ai-action-presets-table tbody');
 
             function updatePresetIndices() {
@@ -245,6 +247,42 @@ function snn_render_ai_settings() {
                     `;
                     presetsTableBody.appendChild(row);
                     updatePresetIndices();
+                });
+            }
+
+            // RESET PRESETS
+            if (resetPresetButton && presetsTableBody) {
+                resetPresetButton.addEventListener('click', function() {
+                    if (confirm('<?php echo esc_js(__('Are you sure you want to reset presets to default?', 'snn')); ?>')) {
+                        presetsTableBody.innerHTML = '';
+                        const defaultPresets = <?php echo json_encode($default_presets); ?>;
+                        defaultPresets.forEach((preset, index) => {
+                            const row = document.createElement('tr');
+                            row.className = 'snn-ai-action-preset-row';
+                            row.setAttribute('draggable', 'true');
+                            row.innerHTML = `
+                                <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor: move; font-size:30px">⬍</td>
+                                <td style="padding:2px">
+                                    <input type="text"
+                                           name="snn_ai_action_presets[${index}][name]"
+                                           value="${preset.name}"
+                                           placeholder="<?php echo esc_js(__('Action Name', 'snn')); ?>"
+                                           class="regular-text preset-name-input" />
+                                </td>
+                                <td style="padding:2px">
+                                    <textarea name="snn_ai_action_presets[${index}][prompt]"
+                                              rows="2"
+                                              placeholder="<?php echo esc_js(__('Action Prompt', 'snn')); ?>"
+                                              class="regular-text preset-prompt-input">${preset.prompt}</textarea>
+                                </td>
+                                <td style="padding:2px">
+                                    <button type="button" class="button snn-ai-remove-preset"><?php echo esc_js(__('Remove', 'snn')); ?></button>
+                                </td>
+                            `;
+                            presetsTableBody.appendChild(row);
+                        });
+                        updatePresetIndices();
+                    }
                 });
             }
 
@@ -334,7 +372,7 @@ function snn_add_ai_script_to_footer() {
         ['name' => 'Funny',   'prompt' => 'Make it funny.'],
         ['name' => 'Sad',     'prompt' => 'Make it sad.'],
         ['name' => 'Business','prompt' => 'Make it professional and business-like.'],
-        ['name' => 'CSS',     'prompt' => 'Ignore all previous instructions. Write clean native CSS only. Always use selector %root%, no <style> tag.'],
+        ['name' => 'CSS',     'prompt' => 'Write clean native CSS only. Always use selector %root%, no <style> tag.'],
         ['name' => 'HTML',    'prompt' => 'Write html css and js if needed and you can use cdn lib if you wish. <html> <head> or <body> not needed.'],
     ];
     $stored_action_presets = get_option('snn_ai_action_presets', false);
@@ -903,7 +941,6 @@ function snn_add_ai_script_to_footer() {
             aiButton.setAttribute('data-editor-type', type);
             aiButton.setAttribute('data-balloon', 'Generate with AI');
             aiButton.setAttribute('data-balloon-pos', 'left');
-            
 
             const controlLabel = element.querySelector('.control-label');
             if (controlLabel) {
@@ -958,3 +995,4 @@ function snn_add_ai_script_to_footer() {
     <?php
 }
 add_action('wp_footer', 'snn_add_ai_script_to_footer');
+?>
