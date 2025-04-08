@@ -133,7 +133,7 @@ function snn_render_ai_settings() {
                         <?php foreach ($action_presets as $index => $preset) : ?>
                             <tr class="snn-ai-action-preset-row" draggable="true">
                                 <!-- DRAG HANDLE -->
-                                <td class="snn-ai-drag-handle" style="padding:0; width: 30px; text-align:center; cursor: move;">&#8942;</td>
+                                <td class="snn-ai-drag-handle" style="padding:0; width: 30px; text-align:center; cursor: move; font-size:30px">⬍</td>
 
                                 <td style="padding:2px">
                                     <input type="text"
