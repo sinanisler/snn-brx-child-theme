@@ -40,7 +40,7 @@ function snn_render_ai_settings() {
         ['name' => 'Shorter',   'prompt' => 'Make the following text significantly shorter while preserving the core meaning.'],
         ['name' => 'Longer',    'prompt' => 'Make the following text significantly longer on the following text, adding more detail or explanation.'],
         ['name' => 'CSS',       'prompt' => 'Write clean native CSS only. Always use selector %root%, no <style> tag.'],
-        ['name' => 'HTML',      'prompt' => 'write html css and js if needed and you can use cdn lib if you wish. <html> <head> or <body> not needed.'],
+        ['name' => 'HTML',      'prompt' => 'Write html css and js if needed and you can use cdn lib if you wish. <html> <head> or <body> not needed.'],
     ];
 
     $stored_action_presets = get_option('snn_ai_action_presets', false);
