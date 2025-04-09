@@ -415,8 +415,14 @@ function snn_add_ai_script_to_footer() {
             padding: 3px 5px;
             font-size: 16px;
         }
+
         [data-control="query"]  .snn-ai-button ,
-        [data-control="number"] .snn-ai-button 
+        [data-control="number"] .snn-ai-button ,
+        [data-control="link"] .snn-ai-button ,
+        [data-controlkey="scrub"] .snn-ai-button ,
+        [data-controlkey="stagger"] .snn-ai-button ,
+        [data-controlkey="scroll_start"] .snn-ai-button ,
+        [data-controlkey="scroll_end"] .snn-ai-button 
         {
             display: none;
         }
