@@ -113,12 +113,13 @@ function snn_render_ai_settings() {
                             <label for="snn_openai_api_key"><?php esc_html_e('OpenAI API Key', 'snn'); ?></label>
                         </th>
                         <td>
-                            <input type="password" name="snn_openai_api_key" id="snn_openai_api_key" value="<?php echo esc_attr($openai_api_key); ?>" class="regular-text" />
+                            <!-- autocomplete="new-password" to prevent Chrome from offering password suggestions -->
+                            <input type="password" name="snn_openai_api_key" id="snn_openai_api_key" value="<?php echo esc_attr($openai_api_key); ?>" class="regular-text" autocomplete="new-password" />
                             <p class="description">
                                 <?php
                                 printf(
                                     wp_kses_post(__('For more information, visit the <a href="%s" target="_blank" rel="noopener noreferrer">OpenAI API Keys page</a>.', 'snn')),
-                                    'https://platform.openai.com/settings/organization/api-keys'
+                                    'https://platform.openai.com/account/api-keys'
                                 );
                                 ?>
                             </p>
@@ -129,22 +130,23 @@ function snn_render_ai_settings() {
                             <label for="snn_openai_model"><?php esc_html_e('OpenAI Model', 'snn'); ?></label>
                         </th>
                         <td>
-                            <select name="snn_openai_model" id="snn_openai_model">
-                                <option value="gpt-4o-mini" <?php selected($openai_model, 'gpt-4o-mini'); ?>>gpt-4o-mini (128k context)</option>
-                                <option value="o3-mini" <?php selected($openai_model, 'o3-mini'); ?>>o3-mini (200k context)</option>
-                                <option value="o1-mini" <?php selected($openai_model, 'o1-mini'); ?>>o1-mini (128k context)</option>
-                                <option value="gpt-4o" <?php selected($openai_model, 'gpt-4o'); ?>>gpt-4o (128k context)</option>
-                                <option value="o1" <?php selected($openai_model, 'o1'); ?>>o1 (128k context)</option>
-                            </select>
+                            <!-- Similar to OpenRouter, use searchable datalist and turn off autocomplete -->
+                            <input
+                                type="text"
+                                name="snn_openai_model"
+                                id="snn_openai_model"
+                                class="regular-text"
+                                value="<?php echo esc_attr($openai_model); ?>"
+                                placeholder="<?php esc_attr_e('Search for model...', 'snn'); ?>"
+                                list="openai-models"
+                                autocomplete="off"
+                            >
+                            <datalist id="openai-models">
+                                <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
+                            </datalist>
                             <p class="description">
-                                <?php esc_html_e('Select the OpenAI model to use.', 'snn'); ?><br>
-                                <?php esc_html_e('The context length indicates the maximum number of tokens.', 'snn'); ?><br>
-                                <?php
-                                printf(
-                                    wp_kses_post(__('<a href="%s" target="_blank" rel="noopener noreferrer">OpenAI API Model Prices</a>', 'snn')),
-                                    'https://platform.openai.com/docs/pricing/'
-                                );
-                                ?>
+                                <?php esc_html_e('Select the OpenAI model to use. Start typing to search.', 'snn'); ?><br>
+                                <a href="https://platform.openai.com/docs/models" target="_blank"><?php esc_html_e('Model Info & Pricing', 'snn'); ?></a>
                             </p>
                         </td>
                     </tr>
@@ -160,7 +162,8 @@ function snn_render_ai_settings() {
                             <label for="snn_openrouter_api_key"><?php esc_html_e('OpenRouter API Key', 'snn'); ?></label>
                         </th>
                         <td>
-                            <input type="password" name="snn_openrouter_api_key" id="snn_openrouter_api_key" value="<?php echo esc_attr($openrouter_api_key); ?>" class="regular-text" />
+                            <!-- autocomplete="new-password" to prevent Chrome from offering password suggestions -->
+                            <input type="password" name="snn_openrouter_api_key" id="snn_openrouter_api_key" value="<?php echo esc_attr($openrouter_api_key); ?>" class="regular-text" autocomplete="new-password" />
                             <p class="description"><?php esc_html_e('Enter your OpenRouter API key.', 'snn'); ?></p>
                         </td>
                     </tr>
@@ -169,7 +172,6 @@ function snn_render_ai_settings() {
                             <label for="snn_openrouter_model"><?php esc_html_e('OpenRouter Model', 'snn'); ?></label>
                         </th>
                         <td>
-                            <!-- We convert the normal select to an <input list="..."> for search -->
                             <input
                                 type="text"
                                 name="snn_openrouter_model"
@@ -178,6 +180,7 @@ function snn_render_ai_settings() {
                                 value="<?php echo esc_attr($openrouter_model); ?>"
                                 placeholder="<?php esc_attr_e('Search for model...', 'snn'); ?>"
                                 list="openrouter-models"
+                                autocomplete="off"
                             >
                             <datalist id="openrouter-models">
                                 <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
@@ -279,6 +282,9 @@ function snn_render_ai_settings() {
                 if (providerSelect.value === 'openai') {
                     openaiSettingsDiv.style.display = isEnabled ? 'block' : 'none';
                     openrouterSettingsDiv.style.display = 'none';
+                    if (isEnabled) {
+                        fetchOpenAiModels();
+                    }
                 } else if (providerSelect.value === 'openrouter') {
                     openaiSettingsDiv.style.display = 'none';
                     openrouterSettingsDiv.style.display = isEnabled ? 'block' : 'none';
@@ -288,29 +294,135 @@ function snn_render_ai_settings() {
                 }
             }
 
-            // Fetch OpenRouter models for the datalist
+            // Fetch OpenRouter models for the datalist with slow-loading indicator
             function fetchOpenRouterModels() {
-                fetch('https://openrouter.ai/api/v1/models')
-                    .then(response => response.json())
-                    .then(data => {
-                        const dataListEl = document.getElementById('openrouter-models');
-                        if (dataListEl && data.data) {
-                            dataListEl.innerHTML = '';
-                            data.data.forEach(model => {
+                const dataListEl = document.getElementById('openrouter-models');
+                if (!dataListEl) return;
+
+                const openrouterKeyEl = document.getElementById('snn_openrouter_api_key');
+                const openrouterKey = openrouterKeyEl ? openrouterKeyEl.value.trim() : '';
+                if (!openrouterKey) {
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('OpenRouter key missing. Please add your key first.', 'snn'); ?></option>';
+                    return;
+                }
+
+                dataListEl.innerHTML = '<option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>';
+
+                // Show a slow-loading indicator if the request takes longer than 3 seconds.
+                let slowTimeout = setTimeout(function(){
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Still loading models... (this is taking longer than usual)', 'snn'); ?></option>';
+                }, 3000);
+
+                fetch('https://openrouter.ai/api/v1/models', {
+                    headers: { 'Authorization': 'Bearer ' + openrouterKey }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('OpenRouter models API error: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.data) {
+                        dataListEl.innerHTML = '';
+                        data.data.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.text = model.name + ' (' + model.context_length + ' tokens)';
+                            dataListEl.appendChild(option);
+                        });
+                    } else {
+                        dataListEl.innerHTML = '<option value=""><?php esc_html_e('No models found.', 'snn'); ?></option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching OpenRouter models:', error);
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Error loading models.', 'snn'); ?></option>';
+                })
+                .finally(() => {
+                    clearTimeout(slowTimeout);
+                });
+            }
+
+            // Fetch OpenAI models for the datalist with slow-loading indicator
+            function fetchOpenAiModels() {
+                const dataListEl = document.getElementById('openai-models');
+                if (!dataListEl) return;
+
+                const openAiApiKeyEl = document.getElementById('snn_openai_api_key');
+                const openAiApiKey = openAiApiKeyEl ? openAiApiKeyEl.value.trim() : '';
+
+                if (!openAiApiKey) {
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('OpenAI key missing. Please add your key first.', 'snn'); ?></option>';
+                    return;
+                }
+
+                dataListEl.innerHTML = '<option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>';
+
+                // Show a slow-loading indicator if the request takes longer than 3 seconds.
+                let slowTimeout = setTimeout(function(){
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Still loading models... (this is taking longer than usual)', 'snn'); ?></option>';
+                }, 3000);
+
+                fetch('https://api.openai.com/v1/models', {
+                    headers: { 'Authorization': 'Bearer ' + openAiApiKey }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('OpenAI models API error: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.data) {
+                        // Define forbidden keywords to filter out models we don't need
+                        const forbiddenKeywords = [
+                            "babbage", 
+                            "tts", 
+                            "whisper", 
+                            "moderation", 
+                            "embedding", 
+                            "transcribe",
+                            "dall",
+                            "audio"
+                        ];
+
+                        // Filter out models that include any of the forbidden keywords
+                        let filteredModels = data.data.filter(m => {
+                            const modelId = m.id.toLowerCase();
+                            return forbiddenKeywords.every(keyword => !modelId.includes(keyword));
+                        });
+                        // Partition into mini models and others
+                        let miniModels = filteredModels.filter(m => m.id.toLowerCase().includes('mini'));
+                        let otherModels = filteredModels.filter(m => !m.id.toLowerCase().includes('mini'));
+
+                        // Sort each group alphabetically
+                        miniModels.sort((a, b) => a.id.localeCompare(b.id));
+                        otherModels.sort((a, b) => a.id.localeCompare(b.id));
+
+                        // Combine mini models first then the other models
+                        let sortedModels = miniModels.concat(otherModels);
+
+                        dataListEl.innerHTML = '';
+                        sortedModels.forEach(model => {
+                            if (model.id) {
                                 const option = document.createElement('option');
                                 option.value = model.id;
-                                option.text = model.name + ' (' + model.context_length + ' tokens)';
+                                option.text = model.id;
                                 dataListEl.appendChild(option);
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching OpenRouter models:', error);
-                        const dataListEl = document.getElementById('openrouter-models');
-                        if (dataListEl) {
-                            dataListEl.innerHTML = '<option value=""><?php esc_html_e('Error loading models', 'snn'); ?></option>';
-                        }
-                    });
+                            }
+                        });
+                    } else {
+                        dataListEl.innerHTML = '<option value=""><?php esc_html_e('No models found.', 'snn'); ?></option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching OpenAI models:', error);
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Error loading models.', 'snn'); ?></option>';
+                })
+                .finally(() => {
+                    clearTimeout(slowTimeout);
+                });
             }
 
             if (enableCheckbox && providerSelect) {
@@ -319,6 +431,7 @@ function snn_render_ai_settings() {
                 toggleSettingsVisibility();
             }
 
+            // Below handles the Action Presets add/remove/reset and sorting
             const addPresetButton = document.getElementById('snn-ai-add-preset');
             const resetPresetButton = document.getElementById('snn-ai-reset-presets');
             const presetsTableBody = document.querySelector('#snn-ai-action-presets-table tbody');
@@ -846,7 +959,7 @@ function snn_add_ai_script_to_footer() {
                         cmElement.CodeMirror.setValue(content);
                         cmElement.CodeMirror.refresh();
                         const textarea = cmElement.CodeMirror.getTextArea();
-                        if(textarea) {
+                        if (textarea) {
                             textarea.dispatchEvent(new Event('input', { bubbles: true }));
                         }
                         highlightElement(cmElement);
@@ -1000,7 +1113,7 @@ function snn_add_ai_script_to_footer() {
             if (userTypedPrompt) {
                 combinedUserInstruction += `Additional instructions: ${userTypedPrompt}`;
             } else if (!combinedUserInstruction && existingContent) {
-                // If no new instructions but there's existing content, we'll not forcibly do anything.
+                // If no new instructions but there's existing content, we'll let it be
             } else if (!combinedUserInstruction && !existingContent) {
                 combinedUserInstruction = "Generate some relevant content.";
             }
