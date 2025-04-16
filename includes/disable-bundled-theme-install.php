@@ -26,4 +26,3 @@ $options = get_option('snn_security_options');
 <p><?php esc_html_e('Enabling this setting will disable bundled theme install when upgrading WordPress.', 'snn'); ?></p>
 <?php 
 } 
-?> 
