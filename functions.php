@@ -62,7 +62,6 @@ require_once SNN_PATH . 'includes/utils.php';
 add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-html-css-script.php', 'custom-html-css-script', 'Custom_HTML_CSS_Script');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-maps.php');
-\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/custom-maps.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/advanced-image.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/smoke-text.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/read-more-toggle-text.php');
