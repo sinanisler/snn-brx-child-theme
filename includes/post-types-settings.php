@@ -99,7 +99,7 @@ function snn_render_custom_post_types_page() {
                         </div>
 
                         <div class="post-type-icon">
-                            <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"> ➜</a><br>
+                            <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][dashicon]" placeholder="dashicons-admin-page" value="<?php echo esc_attr( $post_type['dashicon'] ); ?>" style="width:90px" />
                         </div>
  
@@ -207,7 +207,7 @@ function snn_render_custom_post_types_page() {
                         <input type="text" name="custom_post_types[${newIndex}][slug]" placeholder="post-slug" />
                     </div>
                     <div class="post-type-icon">
-                        <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"> ➜</a><br>
+                        <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
                         <input type="text" name="custom_post_types[${newIndex}][dashicon]" placeholder="dashicons-admin-page" style="width:90px" />
                     </div>
                     <label>Private</label>
