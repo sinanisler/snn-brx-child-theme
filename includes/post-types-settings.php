@@ -48,6 +48,7 @@ function snn_render_custom_post_types_page() {
                         'name'     => sanitize_text_field( $post_type['name'] ),
                         'slug'     => sanitize_title( $post_type['slug'] ),
                         'private'  => isset( $post_type['private'] ) ? 1 : 0,
+                        'dashicon' => sanitize_text_field( $post_type['dashicon'] ),
                         'supports' => $supports,
                     );
                 }
@@ -68,6 +69,9 @@ function snn_render_custom_post_types_page() {
         if ( ! isset( $post_type['supports'] ) || ! is_array( $post_type['supports'] ) ) {
             $post_type['supports'] = array_keys( $available_supports );
         }
+        if ( ! isset( $post_type['dashicon'] ) || empty( $post_type['dashicon'] ) ) {
+            $post_type['dashicon'] = 'dashicons-admin-page';
+        }
     }
     unset( $post_type );
     ?>
@@ -76,7 +80,7 @@ function snn_render_custom_post_types_page() {
         <form method="post">
             <?php wp_nonce_field( 'snn_save_custom_post_types', 'snn_custom_post_types_nonce' ); ?>
             <div id="custom-post-type-settings">
-                <p>Define custom post types with name, slug, visibility, and supported features:</p>
+                <p>Define custom post types with name, slug, visibility, dashicon, and supported features:</p>
                 <?php foreach ( $custom_post_types as $index => $post_type ) : ?>
                     <div class="custom-post-type-row" data-index="<?php echo esc_attr( $index ); ?>">
                         <div class="buttons">
@@ -92,6 +96,11 @@ function snn_render_custom_post_types_page() {
                         <div class="post-type-slug">
                             <label>Post Type Slug</label><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="post-slug" value="<?php echo esc_attr( $post_type['slug'] ); ?>" />
+                        </div>
+
+                        <div class="post-type-icon">
+                            <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"> ➜</a><br>
+                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][dashicon]" placeholder="dashicons-admin-page" value="<?php echo esc_attr( $post_type['dashicon'] ); ?>" style="width:90px" />
                         </div>
  
                         <label>Private</label>
@@ -133,23 +142,20 @@ function snn_render_custom_post_types_page() {
                 'page-attributes': 'Page Attributes'
             };
 
-            // Function to sanitize slug input: lowercase, replace spaces with dashes, remove special characters.
             function slugify(value) {
                 value = value.toLowerCase();
-                value = value.replace(/\s+/g, '-'); // Replace spaces with dashes
-                value = value.replace(/[^a-z0-9\-]/g, ''); // Remove any character that is not a letter, number, or dash
-                value = value.replace(/-+/g, '-'); // Replace multiple dashes with a single dash
+                value = value.replace(/\s+/g, '-');
+                value = value.replace(/[^a-z0-9\-]/g, '');
+                value = value.replace(/-+/g, '-');
                 return value;
             }
 
-            // Attach input event listener to slug fields to enforce slug rules.
             function attachSlugListener(input) {
                 input.addEventListener('input', function() {
                     this.value = slugify(this.value);
                 });
             }
 
-            // Attach slug listener to existing slug inputs.
             document.querySelectorAll('input[name*="[slug]"]').forEach(function(input) {
                 attachSlugListener(input);
             });
@@ -200,6 +206,10 @@ function snn_render_custom_post_types_page() {
                         <label>Post Type Slug</label><br>
                         <input type="text" name="custom_post_types[${newIndex}][slug]" placeholder="post-slug" />
                     </div>
+                    <div class="post-type-icon">
+                        <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"> ➜</a><br>
+                        <input type="text" name="custom_post_types[${newIndex}][dashicon]" placeholder="dashicons-admin-page" style="width:90px" />
+                    </div>
                     <label>Private</label>
                     <div class="checkbox-container">
                         <input type="checkbox" name="custom_post_types[${newIndex}][private]" />
@@ -210,7 +220,6 @@ function snn_render_custom_post_types_page() {
                 `;
                 fieldContainer.appendChild(newRow);
 
-                // Attach slug listener for the new slug input
                 const newSlugInput = newRow.querySelector('input[name*="[slug]"]');
                 if (newSlugInput) {
                     attachSlugListener(newSlugInput);
@@ -258,11 +267,11 @@ function snn_render_custom_post_types_page() {
                 border-radius: 4px;
                 background-color: #f9f9f9;
             }
-            .custom-post-type-row label { 
+            .custom-post-type-row label {
                 width: auto;
                 font-weight: bold;
             }
-            .custom-post-type-row input, .custom-post-type-row select { 
+            .custom-post-type-row input, .custom-post-type-row select {
                 flex: 1;
                 width: 300px;
                 padding: 5px;
@@ -274,7 +283,9 @@ function snn_render_custom_post_types_page() {
                 gap: 5px;
             }
             .custom-post-type-row button {
-                
+                cursor:pointer;
+                border:solid 1px gray;
+                padding:4px 10px;
             }
             .custom-post-type-row button:hover {
                 background-color: #005177;
@@ -297,11 +308,6 @@ function snn_render_custom_post_types_page() {
 
             @media(max-width:768px){ .supports-section { padding-left:0; } }
 
-            .custom-post-type-row button{
-                cursor:pointer;
-                border:solid 1px gray;
-                padding:4px 10px;
-            }
             .custom-post-type-row button:hover{
                 background:none;
                 color:black; 
@@ -318,10 +324,8 @@ function snn_register_custom_post_types() {
     $custom_post_types = get_option( 'snn_custom_post_types', array() );
 
     foreach ( $custom_post_types as $post_type ) {
-        // Ensure 'supports' is an array
         $supports = isset( $post_type['supports'] ) && is_array( $post_type['supports'] ) ? $post_type['supports'] : array( 'title', 'editor', 'thumbnail', 'author', 'excerpt', 'custom-fields', 'revisions', 'page-attributes' );
 
-        // Filter supports to only include allowed options
         $allowed_supports = array(
             'title',
             'editor',
@@ -341,11 +345,10 @@ function snn_register_custom_post_types() {
             'supports'      => ! empty( $supports ) ? $supports : array( 'title', 'editor', 'thumbnail', 'author', 'excerpt', 'custom-fields', 'revisions', 'page-attributes' ),
             'show_in_rest'  => true,
             'menu_position' => 20,
-            'menu_icon'     => 'dashicons-welcome-write-blog',
+            'menu_icon'     => ! empty( $post_type['dashicon'] ) ? $post_type['dashicon'] : 'dashicons-admin-page',
             'hierarchical'  => true,
         );
 
         register_post_type( $post_type['slug'], $args );
     }
 }
-?>
