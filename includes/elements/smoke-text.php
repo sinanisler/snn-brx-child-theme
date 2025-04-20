@@ -57,21 +57,9 @@ class Prefix_Element_Smoke_Text extends \Bricks\Element {
 
         ?>
         <style>
-            .smoke-text-wrapper {
-                cursor: pointer;
-            }
-
-            .smoke-text span {
-                display: inline-block;
-                transition: transform 0.5s ease-out, opacity 0.5s ease-out;
-                position: relative;
-                z-index: 1; /* Ensures text is above other elements initially */
-            }
-
-            .smoke-text span.active {
-                animation: Smoke 1.5s forwards;
-            }
-
+            .smoke-text-wrapper { cursor: pointer; }
+            .smoke-text span { display: inline-block; transition: transform 0.5s ease-out, opacity 0.5s ease-out; position: relative; z-index: 1; }
+            .smoke-text span.active { animation: Smoke 1.5s forwards; }
             @keyframes Smoke {
                 0% {
                     opacity: 1;
@@ -79,19 +67,17 @@ class Prefix_Element_Smoke_Text extends \Bricks\Element {
                     transform: translate(0, 0) rotate(0deg) scale(1);
                     z-index: 1;
                 }
-
                 30% {
                     opacity: 1;
                     pointer-events: none;
                 }
-
                 100% {
                     opacity: 0;
                     filter: blur(20px);
                     transform: translate(var(--randomX, 400px), var(--randomY, -400px)) 
                                rotate(var(--randomRot, 3turn)) 
                                scale(3.5);
-                    z-index: -1; /* Make sure it fully disappears */
+                    z-index: -1; 
                 }
             }
         </style>
@@ -111,23 +97,18 @@ class Prefix_Element_Smoke_Text extends \Bricks\Element {
                 let letters = document.querySelectorAll(".<?php echo $unique_class; ?> .smoke-text span");
 
                 letters.forEach(letter => {
-                    // Generate random animation properties
-                    let randomX = Math.random() * 600 - 300; // Between -300px and 300px
-                    let randomY = Math.random() * 600 - 300; // Between -300px and 300px
-                    let randomRot = Math.random() * 2 + 2; // Between 2turn and 4turn
-
-                    // Apply CSS variables
+                    let randomX = Math.random() * 600 - 300; 
+                    let randomY = Math.random() * 600 - 300; 
+                    let randomRot = Math.random() * 2 + 2;
                     letter.style.setProperty('--randomX', `${randomX}px`);
                     letter.style.setProperty('--randomY', `${randomY}px`);
                     letter.style.setProperty('--randomRot', `${randomRot}turn`);
 
                     letter.addEventListener("mouseover", () => {
                         letter.classList.add("active");
-
-                        // Ensure z-index is set to -1 after animation completes
                         setTimeout(() => {
                             letter.style.zIndex = "-1";
-                        }, 1500); // Matches animation duration
+                        }, 1500); 
                     });
                 });
             });
