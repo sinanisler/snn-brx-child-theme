@@ -298,14 +298,27 @@ class Animated_Headline_Element extends Element {
             <span class="snn-headline-plain-text"><?php echo $before_text; ?></span>
             <span class="snn-headline-wrapper">
                 <span class="snn-headline-text"><?php echo $dynamic_text; ?></span>
-                <svg class="animated-headline-svg" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -14 520 178" preserveAspectRatio="none">
-                    <?php if (isset($this->settings['custom_svg']['url']) && !empty($this->settings['custom_svg']['url'])): ?>
-                        <?php echo file_get_contents( esc_url($this->settings['custom_svg']['url']) ); ?>
-                    <?php else: ?>
-                        <?php foreach ($paths as $d) : ?>
-                            <path d="<?php echo esc_attr($d); ?>" stroke="<?php echo $svg_color; ?>" fill="none" <?php if ($rounded) { echo 'stroke-linecap="round" stroke-linejoin="round"'; } ?>></path>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                <svg class="animated-headline-svg" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -14 520 178" preserveAspectRatio="none" style="fill:none">
+                    <?php
+                    if (!empty($this->settings['custom_svg']['url'])) {
+                        $raw = file_get_contents( esc_url($this->settings['custom_svg']['url']) );
+                        // strip XML declaration
+                        $raw = preg_replace('/<\?xml.*?\?>/i', '', $raw);
+                        // strip opening <svg> tag
+                        $raw = preg_replace('/<svg[^>]*>/i', '', $raw);
+                        // strip closing </svg> tag
+                        $raw = preg_replace('/<\/svg>/i', '', $raw);
+                        echo $raw;
+                    } else {
+                        foreach ($paths as $d) : ?>
+                            <path d="<?php echo esc_attr($d); ?>"
+                                  stroke="<?php echo $svg_color; ?>"
+                                  fill="none"
+                                  <?php if ($rounded) { echo 'stroke-linecap="round" stroke-linejoin="round"'; } ?>>
+                            </path>
+                        <?php endforeach;
+                    }
+                    ?>
                 </svg>
             </span>
             <span class="snn-headline-plain-text"><?php echo $after_text; ?></span>
@@ -317,19 +330,15 @@ class Animated_Headline_Element extends Element {
                     path.style.transition = 'none';
                     path.style.strokeDasharray = length;
                     path.style.strokeDashoffset = length;
-                    // Force reflow
                     path.getBoundingClientRect();
                     path.style.transition = 'stroke-dashoffset ' + duration + ' ease-out';
                     path.style.strokeDashoffset = '0';
                     if (loop) {
-                        var durationMs = 0;
-                        if (duration.endsWith('ms')) {
-                            durationMs = parseFloat(duration);
-                        } else if (duration.endsWith('s')) {
-                            durationMs = parseFloat(duration) * 1000;
-                        } else {
-                            durationMs = parseFloat(duration);
-                        }
+                        var durationMs = duration.endsWith('ms')
+                            ? parseFloat(duration)
+                            : duration.endsWith('s')
+                                ? parseFloat(duration) * 1000
+                                : parseFloat(duration);
                         path.addEventListener('transitionend', function() {
                             setTimeout(function() {
                                 animatePath(path, duration, loop);
@@ -337,7 +346,6 @@ class Animated_Headline_Element extends Element {
                         }, {once: true});
                     }
                 }
-                
                 var element = document.querySelector('.<?php echo $unique_class; ?>');
                 if (!element) return;
                 var observer = new IntersectionObserver(function(entries, observer){
@@ -379,7 +387,7 @@ class Animated_Headline_Element extends Element {
                             </g>
                         </template>
                         <template v-else>
-                            <template v-for="(d, index) in ({
+                            <template v-for="(d, index) in (Object.assign({
                                 'option1': ['M9.3,127.3c49.3-3,150.7-7.6,199.7-7.4 c121.9,0.4,189.9,0.4,282.3,7.2 C380.1,129.6,181.2,130.6,70,139 c82.6-2.9,254.2-1,335.9,1.3 c-56,1.4-137.2-0.3-197.1,9'],
                                 'option2': ['M325,18C228.7-8.3,118.5,8.3,78,21C22.4,38.4,4.6,54.6,5.6,77.6c1.4,32.4,52.2,54,142.6,63.7 c66.2,7.1,212.2,7.5,273.5-8.3c64.4-16.6,104.3-57.6,33.8-98.2C386.7-4.9,179.4-1.4,126.3,20.7'],
                                 'option3': ['M3,146.1c17.1-8.8,33.5-17.8,51.4-17.8c15.6,0,17.1,18.1,30.2,18.1c22.9,0,36-18.6,53.9-18.6 c17.1,0,21.3,18.5,37.5,18.5c21.3,0,31.8-18.6,49-18.6c22.1,0,18.8,18.8,36.8,18.8c18.8,0,37.5-18.6,49-18.6c20.4,0,17.1,19,36.8,19 c22.9,0,36.8-20.6,54.7-18.6c17.7,1.4,7.1,19.5,33.5,18.8c17.1,0,47.2-6.5,61.1-15.6'],
@@ -387,7 +395,7 @@ class Animated_Headline_Element extends Element {
                                 'option5': ['M8.4,143.1c14.2-8,97.6-8.8,200.6-9.2c122.3-0.4,287.5,7.2,287.5,7.2', 'M8,19.4c72.3-5.3,162-7.8,216-7.8c54,0,136.2,0,267,7.8'],
                                 'option6': ['M3,75h493.5'],
                                 'option7': ['M497.4,23.9C301.6,40,155.9,80.6,4,144.4', 'M14.1,27.6c204.5,20.3,393.8,74,467.3,111.7']
-                            }[ element.settings.svg_option || 'option4' ] )" :key="index">
+                            })[element.settings.svg_option || 'option4'])" :key="index">
                                 <path :d="d" :stroke="element.settings.svg_color || '#000000'" fill="none" 
                                       :stroke-linecap="element.settings.rounded ? 'round' : ''" 
                                       :stroke-linejoin="element.settings.rounded ? 'round' : ''"></path>
@@ -401,4 +409,3 @@ class Animated_Headline_Element extends Element {
         <?php
     }
 }
-?>
