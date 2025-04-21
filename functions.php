@@ -36,7 +36,6 @@ require_once SNN_PATH . 'includes/media-settings.php';
 require_once SNN_PATH . 'includes/disable-emojis.php';
 require_once SNN_PATH . 'includes/disable-gravatar.php';
 require_once SNN_PATH . 'includes/editor-settings.php'; 
-require_once SNN_PATH . 'includes/editor-color-global-sync.php'; 
 require_once SNN_PATH . 'includes/cookie-banner.php';
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 // require_once SNN_PATH . 'includes/global-classes.php';
