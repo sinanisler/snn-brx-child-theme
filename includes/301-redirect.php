@@ -46,17 +46,25 @@ function snn_add_301_redirects_page() {
 add_action('admin_menu', 'snn_add_301_redirects_page');
 
 function snn_normalize_path($url) {
+    // strip domain
     $url = preg_replace('/^https?:\/\/[^\/]+/i', '', $url);
-
+    // decode any percent-encoding (so “%C3%B6” → “ö”)
+    $url = rawurldecode( $url );
+    // ensure leading slash
     if (substr($url, 0, 1) !== '/') {
         $url = '/' . $url;
     }
-
+    // remove trailing slash except for root
     if ($url !== '/' && substr($url, -1) === '/') {
         $url = rtrim($url, '/');
     }
-
-    return strtolower($url);
+    // lowercase using mb to handle UTF-8
+    if (function_exists('mb_strtolower')) {
+        $url = mb_strtolower($url, 'UTF-8');
+    } else {
+        $url = strtolower($url);
+    }
+    return $url;
 }
 
 function snn_validate_url($url) {
@@ -525,7 +533,8 @@ function snn_handle_301_redirects() {
 
     $request_uri  = $_SERVER['REQUEST_URI'];
     $parsed_url   = parse_url($request_uri);
-    $current_path = isset($parsed_url['path']) ? snn_normalize_path($parsed_url['path']) : '/';
+    $path         = isset($parsed_url['path']) ? rawurldecode($parsed_url['path']) : '/';
+    $current_path = snn_normalize_path($path);
     $query_string = isset($parsed_url['query']) ? $parsed_url['query'] : '';
 
     // Get all 301 redirect rules
@@ -688,4 +697,3 @@ function snn_deactivate_301_redirects() {
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'snn_deactivate_301_redirects');
-?>
