@@ -621,11 +621,59 @@ function snn_add_ai_script_to_footer() {
         [data-controlkey="scrub"] .snn-ai-button,
         [data-controlkey="stagger"] .snn-ai-button,
         [data-controlkey="scroll_start"] .snn-ai-button,
-        [data-controlkey="scroll_end"] .snn-ai-button {
-            display: none;
+        [data-controlkey="scroll_end"] .snn-ai-button ,
+        [data-controlkey="_aspectRatio"] .snn-ai-button,
+        [data-controlkey="_objectPosition"] .snn-ai-button,
+        [data-controlkey="tag"] .snn-ai-button,
+        [class="external-url"] .snn-ai-button,
+        [data-controlkey="ariaLabel"] .snn-ai-button,
+        [data-controlkey="itemTransition"] .snn-ai-button,
+        [data-controlkey="dropdownTransition"] .snn-ai-button,
+        [data-controlkey="dropdownItemTransition"] .snn-ai-button,
+        [data-controlkey="toggleSelector"] .snn-ai-button,
+        [data-controlkey="toggleAttribute"] .snn-ai-button,
+        [data-controlkey="toggleValue"] .snn-ai-button,
+        [data-controlkey="expandItem"] .snn-ai-button,
+        [data-controlkey="submitButtonText"] .snn-ai-button,
+        [data-controlkey="fields"] .snn-ai-button,
+        [data-control-group="email"] .snn-ai-button,
+        [data-control-group="confirmation"] .snn-ai-button,
+        [data-control-group="fields"] .snn-ai-button,
+        [data-controlkey="prefix"] .snn-ai-button,
+        [data-controlkey="suffix"] .snn-ai-button,
+        [data-controlkey="cursorChar"] .snn-ai-button,
+        [data-controlkey="countFrom"] .snn-ai-button,
+        [data-controlkey="duration"] .snn-ai-button,
+        [data-controlkey="prefix"] .snn-ai-button,
+        [data-controlkey="_flexBasis"] .snn-ai-button,
+        [data-controlkey="_overflow"] .snn-ai-button,
+        [data-controlkey="_pointerEvents"] .snn-ai-button,
+        [data-controlkey="_transformOrigin"] .snn-ai-button,
+        [data-controlkey="_cssTransition"] .snn-ai-button,
+        [data-controlkey="_cssClasses"] .snn-ai-button,
+        [data-controlkey="_cssId"] .snn-ai-button,
+        [data-controlkey="countTo"] .snn-ai-button,
+        [data-controlkey="pricePrefix"] .snn-ai-button,
+        [data-controlkey="price"] .snn-ai-button,
+        [data-controlkey="priceSuffix"] .snn-ai-button,
+        [data-controlkey="priceMeta"] .snn-ai-button,
+        [data-controlkey="address"] .snn-ai-button,
+        [data-controlkey="latitude"] .snn-ai-button,
+        [data-controlkey="longitude"] .snn-ai-button,
+        [data-control-key="label"] .snn-ai-button,
+        [data-controlkey="titleTag"] .snn-ai-button,
+        [data-controlkey="iconTransition"] .snn-ai-button,
+        [data-controlkey="multiLevelBackText"] .snn-ai-button,
+        [data-controlkey="href"] .snn-ai-button,
+        [data-control-key="meta"] .snn-ai-button,
+        [data-control-key="anchorId"] .snn-ai-button,
+        [type="image"] .snn-ai-button,
+        #ariaLabel .snn-ai-button
+        {
+            display: none !important;
         }
         .snn-ai-button:hover { background-color: var(--builder-bg-accent); color: var(--builder-color-accent); }
-        .snn-ai-overlay { display: none; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 9999; justify-content: center; font-size: 14px; line-height: 1.2; }
+        .snn-ai-overlay { display: none; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 99999999; justify-content: center; font-size: 14px; line-height: 1.2; }
         .snn-ai-modal { background-color: var(--builder-bg); color: var(--builder-color); border-radius: 4px 4px 0 0; width: 800px; max-width: 90%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); }
         .snn-ai-modal-header { padding: 0px; background-color: var(--builder-bg-shade); display: flex; justify-content: flex-end; align-items: center; }
         .snn-ai-modal-header h3 { margin: 0; font-size: 18px; color: var(--builder-color); }
