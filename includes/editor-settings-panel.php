@@ -665,7 +665,8 @@ function snn_popup_container_improved() {
         isset($options['snn_bricks_builder_color_fix']) &&
         $options['snn_bricks_builder_color_fix'] &&
         isset($_GET['bricks']) &&
-        $_GET['bricks'] === 'run'
+        $_GET['bricks'] === 'run' &&
+        current_user_can('manage_options')
     ) {
         ?>
         <div id="snn-popup" class="snn-popup docs">
