@@ -111,24 +111,27 @@ function snn_custom_inline_styles_and_scripts_improved() {
 
                 // Insert SNN button into the Bricks toolbar.
                 function insertSnnListItem(toolbar) {
-                    var ul = (toolbar.tagName.toLowerCase() === "ul") ? toolbar : toolbar.querySelector("ul");
+                    const ul = (toolbar.tagName.toLowerCase() === "ul") ? toolbar : toolbar.querySelector("ul");
                     if (!ul) return;
                     if (ul.querySelector(".snn-enhance-li")) return;
-                    var li = document.createElement("li");
+
+                    const li = document.createElement("li");
                     li.className = "snn-enhance-li";
                     li.tabIndex = 0;
                     li.setAttribute("data-balloon", "SNN-BRX");
                     li.setAttribute("data-balloon-pos", "bottom");
                     li.innerHTML = 'S';
                     li.addEventListener("click", function() {
-                        var popup = document.querySelector("#snn-popup");
+                        const popup = document.querySelector("#snn-popup");
                         if (popup) popup.classList.add("active");
                     });
-                    if (ul.children.length >= 7) {
-                        ul.insertBefore(li, ul.children[6]);
-                    } else {
-                        ul.appendChild(li);
-                    }
+
+                    const waitForChildren = setInterval(() => {
+                        if (ul.children.length >= 6) {
+                            ul.insertBefore(li, ul.children[5]); // Between 5th and 6th
+                            clearInterval(waitForChildren);
+                        }
+                    }, 300);
                 }
 
                 function findAndInsertSnn() {
