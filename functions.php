@@ -17,7 +17,6 @@ require_once SNN_PATH . 'includes/security-page.php';
 require_once SNN_PATH . 'includes/post-types-settings.php';
 require_once SNN_PATH . 'includes/custom-field-settings.php';
 require_once SNN_PATH . 'includes/taxonomy-settings.php';
-//require_once SNN_PATH . 'includes/seo-settings.php';
 require_once SNN_PATH . 'includes/login-settings.php';
 require_once SNN_PATH . 'includes/remove-wp-version.php';
 require_once SNN_PATH . 'includes/disable-xmlrpc.php';
@@ -30,6 +29,7 @@ require_once SNN_PATH . 'includes/file-size-column-media.php';
 require_once SNN_PATH . 'includes/404-logging.php';
 require_once SNN_PATH . 'includes/search-loggins.php';
 require_once SNN_PATH . 'includes/301-redirect.php';
+require_once SNN_PATH . 'includes/seo-settings.php';
 require_once SNN_PATH . 'includes/smtp-settings.php';
 require_once SNN_PATH . 'includes/mail-logging.php';
 require_once SNN_PATH . 'includes/media-settings.php';
@@ -37,12 +37,14 @@ require_once SNN_PATH . 'includes/disable-emojis.php';
 require_once SNN_PATH . 'includes/disable-gravatar.php';
 require_once SNN_PATH . 'includes/editor-settings.php'; 
 require_once SNN_PATH . 'includes/cookie-banner.php';
+require_once SNN_PATH . 'includes/role-manager.php';
+require_once SNN_PATH . 'includes/ai.php';
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 // require_once SNN_PATH . 'includes/global-classes.php';
 // require_once SNN_PATH . 'includes/global-variables.php';
 require_once SNN_PATH . 'includes/editor-settings-panel.php';
 // require_once SNN_PATH . 'includes/accessibility-settings.php';
-require_once SNN_PATH . 'includes/ai.php';
+require_once SNN_PATH . 'includes/cache.php';
 
 
 // Register Custom Dynamic Data Tags

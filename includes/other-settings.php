@@ -291,19 +291,30 @@ add_filter('auto_update_theme', 'snn_auto_update_bricks_theme', 10, 2);
 
 function snn_custom_menu_order($menu_ord) {
     $options = get_option('snn_other_settings');
-    if (isset($options['move_bricks_menu']) && $options['move_bricks_menu']) {
-        if (!$menu_ord) return true;
+    if ( isset($options['move_bricks_menu']) && $options['move_bricks_menu'] ) {
+        if ( ! $menu_ord ) {
+            return true;
+        }
+
         $bricks_menu = null;
-        foreach ($menu_ord as $index => $item) {
-            if ($item === 'bricks') {
+        foreach ( $menu_ord as $i => $item ) {
+            if ( $item === 'bricks' ) {
                 $bricks_menu = $item;
-                unset($menu_ord[$index]);
+                unset( $menu_ord[ $i ] );
                 break;
             }
         }
-        if ($bricks_menu) {
-            $menu_ord[] = $bricks_menu;
+
+        if ( $bricks_menu ) {
+            $target_index = 14;
+            $menu_ord = array_values( $menu_ord );
+            if ( count( $menu_ord ) >= $target_index ) {
+                array_splice( $menu_ord, $target_index, 0, array( $bricks_menu ) );
+            } else {
+                $menu_ord[] = $bricks_menu;
+            }
         }
+
         return $menu_ord;
     }
     return $menu_ord;
