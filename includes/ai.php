@@ -4,7 +4,7 @@ function snn_add_ai_settings_submenu() {
     add_submenu_page(
         'snn-settings',
         __('AI Settings', 'snn'),
-        __('AI', 'snn'),
+        __('AI Settings', 'snn'),
         'manage_options',
         'snn-ai-settings',
         'snn_render_ai_settings'
