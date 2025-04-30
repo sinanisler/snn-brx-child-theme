@@ -29,7 +29,7 @@ require_once SNN_PATH . 'includes/file-size-column-media.php';
 require_once SNN_PATH . 'includes/404-logging.php';
 require_once SNN_PATH . 'includes/search-loggins.php';
 require_once SNN_PATH . 'includes/301-redirect.php';
-// require_once SNN_PATH . 'includes/seo-settings.php';
+// require_once SNN_PATH . 'includes/seo-settings.php'; 
 require_once SNN_PATH . 'includes/smtp-settings.php';
 require_once SNN_PATH . 'includes/mail-logging.php';
 require_once SNN_PATH . 'includes/media-settings.php';
