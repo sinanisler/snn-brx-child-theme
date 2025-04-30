@@ -29,7 +29,7 @@ require_once SNN_PATH . 'includes/file-size-column-media.php';
 require_once SNN_PATH . 'includes/404-logging.php';
 require_once SNN_PATH . 'includes/search-loggins.php';
 require_once SNN_PATH . 'includes/301-redirect.php';
-require_once SNN_PATH . 'includes/seo-settings.php';
+// require_once SNN_PATH . 'includes/seo-settings.php';
 require_once SNN_PATH . 'includes/smtp-settings.php';
 require_once SNN_PATH . 'includes/mail-logging.php';
 require_once SNN_PATH . 'includes/media-settings.php';
@@ -44,7 +44,7 @@ require_once SNN_PATH . 'includes/block-editor-settings.php';
 // require_once SNN_PATH . 'includes/global-variables.php';
 require_once SNN_PATH . 'includes/editor-settings-panel.php';
 // require_once SNN_PATH . 'includes/accessibility-settings.php';
-require_once SNN_PATH . 'includes/cache.php';
+// require_once SNN_PATH . 'includes/cache.php';
 
 
 // Register Custom Dynamic Data Tags
@@ -52,7 +52,6 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/estimated-post-read-time.php
 require_once SNN_PATH . 'includes/dynamic-data-tags/get-contextual-id.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/parent-link.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/post-term-count.php';
-// require_once SNN_PATH . 'includes/dynamic-data-tags/taxonomy-term-slug.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/user-author-fields.php';
 
 // Utils
