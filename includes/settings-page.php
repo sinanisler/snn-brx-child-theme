@@ -26,23 +26,26 @@ function snn_settings_page_callback() {
         <div class="snn-dashboard-buttons">
             <?php
             $menu_items = array(
-                array('slug' => 'snn-settings',              'label' => 'SNN Settings',            'dashicon' => 'dashicons-admin-home'),
-                array('slug' => 'snn-other-settings',        'label' => 'GSAP, Lottie & Other Settings',          'dashicon' => 'dashicons-admin-generic'),
-                array('slug' => 'editor-settings',           'label' => 'Editor Settings',         'dashicon' => 'dashicons-edit'),
-                array('slug' => 'snn-security',              'label' => 'Security Settings',       'dashicon' => 'dashicons-shield'),
-                array('slug' => 'snn-custom-post-types',     'label' => 'Post Types',              'dashicon' => 'dashicons-admin-post'),
-                array('slug' => 'snn-custom-fields',         'label' => 'Custom Fields',           'dashicon' => 'dashicons-admin-page'),
-                array('slug' => 'snn-taxonomies',            'label' => 'Taxonomies',              'dashicon' => 'dashicons-category'),
-                array('slug' => 'login-settings',            'label' => 'Login Settings',          'dashicon' => 'dashicons-admin-users'),
-                array('slug' => 'snn-404-logs',              'label' => '404 Logs',                'dashicon' => 'dashicons-warning'),
-                array('slug' => 'snn-search-logs',           'label' => 'Search Logs',             'dashicon' => 'dashicons-search'),
-                array('slug' => 'snn-301-redirects',         'label' => '301 Redirects',           'dashicon' => 'dashicons-share'),
-                array('slug' => 'smtp-settings',             'label' => 'Mail SMTP Settings',      'dashicon' => 'dashicons-email'),
-                array('slug' => 'snn-mail-logs',             'label' => 'Mail Logs',               'dashicon' => 'dashicons-email-alt'),
-                array('slug' => 'snn-media-settings',        'label' => 'Media Settings',          'dashicon' => 'dashicons-format-image'),
-                // array('slug' => 'bricks-global-classes',     'label' => 'Bricks Global Classes',   'dashicon' => 'dashicons-layout'),
-                array('slug' => 'snn-cookie-settings',       'label' => 'Cookie Settings',         'dashicon' => 'dashicons-admin-site'),
-                array('slug' => 'snn-block-editor-settings', 'label' => 'Block Editor Settings',   'dashicon' => 'dashicons-admin-customizer'),
+                array('slug' => 'snn-settings',               'label' => 'SNN Settings',            'dashicon' => 'dashicons-admin-home'),
+                array('slug' => 'snn-other-settings',         'label' => 'GSAP, Lottie & Other Settings',          'dashicon' => 'dashicons-admin-generic'),
+                array('slug' => 'editor-settings',            'label' => 'Editor Settings',         'dashicon' => 'dashicons-edit'),
+                array('slug' => 'snn-security',               'label' => 'Security Settings',       'dashicon' => 'dashicons-shield'),
+                array('slug' => 'snn-custom-post-types',      'label' => 'Post Types',              'dashicon' => 'dashicons-admin-post'),
+                array('slug' => 'snn-custom-fields',          'label' => 'Custom Fields',           'dashicon' => 'dashicons-admin-page'),
+                array('slug' => 'snn-taxonomies',             'label' => 'Taxonomies',              'dashicon' => 'dashicons-category'),
+                array('slug' => 'login-settings',             'label' => 'Login Settings',          'dashicon' => 'dashicons-admin-users'),
+                array('slug' => 'snn-404-logs',               'label' => '404 Logs',                'dashicon' => 'dashicons-warning'),
+                array('slug' => 'snn-301-redirects',          'label' => '301 Redirects',           'dashicon' => 'dashicons-share'),
+                array('slug' => 'smtp-settings',              'label' => 'Mail SMTP Settings',      'dashicon' => 'dashicons-email'),
+                array('slug' => 'snn-mail-logs',              'label' => 'Mail Logs',               'dashicon' => 'dashicons-email-alt'),
+                array('slug' => 'snn-role-management',        'label' => 'Role Manager',            'dashicon' => 'dashicons-admin-users'),
+                array('slug' => 'snn-cookie-settings',        'label' => 'Cookie Settings',         'dashicon' => 'dashicons-admin-site'),
+                array('slug' => 'snn-accessibility-settings', 'label' => 'Accessibility Settings',  'dashicon' => 'dashicons-universal-access'),
+                array('slug' => 'snn-ai-settings',            'label' => 'AI Settings',             'dashicon' => 'dashicons-nametag'),
+                array('slug' => 'snn-search-logs',            'label' => 'Search Logs',             'dashicon' => 'dashicons-search'),
+                array('slug' => 'snn-block-editor-settings',  'label' => 'Block Editor Settings',   'dashicon' => 'dashicons-admin-customizer'),
+                array('slug' => 'snn-media-settings',         'label' => 'Media Settings',          'dashicon' => 'dashicons-format-image'),
+                array('slug' => 'bricks-settings',            'label' => 'Bricks Builder Settings', 'dashicon' => 'dashicons-editor-bold'),
             );
             
             foreach ($menu_items as $item) {
@@ -108,15 +111,16 @@ function snn_settings_page_callback() {
             text-decoration: none;
         }
         .snn-dashboard-button:hover {
-            transform: scale(1.02);
+            transform: scale(1.033);
             border-color: #0073aa;
         }
         .snn-dashboard-button .dashicons {
-            font-size: 30px;
+            width:auto;
+            font-size: 32px;
             margin-bottom: 30px;
         }
         .snn-dashboard-button .button-label {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
             color: #333;
         }
@@ -125,6 +129,9 @@ function snn_settings_page_callback() {
         .wrap .tt1 {
             width: 880px;
             height: 40px;
+        }
+        .wrap h1{
+            margin-bottom:10px;
         }
         .wrap .style_css, .wrap .head-css, #wp_head_css_frontend, #wp_footer_html_frontend, #wp_head_html_frontend {
             width: 880px;
