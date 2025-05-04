@@ -306,7 +306,7 @@ function snn_custom_menu_order($menu_ord) {
         }
 
         if ( $bricks_menu ) {
-            $target_index = 14;
+            $target_index = 99;
             $menu_ord = array_values( $menu_ord );
             if ( count( $menu_ord ) >= $target_index ) {
                 array_splice( $menu_ord, $target_index, 0, array( $bricks_menu ) );

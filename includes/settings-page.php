@@ -111,7 +111,7 @@ function snn_settings_page_callback() {
             text-decoration: none;
         }
         .snn-dashboard-button:hover {
-            transform: scale(1.033);
+            transform: scale(1.05);
             border-color: #0073aa;
         }
         .snn-dashboard-button .dashicons {
