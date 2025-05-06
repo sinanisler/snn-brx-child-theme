@@ -1,6 +1,4 @@
 <?php
-
-
 // Prevent direct access
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
@@ -76,7 +74,6 @@ function snn_custom_codes_snippets_enqueue_assets( $hook ) {
         }
     }
 
-
     // Enqueue CodeMirror for PHP syntax highlighting
     $cm_settings = wp_enqueue_code_editor( array( 'type' => 'application/x-httpd-php' ) );
     if ( false === $cm_settings ) {
@@ -96,7 +93,7 @@ function snn_custom_codes_snippets_enqueue_assets( $hook ) {
         sprintf(
             'jQuery( function( $ ) {
                 var editorSettings = %s;
-                $( "#snn_frontend_code, #snn_footer_code, #snn_admin_code" ).each( function() {
+                $( "#snn_frontend_code, #snn_footer_code, #snn_admin_code, #snn_functions_code" ).each( function() {
                     if (wp && wp.codeEditor) {
                         wp.codeEditor.initialize( this, editorSettings );
                     } else {
@@ -398,6 +395,13 @@ function snn_custom_codes_snippets_page() {
             'field_id'    => 'snn_admin_code',
             'description' => __( 'PHP code or HTML executed within the <code>&lt;head&gt;</code> of WordPress admin pages. Use for conditional admin CSS/JS, admin modifications, etc. You can use <code>&lt;?php ?&gt;</code> tags for PHP code.', 'snn-custom-codes' ),
         ),
+        /* -------------- NEW TAB -------------- */
+        'functions' => array(
+            'title'       => __( 'Direct PHP (functions.php)', 'snn-custom-codes' ),
+            'slug'        => 'snn-snippet-functions-php',
+            'field_id'    => 'snn_functions_code',
+            'description' => __( 'PHP executed immediately when the plugin loads (no hook) – just like putting code in <code>functions.php</code>. ', 'snn-custom-codes' ),
+        ),
     );
 
     $settings_saved_message_type = 'updated'; // Default message type
@@ -664,6 +668,13 @@ function snn_custom_codes_snippets_init_execution() {
         return; // Global switch is off
     }
 
+    // --- Direct (functions.php-style) snippet: run immediately ---
+    $direct_code = snn_get_code_snippet_content( 'snn-snippet-functions-php' );
+    if ( ! empty( trim( $direct_code ) ) ) {
+        echo snn_execute_php_snippet( $direct_code, 'snn-snippet-functions-php' );
+    }
+
+    // Other snippets (hooked)
     if ( ! empty( trim( snn_get_code_snippet_content( 'snn-snippet-frontend-head' ) ) ) ) {
         add_action( 'wp_head', 'snn_custom_codes_snippets_frontend_output', 1 );
     }
