@@ -106,16 +106,16 @@ add_action('admin_init', 'snn_register_accessibility_settings');
 function snn_sanitize_accessibility_settings( $input ) {
     $sanitized = [];
     $sanitized['enqueue_accessibility'] = ! empty( $input['enqueue_accessibility'] ) ? 1 : 0;
-    $sanitized['main_color'] = ! empty( $input['main_color'] )
+    $sanitized['main_color']            = ! empty( $input['main_color'] )
         ? sanitize_hex_color( $input['main_color'] )
         : '#07757f';
-    $sanitized['btn_width']  = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 45;
-    $sanitized['btn_height'] = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 45;
+    $sanitized['btn_width']             = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 45;
+    $sanitized['btn_height']            = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 45;
     $align = isset( $input['btn_alignment'] ) ? $input['btn_alignment'] : 'left';
-    $sanitized['btn_alignment'] = in_array( $align, ['left','right'], true ) ? $align : 'left';
-    $sanitized['btn_spacing_left']   = ! empty( $input['btn_spacing_left'] )   ? absint( $input['btn_spacing_left'] )   : 20;
-    $sanitized['btn_spacing_bottom'] = ! empty( $input['btn_spacing_bottom'] ) ? absint( $input['btn_spacing_bottom'] ) : 20;
-    $sanitized['btn_spacing_right']  = ! empty( $input['btn_spacing_right'] )  ? absint( $input['btn_spacing_right'] )  : 20;
+    $sanitized['btn_alignment']         = in_array( $align, ['left','right'], true ) ? $align : 'left';
+    $sanitized['btn_spacing_left']      = ! empty( $input['btn_spacing_left'] )   ? absint( $input['btn_spacing_left'] )   : 20;
+    $sanitized['btn_spacing_bottom']    = ! empty( $input['btn_spacing_bottom'] ) ? absint( $input['btn_spacing_bottom'] ) : 20;
+    $sanitized['btn_spacing_right']     = ! empty( $input['btn_spacing_right'] )  ? absint( $input['btn_spacing_right'] )  : 20;
     return $sanitized;
 }
 
@@ -159,8 +159,8 @@ function snn_btn_alignment_callback() {
     $val = ! empty($opt['btn_alignment']) ? $opt['btn_alignment'] : 'left';
     ?>
     <select name="snn_accessibility_settings[btn_alignment]">
-        <option value="left" <?php selected($val,'left'); ?>>Left</option>
-        <option value="right" <?php selected($val,'right'); ?>>Right</option>
+        <option value="left" <?php selected($val, 'left'); ?>>Left</option>
+        <option value="right" <?php selected($val, 'right'); ?>>Right</option>
     </select>
     <?php
 }
@@ -186,22 +186,30 @@ function snn_btn_spacing_right_callback() {
     <?php
 }
 
-// Enqueue widget JS in head.
+// Enqueue widget JS in head, but skip when Bricks editor is running.
 function snn_enqueue_accessibility_widget_head() {
+    if ( isset( $_GET['bricks'] ) && 'run' === $_GET['bricks'] ) {
+        return;
+    }
     $opt = get_option('snn_accessibility_settings');
-    if (! empty($opt['enqueue_accessibility'])) {
+    if ( ! empty( $opt['enqueue_accessibility'] ) ) {
         $src  = get_stylesheet_directory_uri() . '/assets/js/accessibility.min.js';
         $path = get_stylesheet_directory() . '/assets/js/accessibility.min.js';
-        $ver  = file_exists($path) ? filemtime($path) : false;
-        wp_enqueue_script('snn-accessibility-widget', $src, [], $ver, false);
+        $ver  = file_exists( $path ) ? filemtime( $path ) : false;
+        wp_enqueue_script( 'snn-accessibility-widget', $src, [], $ver, false );
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_accessibility_widget_head');
 
-// Output inline JS & styles in footer.
+// Output inline JS & styles in footer, but skip when Bricks editor is running.
 function snn_output_accessibility_widget_footer() {
+    if ( isset( $_GET['bricks'] ) && 'run' === $_GET['bricks'] ) {
+        return;
+    }
     $opt = get_option('snn_accessibility_settings');
-    if (empty($opt['enqueue_accessibility'])) return;
+    if ( empty( $opt['enqueue_accessibility'] ) ) {
+        return;
+    }
     $c  = $opt['main_color'];
     $w  = $opt['btn_width'];
     $h  = $opt['btn_height'];
@@ -239,44 +247,44 @@ function snn_output_accessibility_widget_footer() {
         --btn-width: <?php echo esc_html($w); ?>px;
         --btn-height: <?php echo esc_html($h); ?>px;
     }
-    <?php if ($a === 'left'): ?>
-    .asw-menu-btn{
-        left:<?php echo esc_html($l); ?>px !important;
-        bottom:<?php echo esc_html($b); ?>px !important;
-        right:<?php echo esc_html($r); ?>px !important;
+    <?php if ( 'left' === $a ): ?>
+    .asw-menu-btn {
+        left: <?php echo esc_html($l); ?>px !important;
+        bottom: <?php echo esc_html($b); ?>px !important;
+        right: <?php echo esc_html($r); ?>px !important;
     }
     <?php else: ?>
-    .asw-menu-btn{
-        right:<?php echo esc_html($r); ?>px !important;
-        bottom:<?php echo esc_html($b); ?>px !important;
-        left:auto !important;
+    .asw-menu-btn {
+        right: <?php echo esc_html($r); ?>px !important;
+        bottom: <?php echo esc_html($b); ?>px !important;
+        left: auto !important;
     }
     <?php endif; ?>
-    .asw-footer{display:none!important;}
-    .asw-menu-content{
-        max-height:100%!important;
-        padding-top:15px!important;
-        padding-bottom:15px!important;
-        overflow:auto!important;
+    .asw-footer { display: none !important; }
+    .asw-menu-content {
+        max-height: 100% !important;
+        padding-top: 15px !important;
+        padding-bottom: 15px !important;
+        overflow: auto !important;
     }
     .asw-menu-header svg,
-    .asw-menu-header svg path{fill:var(--main-color)!important;}
-    .asw-btn{aspect-ratio:6/3.8!important;}
-    .asw-adjust-font{
-        display:flex!important;
-        justify-content:space-between;
+    .asw-menu-header svg path { fill: var(--main-color) !important; }
+    .asw-btn { aspect-ratio: 6/3.8 !important; }
+    .asw-adjust-font {
+        display: flex !important;
+        justify-content: space-between;
     }
-    .asw-adjust-font>div{margin-top:0!important;gap:5px;}
-    .asw-menu-header div[role=button]{padding:8px!important;}
-    .asw-menu-btn svg{
-        width:<?php echo esc_html($w/1.4); ?>px!important;
-        height:<?php echo esc_html($w/1.4); ?>px!important;
-        min-width:auto!important;
-        min-height:auto!important;
+    .asw-adjust-font > div { margin-top: 0 !important; gap: 5px; }
+    .asw-menu-header div[role=button] { padding: 8px !important; }
+    .asw-menu-btn svg {
+        width: <?php echo esc_html($w / 1.4); ?>px !important;
+        height: <?php echo esc_html($w / 1.4); ?>px !important;
+        min-width: auto !important;
+        min-height: auto !important;
     }
-    .asw-menu,.asw-widget{
-        user-select:auto!important;
-        outline:2px!important;
+    .asw-menu, .asw-widget {
+        user-select: auto !important;
+        outline: 2px !important;
     }
     </style>
     <?php
