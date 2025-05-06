@@ -39,10 +39,6 @@ require_once SNN_PATH . 'includes/ai.php';
 require_once SNN_PATH . 'includes/accessibility-settings.php';
 require_once SNN_PATH . 'includes/custom-codes-snippets.php';
 require_once SNN_PATH . 'includes/block-editor-settings.php';
-// require_once SNN_PATH . 'includes/seo-settings.php'; 
-// require_once SNN_PATH . 'includes/cache.php';
-// require_once SNN_PATH . 'includes/global-classes.php';
-// require_once SNN_PATH . 'includes/global-variables.php';
 
 
 // Register Custom Dynamic Data Tags
