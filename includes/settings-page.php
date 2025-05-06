@@ -26,7 +26,7 @@ function snn_settings_page_callback() {
         <div class="snn-dashboard-buttons">
             <?php
             $menu_items = array(
-                array('slug' => 'snn-settings',               'label' => 'SNN Settings',            'dashicon' => 'dashicons-admin-home'),
+                array('slug' => 'snn-settings',               'label' => $dynamic_title.' Settings',            'dashicon' => 'dashicons-admin-home'),
                 array('slug' => 'snn-other-settings',         'label' => 'GSAP, Lottie & Other Settings',          'dashicon' => 'dashicons-admin-generic'),
                 array('slug' => 'editor-settings',            'label' => 'Editor Settings',         'dashicon' => 'dashicons-edit'),
                 array('slug' => 'snn-security',               'label' => 'Security Settings',       'dashicon' => 'dashicons-shield'),
