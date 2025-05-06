@@ -781,56 +781,58 @@ function snn_inject_bricks_color_palette() {
         $_GET['bricks'] === 'run'
     ) {
         $colors = get_option('snn_global_color_sync_variables', []);
-        if (!empty($colors) && is_array($colors)) {
+        if ( ! empty($colors) && is_array($colors) ) {
             echo "<script>
 (function(){
-  if (typeof bricksData !== 'undefined' && bricksData.loadData && bricksData.loadData.colorPalette && bricksData.loadData.colorPalette[0]) {
-    var palette = bricksData.loadData.colorPalette[0].colors;
+  if (
+    typeof bricksData !== 'undefined' &&
+    bricksData.loadData &&
+    bricksData.loadData.colorPalette &&
+    bricksData.loadData.colorPalette[0]
+  ) {
+    var palette   = bricksData.loadData.colorPalette[0].colors;
     var newColors = [
 ";
-            $color_objects = [];
-            foreach ($colors as $index => $color) {
-                if (isset($color['hex']) && $color['hex'] !== '') {
-                    $varName = (!empty($color['name'])) ? $color['name'] : 'snn-color-' . ($index + 1);
-                    $color_objects[] = '      {
-        "raw": "var(--'.$varName.')",
-        "id": "snn1'.$index.'",
-        "name": "'.$varName.'"
+            foreach ( $colors as $index => $color ) {
+                if ( isset($color['hex']) && $color['hex'] !== '' ) {
+                    $varName    = ! empty($color['name']) ? $color['name'] : 'snn-color-' . ($index + 1);
+                    echo '      {
+        "raw": "var(--' . $varName . ')",
+        "id": "snn1' . $index . '",
+        "name": "' . $varName . '"
       }';
                     $shadeCount = isset($color['shade']) ? intval($color['shade']) : 0;
-                    if ($shadeCount > 0) {
-                        // Add light shades.
-                        for ($i = 1; $i <= $shadeCount; $i++) {
-                            $lightVar = $varName.'-light-'.$i;
-                            $color_objects[] = '      {
-        "raw": "var(--'.$lightVar.')",
-        "id": "snn1light'.$index.'-'.$i.'",
-        "name": "'.$lightVar.'"
-      }';
-                        }
-                        // Add dark shades.
-                        for ($i = 1; $i <= $shadeCount; $i++) {
-                            $darkVar = $varName.'-dark-'.$i;
-                            $color_objects[] = '      {
-        "raw": "var(--'.$darkVar.')",
-        "id": "snn1dark'.$index.'-'.$i.'",
-        "name": "'.$darkVar.'"
-      }';
-                        }
+                    for ( $i = 1; $i <= $shadeCount; $i++ ) {
+                        $lightVar = $varName . '-light-' . $i;
+                        echo ",
+      {
+        \"raw\": \"var(--$lightVar)\",
+        \"id\": \"snn1light{$index}-{$i}\",
+        \"name\": \"$lightVar\"
+      }";
                     }
+                    for ( $i = 1; $i <= $shadeCount; $i++ ) {
+                        $darkVar = $varName . '-dark-' . $i;
+                        echo ",
+      {
+        \"raw\": \"var(--$darkVar)\",
+        \"id\": \"snn1dark{$index}-{$i}\",
+        \"name\": \"$darkVar\"
+      }";
+                    }
+                    if ( $index < count($colors) - 1 ) {
+                        echo ",";
+                    }
+                    echo "\n";
                 }
             }
-            echo implode(",\n", $color_objects);
-            echo "
-    ];
-    newColors.forEach(function(colorObj) {
-      var exists = palette.some(function(item) {
-        return item.id === colorObj.id;
-      });
-      if (!exists) {
-        palette.unshift(colorObj);
-      }
+            echo "    ];
+    // Move my colors to the very front, preserve order, avoid duplicates
+    var ids      = newColors.map(function(c){ return c.id; });
+    var defaults = palette.filter(function(item){
+      return ids.indexOf(item.id) === -1;
     });
+    palette.splice(0, palette.length, ...newColors, ...defaults);
   }
 })();
 </script>
