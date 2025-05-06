@@ -45,7 +45,7 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-search-logs',            'label' => 'Search Logs',             'dashicon' => 'dashicons-search'),
                 array('slug' => 'snn-block-editor-settings',  'label' => 'Block Editor Settings',   'dashicon' => 'dashicons-admin-customizer'),
                 array('slug' => 'snn-media-settings',         'label' => 'Media Settings',          'dashicon' => 'dashicons-format-image'),
-                array('slug' => 'bricks-settings',            'label' => 'Bricks Builder Settings', 'dashicon' => 'dashicons-editor-bold'),
+                array('slug' => 'snn-custom-codes-snippets',  'label' => 'Code Snippets',       'dashicon' => 'dashicons-editor-code'),
             );
             
             foreach ($menu_items as $item) {
