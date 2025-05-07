@@ -51,7 +51,7 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/user-author-fields.php';
 
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
-
+require_once SNN_PATH . 'includes/auto-update-snn-brx-github.php';
 
 // Register Custom Bricks Builder Elements
 add_action('init', function () {
