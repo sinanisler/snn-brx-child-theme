@@ -9,7 +9,7 @@ define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );
 
 
 // Main Features and Settings
-require_once SNN_PATH . 'includes/settings-page.php'; // KEEP ON TOP
+require_once SNN_PATH . 'includes/settings-page.php';
 
 require_once SNN_PATH . 'includes/other-settings.php';
 require_once SNN_PATH . 'includes/security-page.php';
@@ -34,6 +34,7 @@ require_once SNN_PATH . 'includes/media-settings.php';
 require_once SNN_PATH . 'includes/disable-emojis.php';
 require_once SNN_PATH . 'includes/disable-gravatar.php';
 require_once SNN_PATH . 'includes/editor-settings.php'; 
+require_once SNN_PATH . 'includes/editor-settings-panel.php';
 require_once SNN_PATH . 'includes/cookie-banner.php';
 require_once SNN_PATH . 'includes/role-manager.php';
 require_once SNN_PATH . 'includes/ai.php';
