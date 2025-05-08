@@ -80,7 +80,9 @@ function snn_custom_codes_snippets_enqueue_assets( $hook ) {
     
     // Fallback check using $hook if $current_screen is not definitive or available early enough
     // This checks if the hook suffix contains our page slug.
-    if (!$is_correct_page && strpos($hook, 'snn-custom-codes-snippets') === false) {
+    // Also, a more direct check for the page query arg.
+    if (!$is_correct_page && 
+        (strpos($hook, 'snn-custom-codes-snippets') === false && (!isset($_GET['page']) || $_GET['page'] !== 'snn-custom-codes-snippets'))) {
         return;
     }
 
@@ -260,20 +262,13 @@ add_action( 'admin_enqueue_scripts', 'snn_custom_codes_snippets_enqueue_assets' 
  * Add custom CSS to admin head for the snippets page.
  */
 function snn_custom_codes_snippets_admin_styles() {
-    $screen = get_current_screen();
-    $is_correct_page = false;
-    if ($screen) {
-        $valid_ids = [
-            'snn-settings_page_snn-custom-codes-snippets',
-            'toplevel_page_snn-settings_page_snn-custom-codes-snippets',
-            'admin_page_snn-custom-codes-snippets' 
-        ];
-         if (in_array($screen->id, $valid_ids) || $screen->base === 'snn-settings_page_snn-custom-codes-snippets') {
-            $is_correct_page = true;
-        }
+    // Simplified check: If the 'page' GET parameter is 'snn-custom-codes-snippets'
+    // and the current user can manage options (basic security check for admin pages).
+    if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'snn-custom-codes-snippets' || ! current_user_can('manage_options') ) {
+        return; // Exit if not the correct page or insufficient permissions
     }
-    if (!$is_correct_page) return; // Only output styles on our plugin page
 
+    // Output the styles
     echo '<style>
         /* General styling for the settings page */
         h3{margin-top:10px} /* Reset margin for h3 if needed */
@@ -488,7 +483,7 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
         // We return an empty string or a comment to avoid breaking the page layout.
         // Admins should check the error logs tab for details.
         // Fatal errors are handled by the shutdown handler.
-        return "\n\n";
+        return "\n\n"; // More descriptive comment
     }
 
     return $output_from_snippet; // Return the output from the snippet
@@ -523,10 +518,10 @@ function snn_custom_codes_snippets_page() {
             'description' => __( 'PHP code or HTML executed within the <code>&lt;head&gt;</code> of WordPress admin pages. Use for conditional admin CSS/JS, admin modifications, etc. You can use <code>&lt;?php ?&gt;</code> tags for PHP code.', 'snn-custom-codes' ),
         ),
         'functions' => array(
-            'title'       => __( 'Direct PHP (functions.php)', 'snn-custom-codes' ),
+            'title'       => __( 'Direct PHP (functions.php style)', 'snn-custom-codes' ),
             'slug'        => 'snn-snippet-functions-php',
             'field_id'    => 'snn_functions_code',
-            'description' => __( 'PHP executed immediately when the plugin loads (no hook) – just like putting code in <code>functions.php</code>. Use for hooks, filters, and functions. Avoid direct output here unless intended. Errors can break your site.', 'snn-custom-codes' ),
+            'description' => __( 'PHP executed immediately when this code feature loads (no hook) – similar to putting code in <code>functions.php</code>. Use for hooks, filters, and functions. Avoid direct output here unless intended. Errors can break your site.', 'snn-custom-codes' ),
         ),
     );
 
@@ -805,10 +800,10 @@ function snn_custom_codes_snippets_page() {
                             </div>
                         <?php endif; ?>
                         <textarea id="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>"
-                                  name="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>"
-                                  class="large-text code"
-                                  rows="25"
-                                  placeholder="<?php esc_attr_e( 'Enter your PHP code or HTML here...', 'snn-custom-codes' ); ?>"
+                                name="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>"
+                                class="large-text code"
+                                rows="25"
+                                placeholder="<?php esc_attr_e( 'Enter your PHP code or HTML here...', 'snn-custom-codes' ); ?>"
                         ><?php echo esc_textarea( $current_code_value ); ?></textarea>
                     </div>
                 </div>
@@ -824,10 +819,10 @@ function snn_custom_codes_snippets_page() {
                                     $revision_author_name = $revision_author_info ? esc_html($revision_author_info->display_name) : __( 'Unknown Author', 'snn-custom-codes' );
                                     // Nonce for revision comparison link
                                     $comparison_link_nonce = wp_create_nonce( 'view-revision_' . $revision->ID );
-                                    $comparison_link      = admin_url( 'revision.php?revision=' . $revision->ID . '&nonce=' . $comparison_link_nonce );
-                                    $time_diff            = human_time_diff( strtotime( $revision->post_date_gmt ), current_time( 'timestamp', true ) );
-                                    $revision_date_title  = date_i18n( get_option('date_format') . ' ' . get_option('time_format'), strtotime( $revision->post_date ) );
-                                    $revision_info        = sprintf( '%s by %s (%s %s)', $revision_date_title, $revision_author_name, $time_diff, __('ago', 'snn-custom-codes') );
+                                    $comparison_link       = admin_url( 'revision.php?revision=' . $revision->ID . '&nonce=' . $comparison_link_nonce );
+                                    $time_diff             = human_time_diff( strtotime( $revision->post_date_gmt ), current_time( 'timestamp', true ) );
+                                    $revision_date_title   = date_i18n( get_option('date_format') . ' ' . get_option('time_format'), strtotime( $revision->post_date ) );
+                                    $revision_info         = sprintf( '%s by %s (%s %s)', $revision_date_title, $revision_author_name, $time_diff, __('ago', 'snn-custom-codes') );
                                 ?>
                                 <li>
                                     <span class="revision-info"><?php echo esc_html( $revision_info ); ?></span>
@@ -886,7 +881,7 @@ function snn_custom_codes_snippets_init_execution() {
         return;
     }
 
-    // Execute "Direct PHP (functions.php)" snippet
+    // Execute "Direct PHP (functions.php style)" snippet
     $direct_code = snn_get_code_snippet_content( 'snn-snippet-functions-php' );
     if ( ! empty( trim( $direct_code ) ) ) {
         // Output from direct code is echoed. Errors are handled by snn_execute_php_snippet.
@@ -912,12 +907,12 @@ function snn_custom_codes_snippets_frontend_output() {
     echo snn_execute_php_snippet( $code, 'snn-snippet-frontend-head' );
 }
 /** Output callback for frontend footer snippet */
-function snn_custom_codes_snippets_footer_output()   {
+function snn_custom_codes_snippets_footer_output()    {
     $code = snn_get_code_snippet_content( 'snn-snippet-footer' );
     echo snn_execute_php_snippet( $code, 'snn-snippet-footer' );
 }
 /** Output callback for admin head snippet */
-function snn_custom_codes_snippets_admin_output()    {
+function snn_custom_codes_snippets_admin_output()     {
     $code = snn_get_code_snippet_content( 'snn-snippet-admin-head' );
     echo snn_execute_php_snippet( $code, 'snn-snippet-admin-head' );
 }
@@ -951,7 +946,7 @@ function snn_ajax_get_revision_content_callback() {
         wp_send_json_error( array( 'message' => __( 'Permission denied for accessing this revision content.', 'snn-custom-codes' ) ), 403 );
         return;
     }
-    wp_send_json_success( array( 'content' => $revision->post_content, 'title'   => wp_post_revision_title_expanded( $revision ) ) );
+    wp_send_json_success( array( 'content' => $revision->post_content, 'title'    => wp_post_revision_title_expanded( $revision ) ) );
 }
 
 /**
@@ -995,16 +990,20 @@ function snn_fatal_error_shutdown_handler() {
         
         $error_source_is_snippet = false;
         // Normalize paths for reliable comparison
-        $current_plugin_file_path_normalized = wp_normalize_path(__FILE__); 
+        // __FILE__ will point to the file this code is in (e.g., functions.php of child theme)
+        $current_file_path_normalized = wp_normalize_path(__FILE__); 
         $error_file_normalized = isset($error['file']) ? wp_normalize_path($error['file']) : '';
 
-        // Heuristic 1: Error message contains "eval()'d code"
+        // Heuristic 1: Error message contains "eval()'d code" - this is a strong indicator
         if (isset($error['message']) && strpos( $error['message'], "eval()'d code" ) !== false) {
              $error_source_is_snippet = true;
         }
-        // Heuristic 2: Error file is this plugin file (likely from the eval call itself)
-        // or contains "eval()'d code" in its path (some PHP versions report this way)
-        elseif ( !empty($error_file_normalized) && (strpos( $error_file_normalized, "eval()'d code" ) !== false || $error_file_normalized === $current_plugin_file_path_normalized )) {
+        // Heuristic 2: Error file is this file (where eval is called)
+        // AND the message contains 'eval()' or the file path reported by PHP contains "eval()'d code"
+        // This helps catch errors where PHP reports the error in the file calling eval().
+        elseif ( !empty($error_file_normalized) && $error_file_normalized === $current_file_path_normalized &&
+                 ( (isset($error['message']) && strpos( $error['message'], 'eval()' ) !== false) || strpos( $error_file_normalized, "eval()'d code" ) !== false )
+        ) {
             $error_source_is_snippet = true;
         }
         // Heuristic 3: Check if the error message involves one of our snippet execution wrapper functions
@@ -1020,13 +1019,13 @@ function snn_fatal_error_shutdown_handler() {
             
             $snippet_slug_guess = 'unknown_or_direct_fatal'; // Default guess for slug
 
-            // Try to guess the snippet slug based on context from the error message
+            // Try to guess the snippet slug based on context from the error message or call stack
             $message_lower = strtolower($error['message']);
             if (strpos($message_lower, 'snn_custom_codes_snippets_frontend_output') !== false) $snippet_slug_guess = 'snn-snippet-frontend-head';
             elseif (strpos($message_lower, 'snn_custom_codes_snippets_footer_output') !== false) $snippet_slug_guess = 'snn-snippet-footer';
             elseif (strpos($message_lower, 'snn_custom_codes_snippets_admin_output') !== false) $snippet_slug_guess = 'snn-snippet-admin-head';
-            // If error is in this plugin's file, involves eval, and isn't one of the hooked outputs, it's likely the direct PHP snippet.
-            elseif (strpos($error_file_normalized, $current_plugin_file_path_normalized) !== false && 
+            // If error is in this file, involves eval, and isn't one of the hooked outputs, it's likely the direct PHP snippet.
+            elseif (strpos($error_file_normalized, $current_file_path_normalized) !== false && 
                     strpos($message_lower, 'eval') !== false && 
                     !preg_match('/snn_custom_codes_snippets_(frontend|footer|admin)_output/', $message_lower)) {
                 $snippet_slug_guess = 'snn-snippet-functions-php';
@@ -1098,7 +1097,7 @@ function snn_display_fatal_error_admin_notice() {
         <div class="notice notice-error is-dismissible snn-fatal-error-notice">
             <p><strong><?php esc_html_e( 'CRITICAL: Custom Code Snippets Disabled!', 'snn-custom-codes' ); ?></strong></p>
             <p>
-                <?php esc_html_e( 'The "SNN Custom Codes" plugin automatically disabled all snippet executions due to a fatal PHP error. This is a safety measure to prevent your site from breaking further.', 'snn-custom-codes' ); ?>
+                <?php esc_html_e( 'The "SNN Custom Codes" feature automatically disabled all snippet executions due to a fatal PHP error. This is a safety measure to prevent your site from breaking further.', 'snn-custom-codes' ); ?>
             </p>
             <p><strong><?php esc_html_e( 'Error Details:', 'snn-custom-codes' ); ?></strong></p>
             <p>
@@ -1116,7 +1115,7 @@ function snn_display_fatal_error_admin_notice() {
             <p>
                 <?php
                 printf(
-                    wp_kses_post( __( 'Please review the <a href="%s">Error Logs tab</a> for more details, identify and fix the problematic snippet. Once fixed, you can re-enable "Global Snippet Execution" on the plugin settings page and save.', 'snn-custom-codes' ) ),
+                    wp_kses_post( __( 'Please review the <a href="%s">Error Logs tab</a> for more details, identify and fix the problematic snippet. Once fixed, you can re-enable "Global Snippet Execution" on the custom code settings page and save.', 'snn-custom-codes' ) ),
                     esc_url( admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=error_logs' ) )
                 );
                 ?>
@@ -1130,8 +1129,9 @@ add_action( 'admin_notices', 'snn_display_fatal_error_admin_notice' );
 
 
 /** * Activation hook: Register CPT, flush rewrite rules, set default options.
+ * This function would typically run when a theme (containing this code) is activated.
  */
-function snn_custom_codes_plugin_activate() {
+function snn_custom_codes_feature_activate() {
     snn_custom_codes_snippets_register_cpt(); // Ensure CPT is registered
     flush_rewrite_rules(); // Important after CPT registration
 
@@ -1144,23 +1144,27 @@ function snn_custom_codes_plugin_activate() {
         update_option( SNN_CUSTOM_CODES_LOG_OPTION, array() );
     }
 }
-register_activation_hook( __FILE__, 'snn_custom_codes_plugin_activate' );
+// If this code is part of a theme, you might hook this to 'after_switch_theme'
+// For direct inclusion in functions.php, this might need to be called conditionally or once.
+// register_activation_hook( __FILE__, 'snn_custom_codes_feature_activate' ); // This is for plugins.
 
 /** * Deactivation hook: Flush rewrite rules.
+ * This function would typically run when a theme (containing this code) is deactivated.
  */
-function snn_custom_codes_plugin_deactivate() {
+function snn_custom_codes_feature_deactivate() {
     flush_rewrite_rules();
     // Consider if you want to disable snippets or clear transients on deactivation:
     // update_option( 'snn_codes_snippets_enabled', 0 );
     // delete_transient(SNN_FATAL_ERROR_NOTICE_TRANSIENT); 
 }
-register_deactivation_hook( __FILE__, 'snn_custom_codes_plugin_deactivate' );
+// If this code is part of a theme, you might hook this to 'switch_theme'
+// register_deactivation_hook( __FILE__, 'snn_custom_codes_feature_deactivate' ); // This is for plugins.
 
-/** * Load plugin textdomain for internationalization.
- */
-function snn_custom_codes_load_textdomain() {
-    load_plugin_textdomain( 'snn-custom-codes', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
-}
-add_action( 'plugins_loaded', 'snn_custom_codes_load_textdomain' );
+// Note: For theme activation/deactivation, WordPress uses hooks like 'after_switch_theme' and 'switch_theme'.
+// The register_activation_hook/register_deactivation_hook are for plugins.
+// If this code is directly in a child theme's functions.php, snn_custom_codes_feature_activate()
+// might need to be run once, perhaps on theme setup or admin_init if certain conditions are met.
+// For simplicity and as it's a settings page, ensuring CPT registration on 'init' is often sufficient.
+// The default options can also be set on 'init' if not already present.
 
 ?>
