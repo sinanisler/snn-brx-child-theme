@@ -1144,27 +1144,9 @@ function snn_custom_codes_feature_activate() {
         update_option( SNN_CUSTOM_CODES_LOG_OPTION, array() );
     }
 }
-// If this code is part of a theme, you might hook this to 'after_switch_theme'
-// For direct inclusion in functions.php, this might need to be called conditionally or once.
-// register_activation_hook( __FILE__, 'snn_custom_codes_feature_activate' ); // This is for plugins.
 
-/** * Deactivation hook: Flush rewrite rules.
- * This function would typically run when a theme (containing this code) is deactivated.
- */
 function snn_custom_codes_feature_deactivate() {
     flush_rewrite_rules();
-    // Consider if you want to disable snippets or clear transients on deactivation:
-    // update_option( 'snn_codes_snippets_enabled', 0 );
-    // delete_transient(SNN_FATAL_ERROR_NOTICE_TRANSIENT); 
 }
-// If this code is part of a theme, you might hook this to 'switch_theme'
-// register_deactivation_hook( __FILE__, 'snn_custom_codes_feature_deactivate' ); // This is for plugins.
-
-// Note: For theme activation/deactivation, WordPress uses hooks like 'after_switch_theme' and 'switch_theme'.
-// The register_activation_hook/register_deactivation_hook are for plugins.
-// If this code is directly in a child theme's functions.php, snn_custom_codes_feature_activate()
-// might need to be run once, perhaps on theme setup or admin_init if certain conditions are met.
-// For simplicity and as it's a settings page, ensuring CPT registration on 'init' is often sufficient.
-// The default options can also be set on 'init' if not already present.
 
 ?>
