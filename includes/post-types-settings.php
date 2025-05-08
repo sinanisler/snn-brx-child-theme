@@ -46,7 +46,7 @@ function snn_render_custom_post_types_page() {
 
                     $custom_post_types[] = array(
                         'name'     => sanitize_text_field( $post_type['name'] ),
-                        'slug'     => sanitize_title( $post_type['slug'] ),
+                        'slug'     => substr( sanitize_title( $post_type['slug'] ), 0, 20 ), // enforce max-20 char slug
                         'private'  => isset( $post_type['private'] ) ? 1 : 0,
                         'dashicon' => sanitize_text_field( $post_type['dashicon'] ),
                         'supports' => $supports,
@@ -72,6 +72,7 @@ function snn_render_custom_post_types_page() {
         if ( ! isset( $post_type['dashicon'] ) || empty( $post_type['dashicon'] ) ) {
             $post_type['dashicon'] = 'dashicons-admin-page';
         }
+        $post_type['slug'] = substr( $post_type['slug'], 0, 20 );
     }
     unset( $post_type );
     ?>
@@ -80,7 +81,7 @@ function snn_render_custom_post_types_page() {
         <form method="post">
             <?php wp_nonce_field( 'snn_save_custom_post_types', 'snn_custom_post_types_nonce' ); ?>
             <div id="custom-post-type-settings">
-                <p>Define custom post types with name, slug, visibility, dashicon, and supported features:</p>
+                <p>Define custom post types with name, slug (max 20 chars), visibility, dashicon, and supported features:</p>
                 <?php foreach ( $custom_post_types as $index => $post_type ) : ?>
                     <div class="custom-post-type-row" data-index="<?php echo esc_attr( $index ); ?>">
                         <div class="buttons">
@@ -94,8 +95,8 @@ function snn_render_custom_post_types_page() {
                         </div>
  
                         <div class="post-type-slug">
-                            <label>Post Type Slug</label><br>
-                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="post-slug" value="<?php echo esc_attr( $post_type['slug'] ); ?>" />
+                            <label>Post Type Slug (max 20 chars)</label><br>
+                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="post-slug" value="<?php echo esc_attr( $post_type['slug'] ); ?>" maxlength="20" />
                         </div>
 
                         <div class="post-type-icon">
@@ -147,7 +148,7 @@ function snn_render_custom_post_types_page() {
                 value = value.replace(/\s+/g, '-');
                 value = value.replace(/[^a-z0-9\-]/g, '');
                 value = value.replace(/-+/g, '-');
-                return value;
+                return value.slice(0, 20); // enforce max-20 char slug
             }
 
             function attachSlugListener(input) {
@@ -157,6 +158,7 @@ function snn_render_custom_post_types_page() {
             }
 
             document.querySelectorAll('input[name*="[slug]"]').forEach(function(input) {
+                input.setAttribute('maxlength', '20'); // ensure existing inputs observe max length
                 attachSlugListener(input);
             });
 
@@ -203,8 +205,8 @@ function snn_render_custom_post_types_page() {
                         <input type="text" name="custom_post_types[${newIndex}][name]" placeholder="Post Type Name" />
                     </div>
                     <div class="post-type-slug">
-                        <label>Post Type Slug</label><br>
-                        <input type="text" name="custom_post_types[${newIndex}][slug]" placeholder="post-slug" />
+                        <label>Post Type Slug (max 20 chars)</label><br>
+                        <input type="text" name="custom_post_types[${newIndex}][slug]" placeholder="post-slug" maxlength="20" />
                     </div>
                     <div class="post-type-icon">
                         <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
@@ -349,6 +351,6 @@ function snn_register_custom_post_types() {
             'hierarchical'  => true,
         );
 
-        register_post_type( $post_type['slug'], $args );
+        register_post_type( substr( $post_type['slug'], 0, 20 ), $args ); // enforce max-20 char slug at registration
     }
 }
