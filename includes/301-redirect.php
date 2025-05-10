@@ -578,6 +578,11 @@ function snn_handle_301_redirects() {
                     $leftover = substr($current_path, strlen($base_from));
                 }
                 $leftover = ltrim($leftover, '/');
+
+                if (strpos($leftover, '..') !== false) {
+                    continue;
+                }
+
                 $base_to = $redirect_to;
                 if (substr($redirect_to, -2) === '/*') {
                     $base_to = substr($redirect_to, 0, -2);
