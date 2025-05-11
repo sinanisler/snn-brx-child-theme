@@ -799,11 +799,7 @@ add_action('wp_ajax_snn_search_posts', 'snn_ajax_search_posts');
 
 
 function snn_is_role_manager_page() {
-    $screen = get_current_screen();
-    $parent_slug = 'snn-settings';
-    $page_slug = 'snn-role-management';
-    $current_page_hook = sanitize_title($parent_slug) . '_page_' . $page_slug;
-    return ($screen && isset($screen->id) && $screen->id === $current_page_hook);
+    return isset($_GET['page']) && $_GET['page'] === 'snn-role-management';
 }
 
 
