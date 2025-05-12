@@ -670,7 +670,8 @@ function snn_add_ai_script_to_footer() {
         [type="image"] .snn-ai-button,
         #ariaLabel .snn-ai-button,
         .control-text [data-control="text"] .snn-ai-button,
-        [data-control="typography"] .snn-ai-button
+        [data-control="typography"] .snn-ai-button,
+        #bricks-popup .snn-ai-button
         {
             display: none !important;
         }
