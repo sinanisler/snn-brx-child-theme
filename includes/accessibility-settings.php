@@ -3,8 +3,8 @@
 function snn_add_accessibility_settings_submenu() {
     add_submenu_page(
         'snn-settings',
-        'Accessibility Settings',
-        'Accessibility Settings',
+        __('Accessibility Settings', 'snn'),
+        __('Accessibility Settings', 'snn'),
         'manage_options',
         'snn-accessibility-settings',
         'snn_render_accessibility_settings'
@@ -16,7 +16,7 @@ add_action('admin_menu', 'snn_add_accessibility_settings_submenu');
 function snn_render_accessibility_settings() {
     ?>
     <div class="wrap">
-        <h1>Accessibility Settings</h1>
+        <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
         <form method="post" action="options.php">
             <?php
                 settings_fields('snn_accessibility_settings_group');
@@ -38,63 +38,63 @@ function snn_register_accessibility_settings() {
 
     add_settings_section(
         'snn_accessibility_settings_section',
-        'Accessibility Settings',
+        __('Accessibility Settings', 'snn'),
         'snn_accessibility_settings_section_callback',
         'snn-accessibility-settings'
     );
 
     add_settings_field(
         'enqueue_accessibility',
-        'Enable Accessibility Widget',
+        __('Enable Accessibility Widget', 'snn'),
         'snn_enqueue_accessibility_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
     );
     add_settings_field(
         'main_color',
-        'Accessibility Widget Color',
+        __('Accessibility Widget Color', 'snn'),
         'snn_main_color_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
     );
     add_settings_field(
         'btn_width',
-        'Button Width (px)',
+        __('Button Width (px)', 'snn'),
         'snn_btn_width_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
     );
     add_settings_field(
         'btn_height',
-        'Button Height (px)',
+        __('Button Height (px)', 'snn'),
         'snn_btn_height_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
     );
     add_settings_field(
         'btn_alignment',
-        'Button Alignment',
+        __('Button Alignment', 'snn'),
         'snn_btn_alignment_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
     );
     add_settings_field(
         'btn_spacing_left',
-        'Left Spacing (px)',
+        __('Left Spacing (px)', 'snn'),
         'snn_btn_spacing_left_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
     );
     add_settings_field(
         'btn_spacing_bottom',
-        'Bottom Spacing (px)',
+        __('Bottom Spacing (px)', 'snn'),
         'snn_btn_spacing_bottom_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
     );
     add_settings_field(
         'btn_spacing_right',
-        'Right Spacing (px)',
+        __('Right Spacing (px)', 'snn'),
         'snn_btn_spacing_right_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
@@ -106,22 +106,22 @@ add_action('admin_init', 'snn_register_accessibility_settings');
 function snn_sanitize_accessibility_settings( $input ) {
     $sanitized = [];
     $sanitized['enqueue_accessibility'] = ! empty( $input['enqueue_accessibility'] ) ? 1 : 0;
-    $sanitized['main_color']            = ! empty( $input['main_color'] )
+    $sanitized['main_color']              = ! empty( $input['main_color'] )
         ? sanitize_hex_color( $input['main_color'] )
         : '#07757f';
-    $sanitized['btn_width']             = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 45;
-    $sanitized['btn_height']            = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 45;
+    $sanitized['btn_width']              = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 45;
+    $sanitized['btn_height']             = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 45;
     $align = isset( $input['btn_alignment'] ) ? $input['btn_alignment'] : 'left';
-    $sanitized['btn_alignment']         = in_array( $align, ['left','right'], true ) ? $align : 'left';
-    $sanitized['btn_spacing_left']      = ! empty( $input['btn_spacing_left'] )   ? absint( $input['btn_spacing_left'] )   : 20;
-    $sanitized['btn_spacing_bottom']    = ! empty( $input['btn_spacing_bottom'] ) ? absint( $input['btn_spacing_bottom'] ) : 20;
-    $sanitized['btn_spacing_right']     = ! empty( $input['btn_spacing_right'] )  ? absint( $input['btn_spacing_right'] )  : 20;
+    $sanitized['btn_alignment']          = in_array( $align, ['left','right'], true ) ? $align : 'left';
+    $sanitized['btn_spacing_left']       = ! empty( $input['btn_spacing_left'] )   ? absint( $input['btn_spacing_left'] )   : 20;
+    $sanitized['btn_spacing_bottom']     = ! empty( $input['btn_spacing_bottom'] ) ? absint( $input['btn_spacing_bottom'] ) : 20;
+    $sanitized['btn_spacing_right']      = ! empty( $input['btn_spacing_right'] )  ? absint( $input['btn_spacing_right'] )  : 20;
     return $sanitized;
 }
 
 // Section callback.
 function snn_accessibility_settings_section_callback() {
-    echo '<p>Configure the accessibility options for your site below.</p>';
+    echo '<p>' . esc_html__( 'Configure the accessibility options for your site below.', 'snn' ) . '</p>';
 }
 
 // Field callbacks.
@@ -130,7 +130,7 @@ function snn_enqueue_accessibility_callback() {
     ?>
     <input type="checkbox" name="snn_accessibility_settings[enqueue_accessibility]" value="1"
         <?php checked(1, ! empty($opt['enqueue_accessibility']) ? $opt['enqueue_accessibility'] : 0); ?>>
-    <p>Load the Accessibility Widget script.</p>
+    <p><?php esc_html_e( 'Load the Accessibility Widget script.', 'snn' ); ?></p>
     <?php
 }
 function snn_main_color_callback() {
@@ -159,8 +159,8 @@ function snn_btn_alignment_callback() {
     $val = ! empty($opt['btn_alignment']) ? $opt['btn_alignment'] : 'left';
     ?>
     <select name="snn_accessibility_settings[btn_alignment]">
-        <option value="left" <?php selected($val, 'left'); ?>>Left</option>
-        <option value="right" <?php selected($val, 'right'); ?>>Right</option>
+        <option value="left" <?php selected($val, 'left'); ?>><?php esc_html_e( 'Left', 'snn' ); ?></option>
+        <option value="right" <?php selected($val, 'right'); ?>><?php esc_html_e( 'Right', 'snn' ); ?></option>
     </select>
     <?php
 }

@@ -11,8 +11,8 @@ add_action('init', 'snn_register_404_logs_post_type');
 function snn_add_404_logs_page() {
     add_submenu_page(
         'snn-settings',
-        '404 Logs',
-        '404 Logs',
+        __('404 Logs', 'snn'),
+        __('404 Logs', 'snn'),
         'manage_options',
         'snn-404-logs',
         'snn_render_404_logs_page'
@@ -66,7 +66,7 @@ function snn_handle_404_logs_actions() {
             wp_delete_post($log->ID, true);
         }
     }
-    
+
     // Delete logs based on IP or User Agent match
     if (isset($_POST['snn_delete_logs']) && !empty($_POST['snn_delete_logs_value'])) {
         $delete_value = sanitize_text_field($_POST['snn_delete_logs_value']);
@@ -156,7 +156,7 @@ function snn_log_404_error() {
 
         if (get_option('snn_disable_bot_logging') === '1' && isset($_SERVER['HTTP_USER_AGENT'])) {
             $user_agent = strtolower($_SERVER['HTTP_USER_AGENT']);
-            
+
             // Retrieve bot blocklist from option or use default list if not set
             $bot_blocklist = get_option('snn_bot_logging_blocklist', '');
             if (empty($bot_blocklist)) {
@@ -177,7 +177,7 @@ function snn_log_404_error() {
         $post_data = array(
             'post_type'   => 'snn_404_logs',
             'post_status' => 'publish',
-            'post_title'  => '404 Error - ' . date('Y-m-d H:i:s')
+            'post_title'  => __('404 Error', 'snn') . ' - ' . date('Y-m-d H:i:s')
         );
 
         $post_id = wp_insert_post($post_data);
@@ -194,8 +194,8 @@ function snn_log_404_error() {
 add_action('template_redirect', 'snn_log_404_error');
 
 function snn_render_404_logs_page() {
-    $logging_enabled     = get_option('snn_404_logging_enabled') === '1';
-    $log_size_limit      = get_option('snn_404_log_size_limit', 100);
+    $logging_enabled      = get_option('snn_404_logging_enabled') === '1';
+    $log_size_limit       = get_option('snn_404_log_size_limit', 100);
     $disable_bot_logging = get_option('snn_disable_bot_logging') === '1';
     $bot_blocklist = get_option('snn_bot_logging_blocklist', '');
     if (empty($bot_blocklist)) {
@@ -203,50 +203,48 @@ function snn_render_404_logs_page() {
     }
     ?>
     <div class="wrap">
-        <h1>404 Logs</h1>
+        <h1><?php _e('404 Logs', 'snn'); ?></h1>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
             <div style="flex: 1; margin-right: 20px;">
-                <!-- Settings Form -->
                 <form method="post" action="">
                     <p>
                         <label>
                             <input type="checkbox" name="snn_404_logging_enabled" <?php checked($logging_enabled); ?>>
-                            Enable 404 Logging
+                            <?php _e('Enable 404 Logging', 'snn'); ?>
                         </label>
                     </p>
                     <p>
                         <label>
-                            Maximum number of logs to keep:
+                            <?php _e('Maximum number of logs to keep:', 'snn'); ?>
                             <input type="number" name="snn_404_log_size_limit" value="<?php echo esc_attr($log_size_limit); ?>" min="1" style="width: 100px;">
                         </label>
                     </p>
                     <p>
                         <label>
                             <input type="checkbox" name="snn_disable_bot_logging" <?php checked($disable_bot_logging); ?>>
-                            Disable Bots/Robots Logging (Don't enable this if the website is new; collect some URLs first for SEO)
+                            <?php _e('Disable Bots/Robots Logging (Don\'t enable this if the website is new; collect some URLs first for SEO)', 'snn'); ?>
                         </label>
                     </p>
                     <p id="bot_blocklist_container" <?php if (!$disable_bot_logging) echo 'style="display:none;"'; ?>>
-                        <label for="snn_bot_blocklist">Bot Logs Blocklist (one per line):</label><br>
+                        <label for="snn_bot_blocklist"><?php _e('Bot Logs Blocklist (one per line):', 'snn'); ?></label><br>
                         <textarea name="snn_bot_blocklist" id="snn_bot_blocklist" rows="4" cols="50"><?php echo esc_textarea($bot_blocklist); ?></textarea>
                     </p>
-                    <?php submit_button('Save Changes', 'primary', 'snn_404_logging_submit', false); ?>
+                    <?php submit_button(__('Save Changes', 'snn'), 'primary', 'snn_404_logging_submit', false); ?>
                 </form>
                 <br>
                 <form method="post" action="">
-                    <?php submit_button('Clear All Logs', 'delete', 'snn_clear_404_logs', false); ?>
+                    <?php submit_button(__('Clear All Logs', 'snn'), 'delete', 'snn_clear_404_logs', false); ?>
                 </form>
             </div>
             <div style="flex: 1;">
-                <!-- Delete Logs by IP or User Agent Form -->
-                <h2>Delete Logs by IP or User Agent</h2>
-                <p>Enter an IP address or a part of a user agent string (e.g. "bingbot") to remove all matching logs.</p>
+                <h2><?php _e('Delete Logs by IP or User Agent', 'snn'); ?></h2>
+                <p><?php _e('Enter an IP address or a part of a user agent string (e.g. "bingbot") to remove all matching logs.', 'snn'); ?></p>
                 <form method="post" action="">
                     <p>
-                        <label for="snn_delete_logs_value">IP or User Agent:</label>
-                        <input type="text" name="snn_delete_logs_value" id="snn_delete_logs_value" placeholder="Enter value">
+                        <label for="snn_delete_logs_value"><?php _e('IP or User Agent:', 'snn'); ?></label>
+                        <input type="text" name="snn_delete_logs_value" id="snn_delete_logs_value" placeholder="<?php esc_attr_e('Enter value', 'snn'); ?>">
                     </p>
-                    <?php submit_button('Delete Logs', 'delete', 'snn_delete_logs', false); ?>
+                    <?php submit_button(__('Delete Logs', 'snn'), 'delete', 'snn_delete_logs', false); ?>
                 </form>
             </div>
         </div>
@@ -254,11 +252,11 @@ function snn_render_404_logs_page() {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <th>Date & Time</th>
-                        <th>URL</th>
-                        <th>Referrer</th>
-                        <th>IP Address</th>
-                        <th>User Agent</th>
+                        <th><?php _e('Date & Time', 'snn'); ?></th>
+                        <th><?php _e('URL', 'snn'); ?></th>
+                        <th><?php _e('Referrer', 'snn'); ?></th>
+                        <th><?php _e('IP Address', 'snn'); ?></th>
+                        <th><?php _e('User Agent', 'snn'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -294,7 +292,7 @@ function snn_render_404_logs_page() {
     document.addEventListener('DOMContentLoaded', function() {
         var checkbox = document.querySelector('input[name="snn_disable_bot_logging"]');
         var botBlocklistContainer = document.getElementById('bot_blocklist_container');
-        
+
         function toggleBotBlocklist() {
             if (checkbox.checked) {
                 botBlocklistContainer.style.display = 'block';
@@ -302,7 +300,7 @@ function snn_render_404_logs_page() {
                 botBlocklistContainer.style.display = 'none';
             }
         }
-        
+
         if (checkbox && botBlocklistContainer) {
             checkbox.addEventListener('change', toggleBotBlocklist);
             toggleBotBlocklist();
