@@ -69,6 +69,7 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/like-button.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/flip-box.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/compare-image.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/conditions.php');
 
 
 // if GSAP setting is enabled Register Elements
