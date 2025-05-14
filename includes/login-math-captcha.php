@@ -20,7 +20,7 @@ function snn_add_math_captcha() {
         ?>
         <p id="math_captcha_container_<?php echo esc_attr( $unique ); ?>" style="display: none; margin-top: 1em;">
             <label id="captcha_label_<?php echo esc_attr( $unique ); ?>" for="math_captcha_<?php echo esc_attr( $unique ); ?>"></label>
-            <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" class="input" value="" size="20" autocomplete="off" required placeholder="<?php esc_attr_e('Enter the result', 'snn'); ?>">
+            <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" class="input" value="" size="20" autocomplete="off" required>
             <input type="hidden" name="captcha_solution" id="captcha_solution_<?php echo esc_attr( $unique ); ?>" value="">
             <input type="hidden" name="js_enabled" value="no" id="js_enabled_<?php echo esc_attr( $unique ); ?>">
         </p>

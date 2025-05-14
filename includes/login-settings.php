@@ -44,7 +44,7 @@ function ls_register_login_settings() {
 
     add_settings_field(
         'ls_login_background_image_url',
-        __('Background Image URL', 'snn'),
+        __('Background Image', 'snn'),
         'ls_login_background_image_url_callback',
         'login-settings',
         'ls_login_settings_section'
@@ -72,14 +72,55 @@ function ls_login_settings_section_callback() {
 }
 
 function ls_login_redirect_section_callback() {
- 
+    // No text needed here
 }
 
+// Media uploader for background image
 function ls_login_background_image_url_callback() {
     $image_url = get_option('ls_login_background_image_url', '');
     ?>
-    <input type="text" id="ls_login_background_image_url" name="ls_login_background_image_url" value="<?php echo esc_attr($image_url); ?>" style="width: 100%;" placeholder="<?php esc_attr_e('https://example.com/path-to-your-image.jpg', 'snn'); ?>" />
-    <p class="description"><?php _e('Enter the full URL of the background image you want to use. Leave blank to disable the background image.', 'snn'); ?></p>
+    <div style="max-width: 100%;">
+        <div style="display:flex">
+            <input type="text" id="ls_login_background_image_url" name="ls_login_background_image_url" value="<?php echo esc_attr($image_url); ?>" style="width: 80%;" placeholder="<?php esc_attr_e('Select an image or paste a URL', 'snn'); ?>" />
+            <button type="button" class="button" id="ls_upload_bg_img_btn"><?php _e('Select Image', 'snn'); ?></button>
+        </div>
+        <p class="description"><?php _e('Select a background image for the login page. Leave blank to disable the background image.', 'snn'); ?></p>
+    </div>
+    <script>
+    (function($){
+        $(document).ready(function(){
+            var custom_uploader;
+            $('#ls_upload_bg_img_btn').on('click', function(e) {
+                e.preventDefault();
+                if (custom_uploader) {
+                    custom_uploader.open();
+                    return;
+                }
+                custom_uploader = wp.media({
+                    title: '<?php echo esc_js(__('Select or Upload Image', 'snn')); ?>',
+                    button: {
+                        text: '<?php echo esc_js(__('Use this image', 'snn')); ?>'
+                    },
+                    multiple: false
+                });
+                custom_uploader.on('select', function() {
+                    var attachment = custom_uploader.state().get('selection').first().toJSON();
+                    $('#ls_login_background_image_url').val(attachment.url);
+                    $('#ls_login_bg_img_preview').html('<img src="' + attachment.url + '" style="max-width:100%;height:auto;" />').show();
+                });
+                custom_uploader.open();
+            });
+            $('#ls_login_background_image_url').on('input', function() {
+                var val = $(this).val();
+                if (val) {
+                    $('#ls_login_bg_img_preview').html('<img src="' + val + '" style="max-width:100%;height:auto;" />').show();
+                } else {
+                    $('#ls_login_bg_img_preview').hide();
+                }
+            });
+        });
+    })(jQuery);
+    </script>
     <?php
 }
 
@@ -122,6 +163,12 @@ function ls_render_login_settings() {
     </div>
     <?php
 }
+
+add_action('admin_enqueue_scripts', function($hook) {
+    if ($hook === 'snn-settings_page_login-settings' || $hook === 'toplevel_page_login-settings') {
+        wp_enqueue_media();
+    }
+});
 
 add_action('login_footer', 'ls_add_custom_login_footer');
 
