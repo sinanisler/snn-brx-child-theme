@@ -2,8 +2,8 @@
 add_action('admin_menu', function () {
     add_submenu_page(
         'snn-settings',
-        'Global Classes Manager',
-        'Global Classes',
+        __('Global Classes Manager', 'snn'),
+        __('Global Classes', 'snn'),
         'manage_options',
         'snn-classes',
         'bgcc_classes_page',
@@ -74,7 +74,7 @@ add_action('admin_init', function () {
         }
         update_option('snn_classes', $new_classes);
 
-        add_settings_error('bgcc_messages', 'bgcc_save_message', 'Settings Saved', 'updated');
+        add_settings_error('bgcc_messages', 'bgcc_save_message', __('Settings Saved', 'snn'), 'updated');
         wp_redirect(add_query_arg(['page' => 'snn-classes', 'updated' => 'true'], admin_url('admin.php')));
         exit;
     }
@@ -288,18 +288,18 @@ function bgcc_classes_page() {
     </style>
 
     <div class="wrap">
-        <h1>Global Class Manager  <b style="color:red">EXPERIMENTAL</b></h1>
+        <h1><?php _e('Global Class Manager', 'snn'); ?>  <b style="color:red"><?php _e('EXPERIMENTAL', 'snn'); ?></b></h1>
         <?php settings_errors('bgcc_messages'); ?>
         <form method="post" id="bgcc-main-form">
             <?php wp_nonce_field('bgcc_classes_save', 'bgcc_classes_nonce'); ?>
             <div id="bgcc-container">
                 <div id="categories-section">
-                    <h2>Categories</h2>
+                    <h2><?php _e('Categories', 'snn'); ?></h2>
                     <table class="widefat fixed" id="categories-table">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th style="width:100px">Actions</th>
+                                <th><?php _e('Name', 'snn'); ?></th>
+                                <th style="width:100px"><?php _e('Actions', 'snn'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -311,20 +311,20 @@ function bgcc_classes_page() {
                                             <input type="text" name="categories[<?php echo $i; ?>][name]" value="<?php echo esc_attr($c['name']); ?>" required>
                                         </td>
                                         <td>
-                                            <button type="button" class="button button-danger remove-row">Remove</button>
+                                            <button type="button" class="button button-danger remove-row"><?php _e('Remove', 'snn'); ?></button>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else : ?>
                                 <tr class="no-classes">
-                                    <td colspan="2" style="text-align: center;">No categories added yet. Click "Add" to create one.</td>
+                                    <td colspan="2" style="text-align: center;"><?php _e('No categories added yet. Click "Add" to create one.', 'snn'); ?></td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="2">
-                                    <button type="button" class="button button-secondary" id="add-category">Add</button>
+                                    <button type="button" class="button button-secondary" id="add-category"><?php _e('Add', 'snn'); ?></button>
                                 </td>
                             </tr>
                         </tfoot>
@@ -332,39 +332,39 @@ function bgcc_classes_page() {
 
                     <!-- Bulk CSS Section -->
                     <div style="margin-top:40px;">
-                        <h3>Bulk CSS</h3>
-                        <p>Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>) and click "Generate Classes".<br>
-                        Multiple selectors (comma separated) and both <code>@media</code> and <code>@keyframes</code> blocks are supported.</p>
+                        <h3><?php _e('Bulk CSS', 'snn'); ?></h3>
+                        <p><?php _e('Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red; }</code>) and click "Generate Classes".<br>
+                        Multiple selectors (comma separated) and both <code>@media</code> and <code>@keyframes</code> blocks are supported.', 'snn'); ?></p>
                         <textarea id="bulk-css" rows="4" style="width:100%; font-family:monospace;"></textarea>
                         <br><br>
-                        <button type="button" class="button button-secondary" id="generate-classes">Generate Classes</button>
+                        <button type="button" class="button button-secondary" id="generate-classes"><?php _e('Generate Classes', 'snn'); ?></button>
                     </div>
                 </div>
 
                 <div id="classes-section">
-                    <h2>Classes</h2>
+                    <h2><?php _e('Classes', 'snn'); ?></h2>
                     <!-- Bulk actions for classes with Save All -->
                     <div id="bulk-actions">
-                        <?php submit_button('Save All', 'primary', 'bgcc_classes_save', false); ?>
-                        <button type="button" class="button" id="bulk-delete">Delete Selected</button>
+                        <?php submit_button(__('Save All', 'snn'), 'primary', 'bgcc_classes_save', false); ?>
+                        <button type="button" class="button" id="bulk-delete"><?php _e('Delete Selected', 'snn'); ?></button>
                         <select id="bulk-category">
-                            <option value="">- Change Category To -</option>
+                            <option value=""><?php _e('- Change Category To -', 'snn'); ?></option>
                             <?php foreach ($categories as $cat) : ?>
                                 <option value="<?php echo esc_attr($cat['id']); ?>"><?php echo esc_html($cat['name']); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <button type="button" class="button" id="bulk-change-category">Apply</button>
-                        <input type="text" id="bulk-search" placeholder="Search classes..." style="margin-left:20px; padding-left:5px;">
+                        <button type="button" class="button" id="bulk-change-category"><?php _e('Apply', 'snn'); ?></button>
+                        <input type="text" id="bulk-search" placeholder="<?php _e('Search classes...', 'snn'); ?>" style="margin-left:20px; padding-left:5px;">
                     </div>
                     <!-- Classes table -->
                     <table class="widefat fixed" id="classes-table">
                         <thead>
                             <tr>
                                 <th style="width:30px"><input type="checkbox" id="select-all"></th>
-                                <th>Name</th>
-                                <th>Category (Optional)</th>
-                                <th>CSS (Generated)</th>
-                                <th style="width:100px">Actions</th>
+                                <th><?php _e('Name', 'snn'); ?></th>
+                                <th><?php _e('Category (Optional)', 'snn'); ?></th>
+                                <th><?php _e('CSS (Generated)', 'snn'); ?></th>
+                                <th style="width:100px"><?php _e('Actions', 'snn'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -378,7 +378,7 @@ function bgcc_classes_page() {
                                         </td>
                                         <td>
                                             <select name="classes[<?php echo $i; ?>][category]">
-                                                <option value="">- None -</option>
+                                                <option value=""><?php _e('- None -', 'snn'); ?></option>
                                                 <?php foreach ($categories as $cat) : ?>
                                                     <option value="<?php echo esc_attr($cat['id']); ?>" <?php selected(($cl['category'] ?? ''), $cat['id']); ?>>
                                                         <?php echo esc_html($cat['name']); ?>
@@ -387,23 +387,23 @@ function bgcc_classes_page() {
                                             </select>
                                         </td>
                                         <td>
-                                            <textarea name="classes[<?php echo $i; ?>][css_generated]" rows="5" placeholder="Generated CSS" required><?php echo esc_textarea(bgcc_generate_css_from_settings($cl['settings'])); ?></textarea>
+                                            <textarea name="classes[<?php echo $i; ?>][css_generated]" rows="5" placeholder="<?php _e('Generated CSS', 'snn'); ?>" required><?php echo esc_textarea(bgcc_generate_css_from_settings($cl['settings'])); ?></textarea>
                                         </td>
                                         <td>
-                                            <button type="button" class="button button-danger remove-row">Remove</button>
+                                            <button type="button" class="button button-danger remove-row"><?php _e('Remove', 'snn'); ?></button>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else : ?>
                                 <tr class="no-classes">
-                                    <td colspan="5" style="text-align: center;">No classes added yet. Click "Add" to create a class.</td>
+                                    <td colspan="5" style="text-align: center;"><?php _e('No classes added yet. Click "Add" to create a class.', 'snn'); ?></td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="5">
-                                    <button type="button" class="button button-secondary" id="add-class">Add</button>
+                                    <button type="button" class="button button-secondary" id="add-class"><?php _e('Add', 'snn'); ?></button>
                                 </td>
                             </tr>
                         </tfoot>
@@ -413,8 +413,8 @@ function bgcc_classes_page() {
         </form>
 
         <div id="export-section" style="margin-top:30px;">
-            <h2>Export Classes</h2>
-            <p>Copy the CSS for all classes below to back up your class list:</p>
+            <h2><?php _e('Export Classes', 'snn'); ?></h2>
+            <p><?php _e('Copy the CSS for all classes below to back up your class list:', 'snn'); ?></p>
             <textarea readonly rows="15"><?php 
                 $export_css = '';
                 if (is_array($classes) && count($classes) > 0) {
@@ -477,7 +477,7 @@ function bgcc_classes_page() {
                     <input type="text" name="categories[${idx}][name]" required>
                 </td>
                 <td>
-                    <button type="button" class="button button-danger remove-row">Remove</button>
+                    <button type="button" class="button button-danger remove-row"><?php _e('Remove', 'snn'); ?></button>
                 </td>`;
         });
 
@@ -488,7 +488,7 @@ function bgcc_classes_page() {
                 noClassesMsg.remove();
             }
             const idx = classesTable.rows.length;
-            let options = '<option value="">- None -</option>';
+            let options = '<option value=""><?php _e('- None -', 'snn'); ?></option>';
             categories.forEach(c => {
                 options += `<option value="${c.id}">${c.name}</option>`;
             });
@@ -503,10 +503,10 @@ function bgcc_classes_page() {
                     <select name="classes[${idx}][category]">${options}</select>
                 </td>
                 <td>
-                    <textarea name="classes[${idx}][css_generated]" rows="5" placeholder="Generated CSS" required></textarea>
+                    <textarea name="classes[${idx}][css_generated]" rows="5" placeholder="<?php _e('Generated CSS', 'snn'); ?>" required></textarea>
                 </td>
                 <td>
-                    <button type="button" class="button button-danger remove-row">Remove</button>
+                    <button type="button" class="button button-danger remove-row"><?php _e('Remove', 'snn'); ?></button>
                 </td>`;
         });
 
@@ -519,7 +519,7 @@ function bgcc_classes_page() {
                     if (!classesTable.rows.length) {
                         let newRow = classesTable.insertRow();
                         newRow.classList.add('no-classes');
-                        newRow.innerHTML = '<td colspan="5" style="text-align: center;">No classes added yet. Click "Add" to create a class.</td>';
+                        newRow.innerHTML = '<td colspan="5" style="text-align: center;"><?php _e('No classes added yet. Click "Add" to create a class.', 'snn'); ?></td>';
                     }
                 }
             }
@@ -529,7 +529,7 @@ function bgcc_classes_page() {
         generateClassesBtn.addEventListener('click', () => {
             const text = bulkCssTextarea.value.trim();
             if (!text) {
-                alert('Please paste some CSS first.');
+                alert('<?php _e('Please paste some CSS first.', 'snn'); ?>');
                 return;
             }
             const noClassesMsg = classesTable.querySelector('.no-classes');
@@ -604,7 +604,7 @@ function bgcc_classes_page() {
                         // Remove the leading dot for storing the name
                         const className = selector.startsWith('.') ? selector.slice(1) : selector;
                         const idx = classesTable.rows.length;
-                        let options = '<option value="">- None -</option>';
+                        let options = '<option value=""><?php _e('- None -', 'snn'); ?></option>';
                         categories.forEach(c => {
                             options += `<option value="${c.id}">${c.name}</option>`;
                         });
@@ -629,7 +629,7 @@ function bgcc_classes_page() {
                                 <textarea name="classes[${idx}][css_generated]" rows="5" required>${classCss}</textarea>
                             </td>
                             <td>
-                                <button type="button" class="button button-danger remove-row">Remove</button>
+                                <button type="button" class="button button-danger remove-row"><?php _e('Remove', 'snn'); ?></button>
                             </td>`;
                     });
                 }
@@ -653,7 +653,7 @@ function bgcc_classes_page() {
             if (!classesTable.rows.length) {
                 let newRow = classesTable.insertRow();
                 newRow.classList.add('no-classes');
-                newRow.innerHTML = '<td colspan="5" style="text-align: center;">No classes added yet. Click "Add" to create a class.</td>';
+                newRow.innerHTML = '<td colspan="5" style="text-align: center;"><?php _e('No classes added yet. Click "Add" to create a class.', 'snn'); ?></td>';
             }
         });
 
@@ -661,7 +661,7 @@ function bgcc_classes_page() {
         bulkChangeCategoryBtn.addEventListener('click', () => {
             const newCategory = bulkCategorySelect.value;
             if (!newCategory) {
-                alert('Please select a category.');
+                alert('<?php _e('Please select a category.', 'snn'); ?>');
                 return;
             }
             const checkboxes = classesTable.querySelectorAll('input.bulk-select:checked');

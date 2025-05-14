@@ -7,8 +7,8 @@ if (!defined('ABSPATH')) {
 function snn_add_media_submenu() {
     add_submenu_page(
         'snn-settings',
-        'Media Settings',
-        'Media Settings',
+        __('Media Settings', 'snn'),
+        __('Media Settings', 'snn'),
         'manage_options',
         'snn-media-settings',
         'snn_render_media_settings'
@@ -20,7 +20,7 @@ function snn_render_media_settings() {
     $options = get_option('snn_media_settings');
     ?>
     <div class="wrap">
-        <h1>Media Settings</h1>
+        <h1><?php _e('Media Settings', 'snn'); ?></h1>
         <form method="post" action="options.php">
             <?php
                 settings_fields('snn_media_settings_group');
@@ -41,14 +41,14 @@ function snn_register_media_settings() {
 
     add_settings_section(
         'snn_media_settings_section',
-        'Media Settings',
+        __('Media Settings', 'snn'),
         'snn_media_settings_section_callback',
         'snn-media-settings'
     );
 
     add_settings_field(
         'redirect_media_library',
-        'Redirect Media Library Grid View to List View',
+        __('Redirect Media Library Grid View to List View', 'snn'),
         'snn_redirect_media_library_callback',
         'snn-media-settings',
         'snn_media_settings_section'
@@ -56,7 +56,7 @@ function snn_register_media_settings() {
 
     add_settings_field(
         'media_categories',
-        'Enable Media Categories',
+        __('Enable Media Categories', 'snn'),
         'snn_media_categories_callback',
         'snn-media-settings',
         'snn_media_settings_section'
@@ -72,14 +72,14 @@ function snn_sanitize_media_settings($input) {
 }
 
 function snn_media_settings_section_callback() {
-    echo '<p>Configure media-related settings below.</p>';
+    echo '<p>' . __('Configure media-related settings below.', 'snn') . '</p>';
 }
 
 function snn_redirect_media_library_callback() {
     $options = get_option('snn_media_settings');
     ?>
     <input type="checkbox" name="snn_media_settings[redirect_media_library]" value="1" <?php checked(1, isset($options['redirect_media_library']) ? $options['redirect_media_library'] : 0); ?>>
-    <p>Media list view default.</p>
+    <p><?php _e('Media list view default.', 'snn'); ?></p>
     <?php
 }
 
@@ -87,7 +87,7 @@ function snn_media_categories_callback() {
     $options = get_option('snn_media_settings');
     ?>
     <input type="checkbox" name="snn_media_settings[media_categories]" value="1" <?php checked(1, isset($options['media_categories']) ? $options['media_categories'] : 0); ?> >
-    <p>Enable Media Categories with drag-and-drop functionality. (right click on grid view)</p>
+    <p><?php _e('Enable Media Categories with drag-and-drop functionality. (right click on grid view)', 'snn'); ?></p>
     <?php
 }
 
@@ -122,17 +122,17 @@ function snn_register_media_taxonomy_categories() {
     $options = get_option('snn_media_settings');
     if (isset($options['media_categories']) && $options['media_categories']) {
         $labels = array(
-            'name'              => _x('Media Categories', 'taxonomy general name', 'snn-media-categories'),
-            'singular_name'     => _x('Media Category', 'taxonomy singular name', 'snn-media-categories'),
-            'search_items'      => __('Search Media Categories', 'snn-media-categories'),
-            'all_items'         => __('All Media Categories', 'snn-media-categories'),
-            'parent_item'       => __('Parent Media Category', 'snn-media-categories'),
-            'parent_item_colon' => __('Parent Media Category:', 'snn-media-categories'),
-            'edit_item'         => __('Edit Media Category', 'snn-media-categories'),
-            'update_item'       => __('Update Media Category', 'snn-media-categories'),
-            'add_new_item'      => __('Add New Media Category', 'snn-media-categories'),
-            'new_item_name'     => __('New Media Category Name', 'snn-media-categories'),
-            'menu_name'         => __('Media Categories', 'snn-media-categories'),
+            'name'              => _x('Media Categories', 'taxonomy general name', 'snn'),
+            'singular_name'     => _x('Media Category', 'taxonomy singular name', 'snn'),
+            'search_items'      => __('Search Media Categories', 'snn'),
+            'all_items'         => __('All Media Categories', 'snn'),
+            'parent_item'       => __('Parent Media Category', 'snn'),
+            'parent_item_colon' => __('Parent Media Category:', 'snn'),
+            'edit_item'         => __('Edit Media Category', 'snn'),
+            'update_item'       => __('Update Media Category', 'snn'),
+            'add_new_item'      => __('Add New Media Category', 'snn'),
+            'new_item_name'     => __('New Media Category Name', 'snn'),
+            'menu_name'         => __('Media Categories', 'snn'),
         );
 
         $args = array(
@@ -223,7 +223,7 @@ function snn_add_custom_css_js_to_media_page() {
                         echo "menu.innerHTML += '<div class=\"context-menu-item\" data-term-id=\"{$term->term_id}\">" . esc_js($term->name) . "</div>';\n";
                     }
                 } else {
-                    echo "menu.innerHTML = '<div class=\"context-menu-item\">No categories found</div>';\n";
+                    echo "menu.innerHTML = '<div class=\"context-menu-item\">" . esc_js( __('No categories found', 'snn') ) . "</div>';\n";
                 }
                 ?>
 
@@ -253,7 +253,7 @@ function snn_add_custom_css_js_to_media_page() {
                                         }
                                         menu.style.display = 'none';
                                     } else {
-                                        alert(`Error: ${response.data}`);
+                                        alert(`<?php _e('Error:', 'snn'); ?> ${response.data}`);
                                     }
                                 } catch (err) {
                                     console.error(err);
@@ -475,7 +475,7 @@ function snn_add_custom_css_js_to_media_page() {
                 if (e.target && (e.target.classList.contains('delete-category') || e.target.closest('.delete-category'))) {
                     const deleteSpan = e.target.classList.contains('delete-category') ? e.target : e.target.closest('.delete-category');
                     const termId = deleteSpan.getAttribute('data-id');
-                    if (!confirm('Are you sure you want to delete this category?')) return;
+                    if (!confirm('<?php echo esc_js(__('Are you sure you want to delete this category?', 'snn')); ?>')) return;
 
                     const xhr = new XMLHttpRequest();
                     xhr.open('POST', ajaxurl, true);
@@ -573,12 +573,12 @@ function snn_add_custom_css_js_to_media_page() {
 
         <div id="media-categories-manager">
             <div class="media-categories-wrapper">
-                <h2>Media Categories</h2>
+                <h2><?php _e('Media Categories', 'snn'); ?></h2>
 
                 <ul id="media-categories-list">
                     <li>
                         <span class="category-name" style="cursor:pointer;">
-                            <a href="<?php echo admin_url('upload.php?mode=list'); ?>">All Media Files</a>
+                            <a href="<?php echo admin_url('upload.php?mode=list'); ?>"><?php _e('All Media Files', 'snn'); ?></a>
                         </span>
                         <span class="category-count"><?php
                             $count_posts = wp_count_attachments();
@@ -617,8 +617,8 @@ function snn_add_custom_css_js_to_media_page() {
                 </ul>
 
                 <form id="add-category-form">
-                    <input type="text" id="new-category-name" placeholder="New Category Name" required>
-                    <input type="submit" value="Add Category" class="button">
+                    <input type="text" id="new-category-name" placeholder="<?php echo esc_attr(__('New Category Name', 'snn')); ?>" required>
+                    <input type="submit" value="<?php echo esc_attr(__('Add Category', 'snn')); ?>" class="button">
                 </form>
             </div>
         </div>
@@ -657,12 +657,12 @@ function snn_add_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
     if (!current_user_can('edit_posts')) {
-        wp_send_json_error('Unauthorized user');
+        wp_send_json_error(__('Unauthorized user', 'snn'));
     }
 
     $category_name = sanitize_text_field($_POST['category_name']);
     if (empty($category_name)) {
-        wp_send_json_error('Category name cannot be empty');
+        wp_send_json_error(__('Category name cannot be empty', 'snn'));
     }
 
     $term = wp_insert_term($category_name, 'media_taxonomy_categories');
@@ -672,7 +672,7 @@ function snn_add_media_category() {
 
     $term_obj = get_term($term['term_id'], 'media_taxonomy_categories');
     if (is_wp_error($term_obj) || !$term_obj) {
-        wp_send_json_error('Error fetching new category.');
+        wp_send_json_error(__('Error fetching new category.', 'snn'));
     }
 
     wp_send_json_success(array(
@@ -686,12 +686,12 @@ function snn_delete_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
     if (!current_user_can('edit_posts')) {
-        wp_send_json_error('Unauthorized user');
+        wp_send_json_error(__('Unauthorized user', 'snn'));
     }
 
     $term_id = intval($_POST['term_id']);
     if (!$term_id) {
-        wp_send_json_error('Invalid term ID');
+        wp_send_json_error(__('Invalid term ID', 'snn'));
     }
 
     $result = wp_delete_term($term_id, 'media_taxonomy_categories');
@@ -707,14 +707,14 @@ function snn_assign_media_category() {
     check_ajax_referer('snn_media_categories_nonce', 'nonce');
 
     if (!current_user_can('edit_posts')) {
-        wp_send_json_error('Unauthorized user');
+        wp_send_json_error(__('Unauthorized user', 'snn'));
     }
 
     $media_id = intval($_POST['media_id']);
     $term_id = intval($_POST['term_id']);
 
     if (!$media_id || !$term_id) {
-        wp_send_json_error('Invalid media ID or term ID');
+        wp_send_json_error(__('Invalid media ID or term ID', 'snn'));
     }
 
     $existing_terms = wp_get_post_terms($media_id, 'media_taxonomy_categories', array('fields' => 'ids'));

@@ -20,7 +20,7 @@ function snn_add_math_captcha() {
         ?>
         <p id="math_captcha_container_<?php echo esc_attr( $unique ); ?>" style="display: none; margin-top: 1em;">
             <label id="captcha_label_<?php echo esc_attr( $unique ); ?>" for="math_captcha_<?php echo esc_attr( $unique ); ?>"></label>
-            <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" class="input" value="" size="20" autocomplete="off" required>
+            <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" class="input" value="" size="20" autocomplete="off" required placeholder="<?php esc_attr_e('Enter the result', 'snn'); ?>">
             <input type="hidden" name="captcha_solution" id="captcha_solution_<?php echo esc_attr( $unique ); ?>" value="">
             <input type="hidden" name="js_enabled" value="no" id="js_enabled_<?php echo esc_attr( $unique ); ?>">
         </p>
@@ -126,7 +126,7 @@ function snn_validate_math_captcha( $result, $username, $password ) {
             if ( ! snn_check_captcha() ) {
                 $result = new WP_Error(
                     'captcha_error',
-                    __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn")
+                    __("<strong>ERROR</strong>: " . __("Incorrect or empty math captcha.", "snn"), "snn")
                 );
             }
         }
@@ -142,7 +142,7 @@ function snn_validate_registration_captcha( $errors, $sanitized_user_login, $use
         if ( ! snn_check_captcha() ) {
             $errors->add(
                 'captcha_error',
-                __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn")
+                __("<strong>ERROR</strong>: " . __("Incorrect or empty math captcha.", "snn"), "snn")
             );
         }
     }
@@ -157,15 +157,13 @@ function snn_validate_lostpassword_captcha( $errors, $user_login ) {
         if ( ! snn_check_captcha() ) {
             $errors->add(
                 'captcha_error',
-                __("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn")
+                __("<strong>ERROR</strong>: " . __("Incorrect or empty math captcha.", "snn"), "snn")
             );
         }
     }
     return $errors;
 }
 add_filter( 'lostpassword_post_errors', 'snn_validate_lostpassword_captcha', 10, 2 );
-
-
 
 function snn_add_math_captcha_to_comment_textarea( $comment_field ) {
     if ( ! is_user_logged_in() ) {
@@ -183,7 +181,7 @@ function snn_validate_comment_captcha( $commentdata ) {
 
     if ( ! empty( $options['enable_math_captcha'] ) && ! is_user_logged_in() ) {
         if ( ! snn_check_captcha() ) {
-            wp_die(__("<strong>ERROR</strong>: Incorrect or empty math captcha.", "snn"));
+            wp_die(__("<strong>ERROR</strong>: " . __("Incorrect or empty math captcha.", "snn"), "snn"));
         }
     }
     return $commentdata;

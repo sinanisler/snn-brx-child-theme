@@ -9,11 +9,11 @@ function snn_register_emoji_setting() {
 
     // Add the settings field
     add_settings_field(
-        'disable_wp_emojicons',             // ID
-        __('Disable Emoji Support', 'snn'), // Title
-        'snn_disable_wp_emojicons_callback',// Callback
-        'snn-security',                     // Page
-        'snn_security_main_section'         // Section
+        'disable_wp_emojicons',             
+        __('Disable Emoji Support', 'snn'), 
+        'snn_disable_wp_emojicons_callback',
+        'snn-security',                     
+        'snn_security_main_section'         
     );
 }
 add_action('admin_init', 'snn_register_emoji_setting');

@@ -1,11 +1,10 @@
 <?php
 
-
 add_action('admin_menu', function () {
     add_submenu_page(
         'snn-settings',
-        'Global Variables Manager',
-        'Global Variables',
+        __('Global Variables Manager', 'snn'),
+        __('Global Variables', 'snn'),
         'manage_options',
         'bricks-global-variables',
         'bgcc_variables_page',
@@ -63,7 +62,7 @@ add_action('admin_init', function () {
             }
         }
         update_option('bricks_global_variables', $new_variables);
-        add_settings_error('bgcc_messages', 'bgcc_save_message', 'Variables and Categories Saved', 'updated');
+        add_settings_error('bgcc_messages', 'bgcc_save_message', __('Variables and Categories Saved', 'snn'), 'updated');
         wp_redirect(add_query_arg(['page' => 'bricks-global-variables', 'updated' => 'true'], admin_url('admin.php')));
         exit;
     }
@@ -121,61 +120,61 @@ function bgcc_variables_page() {
         }
     </style>
     <div class="wrap">
-        <h1>Global Variables Manager <b style="color:red">EXPERIMENTAL</b></h1>
+        <h1><?php _e('Global Variables Manager', 'snn'); ?> <b style="color:red"><?php _e('EXPERIMENTAL', 'snn'); ?></b></h1>
         <?php settings_errors('bgcc_messages'); ?>
         <form method="post" id="bgcc-variables-form">
             <?php wp_nonce_field('bgcc_variables_save', 'bgcc_variables_nonce'); ?>
 
             <!-- Categories Section (Left Sidebar) -->
             <div id="bgcc-categories-sidebar">
-                <h3>Categories</h3>
+                <h3><?php _e('Categories', 'snn'); ?></h3>
                 <div id="bgcc-category-repeater">
                     <?php if (!empty($categories) && is_array($categories)): ?>
                         <?php foreach($categories as $index => $cat): ?>
                             <div class="bgcc-category-row">
                                 <input type="hidden" name="categories[<?php echo $index; ?>][id]" value="<?php echo esc_attr($cat['id']); ?>">
-                                <input type="text" name="categories[<?php echo $index; ?>][name]" value="<?php echo esc_attr($cat['name']); ?>" placeholder="Category Name">
-                                <button type="button" class="button bgcc-remove-category">Remove</button>
+                                <input type="text" name="categories[<?php echo $index; ?>][name]" value="<?php echo esc_attr($cat['name']); ?>" placeholder="<?php esc_attr_e('Category Name', 'snn'); ?>">
+                                <button type="button" class="button bgcc-remove-category"><?php _e('Remove', 'snn'); ?></button>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <div class="bgcc-category-row">
                             <input type="hidden" name="categories[0][id]" value="<?php echo bgcc_rand_id(); ?>">
-                            <input type="text" name="categories[0][name]" value="" placeholder="Category Name">
-                            <button type="button" class="button bgcc-remove-category">Remove</button>
+                            <input type="text" name="categories[0][name]" value="" placeholder="<?php esc_attr_e('Category Name', 'snn'); ?>">
+                            <button type="button" class="button bgcc-remove-category"><?php _e('Remove', 'snn'); ?></button>
                         </div>
                     <?php endif; ?>
                 </div>
-                <button type="button" class="button" id="bgcc-add-category">Add Category</button>
+                <button type="button" class="button" id="bgcc-add-category"><?php _e('Add Category', 'snn'); ?></button>
                 
                 <!-- Moved Bulk Variables Section -->
                 <div style="margin-top:20px;">
-                    <h3>Bulk Variables</h3>
+                    <h3><?php _e('Bulk Variables', 'snn'); ?></h3>
                     <p>
-                        Paste multiple variable definitions here (<code>--my-var: #cccccc;</code>) and click "Generate Variables".<br>
-                        Use the format: <code>--variableName: value;</code> (one per line).
+                        <?php _e('Paste multiple variable definitions here', 'snn'); ?> (<code>--my-var: #cccccc;</code>) <?php _e('and click', 'snn'); ?> "<?php _e('Generate Variables', 'snn'); ?>".<br>
+                        <?php _e('Use the format:', 'snn'); ?> <code>--variableName: value;</code> (<?php _e('one per line', 'snn'); ?>).
                     </p>
                     <textarea id="bulk-variables" rows="4" style="width:100%; font-family:monospace;"></textarea>
                     <br><br>
-                    <button type="button" class="button button-secondary" id="generate-variables">Generate Variables</button>
+                    <button type="button" class="button button-secondary" id="generate-variables"><?php _e('Generate Variables', 'snn'); ?></button>
                 </div>
                 <!-- End Moved Bulk Variables Section -->
             </div>
 
             <div id="bgcc-main-content">
                 <div id="bulk-actions-variables" style="margin-bottom:10px;">
-                    <?php submit_button('Save All', 'primary', 'bgcc_variables_save', false); ?>
-                    <button type="button" class="button" id="bulk-delete-variables">Delete Selected</button>
-                    <input type="text" id="bulk-search-variables" placeholder="Search variables..." style="margin-left:20px; padding-left:5px;">
+                    <?php submit_button(__('Save All', 'snn'), 'primary', 'bgcc_variables_save', false); ?>
+                    <button type="button" class="button" id="bulk-delete-variables"><?php _e('Delete Selected', 'snn'); ?></button>
+                    <input type="text" id="bulk-search-variables" placeholder="<?php esc_attr_e('Search variables...', 'snn'); ?>" style="margin-left:20px; padding-left:5px;">
                 </div>
                 <table class="widefat fixed" id="variables-table">
                     <thead>
                         <tr>
                             <th style="width:30px"><input type="checkbox" id="select-all-variables"></th>
-                            <th>Name</th>
-                            <th>Value</th>
-                            <th>Category</th>
-                            <th style="width:100px">Actions</th>
+                            <th><?php _e('Name', 'snn'); ?></th>
+                            <th><?php _e('Value', 'snn'); ?></th>
+                            <th><?php _e('Category', 'snn'); ?></th>
+                            <th style="width:100px"><?php _e('Actions', 'snn'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -192,7 +191,7 @@ function bgcc_variables_page() {
                                     </td>
                                     <td>
                                         <select class="var-category">
-                                            <option value="">None</option>
+                                            <option value=""><?php _e('None', 'snn'); ?></option>
                                             <?php
                                             // Use the current categories option.
                                             if (!empty($categories) && is_array($categories)) {
@@ -208,30 +207,30 @@ function bgcc_variables_page() {
                                         </select>
                                     </td>
                                     <td>
-                                        <button type="button" class="button button-danger remove-row">Remove</button>
+                                        <button type="button" class="button button-danger remove-row"><?php _e('Remove', 'snn'); ?></button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr class="no-variables">
-                                <td colspan="5" style="text-align: center;">No variables added yet. Click "Add" to create a variable.</td>
+                                <td colspan="5" style="text-align: center;"><?php _e('No variables added yet. Click "Add" to create a variable.', 'snn'); ?></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                     <tfoot>
                         <tr>
                             <td colspan="5">
-                                <button type="button" class="button button-secondary" id="add-variable">Add</button>
+                                <button type="button" class="button button-secondary" id="add-variable"><?php _e('Add', 'snn'); ?></button>
                             </td>
                         </tr>
                     </tfoot>
                 </table>
                 <!-- Save Button at Bottom -->
-                <?php submit_button('Save All', 'primary', 'bgcc_variables_save', false); ?>
+                <?php submit_button(__('Save All', 'snn'), 'primary', 'bgcc_variables_save', false); ?>
 
                 <div id="export-variables-section" style="margin-top:30px;">
-                    <h2>Export Variables</h2>
-                    <p>Copy the variable definitions below to back up your variables:</p>
+                    <h2><?php _e('Export Variables', 'snn'); ?></h2>
+                    <p><?php _e('Copy the variable definitions below to back up your variables:', 'snn'); ?></p>
                     <textarea readonly rows="10"><?php 
                         // Group variables by category.
                         $groups = [];
@@ -289,8 +288,8 @@ function bgcc_variables_page() {
                     newRow.className = 'bgcc-category-row';
                     newRow.innerHTML = `
                         <input type="hidden" name="categories[${index}][id]" value="${newId}">
-                        <input type="text" name="categories[${index}][name]" value="" placeholder="Category Name">
-                        <button type="button" class="button bgcc-remove-category">Remove</button>
+                        <input type="text" name="categories[${index}][name]" value="" placeholder="<?php echo esc_attr__('Category Name', 'snn'); ?>">
+                        <button type="button" class="button bgcc-remove-category"><?php echo esc_js(__('Remove', 'snn')); ?></button>
                     `;
                     categoryRepeater.appendChild(newRow);
                 });
@@ -328,7 +327,7 @@ function bgcc_variables_page() {
 
                 // Helper: generate category select HTML by reading current categories from the repeater.
                 function generateCategorySelect(selectedValue = '') {
-                    let html = '<select class="var-category"><option value="">None</option>';
+                    let html = '<select class="var-category"><option value=""><?php echo esc_js(__('None', 'snn')); ?></option>';
                     const currentCategoryRows = document.querySelectorAll('#bgcc-category-repeater .bgcc-category-row');
                     currentCategoryRows.forEach(function(row) {
                         const catId = row.querySelector('input[type="hidden"]').value;
@@ -361,7 +360,7 @@ function bgcc_variables_page() {
                             ${generateCategorySelect()}
                         </td>
                         <td>
-                            <button type="button" class="button button-danger remove-row">Remove</button>
+                            <button type="button" class="button button-danger remove-row"><?php echo esc_js(__('Remove', 'snn')); ?></button>
                         </td>`;
                 });
 
@@ -373,7 +372,7 @@ function bgcc_variables_page() {
                         if (!variablesTable.querySelectorAll('tr:not(.no-variables)').length) {
                             let newRow = variablesTable.insertRow();
                             newRow.classList.add('no-variables');
-                            newRow.innerHTML = '<td colspan="5" style="text-align: center;">No variables added yet. Click "Add" to create a variable.</td>';
+                            newRow.innerHTML = '<td colspan="5" style="text-align: center;"><?php echo esc_js(__('No variables added yet. Click "Add" to create a variable.', 'snn')); ?></td>';
                         }
                     }
                 });
@@ -382,7 +381,7 @@ function bgcc_variables_page() {
                 generateVariablesBtn.addEventListener('click', () => {
                     const text = bulkVariablesTextarea.value.trim();
                     if (!text) {
-                        alert('Please paste some variables first.');
+                        alert('<?php echo esc_js(__('Please paste some variables first.', 'snn')); ?>');
                         return;
                     }
                     const noVariablesMsg = variablesTable.querySelector('.no-variables');
@@ -413,7 +412,7 @@ function bgcc_variables_page() {
                                 ${generateCategorySelect()}
                             </td>
                             <td>
-                                <button type="button" class="button button-danger remove-row">Remove</button>
+                                <button type="button" class="button button-danger remove-row"><?php echo esc_js(__('Remove', 'snn')); ?></button>
                             </td>`;
                     }
                 });
@@ -428,7 +427,7 @@ function bgcc_variables_page() {
                     if (!variablesTable.querySelectorAll('tr:not(.no-variables)').length) {
                         let newRow = variablesTable.insertRow();
                         newRow.classList.add('no-variables');
-                        newRow.innerHTML = '<td colspan="5" style="text-align: center;">No variables added yet. Click "Add" to create a variable.</td>';
+                        newRow.innerHTML = '<td colspan="5" style="text-align: center;"><?php echo esc_js(__('No variables added yet. Click "Add" to create a variable.', 'snn')); ?></td>';
                     }
                 });
 
@@ -515,11 +514,11 @@ function bgcc_variables_page() {
                             if(data.success) {
                                 sendChunk(index + 1);
                             } else {
-                                alert('Error saving variables.');
+                                alert('<?php echo esc_js(__('Error saving variables.', 'snn')); ?>');
                             }
                         })
                         .catch(err => {
-                            alert('Error saving variables.');
+                            alert('<?php echo esc_js(__('Error saving variables.', 'snn')); ?>');
                         });
                     }
                     

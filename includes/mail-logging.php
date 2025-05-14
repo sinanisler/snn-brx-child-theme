@@ -10,8 +10,8 @@ add_action('init', 'snn_register_mail_logs_post_type');
 function snn_add_mail_logs_page() {
     add_submenu_page(
         'snn-settings',
-        'Mail Logs',
-        'Mail Logs',
+        __('Mail Logs', 'snn'),
+        __('Mail Logs', 'snn'),
         'manage_options',
         'snn-mail-logs',
         'snn_render_mail_logs_page'
@@ -105,7 +105,7 @@ function snn_log_mail_event($args) {
     $post_data = array(
         'post_type'   => 'snn_mail_logs',
         'post_status' => 'publish',
-        'post_title'  => 'Mail Log - ' . date('Y-m-d H:i:s')
+        'post_title'  => __('Mail Log', 'snn') . ' - ' . date('Y-m-d H:i:s')
     );
     $post_id = wp_insert_post($post_data);
 
@@ -146,41 +146,41 @@ function snn_render_mail_logs_page() {
     $log_size_limit  = get_option('snn_mail_log_size_limit', 100);
 
     echo '<div class="wrap">';
-    echo '<h1>Mail Logs</h1>';
+    echo '<h1>' . __('Mail Logs', 'snn') . '</h1>';
 
     // Settings form.
     echo '<form method="post" action="">';
     echo '<label>';
     echo '<input type="checkbox" name="snn_mail_logging_enabled" ' . checked($logging_enabled, true, false) . '>';
-    echo 'Enable Mail Logging';
+    _e('Enable Mail Logging', 'snn');
     echo '</label>';
     echo '<br><br>';
     echo '<label>';
-    echo 'Maximum number of logs to keep: ';
+    _e('Maximum number of logs to keep: ', 'snn');
     echo '<input type="number" name="snn_mail_log_size_limit" value="' . esc_attr($log_size_limit) . '" min="1" style="width: 100px;">';
     echo '</label>';
     echo '<br><br>';
-    submit_button('Save Changes', 'primary', 'snn_mail_logging_submit', false);
+    submit_button(__('Save Changes', 'snn'), 'primary', 'snn_mail_logging_submit', false);
     echo '</form>';
 
     // Display the logs table only if logging is enabled.
     if ($logging_enabled) {
         echo '<div class="tablenav top">';
         echo '<form method="post" action="" style="float: left;">';
-        submit_button('Clear All Logs', 'delete', 'snn_clear_mail_logs', false);
+        submit_button(__('Clear All Logs', 'snn'), 'delete', 'snn_clear_mail_logs', false);
         echo '</form>';
         echo '</div>';
 
         echo '<table class="wp-list-table wp-mail-log-list widefat fixed striped">';
         echo '<thead>';
         echo '<tr>';
-        echo '<th class="delete">Delete</th>';
-        echo '<th class="date">Date & Time</th>';
-        echo '<th class="from">From</th>';
-        echo '<th class="to">To</th>';
-        echo '<th class="subject">Subject</th>';
-        echo '<th class="message">Message</th>';
-        echo '<th class="header">Headers</th>';
+        echo '<th class="delete">' . __('Delete', 'snn') . '</th>';
+        echo '<th class="date">' . __('Date & Time', 'snn') . '</th>';
+        echo '<th class="from">' . __('From', 'snn') . '</th>';
+        echo '<th class="to">' . __('To', 'snn') . '</th>';
+        echo '<th class="subject">' . __('Subject', 'snn') . '</th>';
+        echo '<th class="message">' . __('Message', 'snn') . '</th>';
+        echo '<th class="header">' . __('Headers', 'snn') . '</th>';
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
@@ -207,7 +207,7 @@ function snn_render_mail_logs_page() {
             echo '<td>';
             echo '<form method="post" action="">';
             echo '<input type="hidden" name="snn_delete_log_id" value="' . esc_attr($log->ID) . '">';
-            submit_button('Delete', 'delete', 'snn_delete_log', false);
+            submit_button(__('Delete', 'snn'), 'delete', 'snn_delete_log', false);
             echo '</form>';
             echo '</td>';
 

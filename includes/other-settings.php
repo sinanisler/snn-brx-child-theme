@@ -4,8 +4,8 @@
 function snn_add_other_settings_submenu() {
     add_submenu_page(
         'snn-settings',
-        'Other Settings',
-        'Other Settings',
+        __('Other Settings', 'snn'),
+        __('Other Settings', 'snn'),
         'manage_options',
         'snn-other-settings',
         'snn_render_other_settings',
@@ -17,7 +17,7 @@ add_action('admin_menu', 'snn_add_other_settings_submenu');
 function snn_render_other_settings() {
     ?>
     <div class="wrap">
-        <h1>Other Settings</h1>
+        <h1><?php _e('Other Settings', 'snn'); ?></h1>
         <form method="post" action="options.php">
             <?php
                 settings_fields('snn_other_settings_group');
@@ -38,14 +38,14 @@ function snn_register_other_settings() {
 
     add_settings_section(
         'snn_other_settings_section',
-        'Other Settings',
+        __('Other Settings', 'snn'),
         'snn_other_settings_section_callback',
         'snn-other-settings'
     );
 
     add_settings_field(
         'enqueue_gsap',
-        'Enable GSAP and Lottie Element',
+        __('Enable GSAP and Lottie Element', 'snn'),
         'snn_enqueue_gsap_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -53,7 +53,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'revisions_limit',
-        'Limit Post Revisions',
+        __('Limit Post Revisions', 'snn'),
         'snn_revisions_limit_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -61,7 +61,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'auto_update_bricks',
-        'Auto Update Bricks Theme (Main Theme Only)',
+        __('Auto Update Bricks Theme (Main Theme Only)', 'snn'),
         'snn_auto_update_bricks_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -69,7 +69,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'move_bricks_menu',
-        'Move Bricks Menu to End',
+        __('Move Bricks Menu to End', 'snn'),
         'snn_move_bricks_menu_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -77,7 +77,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'disable_comments',
-        'Disable Comments',
+        __('Disable Comments', 'snn'),
         'snn_disable_comments_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -85,7 +85,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'enable_thumbnail_column',
-        'Enable Thumbnail Column in Post Tables',
+        __('Enable Thumbnail Column in Post Tables', 'snn'),
         'snn_enable_thumbnail_column_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -93,7 +93,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'disable_dashboard_widgets',
-        'Disable Default Dashboard Widgets',
+        __('Disable Default Dashboard Widgets', 'snn'),
         'snn_disable_dashboard_widgets_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -101,7 +101,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'dashboard_custom_metabox_content',
-        'Dashboard Custom Metabox Content',
+        __('Dashboard Custom Metabox Content', 'snn'),
         'snn_dashboard_custom_metabox_content_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -136,7 +136,7 @@ function snn_sanitize_other_settings($input) {
 }
 
 function snn_other_settings_section_callback() {
-    echo '<p>Configure additional settings for your site below.</p>';
+    echo '<p>' . esc_html__( 'Configure additional settings for your site below.', 'snn' ) . '</p>';
 }
 
 function snn_enqueue_gsap_callback() {
@@ -144,26 +144,30 @@ function snn_enqueue_gsap_callback() {
     ?>
     <input type="checkbox" name="snn_other_settings[enqueue_gsap]" value="1" <?php checked(1, isset($options['enqueue_gsap']) ? $options['enqueue_gsap'] : 0); ?>>
     <p>
-        Enabling this setting will enqueue the GSAP library and its associated scripts on your website.<br>
-        GSAP is a powerful JavaScript animation library that allows you to create complex and interactive animations.<br><br>
-        - Ability to create GSAP animations with just data-animate attributes.<br>
-        - gsap.min.php: The core GSAP library.<br>
-        - ScrollTrigger.min.php: A GSAP plugin that enables scroll-based animations.<br>
-        - gsap-data-animate.php: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.<br>
-        - lottie.min.php and Lottie Element<br><br>
-        Read <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki/GSAP-ScrollTrigger-Animations" target="_blank">
-            Documentation and Examples</a> for more details.
+        <?php _e('Enabling this setting will enqueue the GSAP library and its associated scripts on your website.', 'snn'); ?><br>
+        <?php _e('GSAP is a powerful JavaScript animation library that allows you to create complex and interactive animations.', 'snn'); ?><br><br>
+        - <?php _e('Ability to create GSAP animations with just data-animate attributes.', 'snn'); ?><br>
+        - <?php _e('gsap.min.php: The core GSAP library.', 'snn'); ?><br>
+        - <?php _e('ScrollTrigger.min.php: A GSAP plugin that enables scroll-based animations.', 'snn'); ?><br>
+        - <?php _e('gsap-data-animate.php: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.', 'snn'); ?><br>
+        - <?php _e('lottie.min.php and Lottie Element', 'snn'); ?><br><br>
+        <?php
+            printf(
+                /* translators: %s: link to documentation */
+                __('Read <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki/GSAP-ScrollTrigger-Animations" target="_blank">Documentation and Examples</a> for more details.', 'snn')
+            );
+        ?>
     </p>
     <?php
 }
 
 function snn_revisions_limit_callback() {
     $options = get_option('snn_other_settings');
-    $value = (isset($options['revisions_limit']) && $options['revisions_limit'] !== '' && intval($options['revisions_limit']) > 0) 
-             ? intval($options['revisions_limit']) 
+    $value = (isset($options['revisions_limit']) && $options['revisions_limit'] !== '' && intval($options['revisions_limit']) > 0)
+             ? intval($options['revisions_limit'])
              : '';
     ?>
-    <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="9999">
+    <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="<?php echo esc_attr__( '9999', 'snn' ); ?>">
     <?php
 }
 
@@ -186,7 +190,7 @@ function snn_disable_comments_callback() {
     ?>
     <label>
         <input type="checkbox" name="snn_other_settings[disable_comments]" value="1" <?php checked(1, isset($options['disable_comments']) ? $options['disable_comments'] : 0); ?>>
-        Disable all comments on the site
+        <?php _e('Disable all comments on the site', 'snn'); ?>
     </label>
     <?php
 }
@@ -196,8 +200,8 @@ function snn_enable_thumbnail_column_callback() {
     ?>
     <input type="checkbox" name="snn_other_settings[enable_thumbnail_column]" value="1" <?php checked(1, isset($options['enable_thumbnail_column']) ? $options['enable_thumbnail_column'] : 0); ?>>
     <p>
-        Enabling this setting will add a "Thumbnail" column to your post tables in the admin dashboard.<br>
-        This allows you to see the featured image of each post directly in the list view.
+        <?php _e('Enabling this setting will add a "Thumbnail" column to your post tables in the admin dashboard.', 'snn'); ?><br>
+        <?php _e('This allows you to see the featured image of each post directly in the list view.', 'snn'); ?>
     </p>
     <?php
 }
@@ -207,8 +211,8 @@ function snn_disable_dashboard_widgets_callback() {
     ?>
     <input type="checkbox" name="snn_other_settings[disable_dashboard_widgets]" value="1" <?php checked(1, isset($options['disable_dashboard_widgets']) ? $options['disable_dashboard_widgets'] : 0); ?>>
     <p>
-        Enabling this setting will remove several default dashboard widgets from the WordPress admin dashboard.<br>
-        This helps in decluttering the dashboard and focusing on the essential information.
+        <?php _e('Enabling this setting will remove several default dashboard widgets from the WordPress admin dashboard.', 'snn'); ?><br>
+        <?php _e('This helps in decluttering the dashboard and focusing on the essential information.', 'snn'); ?>
     </p>
     <?php
 }
@@ -225,8 +229,8 @@ function snn_dashboard_custom_metabox_content_callback() {
         ));
     ?>
     <p>
-        Enter the HTML content for the custom dashboard metabox. 
-        <br>You can include HTML tags for formatting, and now you can also paste shortcodes which will be executed.
+        <?php _e('Enter the HTML content for the custom dashboard metabox.', 'snn'); ?>
+        <br><?php _e('You can include HTML tags for formatting, and now you can also paste shortcodes which will be executed.', 'snn'); ?>
         <style>
             #wp-dashboard_custom_metabox_content-wrap{max-width:600px }
         </style>
@@ -341,7 +345,7 @@ function snn_add_thumbnail_column_header($columns) {
     foreach ($columns as $key => $value) {
         $new_columns[$key] = $value;
         if ($key === 'title') {
-            $new_columns['post_thumbnail'] = __('Thumbnail');
+            $new_columns['post_thumbnail'] = __('Thumbnail', 'snn');
         }
     }
     return $new_columns;
@@ -354,7 +358,7 @@ function snn_display_thumbnail_column($column, $post_id) {
             $post_thumbnail_img = wp_get_attachment_image_src($post_thumbnail_id, 'thumbnail');
             echo '<img src="' . esc_url($post_thumbnail_img[0]) . '" width="80" />';
         } else {
-            echo __('--');
+            echo esc_html__('--', 'snn');
         }
     }
 }
@@ -385,7 +389,7 @@ function snn_maybe_add_dashboard_custom_metabox() {
     if (!empty($options['dashboard_custom_metabox_content'])) {
         add_meta_box(
             'snn_custom_dashboard_metabox',
-            'Welcome',
+            __('Welcome', 'snn'),
             'snn_display_custom_dashboard_metabox',
             'dashboard',
             'normal',
@@ -448,4 +452,3 @@ function snn_display_custom_dashboard_metabox() {
         echo do_shortcode($content);
     }
 }
-?>

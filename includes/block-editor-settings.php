@@ -6,8 +6,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 function snn_add_block_editor_settings_submenu() {
     add_submenu_page(
         'snn-settings',
-        'Block Editor Settings',
-        'Block Editor Settings',
+        __( 'Block Editor Settings', 'snn' ),
+        __( 'Block Editor Settings', 'snn' ),
         'manage_options',
         'snn-block-editor-settings',
         'snn_block_editor_settings_page_callback'
@@ -20,7 +20,7 @@ function snn_register_block_editor_settings() {
 
     add_settings_section(
         'snn_block_editor_section',
-        'Block Editor Settings',
+        __( 'Block Editor Settings', 'snn' ),
         null,
         'snn-block-editor-settings'
     );
@@ -43,7 +43,7 @@ function snn_block_editor_settings_page_callback() {
     </style>
 
     <div class="wrap">
-        <h1>Block Editor Settings</h1>
+        <h1><?php _e( 'Block Editor Settings', 'snn' ); ?></h1>
         <form method="post" action="options.php">
             <?php
             settings_fields( 'snn_block_editor_settings_group' );
@@ -51,12 +51,12 @@ function snn_block_editor_settings_page_callback() {
             ?>
 
             <!-- Editor Behavior Settings -->
-            <h2>Editor Behavior Settings</h2>
-            <p>Check any of the following to change the default:</p>
+            <h2><?php _e( 'Editor Behavior Settings', 'snn' ); ?></h2>
+            <p><?php _e( 'Check any of the following to change the default:', 'snn' ); ?></p>
             <table class="form-table">
                 <tr>
                     <th scope="row">
-                        <label for="snn_disable_fullscreen">Disable Fullscreen Mode</label>
+                        <label for="snn_disable_fullscreen"><?php _e( 'Disable Fullscreen Mode', 'snn' ); ?></label>
                     </th>
                     <td>
                         <input
@@ -70,7 +70,7 @@ function snn_block_editor_settings_page_callback() {
                 </tr>
                 <tr>
                     <th scope="row">
-                        <label for="snn_disable_welcome_guide">Disable Welcome Guide Popup</label>
+                        <label for="snn_disable_welcome_guide"><?php _e( 'Disable Welcome Guide Popup', 'snn' ); ?></label>
                     </th>
                     <td>
                         <input
@@ -84,7 +84,7 @@ function snn_block_editor_settings_page_callback() {
                 </tr>
                 <tr>
                     <th scope="row">
-                        <label for="snn_disable_spotlight_mode">Disable Spotlight Mode</label>
+                        <label for="snn_disable_spotlight_mode"><?php _e( 'Disable Spotlight Mode', 'snn' ); ?></label>
                     </th>
                     <td>
                         <input
@@ -98,7 +98,7 @@ function snn_block_editor_settings_page_callback() {
                 </tr>
                 <tr>
                     <th scope="row">
-                        <label for="snn_enable_top_toolbar">Enable Top Toolbar</label>
+                        <label for="snn_enable_top_toolbar"><?php _e( 'Enable Top Toolbar', 'snn' ); ?></label>
                     </th>
                     <td>
                         <input
@@ -113,13 +113,13 @@ function snn_block_editor_settings_page_callback() {
             </table>
             <!-- End Editor Behavior Settings -->
 
-            <h2>Disable Core Blocks</h2>
-            <p>Select the blocks you want to disable in the Gutenberg editor:</p>
+            <h2><?php _e( 'Disable Core Blocks', 'snn' ); ?></h2>
+            <p><?php _e( 'Select the blocks you want to disable in the Gutenberg editor:', 'snn' ); ?></p>
 
-            <button type="button" id="toggle-list">Show Blocks</button>
+            <button type="button" id="toggle-list"><?php _e( 'Show Blocks', 'snn' ); ?></button>
 
             <div id="blocks-list">
-                <button type="button" id="toggle-select-all">Select All</button>
+                <button type="button" id="toggle-select-all"><?php _e( 'Select All', 'snn' ); ?></button>
                 <table class="form-table">
                     <?php foreach ( $all_blocks as $block_name => $block_type ) : ?>
                         <tr>
@@ -150,7 +150,7 @@ function snn_block_editor_settings_page_callback() {
         toggleListBtn.addEventListener('click', function () {
             const hidden = blocksList.style.display === 'none';
             blocksList.style.display = hidden ? 'block' : 'none';
-            toggleListBtn.textContent = hidden ? 'Hide Blocks' : 'Show Blocks';
+            toggleListBtn.textContent = hidden ? '<?php echo esc_js( __( 'Hide Blocks', 'snn' ) ); ?>' : '<?php echo esc_js( __( 'Show Blocks', 'snn' ) ); ?>';
         });
 
         const selectAllBtn = document.getElementById('toggle-select-all');
@@ -158,7 +158,7 @@ function snn_block_editor_settings_page_callback() {
         let allSelected    = Array.from(checkboxes).every(cb => cb.checked);
 
         function updateSelectAllText() {
-            selectAllBtn.textContent = allSelected ? 'Unselect All' : 'Select All';
+            selectAllBtn.textContent = allSelected ? '<?php echo esc_js( __( 'Unselect All', 'snn' ) ); ?>' : '<?php echo esc_js( __( 'Select All', 'snn' ) ); ?>';
         }
 
         selectAllBtn.addEventListener('click', function () {

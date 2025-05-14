@@ -8,8 +8,8 @@ add_action( 'admin_menu', 'snn_add_custom_post_types_submenu' );
 function snn_add_custom_post_types_submenu() {
     add_submenu_page(
         'snn-settings',                   
-        'Register Post Types',             
-        'Post Types',                      
+        __( 'Register Post Types', 'snn' ),             
+        __( 'Post Types', 'snn' ),                      
         'manage_options',                  
         'snn-custom-post-types',           
         'snn_render_custom_post_types_page'
@@ -22,14 +22,14 @@ function snn_render_custom_post_types_page() {
     }
 
     $available_supports = array(
-        'title'           => 'Title',
-        'editor'          => 'Editor',
-        'thumbnail'       => 'Thumbnail',
-        'author'          => 'Author',
-        'excerpt'         => 'Excerpt',
-        'custom-fields'   => 'Custom Fields',
-        'revisions'       => 'Revisions',
-        'page-attributes' => 'Page Attributes',
+        'title'           => __( 'Title', 'snn' ),
+        'editor'          => __( 'Editor', 'snn' ),
+        'thumbnail'       => __( 'Thumbnail', 'snn' ),
+        'author'          => __( 'Author', 'snn' ),
+        'excerpt'         => __( 'Excerpt', 'snn' ),
+        'custom-fields'   => __( 'Custom Fields', 'snn' ),
+        'revisions'       => __( 'Revisions', 'snn' ),
+        'page-attributes' => __( 'Page Attributes', 'snn' ),
     );
 
     if ( isset( $_POST['snn_custom_post_types_nonce'] ) && wp_verify_nonce( $_POST['snn_custom_post_types_nonce'], 'snn_save_custom_post_types' ) ) {
@@ -55,11 +55,11 @@ function snn_render_custom_post_types_page() {
             }
 
             update_option( 'snn_custom_post_types', $custom_post_types );
-            echo '<div class="updated"><p>Custom Post Types saved successfully.</p></div>';
+            echo '<div class="updated"><p>' . __( 'Custom Post Types saved successfully.', 'snn' ) . '</p></div>';
         } else {
             // If no custom post types are submitted, update the option to an empty array.
             update_option( 'snn_custom_post_types', array() );
-            echo '<div class="updated"><p>Custom Post Types saved successfully.</p></div>';
+            echo '<div class="updated"><p>' . __( 'Custom Post Types saved successfully.', 'snn' ) . '</p></div>';
         }
     }
 
@@ -77,34 +77,34 @@ function snn_render_custom_post_types_page() {
     unset( $post_type );
     ?>
     <div class="wrap">
-        <h1>Manage Custom Post Types</h1>
+        <h1><?php echo esc_html__( 'Manage Custom Post Types', 'snn' ); ?></h1>
         <form method="post">
             <?php wp_nonce_field( 'snn_save_custom_post_types', 'snn_custom_post_types_nonce' ); ?>
             <div id="custom-post-type-settings">
-                <p>Define custom post types with name, slug (max 20 chars), visibility, dashicon, and supported features:</p>
+                <p><?php echo esc_html__( 'Define custom post types with name, slug (max 20 chars), visibility, dashicon, and supported features:', 'snn' ); ?></p>
                 <?php foreach ( $custom_post_types as $index => $post_type ) : ?>
                     <div class="custom-post-type-row" data-index="<?php echo esc_attr( $index ); ?>">
                         <div class="buttons">
-                            <button type="button" class="move-up" title="Move Up">▲</button>
-                            <button type="button" class="move-down" title="Move Down">▼</button>
-                            <button type="button" class="remove-post-type" title="Remove Post Type">Remove</button>
+                            <button type="button" class="move-up" title="<?php echo esc_attr__( 'Move Up', 'snn' ); ?>">▲</button>
+                            <button type="button" class="move-down" title="<?php echo esc_attr__( 'Move Down', 'snn' ); ?>">▼</button>
+                            <button type="button" class="remove-post-type" title="<?php echo esc_attr__( 'Remove Post Type', 'snn' ); ?>"><?php echo esc_html__( 'Remove', 'snn' ); ?></button>
                         </div>
                         <div class="post-type-name">
-                            <label>Post Type Name</label><br>
-                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][name]" placeholder="Post Type Name" value="<?php echo esc_attr( $post_type['name'] ); ?>" />
+                            <label><?php echo esc_html__( 'Post Type Name', 'snn' ); ?></label><br>
+                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][name]" placeholder="<?php echo esc_attr__( 'Post Type Name', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['name'] ); ?>" />
                         </div>
  
                         <div class="post-type-slug">
-                            <label>Post Type Slug (max 20 chars)</label><br>
-                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="post-slug" value="<?php echo esc_attr( $post_type['slug'] ); ?>" maxlength="20" />
+                            <label><?php echo esc_html__( 'Post Type Slug (max 20 chars)', 'snn' ); ?></label><br>
+                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="<?php echo esc_attr__( 'post-slug', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['slug'] ); ?>" maxlength="20" />
                         </div>
 
                         <div class="post-type-icon">
-                            <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
-                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][dashicon]" placeholder="dashicons-admin-page" value="<?php echo esc_attr( $post_type['dashicon'] ); ?>" style="width:90px" />
+                            <label><?php echo esc_html__( 'Dashicon', 'snn' ); ?> </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
+                            <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][dashicon]" placeholder="<?php echo esc_attr__( 'dashicons-admin-page', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['dashicon'] ); ?>" style="width:90px" />
                         </div>
  
-                        <label>Private</label>
+                        <label><?php echo esc_html__( 'Private', 'snn' ); ?></label>
                         <div class="checkbox-container">
                             <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][private]" <?php checked( $post_type['private'], 1 ); ?> />
                         </div>
@@ -122,9 +122,9 @@ function snn_render_custom_post_types_page() {
                     </div>
                 <?php endforeach; ?>
             </div>
-            <button type="button" id="add-custom-post-type-row" class="button">Add New Post Type</button>
+            <button type="button" id="add-custom-post-type-row" class="button"><?php echo esc_html__( 'Add New Post Type', 'snn' ); ?></button>
             <br><br>
-            <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Custom Post Types"></p>
+            <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="<?php echo esc_attr__( 'Save Custom Post Types', 'snn' ); ?>"></p>
         </form>
 
         <script>
@@ -133,14 +133,14 @@ function snn_render_custom_post_types_page() {
             const addFieldButton = document.getElementById('add-custom-post-type-row');
 
             const availableSupports = {
-                'title': 'Title',
-                'editor': 'Editor',
-                'thumbnail': 'Thumbnail',
-                'author': 'Author',
-                'excerpt': 'Excerpt',
-                'custom-fields': 'Custom Fields',
-                'revisions': 'Revisions',
-                'page-attributes': 'Page Attributes'
+                'title': '<?php echo esc_js( __( 'Title', 'snn' ) ); ?>',
+                'editor': '<?php echo esc_js( __( 'Editor', 'snn' ) ); ?>',
+                'thumbnail': '<?php echo esc_js( __( 'Thumbnail', 'snn' ) ); ?>',
+                'author': '<?php echo esc_js( __( 'Author', 'snn' ) ); ?>',
+                'excerpt': '<?php echo esc_js( __( 'Excerpt', 'snn' ) ); ?>',
+                'custom-fields': '<?php echo esc_js( __( 'Custom Fields', 'snn' ) ); ?>',
+                'revisions': '<?php echo esc_js( __( 'Revisions', 'snn' ) ); ?>',
+                'page-attributes': '<?php echo esc_js( __( 'Page Attributes', 'snn' ) ); ?>'
             };
 
             function slugify(value) {
@@ -196,23 +196,23 @@ function snn_render_custom_post_types_page() {
                 newRow.dataset.index = newIndex;
                 newRow.innerHTML = `
                     <div class="buttons">
-                        <button type="button" class="move-up" title="Move Up">▲</button>
-                        <button type="button" class="move-down" title="Move Down">▼</button>
-                        <button type="button" class="remove-post-type" title="Remove Post Type">Remove</button>
+                        <button type="button" class="move-up" title="<?php echo esc_attr__( 'Move Up', 'snn' ); ?>">▲</button>
+                        <button type="button" class="move-down" title="<?php echo esc_attr__( 'Move Down', 'snn' ); ?>">▼</button>
+                        <button type="button" class="remove-post-type" title="<?php echo esc_attr__( 'Remove Post Type', 'snn' ); ?>"><?php echo esc_html__( 'Remove', 'snn' ); ?></button>
                     </div>
                     <div class="post-type-name">
-                        <label>Post Type Name</label><br>
-                        <input type="text" name="custom_post_types[${newIndex}][name]" placeholder="Post Type Name" />
+                        <label><?php echo esc_html__( 'Post Type Name', 'snn' ); ?></label><br>
+                        <input type="text" name="custom_post_types[${newIndex}][name]" placeholder="<?php echo esc_attr__( 'Post Type Name', 'snn' ); ?>" />
                     </div>
                     <div class="post-type-slug">
-                        <label>Post Type Slug (max 20 chars)</label><br>
-                        <input type="text" name="custom_post_types[${newIndex}][slug]" placeholder="post-slug" maxlength="20" />
+                        <label><?php echo esc_html__( 'Post Type Slug (max 20 chars)', 'snn' ); ?></label><br>
+                        <input type="text" name="custom_post_types[${newIndex}][slug]" placeholder="<?php echo esc_attr__( 'post-slug', 'snn' ); ?>" maxlength="20" />
                     </div>
                     <div class="post-type-icon">
-                        <label>Dashicon </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
-                        <input type="text" name="custom_post_types[${newIndex}][dashicon]" placeholder="dashicons-admin-page" style="width:90px" />
+                        <label><?php echo esc_html__( 'Dashicon', 'snn' ); ?> </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
+                        <input type="text" name="custom_post_types[${newIndex}][dashicon]" placeholder="<?php echo esc_attr__( 'dashicons-admin-page', 'snn' ); ?>" style="width:90px" />
                     </div>
-                    <label>Private</label>
+                    <label><?php echo esc_html__( 'Private', 'snn' ); ?></label>
                     <div class="checkbox-container">
                         <input type="checkbox" name="custom_post_types[${newIndex}][private]" />
                     </div>
@@ -230,7 +230,7 @@ function snn_render_custom_post_types_page() {
 
             fieldContainer.addEventListener('click', function(event) {
                 if (event.target.classList.contains('remove-post-type')) {
-                    if (confirm('Are you sure you want to remove this post type?')) {
+                    if (confirm('<?php echo esc_js( __( 'Are you sure you want to remove this post type?', 'snn' ) ); ?>')) {
                         event.target.closest('.custom-post-type-row').remove();
                         updateFieldIndexes();
                     }

@@ -3,7 +3,7 @@
 function snn_add_logo_settings() {
     add_settings_field(
         'snn_login_logo_url',
-        'Login Logo Image URL',
+        __('Login Logo Image URL', 'snn'),
         'snn_login_logo_url_callback',
         'login-settings',
         'ls_login_settings_section'
@@ -11,7 +11,7 @@ function snn_add_logo_settings() {
 
     add_settings_field(
         'snn_custom_logo_url',
-        'Custom Logo Link Website URL',
+        __('Custom Logo Link Website URL', 'snn'),
         'snn_custom_logo_url_callback',
         'login-settings',
         'ls_login_settings_section'
@@ -38,16 +38,16 @@ function snn_settings_sanitize($input) {
 function snn_login_logo_url_callback() {
     $options = get_option('snn_settings');
     ?>
-    <input type="text" name="snn_settings[login_logo_url]" value="<?php echo esc_attr($options['login_logo_url'] ?? ''); ?>" placeholder="https://website.com/image.png" style="width:100%">
-    <p>Enter the URL for the login page logo image. (.png, .jpg)</p>
+    <input type="text" name="snn_settings[login_logo_url]" value="<?php echo esc_attr($options['login_logo_url'] ?? ''); ?>" placeholder="<?php esc_attr_e('https://website.com/image.png', 'snn'); ?>" style="width:100%">
+    <p><?php _e('Enter the URL for the login page logo image. (.png, .jpg)', 'snn'); ?></p>
     <?php
 }
 
 function snn_custom_logo_url_callback() {
     $options = get_option('snn_settings');
     ?>
-    <input type="text" name="snn_settings[custom_logo_url]" value="<?php echo esc_attr($options['custom_logo_url'] ?? ''); ?>" placeholder="https://yourwebsite.com" style="width:100%">
-    <p>Enter the URL where the logo should link on the login page.</p>
+    <input type="text" name="snn_settings[custom_logo_url]" value="<?php echo esc_attr($options['custom_logo_url'] ?? ''); ?>" placeholder="<?php esc_attr_e('https://yourwebsite.com', 'snn'); ?>" style="width:100%">
+    <p><?php _e('Enter the URL where the logo should link on the login page.', 'snn'); ?></p>
     <?php
 }
 

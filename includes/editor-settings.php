@@ -4,8 +4,8 @@ add_action('admin_menu', 'custom_editor_settings_page');
 function custom_editor_settings_page() {
     add_submenu_page(
         'snn-settings',
-        'Editor Settings',
-        'Editor Settings',
+        __('Editor Settings', 'snn'),
+        __('Editor Settings', 'snn'),
         'manage_options',
         'editor-settings',
         'snn_render_editor_settings_page',
@@ -16,7 +16,7 @@ function custom_editor_settings_page() {
 function snn_render_editor_settings_page() {
     ?>
     <div class="wrap">
-        <h1>Bricks Builder Editor Settings</h1>
+        <h1><?php _e('Bricks Builder Editor Settings', 'snn'); ?></h1>
         <form method="post" action="options.php">
             <?php
             settings_fields('snn_editor_settings_group');
@@ -38,14 +38,14 @@ function snn_register_editor_settings() {
 
     add_settings_section(
         'snn_editor_settings_section',
-        'Editor Settings',
+        __('Editor Settings', 'snn'),
         'snn_editor_settings_section_callback',
         'snn-editor-settings'
     );
 
     add_settings_field(
         'hide_element_icons',
-        'Hide Elements Icons on Bricks Editor',
+        __('Hide Elements Icons on Bricks Editor', 'snn'),
         'snn_hide_element_icons_callback',
         'snn-editor-settings',
         'snn_editor_settings_section'
@@ -53,7 +53,7 @@ function snn_register_editor_settings() {
 
     add_settings_field(
         'make_compact_but_keep_icons',
-        'Make Elements Compact But Keep Icons on Bricks Editor',
+        __('Make Elements Compact But Keep Icons on Bricks Editor', 'snn'),
         'snn_make_compact_but_keep_icons_callback',
         'snn-editor-settings',
         'snn_editor_settings_section'
@@ -61,7 +61,7 @@ function snn_register_editor_settings() {
 
     add_settings_field(
         'make_elements_wide',
-        'Make Elements Wide on Bricks Editor',
+        __('Make Elements Wide on Bricks Editor', 'snn'),
         'snn_make_elements_wide_callback',
         'snn-editor-settings',
         'snn_editor_settings_section'
@@ -69,7 +69,7 @@ function snn_register_editor_settings() {
 
     add_settings_field(
         'snn_bricks_builder_color_fix_field',
-        'SNN Settings Panel and Bricks Builder Global Colors Sync with Color Palette',
+        __('SNN Settings Panel and Bricks Builder Global Colors Sync with Color Palette', 'snn'),
         'snn_render_checkbox_field',
         'snn-editor-settings',
         'snn_editor_settings_section'
@@ -93,7 +93,11 @@ function snn_sanitize_editor_settings($input) {
 function snn_editor_settings_section_callback() {
     ?>
     <p>
-        Configure Bricks Builder editor-specific settings below.<br>
+        <?php
+        echo sprintf(
+            __('Configure Bricks Builder editor-specific settings below.<br>', 'snn')
+        );
+        ?>
     </p>
     <?php
 }
@@ -104,11 +108,10 @@ function snn_render_checkbox_field() {
     ?>
     <input type="checkbox" id="snn_bricks_builder_color_fix" name="snn_editor_settings[snn_bricks_builder_color_fix]" value="1" <?php checked(1, $checked, true); ?> />
     <label for="snn_bricks_builder_color_fix">
-        Enable Bricks Builder Editor Color Fix<br>
-        This setting will show the primary global color variables inside all color palettes.<br>
+        <?php _e('Enable Bricks Builder Editor Color Fix', 'snn'); ?><br>
+        <?php _e('This setting will show the primary global color variables inside all color palettes.<br>
         It will load those color palettes as :root frontend colors as well.<br>
-        Only create one Theme Style.<br>
-        
+        Only create one Theme Style.<br>', 'snn'); ?>
     </label>
     <?php
 }
@@ -119,7 +122,7 @@ function snn_hide_element_icons_callback() {
     ?>
     <label>
         <input type="checkbox" name="snn_editor_settings[hide_element_icons]" value="1" <?php checked(1, $checked, true); ?>>
-        Hide Elements Icons on Bricks Editor
+        <?php _e('Hide Elements Icons on Bricks Editor', 'snn'); ?>
     </label>
     <?php
 }
@@ -130,7 +133,7 @@ function snn_make_compact_but_keep_icons_callback() {
     ?>
     <label>
         <input type="checkbox" name="snn_editor_settings[make_compact_but_keep_icons]" value="1" <?php checked(1, $checked, true); ?>>
-        Make Elements Compact But Keep Icons
+        <?php _e('Make Elements Compact But Keep Icons', 'snn'); ?>
     </label>
     <?php
 }
@@ -141,7 +144,7 @@ function snn_make_elements_wide_callback() {
     ?>
     <label>
         <input type="checkbox" name="snn_editor_settings[make_elements_wide]" value="1" <?php checked(1, $checked, true); ?>>
-        Make Elements Wide on Bricks Editor
+        <?php _e('Make Elements Wide on Bricks Editor', 'snn'); ?>
     </label>
     <?php
 }

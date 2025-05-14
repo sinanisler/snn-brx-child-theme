@@ -14,8 +14,8 @@ function snn_is_cookie_banner_enabled() {
 function snn_add_cookie_settings_submenu() {
     add_submenu_page(
         'snn-settings',               
-        'SNN Cookie Settings',        
-        'Cookie Settings',          
+        __('SNN Cookie Settings', 'snn'),        
+        __('Cookie Settings', 'snn'),          
         'manage_options',          
         'snn-cookie-settings',      
         'snn_options_page'            
@@ -25,7 +25,7 @@ add_action('admin_menu', 'snn_add_cookie_settings_submenu', 10);
 
 function snn_options_page() {
     if ( ! current_user_can('manage_options') ) {
-        wp_die(__('You do not have sufficient permissions to access this page.', 'snn-cookie-banner'));
+        wp_die(__('You do not have sufficient permissions to access this page.', 'snn'));
     }
     
     if ( isset($_POST['snn_options_nonce']) && wp_verify_nonce( $_POST['snn_options_nonce'], 'snn_save_options' ) ) {
@@ -79,7 +79,7 @@ function snn_options_page() {
         $options['snn_cookie_settings_custom_css'] = isset($_POST['snn_cookie_settings_custom_css']) ? wp_unslash($_POST['snn_cookie_settings_custom_css']) : '';
         
         update_option( SNN_OPTIONS, $options );
-        echo '<div class="updated"><p>Settings saved.</p></div>';
+        echo '<div class="updated"><p>' . __('Settings saved.', 'snn') . '</p></div>';
     }
     
     $options = get_option( SNN_OPTIONS );
@@ -88,10 +88,10 @@ function snn_options_page() {
             'snn_cookie_settings_enable_cookie_banner' => 'no',
             'snn_cookie_settings_disable_for_logged_in'  => 'no',
             'snn_cookie_settings_disable_scripts_for_logged_in' => 'no',
-            'snn_cookie_settings_banner_description'   => 'This website uses cookies for analytics and functionality.',
-            'snn_cookie_settings_accept_button'        => 'Accept',
-            'snn_cookie_settings_deny_button'          => 'Deny',
-            'snn_cookie_settings_preferences_button'   => 'Preferences',
+            'snn_cookie_settings_banner_description'   => __('This website uses cookies for analytics and functionality.', 'snn'),
+            'snn_cookie_settings_accept_button'        => __('Accept', 'snn'),
+            'snn_cookie_settings_deny_button'          => __('Deny', 'snn'),
+            'snn_cookie_settings_preferences_button'   => __('Preferences', 'snn'),
             'snn_cookie_settings_services'             => array(),
             'snn_cookie_settings_custom_css'           => '',
             'snn_cookie_settings_banner_position'      => 'left',
@@ -103,7 +103,7 @@ function snn_options_page() {
     }
     ?>
     <div class="wrap">
-        <h1>Cookie Banner</h1>
+        <h1><?php _e('Cookie Banner', 'snn'); ?></h1>
         <style>
             .snn-textarea { width: 500px; }
             .snn-input { width: 300px; }
@@ -120,36 +120,36 @@ function snn_options_page() {
             .snn-service-item .snn-radio-group label { margin-right: 10px; }
         </style>
         <div class="snn-tabs">
-            <span class="snn-tab active" data-tab="general">General Settings</span>
-            <span class="snn-tab" data-tab="scripts">Scripts &amp; Services</span>
+            <span class="snn-tab active" data-tab="general"><?php _e('General Settings', 'snn'); ?></span>
+            <span class="snn-tab" data-tab="scripts"><?php _e('Scripts & Services', 'snn'); ?></span>
         </div>
         <form method="post">
             <?php wp_nonce_field( 'snn_save_options', 'snn_options_nonce' ); ?>
             <div id="general" class="snn-tab-content active">
                 <table class="form-table">
                     <tr valign="top">
-                        <th scope="row">Enable Cookie Banner</th>
+                        <th scope="row"><?php _e('Enable Cookie Banner', 'snn'); ?></th>
                         <td>
                             <input type="checkbox" name="snn_cookie_settings_enable_cookie_banner" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_cookie_banner']) ? $options['snn_cookie_settings_enable_cookie_banner'] : 'no'), 'yes'); ?>>
-                            <span class="description">Check to enable the Cookie Banner on your site.</span>
+                            <span class="description"><?php _e('Check to enable the Cookie Banner on your site.', 'snn'); ?></span>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Disable for Logged-In Users</th>
+                        <th scope="row"><?php _e('Disable for Logged-In Users', 'snn'); ?></th>
                         <td>
                             <input type="checkbox" name="snn_cookie_settings_disable_for_logged_in" value="yes" <?php checked((isset($options['snn_cookie_settings_disable_for_logged_in']) ? $options['snn_cookie_settings_disable_for_logged_in'] : 'no'), 'yes'); ?>>
-                            <span class="description">Check to disable the Cookie Banner for users who are logged in.</span>
+                            <span class="description"><?php _e('Check to disable the Cookie Banner for users who are logged in.', 'snn'); ?></span>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Disable Scripts for Logged-In Users</th>
+                        <th scope="row"><?php _e('Disable Scripts for Logged-In Users', 'snn'); ?></th>
                         <td>
                             <input type="checkbox" name="snn_cookie_settings_disable_scripts_for_logged_in" value="yes" <?php checked((isset($options['snn_cookie_settings_disable_scripts_for_logged_in']) ? $options['snn_cookie_settings_disable_scripts_for_logged_in'] : 'no'), 'yes'); ?>>
-                            <span class="description">Check to disable the scripts loading for logged-in users.</span>
+                            <span class="description"><?php _e('Check to disable the scripts loading for logged-in users.', 'snn'); ?></span>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Cookie Banner Description</th>
+                        <th scope="row"><?php _e('Cookie Banner Description', 'snn'); ?></th>
                         <td>
                             <?php 
                             wp_editor( 
@@ -164,54 +164,54 @@ function snn_options_page() {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Accept Button Text</th>
+                        <th scope="row"><?php _e('Accept Button Text', 'snn'); ?></th>
                         <td>
                             <input type="text" name="snn_cookie_settings_accept_button" value="<?php echo isset($options['snn_cookie_settings_accept_button']) ? esc_attr($options['snn_cookie_settings_accept_button']) : ''; ?>" class="snn-input snn-accept-button">
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Deny Button Text</th>
+                        <th scope="row"><?php _e('Deny Button Text', 'snn'); ?></th>
                         <td>
                             <input type="text" name="snn_cookie_settings_deny_button" value="<?php echo isset($options['snn_cookie_settings_deny_button']) ? esc_attr($options['snn_cookie_settings_deny_button']) : ''; ?>" class="snn-input snn-deny-button">
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Preferences Button Text</th>
+                        <th scope="row"><?php _e('Preferences Button Text', 'snn'); ?></th>
                         <td>
                             <input type="text" name="snn_cookie_settings_preferences_button" value="<?php echo isset($options['snn_cookie_settings_preferences_button']) ? esc_attr($options['snn_cookie_settings_preferences_button']) : ''; ?>" class="snn-input snn-preferences-button">
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Cookie Banner Position</th>
+                        <th scope="row"><?php _e('Cookie Banner Position', 'snn'); ?></th>
                         <td>
                             <select name="snn_cookie_settings_banner_position" class="snn-select snn-banner-position">
-                                <option value="left" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'left'); ?>>Left</option>
-                                <option value="middle" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'middle'); ?>>Middle</option>
-                                <option value="right" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'right'); ?>>Right</option>
+                                <option value="left" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'left'); ?>><?php _e('Left', 'snn'); ?></option>
+                                <option value="middle" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'middle'); ?>><?php _e('Middle', 'snn'); ?></option>
+                                <option value="right" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'right'); ?>><?php _e('Right', 'snn'); ?></option>
                             </select>
-                            <p class="description">Select the horizontal position of the cookie banner on your website.</p>
+                            <p class="description"><?php _e('Select the horizontal position of the cookie banner on your website.', 'snn'); ?></p>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Cookie Banner Background Color</th>
+                        <th scope="row"><?php _e('Cookie Banner Background Color', 'snn'); ?></th>
                         <td>
                             <input type="color" name="snn_cookie_settings_banner_bg_color" value="<?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : ''; ?>" class="snn-color-picker">
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Cookie Banner Text Color</th>
+                        <th scope="row"><?php _e('Cookie Banner Text Color', 'snn'); ?></th>
                         <td>
                             <input type="color" name="snn_cookie_settings_banner_text_color" value="<?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : ''; ?>" class="snn-color-picker">
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Button Background Color</th>
+                        <th scope="row"><?php _e('Button Background Color', 'snn'); ?></th>
                         <td>
                             <input type="color" name="snn_cookie_settings_button_bg_color" value="<?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : ''; ?>" class="snn-color-picker">
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Button Text Color</th>
+                        <th scope="row"><?php _e('Button Text Color', 'snn'); ?></th>
                         <td>
                             <input type="color" name="snn_cookie_settings_button_text_color" value="<?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : ''; ?>" class="snn-color-picker">
                         </td>
@@ -220,20 +220,20 @@ function snn_options_page() {
             </div>
             <div id="scripts" class="snn-tab-content">
                 <p class="description">
-                Use this tab to add or modify services to ensure they load according to user consent preferences.
+                <?php _e('Use this tab to add or modify services to ensure they load according to user consent preferences.', 'snn'); ?>
                     <br>
-                    - <strong>Service Name</strong>: The name of the service (e.g., Google Analytics).
+                    - <strong><?php _e('Service Name', 'snn'); ?></strong>: <?php _e('The name of the service (e.g., Google Analytics).', 'snn'); ?>
                     <br>
-                    - <strong>Script Code</strong>: The script or HTML code that will be executed when the user accepts cookies.
+                    - <strong><?php _e('Script Code', 'snn'); ?></strong>: <?php _e('The script or HTML code that will be executed when the user accepts cookies.', 'snn'); ?>
                     <br>
-                    - <strong>Script Position</strong>: Where on the page the script should be inserted (Head, Body Top, or Body Bottom).
+                    - <strong><?php _e('Script Position', 'snn'); ?></strong>: <?php _e('Where on the page the script should be inserted (Head, Body Top, or Body Bottom).', 'snn'); ?>
                     <br>
-                    - <strong>Mandatory Feature</strong>: If checked, this service will always be active and cannot be disabled by the user.
+                    - <strong><?php _e('Mandatory Feature', 'snn'); ?></strong>: <?php _e('If checked, this service will always be active and cannot be disabled by the user.', 'snn'); ?>
                     <br>
                 </p>
                 <table class="form-table">
                     <tr valign="top">
-                        <th scope="row">Services (Repeater)</th>
+                        <th scope="row"><?php _e('Services (Repeater)', 'snn'); ?></th>
                         <td>
                             <div id="services-repeater" class="snn-services-repeater">
                                 <?php 
@@ -242,22 +242,22 @@ function snn_options_page() {
                                     foreach ( $options['snn_cookie_settings_services'] as $service ) {
                                         ?>
                                         <div class="snn-service-item">
-                                            <label>Service Name:
+                                            <label><?php _e('Service Name:', 'snn'); ?>
                                                 <input type="text" name="snn_cookie_settings_services[<?php echo $service_index; ?>][name]" value="<?php echo isset($service['name']) ? esc_attr($service['name']) : ''; ?>" class="snn-input snn-service-name">
                                             </label>
-                                            <label>Service Script Code (HTML allowed):
+                                            <label><?php _e('Service Script Code (HTML allowed):', 'snn'); ?>
                                                 <textarea name="snn_cookie_settings_services[<?php echo $service_index; ?>][script]" rows="4" class="snn-textarea snn-service-script-code"><?php echo isset($service['script']) ? $service['script'] : ''; ?></textarea>
                                             </label>
-                                            <label>Script Position:</label>
+                                            <label><?php _e('Script Position:', 'snn'); ?></label>
                                             <div class="snn-radio-group">
-                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="head" <?php checked((isset($service['position']) ? $service['position'] : ''), 'head'); ?>> Head</label>
-                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="body_top" <?php checked((isset($service['position']) ? $service['position'] : ''), 'body_top'); ?>> Body Top</label>
-                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="body_bottom" <?php checked((isset($service['position']) ? $service['position'] : ''), 'body_bottom'); ?>> Body Bottom</label>
+                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="head" <?php checked((isset($service['position']) ? $service['position'] : ''), 'head'); ?>> <?php _e('Head', 'snn'); ?></label>
+                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="body_top" <?php checked((isset($service['position']) ? $service['position'] : ''), 'body_top'); ?>> <?php _e('Body Top', 'snn'); ?></label>
+                                                <label><input type="radio" name="snn_cookie_settings_services[<?php echo $service_index; ?>][position]" value="body_bottom" <?php checked((isset($service['position']) ? $service['position'] : ''), 'body_bottom'); ?>> <?php _e('Body Bottom', 'snn'); ?></label>
                                             </div>
                                             <label>
-                                                <input type="checkbox" name="snn_cookie_settings_services[<?php echo $service_index; ?>][mandatory]" value="yes" <?php checked((isset($service['mandatory']) ? $service['mandatory'] : 'no'), 'yes'); ?>> Mandatory Feature
+                                                <input type="checkbox" name="snn_cookie_settings_services[<?php echo $service_index; ?>][mandatory]" value="yes" <?php checked((isset($service['mandatory']) ? $service['mandatory'] : 'no'), 'yes'); ?>> <?php _e('Mandatory Feature', 'snn'); ?>
                                             </label>
-                                            <button class="remove-service snn-remove-service button">Remove</button>
+                                            <button class="remove-service snn-remove-service button"><?php _e('Remove', 'snn'); ?></button>
                                         </div>
                                         <?php
                                         $service_index++;
@@ -265,29 +265,29 @@ function snn_options_page() {
                                 } else {
                                     ?>
                                     <div class="snn-service-item">
-                                        <label>Service Name:
+                                        <label><?php _e('Service Name:', 'snn'); ?>
                                             <input type="text" name="snn_cookie_settings_services[0][name]" value="" class="snn-input snn-service-name">
                                         </label>
-                                        <label>Service Script Code (HTML allowed):
+                                        <label><?php _e('Service Script Code (HTML allowed):', 'snn'); ?>
                                             <textarea name="snn_cookie_settings_services[0][script]" rows="4" class="snn-textarea snn-service-script-code"></textarea>
                                         </label>
-                                        <label>Script Position:</label>
+                                        <label><?php _e('Script Position:', 'snn'); ?></label>
                                         <div class="snn-radio-group">
-                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="head"> Head</label>
-                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="body_top"> Body Top</label>
-                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="body_bottom" checked> Body Bottom</label>
+                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="head"> <?php _e('Head', 'snn'); ?></label>
+                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="body_top"> <?php _e('Body Top', 'snn'); ?></label>
+                                            <label><input type="radio" name="snn_cookie_settings_services[0][position]" value="body_bottom" checked> <?php _e('Body Bottom', 'snn'); ?></label>
                                         </div>
                                         <label>
-                                            <input type="checkbox" name="snn_cookie_settings_services[0][mandatory]" value="yes"> Mandatory Feature
+                                            <input type="checkbox" name="snn_cookie_settings_services[0][mandatory]" value="yes"> <?php _e('Mandatory Feature', 'snn'); ?>
                                         </label>
-                                        <button class="remove-service snn-remove-service button">Remove</button>
+                                        <button class="remove-service snn-remove-service button"><?php _e('Remove', 'snn'); ?></button>
                                     </div>
                                     <?php
                                     $service_index = 1; 
                                 }
                                 ?>
                             </div>
-                            <button id="add-service" class="button snn-add-service">Add Service</button>
+                            <button id="add-service" class="button snn-add-service"><?php _e('Add Service', 'snn'); ?></button>
                             <script>
                             (function($){
                                 $(document).ready(function(){
@@ -295,20 +295,20 @@ function snn_options_page() {
                                     $('#add-service').click(function(e){
                                         e.preventDefault();
                                         var newService = '<div class="snn-service-item">' +
-                                            '<label>Service Name:' +
+                                            '<label><?php _e('Service Name:', 'snn'); ?>' +
                                                 '<input type="text" name="snn_cookie_settings_services[' + serviceIndex + '][name]" value="" class="snn-input snn-service-name">' +
                                             '</label>' +
-                                            '<label>Service Script Code (HTML allowed):' +
+                                            '<label><?php _e('Service Script Code (HTML allowed):', 'snn'); ?>' +
                                                 '<textarea name="snn_cookie_settings_services[' + serviceIndex + '][script]" rows="4" class="snn-textarea snn-service-script-code"></textarea>' +
                                             '</label>' +
-                                            '<label>Script Position:</label>' +
+                                            '<label><?php _e('Script Position:', 'snn'); ?></label>' +
                                             '<div class="snn-radio-group">' +
-                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="head"> Head</label> ' +
-                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="body_top"> Body Top</label> ' +
-                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="body_bottom" checked> Body Bottom</label>' +
+                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="head"> <?php _e('Head', 'snn'); ?></label> ' +
+                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="body_top"> <?php _e('Body Top', 'snn'); ?></label> ' +
+                                                '<label><input type="radio" name="snn_cookie_settings_services[' + serviceIndex + '][position]" value="body_bottom" checked> <?php _e('Body Bottom', 'snn'); ?></label>' +
                                             '</div>' +
-                                            '<label><input type="checkbox" name="snn_cookie_settings_services[' + serviceIndex + '][mandatory]" value="yes"> Mandatory Feature</label>' +
-                                            '<button class="remove-service snn-remove-service button">Remove</button>' +
+                                            '<label><input type="checkbox" name="snn_cookie_settings_services[' + serviceIndex + '][mandatory]" value="yes"> <?php _e('Mandatory Feature', 'snn'); ?></label>' +
+                                            '<button class="remove-service snn-remove-service button"><?php _e('Remove', 'snn'); ?></button>' +
                                             '</div>';
                                         $('#services-repeater').append(newService);
                                         serviceIndex++;
@@ -323,18 +323,18 @@ function snn_options_page() {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Custom CSS for Cookie Banner</th>
+                        <th scope="row"><?php _e('Custom CSS for Cookie Banner', 'snn'); ?></th>
                         <td>
                             <textarea name="snn_cookie_settings_custom_css" rows="5" class="snn-textarea snn-custom-css-textarea"><?php echo isset($options['snn_cookie_settings_custom_css']) ? esc_textarea($options['snn_cookie_settings_custom_css']) : ''; ?></textarea>
                             <p class="description">
-                                Use the following CSS selectors to style the banner:<br>
-                                <code>.snn-cookie-banner</code> - The cookie banner container<br>
-                                <code>.snn-preferences-content</code> - The preferences content container inside the banner<br>
-                                <code>.snn-banner-text</code> - The banner text<br>
-                                <code>.snn-banner-buttons .snn-button</code> - The banner buttons (Accept, Deny, Preferences)<br>
-                                <code>.snn-preferences-title</code> - The title in the preferences content<br>
-                                <code>.snn-services-list</code> - The list of services<br>
-                                <code>.snn-service-item</code> - Each individual service item
+                                <?php _e('Use the following CSS selectors to style the banner:', 'snn'); ?><br>
+                                <code>.snn-cookie-banner</code> - <?php _e('The cookie banner container', 'snn'); ?><br>
+                                <code>.snn-preferences-content</code> - <?php _e('The preferences content container inside the banner', 'snn'); ?><br>
+                                <code>.snn-banner-text</code> - <?php _e('The banner text', 'snn'); ?><br>
+                                <code>.snn-banner-buttons .snn-button</code> - <?php _e('The banner buttons (Accept, Deny, Preferences)', 'snn'); ?><br>
+                                <code>.snn-preferences-title</code> - <?php _e('The title in the preferences content', 'snn'); ?><br>
+                                <code>.snn-services-list</code> - <?php _e('The list of services', 'snn'); ?><br>
+                                <code>.snn-service-item</code> - <?php _e('Each individual service item', 'snn'); ?>
                             </p>
                         </td>
                     </tr>
@@ -488,7 +488,7 @@ function snn_output_cookie_banner() {
     </style>
     <div id="snn-cookie-banner" class="snn-cookie-banner <?php echo esc_attr($position); ?>"<?php echo $banner_style; ?>>
         <div class="snn-preferences-content">
-            <div class="snn-preferences-title"><?php _e('Cookie Preferences', 'snn-cookie-banner'); ?></div>
+            <div class="snn-preferences-title"><?php _e('Cookie Preferences', 'snn'); ?></div>
             <?php if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) { ?>
                 <ul class="snn-services-list" style="list-style: none; padding: 0;">
                 <?php foreach ( $options['snn_cookie_settings_services'] as $index => $service ) { ?>
@@ -497,7 +497,7 @@ function snn_output_cookie_banner() {
                             <?php echo esc_html( $service['name'] ); ?>
                             <?php if ( isset($service['mandatory']) && $service['mandatory'] === 'yes' ) { ?>
                                 <span>
-                                        <?php _e('*', 'snn-cookie-banner'); ?> 
+                                        <?php _e('*', 'snn'); ?> 
                                 </span>
                             <?php } ?>
                         </span>
@@ -530,9 +530,9 @@ function snn_output_cookie_banner() {
             ?>
         </div>
         <div class="snn-banner-buttons">
-            <button class="snn-button snn-accept"><?php echo esc_html( isset($options['snn_cookie_settings_accept_button']) ? $options['snn_cookie_settings_accept_button'] : __('Accept', 'snn-cookie-banner') ); ?></button>
-            <button class="snn-button snn-deny"><?php echo esc_html( isset($options['snn_cookie_settings_deny_button']) ? $options['snn_cookie_settings_deny_button'] : __('Deny', 'snn-cookie-banner') ); ?></button>
-            <button class="snn-button snn-preferences"><?php echo esc_html( isset($options['snn_cookie_settings_preferences_button']) ? $options['snn_cookie_settings_preferences_button'] : __('Preferences', 'snn-cookie-banner') ); ?></button>
+            <button class="snn-button snn-accept"><?php echo esc_html( isset($options['snn_cookie_settings_accept_button']) ? $options['snn_cookie_settings_accept_button'] : __('Accept', 'snn') ); ?></button>
+            <button class="snn-button snn-deny"><?php echo esc_html( isset($options['snn_cookie_settings_deny_button']) ? $options['snn_cookie_settings_deny_button'] : __('Deny', 'snn') ); ?></button>
+            <button class="snn-button snn-preferences"><?php echo esc_html( isset($options['snn_cookie_settings_preferences_button']) ? $options['snn_cookie_settings_preferences_button'] : __('Preferences', 'snn') ); ?></button>
         </div>
     </div>
     <?php

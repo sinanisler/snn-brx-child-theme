@@ -98,14 +98,23 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 // Function to return the auto-generated color name based on index.
                 function getAutoColorName(index) {
                     const names = [
-                        "primary-color", "secondary-color", "tertiary-color", "quaternary-color", 
-                        "quinary-color", "senary-color", "septenary-color", "octonary-color", 
-                        "nonary-color", "denary-color"
+                        <?php
+                        echo '"' . esc_js(__('primary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('secondary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('tertiary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('quaternary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('quinary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('senary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('septenary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('octonary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('nonary-color', 'snn')) . '", ';
+                        echo '"' . esc_js(__('denary-color', 'snn')) . '"';
+                        ?>
                     ];
                     if (index < names.length) {
                         return names[index];
                     } else {
-                        return "color-" + (index + 1);
+                        return "<?php echo esc_js(__('color-', 'snn')); ?>" + (index + 1);
                     }
                 }
 
@@ -118,9 +127,9 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     const li = document.createElement("li");
                     li.className = "snn-enhance-li";
                     li.tabIndex = 0;
-                    li.setAttribute("data-balloon", "SNN-BRX");
+                    li.setAttribute("data-balloon", "<?php echo esc_js(__('SNN-BRX', 'snn')); ?>");
                     li.setAttribute("data-balloon-pos", "bottom");
-                    li.innerHTML = 'S';
+                    li.innerHTML = '<?php echo esc_js(__('S', 'snn')); ?>';
                     li.addEventListener("click", function() {
                         const popup = document.querySelector("#snn-popup");
                         if (popup) popup.classList.add("active");
@@ -176,8 +185,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     }
                 });
 
-                // Updated createColorRow: only add the color picker if the hex value is valid
-                // or if it is a new row (empty hex) then add with default value.
                 function createColorRow(hex = "", shadeValue = "") {
                     function expandShortHex(hexVal) {
                         return "#" + hexVal[1] + hexVal[1] + hexVal[2] + hexVal[2] + hexVal[3] + hexVal[3];
@@ -202,17 +209,16 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     var nameInput = document.createElement("input");
                     nameInput.type = "text";
                     nameInput.className = "snn-color-name-input";
-                    nameInput.placeholder = "Variable name";
+                    nameInput.placeholder = "<?php echo esc_js(__('Variable name', 'snn')); ?>";
                     row.appendChild(nameInput);
 
                     var hexInput = document.createElement("input");
                     hexInput.type = "text";
                     hexInput.className = "snn-hex-input";
-                    hexInput.placeholder = "Enter CSS color";
+                    hexInput.placeholder = "<?php echo esc_js(__('Enter CSS color', 'snn')); ?>";
                     hexInput.value = displayValue;
                     row.appendChild(hexInput);
 
-                    // Only add a color picker if we have a valid hex OR the row is new.
                     var colorPicker = null;
                     if (displayValue !== "") {
                         if (isValidHex) {
@@ -223,7 +229,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                             row.appendChild(colorPicker);
                         }
                     } else {
-                        // New row: add color picker with default value.
                         colorPicker = document.createElement("input");
                         colorPicker.type = "color";
                         colorPicker.className = "snn-color-picker";
@@ -233,14 +238,13 @@ function snn_custom_inline_styles_and_scripts_improved() {
 
                     var removeButton = document.createElement("button");
                     removeButton.className = "snn-remove-color";
-                    removeButton.textContent = "Remove";
+                    removeButton.textContent = "<?php echo esc_js(__('Remove', 'snn')); ?>";
 
-                    // Add the shade input only when there's a valid hex.
                     if (isValidHex) {
                         var shadeInput = document.createElement("input");
                         shadeInput.type = "number";
                         shadeInput.className = "snn-shade-input";
-                        shadeInput.placeholder = "Shade n";
+                        shadeInput.placeholder = "<?php echo esc_js(__('Shade n', 'snn')); ?>";
                         shadeInput.style.width = "70px";
                         shadeInput.min = "0";
                         shadeInput.step = "1";
@@ -270,7 +274,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                                 var newShadeInput = document.createElement("input");
                                 newShadeInput.type = "number";
                                 newShadeInput.className = "snn-shade-input";
-                                newShadeInput.placeholder = "Shade n";
+                                newShadeInput.placeholder = "<?php echo esc_js(__('Shade n', 'snn')); ?>";
                                 newShadeInput.style.width = "70px";
                                 newShadeInput.min = "0";
                                 newShadeInput.step = "1";
@@ -293,7 +297,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                                 var newShadeInput = document.createElement("input");
                                 newShadeInput.type = "number";
                                 newShadeInput.className = "snn-shade-input";
-                                newShadeInput.placeholder = "Shade n";
+                                newShadeInput.placeholder = "<?php echo esc_js(__('Shade n', 'snn')); ?>";
                                 newShadeInput.style.width = "70px";
                                 newShadeInput.min = "0";
                                 newShadeInput.step = "1";
@@ -319,7 +323,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     });
 
                     removeButton.addEventListener("click", function(e) {
-                        // Prevent the click from propagating to any parent elements (which might close the panel)
                         e.stopPropagation();
                         row.remove();
                         updateColorNames();
@@ -328,7 +331,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     return row;
                 }
 
-                // Update color names using the new naming scheme.
                 function updateColorNames() {
                     var rows = document.querySelectorAll(".snn-color-row");
                     rows.forEach(function(row, index) {
@@ -397,13 +399,13 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     .then(data => {
                         var feedbackEl = document.querySelector(".snn-feedback-after-save");
                         if (data.success) {
-                            feedbackEl.textContent = "Settings saved.";
+                            feedbackEl.textContent = "<?php echo esc_js(__('Settings saved.', 'snn')); ?>";
                             updateDynamicCSSVariables(colorsData);
                             setTimeout(function() {
                                 feedbackEl.textContent = "";
                             }, 3000);
                         } else {
-                            feedbackEl.textContent = "Error saving settings: " + data.data;
+                            feedbackEl.textContent = "<?php echo esc_js(__('Error saving settings:', 'snn')); ?> " + data.data;
                             setTimeout(function() {
                                 feedbackEl.textContent = "";
                             }, 3000);
@@ -412,7 +414,7 @@ function snn_custom_inline_styles_and_scripts_improved() {
                     .catch(error => {
                         console.error("Error:", error);
                         var feedbackEl = document.querySelector(".snn-feedback-after-save");
-                        feedbackEl.textContent = "An error occurred while saving settings.";
+                        feedbackEl.textContent = "<?php echo esc_js(__('An error occurred while saving settings.', 'snn')); ?>";
                         setTimeout(function() {
                             feedbackEl.textContent = "";
                         }, 3000);
@@ -592,7 +594,6 @@ function snn_custom_inline_styles_and_scripts_improved() {
                 align-items: center;
                 margin-bottom: 4px;
             }
-            /* Styling for the custom variable name input, similar to .snn-shade-input */
             .snn-color-row .snn-color-name-input,
             .snn-color-row .snn-shade-input {
                 width: 120px;
@@ -675,24 +676,23 @@ function snn_popup_container_improved() {
         <div id="snn-popup" class="snn-popup docs">
             <div id="snn-popup-inner" class="snn-popup-inner">
                 <div class="snn-title-wrapper">
-                    <h1>Settings</h1>
-                    <button class="snn-close-button">X</button>
+                    <h1><?php _e('Settings', 'snn'); ?></h1>
+                    <button class="snn-close-button"><?php _e('X', 'snn'); ?></button>
                 </div>
                 <div class="snn-settings-content-wrapper">
                     <div class="snn-settings-content-wrapper-section">
                         <div class="snn-settings-content-wrapper-section-title">
-                            Global Color Variables
+                            <?php _e('Global Color Variables', 'snn'); ?>
                         </div>
                         <div class="snn-settings-content-wrapper-section-setting-area">
                             <div id="snn-color-repeater">
-                                <!-- Repeater rows will be inserted here -->
                             </div>
-                            <button type="button" id="snn-add-color">Add Color +</button>
+                            <button type="button" id="snn-add-color"><?php _e('Add Color +', 'snn'); ?></button>
                         </div>
                     </div>
                 </div>
                 
-                <div class="snn-panel-button" data-balloon="Refresh Editor After Save" data-balloon-pos="top">
+                <div class="snn-panel-button" data-balloon="<?php esc_attr_e('Refresh Editor After Save', 'snn'); ?>" data-balloon-pos="top">
                     <span class="bricks-svg-wrapper" data-name="save">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="bricks-svg">
                             <path d="M21.75 23.25H2.25a1.5 1.5 0 0 1 -1.5 -1.5V7.243a3 3 0 0 1 0.879 -2.121l3.492 -3.493A3 3 0 0 1 7.243 0.75H21.75a1.5 1.5 0 0 1 1.5 1.5v19.5a1.5 1.5 0 0 1 -1.5 1.5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
@@ -700,7 +700,7 @@ function snn_popup_container_improved() {
                             <path d="m12.75 20.25 6.75 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
                             <path d="M8.25 0.75v3a1.5 1.5 0 0 0 1.5 1.5h7.5a1.5 1.5 0 0 0 1.5 -1.5v-3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
                         </svg>
-                        Save Settings
+                        <?php _e('Save Settings', 'snn'); ?>
                     </span>
                 </div>
                 <div class="snn-feedback-after-save"></div>
@@ -714,30 +714,28 @@ add_action('wp_footer', 'snn_popup_container_improved');
 
 function snn_save_color_settings_improved() {
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( 'Unauthorized' );
+        wp_send_json_error( __('Unauthorized', 'snn') );
         wp_die();
     }
     if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'snn_save_colors_nonce' ) ) {
-        wp_send_json_error('Invalid nonce');
+        wp_send_json_error(__('Invalid nonce', 'snn'));
         wp_die();
     }
     if ( ! isset( $_POST['colors'] ) ) {
-        wp_send_json_error('No colors data provided');
+        wp_send_json_error(__('No colors data provided', 'snn'));
         wp_die();
     }
     $colors = json_decode( stripslashes( $_POST['colors'] ), true );
     if ( ! is_array( $colors ) ) {
-        wp_send_json_error('Invalid colors data');
+        wp_send_json_error(__('Invalid colors data', 'snn'));
         wp_die();
     }
     update_option( 'snn_global_color_sync_variables', $colors );
-    wp_send_json_success('Settings saved');
+    wp_send_json_success(__('Settings saved', 'snn'));
     wp_die();
 }
 add_action('wp_ajax_snn_save_colors_improved', 'snn_save_color_settings_improved');
 
-
-// Function to output dynamic CSS variables based on saved colors (including dark/light shades).
 function snn_dynamic_color_variables_roots() {
     $colors = get_option('snn_global_color_sync_variables', []);
     if ( ! empty($colors) && is_array($colors) ) {
@@ -748,8 +746,7 @@ function snn_dynamic_color_variables_roots() {
             if( $hex === '' ){
                 continue;
             }
-            // Use custom name if provided; otherwise default.
-            $varName = (!empty($color['name'])) ? $color['name'] : 'snn-color-' . ($index + 1);
+            $varName = (!empty($color['name'])) ? $color['name'] : __('snn-color-', 'snn') . ($index + 1);
             echo "  --".$varName.": ".$hex.";\n";
             $shadeCount = isset($color['shade']) ? intval($color['shade']) : 0;
             if ($shadeCount > 0) {
@@ -795,7 +792,7 @@ function snn_inject_bricks_color_palette() {
 ";
             foreach ( $colors as $index => $color ) {
                 if ( isset($color['hex']) && $color['hex'] !== '' ) {
-                    $varName    = ! empty($color['name']) ? $color['name'] : 'snn-color-' . ($index + 1);
+                    $varName    = ! empty($color['name']) ? $color['name'] : __('snn-color-', 'snn') . ($index + 1);
                     echo '      {
         "raw": "var(--' . $varName . ')",
         "id": "snn1' . $index . '",
@@ -827,7 +824,6 @@ function snn_inject_bricks_color_palette() {
                 }
             }
             echo "    ];
-    // Move my colors to the very front, preserve order, avoid duplicates
     var ids      = newColors.map(function(c){ return c.id; });
     var defaults = palette.filter(function(item){
       return ids.indexOf(item.id) === -1;

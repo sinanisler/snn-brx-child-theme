@@ -1,7 +1,7 @@
 <?php 
 
 function add_file_size_column( $columns ) {
-    $columns['file_size'] = __( 'File Size', 'textdomain' ); 
+    $columns['file_size'] = __( 'File Size', 'snn' ); 
     return $columns;
 }
 add_filter( 'manage_upload_columns', 'add_file_size_column' );

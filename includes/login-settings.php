@@ -5,8 +5,8 @@ add_action('admin_menu', 'ls_add_login_settings_submenu');
 function ls_add_login_settings_submenu() {
     add_submenu_page(
         'snn-settings',
-        'Login Settings',
-        'Login Settings',
+        __('Login Settings', 'snn'),
+        __('Login Settings', 'snn'),
         'manage_options',
         'login-settings',
         'ls_render_login_settings'
@@ -30,21 +30,21 @@ function ls_register_login_settings() {
 
     add_settings_section(
         'ls_login_settings_section',
-        'Login Page Customizations',
+        __('Login Page Customizations', 'snn'),
         'ls_login_settings_section_callback',
         'login-settings'
     );
 
     add_settings_section(
         'ls_login_redirect_section',
-        'Redirect Setting',
+        __('Redirect Setting', 'snn'),
         'ls_login_redirect_section_callback',
         'login-settings'
     );
 
     add_settings_field(
         'ls_login_background_image_url',
-        'Background Image URL',
+        __('Background Image URL', 'snn'),
         'ls_login_background_image_url_callback',
         'login-settings',
         'ls_login_settings_section'
@@ -52,7 +52,7 @@ function ls_register_login_settings() {
 
     add_settings_field(
         'ls_login_custom_text',
-        'Custom Text under Login Form',
+        __('Custom Text under Login Form', 'snn'),
         'ls_login_custom_text_callback',
         'login-settings',
         'ls_login_settings_section'
@@ -60,7 +60,7 @@ function ls_register_login_settings() {
 
     add_settings_field(
         'ls_login_redirect_url',
-        'Redirect URL after Login',
+        __('Redirect URL after Login', 'snn'),
         'ls_login_redirect_url_callback',
         'login-settings',
         'ls_login_redirect_section'
@@ -68,7 +68,7 @@ function ls_register_login_settings() {
 }
 
 function ls_login_settings_section_callback() {
-    echo '<p>Customize the login page with your own background image and custom text.</p>';
+    echo '<p>' . __('Customize the login page with your own background image and custom text.', 'snn') . '</p>';
 }
 
 function ls_login_redirect_section_callback() {
@@ -78,24 +78,24 @@ function ls_login_redirect_section_callback() {
 function ls_login_background_image_url_callback() {
     $image_url = get_option('ls_login_background_image_url', '');
     ?>
-    <input type="text" id="ls_login_background_image_url" name="ls_login_background_image_url" value="<?php echo esc_attr($image_url); ?>" style="width: 100%;" placeholder="https://example.com/path-to-your-image.jpg" />
-    <p class="description">Enter the full URL of the background image you want to use. Leave blank to disable the background image.</p>
+    <input type="text" id="ls_login_background_image_url" name="ls_login_background_image_url" value="<?php echo esc_attr($image_url); ?>" style="width: 100%;" placeholder="<?php esc_attr_e('https://example.com/path-to-your-image.jpg', 'snn'); ?>" />
+    <p class="description"><?php _e('Enter the full URL of the background image you want to use. Leave blank to disable the background image.', 'snn'); ?></p>
     <?php
 }
 
 function ls_login_custom_text_callback() {
     $custom_text = get_option('ls_login_custom_text', '');
     ?>
-    <textarea id="ls_login_custom_text" name="ls_login_custom_text" rows="5" style="width:100%;" placeholder="Enter your custom text here. HTML tags are allowed."><?php echo esc_textarea($custom_text); ?></textarea>
-    <p class="description">You can use HTML tags in this text.</p>
+    <textarea id="ls_login_custom_text" name="ls_login_custom_text" rows="5" style="width:100%;" placeholder="<?php esc_attr_e('Enter your custom text here. HTML tags are allowed.', 'snn'); ?>"><?php echo esc_textarea($custom_text); ?></textarea>
+    <p class="description"><?php _e('You can use HTML tags in this text.', 'snn'); ?></p>
     <?php
 }
 
 function ls_login_redirect_url_callback() {
     $redirect_url = get_option('ls_login_redirect_url', '');
     ?>
-    <input type="text" id="ls_login_redirect_url" name="ls_login_redirect_url" value="<?php echo esc_attr($redirect_url); ?>" style="width: 100%;" placeholder="https://example.com/redirect-path" />
-    <p class="description">Enter the full URL where users should be redirected after logging in. Leave blank to disable custom redirect.</p>
+    <input type="text" id="ls_login_redirect_url" name="ls_login_redirect_url" value="<?php echo esc_attr($redirect_url); ?>" style="width: 100%;" placeholder="<?php esc_attr_e('https://example.com/redirect-path', 'snn'); ?>" />
+    <p class="description"><?php _e('Enter the full URL where users should be redirected after logging in. Leave blank to disable custom redirect.', 'snn'); ?></p>
     <?php
 }
 
@@ -105,13 +105,13 @@ function ls_render_login_settings() {
     }
 
     if (isset($_GET['settings-updated'])) {
-        add_settings_error('ls_messages', 'ls_message', 'Settings Saved', 'updated');
+        add_settings_error('ls_messages', 'ls_message', __('Settings Saved', 'snn'), 'updated');
     }
 
     settings_errors('ls_messages');
     ?>
     <div class="wrap">
-        <h1>Login Settings</h1>
+        <h1><?php _e('Login Settings', 'snn'); ?></h1>
         <form method="post" action="options.php" style="max-width:800px">
             <?php
                 settings_fields('ls_login_settings_group');

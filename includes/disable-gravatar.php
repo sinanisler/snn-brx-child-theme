@@ -9,11 +9,11 @@ function snn_register_gravatar_setting() {
 
     // Add the settings field
     add_settings_field(
-        'disable_gravatar',           // ID
-        __('Disable Gravatar Support', 'snn'), // Title
-        'snn_disable_gravatar_callback', // Callback
-        'snn-security',               // Page
-        'snn_security_main_section'   // Section
+        'disable_gravatar',           
+        __('Disable Gravatar Support', 'snn'), 
+        'snn_disable_gravatar_callback', 
+        'snn-security',               
+        'snn_security_main_section'   
     );
 }
 add_action('admin_init', 'snn_register_gravatar_setting');

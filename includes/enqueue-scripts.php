@@ -7,7 +7,6 @@ add_action('wp_enqueue_scripts', function () {
 });
 
 
-
 // Check if the user is logged in and the URL '?bricks=run'
 function add_footer_inline_js_for_logged_users() {
   if (is_user_logged_in() && isset($_GET['bricks']) && $_GET['bricks'] === 'run') {
@@ -28,6 +27,7 @@ function add_footer_inline_js_for_logged_users() {
 
 
 
+
 // Flag to prevent recursive updates
 let isUpdating = false;
 
@@ -36,7 +36,7 @@ function attachInputListener() {
     const inputField = document.querySelector('[data-control-group="_attributes"].open #value');
 
     if (inputField && !inputField.dataset.listenerAttached) {
-        console.log('Initial value:', inputField.value);
+        console.log('<?php _e('Initial value:', 'snn'); ?>', inputField.value);
 
         // Create a single contenteditable div for editing and highlighting
         let editableDiv = document.querySelector('#highlighted-editor');
@@ -67,7 +67,7 @@ function attachInputListener() {
             if (isUpdating) return; // Prevent recursive updates
             isUpdating = true;
 
-            console.log('Input field value changed:', inputField.value);
+            console.log('<?php _e('Input field value changed:', 'snn'); ?>', inputField.value);
             editableDiv.innerHTML = syntaxHighlight(inputField.value);
 
             isUpdating = false;
