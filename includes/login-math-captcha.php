@@ -18,7 +18,7 @@ function snn_add_math_captcha() {
         // Generate a unique ID so that if more than one form is on the same page, each captcha instance remains unique.
         $unique = uniqid( 'captcha_' );
         ?>
-        <p id="math_captcha_container_<?php echo esc_attr( $unique ); ?>" style="display: none; margin-top: 1em;">
+        <p id="math_captcha_container_<?php echo esc_attr( $unique ); ?>" style="display: none; ">
             <label id="captcha_label_<?php echo esc_attr( $unique ); ?>" for="math_captcha_<?php echo esc_attr( $unique ); ?>"></label>
             <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" class="input" value="" size="20" autocomplete="off" required>
             <input type="hidden" name="captcha_solution" id="captcha_solution_<?php echo esc_attr( $unique ); ?>" value="">
@@ -50,13 +50,13 @@ function snn_add_math_captcha() {
                 const correctSum = parseInt( window.atob(b64Sum), 10 );
 
                 // Display the math question in a canvas element within the label.
-                captchaLabel.innerHTML = `<canvas id='captchaCanvas_<?php echo esc_js( $unique ); ?>' width='150' height='40'></canvas>`;
+                captchaLabel.innerHTML = `<canvas id='captchaCanvas_<?php echo esc_js( $unique ); ?>' width='150' height='24'></canvas>`;
 
                 const canvas = document.getElementById('captchaCanvas_<?php echo esc_js( $unique ); ?>');
                 const ctx    = canvas.getContext('2d');
-                ctx.font     = "24px Arial";
+                ctx.font     = "20px Arial";
                 ctx.fillStyle= "#333";
-                ctx.fillText(`${number1} + ${number2} = ?`, 10, 28);
+                ctx.fillText(`${number1} + ${number2} = ?`, 2, 20);
 
                 captchaSolutionInput.value = correctSum;
 
