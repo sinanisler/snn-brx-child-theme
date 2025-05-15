@@ -21,7 +21,14 @@ class SNN_Element_Frontend_Post_Form extends Element {
             $post_type_options[$pt->name] = $pt->labels->singular_name;
         }
 
-        // Get user roles
+        // Taxonomy selection (NEW)
+        $taxonomies = get_taxonomies(['public' => true], 'objects');
+        $taxonomy_options = [];
+        foreach ($taxonomies as $tx) {
+            $taxonomy_options[$tx->name] = $tx->labels->singular_name;
+        }
+
+        // User roles
         global $wp_roles;
         $role_options = [];
         foreach( $wp_roles->roles as $role_key => $role_info ) {
@@ -35,6 +42,17 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'options' => $post_type_options,
             'default' => 'post',
             'inline'  => true,
+        ];
+
+        // ==== TAXONOMY CONTROL ====
+        $this->controls['taxonomy'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Taxonomy (Optional)', 'snn' ),
+            'type'    => 'select',
+            'options' => ['' => esc_html__('None', 'snn')] + $taxonomy_options,
+            'default' => '',
+            'inline'  => true,
+            'description' => esc_html__('Select a taxonomy to allow users to assign terms to the post.', 'snn')
         ];
 
         $this->controls['post_status'] = [
@@ -228,27 +246,59 @@ class SNN_Element_Frontend_Post_Form extends Element {
         $nonce       = wp_create_nonce('snn_frontend_post');
         $can_upload  = current_user_can('upload_files');
         $enable_feat = !empty($this->settings['enable_featured_image']);
+        $taxonomy    = isset($this->settings['taxonomy']) ? sanitize_key($this->settings['taxonomy']) : '';
+
+        // Fetch taxonomy terms if taxonomy is selected
+        $tax_terms = [];
+        if ($taxonomy && taxonomy_exists($taxonomy)) {
+            $tax_terms = get_terms([
+                'taxonomy'   => $taxonomy,
+                'hide_empty' => false,
+            ]);
+        }
 
         ?>
         <div class="snn-frontend-post-form-wrapper">
             <form class="snn-frontend-post-form" autocomplete="off">
                 <input type="hidden" name="action" value="snn_frontend_post"/>
                 <input type="text" name="post_title" placeholder="Title" required style="width:100%; padding:10px; margin-bottom:10px; font-size:18px;" />
-                <?php if($enable_feat): ?>
-                <div class="snn-featured-image-box" style="margin-bottom:15px;">
-                    <div class="snn-featured-image-preview" style="margin-bottom:7px;"></div>
-                    <button type="button" class="snn-featured-image-btn" style="padding:6px 12px;">Select Featured Image</button>
-                    <button type="button" class="snn-featured-image-remove" style="padding:6px 12px;display:none;">Remove</button>
-                    <input type="file" class="snn-featured-image-input" accept="image/*" style="display:none;">
-                    <input type="hidden" name="featured_image_id" value="">
+                <div style="display:flex;gap:25px;align-items:flex-start;">
+                    <?php if($enable_feat): ?>
+                    <div style="flex:1 1 180px;min-width:180px;max-width:220px;">
+                        <div class="snn-featured-image-box" style="margin-bottom:15px;">
+                            <div class="snn-featured-image-preview" style="margin-bottom:7px;"></div>
+                            <button type="button" class="snn-featured-image-btn" style="padding:6px 12px;">Select Featured Image</button>
+                            <button type="button" class="snn-featured-image-remove" style="padding:6px 12px;display:none;">Remove</button>
+                            <input type="file" class="snn-featured-image-input" accept="image/*" style="display:none;">
+                            <input type="hidden" name="featured_image_id" value="">
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    <?php if($taxonomy && !empty($tax_terms) && !is_wp_error($tax_terms)): ?>
+                    <div style="flex:1 1 200px;max-width:220px;">
+                        <div class="snn-taxonomy-box" style="background:#f8f9fa;border-radius:8px;padding:13px 15px 15px 15px;border:1px solid #ececec;margin-bottom:15px;">
+                            <div style="font-weight:500;margin-bottom:8px;"><?php echo esc_html(get_taxonomy($taxonomy)->labels->singular_name); ?></div>
+                            <div class="snn-taxonomy-terms" style="display:flex;flex-direction:column;gap:5px;">
+                                <?php foreach($tax_terms as $term): ?>
+                                    <label style="display:flex;align-items:center;gap:7px;font-size:15px;">
+                                        <input type="checkbox" name="snn_tax_terms[]" value="<?php echo esc_attr($term->term_id); ?>">
+                                        <?php echo esc_html($term->name); ?>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </div>
-                <?php endif; ?>
                 <div class="snn-post-editor-parent"></div>
                 <button type="submit" class="snn-post-submit" style="padding:10px 20px;"><?php echo $label; ?></button>
                 <div class="snn-form-msg" style="margin-top:10px;"></div>
                 <input type="hidden" name="snn_nonce" value="<?php echo $nonce; ?>"/>
                 <input type="hidden" name="snn_post_status" value="<?php echo $post_status; ?>"/>
                 <input type="hidden" name="snn_post_type" value="<?php echo $post_type; ?>"/>
+                <?php if($taxonomy): ?>
+                    <input type="hidden" name="snn_taxonomy" value="<?php echo esc_attr($taxonomy); ?>"/>
+                <?php endif; ?>
                 <textarea name="post_content" id="snn-post-editor-textarea" style="display:none"></textarea>
             </form>
         </div>
@@ -610,7 +660,15 @@ function snn_frontend_post_handler(){
     $status = in_array($_POST['snn_post_status'], ['publish','draft','private']) ? $_POST['snn_post_status'] : 'draft';
     $type = post_type_exists($_POST['snn_post_type']) ? $_POST['snn_post_type'] : 'post';
     $feat_id = isset($_POST['featured_image_id']) ? intval($_POST['featured_image_id']) : 0;
+    $taxonomy = !empty($_POST['snn_taxonomy']) ? sanitize_key($_POST['snn_taxonomy']) : '';
+    $term_ids = [];
+
     if(!$title || !$content) wp_send_json_error('Title and content required.');
+    if($taxonomy && taxonomy_exists($taxonomy) && !empty($_POST['snn_tax_terms'])) {
+        foreach((array)$_POST['snn_tax_terms'] as $tid){
+            $term_ids[] = intval($tid);
+        }
+    }
     $post_id = wp_insert_post([
         'post_title'   => $title,
         'post_content' => $content,
@@ -622,6 +680,10 @@ function snn_frontend_post_handler(){
     // Set featured image if provided
     if ($feat_id) {
         set_post_thumbnail($post_id, $feat_id);
+    }
+    // Assign taxonomy terms if set
+    if ($taxonomy && taxonomy_exists($taxonomy) && !empty($term_ids)) {
+        wp_set_object_terms($post_id, $term_ids, $taxonomy, false);
     }
     wp_send_json_success([
         'status' => $status,
