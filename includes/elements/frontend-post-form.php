@@ -21,6 +21,13 @@ class SNN_Element_Frontend_Post_Form extends Element {
             $post_type_options[$pt->name] = $pt->labels->singular_name;
         }
 
+        // Get user roles
+        global $wp_roles;
+        $role_options = [];
+        foreach( $wp_roles->roles as $role_key => $role_info ) {
+            $role_options[$role_key] = $role_info['name'];
+        }
+
         $this->controls['post_type'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Post type', 'snn' ),
@@ -58,10 +65,21 @@ class SNN_Element_Frontend_Post_Form extends Element {
 
         $this->controls['guest_warning_text'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Guest warning text', 'snn' ),
+            'label'   => esc_html__( 'Guest/forbidden warning text', 'snn' ),
             'type'    => 'text',
-            'default' => esc_html__( 'You must be logged in to post.', 'snn' ),
-            'placeholder' => esc_html__( 'You must be logged in to post.', 'snn' ),
+            'default' => esc_html__( 'You do not have permission to post.', 'snn' ),
+        ];
+
+        $this->controls['allowed_user_roles'] = [
+            'tab'        => 'content',
+            'label'      => esc_html__( 'Allowed user roles', 'snn' ),
+            'type'       => 'select',
+            'options'    => $role_options,
+            'multiple'   => true,
+            'searchable' => true,
+            'clearable'  => true,
+            'placeholder'=> esc_html__('Select allowed roles', 'snn'),
+            'default'    => ['administrator','editor','author'],
         ];
 
         // ==== EDITOR CONTROLS (style, background, colors, etc.) ====
@@ -171,12 +189,27 @@ class SNN_Element_Frontend_Post_Form extends Element {
     }
 
     public function render() {
-        // Only allow posting for logged-in users
-        if ( ! is_user_logged_in() ) {
-            $guest_msg = isset($this->settings['guest_warning_text']) ? esc_html($this->settings['guest_warning_text']) : esc_html__('You must be logged in to post.', 'snn');
+        $allowed_roles = isset($this->settings['allowed_user_roles']) && is_array($this->settings['allowed_user_roles']) 
+            ? $this->settings['allowed_user_roles'] 
+            : ['administrator','editor','author'];
+
+        $current_user = wp_get_current_user();
+        $is_allowed = false;
+
+        if ( is_user_logged_in() ) {
+            foreach ( $current_user->roles as $role ) {
+                if ( in_array($role, $allowed_roles) ) {
+                    $is_allowed = true;
+                    break;
+                }
+            }
+        }
+
+        if ( ! $is_allowed ) {
+            $guest_msg = isset($this->settings['guest_warning_text']) ? esc_html($this->settings['guest_warning_text']) : esc_html__('You do not have permission to post.', 'snn');
             ?>
             <div class="snn-frontend-post-form-wrapper">
-                <div class="snn-guest-warning">
+                <div class="snn-guest-warning" style="padding: 25px; background: #ffefef; border: 1px solid #edcaca; border-radius: 7px; text-align: center; color: #b90000; font-size: 18px;">
                     <?php echo $guest_msg; ?>
                 </div>
             </div>
@@ -198,7 +231,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 <input type="text" name="post_title" placeholder="Title" required style="width:100%; padding:10px; margin-bottom:10px; font-size:18px;" />
                 <?php if($enable_feat): ?>
                 <div class="snn-featured-image-box" style="margin-bottom:15px;">
-                    
                     <div class="snn-featured-image-preview" style="margin-bottom:7px;"></div>
                     <button type="button" class="snn-featured-image-btn" style="padding:6px 12px;">Select Featured Image</button>
                     <button type="button" class="snn-featured-image-remove" style="padding:6px 12px;display:none;">Remove</button>
