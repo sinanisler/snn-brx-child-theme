@@ -35,11 +35,11 @@ require_once SNN_PATH . 'includes/disable-emojis.php';
 require_once SNN_PATH . 'includes/disable-gravatar.php';
 require_once SNN_PATH . 'includes/editor-settings.php'; 
 require_once SNN_PATH . 'includes/editor-settings-panel.php';
-require_once SNN_PATH . 'includes/cookie-banner.php';
 require_once SNN_PATH . 'includes/role-manager.php';
-require_once SNN_PATH . 'includes/ai.php';
-require_once SNN_PATH . 'includes/accessibility-settings.php';
 require_once SNN_PATH . 'includes/custom-code-snippets.php';
+require_once SNN_PATH . 'includes/cookie-banner.php';
+require_once SNN_PATH . 'includes/accessibility-settings.php';
+require_once SNN_PATH . 'includes/ai.php';
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 
 
