@@ -20,19 +20,17 @@ class SNN_Element_Comment_Form extends Element {
 	}
 
 	public function set_controls() {
-		$this->controls['editor_height'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Editor min-height', 'bricks' ),
-			'type'    => 'slider',
-			'units'   => [ 'px' => [ 'min' => 100, 'max' => 600, 'step' => 10 ] ],
-			'default' => '200px',
-		];
+
+		/* ---------- CONTENT TAB ------------------------------------------------ */
+
 		$this->controls['submit_label'] = [
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Submit button label', 'bricks' ),
 			'type'    => 'text',
 			'default' => esc_html__( 'Post Comment', 'bricks' ),
+			'placeholder' => esc_html__( 'Post Comment', 'bricks' ),
 		];
+
 		$this->controls['allow_uploads'] = [
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Enable media upload', 'bricks' ),
@@ -40,6 +38,25 @@ class SNN_Element_Comment_Form extends Element {
 			'default' => true,
 			'inline'  => true,
 		];
+
+		$this->controls['hide_logged_in_as'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Hide “logged-in as” info', 'bricks' ),
+			'type'    => 'checkbox',
+			'default' => false,
+			'inline'  => true,
+		];
+
+		$this->controls['reply_title'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Reply title', 'bricks' ),
+			'type'    => 'text',
+			'default' => esc_html__( 'Leave a Reply', 'bricks' ),
+			'placeholder' => esc_html__( 'Leave a Reply', 'bricks' ),
+		];
+
+		/* ---------- STYLE TAB -------------------------------------------------- */
+
 		$this->controls['button_typography'] = [
 			'tab'   => 'content',
 			'label' => esc_html__( 'Button typography', 'bricks' ),
@@ -51,41 +68,145 @@ class SNN_Element_Comment_Form extends Element {
 				],
 			],
 		];
+
+		$this->controls['button_background'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Button background', 'bricks' ),
+			'type'  => 'color',
+			'css'   => [
+				[
+					'property'  => 'background-color',
+					'selector'  => '.snn-comment-submit',
+					'important' => true,
+				],
+			],
+		];
+
+		$this->controls['button_padding'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Button padding', 'bricks' ),
+			'type'  => 'dimensions',
+			'css'   => [
+				[
+					'property'  => 'padding',
+					'selector'  => '.snn-comment-submit',
+					'important' => true,
+				],
+			],
+		];
+
+		$this->controls['toolbar_bg_color'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Toolbar background', 'bricks' ),
+			'type'  => 'color',
+			'css'   => [
+				[
+					'property'  => 'background-color',
+					'selector'  => '.snn-comment-editor-toolbar',
+					'important' => true,
+				],
+			],
+		];
+
+		$this->controls['toolbar_text_color'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Toolbar text color', 'bricks' ),
+			'type'  => 'color',
+			'css'   => [
+				[
+					'property'  => 'color',
+					'selector'  => '.snn-comment-editor-toolbar',
+					'important' => true,
+				],
+			],
+		];
+
+		// New control: toolbar button background
+		$this->controls['toolbar_button_background'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Toolbar button background', 'bricks' ),
+			'type'  => 'color',
+			'default' => '#ffffff',
+			'css'   => [
+				[
+					'property'  => 'background-color',
+					'selector'  => '.snn-comment-editor-btn',
+					'important' => true,
+				],
+			],
+		];
+
+		$this->controls['editor_bg_color'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Editor background', 'bricks' ),
+			'type'  => 'color',
+			'css'   => [
+				[
+					'property'  => 'background-color',
+					'selector'  => '#snn-comment-editor-editor',
+					'important' => true,
+				],
+			],
+		];
+
+		$this->controls['editor_text_color'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Editor text color', 'bricks' ),
+			'type'  => 'color',
+			'css'   => [
+				[
+					'property'  => 'color',
+					'selector'  => '#snn-comment-editor-editor',
+					'important' => true,
+				],
+			],
+		];
 	}
 
 	public function render() {
-		$min_h   = is_array( $this->settings['editor_height'] ?? '' )
-			? ( $this->settings['editor_height']['value'] . ( $this->settings['editor_height']['unit'] ?? 'px' ) )
-			: '200px';
-		$label   = $this->settings['submit_label'] ?? esc_html__( 'Post Comment', 'bricks' );
-		$uploads = ! empty( $this->settings['allow_uploads'] );
-		$nonce   = wp_create_nonce( 'snn_comment_media_upload' );
+
+		$label          = $this->settings['submit_label'] ?? esc_html__( 'Post Comment', 'bricks' );
+		$uploads        = ! empty( $this->settings['allow_uploads'] );
+		$hide_logged_in = ! empty( $this->settings['hide_logged_in_as'] );
+		$reply_title    = $this->settings['reply_title'] ?? esc_html__( 'Leave a Reply', 'bricks' );
+		$nonce          = wp_create_nonce( 'snn_comment_media_upload' );
 
 		$this->set_attribute( '_root', 'class', 'snn-comment-form-wrapper' );
+		if ( $hide_logged_in ) {
+			$this->set_attribute( '_root', 'class', 'hide-logged-in-as' );
+		}
+
 		echo '<div ' . $this->render_attributes( '_root' ) . '>';
 		?>
 		<style>
+		/* --- base layout --- */
 		.brxe-comment-form{width:100%}
 		.snn-comment-form{margin-top:30px}
+		.snn-comment-form-wrapper.hide-logged-in-as .logged-in-as{display:none}
+
+		/* --- editor --- */
 		.snn-comment-form-comment label{display:block;margin-bottom:5px;font-weight:bold}
-		.snn-comment-editor-container{max-width:100%;margin:1em 0;background:#fff;border:1px solid #e0e0e0;border-radius:8px;position:relative}
-		.snn-comment-editor-toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:10px;background:#f8f9fa;border-bottom:1px solid #eee}
+		.snn-comment-editor-container{max-width:100%;margin:1em 0;background:#fff;border-radius:8px;position:relative;}
+		.snn-comment-editor-toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:10px;background:#f8f9fa; border-radius:5px 5px 0px 0px;}
 		.snn-comment-editor-toolbar-group{display:flex;gap:4px;align-items:center}
 		.snn-comment-editor-btn{padding:6px 10px;background:#fff;border:1px solid #ddd;border-radius:4px;cursor:pointer;user-select:none;transition:.2s}
 		.snn-comment-editor-btn:hover{background:#e9ecef}
 		.snn-comment-editor-btn.active{background:#e2e5e9}
-		.snn-comment-editor-select{padding:5px;border:1px solid #ddd;border-radius:4px;min-width:110px}
+		.snn-comment-editor-select{padding:0px 5px;border:1px solid #ddd;border-radius:4px;min-width:110px}
 		#snn-comment-editor-font-family{min-width:150px}
-		.snn-comment-editor-color-picker{width:30px;height:30px;padding:0;border:none;cursor:pointer;background:none}
-		#snn-comment-editor-editor{min-height:<?php echo esc_attr( $min_h ); ?>;padding:10px;outline:none;overflow-y:auto;line-height:1.6}
+		.snn-comment-editor-color-picker{width:40px;height:40px;padding:0;border:none;cursor:pointer;background:none; border-radius:5px;}
+		#snn-comment-editor-editor{min-height:200px;padding:10px;outline:none;overflow-y:auto;line-height:1.6;  border-radius:0 0 5px 5px; background: #f8f9fa;}
 		#snn-comment-editor-editor:focus{box-shadow:inset 0 0 0 1px #1971c2}
 		#snn-comment-editor-editor img{max-width:100%;height:auto}
+
+		/* --- image tools --- */
 		.snn-comment-editor-image-tools{display:none;flex-wrap:wrap;gap:10px;padding:8px;background:#f0f0f0;border-bottom:1px solid #eee}
 		#snn-comment-editor-editor img.snn-img-align-left{float:left;margin-right:10px;margin-bottom:10px}
 		#snn-comment-editor-editor img.snn-img-align-right{float:right;margin-left:10px;margin-bottom:10px}
 		#snn-comment-editor-editor img.snn-img-align-center{display:block;float:none;margin:auto;margin-bottom:10px}
 		#snn-comment-editor-editor img.snn-img-align-none{display:block;float:none;margin:0 0 10px}
 		#snn-comment-editor-editor img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
+		.snn-comment-submit{border:none; padding:10px;}
 		</style>
 		<?php
 
@@ -93,6 +214,7 @@ class SNN_Element_Comment_Form extends Element {
 			'class_form'    => 'snn-comment-form',
 			'class_submit'  => 'snn-comment-submit',
 			'label_submit'  => $label,
+			'title_reply'   => $reply_title,
 			'comment_field' => '
 				<p class="snn-comment-form-comment">
 					<textarea id="comment" name="comment" cols="45" rows="8" required style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></textarea>
@@ -103,6 +225,7 @@ class SNN_Element_Comment_Form extends Element {
 		document.addEventListener('DOMContentLoaded',()=>{
 			const textarea = document.getElementById('comment');
 			if (!textarea) return;
+
 			const ajaxurl   = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>';
 			const snnNonce  = '<?php echo esc_js( $nonce ); ?>';
 
@@ -110,7 +233,6 @@ class SNN_Element_Comment_Form extends Element {
 			const container = document.createElement('div');
 			container.className = 'snn-comment-editor-container';
 			container.innerHTML = `
-
 				<div class="snn-comment-editor-toolbar">
 					<div class="snn-comment-editor-toolbar-group">
 						<select id="snn-comment-editor-font-size" class="snn-comment-editor-select">
@@ -200,10 +322,10 @@ class SNN_Element_Comment_Form extends Element {
 				};
 			});
 
-			/* Font Size */
+			/* Font size */
 			container.querySelector('#snn-comment-editor-font-size').onchange = e => {
 				const v = e.target.value;
-				if ( ! v ) return;
+				if ( !v ) return;
 				document.execCommand('fontSize', false, '7');
 				editor.querySelectorAll('font[size="7"]').forEach(el=>{
 					el.style.fontSize = v;
@@ -212,10 +334,10 @@ class SNN_Element_Comment_Form extends Element {
 				e.target.value = '';
 			};
 
-			/* Font Family */
+			/* Font family */
 			container.querySelector('#snn-comment-editor-font-family').onchange = e => {
 				const v = e.target.value;
-				if ( ! v ) return;
+				if ( !v ) return;
 				document.execCommand('fontName', false, v);
 				e.target.value = '';
 			};
@@ -244,7 +366,7 @@ class SNN_Element_Comment_Form extends Element {
 				mediaBtn.disabled    = true;
 				fetch(ajaxurl, { method: 'POST', credentials: 'same-origin', body: fd })
 					.then(async r => {
-						if ( ! r.ok ) throw new Error('HTTP '+r.status);
+						if ( !r.ok ) throw new Error('HTTP '+r.status);
 						return r.json();
 					})
 					.then(j => {
@@ -354,5 +476,4 @@ if ( ! function_exists( 'snn_comment_media_upload' ) ) {
 		] );
 	}
 	add_action( 'wp_ajax_snn_comment_media_upload', 'snn_comment_media_upload' );
-	// add_action( 'wp_ajax_nopriv_snn_comment_media_upload', 'snn_comment_media_upload' );
 }

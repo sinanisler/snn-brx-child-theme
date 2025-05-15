@@ -99,7 +99,7 @@ class SNN_Element_Comment_List extends Element {
 .snn-comment-author-link{display:block;margin-top:8px;font-weight:bold;color:#333;text-decoration:none}
 .snn-comment-metadata{font-size:12px;color:#999;margin-top:4px}
 .snn-comment-body{display:flex;gap:10px;width:100%}
-.snn-comment-content{background:#f9f9f9;padding:12px;border-radius:6px;line-height:1.5;width:100%}
+.snn-comment-content{background:#f9f9f9;padding:12px;border-radius:6px;line-height:2;width:100%}
 .snn-comment-reply{margin-top:8px;font-size:13px}
 .snn-comment-reply a{text-decoration:none;color:#0073aa}
 .snn-comment-reply a:hover{color:#005177}
@@ -138,7 +138,7 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
 				$u = get_userdata( $comment->user_id );
 				if ( $u ) {
 					$profile = home_url( '/author/' . $u->user_login );
-					echo '<a href="' . esc_url( $profile ) . '" class="snn-comment-author-avatar-link">' . get_avatar( $comment, $avatar_size ) . '</a>';
+					echo '<a href="' . esc_url( $profile ) . '" class="snn-comment-author-avatar-link" data-user-comment=" '. esc_html( $u->display_name ) . '   ">' . get_avatar( $comment, $avatar_size ) . '</a>';
 					printf( '<a href="%s" class="snn-comment-author-link">%s</a>', esc_url( $profile ), esc_html( $u->display_name ) );
 				}
 			} else {
