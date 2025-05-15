@@ -34,6 +34,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'type'    => 'select',
             'options' => $post_type_options,
             'default' => 'post',
+            'inline'  => true,
         ];
 
         $this->controls['post_status'] = [
@@ -46,6 +47,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 'private' => 'Private',
             ],
             'default' => 'publish',
+            'inline'  => true,
         ];
 
         $this->controls['submit_label'] = [
@@ -53,6 +55,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'label'   => esc_html__( 'Submit button label', 'snn' ),
             'type'    => 'text',
             'default' => esc_html__( 'Post', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['enable_featured_image'] = [
@@ -65,9 +68,10 @@ class SNN_Element_Frontend_Post_Form extends Element {
 
         $this->controls['guest_warning_text'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Guest/forbidden warning text', 'snn' ),
+            'label'   => esc_html__( 'Guest warning text', 'snn' ),
             'type'    => 'text',
             'default' => esc_html__( 'You do not have permission to post.', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['allowed_user_roles'] = [
@@ -80,6 +84,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'clearable'  => true,
             'placeholder'=> esc_html__('Select allowed roles', 'snn'),
             'default'    => ['administrator','editor','author'],
+            'inline'  => true,
         ];
 
         // ==== EDITOR CONTROLS (style, background, colors, etc.) ====
