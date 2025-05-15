@@ -518,7 +518,7 @@ function snn_custom_codes_snippets_page() {
             'description' => __( 'PHP code or HTML executed within the <code>&lt;head&gt;</code> of WordPress admin pages. Use for conditional admin CSS/JS, admin modifications, etc. You can use <code>&lt;?php ?&gt;</code> tags for PHP code.', 'snn' ),
         ),
         'functions' => array(
-            'title'       => __( 'Direct PHP (functions.php)', 'snn' ),
+            'title'       => __( 'PHP (functions.php)', 'snn' ),
             'slug'        => 'snn-snippet-functions-php',
             'field_id'    => 'snn_functions_code',
             'description' => __( 'PHP executed immediately when this code feature loads (no hook) – similar to putting code in <code>functions.php</code>. Use for hooks, filters, and functions. Avoid direct output here unless intended. Errors can break your site.', 'snn' ),
