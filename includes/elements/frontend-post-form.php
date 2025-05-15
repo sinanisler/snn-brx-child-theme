@@ -178,9 +178,9 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 <input type="text" name="post_title" placeholder="Title" required style="width:100%; padding:10px; margin-bottom:10px; font-size:18px;" />
                 <?php if($enable_feat): ?>
                 <div class="snn-featured-image-box" style="margin-bottom:15px;">
-                    <label style="display:block; font-weight:bold; margin-bottom:5px;"><?php esc_html_e('Featured Image', 'snn'); ?></label>
+                    
                     <div class="snn-featured-image-preview" style="margin-bottom:7px;"></div>
-                    <button type="button" class="snn-featured-image-btn" style="padding:6px 12px;">Select Image</button>
+                    <button type="button" class="snn-featured-image-btn" style="padding:6px 12px;">Select Featured Image</button>
                     <button type="button" class="snn-featured-image-remove" style="padding:6px 12px;display:none;">Remove</button>
                     <input type="file" class="snn-featured-image-input" accept="image/*" style="display:none;">
                     <input type="hidden" name="featured_image_id" value="">
