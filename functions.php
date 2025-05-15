@@ -72,6 +72,7 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/conditions.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/comment-form.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/comment-list.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/frontend-post-form.php');
 
 
 // if GSAP setting is enabled Register Elements
@@ -79,6 +80,7 @@ $options = get_option('snn_other_settings');
 if (!empty($options['enqueue_gsap'])) {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/lottie-animation.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations-code.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-text-animations.php');
 }
 
