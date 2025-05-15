@@ -108,7 +108,7 @@ function snn_sanitize_accessibility_settings( $input ) {
     $sanitized['enqueue_accessibility'] = ! empty( $input['enqueue_accessibility'] ) ? 1 : 0;
     $sanitized['main_color']              = ! empty( $input['main_color'] )
         ? sanitize_hex_color( $input['main_color'] )
-        : '#07757f';
+        : '#000000';
     $sanitized['btn_width']              = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 45;
     $sanitized['btn_height']             = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 45;
     $align = isset( $input['btn_alignment'] ) ? $input['btn_alignment'] : 'left';
