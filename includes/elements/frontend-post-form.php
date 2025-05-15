@@ -56,8 +56,15 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'inline'  => true,
         ];
 
-        // ==== EDITOR CONTROLS (style, background, colors, etc.) ====
+        $this->controls['guest_warning_text'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Guest warning text', 'snn' ),
+            'type'    => 'text',
+            'default' => esc_html__( 'You must be logged in to post.', 'snn' ),
+            'placeholder' => esc_html__( 'You must be logged in to post.', 'snn' ),
+        ];
 
+        // ==== EDITOR CONTROLS (style, background, colors, etc.) ====
         $this->controls['button_typography'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Button typography', 'snn' ),
@@ -164,6 +171,19 @@ class SNN_Element_Frontend_Post_Form extends Element {
     }
 
     public function render() {
+        // Only allow posting for logged-in users
+        if ( ! is_user_logged_in() ) {
+            $guest_msg = isset($this->settings['guest_warning_text']) ? esc_html($this->settings['guest_warning_text']) : esc_html__('You must be logged in to post.', 'snn');
+            ?>
+            <div class="snn-frontend-post-form-wrapper">
+                <div class="snn-guest-warning">
+                    <?php echo $guest_msg; ?>
+                </div>
+            </div>
+            <?php
+            return;
+        }
+
         $post_type   = esc_attr($this->settings['post_type']);
         $post_status = esc_attr($this->settings['post_status']);
         $label       = esc_html($this->settings['submit_label']);
