@@ -196,6 +196,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
             </form>
         </div>
         <style>
+            .snn-frontend-post-form-wrapper{width:100%}
             .snn-featured-image-preview img{max-width:100%;max-height:180px;display:block;margin-bottom:8px;}
             .snn-post-editor-container{max-width:100%;margin:1em 0;background:#fff;border-radius:8px;position:relative;}
             .snn-post-editor-toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:10px;background:#f8f9fa; border-radius:5px 5px 0px 0px;}
