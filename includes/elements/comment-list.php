@@ -16,16 +16,16 @@ class SNN_Element_Comment_List extends Element {
 	public $css_selector = '.snn-commentlist';
 	public $nestable     = false;
 	/* --------------------------------------------------------------------- */
-	public function get_label() { return esc_html__( 'Comment List', 'bricks' ); }
+	public function get_label() { return esc_html__( 'Comment List', 'snn' ); }
 
 	/* ---------- CONTROL GROUPS ------------------------------------------ */
 	public function set_control_groups() {
 		$this->control_groups['settings'] = [
-			'title' => esc_html__( 'Settings', 'bricks' ),
+			'title' => esc_html__( 'Settings', 'snn' ),
 			'tab'   => 'content',
 		];
 		$this->control_groups['style'] = [
-			'title' => esc_html__( 'Style', 'bricks' ),
+			'title' => esc_html__( 'Style', 'snn' ),
 			'tab'   => 'style',
 		];
 	}
@@ -36,7 +36,7 @@ class SNN_Element_Comment_List extends Element {
 		$this->controls['avatar'] = [
 			'tab'     => 'content',
 			'group'   => 'settings',
-			'label'   => esc_html__( 'Avatar size', 'bricks' ),
+			'label'   => esc_html__( 'Avatar size', 'snn' ),
 			'type'    => 'number',
 			'unit'    => 'px',
 			'min'     => 16,
@@ -47,7 +47,7 @@ class SNN_Element_Comment_List extends Element {
 		$this->controls['order'] = [
 			'tab'     => 'content',
 			'group'   => 'settings',
-			'label'   => esc_html__( 'Order', 'bricks' ),
+			'label'   => esc_html__( 'Order', 'snn' ),
 			'type'    => 'select',
 			'options' => [ 'ASC' => 'ASC', 'DESC' => 'DESC' ],
 			'default' => 'ASC',
@@ -57,7 +57,7 @@ class SNN_Element_Comment_List extends Element {
 		$this->controls['inline_edit'] = [
 			'tab'     => 'content',
 			'group'   => 'settings',
-			'label'   => esc_html__( 'Enable inline edit', 'bricks' ),
+			'label'   => esc_html__( 'Enable inline edit', 'snn' ),
 			'type'    => 'checkbox',
 			'default' => true,
 			'inline'  => true,
@@ -67,7 +67,7 @@ class SNN_Element_Comment_List extends Element {
 		$this->controls['typography'] = [
 			'tab'   => 'style',
 			'group' => 'style',
-			'label' => esc_html__( 'Comment typography', 'bricks' ),
+			'label' => esc_html__( 'Comment typography', 'snn' ),
 			'type'  => 'typography',
 			'css'   => [
 				[

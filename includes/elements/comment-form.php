@@ -16,7 +16,7 @@ class SNN_Element_Comment_Form extends Element {
 	public $nestable     = false;
 
 	public function get_label() {
-		return esc_html__( 'Comment Form', 'bricks' );
+		return esc_html__( 'Comment Form', 'snn' );
 	}
 
 	public function set_controls() {
@@ -25,15 +25,15 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['submit_label'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Submit button label', 'bricks' ),
+			'label'   => esc_html__( 'Submit button label', 'snn' ),
 			'type'    => 'text',
-			'default' => esc_html__( 'Post Comment', 'bricks' ),
-			'placeholder' => esc_html__( 'Post Comment', 'bricks' ),
+			'default' => esc_html__( 'Post Comment', 'snn' ),
+			'placeholder' => esc_html__( 'Post Comment', 'snn' ),
 		];
 
 		$this->controls['allow_uploads'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable media upload', 'bricks' ),
+			'label'   => esc_html__( 'Enable media upload', 'snn' ),
 			'type'    => 'checkbox',
 			'default' => true,
 			'inline'  => true,
@@ -41,7 +41,7 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['hide_logged_in_as'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Hide “logged-in as” info', 'bricks' ),
+			'label'   => esc_html__( 'Hide “logged-in as” info', 'snn' ),
 			'type'    => 'checkbox',
 			'default' => false,
 			'inline'  => true,
@@ -49,17 +49,17 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['reply_title'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Reply title', 'bricks' ),
+			'label'   => esc_html__( 'Reply title', 'snn' ),
 			'type'    => 'text',
-			'default' => esc_html__( 'Leave a Reply', 'bricks' ),
-			'placeholder' => esc_html__( 'Leave a Reply', 'bricks' ),
+			'default' => esc_html__( 'Leave a Reply', 'snn' ),
+			'placeholder' => esc_html__( 'Leave a Reply', 'snn' ),
 		];
 
 		/* ---------- STYLE TAB -------------------------------------------------- */
 
 		$this->controls['button_typography'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Button typography', 'bricks' ),
+			'label' => esc_html__( 'Button typography', 'snn' ),
 			'type'  => 'typography',
 			'css'   => [
 				[
@@ -71,7 +71,7 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['button_background'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Button background', 'bricks' ),
+			'label' => esc_html__( 'Button background', 'snn' ),
 			'type'  => 'color',
 			'css'   => [
 				[
@@ -84,7 +84,7 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['button_padding'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Button padding', 'bricks' ),
+			'label' => esc_html__( 'Button padding', 'snn' ),
 			'type'  => 'dimensions',
 			'css'   => [
 				[
@@ -97,7 +97,7 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['toolbar_bg_color'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Toolbar background', 'bricks' ),
+			'label' => esc_html__( 'Toolbar background', 'snn' ),
 			'type'  => 'color',
 			'css'   => [
 				[
@@ -110,7 +110,7 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['toolbar_text_color'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Toolbar text color', 'bricks' ),
+			'label' => esc_html__( 'Toolbar text color', 'snn' ),
 			'type'  => 'color',
 			'css'   => [
 				[
@@ -124,7 +124,7 @@ class SNN_Element_Comment_Form extends Element {
 		// New control: toolbar button background
 		$this->controls['toolbar_button_background'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Toolbar button background', 'bricks' ),
+			'label' => esc_html__( 'Toolbar button background', 'snn' ),
 			'type'  => 'color',
 			'default' => '#ffffff',
 			'css'   => [
@@ -138,7 +138,7 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['editor_bg_color'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Editor background', 'bricks' ),
+			'label' => esc_html__( 'Editor background', 'snn' ),
 			'type'  => 'color',
 			'css'   => [
 				[
@@ -151,7 +151,7 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['editor_text_color'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Editor text color', 'bricks' ),
+			'label' => esc_html__( 'Editor text color', 'snn' ),
 			'type'  => 'color',
 			'css'   => [
 				[
@@ -165,10 +165,10 @@ class SNN_Element_Comment_Form extends Element {
 
 	public function render() {
 
-		$label          = $this->settings['submit_label'] ?? esc_html__( 'Post Comment', 'bricks' );
+		$label          = $this->settings['submit_label'] ?? esc_html__( 'Post Comment', 'snn' );
 		$uploads        = ! empty( $this->settings['allow_uploads'] );
 		$hide_logged_in = ! empty( $this->settings['hide_logged_in_as'] );
-		$reply_title    = $this->settings['reply_title'] ?? esc_html__( 'Leave a Reply', 'bricks' );
+		$reply_title    = $this->settings['reply_title'] ?? esc_html__( 'Leave a Reply', 'snn' );
 		$nonce          = wp_create_nonce( 'snn_comment_media_upload' );
 
 		$this->set_attribute( '_root', 'class', 'snn-comment-form-wrapper' );
@@ -456,10 +456,10 @@ if ( ! function_exists( 'snn_comment_media_upload' ) ) {
 	function snn_comment_media_upload() {
 		check_ajax_referer( 'snn_comment_media_upload' );
 		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( __( 'Permission denied.', 'bricks' ), 403 );
+			wp_send_json_error( __( 'Permission denied.', 'snn' ), 403 );
 		}
 		if ( empty( $_FILES['file'] ) ) {
-			wp_send_json_error( __( 'No file received.', 'bricks' ), 400 );
+			wp_send_json_error( __( 'No file received.', 'snn' ), 400 );
 		}
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
