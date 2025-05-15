@@ -48,6 +48,14 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'default' => esc_html__( 'Post', 'snn' ),
         ];
 
+        $this->controls['enable_featured_image'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Enable featured image', 'snn' ),
+            'type'    => 'checkbox',
+            'default' => false,
+            'inline'  => true,
+        ];
+
         // ==== EDITOR CONTROLS (style, background, colors, etc.) ====
 
         $this->controls['button_typography'] = [
@@ -161,11 +169,23 @@ class SNN_Element_Frontend_Post_Form extends Element {
         $label       = esc_html($this->settings['submit_label']);
         $nonce       = wp_create_nonce('snn_frontend_post');
         $can_upload  = current_user_can('upload_files');
+        $enable_feat = !empty($this->settings['enable_featured_image']);
+
         ?>
         <div class="snn-frontend-post-form-wrapper">
             <form class="snn-frontend-post-form" autocomplete="off">
                 <input type="hidden" name="action" value="snn_frontend_post"/>
                 <input type="text" name="post_title" placeholder="Title" required style="width:100%; padding:10px; margin-bottom:10px; font-size:18px;" />
+                <?php if($enable_feat): ?>
+                <div class="snn-featured-image-box" style="margin-bottom:15px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;"><?php esc_html_e('Featured Image', 'snn'); ?></label>
+                    <div class="snn-featured-image-preview" style="margin-bottom:7px;"></div>
+                    <button type="button" class="snn-featured-image-btn" style="padding:6px 12px;">Select Image</button>
+                    <button type="button" class="snn-featured-image-remove" style="padding:6px 12px;display:none;">Remove</button>
+                    <input type="file" class="snn-featured-image-input" accept="image/*" style="display:none;">
+                    <input type="hidden" name="featured_image_id" value="">
+                </div>
+                <?php endif; ?>
                 <div class="snn-post-editor-parent"></div>
                 <button type="submit" class="snn-post-submit" style="padding:10px 20px;"><?php echo $label; ?></button>
                 <div class="snn-form-msg" style="margin-top:10px;"></div>
@@ -176,7 +196,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
             </form>
         </div>
         <style>
-            .snn-frontend-post-form-wrapper{width:100%}
+            .snn-featured-image-preview img{max-width:100%;max-height:180px;display:block;margin-bottom:8px;}
             .snn-post-editor-container{max-width:100%;margin:1em 0;background:#fff;border-radius:8px;position:relative;}
             .snn-post-editor-toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:10px;background:#f8f9fa; border-radius:5px 5px 0px 0px;}
             .snn-post-editor-toolbar-group{display:flex;gap:4px;align-items:center}
@@ -202,6 +222,55 @@ class SNN_Element_Frontend_Post_Form extends Element {
             const canUpload = <?php echo $can_upload ? 'true' : 'false'; ?>;
             const parent = document.querySelector('.snn-post-editor-parent');
             if (!parent) return;
+
+            // === FEATURED IMAGE LOGIC ===
+            <?php if($enable_feat): ?>
+            const featBox = document.querySelector('.snn-featured-image-box');
+            const featPreview = featBox.querySelector('.snn-featured-image-preview');
+            const featBtn = featBox.querySelector('.snn-featured-image-btn');
+            const featInput = featBox.querySelector('.snn-featured-image-input');
+            const featRemove = featBox.querySelector('.snn-featured-image-remove');
+            const featHidden = featBox.querySelector('input[name="featured_image_id"]');
+
+            featBtn.onclick = function() { featInput.click(); };
+            featInput.onchange = function() {
+                const file = featInput.files[0];
+                if (!file) return;
+                const fd = new FormData();
+                fd.append('action', 'snn_post_media_upload');
+                fd.append('_wpnonce', snnNonce);
+                fd.append('file', file);
+                featBtn.textContent = 'Uploading…';
+                featBtn.disabled = true;
+                fetch(ajaxurl, { method: 'POST', credentials: 'same-origin', body: fd })
+                    .then(async r => {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    })
+                    .then(j => {
+                        if (j.success && j.data?.url) {
+                            featPreview.innerHTML = '<img src="'+j.data.url+'" alt="Featured Image">';
+                            featHidden.value = j.data.id || '';
+                            featBtn.style.display = 'none';
+                            featRemove.style.display = 'inline-block';
+                        } else {
+                            alert(j.data || 'Upload failed');
+                        }
+                    })
+                    .catch(e => alert(e.message || 'Network'))
+                    .finally(() => {
+                        featBtn.textContent = 'Select Image';
+                        featBtn.disabled = false;
+                        featInput.value = '';
+                    });
+            };
+            featRemove.onclick = function() {
+                featPreview.innerHTML = '';
+                featHidden.value = '';
+                featBtn.style.display = '';
+                featRemove.style.display = 'none';
+            };
+            <?php endif; ?>
 
             // Build editor DOM dynamically (like comment editor)
             const container = document.createElement('div');
@@ -271,7 +340,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
             `;
             parent.appendChild(container);
 
-            // Now JS for editor logic (identical to previous, just adapted for new DOM)
+            // Editor logic (identical as before)
             const editor = container.querySelector('#snn-post-editor-editor');
             const textarea = document.getElementById('snn-post-editor-textarea');
             const imageTools = container.querySelector('.snn-post-editor-image-tools');
@@ -443,6 +512,14 @@ class SNN_Element_Frontend_Post_Form extends Element {
                             form.reset();
                             editor.innerHTML = '';
                             textarea.value = '';
+                            <?php if($enable_feat): ?>
+                            if (featPreview && featBtn && featRemove && featHidden) {
+                                featPreview.innerHTML = '';
+                                featBtn.style.display = '';
+                                featRemove.style.display = 'none';
+                                featHidden.value = '';
+                            }
+                            <?php endif; ?>
                         }
                     } else {
                         msg.textContent = res.data || 'Error';
@@ -474,6 +551,7 @@ function snn_frontend_post_handler(){
     $content = wp_kses_post($_POST['post_content']??'');
     $status = in_array($_POST['snn_post_status'], ['publish','draft','private']) ? $_POST['snn_post_status'] : 'draft';
     $type = post_type_exists($_POST['snn_post_type']) ? $_POST['snn_post_type'] : 'post';
+    $feat_id = isset($_POST['featured_image_id']) ? intval($_POST['featured_image_id']) : 0;
     if(!$title || !$content) wp_send_json_error('Title and content required.');
     $post_id = wp_insert_post([
         'post_title'   => $title,
@@ -483,6 +561,10 @@ function snn_frontend_post_handler(){
         'post_author'  => get_current_user_id(),
     ]);
     if(is_wp_error($post_id)) wp_send_json_error($post_id->get_error_message());
+    // Set featured image if provided
+    if ($feat_id) {
+        set_post_thumbnail($post_id, $feat_id);
+    }
     wp_send_json_success([
         'status' => $status,
         'url'    => get_permalink($post_id),
@@ -505,5 +587,5 @@ add_action('wp_ajax_snn_post_media_upload', function(){
     $id = media_handle_upload('file', 0);
     if(is_wp_error($id)) wp_send_json_error($id->get_error_message());
     $url = wp_get_attachment_url($id);
-    wp_send_json_success(['url'=>$url]);
+    wp_send_json_success(['url'=>$url, 'id'=>$id]);
 });
