@@ -70,6 +70,8 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/flip-box.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/compare-image.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/conditions.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/comment-form.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/comment-list.php');
 
 
 // if GSAP setting is enabled Register Elements
