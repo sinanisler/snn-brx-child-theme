@@ -50,7 +50,7 @@ class SNN_Element_Comment_List extends Element {
 			'label'   => esc_html__( 'Order', 'snn' ),
 			'type'    => 'select',
 			'options' => [ 'ASC' => 'ASC', 'DESC' => 'DESC' ],
-			'default' => 'ASC',
+			'default' => 'DESC',
 			'inline'  => true,
 		];
 
