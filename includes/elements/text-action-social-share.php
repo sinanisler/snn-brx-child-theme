@@ -91,51 +91,6 @@ class SNN_Text_Action_Share extends Element {
             ],
         ];
 
-        $this->controls['offsetY'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Vertical offset (px)', 'snn' ),
-            'type'    => 'number',
-            'default' => 5,
-        ];
-
-        $this->controls['offsetX'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Horizontal offset (px)', 'snn' ),
-            'type'    => 'number',
-            'default' => 0,
-        ];
-
-        // WRAPPER background color control
-        $this->controls['wrapper_bg_color'] = [
-            'tab'   => 'content',
-            'label' => esc_html__( 'Wrapper Background Color', 'snn' ),
-            'type'  => 'color',
-            'css'   => [
-                [
-                    'property' => 'background',
-                    'selector' => '.brxe-snn-text-action-share',
-                ],
-            ],
-            'default' => [
-                'hex' => '#fff',
-            ],
-        ];
-
-        // ICON color control
-        $this->controls['icon_color'] = [
-            'tab'   => 'content',
-            'label' => esc_html__( 'Icon Color', 'snn' ),
-            'type'  => 'color',
-            'css'   => [
-                [
-                    'property' => 'color',
-                    'selector' => '.snn-text-action-share-bar a i',
-                ],
-            ],
-            'default' => [
-                'hex' => '#23282d',
-            ],
-        ];
     }
 
     public function render() {
