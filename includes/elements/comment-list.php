@@ -85,6 +85,7 @@ class SNN_Element_Comment_List extends Element {
 .snn-comment-metadata{font-size:12px;color:#999;margin-top:4px}
 .snn-comment-body{display:flex;gap:10px;width:100%}
 .snn-comment-content{background:#f9f9f9;padding:12px;border-radius:6px;line-height:2;width:100%}
+.snn-comment-content *{font-family:inherit; font-size:inherit;}
 .snn-comment-reply{margin-top:8px;font-size:13px}
 .snn-comment-reply a{text-decoration:none;color:#0073aa}
 .snn-comment-reply a:hover{color:#005177}
