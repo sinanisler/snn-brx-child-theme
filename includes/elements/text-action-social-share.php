@@ -11,7 +11,7 @@ class SNN_Text_Action_Share extends Element {
     public $nestable     = false;
 
     public function get_label() {
-        return esc_html__( 'Text Action Social Share', 'bricks' );
+        return esc_html__( 'Text Select Action Social Share', 'snn' );
     }
 
     public function set_controls() {
@@ -25,10 +25,10 @@ class SNN_Text_Action_Share extends Element {
 
         $this->controls['dom_selector'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'DOM Selector', 'bricks' ),
+            'label'       => esc_html__( 'DOM Selector', 'snn' ),
             'type'        => 'text',
             'default'     => 'comment',
-            'placeholder' => esc_html__( 'e.g. .selectable-comment-content-wrapper', 'bricks' ),
+            'placeholder' => esc_html__( 'e.g. .selectable-comment-content-wrapper', 'snn' ),
             'description' => esc_html__(
                 'Only allow text selection & actions inside these elements. Use any valid CSS selector (e.g. .my-comments, #post-content, .comment-body). Leave blank for whole page.', 'bricks'
             ),
@@ -36,16 +36,16 @@ class SNN_Text_Action_Share extends Element {
 
         $this->controls['actions'] = [
             'tab'          => 'content',
-            'label'        => esc_html__( 'Actions', 'bricks' ),
+            'label'        => esc_html__( 'Actions', 'snn' ),
             'type'         => 'repeater',
             'titleProperty'=> 'label',
             'fields'       => [
                 'label' => [
-                    'label' => esc_html__( 'Label', 'bricks' ),
+                    'label' => esc_html__( 'Label', 'snn' ),
                     'type'  => 'text',
                 ],
                 'icon' => [
-                    'label' => esc_html__( 'Icon', 'bricks' ),
+                    'label' => esc_html__( 'Icon', 'snn' ),
                     'type'  => 'icon',
                     'default' => [
                         'library' => 'fontawesome',
@@ -53,12 +53,12 @@ class SNN_Text_Action_Share extends Element {
                     ],
                 ],
                 'link' => [
-                    'label'       => esc_html__( 'Action Link (use {text} and/or {url})', 'bricks' ),
+                    'label'       => esc_html__( 'Action Link (use {text} and/or {url})', 'snn' ),
                     'type'        => 'text',
-                    'placeholder' => esc_html__( 'https://twitter.com/intent/tweet?text={text} {url}', 'bricks' ),
+                    'placeholder' => esc_html__( 'https://twitter.com/intent/tweet?text={text} {url}', 'snn' ),
                 ],
                 'target' => [
-                    'label' => esc_html__( 'Open in new tab?', 'bricks' ),
+                    'label' => esc_html__( 'Open in new tab?', 'snn' ),
                     'type'  => 'checkbox',
                     'default' => true,
                 ],
@@ -92,47 +92,44 @@ class SNN_Text_Action_Share extends Element {
         ];
 
         $this->controls['offsetY'] = [
-            'tab'     => 'style',
-            'label'   => esc_html__( 'Vertical offset (px)', 'bricks' ),
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Vertical offset (px)', 'snn' ),
             'type'    => 'number',
             'default' => 5,
         ];
 
         $this->controls['offsetX'] = [
-            'tab'     => 'style',
-            'label'   => esc_html__( 'Horizontal offset (px)', 'bricks' ),
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Horizontal offset (px)', 'snn' ),
             'type'    => 'number',
             'default' => 0,
         ];
 
-        $this->controls['bar_style'] = [
-            'tab'   => 'style',
-            'label' => esc_html__( 'Bar Style', 'bricks' ),
-            'type'  => 'css',
+        // WRAPPER background color control
+        $this->controls['wrapper_bg_color'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Wrapper Background Color', 'snn' ),
+            'type'  => 'color',
             'css'   => [
                 [
                     'property' => 'background',
-                    'selector' => '.snn-text-action-share-bar',
+                    'selector' => '.brxe-snn-text-action-share',
                 ],
-                [
-                    'property' => 'box-shadow',
-                    'selector' => '.snn-text-action-share-bar',
-                ],
-                [
-                    'property' => 'border-radius',
-                    'selector' => '.snn-text-action-share-bar',
-                ],
+            ],
+            'default' => [
+                'hex' => '#fff',
             ],
         ];
 
+        // ICON color control
         $this->controls['icon_color'] = [
-            'tab'   => 'style',
-            'label' => esc_html__( 'Icon Color', 'bricks' ),
+            'tab'   => 'content',
+            'label' => esc_html__( 'Icon Color', 'snn' ),
             'type'  => 'color',
             'css'   => [
                 [
                     'property' => 'color',
-                    'selector' => '.snn-text-action-share-bar a',
+                    'selector' => '.snn-text-action-share-bar a i',
                 ],
             ],
             'default' => [
@@ -146,13 +143,16 @@ class SNN_Text_Action_Share extends Element {
         $offsetY = isset($this->settings['offsetY']) ? intval($this->settings['offsetY']) : 5;
         $offsetX = isset($this->settings['offsetX']) ? intval($this->settings['offsetX']) : 0;
         $dom_selector = trim($this->settings['dom_selector'] ?? 'comment');
+        $wrapper_bg_color = $this->settings['wrapper_bg_color']['hex'] ?? '#fff';
+        $icon_color = $this->settings['icon_color']['hex'] ?? '#23282d';
 
         $uniqid = 'snn-text-action-share-bar-' . uniqid();
 
-        $this->set_attribute('_root', 'class', [ 'snn-text-action-share-bar', $uniqid ]);
-        $this->set_attribute('_root', 'style', 'display:none;position:fixed;z-index:99999;top:0;left:0;opacity:1;pointer-events:auto;');
+        $this->set_attribute('_root', 'class', [ 'brxe-snn-text-action-share', $uniqid ]);
+        // no inline style for display/position
 
         echo '<div ' . $this->render_attributes('_root') . '>';
+        echo '<div class="snn-text-action-share-bar">';
         foreach($actions as $idx => $item) {
             $icon = isset($item['icon']) ? $item['icon'] : null;
             $label = esc_html( $item['label'] ?? '' );
@@ -170,15 +170,19 @@ class SNN_Text_Action_Share extends Element {
             echo '</a>';
         }
         echo '</div>';
+        echo '</div>';
         ?>
         <script>
         (function() {
-            const bar = document.querySelector('.<?php echo esc_js($uniqid); ?>');
-            if (!bar) return;
+            const wrapper = document.querySelector('.<?php echo esc_js($uniqid); ?>');
+            if (!wrapper) return;
+            const bar = wrapper.querySelector('.snn-text-action-share-bar');
             const actions = <?php echo json_encode(array_values($actions)); ?>;
             let selectedText = '';
             let selectionRect = null;
             const domSelector = <?php echo json_encode($dom_selector); ?>.trim();
+            const offsetY = <?php echo intval($offsetY); ?>;
+            const offsetX = <?php echo intval($offsetX); ?>;
 
             function isSelectionInsideAllowedArea() {
                 if (!domSelector) return true; // all page
@@ -213,23 +217,29 @@ class SNN_Text_Action_Share extends Element {
             }
 
             function showBar(rect) {
-                bar.style.display = 'flex';
-                bar.style.position = 'fixed';
-                let top = rect.bottom + <?php echo intval($offsetY); ?>;
-                let left = rect.left + <?php echo intval($offsetX); ?>;
-                if (left + bar.offsetWidth > window.innerWidth) {
-                    left = window.innerWidth - bar.offsetWidth - 10;
-                }
-                if (top + bar.offsetHeight > window.innerHeight) {
-                    top = rect.top - bar.offsetHeight - <?php echo intval($offsetY); ?>;
-                    if (top < 0) top = 5;
-                }
-                bar.style.top = top + 'px';
-                bar.style.left = left + 'px';
+                wrapper.classList.add('snn-text-action-share-bar-visible');
+                // Position using CSS variables
+                wrapper.style.setProperty('--snn-bar-top', (rect.bottom + offsetY) + 'px');
+                wrapper.style.setProperty('--snn-bar-left', (rect.left + offsetX) + 'px');
+                // Responsive adjustment
+                setTimeout(() => {
+                    const barRect = bar.getBoundingClientRect();
+                    let left = rect.left + offsetX;
+                    let top = rect.bottom + offsetY;
+                    if (left + barRect.width > window.innerWidth) {
+                        left = window.innerWidth - barRect.width - 10;
+                    }
+                    if (top + barRect.height > window.innerHeight) {
+                        top = rect.top - barRect.height - offsetY;
+                        if (top < 0) top = 5;
+                    }
+                    wrapper.style.setProperty('--snn-bar-top', top + 'px');
+                    wrapper.style.setProperty('--snn-bar-left', left + 'px');
+                }, 0);
             }
 
             function hideBar() {
-                bar.style.display = 'none';
+                wrapper.classList.remove('snn-text-action-share-bar-visible');
             }
 
             function getSelectedTextAndRect() {
@@ -318,37 +328,57 @@ class SNN_Text_Action_Share extends Element {
         })();
         </script>
         <style>
-        .snn-text-action-share-bar {
+        .brxe-snn-text-action-share {
+            /* Position defaults, will be set by JS using variables */
+            position: fixed;
+            z-index: 99999;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.18s;
+        }
+        .brxe-snn-text-action-share.snn-text-action-share-bar-visible {
+            pointer-events: auto;
+            opacity: 1;
+        }
+        .brxe-snn-text-action-share {
+            top: var(--snn-bar-top, 0px) !important;
+            left: var(--snn-bar-left, 0px) !important;
+        }
+        .brxe-snn-text-action-share .snn-text-action-share-bar {
+            display: flex;
             gap: 8px;
             padding: 6px 12px;
-            background: #fff;
+            background: <?php echo esc_attr($wrapper_bg_color); ?>;
             border-radius: 8px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             align-items: center;
-            pointer-events: auto;
             min-width: 1px;
+            pointer-events: auto;
         }
-        .snn-text-action-share-bar a.snn-text-action-share-btn {
+        .brxe-snn-text-action-share .snn-text-action-share-bar a.snn-text-action-share-btn {
             display: flex;
             align-items: center;
             padding: 4px 8px;
             font-size: 1.2em;
-            color: inherit;
+            color: <?php echo esc_attr($icon_color); ?>;
             background: none;
             border: none;
             border-radius: 4px;
             text-decoration: none;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: background 0.15s, color 0.15s;
         }
-        .snn-text-action-share-bar a.snn-text-action-share-btn:hover,
-        .snn-text-action-share-bar a.snn-text-action-share-btn:focus {
+        .brxe-snn-text-action-share .snn-text-action-share-bar a.snn-text-action-share-btn:hover,
+        .brxe-snn-text-action-share .snn-text-action-share-bar a.snn-text-action-share-btn:focus {
             background: #f1f3f6;
             color: #0073aa;
             outline: none;
         }
-        .snn-text-action-share-bar i {
+        .brxe-snn-text-action-share .snn-text-action-share-bar i {
             pointer-events: none;
+            color: inherit !important;
         }
         </style>
         <?php
