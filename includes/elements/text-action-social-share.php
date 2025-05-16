@@ -19,7 +19,7 @@ class SNN_Text_Action_Share extends Element {
             'tab'     => 'content',
             'type'    => 'info',
             'content' => esc_html__(
-                'Add action buttons for selected text. Use {text} in link - it will be replaced with user selection. Example: https://twitter.com/intent/tweet?text={text}', 'bricks'
+                'Add action buttons for selected text. Use {text} and {url} in link - they will be replaced with user selection and page URL. Example: https://twitter.com/intent/tweet?text={text}%20{url}', 'bricks'
             ),
         ];
 
@@ -53,9 +53,9 @@ class SNN_Text_Action_Share extends Element {
                     ],
                 ],
                 'link' => [
-                    'label'       => esc_html__( 'Action Link (use {text})', 'bricks' ),
+                    'label'       => esc_html__( 'Action Link (use {text} and/or {url})', 'bricks' ),
                     'type'        => 'text',
-                    'placeholder' => esc_html__( 'https://twitter.com/intent/tweet?text={text}', 'bricks' ),
+                    'placeholder' => esc_html__( 'https://twitter.com/intent/tweet?text={text} {url}', 'bricks' ),
                 ],
                 'target' => [
                     'label' => esc_html__( 'Open in new tab?', 'bricks' ),
@@ -71,22 +71,22 @@ class SNN_Text_Action_Share extends Element {
                     'target'=> false,
                 ],
                 [
-                    'label' => 'Email',
-                    'icon'  => [ 'library' => 'themify', 'icon' => 'ti-email' ],
-                    'link'  => 'mailto:?body={text}',
-                    'target'=> false,
-                ],
-                [
                     'label' => 'Twitter',
                     'icon'  => [ 'library' => 'fontawesomeBrands', 'icon' => 'fab fa-x-twitter' ],
-                    'link'  => 'https://twitter.com/intent/tweet?text={text}',
+                    'link'  => 'https://twitter.com/intent/tweet?text={text}%20{url}',
                     'target'=> true,
                 ],
                 [
-                    'label' => 'LinkedIn',
-                    'icon'  => [ 'library' => 'fontawesomeBrands', 'icon' => 'fab fa-linkedin-in' ],
-                    'link'  => 'https://www.linkedin.com/shareArticle?mini=true&summary={text}',
+                    'label' => 'WhatsApp',
+                    'icon'  => [ 'library' => 'fontawesomeBrands', 'icon' => 'fab fa-whatsapp' ],
+                    'link'  => 'https://wa.me/?text={text}%20{url}',
                     'target'=> true,
+                ],
+                [
+                    'label' => 'Email',
+                    'icon'  => [ 'library' => 'themify', 'icon' => 'ti-email' ],
+                    'link'  => 'mailto:?subject=Shared%20from%20this%20page&body={text}%0A%0A{url}',
+                    'target'=> false,
                 ],
             ],
         ];
@@ -201,11 +201,14 @@ class SNN_Text_Action_Share extends Element {
             }
 
             function updateBarLinks() {
+                var url = location.href;
                 bar.querySelectorAll('.snn-text-action-share-btn').forEach((btn, idx) => {
                     if (!actions[idx]) return;
-                    let url = actions[idx].link || '#';
-                    url = url.replace(/\{text\}/g, encodeURIComponent(selectedText));
-                    btn.setAttribute('href', url);
+                    let linkTemplate = actions[idx].link || '#';
+                    let link = linkTemplate
+                        .replace(/\{text\}/g, encodeURIComponent(selectedText))
+                        .replace(/\{url\}/g, encodeURIComponent(url));
+                    btn.setAttribute('href', link);
                 });
             }
 
