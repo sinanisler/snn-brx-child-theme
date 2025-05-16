@@ -85,6 +85,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'label'   => esc_html__( 'Guest warning text', 'snn' ),
             'type'    => 'text',
             'default' => esc_html__( 'You do not have permission to post.', 'snn' ),
+            'placeholder' => esc_html__( 'You do not have permission to post.', 'snn' ),
             'inline'  => true,
         ];
 
@@ -782,12 +783,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
 
             // On input: convert orphan text/divs to <p>
             editor.addEventListener('input', function() {
-                let html = editor.innerHTML;
-                html = html.replace(/<div([^>]*)>/gi, '<p$1>');
-                html = html.replace(/<\/div>/gi, '</p>');
-                html = html.replace(/<p>\s*<p>/gi, '<p>');
-                html = html.replace(/<\/p>\s*<\/p>/gi, '</p>');
-                html = html.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
                 editor.innerHTML = html;
                 textarea.value = editor.innerHTML;
             });
@@ -808,6 +803,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
 
             textarea.value = editor.innerHTML;
 
+            // --------- FIXED SUBMIT HANDLER FOR RELIABLE REDIRECT ----------
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 textarea.value = editor.innerHTML;
@@ -823,7 +819,21 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 .then(res => {
                     if(res.success){
                         if(res.data.status === 'publish'){
-                            window.location.href = res.data.url;
+                            // REDIRECT IMMEDIATELY AND RELIABLY TO NEW POST
+                            if (res.data.url && typeof res.data.url === 'string') {
+                                // Try both assign() and setting href, so it works in all browsers, iframed, AJAX etc.
+                                setTimeout(function(){
+                                    try {
+                                        window.location.assign(res.data.url);
+                                        window.location.href = res.data.url;
+                                    } catch(err){
+                                        // fallback to clickable link if something blocks
+                                        msg.innerHTML = 'Post published! <a href="'+res.data.url+'" target="_blank" rel="noopener">View Post</a>';
+                                    }
+                                }, 100); // Small delay for UI
+                            } else {
+                                msg.textContent = 'Post published but redirect failed: no URL returned.';
+                            }
                         } else {
                             msg.textContent = 'Post saved successfully with status: ' + res.data.status;
                             form.reset();
@@ -845,6 +855,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 .catch(()=>msg.textContent='An error occurred. Try again.')
                 .finally(()=>btn.disabled = false);
             });
+            // --------- END FIX ---------
         });
         </script>
         <style>
