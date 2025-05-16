@@ -96,15 +96,25 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
                 'small'   => true,
                 'default' => false,
                 'description' => "
-<p data-control='info' style='line-height:1'>
-When this feature is enabled likes are stored within the post meta and user meta.<br>
-- post meta: _snn_liked_by = array( userID, userID, ... )<br>
-- user meta:  _snn_liked_posts = array( postID, postID, ... )<br>
-- For example for query: Meta Key: _snn_liked_by and Compare: LIKE<br><br>
-After that we can get the custom field and count the array to get total likes for the post<br><br>
-\$like_count = get_post_meta( get_the_ID(), '_snn_liked_by', true );<br>
+<pre data-control='info' style='line-height:1'>
+When this feature is enabled likes are stored within the post meta and user meta.
+- post meta: _snn_liked_by = array( userID, userID, ... )
+- user meta:  _snn_liked_posts = array( postID, postID, ... )
+- For example for query: Meta Key: _snn_liked_by and Compare: LIKE<br>
+After that we can get the custom field and count the array to get total likes for the post<br>
+\$like_count = get_post_meta( get_the_ID(), '_snn_liked_by', true );
 echo count( \$like_count );
-</p>
+
+
+return [
+ 'post_type'      => 'any', 
+ 'post__in'       => snn_get_user_likes_user_based(
+                        get_current_user_id()
+                    ),
+ 'orderby'        => 'post__in',
+ 'posts_per_page' => -1,
+]
+</pre>
                 ",
             ];
         }
