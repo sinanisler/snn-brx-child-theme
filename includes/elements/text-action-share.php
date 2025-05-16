@@ -11,7 +11,7 @@ class SNN_Text_Action_Share extends Element {
     public $nestable     = false;
 
     public function get_label() {
-        return esc_html__( 'Text Action Share', 'bricks' );
+        return esc_html__( 'Text Action Social Share', 'bricks' );
     }
 
     public function set_controls() {
