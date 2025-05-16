@@ -73,6 +73,7 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/comment-form.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/comment-list.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/frontend-post-form.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/text-action-share.php');
 
 
 // if GSAP setting is enabled Register Elements
