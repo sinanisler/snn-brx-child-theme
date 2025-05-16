@@ -175,9 +175,6 @@ class SNN_Element_Comment_Form extends Element {
 			],
 		];
 
-
-
-
 	}
 
 public function render() {
@@ -227,6 +224,7 @@ public function render() {
     #snn-comment-editor-editor img.snn-img-align-none{display:block;float:none;margin:0 0 10px}
     #snn-comment-editor-editor img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
     .snn-comment-submit{border:none; padding:10px;}
+    #snn-comment-editor-editor p {margin:0 0 1em 0;}
     </style>
     <?php
 
@@ -344,6 +342,32 @@ public function render() {
 
         const editor = container.querySelector('#snn-comment-editor-editor');
         editor.innerHTML = textarea.value;
+
+        // -- Paragraph normalization: ensure pasted content uses <p> tags for paragraphs
+        editor.addEventListener('paste', (e) => {
+            e.preventDefault();
+            let text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            // Split by line breaks and wrap with <p>
+            let html = text.split(/\n+/).map(line => line.trim() ? `<p>${line.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</p>` : '').join('');
+            document.execCommand('insertHTML', false, html);
+        });
+
+        // -- Ensure pressing Enter creates <p>
+        editor.addEventListener('keydown', function(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                document.execCommand('insertParagraph');
+            }
+        });
+
+        // -- Normalize all content as <p> tags on input (optional, can be commented if not needed)
+        // editor.addEventListener('input', () => {
+        //     let html = editor.innerHTML
+        //         .replace(/<div>(.*?)<\/div>/gi, '<p>$1</p>') // div->p
+        //         .replace(/<br\s*\/?>/gi, ''); // remove stray br
+        //     editor.innerHTML = html;
+        // });
+
         const sync = () => textarea.value = editor.innerHTML;
 
         /* Toolbar commands */
@@ -363,29 +387,99 @@ public function render() {
             };
         });
 
-        /* Font size */
+        /* Font size: Use span with style instead of font tag/size attribute */
         container.querySelector('#snn-comment-editor-font-size').onchange = e => {
             const v = e.target.value;
             if ( !v ) return;
-            document.execCommand('fontSize', false, '7');
-            editor.querySelectorAll('font[size="7"]').forEach(el=>{
-                el.style.fontSize = v;
-                el.removeAttribute('size');
-            });
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+
+            // If selection is collapsed, future input uses this span
+            let span = document.createElement('span');
+            span.style.fontSize = v;
+
+            if (selection.isCollapsed) {
+                // Insert span and set cursor inside it
+                range.insertNode(span);
+                let newRange = document.createRange();
+                newRange.selectNodeContents(span);
+                newRange.collapse();
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            } else {
+                // Wrap selection in span
+                range.surroundContents(span);
+            }
             e.target.value = '';
+            sync();
         };
 
         /* Font family */
         container.querySelector('#snn-comment-editor-font-family').onchange = e => {
             const v = e.target.value;
             if ( !v ) return;
-            document.execCommand('fontName', false, v);
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            let span = document.createElement('span');
+            span.style.fontFamily = v;
+
+            if (selection.isCollapsed) {
+                range.insertNode(span);
+                let newRange = document.createRange();
+                newRange.selectNodeContents(span);
+                newRange.collapse();
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            } else {
+                range.surroundContents(span);
+            }
             e.target.value = '';
+            sync();
         };
 
         /* Color pickers */
-        container.querySelector('#snn-comment-editor-text-color').oninput = e => document.execCommand('foreColor', false, e.target.value);
-        container.querySelector('#snn-comment-editor-bg-color').oninput  = e => document.execCommand('hiliteColor', false, e.target.value);
+        container.querySelector('#snn-comment-editor-text-color').oninput = e => {
+            const color = e.target.value;
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            let span = document.createElement('span');
+            span.style.color = color;
+
+            if (selection.isCollapsed) {
+                range.insertNode(span);
+                let newRange = document.createRange();
+                newRange.selectNodeContents(span);
+                newRange.collapse();
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            } else {
+                range.surroundContents(span);
+            }
+            sync();
+        };
+        container.querySelector('#snn-comment-editor-bg-color').oninput  = e => {
+            const color = e.target.value;
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            let span = document.createElement('span');
+            span.style.backgroundColor = color;
+
+            if (selection.isCollapsed) {
+                range.insertNode(span);
+                let newRange = document.createRange();
+                newRange.selectNodeContents(span);
+                newRange.collapse();
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            } else {
+                range.surroundContents(span);
+            }
+            sync();
+        };
 
         /* Sync on input */
         editor.addEventListener('input', sync);
