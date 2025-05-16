@@ -227,10 +227,21 @@ class SNN_Element_Frontend_Post_Form extends Element {
             $guest_msg = isset($this->settings['guest_warning_text']) ? esc_html($this->settings['guest_warning_text']) : esc_html__('You do not have permission to post.', 'snn');
             ?>
             <div class="snn-frontend-post-form-wrapper">
-                <div class="snn-guest-warning" style="padding: 25px; background: #ffefef; border: 1px solid #edcaca; border-radius: 7px; text-align: center; color: #b90000; font-size: 18px;">
+                <div class="snn-guest-warning">
                     <?php echo $guest_msg; ?>
                 </div>
             </div>
+            <style>
+                .snn-guest-warning {
+                    padding: 25px;
+                    background: #ffefef;
+                    border: 1px solid #edcaca;
+                    border-radius: 7px;
+                    text-align: center;
+                    color: #b90000;
+                    font-size: 18px;
+                }
+            </style>
             <?php
             return;
         }
@@ -253,41 +264,38 @@ class SNN_Element_Frontend_Post_Form extends Element {
         }
 
         ?>
-        <div class="snn-frontend-post-form-wrapper" style="width:100%">
+        <div class="snn-frontend-post-form-wrapper">
             <form class="snn-frontend-post-form" autocomplete="off">
                 <input type="hidden" name="action" value="snn_frontend_post"/>
-                <input type="text" name="post_title" placeholder="Title" required style="width:100%; padding:10px; margin-bottom:10px; font-size:18px;" />
-                <div style="display:flex;gap:25px;align-items:flex-start;">
+                <input type="text" name="post_title" placeholder="Title" required class="snn-post-title-input" />
+                <div class="snn-flex-form-row">
                     <?php if($enable_feat): ?>
-                    <div style="flex:1 1 180px;min-width:180px;max-width:220px;">
-                        <div class="snn-featured-image-box" style="margin-bottom:15px;">
-                            <div class="snn-featured-image-preview" style="margin-bottom:7px;"></div>
-                            <button type="button" class="snn-featured-image-btn" style="padding:6px 12px;">Select Featured Image</button>
-                            <button type="button" class="snn-featured-image-remove" style="padding:6px 12px;display:none;">Remove</button>
-                            <input type="file" class="snn-featured-image-input" accept="image/*" style="display:none;">
+                    <div class="snn-featured-image-col">
+                        <div class="snn-featured-image-box">
+                            <div class="snn-featured-image-preview"></div>
+                            <button type="button" class="snn-featured-image-btn">Select Featured Image</button>
+                            <button type="button" class="snn-featured-image-remove">Remove</button>
+                            <input type="file" class="snn-featured-image-input" accept="image/*" style="display:none">
                             <input type="hidden" name="featured_image_id" value="">
                         </div>
                     </div>
                     <?php endif; ?>
                     <?php if($taxonomy && !empty($tax_terms) && !is_wp_error($tax_terms)): ?>
-                    <div style="flex:1 1 200px;max-width:220px;">
-                        <div class="snn-taxonomy-box" style="background:#f8f9fa;border-radius:8px;padding:13px 15px 15px 15px;border:1px solid #ececec;margin-bottom:15px;">
-                            <div style="font-weight:500;margin-bottom:8px;"><?php echo esc_html(get_taxonomy($taxonomy)->labels->singular_name); ?></div>
-                            <div class="snn-taxonomy-terms" style="display:flex;flex-direction:column;gap:5px;">
+                    <div class="snn-taxonomy-col">
+                        <div class="snn-taxonomy-box">
+                            <div class="snn-taxonomy-label"><?php echo esc_html(get_taxonomy($taxonomy)->labels->singular_name); ?></div>
+                            <select class="snn-taxonomy-select" name="snn_tax_terms[]" multiple="multiple" data-placeholder="Select <?php echo esc_attr(get_taxonomy($taxonomy)->labels->singular_name); ?>">
                                 <?php foreach($tax_terms as $term): ?>
-                                    <label style="display:flex;align-items:center;gap:7px;font-size:15px;">
-                                        <input type="checkbox" name="snn_tax_terms[]" value="<?php echo esc_attr($term->term_id); ?>">
-                                        <?php echo esc_html($term->name); ?>
-                                    </label>
+                                    <option value="<?php echo esc_attr($term->term_id); ?>"><?php echo esc_html($term->name); ?></option>
                                 <?php endforeach; ?>
-                            </div>
+                            </select>
                         </div>
                     </div>
                     <?php endif; ?>
                 </div>
                 <div class="snn-post-editor-parent"></div>
-                <button type="submit" class="snn-post-submit" style="padding:10px 20px;"><?php echo $label; ?></button>
-                <div class="snn-form-msg" style="margin-top:10px;"></div>
+                <button type="submit" class="snn-post-submit"><?php echo $label; ?></button>
+                <div class="snn-form-msg"></div>
                 <input type="hidden" name="snn_nonce" value="<?php echo $nonce; ?>"/>
                 <input type="hidden" name="snn_post_status" value="<?php echo $post_status; ?>"/>
                 <input type="hidden" name="snn_post_type" value="<?php echo $post_type; ?>"/>
@@ -298,8 +306,32 @@ class SNN_Element_Frontend_Post_Form extends Element {
             </form>
         </div>
         <style>
-            .snn-frontend-post-form-wrapper{width:100%}
-            .snn-featured-image-preview img{max-width:100%;max-height:180px;display:block;margin-bottom:8px;}
+            .snn-frontend-post-form-wrapper { width:100%; }
+            .snn-post-title-input { width:100%; padding:10px; margin-bottom:10px; font-size:18px; border:1px solid #ccc; border-radius:6px; }
+            .snn-flex-form-row { display:flex; gap:25px; align-items:flex-start; justify-content:space-between; }
+            .snn-featured-image-col { flex:1 1 180px; min-width:180px; max-width:220px; }
+            .snn-featured-image-box { margin-bottom:15px; }
+            .snn-featured-image-preview img { max-width:100%; max-height:180px; display:block; margin-bottom:8px; }
+            .snn-featured-image-btn,
+            .snn-featured-image-remove { padding:6px 12px; border:1px solid #ccc; border-radius:5px; background:#fafafa; cursor:pointer; }
+            .snn-featured-image-remove { display:none; }
+            .snn-taxonomy-col { flex:1 1 300px; max-width:300px; }
+            .snn-taxonomy-box {width:300px; background:#f8f9fa; border-radius:8px; padding:13px 15px 15px 15px; border:1px solid #ececec; margin-bottom:15px; }
+            .snn-taxonomy-label { font-weight:500; margin-bottom:8px; }
+            .snn-taxonomy-select {
+                width:100%;
+                min-width:100px;
+                min-height:42px;
+                border:1px solid #ddd;
+                border-radius:6px;
+                padding:5px 9px;
+                font-size:15px;
+                background:#fff;
+                box-sizing: border-box;
+                resize:vertical;
+            }
+            .snn-taxonomy-select option { padding:5px 8px; }
+            /* Editor styles same as previous */
             .snn-post-editor-container{max-width:100%;margin:1em 0;background:#fff;border-radius:8px;position:relative;}
             .snn-post-editor-toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:10px;background:#f8f9fa; border-radius:5px 5px 0px 0px;}
             .snn-post-editor-toolbar-group{display:flex;gap:4px;align-items:center}
@@ -316,10 +348,15 @@ class SNN_Element_Frontend_Post_Form extends Element {
             #snn-post-editor-editor img.snn-img-align-center{display:block;float:none;margin:auto;margin-bottom:10px}
             #snn-post-editor-editor img.snn-img-align-none{display:block;float:none;margin:0 0 10px}
             #snn-post-editor-editor img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
-            .snn-post-submit{border:none; padding:10px;}
+            .snn-post-submit{border:none; padding:10px 20px; background:#0073aa; color:#fff; border-radius:6px; font-size:17px; cursor:pointer;}
+            .snn-post-submit:hover{background:#005984;}
+            .snn-form-msg{margin-top:10px;}
         </style>
+        <!-- Add a simple multi-select dropdown style and basic search for long lists -->
         <script>
+        // Minimal multi-select dropdown search/filter and "select all/clear" support
         document.addEventListener('DOMContentLoaded', function() {
+            // Feature Image code (unchanged)
             const ajaxurl = '<?php echo esc_js(admin_url('admin-ajax.php', 'relative')); ?>';
             const snnNonce = '<?php echo esc_js($nonce); ?>';
             const canUpload = <?php echo $can_upload ? 'true' : 'false'; ?>;
@@ -374,7 +411,114 @@ class SNN_Element_Frontend_Post_Form extends Element {
             };
             <?php endif; ?>
 
-            // Build editor DOM dynamically (like comment editor)
+            // ==== TAXONOMY MULTI-SELECT ENHANCEMENT ====
+            // Custom simple dropdown multi-select w/ search
+            const taxSelect = document.querySelector('.snn-taxonomy-select');
+            if (taxSelect) {
+                // Wrap select in a custom div for styling
+                taxSelect.style.display = "none";
+                const wrapper = document.createElement('div');
+                wrapper.className = 'snn-taxonomy-dropdown-wrapper';
+                taxSelect.parentNode.insertBefore(wrapper, taxSelect);
+                wrapper.appendChild(taxSelect);
+
+                // Selected display box
+                const selectedBox = document.createElement('div');
+                selectedBox.className = 'snn-taxonomy-selected-box';
+                selectedBox.tabIndex = 0;
+                selectedBox.textContent = taxSelect.getAttribute('data-placeholder') || 'Select';
+                wrapper.insertBefore(selectedBox, taxSelect);
+
+                // Dropdown list
+                const dropdown = document.createElement('div');
+                dropdown.className = 'snn-taxonomy-dropdown';
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = `<div class="snn-taxonomy-dropdown-search"><input type="text" placeholder="Search..." class="snn-taxonomy-search-input" /></div>
+                <div class="snn-taxonomy-options"></div>
+                <div class="snn-taxonomy-dropdown-actions">
+                    <button type="button" class="snn-tax-select-all">All</button>
+                    <button type="button" class="snn-tax-clear-all">Clear</button>
+                </div>
+                `;
+                wrapper.appendChild(dropdown);
+
+                // Render options
+                function renderOptions(filter='') {
+                    const optionsWrap = dropdown.querySelector('.snn-taxonomy-options');
+                    optionsWrap.innerHTML = '';
+                    Array.from(taxSelect.options).forEach(opt => {
+                        if (filter && !opt.text.toLowerCase().includes(filter.toLowerCase())) return;
+                        const div = document.createElement('div');
+                        div.className = 'snn-taxonomy-option';
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.value = opt.value;
+                        input.checked = opt.selected;
+                        input.id = 'taxterm-'+opt.value;
+                        input.onchange = function() {
+                            opt.selected = input.checked;
+                            updateSelectedBox();
+                        };
+                        const label = document.createElement('label');
+                        label.setAttribute('for', input.id);
+                        label.textContent = opt.text;
+                        div.appendChild(input);
+                        div.appendChild(label);
+                        optionsWrap.appendChild(div);
+                    });
+                }
+                renderOptions();
+
+                // Show/hide dropdown
+                function openDropdown() {
+                    dropdown.style.display = 'block';
+                    selectedBox.classList.add('active');
+                    renderOptions();
+                }
+                function closeDropdown() {
+                    dropdown.style.display = 'none';
+                    selectedBox.classList.remove('active');
+                }
+                selectedBox.onclick = function(e) {
+                    e.stopPropagation();
+                    if (dropdown.style.display === 'block') closeDropdown();
+                    else openDropdown();
+                };
+                document.addEventListener('click', function(e) {
+                    if (!wrapper.contains(e.target)) closeDropdown();
+                });
+
+                // Search
+                dropdown.querySelector('.snn-taxonomy-search-input').oninput = function(e) {
+                    renderOptions(e.target.value);
+                };
+
+                // Select all / Clear all
+                dropdown.querySelector('.snn-tax-select-all').onclick = function() {
+                    Array.from(taxSelect.options).forEach(opt => { opt.selected = true; });
+                    renderOptions(dropdown.querySelector('.snn-taxonomy-search-input').value);
+                    updateSelectedBox();
+                };
+                dropdown.querySelector('.snn-tax-clear-all').onclick = function() {
+                    Array.from(taxSelect.options).forEach(opt => { opt.selected = false; });
+                    renderOptions(dropdown.querySelector('.snn-taxonomy-search-input').value);
+                    updateSelectedBox();
+                };
+
+                // Update selected
+                function updateSelectedBox() {
+                    let selected = Array.from(taxSelect.selectedOptions).map(o=>o.text);
+                    if(selected.length > 0)
+                        selectedBox.textContent = selected.join(', ');
+                    else
+                        selectedBox.textContent = taxSelect.getAttribute('data-placeholder') || 'Select';
+                }
+                updateSelectedBox();
+            }
+
+            // ==== END TAXONOMY MULTI-SELECT ====
+
+            // === EDITOR CODE (UNCHANGED) ===
             const container = document.createElement('div');
             container.className = 'snn-post-editor-container';
             container.innerHTML = `
@@ -601,7 +745,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
             // ====== ENSURE <p> TAGS FOR PARAGRAPHS ======
             // Normalize on input and paste to wrap text blocks into <p> tags
             function wrapParagraphs(node) {
-                // Ignore empty node
                 if (!node || !node.childNodes) return;
                 const nodes = Array.from(node.childNodes);
                 let buffer = [];
@@ -614,20 +757,17 @@ class SNN_Element_Frontend_Post_Form extends Element {
                     }
                 }
                 nodes.forEach(n => {
-                    // If node is a <br> or text node (not only whitespace), buffer it
                     if (
                         n.nodeType === 3 && n.nodeValue.trim().length > 0
                         || (n.nodeType === 1 && n.nodeName === 'BR')
                     ) {
                         buffer.push(n);
                     }
-                    // If node is an element and not <p>, <div>, <span>, buffer it as a para
                     else if (
                         n.nodeType === 1 && ['P', 'DIV'].indexOf(n.nodeName) === -1
                     ) {
                         buffer.push(n);
                     }
-                    // If node is <div> or <p>, flush buffer and keep as is (convert <div> to <p>)
                     else if (n.nodeType === 1 && n.nodeName === 'DIV') {
                         flushParagraph();
                         const p = document.createElement('p');
@@ -642,11 +782,9 @@ class SNN_Element_Frontend_Post_Form extends Element {
 
             // On input: convert orphan text/divs to <p>
             editor.addEventListener('input', function() {
-                // Remove <div> and wrap direct text in <p>
                 let html = editor.innerHTML;
                 html = html.replace(/<div([^>]*)>/gi, '<p$1>');
                 html = html.replace(/<\/div>/gi, '</p>');
-                // Remove double <p><p> and <br> inside <p>
                 html = html.replace(/<p>\s*<p>/gi, '<p>');
                 html = html.replace(/<\/p>\s*<\/p>/gi, '</p>');
                 html = html.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
@@ -663,19 +801,16 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 } else if (window.clipboardData) {
                     text = window.clipboardData.getData('Text');
                 }
-                // Split by lines and wrap with <p>
                 let html = text.split(/\n+/).map(line => line.trim() ? '<p>' + line + '</p>' : '').join('');
                 document.execCommand('insertHTML', false, html);
                 textarea.value = editor.innerHTML;
             });
 
-            // Initial set value sync
             textarea.value = editor.innerHTML;
 
-            // FORM AJAX (no change)
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                textarea.value = editor.innerHTML; // Sync content
+                textarea.value = editor.innerHTML;
                 msg.textContent = '';
                 btn.disabled = true;
                 fetch(ajaxurl, {
@@ -712,6 +847,80 @@ class SNN_Element_Frontend_Post_Form extends Element {
             });
         });
         </script>
+        <style>
+        /* Taxonomy dropdown custom styles */
+        .snn-taxonomy-dropdown-wrapper {
+            position:relative;
+            width:100%;
+            
+        }
+        .snn-taxonomy-selected-box {
+            width:100%;
+            min-height:38px;
+            padding:7px 12px;
+            border:1px solid #ccc;
+            border-radius:6px;
+            background:#fff;
+            cursor:pointer;
+            box-sizing:border-box;
+            font-size:15px;
+            margin-bottom:2px;
+        }
+        .snn-taxonomy-selected-box.active {
+            border-color: #0073aa;
+            box-shadow: 0 0 2px #0073aa;
+        }
+        .snn-taxonomy-dropdown {
+            position:absolute;
+            left:0;right:0;top:100%;
+            background:#fff;
+            border:1px solid #ccc;
+            border-radius:7px;
+            z-index: 99;
+            box-shadow: 0 4px 16px #0001;
+            margin-top:2px;
+            overflow:auto;
+        }
+        .snn-taxonomy-dropdown-search {
+            padding:6px 8px;
+            border-bottom:1px solid #eee;
+        }
+        .snn-taxonomy-search-input {
+            width:100%;
+            padding:5px 7px;
+            border-radius:5px;
+            border:1px solid #eee;
+            font-size:15px;
+        }
+        .snn-taxonomy-options { max-height:150px; overflow:auto; }
+        .snn-taxonomy-option {
+            display:flex;align-items:center;gap:7px;padding:6px 12px;font-size:15px;cursor:pointer;
+        }
+        .snn-taxonomy-option input[type=checkbox] {
+            margin-right:5px;
+        }
+        .snn-taxonomy-option:hover {
+            background:#f0f2fa;
+        }
+        .snn-taxonomy-dropdown-actions {
+            border-top:1px solid #eee;
+            padding:6px 12px;
+            display:flex;
+            gap:8px;
+            justify-content:right;
+        }
+        .snn-taxonomy-dropdown-actions button {
+            border:none;
+            background:#e9ecef;
+            border-radius:5px;
+            padding:4px 12px;
+            font-size:13px;
+            cursor:pointer;
+        }
+        .snn-taxonomy-dropdown-actions button:hover {
+            background:#0073aa;color:#fff;
+        }
+        </style>
         <?php
     }
 }
