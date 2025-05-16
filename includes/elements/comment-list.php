@@ -18,24 +18,12 @@ class SNN_Element_Comment_List extends Element {
 	/* --------------------------------------------------------------------- */
 	public function get_label() { return esc_html__( 'Comment List', 'snn' ); }
 
-	/* ---------- CONTROL GROUPS ------------------------------------------ */
-	public function set_control_groups() {
-		$this->control_groups['settings'] = [
-			'title' => esc_html__( 'Settings', 'snn' ),
-			'tab'   => 'content',
-		];
-		$this->control_groups['style'] = [
-			'title' => esc_html__( 'Style', 'snn' ),
-			'tab'   => 'style',
-		];
-	}
 
 	/* ---------- CONTROLS ------------------------------------------------- */
 	public function set_controls() {
 
 		$this->controls['avatar'] = [
 			'tab'     => 'content',
-			'group'   => 'settings',
 			'label'   => esc_html__( 'Avatar size', 'snn' ),
 			'type'    => 'number',
 			'unit'    => 'px',
@@ -46,7 +34,6 @@ class SNN_Element_Comment_List extends Element {
 
 		$this->controls['order'] = [
 			'tab'     => 'content',
-			'group'   => 'settings',
 			'label'   => esc_html__( 'Order', 'snn' ),
 			'type'    => 'select',
 			'options' => [ 'ASC' => 'ASC', 'DESC' => 'DESC' ],
@@ -56,7 +43,6 @@ class SNN_Element_Comment_List extends Element {
 
 		$this->controls['inline_edit'] = [
 			'tab'     => 'content',
-			'group'   => 'settings',
 			'label'   => esc_html__( 'Enable inline edit', 'snn' ),
 			'type'    => 'checkbox',
 			'default' => true,
@@ -65,8 +51,7 @@ class SNN_Element_Comment_List extends Element {
 
 		/* example style-control */
 		$this->controls['typography'] = [
-			'tab'   => 'style',
-			'group' => 'style',
+			'tab'   => 'content',
 			'label' => esc_html__( 'Comment typography', 'snn' ),
 			'type'  => 'typography',
 			'css'   => [
