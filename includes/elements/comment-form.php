@@ -91,18 +91,6 @@ class SNN_Element_Comment_Form extends Element {
 			],
 		];
 
-		$this->controls['button_padding'] = [
-			'tab'   => 'content',
-			'label' => esc_html__( 'Button padding', 'snn' ),
-			'type'  => 'dimensions',
-			'css'   => [
-				[
-					'property'  => 'padding',
-					'selector'  => '.snn-comment-submit',
-					'important' => true,
-				],
-			],
-		];
 
 		$this->controls['toolbar_bg_color'] = [
 			'tab'   => 'content',
@@ -170,6 +158,25 @@ class SNN_Element_Comment_Form extends Element {
 				],
 			],
 		];
+
+
+
+		$this->controls['button_padding'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Button padding', 'snn' ),
+			'type'  => 'dimensions',
+			'css'   => [
+				[
+					'property'  => 'padding',
+					'selector'  => '.snn-comment-submit',
+					'important' => true,
+				],
+			],
+		];
+
+
+
+
 	}
 
 public function render() {
