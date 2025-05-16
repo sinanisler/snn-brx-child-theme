@@ -284,7 +284,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
                     <?php if($taxonomy && !empty($tax_terms) && !is_wp_error($tax_terms)): ?>
                     <div class="snn-taxonomy-col">
                         <div class="snn-taxonomy-box">
-                            <div class="snn-taxonomy-label"><?php echo esc_html(get_taxonomy($taxonomy)->labels->singular_name); ?></div>
                             <select class="snn-taxonomy-select" name="snn_tax_terms[]" multiple="multiple" data-placeholder="Select <?php echo esc_attr(get_taxonomy($taxonomy)->labels->singular_name); ?>">
                                 <?php foreach($tax_terms as $term): ?>
                                     <option value="<?php echo esc_attr($term->term_id); ?>"><?php echo esc_html($term->name); ?></option>
@@ -314,10 +313,10 @@ class SNN_Element_Frontend_Post_Form extends Element {
             .snn-featured-image-box { margin-bottom:15px; }
             .snn-featured-image-preview img { max-width:100%; max-height:180px; display:block; margin-bottom:8px; }
             .snn-featured-image-btn,
-            .snn-featured-image-remove { padding:6px 12px; border:1px solid #ccc; border-radius:5px; background:#fafafa; cursor:pointer; }
+            .snn-featured-image-remove { padding:9px 12px; border:1px solid #ccc; border-radius:5px; background:#fafafa; cursor:pointer; }
             .snn-featured-image-remove { display:none; }
             .snn-taxonomy-col { flex:1 1 300px; max-width:300px; }
-            .snn-taxonomy-box {width:300px; background:#f8f9fa; border-radius:8px; padding:13px 15px 15px 15px; border:1px solid #ececec; margin-bottom:15px; }
+            .snn-taxonomy-box {width:300px; background:#f8f9fa;  margin-bottom:15px; }
             .snn-taxonomy-label { font-weight:500; margin-bottom:8px; }
             .snn-taxonomy-select {
                 width:100%;
@@ -349,8 +348,8 @@ class SNN_Element_Frontend_Post_Form extends Element {
             #snn-post-editor-editor img.snn-img-align-center{display:block;float:none;margin:auto;margin-bottom:10px}
             #snn-post-editor-editor img.snn-img-align-none{display:block;float:none;margin:0 0 10px}
             #snn-post-editor-editor img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
-            .snn-post-submit{border:none; padding:10px 20px; background:#0073aa; color:#fff; border-radius:6px; font-size:17px; cursor:pointer;}
-            .snn-post-submit:hover{background:#005984;}
+            .snn-post-submit{border:none; padding:10px 20px;  border-radius:6px; font-size:17px; cursor:pointer;}
+            .snn-post-submit:hover{}
             .snn-form-msg{margin-top:10px;}
         </style>
         <!-- Add a simple multi-select dropdown style and basic search for long lists -->
@@ -868,7 +867,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
         .snn-taxonomy-selected-box {
             width:100%;
             min-height:38px;
-            padding:7px 12px;
+            padding:5px 12px;
             border:1px solid #ccc;
             border-radius:6px;
             background:#fff;
