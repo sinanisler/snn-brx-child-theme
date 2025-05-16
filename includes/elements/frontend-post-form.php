@@ -21,14 +21,12 @@ class SNN_Element_Frontend_Post_Form extends Element {
             $post_type_options[$pt->name] = $pt->labels->singular_name;
         }
 
-        // Taxonomy selection (NEW)
         $taxonomies = get_taxonomies(['public' => true], 'objects');
         $taxonomy_options = [];
         foreach ($taxonomies as $tx) {
             $taxonomy_options[$tx->name] = $tx->labels->singular_name;
         }
 
-        // User roles
         global $wp_roles;
         $role_options = [];
         foreach( $wp_roles->roles as $role_key => $role_info ) {
@@ -44,7 +42,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'inline'  => true,
         ];
 
-        // ==== TAXONOMY CONTROL ====
         $this->controls['taxonomy'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Taxonomy (Optional)', 'snn' ),
@@ -52,7 +49,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'options' => ['' => esc_html__('None', 'snn')] + $taxonomy_options,
             'default' => '',
             'inline'  => true,
-            'description' => esc_html__('Select a taxonomy to allow users to assign terms to the post.', 'snn')
         ];
 
         $this->controls['post_status'] = [
@@ -105,7 +101,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'inline'  => true,
         ];
 
-        // ==== EDITOR CONTROLS (style, background, colors, etc.) ====
         $this->controls['button_typography'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Button typography', 'snn' ),
@@ -258,7 +253,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
         }
 
         ?>
-        <div class="snn-frontend-post-form-wrapper">
+        <div class="snn-frontend-post-form-wrapper" style="width:100%">
             <form class="snn-frontend-post-form" autocomplete="off">
                 <input type="hidden" name="action" value="snn_frontend_post"/>
                 <input type="text" name="post_title" placeholder="Title" required style="width:100%; padding:10px; margin-bottom:10px; font-size:18px;" />
@@ -331,7 +326,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
             const parent = document.querySelector('.snn-post-editor-parent');
             if (!parent) return;
 
-            // === FEATURED IMAGE LOGIC ===
             <?php if($enable_feat): ?>
             const featBox = document.querySelector('.snn-featured-image-box');
             const featPreview = featBox.querySelector('.snn-featured-image-preview');
@@ -388,14 +382,14 @@ class SNN_Element_Frontend_Post_Form extends Element {
                     <div class="snn-post-editor-toolbar-group">
                         <select id="snn-post-editor-font-size" class="snn-post-editor-select">
                             <option value="">Size</option>
-                            <option value="16px" selected>16</option>
-                            <option value="18px">18</option>
-                            <option value="20px">20</option>
-                            <option value="24px">24</option>
-                            <option value="30px">30</option>
-                            <option value="40px">40</option>
-                            <option value="50px">50</option>
-                            <option value="80px">80</option>
+                            <option value="16">16</option>
+                            <option value="18">18</option>
+                            <option value="20">20</option>
+                            <option value="24">24</option>
+                            <option value="30">30</option>
+                            <option value="40">40</option>
+                            <option value="50">50</option>
+                            <option value="80">80</option>
                         </select>
                         <select id="snn-post-editor-font-family" class="snn-post-editor-select">
                             <option value="">Font</option>
@@ -448,7 +442,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
             `;
             parent.appendChild(container);
 
-            // Editor logic (identical as before)
             const editor = container.querySelector('#snn-post-editor-editor');
             const textarea = document.getElementById('snn-post-editor-textarea');
             const imageTools = container.querySelector('.snn-post-editor-image-tools');
@@ -459,7 +452,49 @@ class SNN_Element_Frontend_Post_Form extends Element {
             const btn = form.querySelector('.snn-post-submit');
             let selectedImage = null;
 
-            // Toolbar commands
+            // === FONT SIZE CUSTOM HANDLER ===
+            container.querySelector('#snn-post-editor-font-size').onchange = e => {
+                const px = e.target.value;
+                if (!px) return;
+                setFontSizeSpan(px);
+                e.target.value = '';
+                textarea.value = editor.innerHTML;
+            };
+
+            // Insert font-size with <span style="font-size:XXpx"> for selection
+            function setFontSizeSpan(px) {
+                const sel = window.getSelection();
+                if (!sel.rangeCount) return;
+                const range = sel.getRangeAt(0);
+                if (range.collapsed) return;
+                // Create span
+                const span = document.createElement('span');
+                span.style.fontSize = px + 'px';
+                range.surroundContents(span);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+
+            // FONT FAMILY (no change)
+            container.querySelector('#snn-post-editor-font-family').onchange = e => {
+                const v = e.target.value;
+                if (!v) return;
+                document.execCommand('fontName', false, v);
+                e.target.value = '';
+                textarea.value = editor.innerHTML;
+            };
+
+            // Color pickers (no change)
+            container.querySelector('#snn-post-editor-text-color').oninput = e => {
+                document.execCommand('foreColor', false, e.target.value);
+                textarea.value = editor.innerHTML;
+            };
+            container.querySelector('#snn-post-editor-bg-color').oninput = e => {
+                document.execCommand('hiliteColor', false, e.target.value);
+                textarea.value = editor.innerHTML;
+            };
+
+            // Toolbar commands (no change)
             container.querySelectorAll('.snn-post-editor-btn[data-command]').forEach(btn => {
                 btn.onmousedown = e => e.preventDefault();
                 btn.onclick = e => {
@@ -476,42 +511,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 };
             });
 
-            // Font size
-            container.querySelector('#snn-post-editor-font-size').onchange = e => {
-                const v = e.target.value;
-                if (!v) return;
-                document.execCommand('fontSize', false, '7');
-                editor.querySelectorAll('font[size="7"]').forEach(el => {
-                    el.style.fontSize = v;
-                    el.removeAttribute('size');
-                });
-                e.target.value = '';
-                textarea.value = editor.innerHTML;
-            };
-
-            // Font family
-            container.querySelector('#snn-post-editor-font-family').onchange = e => {
-                const v = e.target.value;
-                if (!v) return;
-                document.execCommand('fontName', false, v);
-                e.target.value = '';
-                textarea.value = editor.innerHTML;
-            };
-
-            // Color pickers
-            container.querySelector('#snn-post-editor-text-color').oninput = e => {
-                document.execCommand('foreColor', false, e.target.value);
-                textarea.value = editor.innerHTML;
-            };
-            container.querySelector('#snn-post-editor-bg-color').oninput = e => {
-                document.execCommand('hiliteColor', false, e.target.value);
-                textarea.value = editor.innerHTML;
-            };
-
-            // Sync on input
-            editor.addEventListener('input', () => textarea.value = editor.innerHTML);
-
-            // Media Upload (AJAX)
+            // Media Upload (AJAX) (no change)
             if (canUpload) {
                 const mediaBtn = container.querySelector('#snn-post-editor-media-btn'),
                     fileInp  = container.querySelector('#snn-post-editor-file-input');
@@ -547,7 +547,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 };
             }
 
-            // Image selection/tools
+            // Image selection/tools (no change)
             editor.addEventListener('click', e => {
                 const img = e.target.closest('img');
                 if (img) {
@@ -568,7 +568,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 }
             });
 
-            // Alignment buttons
+            // Alignment buttons (no change)
             alignBtns.forEach(btn => {
                 btn.onmousedown = e => e.preventDefault();
                 btn.onclick = e => {
@@ -586,7 +586,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 };
             });
 
-            // Width percentage buttons
+            // Width percentage buttons (no change)
             widthBtns.forEach(btn => {
                 btn.onmousedown = e => e.preventDefault();
                 btn.onclick = e => {
@@ -598,7 +598,81 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 };
             });
 
-            // FORM AJAX
+            // ====== ENSURE <p> TAGS FOR PARAGRAPHS ======
+            // Normalize on input and paste to wrap text blocks into <p> tags
+            function wrapParagraphs(node) {
+                // Ignore empty node
+                if (!node || !node.childNodes) return;
+                const nodes = Array.from(node.childNodes);
+                let buffer = [];
+                function flushParagraph() {
+                    if (buffer.length > 0) {
+                        const p = document.createElement('p');
+                        buffer.forEach(n => p.appendChild(n));
+                        node.insertBefore(p, nodes[0]);
+                        buffer = [];
+                    }
+                }
+                nodes.forEach(n => {
+                    // If node is a <br> or text node (not only whitespace), buffer it
+                    if (
+                        n.nodeType === 3 && n.nodeValue.trim().length > 0
+                        || (n.nodeType === 1 && n.nodeName === 'BR')
+                    ) {
+                        buffer.push(n);
+                    }
+                    // If node is an element and not <p>, <div>, <span>, buffer it as a para
+                    else if (
+                        n.nodeType === 1 && ['P', 'DIV'].indexOf(n.nodeName) === -1
+                    ) {
+                        buffer.push(n);
+                    }
+                    // If node is <div> or <p>, flush buffer and keep as is (convert <div> to <p>)
+                    else if (n.nodeType === 1 && n.nodeName === 'DIV') {
+                        flushParagraph();
+                        const p = document.createElement('p');
+                        while (n.firstChild) p.appendChild(n.firstChild);
+                        node.replaceChild(p, n);
+                    } else if (n.nodeType === 1 && n.nodeName === 'P') {
+                        flushParagraph();
+                    }
+                });
+                flushParagraph();
+            }
+
+            // On input: convert orphan text/divs to <p>
+            editor.addEventListener('input', function() {
+                // Remove <div> and wrap direct text in <p>
+                let html = editor.innerHTML;
+                html = html.replace(/<div([^>]*)>/gi, '<p$1>');
+                html = html.replace(/<\/div>/gi, '</p>');
+                // Remove double <p><p> and <br> inside <p>
+                html = html.replace(/<p>\s*<p>/gi, '<p>');
+                html = html.replace(/<\/p>\s*<\/p>/gi, '</p>');
+                html = html.replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
+                editor.innerHTML = html;
+                textarea.value = editor.innerHTML;
+            });
+
+            // On paste: clean up and ensure <p> for paragraphs
+            editor.addEventListener('paste', function(e) {
+                e.preventDefault();
+                let text = '';
+                if (e.clipboardData) {
+                    text = e.clipboardData.getData('text/plain');
+                } else if (window.clipboardData) {
+                    text = window.clipboardData.getData('Text');
+                }
+                // Split by lines and wrap with <p>
+                let html = text.split(/\n+/).map(line => line.trim() ? '<p>' + line + '</p>' : '').join('');
+                document.execCommand('insertHTML', false, html);
+                textarea.value = editor.innerHTML;
+            });
+
+            // Initial set value sync
+            textarea.value = editor.innerHTML;
+
+            // FORM AJAX (no change)
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 textarea.value = editor.innerHTML; // Sync content
@@ -677,11 +751,9 @@ function snn_frontend_post_handler(){
         'post_author'  => get_current_user_id(),
     ]);
     if(is_wp_error($post_id)) wp_send_json_error($post_id->get_error_message());
-    // Set featured image if provided
     if ($feat_id) {
         set_post_thumbnail($post_id, $feat_id);
     }
-    // Assign taxonomy terms if set
     if ($taxonomy && taxonomy_exists($taxonomy) && !empty($term_ids)) {
         wp_set_object_terms($post_id, $term_ids, $taxonomy, false);
     }
@@ -709,3 +781,4 @@ add_action('wp_ajax_snn_post_media_upload', function(){
     $url = wp_get_attachment_url($id);
     wp_send_json_success(['url'=>$url, 'id'=>$id]);
 });
+?>
