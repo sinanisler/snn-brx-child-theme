@@ -74,6 +74,7 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/comment-list.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/frontend-post-form.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/text-action-social-share.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/scroll-line-vertical-indicator.php');
 
 
 // if GSAP setting is enabled Register Elements
