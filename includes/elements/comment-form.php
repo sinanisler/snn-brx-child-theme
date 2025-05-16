@@ -29,6 +29,7 @@ class SNN_Element_Comment_Form extends Element {
 			'type'    => 'text',
 			'default' => esc_html__( 'Post Comment', 'snn' ),
 			'placeholder' => esc_html__( 'Post Comment', 'snn' ),
+			'inline'  => true,
 		];
 
 		$this->controls['allow_uploads'] = [
@@ -41,11 +42,10 @@ class SNN_Element_Comment_Form extends Element {
 
 		$this->controls['enable_website_field'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Show Website input (dummy, does not show)', 'snn' ),
+			'label'   => esc_html__( 'Show Website input', 'snn' ),
 			'type'    => 'checkbox',
 			'default' => false,
 			'inline'  => true,
-			'desc'    => esc_html__( 'Not functional, website field is not shown.', 'snn' ),
 		];
 
 		$this->controls['hide_logged_in_as'] = [
@@ -62,6 +62,7 @@ class SNN_Element_Comment_Form extends Element {
 			'type'    => 'text',
 			'default' => esc_html__( 'Leave a Reply', 'snn' ),
 			'placeholder' => esc_html__( 'Leave a Reply', 'snn' ),
+			'inline'  => true,
 		];
 
 		/* ---------- STYLE TAB -------------------------------------------------- */
