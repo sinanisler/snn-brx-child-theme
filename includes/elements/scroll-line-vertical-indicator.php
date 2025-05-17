@@ -47,12 +47,6 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
             'default' => [
                 'hex' => '#cccccc'
             ],
-            'css' => [
-                [
-                    'property' => 'background-color',
-                    'selector' => '.scroll-line',
-                ]
-            ]
         ];
         $this->controls['dot_color'] = [
             'tab'   => 'content',
@@ -61,12 +55,6 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
             'default' => [
                 'hex' => '#333333'
             ],
-            'css' => [
-                [
-                    'property' => 'background',
-                    'selector' => '.scroll-indicator',
-                ]
-            ]
         ];
         $this->controls['dot_width'] = [
             'tab'     => 'content',
@@ -124,6 +112,8 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
         $dom_selector = $this->settings['dom_selector'] ?: 'comment';
         $indicator_height = isset($this->settings['indicator_height']) ? $this->settings['indicator_height'] : '300px';
         $indicator_width = isset($this->settings['indicator_width']) ? $this->settings['indicator_width'] : '4px';
+        $indicator_color = isset($this->settings['indicator_color']['hex']) ? $this->settings['indicator_color']['hex'] : '#cccccc';
+        $dot_color = isset($this->settings['dot_color']['hex']) ? $this->settings['dot_color']['hex'] : '#333333';
         $dot_width = isset($this->settings['dot_width']) ? intval($this->settings['dot_width']) : 18;
         $dot_height = isset($this->settings['dot_height']) ? intval($this->settings['dot_height']) : 18;
         $dot_border_radius = isset($this->settings['dot_border_radius']) ? intval($this->settings['dot_border_radius']) : 50;
@@ -139,144 +129,147 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
 
         $unique = 'scroll-indicator-' . uniqid();
         $this->set_attribute( '_root', 'class', [ 'snn-scroll-line-vertical-indicator-wrapper', $unique ] );
-        ?>
-        <style>
-        .<?php echo esc_attr($unique); ?> {
-            <?php if ( $fixed_position ) : ?>
-                position: fixed;
-                top: 50%;
-                right: 20px;
-                transform: translateY(-50%);
-                z-index: 1000;
+
+        echo '<div ' . $this->render_attributes('_root') . '>';
+        echo '<style>
+            /* Wrapper */
+            .' . esc_attr($unique) . ' {
+                ' . ( $fixed_position ?
+                    'position: fixed;
+                    top: 50%;
+                    right: 20px;
+                    transform: translateY(-50%);
+                    z-index: 1000;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;'
+                    :
+                    'display: block;
+                    position: relative;
+                    flex-direction: column;
+                    align-items: center;'
+                ) . '
+            }
+            /* Line Container */
+            .' . esc_attr($unique) . ' .scroll-line-container {
+                position: relative;
+                height: ' . $height_css . ';
+                width: auto;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-            <?php else : ?>
-                display: block;
-                position: relative;
-                flex-direction: column;
+            }
+            /* Scroll Line */
+            .' . esc_attr($unique) . ' .scroll-line {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: ' . $width_css . ';
+                height: 100%;
+                background-color: ' . esc_attr($indicator_color) . ';
+                border-radius: 2px;
+                z-index: 0;
+            }
+            /* Scroll Dot */
+            .' . esc_attr($unique) . ' .scroll-indicator {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: ' . $dot_width_css . ';
+                height: ' . $dot_height_css . ';
+                background: ' . esc_attr($dot_color) . ';
+                border-radius: ' . $dot_border_radius_css . ';
+                color: #fff;
+                font-size: ' . $dot_font_size_css . ';
+                font-weight: bold;
+                display: flex;
                 align-items: center;
-            <?php endif; ?>
-        }
-        .<?php echo esc_attr($unique); ?> .scroll-line-container {
-            position: relative;
-            height: <?php echo $height_css; ?>;
-            width: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .<?php echo esc_attr($unique); ?> .scroll-line {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: <?php echo $width_css; ?>;
-            height: 100%;
-            background-color: #ccc;
-            border-radius: 2px;
-            z-index: 0;
-        }
-        .<?php echo esc_attr($unique); ?> .scroll-indicator {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: <?php echo $dot_width_css; ?>;
-            height: <?php echo $dot_height_css; ?>;
-            background: #333;
-            border-radius: <?php echo $dot_border_radius_css; ?>;
-            color: #fff;
-            font-size: <?php echo $dot_font_size_css; ?>;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            top: 0;
-            z-index: 1;
-            will-change: top;
-        }
-        </style>
-        <div <?php echo $this->render_attributes('_root'); ?>>
-            <div class="scroll-line-container">
+                justify-content: center;
+                top: 0;
+                z-index: 1;
+                will-change: top;
+            }
+        </style>';
+        echo '<div class="scroll-line-container">
                 <div class="scroll-line"></div>
                 <div class="scroll-indicator">1</div>
-            </div>
-        </div>
-<script>
-(function(){
-    const root = document.querySelector('.<?php echo esc_js($unique); ?>');
-    if (!root) return;
+            </div>';
+        ?>
+        <script>
+        (function(){
+            const root = document.querySelector('.<?php echo esc_js($unique); ?>');
+            if (!root) return;
 
-    const indicator = root.querySelector('.scroll-indicator');
-    const scrollLine = root.querySelector('.scroll-line');
-    const selector = '<?php echo esc_js($dom_selector); ?>';
-    const dotHeight = <?php echo $dot_height; ?>;
-    let postCount = 0;
+            const indicator = root.querySelector('.scroll-indicator');
+            const scrollLine = root.querySelector('.scroll-line');
+            const selector = '<?php echo esc_js($dom_selector); ?>';
+            const dotHeight = <?php echo $dot_height; ?>;
+            let postCount = 0;
 
-    let currentTop = 0;
-    let targetTop = 0;
-    let currentDisplayNum = '-';
-    let animationRunning = false;
+            let currentTop = 0;
+            let targetTop = 0;
+            let currentDisplayNum = '-';
+            let animationRunning = false;
 
-    function getPostsCount() {
-        try {
-            return document.querySelectorAll(selector).length;
-        } catch(e) {
-            return 0;
-        }
-    }
+            function getPostsCount() {
+                try {
+                    return document.querySelectorAll(selector).length;
+                } catch(e) {
+                    return 0;
+                }
+            }
 
-    function calculatePosition() {
-        postCount = getPostsCount();
-        if (postCount === 0) {
-            targetTop = 0;
-            currentDisplayNum = '-';
-            return;
-        }
+            function calculatePosition() {
+                postCount = getPostsCount();
+                if (postCount === 0) {
+                    targetTop = 0;
+                    currentDisplayNum = '-';
+                    return;
+                }
 
-        const scrollTop = window.scrollY || document.documentElement.scrollTop;
-        const docHeight = document.body.scrollHeight - window.innerHeight;
-        const percent = Math.min(Math.max(scrollTop / docHeight, 0), 1);
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                const docHeight = document.body.scrollHeight - window.innerHeight;
+                const percent = Math.min(Math.max(scrollTop / docHeight, 0), 1);
 
-        const lineHeight = scrollLine.clientHeight;
-        targetTop = percent * (lineHeight - dotHeight);
+                const lineHeight = scrollLine.clientHeight;
+                targetTop = percent * (lineHeight - dotHeight);
 
-        const postNumber = Math.round(postCount * percent);
-        currentDisplayNum = Math.min(Math.max(1, postNumber + 1), postCount);
-    }
+                const postNumber = Math.round(postCount * percent);
+                currentDisplayNum = Math.min(Math.max(1, postNumber + 1), postCount);
+            }
 
-    function animate() {
-        currentTop += (targetTop - currentTop) * 0.15; // Smooth easing (15%)
+            function animate() {
+                currentTop += (targetTop - currentTop) * 0.15;
 
-        indicator.style.top = `${currentTop}px`;
+                indicator.style.top = `${currentTop}px`;
 
-        // Update displayed number only if it changed
-        if (indicator.textContent != currentDisplayNum) {
-            indicator.textContent = currentDisplayNum;
-        }
+                if (indicator.textContent != currentDisplayNum) {
+                    indicator.textContent = currentDisplayNum;
+                }
 
-        if (Math.abs(targetTop - currentTop) > 0.5) {
-            requestAnimationFrame(animate);
-        } else {
-            currentTop = targetTop; // Snap to target to prevent jitter
-            animationRunning = false;
-        }
-    }
+                if (Math.abs(targetTop - currentTop) > 0.5) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentTop = targetTop;
+                    animationRunning = false;
+                }
+            }
 
-    function requestAnimation() {
-        calculatePosition();
-        if (!animationRunning) {
-            animationRunning = true;
-            requestAnimationFrame(animate);
-        }
-    }
+            function requestAnimation() {
+                calculatePosition();
+                if (!animationRunning) {
+                    animationRunning = true;
+                    requestAnimationFrame(animate);
+                }
+            }
 
-    document.addEventListener('DOMContentLoaded', requestAnimation);
-    window.addEventListener('scroll', requestAnimation, {passive:true});
-    window.addEventListener('resize', requestAnimation, {passive:true});
-
-})();
-</script>
+            document.addEventListener('DOMContentLoaded', requestAnimation);
+            window.addEventListener('scroll', requestAnimation, {passive:true});
+            window.addEventListener('resize', requestAnimation, {passive:true});
+        })();
+        </script>
         <?php
+        echo '</div>';
     }
 }
 ?>
