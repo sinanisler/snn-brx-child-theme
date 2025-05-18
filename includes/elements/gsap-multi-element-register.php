@@ -210,22 +210,20 @@ add_action( 'init', function () {
     }
 } );
 
-add_filter( 'bricks/frontend/render_element', function( $html, $element ) {
+
+add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $element ) {
     $targets = [ 'section', 'container', 'block', 'div' ];
     $custom  = $element->settings['custom_data_animate_dynamic_elements'] ?? '';
 
-    // Handle both array (multiple select) and string (single select)
     if ( ! empty( $custom ) && in_array( $element->name, $targets, true ) ) {
-        $dom_id = 'brxe-' . $element->id;
-
-        // If $custom is array, convert to comma-separated string
+        // If $custom is an array, convert it to a comma-separated string
         if ( is_array( $custom ) ) {
             $custom = implode( ',', $custom );
         }
 
-        $pattern = '/(<[^>]+id=["\']' . preg_quote($dom_id, '/') . '["\'])/i';
-        $replacement = '$1 data-animate="' . esc_attr($custom) . '"';
-        $html = preg_replace( $pattern, $replacement, $html, 1 );
+        // Add the data-animate attribute to the root element
+        $attributes[$key]['data-animate'] = esc_attr( $custom );
     }
-    return $html;
-}, 20, 2 );
+
+    return $attributes;
+}, 999, 3 );
