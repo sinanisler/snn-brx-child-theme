@@ -260,6 +260,38 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
 }
 
+/* CUSTOM CAPABILITY LOGIC FOR COMMENT EDITING */
+add_filter( 'map_meta_cap', 'snn_custom_map_meta_cap_for_comment_edit', 10, 4 );
+function snn_custom_map_meta_cap_for_comment_edit( $caps, $cap, $user_id, $args ) {
+    // Only filter edit_comment
+    if ( 'edit_comment' === $cap ) {
+        $comment = get_comment( isset($args[0]) ? $args[0] : 0 );
+        if ( ! $comment ) {
+            $caps[] = 'do_not_allow';
+            return $caps;
+        }
+        $post = get_post( $comment->comment_post_ID );
+
+        // Allow users to edit their own comments if less than 30 days old
+        if ( $comment->user_id == $user_id ) {
+            $age_ok = ( current_time( 'timestamp', true ) - strtotime( $comment->comment_date_gmt ) ) <= 30 * DAY_IN_SECONDS;
+            if ( $age_ok ) {
+                return array();
+            }
+        }
+
+        // Allow users who can edit others' posts (admin/editor)
+        if ( user_can( $user_id, 'edit_others_posts' ) ) {
+            return array();
+        }
+
+        // Otherwise deny access
+        $caps[] = 'do_not_allow';
+        return $caps;
+    }
+    return $caps;
+}
+
 /* AJAX handlers */
 add_action( 'wp_ajax_snn_comment_edit', 'snn_comment_edit_ajax' );
 function snn_comment_edit_ajax() {
