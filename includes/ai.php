@@ -294,6 +294,7 @@ function snn_render_ai_settings() {
             .snn-drag-over-row {
                 outline: 2px dashed #0073aa;
             }
+            [name="snn_system_prompt"]{width:430px}
             </style>
 
             <?php submit_button(__('Save AI Settings', 'snn')); ?>
