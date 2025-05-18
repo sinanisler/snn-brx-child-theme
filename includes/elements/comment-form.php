@@ -199,7 +199,7 @@ class SNN_Element_Comment_Form extends Element {
 		.snn-comment-form-wrapper.hide-logged-in-as .logged-in-as{display:none}
 		/* --- editor --- */
 		.snn-comment-form-comment label{display:block;margin-bottom:5px;font-weight:bold}
-		.snn-comment-editor-container{max-width:100%;margin:1em 0;background:#fff;border-radius:8px;position:relative;}
+		.snn-comment-editor-container{max-width:100%;margin:1em 0;background:#fff;border-radius:8px;position:relative}
 		.snn-comment-editor-toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:10px;background:#f8f9fa;border-radius:5px 5px 0 0}
 		.snn-comment-editor-toolbar-group{display:flex;gap:4px;align-items:center}
 		.snn-comment-editor-btn{padding:6px 10px;background:#fff;border:1px solid #ddd;border-radius:4px;cursor:pointer;user-select:none;transition:.2s}
@@ -378,23 +378,63 @@ class SNN_Element_Comment_Form extends Element {
 			const editor = container.querySelector('#snn-comment-editor-editor');
 			editor.innerHTML = textarea.value;
 
-			/* Paragraph normalization: paste = <p>…</p> */
+			const sync = () => textarea.value = editor.innerHTML;
+
+			/* === UPLOAD helper reused for button + clipboard === */
+			function uploadImageFile(file) {
+				const fd = new FormData();
+				fd.append('action','snn_comment_media_upload');
+				fd.append('_wpnonce', snnNonce);
+				fd.append('file', file);
+
+				fetch(ajaxurl,{method:'POST',credentials:'same-origin',body:fd})
+					.then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+					.then(j=>{
+						if(j.success && j.data?.url){
+							document.execCommand('insertImage',false,j.data.url);
+							sync();
+						}else alert(j.data||'Upload failed');
+					})
+					.catch(e=>alert(e.message||'Network'));
+			}
+
+			/* === PASTE handler: text OR image === */
 			editor.addEventListener('paste', e => {
+				const items = e.clipboardData && e.clipboardData.items;
+				let imageFound = false;
+
+				if (items) {
+					for (let i = 0; i < items.length; i++) {
+						const item = items[i];
+						if (item.kind === 'file' && item.type.startsWith('image/')) {
+							const file = item.getAsFile();
+							if (file) {
+								imageFound = true;
+								uploadImageFile(file);
+							}
+						}
+					}
+				}
+
+				if (imageFound) {
+					e.preventDefault();  // handled
+					return;
+				}
+
+				/* default text paste: wrap lines in <p> */
 				e.preventDefault();
 				const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-				const html = text.split(/\n+/).map(line => line.trim() ? `<p>${line.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>` : '').join('');
+				const html = text.split(/\n+/).map(l=>l.trim()?`<p>${l.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>`:'').join('');
 				document.execCommand('insertHTML', false, html);
 			});
 
-			/* Enter = new paragraph */
+			/* Enter = new <p> */
 			editor.addEventListener('keydown', e => {
 				if (e.key === 'Enter' && !e.shiftKey) {
 					e.preventDefault();
 					document.execCommand('insertParagraph');
 				}
 			});
-
-			const sync = () => textarea.value = editor.innerHTML;
 
 			/* --- execCommand buttons --- */
 			container.querySelectorAll('.snn-comment-editor-btn[data-command]').forEach(btn => {
@@ -415,63 +455,31 @@ class SNN_Element_Comment_Form extends Element {
 
 			/* --- style controls (robust) --- */
 			container.querySelector('#snn-comment-editor-font-size').onchange = e => {
-				const v = e.target.value;
-				if (!v) return;
+				const v = e.target.value; if(!v) return;
 				applyInlineStyleToSelection('fontSize', v);
-				e.target.value = '';
-				sync();
+				e.target.value=''; sync();
 			};
 			container.querySelector('#snn-comment-editor-font-family').onchange = e => {
-				const v = e.target.value;
-				if (!v) return;
+				const v = e.target.value; if(!v) return;
 				applyInlineStyleToSelection('fontFamily', v);
-				e.target.value = '';
-				sync();
+				e.target.value=''; sync();
 			};
 			container.querySelector('#snn-comment-editor-text-color').oninput = e => {
-				applyInlineStyleToSelection('color', e.target.value);
-				sync();
+				applyInlineStyleToSelection('color', e.target.value); sync();
 			};
 			container.querySelector('#snn-comment-editor-bg-color').oninput = e => {
-				applyInlineStyleToSelection('backgroundColor', e.target.value);
-				sync();
+				applyInlineStyleToSelection('backgroundColor', e.target.value); sync();
 			};
 
 			/* Sync on input */
 			editor.addEventListener('input', sync);
 
-			/* === IMAGE UPLOAD === */
+			/* === IMAGE UPLOAD button === */
 			<?php if ( current_user_can( 'upload_files' ) && $uploads ) : ?>
 			const mediaBtn = container.querySelector('#snn-comment-editor-media-btn'),
 			      fileInp  = container.querySelector('#snn-comment-editor-file-input');
 			mediaBtn.onclick = () => fileInp.click();
-			fileInp.onchange = () => {
-				const f = fileInp.files[0];
-				if (!f) return;
-				const fd = new FormData();
-				fd.append('action', 'snn_comment_media_upload');
-				fd.append('_wpnonce', snnNonce);
-				fd.append('file', f);
-
-				mediaBtn.textContent = 'Uploading…';
-				mediaBtn.disabled    = true;
-				fetch(ajaxurl, { method:'POST', credentials:'same-origin', body:fd })
-					.then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-					.then(j => {
-						if (j.success && j.data?.url) {
-							document.execCommand('insertImage', false, j.data.url);
-						} else {
-							alert(j.data || 'Upload failed');
-						}
-					})
-					.catch(e => alert(e.message || 'Network'))
-					.finally(() => {
-						mediaBtn.textContent = 'Media +';
-						mediaBtn.disabled    = false;
-						fileInp.value        = '';
-						sync();
-					});
-			};
+			fileInp.onchange = () => { const f=fileInp.files[0]; if(f){ uploadImageFile(f); fileInp.value=''; } };
 			<?php endif; ?>
 
 			/* === IMAGE SELECTION & TOOLS === */
@@ -487,31 +495,30 @@ class SNN_Element_Comment_Form extends Element {
 					selectedImage = img;
 					img.classList.add('snn-selected-image');
 					imageTools.style.display = 'flex';
-					alignBtns.forEach(b => b.classList.toggle('active', img.classList.contains('snn-img-align-'+b.dataset.align)));
-				} else if (selectedImage) {
+					alignBtns.forEach(b=>b.classList.toggle('active', img.classList.contains('snn-img-align-'+b.dataset.align)));
+				}else if(selectedImage){
 					selectedImage.classList.remove('snn-selected-image');
-					selectedImage = null;
-					imageTools.style.display = 'none';
+					selectedImage = null; imageTools.style.display='none';
 				}
 			});
 
-			alignBtns.forEach(btn => {
-				btn.onmousedown = e => e.preventDefault();
-				btn.onclick = e => {
+			alignBtns.forEach(btn=>{
+				btn.onmousedown=e=>e.preventDefault();
+				btn.onclick=e=>{
 					e.preventDefault();
-					if (!selectedImage) return;
+					if(!selectedImage)return;
 					selectedImage.classList.remove('snn-img-align-left','snn-img-align-center','snn-img-align-right','snn-img-align-none');
 					selectedImage.classList.add('snn-img-align-'+btn.dataset.align);
-					alignBtns.forEach(b => b.classList.toggle('active', b===btn));
+					alignBtns.forEach(b=>b.classList.toggle('active', b===btn));
 					sync();
 				};
 			});
 
-			widthBtns.forEach(btn => {
-				btn.onmousedown = e => e.preventDefault();
-				btn.onclick = e => {
+			widthBtns.forEach(btn=>{
+				btn.onmousedown=e=>e.preventDefault();
+				btn.onclick=e=>{
 					e.preventDefault();
-					if (!selectedImage) return;
+					if(!selectedImage)return;
 					selectedImage.style.width = btn.dataset.width;
 					selectedImage.removeAttribute('height');
 					sync();
