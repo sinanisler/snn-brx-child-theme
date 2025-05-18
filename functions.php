@@ -91,3 +91,11 @@ if (!empty($options['enqueue_gsap'])) {
 
 
 }, 11);
+
+
+$options = get_option('snn_other_settings');
+if (!empty($options['enqueue_gsap'])) {
+
+    require_once SNN_PATH . 'includes/elements/gsap-multi-element-register.php';
+
+}
