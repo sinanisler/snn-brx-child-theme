@@ -206,6 +206,9 @@ add_action( 'init', function () {
                     'scroll:false' => esc_html__('Scroll False', 'snn'),
                     'loop:true' => esc_html__('Loop True', 'snn'),
                     'pin:true' => esc_html__('Pin True', 'snn'),
+                    'stagger:1' => esc_html__('Stagger 1', 'snn'),
+                    'stagger:0.5' => esc_html__('Stagger 0.5', 'snn'),
+                    'stagger:0.1' => esc_html__('Stagger 0.1', 'snn'),
 
                 ],
 
