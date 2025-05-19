@@ -133,16 +133,6 @@ add_action( 'init', function () {
 'style_start-transform:rotateY(90deg), style_end-transform:rotateY(0deg), style_start-opacity:0, style_end-opacity:1' => esc_html__('Flip In Fade', 'snn'),
 'style_start-transform:rotateY(0deg), style_end-transform:rotateY(90deg), style_start-opacity:1, style_end-opacity:0' => esc_html__('Flip Out Fade', 'snn'),
 
-// Micro-Interactions
-'style_start-transform:scale(1), style_end-transform:scale(0.95)' => esc_html__('Button Press', 'snn'),
-'style_start-transform:scale(0.95), style_end-transform:scale(1)' => esc_html__('Button Release', 'snn'),
-'style_start-transform:scale(1), style_end-transform:scale(1.08)' => esc_html__('Hover Pop', 'snn'),
-'style_start-boxShadow:0px 0px 0px 0px #fff, style_end-boxShadow:0px 0px 16px 0px #f39c12' => esc_html__('Hover Glow', 'snn'),
-'style_start-boxShadow:0px 0px 0px 0px #33c3f0, style_end-boxShadow:0px 0px 16px 0px #33c3f0' => esc_html__('Input Focus Glow', 'snn'),
-'style_start-transform:scale(0.7), style_end-transform:scale(1.2)' => esc_html__('Tooltip Pop', 'snn'),
-'style_start-transform:rotate(0deg), style_end-transform:rotate(360deg)' => esc_html__('Icon Spin', 'snn'),
-'style_start-transform:scale(0.8), style_end-transform:scale(1.3)' => esc_html__('Star Burst', 'snn'),
-
 
 
 
