@@ -103,7 +103,7 @@ add_filter('login_headerurl', 'snn_custom_login_logo_url');
 
 // Enqueue WordPress media scripts on settings page only
 function snn_admin_enqueue_media($hook) {
-    if ($hook === 'settings_page_login-settings' || $hook === 'options-general.php') {
+    if (isset($_GET['page']) && $_GET['page'] === 'login-settings') {
         wp_enqueue_media();
     }
 }

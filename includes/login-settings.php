@@ -165,7 +165,7 @@ function ls_render_login_settings() {
 }
 
 add_action('admin_enqueue_scripts', function($hook) {
-    if ($hook === 'snn-settings_page_login-settings' || $hook === 'toplevel_page_login-settings') {
+    if (isset($_GET['page']) && $_GET['page'] === 'login-settings') {
         wp_enqueue_media();
     }
 });
