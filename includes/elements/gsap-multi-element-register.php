@@ -16,6 +16,7 @@ add_action( 'init', function () {
 // Fading
 'style_start-opacity:0, style_end-opacity:1' => esc_html__('Fade In', 'snn'),
 'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Out', 'snn'),
+
 'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Down', 'snn'),
 'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
 'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Left', 'snn'),
@@ -190,8 +191,8 @@ add_action( 'init', function () {
 // Width and Height Transitions
 'style_start-width:0%, style_end-width:100%' => esc_html__('Width 0% to 100%', 'snn'),
 'style_start-width:100%, style_end-width:0%' => esc_html__('Width 100% to 0%', 'snn'),
-'style_start-height:0px, style_end-height:100px' => esc_html__('Height 0px to 100px', 'snn'),
-'style_start-height:100px, style_end-height:0px' => esc_html__('Height 100px to 0px', 'snn'),
+'style_start-height:0%, style_end-height:100%' => esc_html__('Height 0% to 100%', 'snn'),
+'style_start-height:100%, style_end-height:0%' => esc_html__('Height 100% to 0%', 'snn'),
 
 // Opacity Utility (great for fading/combos)
 'style_start-opacity:0, style_end-opacity:1' => esc_html__('Opacity 0 to 1', 'snn'),
