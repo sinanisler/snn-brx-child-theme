@@ -204,6 +204,7 @@ add_action( 'init', function () {
                 'multiple' => true,
                 'searchable' => true,
                 'clearable' => true,
+                'description' => '<br><br><br><br><br><br><br><br>',
             ];
             return $controls;
         } );
