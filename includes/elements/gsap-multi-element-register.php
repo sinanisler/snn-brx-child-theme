@@ -353,9 +353,13 @@ add_action( 'init', function () {
 'stagger:2' => esc_html__('Stagger 2', 'snn'),
 
 
+'duration:1' => esc_html__('Duration 1', 'snn'),
+'duration:2' => esc_html__('Duration 2', 'snn'),
+'duration:4' => esc_html__('Duration 4', 'snn'),
 
-
-
+'delay:1' => esc_html__('Delay 1', 'snn'),
+'delay:2' => esc_html__('Delay 2', 'snn'),
+'delay:4' => esc_html__('Delay 4', 'snn'),
 
 
 
