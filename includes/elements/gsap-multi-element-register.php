@@ -46,15 +46,14 @@ add_action( 'init', function () {
 'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(-1000px)' => esc_html__('Zoom Out Up', 'snn'),
 
 
-// Sliding (sequence improved: now stacks with ";")
-'style_start-transform:translateY(-1000px); style_end-transform:translateY(0px)' => esc_html__('Slide In Down (Seq)', 'snn'),
-'style_start-transform:translateY(0px); style_end-transform:translateY(1000px)' => esc_html__('Slide Out Down (Seq)', 'snn'),
-'style_start-transform:translateX(-1000px); style_end-transform:translateX(0px)' => esc_html__('Slide In Left (Seq)', 'snn'),
-'style_start-transform:translateX(0px); style_end-transform:translateX(-1000px)' => esc_html__('Slide Out Left (Seq)', 'snn'),
-'style_start-transform:translateX(1000px); style_end-transform:translateX(0px)' => esc_html__('Slide In Right (Seq)', 'snn'),
-'style_start-transform:translateX(0px); style_end-transform:translateX(1000px)' => esc_html__('Slide Out Right (Seq)', 'snn'),
-'style_start-transform:translateY(1000px); style_end-transform:translateY(0px)' => esc_html__('Slide In Up (Seq)', 'snn'),
-'style_start-transform:translateY(0px); style_end-transform:translateY(-1000px)' => esc_html__('Slide Out Up (Seq)', 'snn'),
+'style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Down ', 'snn'),
+'style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Slide Out Down ', 'snn'),
+'style_start-transform:translateX(-1000px), style_end-transform:translateX(0px)' => esc_html__('Slide In Left ', 'snn'),
+'style_start-transform:translateX(0px), style_end-transform:translateX(-1000px)' => esc_html__('Slide Out Left ', 'snn'),
+'style_start-transform:translateX(1000px), style_end-transform:translateX(0px)' => esc_html__('Slide In Right ', 'snn'),
+'style_start-transform:translateX(0px), style_end-transform:translateX(1000px)' => esc_html__('Slide Out Right ', 'snn'),
+'style_start-transform:translateY(1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Up ', 'snn'),
+'style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Slide Out Up ', 'snn'),
 
 
 // All other animations kept exactly the same as you had
