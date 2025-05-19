@@ -91,6 +91,7 @@ window.onload = function () {
             duration: options.duration || 1,
             delay: options.delay || 0,
             stagger: options.stagger ? getStaggerValue(options) : 0,
+            ...(options.ease ? { ease: options.ease } : {}),
             ...(hasRotate ? { force3D: false } : {})
           };
           timeline.to(
@@ -127,9 +128,10 @@ window.onload = function () {
             duration: options.duration || 1,
             delay: options.delay || 0,
             stagger: options.stagger ? getStaggerValue(options) : 0,
+            ...(options.ease ? { ease: options.ease } : {}),
             ...(hasRotate ? { force3D: false } : {})
           };
-          if(options.stagger) {
+          if (options.stagger) {
             animationProps.immediateRender = false;
           }
           timeline.to(
@@ -184,13 +186,12 @@ window.onload = function () {
           duration: options.duration || 1,
           delay: options.delay || 0,
           paused: options.scroll === 'false',
+          ...(options.ease ? { ease: options.ease } : {}),
           ...(hasRotate ? { force3D: false } : {})
         };
-        // If using a stagger, prevent auto‑rendering and manually apply the starting state.
         if (options.stagger) {
           toProps.immediateRender = false;
         }
-        // Store targets so we only call splitText() once.
         const targets = splitText(element, options);
         if (options.stagger) {
           gsap.set(targets, fromProps);
@@ -307,7 +308,6 @@ window.onload = function () {
     }
 
     function splitText(element, options) {
-      // If no splittext is provided, check dynamically for immediate child elements.
       if (!options.splittext) {
         const childElements = element.children;
         if (options.stagger && childElements.length > 1) {
