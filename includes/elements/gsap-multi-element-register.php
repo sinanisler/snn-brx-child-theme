@@ -41,17 +41,6 @@ add_action( 'init', function () {
                     'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Up', 'snn'),
                     'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(-1000px)' => esc_html__('Zoom Out Up', 'snn'),
 
-                    // Bouncing (improved for yoyo to actually work: added scroll:false, loop:true for meaningful yoyo)
-                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.3), style_end-transform:scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In', 'snn'),
-                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1), style_end-transform:scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out', 'snn'),
-                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px) scale(0.3), style_end-transform:translateY(0px) scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In Down', 'snn'),
-                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px) scale(1), style_end-transform:translateY(1000px) scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out Down', 'snn'),
-                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) scale(0.3), style_end-transform:translateX(0px) scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In Left', 'snn'),
-                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) scale(1), style_end-transform:translateX(-1000px) scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out Left', 'snn'),
-                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) scale(0.3), style_end-transform:translateX(0px) scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In Right', 'snn'),
-                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) scale(1), style_end-transform:translateX(1000px) scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out Right', 'snn'),
-                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(1000px) scale(0.3), style_end-transform:translateY(0px) scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In Up', 'snn'),
-                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px) scale(1), style_end-transform:translateY(-1000px) scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out Up', 'snn'),
 
                     // Sliding (sequence improved: now stacks with ";")
                     'style_start-transform:translateY(-1000px); style_end-transform:translateY(0px)' => esc_html__('Slide In Down (Seq)', 'snn'),
@@ -112,23 +101,7 @@ add_action( 'init', function () {
                     'style_start-transform:scale(1) skewX(30deg), style_end-transform:scale(1) skewX(0deg)' => esc_html__('Blob Morph In (Legacy)', 'snn'),
                     'style_start-transform:scale(1) skewX(0deg), style_end-transform:scale(1) skewX(30deg)' => esc_html__('Blob Morph Out (Legacy)', 'snn'),
 
-                    // Attention Seekers (improved yoyo: loop:true, scroll:false)
-                    'style_start-transform:translateY(0px), style_end-transform:translateY(-30px), yoyo:true, repeat:5, loop:true, scroll:false' => esc_html__('Bounce', 'snn'),
-                    'style_start-opacity:1, style_end-opacity:0, yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Flash', 'snn'),
-                    'style_start-transform:scale(1), style_end-transform:scale(1.1), yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Pulse', 'snn'),
-                    'style_start-transform:scaleX(1.25) scaleY(0.75), style_end-transform:scaleX(0.75) scaleY(1.25), yoyo:true, repeat:2, loop:true, scroll:false' => esc_html__('Rubber Band', 'snn'),
-                    'style_start-transform:translateX(-10px), style_end-transform:translateX(10px), yoyo:true, repeat:6, loop:true, scroll:false' => esc_html__('Shake', 'snn'),
-                    'style_start-transform:translateX(-20px), style_end-transform:translateX(20px), yoyo:true, repeat:8, loop:true, scroll:false' => esc_html__('Shake X', 'snn'),
-                    'style_start-transform:translateY(-20px), style_end-transform:translateY(20px), yoyo:true, repeat:8, loop:true, scroll:false' => esc_html__('Shake Y', 'snn'),
-                    'style_start-transform:translateX(0px) rotateY(0deg), style_end-transform:translateX(-20px) rotateY(-20deg), yoyo:true, repeat:2, loop:true, scroll:false' => esc_html__('Head Shake', 'snn'),
-                    'style_start-transform:rotate(0deg), style_end-transform:rotate(15deg), yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Swing', 'snn'),
-                    'style_start-transform:scale(0.9) rotate(-3deg), style_end-transform:scale(1.1) rotate(3deg), yoyo:true, repeat:4, loop:true, scroll:false' => esc_html__('Tada', 'snn'),
-                    'style_start-transform:translateX(-10px) skewX(-5deg), style_end-transform:translateX(10px) skewX(5deg), yoyo:true, repeat:5, loop:true, scroll:false' => esc_html__('Wobble', 'snn'),
-                    'style_start-transform:skewX(0deg), style_end-transform:skewX(25deg), yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Jello', 'snn'),
-                    'style_start-transform:scale(1), style_end-transform:scale(1.2), yoyo:true, repeat:6, loop:true, scroll:false' => esc_html__('Heart Beat', 'snn'),
-                    'style_start-opacity:1, style_end-opacity:0, yoyo:true, repeat:6, loop:true, scroll:false' => esc_html__('Blink', 'snn'),
-                    'style_start-transform:rotate(-8deg), style_end-transform:rotate(8deg), yoyo:true, repeat:8, loop:true, scroll:false' => esc_html__('Wiggle', 'snn'),
-                    'style_start-opacity:0.8, style_end-opacity:1, yoyo:true, repeat:8, loop:true, scroll:false' => esc_html__('Flicker', 'snn'),
+
 
                     // Light Speed
                     'style_start-transform:translateX(100%) skewX(-30deg), style_end-transform:translateX(0%) skewX(0deg)' => esc_html__('Light Speed In Right', 'snn'),
@@ -163,8 +136,6 @@ add_action( 'init', function () {
                     'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
                     'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) rotate(-30deg), style_end-transform:scale(1) rotate(0deg)' => esc_html__('Zoom In Rotate', 'snn'),
                     'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) rotate(0deg), style_end-transform:scale(0.8) rotate(30deg)' => esc_html__('Zoom Out Rotate', 'snn'),
-                    'style_start-transform:translateY(1000px), style_end-transform:translateY(0px), style_start-opacity:0, style_end-opacity:1, yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Slide In Bounce', 'snn'),
-                    'style_start-transform:translateY(0px), style_end-transform:translateY(1000px), style_start-opacity:1, style_end-opacity:0, yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Slide Out Bounce', 'snn'),
                     'style_start-transform:rotateY(90deg), style_end-transform:rotateY(0deg), style_start-opacity:0, style_end-opacity:1' => esc_html__('Flip In Fade', 'snn'),
                     'style_start-transform:rotateY(0deg), style_end-transform:rotateY(90deg), style_start-opacity:1, style_end-opacity:0' => esc_html__('Flip Out Fade', 'snn'),
 
@@ -174,10 +145,48 @@ add_action( 'init', function () {
                     'style_start-transform:scale(1), style_end-transform:scale(1.08)' => esc_html__('Hover Pop', 'snn'),
                     'style_start-boxShadow:0px 0px 0px 0px #fff, style_end-boxShadow:0px 0px 16px 0px #f39c12' => esc_html__('Hover Glow', 'snn'),
                     'style_start-boxShadow:0px 0px 0px 0px #33c3f0, style_end-boxShadow:0px 0px 16px 0px #33c3f0' => esc_html__('Input Focus Glow', 'snn'),
-                    'style_start-transform:translateX(-8px), style_end-transform:translateX(8px), yoyo:true, repeat:2, loop:true, scroll:false' => esc_html__('Input Shake Error', 'snn'),
                     'style_start-transform:scale(0.7), style_end-transform:scale(1.2)' => esc_html__('Tooltip Pop', 'snn'),
                     'style_start-transform:rotate(0deg), style_end-transform:rotate(360deg)' => esc_html__('Icon Spin', 'snn'),
                     'style_start-transform:scale(0.8), style_end-transform:scale(1.3)' => esc_html__('Star Burst', 'snn'),
+
+
+
+
+
+                    // Attention Seekers (improved yoyo: loop:true, scroll:false)
+                    'style_start-transform:translateY(0px), style_end-transform:translateY(-30px), yoyo:true, repeat:5, loop:true, scroll:false' => esc_html__('Bounce', 'snn'),
+                    'style_start-opacity:1, style_end-opacity:0, yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Flash', 'snn'),
+                    'style_start-transform:scale(1), style_end-transform:scale(1.1), yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Pulse', 'snn'),
+                    'style_start-transform:scaleX(1.25) scaleY(0.75), style_end-transform:scaleX(0.75) scaleY(1.25), yoyo:true, repeat:2, loop:true, scroll:false' => esc_html__('Rubber Band', 'snn'),
+                    'style_start-transform:translateX(-10px), style_end-transform:translateX(10px), yoyo:true, repeat:6, loop:true, scroll:false' => esc_html__('Shake', 'snn'),
+                    'style_start-transform:translateX(-20px), style_end-transform:translateX(20px), yoyo:true, repeat:8, loop:true, scroll:false' => esc_html__('Shake X', 'snn'),
+                    'style_start-transform:translateY(-20px), style_end-transform:translateY(20px), yoyo:true, repeat:8, loop:true, scroll:false' => esc_html__('Shake Y', 'snn'),
+                    'style_start-transform:translateX(0px) rotateY(0deg), style_end-transform:translateX(-20px) rotateY(-20deg), yoyo:true, repeat:2, loop:true, scroll:false' => esc_html__('Head Shake', 'snn'),
+                    'style_start-transform:rotate(0deg), style_end-transform:rotate(15deg), yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Swing', 'snn'),
+                    'style_start-transform:scale(0.9) rotate(-3deg), style_end-transform:scale(1.1) rotate(3deg), yoyo:true, repeat:4, loop:true, scroll:false' => esc_html__('Tada', 'snn'),
+                    'style_start-transform:translateX(-10px) skewX(-5deg), style_end-transform:translateX(10px) skewX(5deg), yoyo:true, repeat:5, loop:true, scroll:false' => esc_html__('Wobble', 'snn'),
+                    'style_start-transform:skewX(0deg), style_end-transform:skewX(25deg), yoyo:true, repeat:3, loop:true, scroll:false' => esc_html__('Jello', 'snn'),
+                    'style_start-transform:scale(1), style_end-transform:scale(1.2), yoyo:true, repeat:6, loop:true, scroll:false' => esc_html__('Heart Beat', 'snn'),
+                    'style_start-opacity:1, style_end-opacity:0, yoyo:true, repeat:6, loop:true, scroll:false' => esc_html__('Blink', 'snn'),
+                    'style_start-transform:rotate(-8deg), style_end-transform:rotate(8deg), yoyo:true, repeat:8, loop:true, scroll:false' => esc_html__('Wiggle', 'snn'),
+                    'style_start-opacity:0.8, style_end-opacity:1, yoyo:true, repeat:8, loop:true, scroll:false' => esc_html__('Flicker', 'snn'),
+
+
+
+                    // Bouncing (improved for yoyo to actually work: added scroll:false, loop:true for meaningful yoyo)
+                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.3), style_end-transform:scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In', 'snn'),
+                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1), style_end-transform:scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out', 'snn'),
+                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px) scale(0.3), style_end-transform:translateY(0px) scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In Down', 'snn'),
+                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px) scale(1), style_end-transform:translateY(1000px) scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out Down', 'snn'),
+                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) scale(0.3), style_end-transform:translateX(0px) scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In Left', 'snn'),
+                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) scale(1), style_end-transform:translateX(-1000px) scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out Left', 'snn'),
+                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) scale(0.3), style_end-transform:translateX(0px) scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In Right', 'snn'),
+                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) scale(1), style_end-transform:translateX(1000px) scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out Right', 'snn'),
+                    'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(1000px) scale(0.3), style_end-transform:translateY(0px) scale(1), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce In Up', 'snn'),
+                    'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px) scale(1), style_end-transform:translateY(-1000px) scale(0.3), yoyo:true, loop:true, scroll:false' => esc_html__('Bounce Out Up', 'snn'),
+
+
+
 
                     // Scroll markers/options
                     'start:top 80%, end:bottom 30%' => esc_html__('Top 80% to Bottom 30%', 'snn'),
