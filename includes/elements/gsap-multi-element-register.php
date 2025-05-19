@@ -287,6 +287,7 @@ add_action( 'init', function () {
 'stagger:1' => esc_html__('Stagger 1', 'snn'),
 'stagger:0.5' => esc_html__('Stagger 0.5', 'snn'),
 'stagger:0.1' => esc_html__('Stagger 0.1', 'snn'),
+'scrub:false' => esc_html__('Scrub False', 'snn'),
 
 
 
