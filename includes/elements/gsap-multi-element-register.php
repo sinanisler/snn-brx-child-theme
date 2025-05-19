@@ -14,8 +14,8 @@ add_action( 'init', function () {
 
 
 // Fading
-'style_start-opacity:0, style_end-opacity:1' => esc_html__('Fade In', 'snn'),
-'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Out', 'snn'),
+'style_start-opacity:0, style_end-opacity:1' => esc_html__('Fade In ', 'snn'),
+'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Ou ', 'snn'),
 
 'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Down', 'snn'),
 'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
@@ -171,7 +171,10 @@ add_action( 'init', function () {
 
 // Scaling (very common utility)
 'style_start-transform:scale(0), style_end-transform:scale(1)' => esc_html__('Scale 0 to 1', 'snn'),
+'style_start-transform:scale(10), style_end-transform:scale(1)' => esc_html__('Scale 10 to 1', 'snn'),
 'style_start-transform:scale(1), style_end-transform:scale(0)' => esc_html__('Scale 1 to 0', 'snn'),
+
+
 
 // Width and Height Transitions
 'style_start-width:0%, style_end-width:100%' => esc_html__('Width 0% to 100%', 'snn'),
@@ -248,6 +251,68 @@ add_action( 'init', function () {
 'style_start-clipPath:polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%, 50% 50%, 50% 50%), style_end-clipPath:polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)' => esc_html__('Clip Hexagon Center Out', 'snn'),
 
 
+
+
+'style_start-filter:grayscale(100%), style_end-filter:grayscale(0%)'       => esc_html__('Grayscale In', 'snn'),
+'style_start-filter:grayscale(0%), style_end-filter:grayscale(100%)'       => esc_html__('Grayscale Out', 'snn'),
+'style_start-filter:sepia(100%), style_end-filter:sepia(0%)'               => esc_html__('Sepia In', 'snn'),
+'style_start-filter:brightness(0%), style_end-filter:brightness(100%)'     => esc_html__('Brightness In', 'snn'),
+'style_start-filter:contrast(0%), style_end-filter:contrast(100%)'         => esc_html__('Contrast In', 'snn'),
+'style_start-filter:saturate(0%), style_end-filter:saturate(1)'            => esc_html__('Desaturate In', 'snn'),
+'style_start-filter:hue-rotate(0deg), style_end-filter:hue-rotate(360deg)' => esc_html__('Hue Rotate', 'snn'),
+
+
+'style_start-transform:skewX(45deg), style_end-transform:skewX(0deg)'  => esc_html__('Skew In', 'snn'),
+'style_start-transform:skewX(0deg), style_end-transform:skewX(45deg)'  => esc_html__('Skew Out', 'snn'),
+
+
+
+// 3D CSS Animation Presets
+'style_start-transform-origin:left center, style_start-transform:perspective(800px) rotateY(-90deg), style_end-transform-origin:left center, style_end-transform:perspective(800px) rotateY(0deg), backface-visibility: visible'   => esc_html__('Door Open In (Left)', 'snn'),
+'style_start-transform-origin:right center, style_start-transform:perspective(800px) rotateY(90deg), style_end-transform-origin:right center, style_end-transform:perspective(800px) rotateY(0deg), backface-visibility: visible'  => esc_html__('Door Open In (Right)', 'snn'),
+
+'style_start-transform-origin:top center, style_start-transform:perspective(800px) rotateX(-90deg), style_end-transform-origin:top center, style_end-transform:perspective(800px) rotateX(0deg)'       => esc_html__('Fold In Down', 'snn'),
+'style_start-transform-origin:bottom center, style_start-transform:perspective(800px) rotateX(90deg), style_end-transform-origin:bottom center, style_end-transform:perspective(800px) rotateX(0deg)'  => esc_html__('Fold In Up', 'snn'),
+
+'style_start-transform-origin:center center, style_start-transform:perspective(800px) rotateY(180deg), style_end-transform-origin:center center, style_end-transform:perspective(800px) rotateY(0deg)'  => esc_html__('Card Flip In', 'snn'),
+'style_start-transform-origin:center center, style_start-transform:perspective(800px) rotateY(0deg),   style_end-transform-origin:center center, style_end-transform:perspective(800px) rotateY(180deg)'=> esc_html__('Card Flip Out', 'snn'),
+
+'style_start-transform:rotate3d(1,1,0,90deg),  style_end-transform:rotate3d(1,1,0,0deg)'   => esc_html__('Flip In Diagonal', 'snn'),
+'style_start-transform:rotate3d(1,1,0,0deg),   style_end-transform:rotate3d(1,1,0,90deg)'  => esc_html__('Flip Out Diagonal', 'snn'),
+
+'style_start-transform:translateZ(-200px) scale(0.5), style_end-transform:translateZ(0px)   scale(1)' => esc_html__('Pop In Z', 'snn'),
+'style_start-transform:translateZ(0px)    scale(1),   style_end-transform:translateZ(-200px) scale(0.5)' => esc_html__('Pop Out Z', 'snn'),
+
+'style_start-transform:perspective(600px) rotateY(-180deg), style_end-transform:perspective(600px) rotateY(0deg)'   => esc_html__('Cube Rotate In', 'snn'),
+'style_start-transform:perspective(600px) rotateY(0deg),   style_end-transform:perspective(600px) rotateY(180deg)' => esc_html__('Cube Rotate Out', 'snn'),
+
+'style_start-transform:perspective(600px) rotate3d(0,1,0,360deg), style_end-transform:perspective(600px) rotate3d(0,1,0,0deg)' => esc_html__('Barrel Roll In', 'snn'),
+'style_start-transform:perspective(600px) rotate3d(0,1,0,0deg),   style_end-transform:perspective(600px) rotate3d(0,1,0,360deg)' => esc_html__('Barrel Roll Out', 'snn'),
+
+
+// Fly In/Out along Z-axis
+'style_start-transform-origin:center center, style_start-transform:perspective(1200px) translateZ(-600px), style_end-transform-origin:center center, style_end-transform:perspective(1200px) translateZ(0)'   => esc_html__('Fly In (Center)', 'snn'),
+'style_start-transform-origin:center center, style_start-transform:perspective(1200px) translateZ(0),      style_end-transform-origin:center center, style_end-transform:perspective(1200px) translateZ(-600px)' => esc_html__('Fly Out (Center)', 'snn'),
+
+// Peek In/Out from Left & Right
+'style_start-transform-origin:left center,    style_start-transform:perspective(1000px) rotateY(-60deg), style_end-transform-origin:left center,    style_end-transform:perspective(1000px) rotateY(0deg)' => esc_html__('Peek In Left', 'snn'),
+'style_start-transform-origin:left center,    style_start-transform:perspective(1000px) rotateY(0deg),  style_end-transform-origin:left center,    style_end-transform:perspective(1000px) rotateY(-60deg)' => esc_html__('Peek Out Left', 'snn'),
+'style_start-transform-origin:right center,   style_start-transform:perspective(1000px) rotateY(60deg),  style_end-transform-origin:right center,   style_end-transform:perspective(1000px) rotateY(0deg)' => esc_html__('Peek In Right', 'snn'),
+'style_start-transform-origin:right center,   style_start-transform:perspective(1000px) rotateY(0deg),  style_end-transform-origin:right center,   style_end-transform:perspective(1000px) rotateY(60deg)'  => esc_html__('Peek Out Right', 'snn'),
+
+// Peek In/Out from Top & Bottom
+'style_start-transform-origin:top center,     style_start-transform:perspective(1000px) rotateX(-60deg), style_end-transform-origin:top center,     style_end-transform:perspective(1000px) rotateX(0deg)' => esc_html__('Peek In Down', 'snn'),
+'style_start-transform-origin:top center,     style_start-transform:perspective(1000px) rotateX(0deg),  style_end-transform-origin:top center,     style_end-transform:perspective(1000px) rotateX(-60deg)' => esc_html__('Peek Out Down', 'snn'),
+'style_start-transform-origin:bottom center,  style_start-transform:perspective(1000px) rotateX(60deg),  style_end-transform-origin:bottom center,  style_end-transform:perspective(1000px) rotateX(0deg)' => esc_html__('Peek In Up', 'snn'),
+'style_start-transform-origin:bottom center,  style_start-transform:perspective(1000px) rotateX(0deg),  style_end-transform-origin:bottom center,  style_end-transform:perspective(1000px) rotateX(60deg)'  => esc_html__('Peek Out Up', 'snn'),
+
+// Diagonal Tilt In/Out
+'style_start-transform-origin:center center, style_start-transform:perspective(800px) rotateX(30deg) rotateY(-30deg), style_end-transform-origin:center center, style_end-transform:perspective(800px) rotateX(0deg) rotateY(0deg)' => esc_html__('Tilt In Diagonal', 'snn'),
+'style_start-transform-origin:center center, style_start-transform:perspective(800px) rotateX(0deg) rotateY(0deg), style_end-transform-origin:center center, style_end-transform:perspective(800px) rotateX(30deg) rotateY(-30deg)' => esc_html__('Tilt Out Diagonal', 'snn'),
+
+// Tunnel In/Out (scale + perspective)
+'style_start-transform-origin:center center, style_start-transform:perspective(1500px) translateZ(-1000px) scale(0.2), style_end-transform-origin:center center, style_end-transform:perspective(1500px) translateZ(0px) scale(1)' => esc_html__('Tunnel In', 'snn'),
+'style_start-transform-origin:center center, style_start-transform:perspective(1500px) translateZ(0px) scale(1),      style_end-transform-origin:center center, style_end-transform:perspective(1500px) translateZ(-1000px) scale(0.2)' => esc_html__('Tunnel Out', 'snn'),
 
 
 
