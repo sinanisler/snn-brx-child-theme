@@ -316,6 +316,45 @@ add_action( 'init', function () {
 
 
 
+// Horizontal position (left/right movement)
+'style_start-backgroundPosition:0% 0%, style_end-backgroundPosition:100% 0%'       => esc_html__('Background Position Left to Right', 'snn'),
+'style_start-backgroundPosition:100% 0%, style_end-backgroundPosition:0% 0%'       => esc_html__('Background Position Right to Left', 'snn'),
+'style_start-backgroundPosition:-100% 0%, style_end-backgroundPosition:0% 0%'      => esc_html__('Background Position -100% to 0% (Left In)', 'snn'),
+'style_start-backgroundPosition:0% 0%, style_end-backgroundPosition:-100% 0%'      => esc_html__('Background Position 0% to -100% (Left Out)', 'snn'),
+'style_start-backgroundPosition:0% 0%, style_end-backgroundPosition:200% 0%'       => esc_html__('Background Position 0% to 200% (Sweep Right)', 'snn'),
+'style_start-backgroundPosition:200% 0%, style_end-backgroundPosition:0% 0%'       => esc_html__('Background Position 200% to 0% (Sweep Left In)', 'snn'),
+'style_start-backgroundPosition:100% 0%, style_end-backgroundPosition:200% 0%'     => esc_html__('Background Position 100% to 200%', 'snn'),
+'style_start-backgroundPosition:200% 0%, style_end-backgroundPosition:100% 0%'     => esc_html__('Background Position 200% to 100%', 'snn'),
+
+// Vertical position (top/bottom movement)
+'style_start-backgroundPosition:0% 0%, style_end-backgroundPosition:0% 100%'       => esc_html__('Background Position Top to Bottom', 'snn'),
+'style_start-backgroundPosition:0% 100%, style_end-backgroundPosition:0% 0%'       => esc_html__('Background Position Bottom to Top', 'snn'),
+'style_start-backgroundPosition:0% -100%, style_end-backgroundPosition:0% 0%'      => esc_html__('Background Position -100% to 0% (Top In)', 'snn'),
+'style_start-backgroundPosition:0% 0%, style_end-backgroundPosition:0% -100%'      => esc_html__('Background Position 0% to -100% (Top Out)', 'snn'),
+'style_start-backgroundPosition:0% 0%, style_end-backgroundPosition:0% 200%'       => esc_html__('Background Position 0% to 200% (Sweep Down)', 'snn'),
+'style_start-backgroundPosition:0% 200%, style_end-backgroundPosition:0% 0%'       => esc_html__('Background Position 200% to 0% (Sweep Up In)', 'snn'),
+'style_start-backgroundPosition:0% 100%, style_end-backgroundPosition:0% 200%'     => esc_html__('Background Position 100% to 200% (Bottom Extend)', 'snn'),
+'style_start-backgroundPosition:0% 200%, style_end-backgroundPosition:0% 100%'     => esc_html__('Background Position 200% to 100%', 'snn'),
+
+
+// ──────────────── Background Size Animations ────────────────
+
+'style_start-backgroundSize:100% 100%, style_end-backgroundSize:200% 200%'         => esc_html__('Background Size 100% to 200%', 'snn'),
+'style_start-backgroundSize:200% 200%, style_end-backgroundSize:100% 100%'         => esc_html__('Background Size 200% to 100%', 'snn'),
+'style_start-backgroundSize:0% 0%, style_end-backgroundSize:100% 100%'             => esc_html__('Background Size 0% to 100%', 'snn'),
+'style_start-backgroundSize:100% 100%, style_end-backgroundSize:0% 0%'             => esc_html__('Background Size 100% to 0%', 'snn'),
+'style_start-backgroundSize:50% 50%, style_end-backgroundSize:100% 100%'           => esc_html__('Background Size 50% to 100%', 'snn'),
+'style_start-backgroundSize:100% 100%, style_end-backgroundSize:50% 50%'           => esc_html__('Background Size 100% to 50%', 'snn'),
+'style_start-backgroundSize:100% 200%, style_end-backgroundSize:100% 100%'         => esc_html__('Background Size Tall to Normal', 'snn'),
+'style_start-backgroundSize:200% 100%, style_end-backgroundSize:100% 100%'         => esc_html__('Background Size Wide to Normal', 'snn'),
+'style_start-backgroundSize:100% 100%, style_end-backgroundSize:200% 100%'         => esc_html__('Background Size Normal to Wide', 'snn'),
+'style_start-backgroundSize:100% 100%, style_end-backgroundSize:100% 200%'         => esc_html__('Background Size Normal to Tall', 'snn'),
+'style_start-backgroundSize:auto 100%, style_end-backgroundSize:100% 100%'         => esc_html__('Background Size Auto to Full Width', 'snn'),
+'style_start-backgroundSize:100% auto, style_end-backgroundSize:100% 100%'         => esc_html__('Background Size Auto to Full Height', 'snn'),
+
+
+
+
 
 
 // Scroll markers/options
@@ -331,11 +370,6 @@ add_action( 'init', function () {
 'start:top+=100, end:bottom+=50' => esc_html__('Start Top +1000px to Bottom +50px', 'snn'),
 'start:top center, end:bottom center' => esc_html__('Start Top Center to Bottom Center', 'snn'),
 'start:bottom 80%, end:bottom 10%' => esc_html__('Start Bottom 80% to Bottom 10%', 'snn'),
-
-
-
-
-
 
 
 
