@@ -357,19 +357,28 @@ add_action( 'init', function () {
 
 
 
-// Scroll markers/options
-'start:top 80%, end:bottom 30%' => esc_html__('Start Top 80% to Bottom 30%', 'snn'),
-'start:top 60%, end:bottom 40%' => esc_html__('Start Top 60% to Bottom 40%', 'snn'),
-'start:top 50%, end:bottom 50%' => esc_html__('Start Top 50% to Bottom 50%', 'snn'),
-'start:top 40%, end:bottom 60%' => esc_html__('Start Top 40% to Bottom 60%', 'snn'),
-'start:top top, end:bottom bottom' => esc_html__('Start Top of viewport to Bottom of viewport', 'snn'),
-'start:center center, end:center center' => esc_html__('Start Center of viewport to Center of viewport', 'snn'),
-'start:top 1000px, end:bottom 1000px' => esc_html__('Start Top 1000px to Bottom 1000px', 'snn'),
-'start:top 0%, end:bottom 100%' => esc_html__('Start Top 0% to Bottom 100%', 'snn'),
-'start:top 75%, end:bottom 25%' => esc_html__('Start Top 75% to Bottom 25%', 'snn'),
-'start:top+=100, end:bottom+=50' => esc_html__('Start Top +1000px to Bottom +50px', 'snn'),
-'start:top center, end:bottom center' => esc_html__('Start Top Center to Bottom Center', 'snn'),
-'start:bottom 80%, end:bottom 10%' => esc_html__('Start Bottom 80% to Bottom 10%', 'snn'),
+// Scroll START and END positions
+'start:10%' => esc_html__('Start 10%', 'snn'),
+'start:20%' => esc_html__('Start 20%', 'snn'),
+'start:30%' => esc_html__('Start 30%', 'snn'),
+'start:40%' => esc_html__('Start 40%', 'snn'),
+'start:50%' => esc_html__('Start 50%', 'snn'),
+'start:60%' => esc_html__('Start 60%', 'snn'),
+'start:70%' => esc_html__('Start 70%', 'snn'),
+'start:80%' => esc_html__('Start 80%', 'snn'),
+'start:90%' => esc_html__('Start 90%', 'snn'),
+'start:100%' => esc_html__('Start 100%', 'snn'),
+
+'end:10%' => esc_html__('End 10%', 'snn'),
+'end:20%' => esc_html__('End 20%', 'snn'),
+'end:30%' => esc_html__('End 30%', 'snn'),
+'end:40%' => esc_html__('End 40%', 'snn'),
+'end:50%' => esc_html__('End 50%', 'snn'),
+'end:60%' => esc_html__('End 60%', 'snn'),
+'end:70%' => esc_html__('End 70%', 'snn'),
+'end:80%' => esc_html__('End 80%', 'snn'),
+'end:90%' => esc_html__('End 90%', 'snn'),
+'end:100%' => esc_html__('End 100%', 'snn'),
 
 
 
