@@ -353,9 +353,14 @@ add_action( 'init', function () {
 'stagger:2' => esc_html__('Stagger 2', 'snn'),
 
 
+'duration:0.01' => esc_html__('Duration 0.01', 'snn'),
+'duration:0.05' => esc_html__('Duration 0.05', 'snn'),
+'duration:0.1' => esc_html__('Duration 0.1', 'snn'),
+'duration:0.2' => esc_html__('Duration 0.2', 'snn'),
 'duration:1' => esc_html__('Duration 1', 'snn'),
 'duration:2' => esc_html__('Duration 2', 'snn'),
 'duration:4' => esc_html__('Duration 4', 'snn'),
+'duration:10' => esc_html__('Duration 4', 'snn'),
 
 'delay:1' => esc_html__('Delay 1', 'snn'),
 'delay:2' => esc_html__('Delay 2', 'snn'),
