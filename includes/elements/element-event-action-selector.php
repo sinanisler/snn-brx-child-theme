@@ -303,179 +303,188 @@ class Snn_Event_Action_Selector extends Element {
         echo '<div ' . $this->render_attributes( '_root' ) . '></div>'; // logic only
 
         ?>
+
+
 <script>
 (function(){
-    const uid        = <?php echo json_encode( $uid ); ?>;
-    const root       = document.querySelector('.' + uid);
-    if (!root) return;
+    // Wrap code inside DOMContentLoaded to ensure full DOM is ready!
+    document.addEventListener('DOMContentLoaded', function() {
+        const uid        = <?php echo json_encode( $uid ); ?>;
+        const root       = document.querySelector('.' + uid);
+        if (!root) return;
 
-    const triggerSel     = <?php echo json_encode( $trigger_sel ); ?>;
-    const targetSel      = <?php echo json_encode( $target_sel ); ?>;
-    const evType         = <?php echo json_encode( $event ); ?>;
-    const action         = <?php echo json_encode( $action ); ?>;
-    const className      = <?php echo json_encode( $class_name ); ?>;
-    const attributeName  = <?php echo json_encode( $attribute_name ); ?>;
-    const attributeValue = <?php echo json_encode( $attribute_value ); ?>;
-    const replaceHtml    = <?php echo json_encode( $replace_html ); ?>;
-    const appendHtml     = <?php echo json_encode( $append_html ); ?>;
-    const prependHtml    = <?php echo json_encode( $prepend_html ); ?>;
-    const styleProperty  = <?php echo json_encode( $style_property ); ?>;
-    const styleValue     = <?php echo json_encode( $style_value ); ?>;
-    const customEvent    = <?php echo json_encode( $custom_event ); ?>;
-    const customJsFunc   = <?php echo json_encode( $custom_js_func ); ?>;
-    const textValue      = <?php echo json_encode( $text_value ); ?>;
-    const downloadUrl    = <?php echo json_encode( $download_url ); ?>;
-    const copyValue      = <?php echo json_encode( $copy_value ); ?>;
-    const scrollBehavior = <?php echo json_encode( $scroll_behavior ); ?>;
-    const scrollBlock    = <?php echo json_encode( $scroll_block ); ?>;
+        const triggerSel     = <?php echo json_encode( $trigger_sel ); ?>;
+        const targetSel      = <?php echo json_encode( $target_sel ); ?>;
+        const evType         = <?php echo json_encode( $event ); ?>;
+        const action         = <?php echo json_encode( $action ); ?>;
+        const className      = <?php echo json_encode( $class_name ); ?>;
+        const attributeName  = <?php echo json_encode( $attribute_name ); ?>;
+        const attributeValue = <?php echo json_encode( $attribute_value ); ?>;
+        const replaceHtml    = <?php echo json_encode( $replace_html ); ?>;
+        const appendHtml     = <?php echo json_encode( $append_html ); ?>;
+        const prependHtml    = <?php echo json_encode( $prepend_html ); ?>;
+        const styleProperty  = <?php echo json_encode( $style_property ); ?>;
+        const styleValue     = <?php echo json_encode( $style_value ); ?>;
+        const customEvent    = <?php echo json_encode( $custom_event ); ?>;
+        const customJsFunc   = <?php echo json_encode( $custom_js_func ); ?>;
+        const textValue      = <?php echo json_encode( $text_value ); ?>;
+        const downloadUrl    = <?php echo json_encode( $download_url ); ?>;
+        const copyValue      = <?php echo json_encode( $copy_value ); ?>;
+        const scrollBehavior = <?php echo json_encode( $scroll_behavior ); ?>;
+        const scrollBlock    = <?php echo json_encode( $scroll_block ); ?>;
 
-    function performAction(targets, e){
-        targets.forEach(el=>{
-            switch(action){
-                case 'Show/Hide Element':
-                    el.style.display = (el.style.display==='none'?'':'none');
-                    break;
-                case 'Add Class':
-                    if(className) el.classList.add(className);
-                    break;
-                case 'Remove Class':
-                    if(className) el.classList.remove(className);
-                    break;
-                case 'Toggle Class':
-                    if(className) el.classList.toggle(className);
-                    break;
-                case 'Remove Element':
-                    el.remove();
-                    break;
-                case 'Enable/Disable Element':
-                    el.disabled = !el.disabled;
-                    break;
-                case 'Prevent Default':
-                    if(e) e.preventDefault();
-                    break;
-                case 'Stop Propagation':
-                    if(e) e.stopPropagation();
-                    break;
-                case 'Scroll Into View':
-                    el.scrollIntoView({
-                        behavior: scrollBehavior || 'smooth',
-                        block: scrollBlock || 'center'
-                    });
-                    break;
-                case 'Focus Element':
-                    el.focus({preventScroll:false});
-                    break;
-                case 'Blur Element':
-                    el.blur();
-                    break;
-                case 'Toggle Fullscreen':
-                    if(!document.fullscreenElement){ el.requestFullscreen().catch(()=>{}); }
-                    else { document.exitFullscreen(); }
-                    break;
-
-                // === Advanced Actions ===
-
-                case 'Clone Element':
-                    el.parentNode && el.parentNode.insertBefore(el.cloneNode(true), el.nextSibling);
-                    break;
-                case 'Replace HTML':
-                    el.innerHTML = replaceHtml || '';
-                    break;
-                case 'Set Attribute':
-                    if(attributeName) el.setAttribute(attributeName, attributeValue||'');
-                    break;
-                case 'Remove Attribute':
-                    if(attributeName) el.removeAttribute(attributeName);
-                    break;
-                case 'Toggle Attribute':
-                    if(attributeName) {
-                        if(el.hasAttribute(attributeName)) el.removeAttribute(attributeName);
-                        else el.setAttribute(attributeName, attributeValue||'');
-                    }
-                    break;
-                case 'Dispatch Custom Event':
-                    if(customEvent) el.dispatchEvent(new CustomEvent(customEvent, {bubbles:true}));
-                    break;
-                case 'Download File':
-                    if(downloadUrl) {
-                        const a = document.createElement('a');
-                        a.href = downloadUrl;
-                        a.download = '';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                    }
-                    break;
-                case 'Change Text':
-                    el.textContent = textValue || '';
-                    break;
-                case 'Append HTML':
-                    el.insertAdjacentHTML('beforeend', appendHtml || '');
-                    break;
-                case 'Prepend HTML':
-                    el.insertAdjacentHTML('afterbegin', prependHtml || '');
-                    break;
-                case 'Toggle Style Property':
-                    if(styleProperty) {
-                        if(el.style[styleProperty]) el.style[styleProperty] = '';
-                        else el.style[styleProperty] = styleValue || '';
-                    }
-                    break;
-                case 'Play/Pause Media':
-                    if(el.paused !== undefined) {
-                        if(el.paused) el.play();
-                        else el.pause();
-                    }
-                    break;
-                case 'Capture Screenshot':
-                    if(window.html2canvas) {
-                        html2canvas(el).then(canvas=>{
-                            const a = document.createElement('a');
-                            a.href = canvas.toDataURL();
-                            a.download = 'screenshot.png';
-                            a.click();
+        function performAction(targets, e){
+            targets.forEach(el=>{
+                switch(action){
+                    case 'Show/Hide Element':
+                        el.style.display = (el.style.display==='none'?'':'none');
+                        break;
+                    case 'Add Class':
+                        if(className) el.classList.add(className);
+                        break;
+                    case 'Remove Class':
+                        if(className) el.classList.remove(className);
+                        break;
+                    case 'Toggle Class':
+                        if(className) el.classList.toggle(className);
+                        break;
+                    case 'Remove Element':
+                        el.remove();
+                        break;
+                    case 'Enable/Disable Element':
+                        el.disabled = !el.disabled;
+                        break;
+                    case 'Prevent Default':
+                        if(e) e.preventDefault();
+                        break;
+                    case 'Stop Propagation':
+                        if(e) e.stopPropagation();
+                        break;
+                    case 'Scroll Into View':
+                        el.scrollIntoView({
+                            behavior: scrollBehavior || 'smooth',
+                            block: scrollBlock || 'center'
                         });
-                    } else {
-                        alert('html2canvas.js required!');
-                    }
-                    break;
-                case 'Copy To Clipboard':
-                    if(copyValue) {
-                        navigator.clipboard && navigator.clipboard.writeText(copyValue);
-                    }
-                    break;
-                case 'Set Value':
-                    if('value' in el) el.value = textValue || '';
-                    break;
-                case 'Log To Console':
-                    console.log('[Event⇄Action]', el, e);
-                    break;
-                case 'Custom JS Function':
-                    try {
-                        // eslint-disable-next-line no-new-func
-                        const fn = new Function('targets','event', customJsFunc || '');
-                        fn([el], e);
-                    } catch(err) {
-                        console.warn('Error in custom JS function:', err);
-                    }
-                    break;
-                default:
-                    console.warn('Action "'+action+'" not implemented.');
-            }
-        });
-    }
+                        break;
+                    case 'Focus Element':
+                        el.focus({preventScroll:false});
+                        break;
+                    case 'Blur Element':
+                        el.blur();
+                        break;
+                    case 'Toggle Fullscreen':
+                        if(!document.fullscreenElement){ el.requestFullscreen().catch(()=>{}); }
+                        else { document.exitFullscreen(); }
+                        break;
 
-    const triggers = document.querySelectorAll(triggerSel);
-    if(!triggers.length) { console.warn('[Event⇄Action] No elements match "'+triggerSel+'"'); return; }
+                    // === Advanced Actions ===
 
-    triggers.forEach(tr=>{
-        tr.addEventListener(evType, function(e){
-            const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
-            performAction(Array.from(targets), e);
+                    case 'Clone Element':
+                        el.parentNode && el.parentNode.insertBefore(el.cloneNode(true), el.nextSibling);
+                        break;
+                    case 'Replace HTML':
+                        el.innerHTML = replaceHtml || '';
+                        break;
+                    case 'Set Attribute':
+                        if(attributeName) el.setAttribute(attributeName, attributeValue||'');
+                        break;
+                    case 'Remove Attribute':
+                        if(attributeName) el.removeAttribute(attributeName);
+                        break;
+                    case 'Toggle Attribute':
+                        if(attributeName) {
+                            if(el.hasAttribute(attributeName)) el.removeAttribute(attributeName);
+                            else el.setAttribute(attributeName, attributeValue||'');
+                        }
+                        break;
+                    case 'Dispatch Custom Event':
+                        if(customEvent) el.dispatchEvent(new CustomEvent(customEvent, {bubbles:true}));
+                        break;
+                    case 'Download File':
+                        if(downloadUrl) {
+                            const a = document.createElement('a');
+                            a.href = downloadUrl;
+                            a.download = '';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        }
+                        break;
+                    case 'Change Text':
+                        el.textContent = textValue || '';
+                        break;
+                    case 'Append HTML':
+                        el.insertAdjacentHTML('beforeend', appendHtml || '');
+                        break;
+                    case 'Prepend HTML':
+                        el.insertAdjacentHTML('afterbegin', prependHtml || '');
+                        break;
+                    case 'Toggle Style Property':
+                        if(styleProperty) {
+                            if(el.style[styleProperty]) el.style[styleProperty] = '';
+                            else el.style[styleProperty] = styleValue || '';
+                        }
+                        break;
+                    case 'Play/Pause Media':
+                        if(el.paused !== undefined) {
+                            if(el.paused) el.play();
+                            else el.pause();
+                        }
+                        break;
+                    case 'Capture Screenshot':
+                        if(window.html2canvas) {
+                            html2canvas(el).then(canvas=>{
+                                const a = document.createElement('a');
+                                a.href = canvas.toDataURL();
+                                a.download = 'screenshot.png';
+                                a.click();
+                            });
+                        } else {
+                            alert('html2canvas.js required!');
+                        }
+                        break;
+                    case 'Copy To Clipboard':
+                        if(copyValue) {
+                            navigator.clipboard && navigator.clipboard.writeText(copyValue);
+                        }
+                        break;
+                    case 'Set Value':
+                        if('value' in el) el.value = textValue || '';
+                        break;
+                    case 'Log To Console':
+                        console.log('[Event⇄Action]', el, e);
+                        break;
+                    case 'Custom JS Function':
+                        try {
+                            // eslint-disable-next-line no-new-func
+                            const fn = new Function('targets','event', customJsFunc || '');
+                            fn([el], e);
+                        } catch(err) {
+                            console.warn('Error in custom JS function:', err);
+                        }
+                        break;
+                    default:
+                        console.warn('Action "'+action+'" not implemented.');
+                }
+            });
+        }
+
+        const triggers = document.querySelectorAll(triggerSel);
+        if(!triggers.length) { console.warn('[Event⇄Action] No elements match "'+triggerSel+'"'); return; }
+
+        triggers.forEach(tr=>{
+            tr.addEventListener(evType, function(e){
+                const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+                performAction(Array.from(targets), e);
+            });
         });
     });
 })();
 </script>
+
+
+
+
 <?php
     }
 }
