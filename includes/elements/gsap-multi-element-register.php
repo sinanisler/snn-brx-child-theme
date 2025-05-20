@@ -358,6 +358,7 @@ add_action( 'init', function () {
 
 
 // Scroll START and END positions
+'start:0%' => esc_html__('Start 0%', 'snn'),
 'start:10%' => esc_html__('Start 10%', 'snn'),
 'start:20%' => esc_html__('Start 20%', 'snn'),
 'start:30%' => esc_html__('Start 30%', 'snn'),
@@ -369,6 +370,7 @@ add_action( 'init', function () {
 'start:90%' => esc_html__('Start 90%', 'snn'),
 'start:100%' => esc_html__('Start 100%', 'snn'),
 
+'end:0%' => esc_html__('End 0%', 'snn'),
 'end:10%' => esc_html__('End 10%', 'snn'),
 'end:20%' => esc_html__('End 20%', 'snn'),
 'end:30%' => esc_html__('End 30%', 'snn'),
