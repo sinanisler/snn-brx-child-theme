@@ -1,4 +1,7 @@
 <?php 
+
+
+
 // WP-Admin Backend Custom JS and CSS in <head>
 function snn_custom_css_utils() { ?>
     <style>
@@ -27,7 +30,10 @@ function snn_custom_css_utils() { ?>
 add_action('admin_head', 'snn_custom_css_utils');
 
 
-// Add custom CSS to the footer based on query parameter
+
+
+
+// Add custom CSS to the footer based on query parameter for BRICKS EDITOR
 function snn_custom_css_utils_wp_footer() {
     if (isset($_GET['bricks'])) { ?>
     <style>
