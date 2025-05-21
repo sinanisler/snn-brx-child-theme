@@ -492,8 +492,6 @@ add_action( 'init', function () {
 				'type'        => 'text',
 				'placeholder' => 'style_start-opacity:0, style_end-opacity:1',
 				'description' => 'Write any valid data-animate value(s).<br><br><br><br>',
-				/* show this field only when the select contains “custom” */
-				/* (“required” param documented here → Bricks docs) :contentReference[oaicite:0]{index=0} */
 				'required'    => [ 'custom_data_animate_dynamic_elements', '=', 'custom' ],
 			];
 
