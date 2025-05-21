@@ -153,7 +153,7 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
 
         // User role check for delete button
         $current  = get_current_user_id();
-        $is_admin = current_user_can( 'edit_others_comments' );
+        $is_admin = current_user_can( 'activate_plugins' );
         $can_delete = snn_user_can_delete_comment();
         $editable = $deletable = [];
 
@@ -301,7 +301,7 @@ function snn_comment_edit_ajax() {
     if ( ! $comment_id || '' === $content ) {
         wp_send_json_error( 'Invalid data', 400 );
     }
-    if ( ! current_user_can( 'edit_comment', $comment_id ) ) {
+    if ( ! current_user_can( 'activate_plugins', $comment_id ) ) {
         wp_send_json_error( 'No permission', 403 );
     }
     if ( function_exists( 'kses_remove_filters' ) ) kses_remove_filters();
@@ -326,7 +326,7 @@ function snn_comment_delete_ajax() {
         wp_send_json_error( 'Invalid data', 400 );
     }
     // Only admins/editors can actually delete (hard delete)
-    if ( ! current_user_can( 'delete_others_comments' ) ) {
+    if ( ! current_user_can( 'activate_plugins' ) ) {
         wp_send_json_error( 'No permission', 403 );
     }
     if ( ! wp_delete_comment( $comment_id, true ) ) {
