@@ -470,33 +470,70 @@ add_action( 'init', function () {
 
 
 
+'custom' => esc_html__('Custom data-animate', 'snn'), 
+
+
+
+
                 ],
 
                 'default' => '',
                 'multiple' => true,
                 'searchable' => true,
                 'clearable' => true,
-                'description' => '<br><br><br><br><br><br><br><br>',
+                'description' => '<br><br><br><br>',
             ];
+
+
+
+			$controls['custom_data_animate_dynamic_elements_custom'] = [
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Custom animation string', 'snn' ),
+				'type'        => 'text',
+				'placeholder' => 'style_start-opacity:0, style_end-opacity:1',
+				'description' => 'Write any valid data-animate value(s).<br><br><br><br>',
+				/* show this field only when the select contains “custom” */
+				/* (“required” param documented here → Bricks docs) :contentReference[oaicite:0]{index=0} */
+				'required'    => [ 'custom_data_animate_dynamic_elements', '=', 'custom' ],
+			];
+
+
+
+
+
+
             return $controls;
-        } );
+        }, 20 );
     }
 } );
 
 
 add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $element ) {
-    $targets = [ 'section', 'container', 'block', 'div' ];
-    $custom  = $element->settings['custom_data_animate_dynamic_elements'] ?? '';
 
-    if ( ! empty( $custom ) && in_array( $element->name, $targets, true ) ) {
-        // If $custom is an array, convert it to a comma-separated string
-        if ( is_array( $custom ) ) {
-            $custom = implode( ',', $custom );
-        }
+	$targets      = [ 'section', 'container', 'block', 'div' ];
+	$selected     = $element->settings['custom_data_animate_dynamic_elements'] ?? [];
+	$custom_value = $element->settings['custom_data_animate_dynamic_elements_custom'] ?? '';
 
-        // Add the data-animate attribute to the root element
-        $attributes[$key]['data-animate'] = esc_attr( $custom );
-    }
+	if ( ! in_array( $element->name, $targets, true ) || empty( $selected ) ) {
+		return $attributes; // nothing to do
+	}
 
-    return $attributes;
-}, 999, 3 );
+	// Make sure we are working with an array
+	if ( ! is_array( $selected ) ) {
+		$selected = explode( ',', $selected );
+	}
+
+	// Replace “custom” placeholder with the user-supplied string
+	if ( ( $idx = array_search( 'custom', $selected, true ) ) !== false ) {
+		unset( $selected[ $idx ] );
+		if ( $custom_value !== '' ) {
+			$selected[] = $custom_value;
+		}
+	}
+
+	// Re-assemble and overwrite the attribute
+	$attributes[ $key ]['data-animate'] = esc_attr( implode( ',', $selected ) );
+
+	return $attributes;
+
+}, 1000, 3 ); // priority > 999 so we override the original handler

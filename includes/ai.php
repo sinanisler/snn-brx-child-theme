@@ -671,12 +671,19 @@ function snn_add_ai_script_to_footer() {
         [data-control-key="anchorId"] .snn-ai-button,
         [type="image"] .snn-ai-button,
         #ariaLabel .snn-ai-button,
-        .control-text [data-control="text"] .snn-ai-button,
         [data-control="typography"] .snn-ai-button,
         #bricks-popup .snn-ai-button
         {
             display: none !important;
         }
+
+        [data-controlkey="custom_data_animate_dynamic_elements_custom"] .snn-ai-button
+        {
+            display: block !important;
+        }
+
+
+
         .snn-ai-button:hover { background-color: var(--builder-bg-accent); color: var(--builder-color-accent); }
         .snn-ai-overlay { display: none; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 99999999; justify-content: center; font-size: 14px; line-height: 1.2; }
         .snn-ai-modal { background-color: var(--builder-bg); color: var(--builder-color); border-radius: 4px 4px 0 0; width: 800px; max-width: 90%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); }
