@@ -1,7 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
-}
+if ( ! defined( 'ABSPATH' ) ) exit;
 use Bricks\Element;
 
 class Snn_Scroll_Line_Vertical_Indicator extends Element {
@@ -56,6 +54,14 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
                 'hex' => '#333333'
             ],
         ];
+        $this->controls['dot_font_color'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Dot Font Color', 'snn' ),
+            'type'  => 'color',
+            'default' => [
+                'hex' => '#fff'
+            ],
+        ];
         $this->controls['dot_width'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Dot Width (px)', 'snn' ),
@@ -108,32 +114,45 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
         ];
     }
 
+    // Helper: robust color value (string/array/variable)
+    private function get_color_val($val) {
+        if (is_array($val)) {
+            // Prefer rgba, fallback to hex, fallback to first key.
+            if (!empty($val['rgba'])) return $val['rgba'];
+            if (!empty($val['hex'])) return $val['hex'];
+            if (!empty($val['rgb'])) return $val['rgb'];
+            foreach ($val as $v) if ($v) return $v;
+            return '';
+        }
+        if (is_string($val) && trim($val) !== '') return $val;
+        return '';
+    }
+
     public function render() {
-        $dom_selector = $this->settings['dom_selector'] ?: 'comment';
-        $indicator_height = isset($this->settings['indicator_height']) ? $this->settings['indicator_height'] : '300px';
-        $indicator_width = isset($this->settings['indicator_width']) ? $this->settings['indicator_width'] : '4px';
-        $indicator_color = isset($this->settings['indicator_color']['hex']) ? $this->settings['indicator_color']['hex'] : '#cccccc';
-        $dot_color = isset($this->settings['dot_color']['hex']) ? $this->settings['dot_color']['hex'] : '#333333';
+        $dom_selector = !empty($this->settings['dom_selector']) ? $this->settings['dom_selector'] : 'comment';
+        $indicator_height = !empty($this->settings['indicator_height']) ? $this->settings['indicator_height'] : '300px';
+        $indicator_width = !empty($this->settings['indicator_width']) ? $this->settings['indicator_width'] : '4px';
+        $indicator_color = $this->get_color_val($this->settings['indicator_color']);
+        $dot_color = $this->get_color_val($this->settings['dot_color']);
+
+        // Fix: check key existence for dot_font_color, fallback to #fff if not set
+        $dot_font_color = isset($this->settings['dot_font_color']) ? $this->get_color_val($this->settings['dot_font_color']) : '#fff';
+
         $dot_width = isset($this->settings['dot_width']) ? intval($this->settings['dot_width']) : 18;
         $dot_height = isset($this->settings['dot_height']) ? intval($this->settings['dot_height']) : 18;
         $dot_border_radius = isset($this->settings['dot_border_radius']) ? intval($this->settings['dot_border_radius']) : 50;
-        $dot_font_size = isset($this->settings['dot_font_size']) ? intval($this->settings['dot_font_size']) : 10;
-        $fixed_position = isset($this->settings['fixed_position']) ? (bool)$this->settings['fixed_position'] : false;
-
-        $height_css = esc_attr($indicator_height);
-        $width_css = esc_attr($indicator_width);
-        $dot_width_css = esc_attr($dot_width) . 'px';
-        $dot_height_css = esc_attr($dot_height) . 'px';
-        $dot_border_radius_css = esc_attr($dot_border_radius) . 'px';
-        $dot_font_size_css = esc_attr($dot_font_size) . 'px';
-
+        $dot_font_size = isset($this->settings['dot_font_size']) ? intval($this->settings['dot_font_size']) : 12;
+        $fixed_position = !empty($this->settings['fixed_position']);
+        $dot_width_css = $dot_width . 'px';
+        $dot_height_css = $dot_height . 'px';
+        $dot_border_radius_css = $dot_border_radius . 'px';
+        $dot_font_size_css = $dot_font_size . 'px';
         $unique = 'scroll-indicator-' . uniqid();
-        $this->set_attribute( '_root', 'class', [ 'snn-scroll-line-vertical-indicator-wrapper', $unique ] );
-
+        $this->set_attribute('_root', 'class', [ 'snn-scroll-line-vertical-indicator-wrapper', $unique ]);
         echo '<div ' . $this->render_attributes('_root') . '>';
         echo '<style>
             /* Wrapper */
-            .' . esc_attr($unique) . ' {
+            .' . $unique . ' {
                 ' . ( $fixed_position ?
                     'position: fixed;
                     top: 50%;
@@ -151,35 +170,35 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
                 ) . '
             }
             /* Line Container */
-            .' . esc_attr($unique) . ' .scroll-line-container {
+            .' . $unique . ' .scroll-line-container {
                 position: relative;
-                height: ' . $height_css . ';
+                height: ' . $indicator_height . ';
                 width: auto;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
             }
             /* Scroll Line */
-            .' . esc_attr($unique) . ' .scroll-line {
+            .' . $unique . ' .scroll-line {
                 position: absolute;
                 left: 50%;
                 transform: translateX(-50%);
-                width: ' . $width_css . ';
+                width: ' . $indicator_width . ';
                 height: 100%;
-                background-color: ' . esc_attr($indicator_color) . ';
+                background-color: ' . $indicator_color . ';
                 border-radius: 2px;
                 z-index: 0;
             }
             /* Scroll Dot */
-            .' . esc_attr($unique) . ' .scroll-indicator {
+            .' . $unique . ' .scroll-indicator {
                 position: absolute;
                 left: 50%;
                 transform: translateX(-50%);
                 width: ' . $dot_width_css . ';
                 height: ' . $dot_height_css . ';
-                background: ' . esc_attr($dot_color) . ';
+                background: ' . $dot_color . ';
                 border-radius: ' . $dot_border_radius_css . ';
-                color: #fff;
+                color: ' . $dot_font_color . ';
                 font-size: ' . $dot_font_size_css . ';
                 font-weight: bold;
                 display: flex;
@@ -197,20 +216,17 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
         ?>
         <script>
         (function(){
-            const root = document.querySelector('.<?php echo esc_js($unique); ?>');
+            const root = document.querySelector('.<?php echo $unique; ?>');
             if (!root) return;
-
             const indicator = root.querySelector('.scroll-indicator');
             const scrollLine = root.querySelector('.scroll-line');
             const selector = '<?php echo esc_js($dom_selector); ?>';
             const dotHeight = <?php echo $dot_height; ?>;
             let postCount = 0;
-
             let currentTop = 0;
             let targetTop = 0;
             let currentDisplayNum = '-';
             let animationRunning = false;
-
             function getPostsCount() {
                 try {
                     return document.querySelectorAll(selector).length;
@@ -218,7 +234,6 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
                     return 0;
                 }
             }
-
             function calculatePosition() {
                 postCount = getPostsCount();
                 if (postCount === 0) {
@@ -226,27 +241,20 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
                     currentDisplayNum = '-';
                     return;
                 }
-
                 const scrollTop = window.scrollY || document.documentElement.scrollTop;
                 const docHeight = document.body.scrollHeight - window.innerHeight;
-                const percent = Math.min(Math.max(scrollTop / docHeight, 0), 1);
-
+                const percent = Math.min(Math.max(docHeight ? (scrollTop / docHeight) : 0, 0), 1);
                 const lineHeight = scrollLine.clientHeight;
                 targetTop = percent * (lineHeight - dotHeight);
-
                 const postNumber = Math.round(postCount * percent);
                 currentDisplayNum = Math.min(Math.max(1, postNumber + 1), postCount);
             }
-
             function animate() {
                 currentTop += (targetTop - currentTop) * 0.15;
-
                 indicator.style.top = `${currentTop}px`;
-
                 if (indicator.textContent != currentDisplayNum) {
                     indicator.textContent = currentDisplayNum;
                 }
-
                 if (Math.abs(targetTop - currentTop) > 0.5) {
                     requestAnimationFrame(animate);
                 } else {
@@ -254,7 +262,6 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
                     animationRunning = false;
                 }
             }
-
             function requestAnimation() {
                 calculatePosition();
                 if (!animationRunning) {
@@ -262,7 +269,6 @@ class Snn_Scroll_Line_Vertical_Indicator extends Element {
                     requestAnimationFrame(animate);
                 }
             }
-
             document.addEventListener('DOMContentLoaded', requestAnimation);
             window.addEventListener('scroll', requestAnimation, {passive:true});
             window.addEventListener('resize', requestAnimation, {passive:true});
