@@ -362,7 +362,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         ];
     }
 
-    
+     
 
 
     public function render() {
