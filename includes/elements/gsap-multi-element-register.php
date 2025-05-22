@@ -61,6 +61,9 @@ add_action( 'init', function () {
 // Rotating
 
 
+'style_start-transform:rotate(0deg), style_end-transform:rotate(3deg)' => esc_html__('Rotate 3', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(5deg)' => esc_html__('Rotate 5', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(15deg)' => esc_html__('Rotate 15', 'snn'),
 'style_start-transform:rotate(0deg), style_end-transform:rotate(45deg)' => esc_html__('Rotate 45', 'snn'),
 'style_start-transform:rotate(0deg), style_end-transform:rotate(90deg)' => esc_html__('Rotate 90', 'snn'),
 'style_start-transform:rotate(0deg), style_end-transform:rotate(180deg)' => esc_html__('Rotate 180', 'snn'),
