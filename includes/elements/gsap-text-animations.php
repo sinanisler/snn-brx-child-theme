@@ -131,8 +131,101 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
                     esc_html__('Rotate 180 degrees', 'bricks'),
                 'style_start-transform:rotate(360deg), style_end-transform:rotate(0deg), style_start-opacity:0, style_end-opacity:1' =>
                     esc_html__('Rotate 360 degrees', 'bricks'),
+
+
+
+
+// Fading
+'style_start-opacity:0, style_end-opacity:1' => esc_html__('Fade In ', 'snn'),
+'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Ou ', 'snn'),
+
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Down', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px), style_end-transform:translateX(-1000px)' => esc_html__('Fade Out Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px), style_end-transform:translateX(1000px)' => esc_html__('Fade Out Right', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Up', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Fade Out Up', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) translateY(-1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Top Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(-1000px) translateY(-1000px)' => esc_html__('Fade Out Top Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) translateY(-1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Top Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(1000px) translateY(-1000px)' => esc_html__('Fade Out Top Right', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) translateY(1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Bottom Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(-1000px) translateY(1000px)' => esc_html__('Fade Out Bottom Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) translateY(1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Bottom Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(1000px) translateY(1000px)' => esc_html__('Fade Out Bottom Right', 'snn'),
+
+// Zooming
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8), style_end-transform:scale(1)' => esc_html__('Zoom In', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1), style_end-transform:scale(0.8)' => esc_html__('Zoom Out', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(-1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Down', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(1000px)' => esc_html__('Zoom Out Down', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateX(-1000px), style_end-transform:scale(1) translateX(0px)' => esc_html__('Zoom In Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateX(0px), style_end-transform:scale(0.8) translateX(-1000px)' => esc_html__('Zoom Out Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateX(1000px), style_end-transform:scale(1) translateX(0px)' => esc_html__('Zoom In Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateX(0px), style_end-transform:scale(0.8) translateX(1000px)' => esc_html__('Zoom Out Right', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Up', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(-1000px)' => esc_html__('Zoom Out Up', 'snn'),
+
+
+'style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Down ', 'snn'),
+'style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Slide Out Down ', 'snn'),
+'style_start-transform:translateX(-1000px), style_end-transform:translateX(0px)' => esc_html__('Slide In Left ', 'snn'),
+'style_start-transform:translateX(0px), style_end-transform:translateX(-1000px)' => esc_html__('Slide Out Left ', 'snn'),
+'style_start-transform:translateX(1000px), style_end-transform:translateX(0px)' => esc_html__('Slide In Right ', 'snn'),
+'style_start-transform:translateX(0px), style_end-transform:translateX(1000px)' => esc_html__('Slide Out Right ', 'snn'),
+'style_start-transform:translateY(1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Up ', 'snn'),
+'style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Slide Out Up ', 'snn'),
+
+
+// All other animations kept exactly the same as you had
+// Rotating
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-200deg) scale(0.8), style_end-transform:rotate(0deg) scale(1)' => esc_html__('Rotate In', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) scale(1), style_end-transform:rotate(200deg) scale(0.8)' => esc_html__('Rotate Out', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-90deg) translateY(-1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Down Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) translateY(0px), style_end-transform:rotate(90deg) translateY(1000px)' => esc_html__('Rotate Out Down Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(90deg) translateY(-1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Down Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) translateY(0px), style_end-transform:rotate(-90deg) translateY(1000px)' => esc_html__('Rotate Out Down Right', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-90deg) translateY(1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Up Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) translateY(0px), style_end-transform:rotate(90deg) translateY(-1000px)' => esc_html__('Rotate Out Up Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(90deg) translateY(1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Up Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) translateY(0px), style_end-transform:rotate(-90deg) translateY(-1000px)' => esc_html__('Rotate Out Up Right', 'snn'),
+
+// Flipping & 3D
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotateX(90deg), style_end-transform:rotateX(0deg)' => esc_html__('Flip In X', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotateX(0deg), style_end-transform:rotateX(90deg)' => esc_html__('Flip Out X', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotateY(90deg), style_end-transform:rotateY(0deg)' => esc_html__('Flip In Y', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotateY(0deg), style_end-transform:rotateY(90deg)' => esc_html__('Flip Out Y', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate3d(1,1,0,90deg), style_end-transform:rotate3d(1,1,0,0deg)' => esc_html__('Flip In 3D', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate3d(1,1,0,0deg), style_end-transform:rotate3d(1,1,0,90deg)' => esc_html__('Flip Out 3D', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotateY(90deg) scale(0.8), style_end-transform:rotateY(0deg) scale(1)' => esc_html__('Cube Rotate In', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotateY(0deg) scale(1), style_end-transform:rotateY(90deg) scale(0.8)' => esc_html__('Cube Rotate Out', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotateY(180deg), style_end-transform:rotateY(0deg)' => esc_html__('Card Flip In', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotateY(0deg), style_end-transform:rotateY(180deg)' => esc_html__('Card Flip Out', 'snn'),
+
+
+// Scaling (very common utility)
+'style_start-transform:scale(0), style_end-transform:scale(1)' => esc_html__('Scale 0 to 1', 'snn'),
+'style_start-transform:scale(10), style_end-transform:scale(1)' => esc_html__('Scale 10 to 1', 'snn'),
+'style_start-transform:scale(1), style_end-transform:scale(0)' => esc_html__('Scale 1 to 0', 'snn'),
+
+
+// Opacity Utility (great for fading/combos)
+'style_start-opacity:0, style_end-opacity:1' => esc_html__('Opacity 0 to 1', 'snn'),
+'style_start-opacity:1, style_end-opacity:0' => esc_html__('Opacity 1 to 0', 'snn'),
+
+// Rotate
+'style_start-transform:rotate(0deg), style_end-transform:rotate(180deg)' => esc_html__('Rotate 0 to 180', 'snn'),
+'style_start-transform:rotate(180deg), style_end-transform:rotate(0deg)' => esc_html__('Rotate 180 to 0', 'snn'),
+
+
+
             ],
             'default'     => '',
+            'multiple' => true,
+            'searchable' => true,
+            'clearable' => true,
             'inline'      => false,
             'placeholder' => esc_html__('Select Preset', 'bricks'),
         ];
