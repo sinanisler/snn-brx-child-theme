@@ -405,7 +405,7 @@ add_action( 'init', function () {
 'duration:1' => esc_html__('Duration 1', 'snn'),
 'duration:2' => esc_html__('Duration 2', 'snn'),
 'duration:4' => esc_html__('Duration 4', 'snn'),
-'duration:10' => esc_html__('Duration 4', 'snn'),
+'duration:10' => esc_html__('Duration 10', 'snn'),
 
 'delay:1' => esc_html__('Delay 1', 'snn'),
 'delay:2' => esc_html__('Delay 2', 'snn'),
