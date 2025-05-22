@@ -362,6 +362,9 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         ];
     }
 
+    
+
+
     public function render() {
         $root_classes = ['snn-gsap-text-animations-wrapper'];
         $this->set_attribute('_root', 'class', $root_classes);
@@ -401,7 +404,12 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             $global_settings[] = "end:'bottom " . $this->settings['scroll_end'] . "%'";
         }
         if (isset($this->settings['presets']) && $this->settings['presets'] !== '') {
-            $global_settings[] = $this->settings['presets'];
+            // FIX: flatten preset(s) array
+            if (is_array($this->settings['presets'])) {
+                $global_settings[] = implode(', ', $this->settings['presets']);
+            } else {
+                $global_settings[] = $this->settings['presets'];
+            }
         }
 
         // Combine all settings into the final data-animate attribute.
@@ -417,6 +425,8 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         echo Frontend::render_children($this);
         echo '</' . esc_html($dom_element_tag) . '>';
     }
+
+
 
     /**
      * Render builder method - used within the Bricks builder interface.
