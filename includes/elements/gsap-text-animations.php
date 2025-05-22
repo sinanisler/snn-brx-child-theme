@@ -218,8 +218,15 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 'style_start-transform:rotate(0deg), style_end-transform:rotate(180deg)' => esc_html__('Rotate 0 to 180', 'snn'),
 'style_start-transform:rotate(180deg), style_end-transform:rotate(0deg)' => esc_html__('Rotate 180 to 0', 'snn'),
 
+'delay:0.1' => esc_html__('Delay 0.1', 'snn'),
+'delay:1' => esc_html__('Delay 1', 'snn'),
+'delay:2' => esc_html__('Delay 2', 'snn'),
+'delay:3' => esc_html__('Delay 3', 'snn'),
+'delay:4' => esc_html__('Delay 4', 'snn'),
 
 
+
+ 
             ],
             'default'     => '',
             'multiple' => true,
@@ -471,4 +478,3 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         <?php
     }
 }
-?> 
