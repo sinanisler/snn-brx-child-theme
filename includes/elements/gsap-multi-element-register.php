@@ -404,12 +404,20 @@ add_action( 'init', function () {
 'duration:0.2' => esc_html__('Duration 0.2', 'snn'),
 'duration:1' => esc_html__('Duration 1', 'snn'),
 'duration:2' => esc_html__('Duration 2', 'snn'),
+'duration:3' => esc_html__('Duration 3', 'snn'),
 'duration:4' => esc_html__('Duration 4', 'snn'),
+'duration:5' => esc_html__('Duration 5', 'snn'),
 'duration:10' => esc_html__('Duration 10', 'snn'),
+'duration:20' => esc_html__('Duration 20', 'snn'),
 
 'delay:1' => esc_html__('Delay 1', 'snn'),
 'delay:2' => esc_html__('Delay 2', 'snn'),
+'delay:3' => esc_html__('Delay 3', 'snn'),
 'delay:4' => esc_html__('Delay 4', 'snn'),
+'delay:5' => esc_html__('Delay 5', 'snn'),
+'delay:8' => esc_html__('Delay 8', 'snn'),
+'delay:10' => esc_html__('Delay 10', 'snn'),
+'delay:20' => esc_html__('Delay 20', 'snn'),
 
 
 
