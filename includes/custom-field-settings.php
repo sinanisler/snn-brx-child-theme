@@ -140,6 +140,7 @@ function snn_custom_fields_page_callback() {
                                     <option value="rich_text"  <?php selected($field_type, 'rich_text'); ?>>Rich Text</option>
                                     <option value="media"      <?php selected($field_type, 'media'); ?>>Media</option>
                                     <option value="date"       <?php selected($field_type, 'date'); ?>>Date</option>
+                                    <option value="time" <?php selected($field_type, 'time'); ?>>Time</option>
                                     <option value="color"      <?php selected($field_type, 'color'); ?>>Color</option>
                                     <option value="select"     <?php selected($field_type, 'select'); ?>>Select</option>
                                     <option value="checkbox"   <?php selected($field_type, 'checkbox'); ?>>Checkbox</option>
@@ -274,6 +275,7 @@ function snn_custom_fields_page_callback() {
                             <option value="rich_text">Rich Text</option>
                             <option value="media">Media</option>
                             <option value="date">Date</option>
+                            <option value="time">Time</option>
                             <option value="color">Color</option>
                             <option value="select">Select</option>
                             <option value="checkbox">Checkbox</option>
@@ -680,6 +682,7 @@ function snn_render_metabox_content($post, $metabox) {
     .snn-field-wrap input[type="url"],
     .snn-field-wrap input[type="email"],
     .snn-field-wrap input[type="date"],
+    .snn-field-wrap input[type="time"],
     .snn-field-wrap select,
     .snn-field-wrap textarea {
         width: 100%;
@@ -905,6 +908,14 @@ function snn_render_field_input($field, $value = '', $index = '0') {
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
                  . '" placeholder="YYYY-MM-DD" class="snn-datepicker" />';
             break;
+
+
+        case 'time':
+            echo '<input type="time" id="' . esc_attr($field_name . '_' . $index) 
+                . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
+                . '" placeholder="HH:MM" class="snn-timepicker" />';
+            break;
+
 
         case 'color':
             echo '<input type="text" id="' . esc_attr($field_name . '_' . $index) 
@@ -1380,6 +1391,10 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
         case 'radio':
         case 'checkbox':
             return sanitize_text_field($value);
+
+        case 'time':
+            return preg_match('/^\d{2}:\d{2}$/', $value) ? $value : '';
+
 
         case 'true_false':
             return ($value == '1' || $value === true) ? '1' : '0';
