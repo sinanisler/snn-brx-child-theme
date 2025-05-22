@@ -71,6 +71,19 @@ add_action( 'init', function () {
 
 
 
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-3deg)' => esc_html__('Rotate -3', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-5deg)' => esc_html__('Rotate -5', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-15deg)' => esc_html__('Rotate -15', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-45deg)' => esc_html__('Rotate -45', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-90deg)' => esc_html__('Rotate -90', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-180deg)' => esc_html__('Rotate -180', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-360deg)' => esc_html__('Rotate -360', 'snn'),
+
+
+
+
+
+
 
 'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-200deg) scale(0.8), style_end-transform:rotate(0deg) scale(1)' => esc_html__('Rotate In', 'snn'),
 'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) scale(1), style_end-transform:rotate(200deg) scale(0.8)' => esc_html__('Rotate Out', 'snn'),
@@ -425,6 +438,8 @@ add_action( 'init', function () {
 'duration:10' => esc_html__('Duration 10', 'snn'),
 'duration:20' => esc_html__('Duration 20', 'snn'),
 
+'delay:0.3' => esc_html__('Delay 0.3', 'snn'),
+'delay:0.5' => esc_html__('Delay 0.5', 'snn'),
 'delay:1' => esc_html__('Delay 1', 'snn'),
 'delay:2' => esc_html__('Delay 2', 'snn'),
 'delay:3' => esc_html__('Delay 3', 'snn'),
