@@ -59,6 +59,16 @@ add_action( 'init', function () {
 
 // All other animations kept exactly the same as you had
 // Rotating
+
+
+'style_start-transform:rotate(0deg), style_end-transform:rotate(45deg)' => esc_html__('Rotate 45', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(90deg)' => esc_html__('Rotate 90', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(180deg)' => esc_html__('Rotate 180', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(360deg)' => esc_html__('Rotate 360', 'snn'),
+
+
+
+
 'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-200deg) scale(0.8), style_end-transform:rotate(0deg) scale(1)' => esc_html__('Rotate In', 'snn'),
 'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) scale(1), style_end-transform:rotate(200deg) scale(0.8)' => esc_html__('Rotate Out', 'snn'),
 'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-90deg) translateY(-1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Down Left', 'snn'),
@@ -396,6 +406,8 @@ add_action( 'init', function () {
 'stagger:0.5' => esc_html__('Stagger 0.5', 'snn'),
 'stagger:1' => esc_html__('Stagger 1', 'snn'),
 'stagger:2' => esc_html__('Stagger 2', 'snn'),
+'stagger:3' => esc_html__('Stagger 3', 'snn'),
+'stagger:6' => esc_html__('Stagger 6', 'snn'),
 
 
 'duration:0.01' => esc_html__('Duration 0.01', 'snn'),
