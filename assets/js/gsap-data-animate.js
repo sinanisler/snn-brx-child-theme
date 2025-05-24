@@ -307,6 +307,7 @@ window.onload = function () {
       return value;
     }
 
+    // --- SPLIT TEXT FUNCTION (line/word/char with <p> and spaces preserved) ---
     function splitText(element, options) {
       if (!options.splittext) {
         const childElements = element.children;
@@ -316,66 +317,142 @@ window.onload = function () {
         return element;
       }
       const type = options.splittext.toLowerCase();
-      const text = element.innerText;
-      let splitted = [];
+      const startStylesString = convertStylesToString(options.startStyles);
 
-      if (type === 'true') {
-        splitted = text.split('');
-      } else if (type === 'word') {
-        splitted = text.split(/(\s+)/);
+      if (type === 'true' || type === 'word') {
+        let html = '';
+        // preserve paragraphs if present
+        let childNodes = Array.from(element.childNodes);
+        childNodes.forEach(node => {
+          if (node.nodeType === 3) {
+            // text node: split
+            let txt = node.textContent;
+            let parts = (type === 'true')
+              ? txt.split('')
+              : txt.split(/(\s+)/);
+            parts.forEach(part => {
+              if (part === '') return;
+              if (part.match(/^\s+$/)) {
+                html += `<span style="display:inline-block; position:relative; white-space:pre;">${part}</span>`;
+              } else {
+                html += `<span style="display:inline-block; position:relative; ${startStylesString}">${part}</span>`;
+              }
+            });
+          } else if (node.nodeType === 1 && node.tagName === "P") {
+            html += `<p>`;
+            let txt = node.textContent;
+            let parts = (type === 'true')
+              ? txt.split('')
+              : txt.split(/(\s+)/);
+            parts.forEach(part => {
+              if (part === '') return;
+              if (part.match(/^\s+$/)) {
+                html += `<span style="display:inline-block; position:relative; white-space:pre;">${part}</span>`;
+              } else {
+                html += `<span style="display:inline-block; position:relative; ${startStylesString}">${part}</span>`;
+              }
+            });
+            html += `</p>`;
+          } else if (node.nodeType === 1) {
+            // other tags: just keep as is
+            html += node.outerHTML;
+          }
+        });
+        element.innerHTML = html;
+        return element.querySelectorAll('span');
       } else if (type === 'line') {
-        // DOM-based line splitter
-        const originalHTML = element.innerHTML;
-        const startStylesString = convertStylesToString(options.startStyles);
-        // Step 1: Wrap every word/char in spans (for measurement)
-        let wordSpans = [];
-        let tempHTML = '';
-        let words = text.split(/(\s+)/g);
-        for (let i = 0; i < words.length; i++) {
-          if (words[i].trim() === '') {
-            tempHTML += `<span class="___split_line_space" style="white-space:pre;">${words[i]}</span>`;
-          } else {
-            tempHTML += `<span class="___split_line_word" style="display:inline-block;">${words[i]}</span>`;
+        // line split: handle each paragraph separately and preserve structure
+        let resultSpans = [];
+        let html = '';
+        let childNodes = Array.from(element.childNodes);
+        childNodes.forEach(node => {
+          if (node.nodeType === 3) {
+            // text node, wrap in temp span for line detection
+            let temp = document.createElement('span');
+            temp.style.display = 'inline';
+            temp.innerHTML = node.textContent.replace(/ /g, '<span class="___split_line_space" style="white-space:pre;"> </span>');
+            element.insertBefore(temp, node);
+            element.removeChild(node);
           }
+        });
+
+        // Now process paragraphs and block tags for line splitting
+        let processBlock = blockElem => {
+          // Step 1: split blockElem's text into words and spaces, wrap in spans
+          let parts = [];
+          let walker = document.createTreeWalker(blockElem, NodeFilter.SHOW_TEXT, null, false);
+          let textNodes = [];
+          while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+          textNodes.forEach(textNode => {
+            let parent = textNode.parentNode;
+            let txt = textNode.textContent;
+            let frag = document.createDocumentFragment();
+            let words = txt.split(/(\s+)/);
+            words.forEach(word => {
+              if (word === '') return;
+              let span = document.createElement('span');
+              span.style.display = 'inline-block';
+              span.style.position = 'relative';
+              if (word.match(/^\s+$/)) {
+                span.style.whiteSpace = 'pre';
+                span.textContent = word;
+              } else {
+                if (startStylesString) span.setAttribute('style', span.getAttribute('style') + startStylesString);
+                span.textContent = word;
+              }
+              frag.appendChild(span);
+            });
+            parent.replaceChild(frag, textNode);
+          });
+
+          // Step 2: group into lines by top position
+          let wordSpans = Array.from(blockElem.querySelectorAll('span'));
+          let lines = [], currentLine = [], lastTop = null;
+          wordSpans.forEach((span, idx) => {
+            let rect = span.getBoundingClientRect();
+            let top = Math.round(rect.top);
+            if (lastTop === null) lastTop = top;
+            if (top !== lastTop && currentLine.length) {
+              lines.push([...currentLine]);
+              currentLine = [];
+              lastTop = top;
+            }
+            currentLine.push(span);
+          });
+          if (currentLine.length) lines.push([...currentLine]);
+
+          // Step 3: wrap each line in a block-level span
+          let newHtml = '';
+          lines.forEach(line => {
+            let lineHtml = '';
+            line.forEach(s => lineHtml += s.outerHTML);
+            newHtml += `<span class="___split_line" style="display:block; position:relative; ${startStylesString}">${lineHtml}</span>`;
+          });
+          blockElem.innerHTML = newHtml;
+          resultSpans = resultSpans.concat(Array.from(blockElem.children));
+        };
+
+        // If element contains <p>, process each <p> separately
+        let ps = element.querySelectorAll('p');
+        if (ps.length > 0) {
+          ps.forEach(p => processBlock(p));
+          // After processing, re-collect all lines
+          ps.forEach(p => {
+            Array.from(p.children).forEach(child => {
+              if (child.classList && child.classList.contains('___split_line')) {
+                resultSpans.push(child);
+              }
+            });
+          });
+        } else {
+          // No <p>, process element as a block
+          processBlock(element);
         }
-        element.innerHTML = tempHTML;
-        wordSpans = Array.from(element.querySelectorAll('.___split_line_word, .___split_line_space'));
-        // Step 2: Group by line (top offset)
-        let lines = [], currentLine = [], lastTop = null;
-        wordSpans.forEach((span, idx) => {
-          let rect = span.getBoundingClientRect();
-          let top = Math.round(rect.top); // Rounded to avoid sub-pixel issues
-          if (lastTop === null) lastTop = top;
-          if (top !== lastTop && currentLine.length) {
-            lines.push([...currentLine]);
-            currentLine = [];
-            lastTop = top;
-          }
-          currentLine.push(span);
-        });
-        if (currentLine.length) lines.push([...currentLine]);
-        // Step 3: Rewrap per line
-        element.innerHTML = '';
-        lines.forEach(line => {
-          const lineHTML = line.map(span => span.outerHTML).join('');
-          element.innerHTML += `<span class="___split_line" style="display:block; position:relative; ${startStylesString}">${lineHTML}</span>`;
-        });
-        const children = element.children;
-        return children;
+        return resultSpans;
       } else {
         return element;
       }
-      const startStylesString = convertStylesToString(options.startStyles);
-      element.innerHTML = splitted
-        .map(part => {
-          if (part.trim() === '') {
-            return `<span style="display:inline-block; position:relative;">${part}</span>`;
-          } else {
-            return `<span style="display:inline-block; position:relative; ${startStylesString}">${part}</span>`;
-          }
-        })
-        .join('');
-      return element.children;
     }
 
     function convertStylesToString(styles) {
