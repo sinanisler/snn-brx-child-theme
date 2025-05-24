@@ -218,11 +218,170 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 'style_start-transform:rotate(0deg), style_end-transform:rotate(180deg)' => esc_html__('Rotate 0 to 180', 'snn'),
 'style_start-transform:rotate(180deg), style_end-transform:rotate(0deg)' => esc_html__('Rotate 180 to 0', 'snn'),
 
+
+
+
+
+// Fading
+'style_start-opacity:0, style_end-opacity:1' => esc_html__('Fade In ', 'snn'),
+'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Ou ', 'snn'),
+
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Down', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px), style_end-transform:translateX(-1000px)' => esc_html__('Fade Out Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px), style_end-transform:translateX(1000px)' => esc_html__('Fade Out Right', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Up', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Fade Out Up', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) translateY(-1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Top Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(-1000px) translateY(-1000px)' => esc_html__('Fade Out Top Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) translateY(-1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Top Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(1000px) translateY(-1000px)' => esc_html__('Fade Out Top Right', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) translateY(1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Bottom Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(-1000px) translateY(1000px)' => esc_html__('Fade Out Bottom Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) translateY(1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Bottom Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(1000px) translateY(1000px)' => esc_html__('Fade Out Bottom Right', 'snn'),
+
+// Zooming
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8), style_end-transform:scale(1)' => esc_html__('Zoom In', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1), style_end-transform:scale(0.8)' => esc_html__('Zoom Out', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(-1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Down', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(1000px)' => esc_html__('Zoom Out Down', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateX(-1000px), style_end-transform:scale(1) translateX(0px)' => esc_html__('Zoom In Left', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateX(0px), style_end-transform:scale(0.8) translateX(-1000px)' => esc_html__('Zoom Out Left', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateX(1000px), style_end-transform:scale(1) translateX(0px)' => esc_html__('Zoom In Right', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateX(0px), style_end-transform:scale(0.8) translateX(1000px)' => esc_html__('Zoom Out Right', 'snn'),
+'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Up', 'snn'),
+'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(-1000px)' => esc_html__('Zoom Out Up', 'snn'),
+
+
+'style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Down ', 'snn'),
+'style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Slide Out Down ', 'snn'),
+'style_start-transform:translateX(-1000px), style_end-transform:translateX(0px)' => esc_html__('Slide In Left ', 'snn'),
+'style_start-transform:translateX(0px), style_end-transform:translateX(-1000px)' => esc_html__('Slide Out Left ', 'snn'),
+'style_start-transform:translateX(1000px), style_end-transform:translateX(0px)' => esc_html__('Slide In Right ', 'snn'),
+'style_start-transform:translateX(0px), style_end-transform:translateX(1000px)' => esc_html__('Slide Out Right ', 'snn'),
+'style_start-transform:translateY(1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Up ', 'snn'),
+'style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Slide Out Up ', 'snn'),
+
+
+'style_start-transform:translateX(-100%), style_end-transform:translateX(0%)' => esc_html__('Slide In Left 100% ', 'snn'),
+'style_start-transform:translateX(0%), style_end-transform:translateX(-100%)' => esc_html__('Slide In Right 100%', 'snn'),
+
+'style_start-transform:translateX(-150%), style_end-transform:translateX(0%)' => esc_html__('Slide In Left 150% ', 'snn'),
+'style_start-transform:translateX(0%), style_end-transform:translateX(-150%)' => esc_html__('Slide In Right 150%', 'snn'),
+
+'style_start-transform:translateX(-3000px), style_end-transform:translateX(0%)' => esc_html__('Slide In Left 3000px ', 'snn'),
+'style_start-transform:translateX(0%), style_end-transform:translateX(-3000px)' => esc_html__('Slide In Right 3000px', 'snn'),
+
+					
+					
+// All other animations kept exactly the same as you had
+// Rotating
+
+
+'style_start-transform:rotate(0deg), style_end-transform:rotate(3deg)' => esc_html__('Rotate 3', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(5deg)' => esc_html__('Rotate 5', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(15deg)' => esc_html__('Rotate 15', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(45deg)' => esc_html__('Rotate 45', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(90deg)' => esc_html__('Rotate 90', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(180deg)' => esc_html__('Rotate 180', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(360deg)' => esc_html__('Rotate 360', 'snn'),
+
+
+
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-3deg)' => esc_html__('Rotate -3', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-5deg)' => esc_html__('Rotate -5', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-15deg)' => esc_html__('Rotate -15', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-45deg)' => esc_html__('Rotate -45', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-90deg)' => esc_html__('Rotate -90', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-180deg)' => esc_html__('Rotate -180', 'snn'),
+'style_start-transform:rotate(0deg), style_end-transform:rotate(-360deg)' => esc_html__('Rotate -360', 'snn'),
+
+
+
+
+
+
+
+
+// Scroll START and END positions
+'start:0%' => esc_html__('Start 0%', 'snn'),
+'start:10%' => esc_html__('Start 10%', 'snn'),
+'start:20%' => esc_html__('Start 20%', 'snn'),
+'start:30%' => esc_html__('Start 30%', 'snn'),
+'start:40%' => esc_html__('Start 40%', 'snn'),
+'start:50%' => esc_html__('Start 50%', 'snn'),
+'start:60%' => esc_html__('Start 60%', 'snn'),
+'start:70%' => esc_html__('Start 70%', 'snn'),
+'start:80%' => esc_html__('Start 80%', 'snn'),
+'start:90%' => esc_html__('Start 90%', 'snn'),
+'start:100%' => esc_html__('Start 100%', 'snn'),
+
+'end:0%' => esc_html__('End 0%', 'snn'),
+'end:10%' => esc_html__('End 10%', 'snn'),
+'end:20%' => esc_html__('End 20%', 'snn'),
+'end:30%' => esc_html__('End 30%', 'snn'),
+'end:40%' => esc_html__('End 40%', 'snn'),
+'end:50%' => esc_html__('End 50%', 'snn'),
+'end:60%' => esc_html__('End 60%', 'snn'),
+'end:70%' => esc_html__('End 70%', 'snn'),
+'end:80%' => esc_html__('End 80%', 'snn'),
+'end:90%' => esc_html__('End 90%', 'snn'),
+'end:100%' => esc_html__('End 100%', 'snn'),
+'end:200%' => esc_html__('End 200%', 'snn'),
+
+					
+'end:0%+=1000px' => esc_html__('End 0%+=1000px', 'snn'),
+'end:0%+=2000px' => esc_html__('End 0%+=2000px', 'snn'),
+
+
+
+
+
+
+
+
+
+'markers:true' => esc_html__('Markers True', 'snn'),
+'scroll:false' => esc_html__('Scroll False', 'snn'),
+'loop:true' => esc_html__('Loop True', 'snn'),
+'pin:true' => esc_html__('Pin True', 'snn'),
+'scrub:false' => esc_html__('Scrub False', 'snn'),
+
+
+'stagger:0.1' => esc_html__('Stagger 0.1', 'snn'),
+'stagger:0.5' => esc_html__('Stagger 0.5', 'snn'),
+'stagger:1' => esc_html__('Stagger 1', 'snn'),
+'stagger:2' => esc_html__('Stagger 2', 'snn'),
+'stagger:3' => esc_html__('Stagger 3', 'snn'),
+'stagger:6' => esc_html__('Stagger 6', 'snn'),
+
+
+'duration:0.01' => esc_html__('Duration 0.01', 'snn'),
+'duration:0.05' => esc_html__('Duration 0.05', 'snn'),
+'duration:0.1' => esc_html__('Duration 0.1', 'snn'),
+'duration:0.2' => esc_html__('Duration 0.2', 'snn'),
+'duration:1' => esc_html__('Duration 1', 'snn'),
+'duration:2' => esc_html__('Duration 2', 'snn'),
+'duration:3' => esc_html__('Duration 3', 'snn'),
+'duration:4' => esc_html__('Duration 4', 'snn'),
+'duration:5' => esc_html__('Duration 5', 'snn'),
+'duration:10' => esc_html__('Duration 10', 'snn'),
+'duration:20' => esc_html__('Duration 20', 'snn'),
+
 'delay:0.1' => esc_html__('Delay 0.1', 'snn'),
+'delay:0.3' => esc_html__('Delay 0.3', 'snn'),
+'delay:0.5' => esc_html__('Delay 0.5', 'snn'),
 'delay:1' => esc_html__('Delay 1', 'snn'),
 'delay:2' => esc_html__('Delay 2', 'snn'),
 'delay:3' => esc_html__('Delay 3', 'snn'),
 'delay:4' => esc_html__('Delay 4', 'snn'),
+'delay:5' => esc_html__('Delay 5', 'snn'),
+'delay:8' => esc_html__('Delay 8', 'snn'),
+'delay:10' => esc_html__('Delay 10', 'snn'),
+'delay:20' => esc_html__('Delay 20', 'snn'),
 
 
 
