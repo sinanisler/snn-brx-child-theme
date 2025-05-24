@@ -57,6 +57,17 @@ add_action( 'init', function () {
 'style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Slide Out Up ', 'snn'),
 
 
+'style_start-transform:translateX(-100%), style_end-transform:translateX(0%)' => esc_html__('Slide In Left 100% ', 'snn'),
+'style_start-transform:translateX(0%), style_end-transform:translateX(-100%)' => esc_html__('Slide In Right 100%', 'snn'),
+
+'style_start-transform:translateX(-150%), style_end-transform:translateX(0%)' => esc_html__('Slide In Left 150% ', 'snn'),
+'style_start-transform:translateX(0%), style_end-transform:translateX(-150%)' => esc_html__('Slide In Right 150%', 'snn'),
+
+'style_start-transform:translateX(-3000px), style_end-transform:translateX(0%)' => esc_html__('Slide In Left 3000px ', 'snn'),
+'style_start-transform:translateX(0%), style_end-transform:translateX(-3000px)' => esc_html__('Slide In Right 3000px', 'snn'),
+
+					
+					
 // All other animations kept exactly the same as you had
 // Rotating
 
@@ -407,6 +418,11 @@ add_action( 'init', function () {
 'end:80%' => esc_html__('End 80%', 'snn'),
 'end:90%' => esc_html__('End 90%', 'snn'),
 'end:100%' => esc_html__('End 100%', 'snn'),
+'end:200%' => esc_html__('End 200%', 'snn'),
+
+					
+'end:0%+=1000px' => esc_html__('End 0%+=1000px', 'snn'),
+'end:0%+=2000px' => esc_html__('End 0%+=2000px', 'snn'),
 
 
 
@@ -438,6 +454,7 @@ add_action( 'init', function () {
 'duration:10' => esc_html__('Duration 10', 'snn'),
 'duration:20' => esc_html__('Duration 20', 'snn'),
 
+'delay:0.1' => esc_html__('Delay 0.1', 'snn'),
 'delay:0.3' => esc_html__('Delay 0.3', 'snn'),
 'delay:0.5' => esc_html__('Delay 0.5', 'snn'),
 'delay:1' => esc_html__('Delay 1', 'snn'),
