@@ -126,8 +126,8 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 
 
 // Fading
-'style_start-opacity:0, style_end-opacity:1' => esc_html__('Fade In ', 'snn'),
-'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Ou ', 'snn'),
+'style_start-opacity:0, style_end-opacity:1' => esc_html__('Opacity 0 to 1 Fade in', 'snn'),
+'style_start-opacity:1, style_end-opacity:0' => esc_html__('Opacity 1 to 0 Fade out', 'snn'),
 
 'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Down', 'snn'),
 'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
@@ -335,14 +335,11 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 
 
 
-
-
-
 'markers:true' => esc_html__('Markers True', 'snn'),
 'scroll:false' => esc_html__('Scroll False', 'snn'),
 'loop:true' => esc_html__('Loop True', 'snn'),
 'pin:true' => esc_html__('Pin True', 'snn'),
-'scrub:false' => esc_html__('Scrub False', 'snn'),
+'scrub:true' => esc_html__('Scrub True', 'snn'),
 
 
 'stagger:0.1' => esc_html__('Stagger 0.1', 'snn'),
