@@ -69,94 +69,14 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'label'       => esc_html__('Presets', 'bricks'),
             'type'        => 'select',
             'options'     => [
-                // Existing basic presets:
-                'style_start-top:100px, style_end-top:0px, style_start-opacity:0, style_end-opacity:1, duration:1' =>
-                    esc_html__('Starts 100px above and fades in.', 'bricks'),
-                'style_start-top:50px, style_end-top:0px, style_start-opacity:0, style_end-opacity:1, duration:1'  =>
-                    esc_html__('Starts 50px below and slides up with fade.', 'bricks'),
-                'style_start-left:100px, style_end-left:0px, style_start-opacity:0, style_end-opacity:1, duration:1'  =>
-                    esc_html__('Starts 100px right and slides in with fade.', 'bricks'),
-
-                // Slide animations (duplicates removed):
-                'x:100, y:100, duration:2, opacity:0.5, scale:0.8' =>
-                    esc_html__('Slide in from bottom right', 'bricks'),
-                'x:100, y:0, duration:1.5, opacity:0.7, scale:0.9'   =>
-                    esc_html__('Slide in from right', 'bricks'),
-                'x:0, y:-100, duration:1, opacity:0.8, scale:1'       =>
-                    esc_html__('Slide down from top', 'bricks'),
-                'x:0, y:100, duration:1, opacity:0.6, scale:0.8'       =>
-                    esc_html__('Slide up from bottom', 'bricks'),
-                'x:50, y:-50, duration:1.5, opacity:0.8, scale:1.1'    =>
-                    esc_html__('Slide in from top left', 'bricks'),
-                'x:-50, y:0, duration:1, opacity:0.8, scale:1.1'       =>
-                    esc_html__('Slide in from left', 'bricks'),
-
-                'x:2000px' => esc_html__('Slide 2000px right', 'bricks'),
-                'x:-2000px' => esc_html__('Slide 2000px left', 'bricks'),
-                'y:-2000px' => esc_html__('Slide 2000px top', 'bricks'),
-                'y:2000px' => esc_html__('Slide 2000px bottom', 'bricks'),
-
-                'x:2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px right and fade in', 'bricks'),
-                'x:-2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px left and fade in', 'bricks'),
-                'y:-2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px top and fade in', 'bricks'),
-                'y:2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px bottom and fade in', 'bricks'),
-
-
-                // Random animations (cleaned of rand, splittext, and stagger settings):
-                'x:-50, y:50, duration:1.5, scale:1.2' =>
-                    esc_html__('Random position animation', 'bricks'),
-                'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0), style_end-transform:scale(1)' =>
-                    esc_html__('Random scale animation (in)', 'bricks'),
-                'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(1), style_end-transform:scale(0)' =>
-                    esc_html__('Random scale animation (out)', 'bricks'),
-                'x:0, y:100, duration:1.5, opacity:0.7, scale:0.9' =>
-                    esc_html__('Random slide from bottom', 'bricks'),
-                'x:-100, y:0, duration:1, opacity:0.5, scale:0.7' =>
-                    esc_html__('Random slide from left', 'bricks'),
-
-                // Rotation animations:
-                'style_start-transform:rotate(90deg), style_end-transform:rotate(0deg), style_start-opacity:0, style_end-opacity:1' =>
-                    esc_html__('Rotate in (90°)', 'bricks'),
-                'style_start-transform:rotate(180deg), style_end-transform:rotate(0deg), style_start-opacity:0, style_end-opacity:1' =>
-                    esc_html__('Rotate 180 degrees', 'bricks'),
-                'style_start-transform:rotate(360deg), style_end-transform:rotate(0deg), style_start-opacity:0, style_end-opacity:1' =>
-                    esc_html__('Rotate 360 degrees', 'bricks'),
-
+ 
+                
 
 
 
 // Fading
 'style_start-opacity:0, style_end-opacity:1' => esc_html__('Opacity 0 to 1 Fade in', 'snn'),
 'style_start-opacity:1, style_end-opacity:0' => esc_html__('Opacity 1 to 0 Fade out', 'snn'),
-
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Down', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px), style_end-transform:translateX(-1000px)' => esc_html__('Fade Out Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px), style_end-transform:translateX(1000px)' => esc_html__('Fade Out Right', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Up', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Fade Out Up', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) translateY(-1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Top Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(-1000px) translateY(-1000px)' => esc_html__('Fade Out Top Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) translateY(-1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Top Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(1000px) translateY(-1000px)' => esc_html__('Fade Out Top Right', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) translateY(1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Bottom Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(-1000px) translateY(1000px)' => esc_html__('Fade Out Bottom Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) translateY(1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Bottom Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(1000px) translateY(1000px)' => esc_html__('Fade Out Bottom Right', 'snn'),
-
-// Zooming
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8), style_end-transform:scale(1)' => esc_html__('Zoom In', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1), style_end-transform:scale(0.8)' => esc_html__('Zoom Out', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(-1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Down', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(1000px)' => esc_html__('Zoom Out Down', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateX(-1000px), style_end-transform:scale(1) translateX(0px)' => esc_html__('Zoom In Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateX(0px), style_end-transform:scale(0.8) translateX(-1000px)' => esc_html__('Zoom Out Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateX(1000px), style_end-transform:scale(1) translateX(0px)' => esc_html__('Zoom In Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateX(0px), style_end-transform:scale(0.8) translateX(1000px)' => esc_html__('Zoom Out Right', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Up', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(-1000px)' => esc_html__('Zoom Out Up', 'snn'),
 
 
 'style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Down ', 'snn'),
@@ -168,31 +88,6 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 'style_start-transform:translateY(1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Up ', 'snn'),
 'style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Slide Out Up ', 'snn'),
 
-
-// All other animations kept exactly the same as you had
-// Rotating
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-200deg) scale(0.8), style_end-transform:rotate(0deg) scale(1)' => esc_html__('Rotate In', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) scale(1), style_end-transform:rotate(200deg) scale(0.8)' => esc_html__('Rotate Out', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-90deg) translateY(-1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Down Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) translateY(0px), style_end-transform:rotate(90deg) translateY(1000px)' => esc_html__('Rotate Out Down Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(90deg) translateY(-1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Down Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) translateY(0px), style_end-transform:rotate(-90deg) translateY(1000px)' => esc_html__('Rotate Out Down Right', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(-90deg) translateY(1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Up Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) translateY(0px), style_end-transform:rotate(90deg) translateY(-1000px)' => esc_html__('Rotate Out Up Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(90deg) translateY(1000px), style_end-transform:rotate(0deg) translateY(0px)' => esc_html__('Rotate In Up Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate(0deg) translateY(0px), style_end-transform:rotate(-90deg) translateY(-1000px)' => esc_html__('Rotate Out Up Right', 'snn'),
-
-// Flipping & 3D
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotateX(90deg), style_end-transform:rotateX(0deg)' => esc_html__('Flip In X', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotateX(0deg), style_end-transform:rotateX(90deg)' => esc_html__('Flip Out X', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotateY(90deg), style_end-transform:rotateY(0deg)' => esc_html__('Flip In Y', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotateY(0deg), style_end-transform:rotateY(90deg)' => esc_html__('Flip Out Y', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate3d(1,1,0,90deg), style_end-transform:rotate3d(1,1,0,0deg)' => esc_html__('Flip In 3D', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotate3d(1,1,0,0deg), style_end-transform:rotate3d(1,1,0,90deg)' => esc_html__('Flip Out 3D', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotateY(90deg) scale(0.8), style_end-transform:rotateY(0deg) scale(1)' => esc_html__('Cube Rotate In', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotateY(0deg) scale(1), style_end-transform:rotateY(90deg) scale(0.8)' => esc_html__('Cube Rotate Out', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotateY(180deg), style_end-transform:rotateY(0deg)' => esc_html__('Card Flip In', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:rotateY(0deg), style_end-transform:rotateY(180deg)' => esc_html__('Card Flip Out', 'snn'),
 
 
 // Scaling (very common utility)
@@ -209,42 +104,6 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 'style_start-transform:rotate(0deg), style_end-transform:rotate(180deg)' => esc_html__('Rotate 0 to 180', 'snn'),
 'style_start-transform:rotate(180deg), style_end-transform:rotate(0deg)' => esc_html__('Rotate 180 to 0', 'snn'),
 
-
-
-
-
-// Fading
-'style_start-opacity:0, style_end-opacity:1' => esc_html__('Fade In ', 'snn'),
-'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Ou ', 'snn'),
-
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Down', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px), style_end-transform:translateX(-1000px)' => esc_html__('Fade Out Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px), style_end-transform:translateX(0px)' => esc_html__('Fade In Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px), style_end-transform:translateX(1000px)' => esc_html__('Fade Out Right', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Up', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(-1000px)' => esc_html__('Fade Out Up', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) translateY(-1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Top Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(-1000px) translateY(-1000px)' => esc_html__('Fade Out Top Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) translateY(-1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Top Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(1000px) translateY(-1000px)' => esc_html__('Fade Out Top Right', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(-1000px) translateY(1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Bottom Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(-1000px) translateY(1000px)' => esc_html__('Fade Out Bottom Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateX(1000px) translateY(1000px), style_end-transform:translateX(0px) translateY(0px)' => esc_html__('Fade In Bottom Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateX(0px) translateY(0px), style_end-transform:translateX(1000px) translateY(1000px)' => esc_html__('Fade Out Bottom Right', 'snn'),
-
-// Zooming
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8), style_end-transform:scale(1)' => esc_html__('Zoom In', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1), style_end-transform:scale(0.8)' => esc_html__('Zoom Out', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(-1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Down', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(1000px)' => esc_html__('Zoom Out Down', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateX(-1000px), style_end-transform:scale(1) translateX(0px)' => esc_html__('Zoom In Left', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateX(0px), style_end-transform:scale(0.8) translateX(-1000px)' => esc_html__('Zoom Out Left', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateX(1000px), style_end-transform:scale(1) translateX(0px)' => esc_html__('Zoom In Right', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateX(0px), style_end-transform:scale(0.8) translateX(1000px)' => esc_html__('Zoom Out Right', 'snn'),
-'style_start-opacity:0, style_end-opacity:1, style_start-transform:scale(0.8) translateY(1000px), style_end-transform:scale(1) translateY(0px)' => esc_html__('Zoom In Up', 'snn'),
-'style_start-opacity:1, style_end-opacity:0, style_start-transform:scale(1) translateY(0px), style_end-transform:scale(0.8) translateY(-1000px)' => esc_html__('Zoom Out Up', 'snn'),
 
 
 'style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Slide In Down ', 'snn'),
@@ -293,9 +152,8 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 
 
 
-'splittext:true' => esc_html__('Splittext True', 'snn'),
+'splittext:true' => esc_html__('Splittext True Letters', 'snn'),
 'splittext:word' => esc_html__('Splittext Words', 'snn'),
-'splittext:line' => esc_html__('Splittext Lines', 'snn'),
 
 
 
@@ -340,6 +198,10 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 'loop:true' => esc_html__('Loop True', 'snn'),
 'pin:true' => esc_html__('Pin True', 'snn'),
 'scrub:true' => esc_html__('Scrub True', 'snn'),
+'scrub:1' => esc_html__('Scrub True', 'snn'),
+'scrub:2' => esc_html__('Scrub 2', 'snn'),
+'scrub:4' => esc_html__('Scrub 4', 'snn'),
+'scrub:8' => esc_html__('Scrub 8', 'snn'),
 
 
 'stagger:0.1' => esc_html__('Stagger 0.1', 'snn'),
@@ -375,6 +237,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 'delay:20' => esc_html__('Delay 20', 'snn'),
 
 
+'randum:true' => esc_html__('Random True', 'snn'),
 
  
             ],
