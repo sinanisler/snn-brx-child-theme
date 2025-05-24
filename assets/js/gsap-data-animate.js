@@ -318,10 +318,50 @@ window.onload = function () {
       const type = options.splittext.toLowerCase();
       const text = element.innerText;
       let splitted = [];
+
       if (type === 'true') {
         splitted = text.split('');
       } else if (type === 'word') {
         splitted = text.split(/(\s+)/);
+      } else if (type === 'line') {
+        // DOM-based line splitter
+        const originalHTML = element.innerHTML;
+        const startStylesString = convertStylesToString(options.startStyles);
+        // Step 1: Wrap every word/char in spans (for measurement)
+        let wordSpans = [];
+        let tempHTML = '';
+        let words = text.split(/(\s+)/g);
+        for (let i = 0; i < words.length; i++) {
+          if (words[i].trim() === '') {
+            tempHTML += `<span class="___split_line_space" style="white-space:pre;">${words[i]}</span>`;
+          } else {
+            tempHTML += `<span class="___split_line_word" style="display:inline-block;">${words[i]}</span>`;
+          }
+        }
+        element.innerHTML = tempHTML;
+        wordSpans = Array.from(element.querySelectorAll('.___split_line_word, .___split_line_space'));
+        // Step 2: Group by line (top offset)
+        let lines = [], currentLine = [], lastTop = null;
+        wordSpans.forEach((span, idx) => {
+          let rect = span.getBoundingClientRect();
+          let top = Math.round(rect.top); // Rounded to avoid sub-pixel issues
+          if (lastTop === null) lastTop = top;
+          if (top !== lastTop && currentLine.length) {
+            lines.push([...currentLine]);
+            currentLine = [];
+            lastTop = top;
+          }
+          currentLine.push(span);
+        });
+        if (currentLine.length) lines.push([...currentLine]);
+        // Step 3: Rewrap per line
+        element.innerHTML = '';
+        lines.forEach(line => {
+          const lineHTML = line.map(span => span.outerHTML).join('');
+          element.innerHTML += `<span class="___split_line" style="display:block; position:relative; ${startStylesString}">${lineHTML}</span>`;
+        });
+        const children = element.children;
+        return children;
       } else {
         return element;
       }
