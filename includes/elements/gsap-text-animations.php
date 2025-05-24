@@ -101,15 +101,6 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
                 'y:-2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px top and fade in', 'bricks'),
                 'y:2000px,style_start-opacity:0,style_end-opacity:1' => esc_html__('Slide 2000px bottom and fade in', 'bricks'),
 
-                // Split text animations (cleaned of splittext and stagger settings):
-                'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(180deg), style_end-transform:rotate(0deg)' =>
-                    esc_html__('Split text fade in (rotate 180°)', 'bricks'),
-                'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(45deg), style_end-transform:rotate(0deg)'  =>
-                    esc_html__('Split text rotate in (rotate 45°)', 'bricks'),
-                'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(360deg), style_end-transform:rotate(0deg)' =>
-                    esc_html__('Split text 360 rotation', 'bricks'),
-                'style_start-opacity:0, style_end-opacity:1, style_start-transform:rotate(90deg), style_end-transform:rotate(0deg)'  =>
-                    esc_html__('Split text rotate in (rotate 90°)', 'bricks'),
 
                 // Random animations (cleaned of rand, splittext, and stagger settings):
                 'x:-50, y:50, duration:1.5, scale:1.2' =>
@@ -302,6 +293,9 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 
 
 
+'splittext:true' => esc_html__('Splittext True', 'snn'),
+'splittext:word' => esc_html__('Splittext Words', 'snn'),
+'splittext:line' => esc_html__('Splittext Lines', 'snn'),
 
 
 
