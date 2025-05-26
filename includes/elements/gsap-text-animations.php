@@ -204,6 +204,8 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 'scrub:8' => esc_html__('Scrub 8', 'snn'),
 
 
+'stagger:0.01' => esc_html__('Stagger 0.01', 'snn'),
+'stagger:0.05' => esc_html__('Stagger 0.05', 'snn'),
 'stagger:0.1' => esc_html__('Stagger 0.1', 'snn'),
 'stagger:0.5' => esc_html__('Stagger 0.5', 'snn'),
 'stagger:1' => esc_html__('Stagger 1', 'snn'),
