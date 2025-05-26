@@ -66,7 +66,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         // have been removed from these preset strings.
         $this->controls['presets'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Presets', 'bricks'),
+            'label'       => esc_html__('Select Animation Preset', 'bricks'),
             'type'        => 'select',
             'options'     => [
  
