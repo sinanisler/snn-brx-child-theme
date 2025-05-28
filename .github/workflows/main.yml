@@ -13,22 +13,18 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: '0'
-      
+
       - name: Display current style.css before update
         run: cat style.css
 
-      # Step to read the LAST (most recent) commit message
       - name: Check last commit message
         id: check_last_commit
         run: |
-          last_commit_message=$(git log -1 --pretty=format:"%s")
-          echo "Last commit message: $last_commit_message"
-          echo "last_commit_message=$last_commit_message" >> $GITHUB_OUTPUT
+          echo "last_commit_message=${{ github.event.head_commit.message }}" >> $GITHUB_OUTPUT
 
       - name: Get commit messages since last release
         id: get_commits
         run: |
-          # Read the current version from style.css for last_tag reference
           current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           last_tag="v${current_version}"
           echo "Last tag: $last_tag"
@@ -47,58 +43,51 @@ jobs:
           echo "$commits" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # Expose current version for prerelease, without bumping
       - name: Set current version for prerelease
-        if: contains(steps.check_last_commit.outputs.last_commit_message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'prerelease')
         run: |
           current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           echo "current_version=$current_version" >> $GITHUB_ENV
           echo "new_version=$current_version" >> $GITHUB_ENV
 
       - name: Bump version in style.css
-        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
+        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
         id: bump_version
         run: |
-          # Read the current version from style.css
           current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           echo "Current version: $current_version"
-          
-          # Split the version into an array
+
           IFS='.' read -r -a version_parts <<< "$current_version"
-          
+
           MAJOR=${version_parts[0]}
           MINOR=${version_parts[1]}
-          
-          # Define the threshold for minor version
+
           THRESHOLD=999
-          
+
           if [ "$MINOR" -ge "$THRESHOLD" ]; then
-            # Reset minor to 0 and increment major
             MAJOR=$((MAJOR + 1))
             MINOR=0
           else
-            # Increment minor
             MINOR=$((MINOR + 1))
           fi
-          
+
           new_version="${MAJOR}.${MINOR}"
-          
-          # Update the version in style.css using awk
+
           awk -v new_version="$new_version" '{
             if ($1 == "Version:") {
               $2 = new_version
             }
             print
           }' style.css > style.css.tmp && mv style.css.tmp style.css
-          
+
           updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           echo "Updated version: $updated_version"
-          
+
           if [ "$updated_version" != "$new_version" ]; then
             echo "Version update failed"
             exit 1
           fi
-          
+
           echo "current_version=$current_version" >> $GITHUB_ENV
           echo "new_version=$new_version" >> $GITHUB_ENV
 
@@ -106,7 +95,7 @@ jobs:
         run: cat style.css
 
       - name: Commit changes
-        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
+        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -115,21 +104,21 @@ jobs:
           git push
 
       - name: Create new GitHub tag
-        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
+        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
         run: |
           git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
           git push origin "v${{ env.new_version }}"
 
       - name: Create new GitHub prerelease tag
-        if: contains(steps.check_last_commit.outputs.last_commit_message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'prerelease')
         run: |
           git tag -a "v${{ env.new_version }}-pre" -m "Prerelease v${{ env.new_version }}"
           git push origin "v${{ env.new_version }}-pre"
 
       - name: Create zip file of the repository
-        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release') || contains(steps.check_last_commit.outputs.last_commit_message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'release') || contains(github.event.head_commit.message, 'prerelease')
         run: |
-          shopt -s extglob    # Enable extended globbing
+          shopt -s extglob
           mkdir snn-brx-child-theme
           mv !(.git|*.github*|snn-brx-child-theme) snn-brx-child-theme/
           zip -r snn-brx-child-theme.zip snn-brx-child-theme -x "*.git*" "*.github*"
@@ -139,7 +128,7 @@ jobs:
           new_version: ${{ env.new_version }}
 
       - name: Create GitHub release
-        if: contains(steps.check_last_commit.outputs.last_commit_message, 'release')
+        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
         uses: softprops/action-gh-release@v1
         with:
           files: snn-brx-child-theme.zip
@@ -152,7 +141,7 @@ jobs:
             ${{ env.commit_messages }}
 
       - name: Create GitHub prerelease
-        if: contains(steps.check_last_commit.outputs.last_commit_message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'prerelease')
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
