@@ -52,6 +52,15 @@ function snn_custom_css_utils_wp_footer() {
         [data-controlkey="gsap_animations"] .sortable-title{
             padding-left:8px !important;
         }
+
+		[data-controlkey="snn_data_animate_enable_desktop"],
+		[data-controlkey="snn_data_animate_enable_tablet"],
+		[data-controlkey="snn_data_animate_enable_mobile"]
+		{
+			width:33%;
+			float:left;
+		}
+
     </style>
     <?php
     }
