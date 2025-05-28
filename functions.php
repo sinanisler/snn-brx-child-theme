@@ -82,13 +82,15 @@ add_action('init', function () {
 
 // if GSAP setting is enabled Register Elements
 $options = get_option('snn_other_settings');
-if (!empty($options['enqueue_gsap'])) {
-\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/lottie-animation.php');
-\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations.php');
-\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations-code.php');
-\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-text-animations.php');
-}
 
+    if (!empty($options['enqueue_gsap'])) {
+        \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/lottie-animation.php');
+        \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations.php');
+        \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations-code.php');
+        \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-text-animations.php');
+        \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/svg-animation.php');
+        
+    }
 
 }, 11);
 
