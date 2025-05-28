@@ -536,7 +536,7 @@ add_action( 'init', function () {
                 'multiple' => true,
                 'searchable' => true,
                 'clearable' => true,
-                'description' => '<br><br><br><br>',
+                'description' => '',
             ];
 
 
@@ -546,11 +546,32 @@ add_action( 'init', function () {
 				'label'       => esc_html__( 'Custom animation string', 'snn' ),
 				'type'        => 'text',
 				'placeholder' => 'style_start-opacity:0, style_end-opacity:1',
-				'description' => 'Write any valid data-animate value(s).<br><br><br><br>',
+				'description' => 'Write any valid data-animate value(s).',
 				'required'    => [ 'custom_data_animate_dynamic_elements', '=', 'custom' ],
 			];
 
 
+            $controls['snn_data_animate_enable_desktop'] = [
+                'tab'   => 'content',
+                'label' => esc_html__( 'Desktop', 'snn' ),
+                'type'  => 'checkbox',
+                'default' => true,
+                'inline' => true,
+            ];
+            $controls['snn_data_animate_enable_tablet'] = [
+                'tab'   => 'content',
+                'label' => esc_html__( 'Tablet', 'snn' ),
+                'type'  => 'checkbox',
+                'default' => true,
+                'inline' => true,
+            ];
+            $controls['snn_data_animate_enable_mobile'] = [
+                'tab'   => 'content',
+                'label' => esc_html__( 'Mobile', 'snn' ),
+                'type'  => 'checkbox',
+                'default' => true,
+                'inline' => true,
+            ];
 
 
 
