@@ -1,6 +1,6 @@
 <?php
 
-$targets = [ 'section', 'container', 'block', 'div' , 'heading' ];
+$targets = [ 'section', 'container', 'block', 'div' , 'heading' , 'text-basic' , 'text' ];
 
 
 add_action( 'init', function () {
@@ -597,7 +597,7 @@ add_action( 'init', function () {
 add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $element ) {
 
 	global $targets;
-	
+
 	$selected     = $element->settings['custom_data_animate_dynamic_elements'] ?? [];
 	$custom_value = $element->settings['custom_data_animate_dynamic_elements_custom'] ?? '';
 
