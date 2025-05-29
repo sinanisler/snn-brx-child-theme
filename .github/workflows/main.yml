@@ -28,21 +28,19 @@ jobs:
           current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           last_tag="v${current_version}"
           echo "Last tag: $last_tag"
-
           if git rev-parse "$last_tag" >/dev/null 2>&1; then
             commits=$(git log "$last_tag"..HEAD --pretty=format:"- %s")
           else
             commits=$(git log --pretty=format:"- %s")
           fi
-
           if [ -z "$commits" ]; then
             commits="No changes."
           fi
-
           echo "commit_messages<<EOF" >> $GITHUB_ENV
           echo "$commits" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
+      # Handle PRERELEASE: does NOT bump version, just reuses current
       - name: Set current version for prerelease
         if: contains(github.event.head_commit.message, 'prerelease')
         run: |
@@ -50,48 +48,36 @@ jobs:
           echo "current_version=$current_version" >> $GITHUB_ENV
           echo "new_version=$current_version" >> $GITHUB_ENV
 
+      # Handle RELEASE: bump version, update style.css
       - name: Bump version in style.css
         if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
         id: bump_version
         run: |
           current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           echo "Current version: $current_version"
-
           IFS='.' read -r -a version_parts <<< "$current_version"
-
           MAJOR=${version_parts[0]}
           MINOR=${version_parts[1]}
-
           THRESHOLD=999
-
           if [ "$MINOR" -ge "$THRESHOLD" ]; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
           else
             MINOR=$((MINOR + 1))
           fi
-
           new_version="${MAJOR}.${MINOR}"
-
-          awk -v new_version="$new_version" '{
-            if ($1 == "Version:") {
-              $2 = new_version
-            }
-            print
-          }' style.css > style.css.tmp && mv style.css.tmp style.css
-
+          awk -v new_version="$new_version" '{if ($1 == "Version:") {$2 = new_version} print}' style.css > style.css.tmp && mv style.css.tmp style.css
           updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           echo "Updated version: $updated_version"
-
           if [ "$updated_version" != "$new_version" ]; then
             echo "Version update failed"
             exit 1
           fi
-
           echo "current_version=$current_version" >> $GITHUB_ENV
           echo "new_version=$new_version" >> $GITHUB_ENV
 
       - name: Display current style.css after update
+        if: always()
         run: cat style.css
 
       - name: Commit changes
@@ -159,5 +145,6 @@ jobs:
 
             ## Changes
             ${{ env.commit_messages }}
+
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
