@@ -239,7 +239,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 'delay:20' => esc_html__('Delay 20', 'snn'),
 
 
-'randum:true' => esc_html__('Random True', 'snn'),
+'random:true' => esc_html__('Random True', 'snn'),
 
  
             ],
