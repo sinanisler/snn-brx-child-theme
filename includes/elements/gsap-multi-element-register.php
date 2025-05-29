@@ -1,7 +1,11 @@
 <?php
 
+$targets = [ 'section', 'container', 'block', 'div' , 'heading' ];
+
+
 add_action( 'init', function () {
-    $targets = [ 'section', 'container', 'block', 'div' ];
+	global $targets;
+    
     foreach ( $targets as $name ) {
         add_filter( "bricks/elements/{$name}/controls", function ( $controls ) {
             $controls['custom_data_animate_dynamic_elements'] = [
@@ -391,6 +395,35 @@ add_action( 'init', function () {
 
 
 
+'random:true' => esc_html__('Random True', 'snn'),
+
+'splittext:true' => esc_html__('Splittext True', 'snn'),
+'splittext:word' => esc_html__('Splittext Words', 'snn'),
+'splittext:line' => esc_html__('Splittext Line', 'snn'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -563,7 +596,8 @@ add_action( 'init', function () {
 
 add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $element ) {
 
-	$targets      = [ 'section', 'container', 'block', 'div' ];
+	global $targets;
+	
 	$selected     = $element->settings['custom_data_animate_dynamic_elements'] ?? [];
 	$custom_value = $element->settings['custom_data_animate_dynamic_elements_custom'] ?? '';
 
