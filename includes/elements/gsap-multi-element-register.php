@@ -602,15 +602,13 @@ add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $el
 	$custom_value = $element->settings['custom_data_animate_dynamic_elements_custom'] ?? '';
 
 	if ( ! in_array( $element->name, $targets, true ) || empty( $selected ) ) {
-		return $attributes; // nothing to do
+		return $attributes; 
 	}
 
-	// Make sure we are working with an array
 	if ( ! is_array( $selected ) ) {
 		$selected = explode( ',', $selected );
 	}
 
-	// Replace “custom” placeholder with the user-supplied string
 	if ( ( $idx = array_search( 'custom', $selected, true ) ) !== false ) {
 		unset( $selected[ $idx ] );
 		if ( $custom_value !== '' ) {
@@ -618,9 +616,8 @@ add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $el
 		}
 	}
 
-	// Re-assemble and overwrite the attribute
 	$attributes[ $key ]['data-animate'] = esc_attr( implode( ',', $selected ) );
 
 	return $attributes;
 
-}, 1000, 3 ); // priority > 999 so we override the original handler
+}, 1000, 3 ); 
