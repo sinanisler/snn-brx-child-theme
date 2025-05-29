@@ -152,7 +152,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 
 
 
-'splittext:true' => esc_html__('Splittext True Letters', 'snn'),
+'splittext:true' => esc_html__('Splittext True', 'snn'),
 'splittext:word' => esc_html__('Splittext Words', 'snn'),
 
 
