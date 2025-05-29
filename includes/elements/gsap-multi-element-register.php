@@ -521,6 +521,10 @@ add_action( 'init', function () {
 
 
 
+'desktop:false' => esc_html__('Desktop False', 'snn'),
+'tablet:false' => esc_html__('Tablet False', 'snn'),
+'mobilelandscape:false' => esc_html__('Mobile Landscape False', 'snn'),
+'mobile:false' => esc_html__('Mobile False', 'snn'),
 
 
 
@@ -549,31 +553,6 @@ add_action( 'init', function () {
 				'description' => 'Write any valid data-animate value(s).',
 				'required'    => [ 'custom_data_animate_dynamic_elements', '=', 'custom' ],
 			];
-
-
-            $controls['snn_data_animate_enable_desktop'] = [
-                'tab'   => 'content',
-                'label' => esc_html__( 'Desktop', 'snn' ),
-                'type'  => 'checkbox',
-                'default' => true,
-                'inline' => true,
-            ];
-            $controls['snn_data_animate_enable_tablet'] = [
-                'tab'   => 'content',
-                'label' => esc_html__( 'Tablet', 'snn' ),
-                'type'  => 'checkbox',
-                'default' => true,
-                'inline' => true,
-            ];
-            $controls['snn_data_animate_enable_mobile'] = [
-                'tab'   => 'content',
-                'label' => esc_html__( 'Mobile', 'snn' ),
-                'type'  => 'checkbox',
-                'default' => true,
-                'inline' => true,
-            ];
-
-
 
 
             return $controls;
