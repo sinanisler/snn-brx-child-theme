@@ -556,7 +556,6 @@ add_action( 'init', function () {
 
 'desktop:false' => esc_html__('Desktop False', 'snn'),
 'tablet:false' => esc_html__('Tablet False', 'snn'),
-'mobilelandscape:false' => esc_html__('Mobile Landscape False', 'snn'),
 'mobile:false' => esc_html__('Mobile False', 'snn'),
 
 
