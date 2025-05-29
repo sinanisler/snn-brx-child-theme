@@ -4,6 +4,21 @@ window.onload = function () {
   setTimeout(() => {
     const animateElements = document.querySelectorAll('[data-animate]');
 
+    // -- DEVICE UTILS --
+    function getDevice() {
+      const width = window.innerWidth;
+      if (width >= 991) return 'desktop';
+      if (width < 991 && width > 767) return 'tablet';
+      return 'mobile';
+    }
+    function shouldDisableForDevice(options) {
+      const device = getDevice();
+      if (device === 'desktop' && options.desktop === 'false') return true;
+      if (device === 'tablet' && options.tablet === 'false') return true;
+      if (device === 'mobile' && options.mobile === 'false') return true;
+      return false;
+    }
+
     function addVisibilityCallback(props) {
       const originalOnStart = props.onStart;
       props.onStart = function () {
@@ -67,10 +82,14 @@ window.onload = function () {
 
       const firstOptions = parseAnimationOptions(animations[0]);
 
+      // --- DEVICE DISABLING: SKIP IF DISABLED FOR CURRENT DEVICE ---
+      if (shouldDisableForDevice(firstOptions)) return;
+
       if (firstOptions.trigger === 'true') {
         const timeline = gsap.timeline({ paused: true });
         animations.forEach(animation => {
           const options = parseAnimationOptions(animation);
+          if (shouldDisableForDevice(options)) return; // skip this part if disabled
           const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
           const rotateProp = options.endStyles.rotate !== undefined
             ? { rotate: parseFloat(options.endStyles.rotate) }
@@ -108,6 +127,7 @@ window.onload = function () {
         });
         animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
+          if (shouldDisableForDevice(options)) return; // skip this part if disabled
           const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
           const rotateProp = options.endStyles.rotate !== undefined
             ? { rotate: parseFloat(options.endStyles.rotate) }
@@ -149,6 +169,7 @@ window.onload = function () {
         }
       } else {
         const options = parseAnimationOptions(animations[0]);
+        if (shouldDisableForDevice(options)) return;
         const scrollTriggerConfig = createScrollTriggerConfig(options, element);
         const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
         let cleanStartStyles = { ...options.startStyles };
@@ -238,6 +259,14 @@ window.onload = function () {
         }
         let key = option.substring(0, index).trim();
         let value = option.substring(index + 1).trim();
+        // ADD: device disable options support
+        if (
+          (key === 'desktop' || key === 'tablet' || key === 'mobile')
+          && (value === 'false' || value === 'true')
+        ) {
+          acc[key] = value;
+          return acc;
+        }
         if (key.startsWith('style_start-')) {
           const cssProp = key.replace('style_start-', '').trim();
           if (cssProp === 'transform' && value.includes('rotate(')) {
