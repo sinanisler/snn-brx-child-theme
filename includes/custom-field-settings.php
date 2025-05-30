@@ -113,25 +113,25 @@ function snn_custom_fields_page_callback() {
                                 <button type="button" class="remove-field">Remove</button>
                             </div>
                             <div class="field-group">
-                                <label>Group Name</label><br>
+                                <label>Group Name</label>
                                 <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" 
                                        value="<?php echo esc_attr($field['group_name'] ?? ''); ?>" />
                             </div>
                             <div class="field-group">
-                                <label>Field Name</label><br>
+                                <label>Field Name</label>
                                 <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][name]" 
                                        placeholder="Field Name" 
                                        value="<?php echo esc_attr($field['name']); ?>" />
                             </div>
                             <div class="field-group">
-                                <label>Width (%)</label><br>
+                                <label>Width (%)</label>
                                 <input style="width:70px" type="number" min="10" max="100"
                                        name="custom_fields[<?php echo $index; ?>][column_width]" 
                                        placeholder="25" 
                                        value="<?php echo esc_attr($field['column_width'] ?? ''); ?>" />
                             </div>
                             <div class="field-group">
-                                <label>Field Type</label><br>
+                                <label>Field Type</label>
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
                                     <option value="text"     <?php selected($field_type, 'text'); ?>>Text</option>
                                     <option value="number"   <?php selected($field_type, 'number'); ?>>Number</option>
@@ -150,13 +150,13 @@ function snn_custom_fields_page_callback() {
                                 </select>
                             </div>
                             <div class="field-group field-group-choices" style="<?php echo $show_choices ? '' : 'display:none;'; ?>">
-                                <label>Choices <small><code>(value:label)</code></small></label><br>
+                                <label>Choices <small><code>(value:label)</code></small></label>
                                 <textarea name="custom_fields[<?php echo $index; ?>][choices]" rows="4" 
                                           placeholder="red : Red Color&#10;green : Green Color"><?php 
                                           echo esc_textarea($field['choices'] ?? ''); ?></textarea>
                             </div>
                             <div class="field-group">
-                                <label>Post Types</label><br>
+                                <label>Post Types</label>
                                 <select name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
                                     <?php foreach ($post_types as $pt) : ?>
                                         <option value="<?php echo esc_attr($pt->name); ?>" 
@@ -167,7 +167,7 @@ function snn_custom_fields_page_callback() {
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label>Taxonomies</label><br>
+                                <label>Taxonomies</label>
                                 <select name="custom_fields[<?php echo $index; ?>][taxonomies][]" multiple>
                                     <?php foreach ($taxonomies as $tax) : ?>
                                         <option value="<?php echo esc_attr($tax->name); ?>" 
@@ -178,24 +178,24 @@ function snn_custom_fields_page_callback() {
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label>Author</label><br>
+                                <label>Author</label>
                                 <input type="checkbox" name="custom_fields[<?php echo $index; ?>][author]" value="1" 
                                        <?php checked(!empty($field['author'])); ?> />
                             </div>
                              <div class="field-group">
-                                <label>Options Page</label><br>
+                                <label>Options Page</label>
                                 <input type="checkbox" name="custom_fields[<?php echo $index; ?>][options_page]" value="1" 
                                        <?php checked(!empty($field['options_page'])); ?> />
                             </div>
                             <div class="field-group">
-                                <label>Repeater</label><br>
+                                <label>Repeater</label>
                                 <input type="checkbox" class="repeater-checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" value="1"
                                        <?php checked(!empty($field['repeater'])); echo $is_repeater_disabled_type ? ' disabled' : ''; ?>
                                        title="<?php echo esc_attr($repeater_title); ?>" />
                             </div>
                             <?php if ($field_type === 'media') : ?>
                             <div class="field-group media-return-url-group">
-                                <label>Return URL</label><br>
+                                <label>Return URL</label>
                                 <input type="checkbox" name="custom_fields[<?php echo $index; ?>][return_full_url]" value="1" <?php checked(!empty($field['return_full_url'])); ?> />
                             </div>
                             <?php endif; ?>
