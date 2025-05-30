@@ -1487,49 +1487,91 @@ function snn_output_dynamic_field_js() {
     <script type="text/javascript">
     jQuery(document).ready(function($) {
 
-        $(document).on('click', '.media-upload-button', function(e) {
+        $(document).off('click', '.media-upload-button').on('click', '.media-upload-button', function(e) {
             e.preventDefault();
-            var $button   = $(this);
+            var $button = $(this);
             var $uploader = $button.closest('.media-uploader');
-            var $previewWrapper = $uploader.find('.media-preview-wrapper'); 
-            var $remove   = $uploader.find('.media-remove-button');
-            var $input    = $uploader.find('.media-value-field');
+            var $repeaterItem = $button.closest('.repeater-item');
+            var $container = $button.closest('.repeater-container');
+            var $previewWrapper = $uploader.find('.media-preview-wrapper');
+            var $remove = $uploader.find('.media-remove-button');
+            var $input = $uploader.find('.media-value-field');
             var $filenameDisplay = $uploader.find('.media-filename');
             if (!$filenameDisplay.length) { 
                 $filenameDisplay = $('<div class="media-filename"></div>').insertAfter($remove);
             }
 
+            // If inside a repeater, allow multiple selection
+            var allowMultiple = !!$container.length;
             var frame = wp.media({
                 title: 'Choose Media',
-                button: { text: 'Select' },
-                multiple: false
+                button: { text: allowMultiple ? 'Add Selected' : 'Select' },
+                multiple: allowMultiple
             });
 
             frame.on('select', function() {
-                var attachment = frame.state().get('selection').first().toJSON();
-                $input.val(attachment.id); 
+                var selection = frame.state().get('selection');
+                if (allowMultiple && selection.length > 1) {
+                    // Remove this empty row if still empty
+                    if ($input.val() === '') $repeaterItem.remove();
 
-                var mimeType = attachment.mime || '';
-                var imageURL = (attachment.sizes && attachment.sizes.thumbnail) ? attachment.sizes.thumbnail.url : attachment.url;
-                var dashiconClass = 'dashicons-media-default';
+                    selection.each(function(attachment) {
+                        var att = attachment.toJSON();
+                        // Create a new repeater item for each media
+                        var $template = $container.find('.repeater-template').clone(true).removeClass('repeater-template').show();
+                        var $newInput = $template.find('.media-value-field');
+                        var $newPreview = $template.find('.media-preview-wrapper');
+                        var $newFilename = $template.find('.media-filename');
+                        var $newRemove = $template.find('.media-remove-button');
 
-                $previewWrapper.empty(); 
+                        $newInput.val(att.id);
 
-                if (mimeType.indexOf('image/') === 0 || mimeType === 'image/svg+xml') {
-                    $previewWrapper.html('<img src="'+ imageURL +'" class="media-preview" />');
+                        var mimeType = att.mime || '';
+                        var imageURL = (att.sizes && att.sizes.thumbnail) ? att.sizes.thumbnail.url : att.url;
+                        var dashiconClass = 'dashicons-media-default';
+                        $newPreview.empty();
+                        if (mimeType.indexOf('image/') === 0 || mimeType === 'image/svg+xml') {
+                            $newPreview.html('<img src="'+ imageURL +'" class="media-preview" />');
+                        } else {
+                            if (mimeType.indexOf('video/') === 0) dashiconClass = 'dashicons-media-video';
+                            else if (mimeType.indexOf('audio/') === 0) dashiconClass = 'dashicons-media-audio';
+                            else if (mimeType === 'application/pdf') dashiconClass = 'dashicons-media-document';
+                            else if (mimeType.indexOf('application/') === 0 || mimeType.indexOf('text/') === 0) dashiconClass = 'dashicons-media-spreadsheet'; 
+                            $newPreview.html('<span class="dashicons '+dashiconClass+' media-preview"></span>');
+                        }
+                        $newFilename.text(att.filename).show();
+                        $newRemove.show();
+
+                        // Insert the new item before the Add More button
+                        $container.find('.add-repeater-item').before($template);
+                    });
+                    // Reindex all repeater items after adding
+                    reindexRepeaterItems($container);
                 } else {
-                    if (mimeType.indexOf('video/') === 0) dashiconClass = 'dashicons-media-video';
-                    else if (mimeType.indexOf('audio/') === 0) dashiconClass = 'dashicons-media-audio';
-                    else if (mimeType === 'application/pdf') dashiconClass = 'dashicons-media-document';
-                    else if (mimeType.indexOf('application/') === 0 || mimeType.indexOf('text/') === 0) dashiconClass = 'dashicons-media-spreadsheet'; 
-                    $previewWrapper.html('<span class="dashicons '+dashiconClass+' media-preview"></span>');
-                }
-                $filenameDisplay.text(attachment.filename).show();
-                $remove.show();
-            });
+                    // Single selection (original logic)
+                    var attachment = selection.first().toJSON();
+                    $input.val(attachment.id);
+                    var mimeType = attachment.mime || '';
+                    var imageURL = (attachment.sizes && attachment.sizes.thumbnail) ? attachment.sizes.thumbnail.url : attachment.url;
+                    var dashiconClass = 'dashicons-media-default';
 
+                    $previewWrapper.empty();
+                    if (mimeType.indexOf('image/') === 0 || mimeType === 'image/svg+xml') {
+                        $previewWrapper.html('<img src="'+ imageURL +'" class="media-preview" />');
+                    } else {
+                        if (mimeType.indexOf('video/') === 0) dashiconClass = 'dashicons-media-video';
+                        else if (mimeType.indexOf('audio/') === 0) dashiconClass = 'dashicons-media-audio';
+                        else if (mimeType === 'application/pdf') dashiconClass = 'dashicons-media-document';
+                        else if (mimeType.indexOf('application/') === 0 || mimeType.indexOf('text/') === 0) dashiconClass = 'dashicons-media-spreadsheet'; 
+                        $previewWrapper.html('<span class="dashicons '+dashiconClass+' media-preview"></span>');
+                    }
+                    $filenameDisplay.text(attachment.filename).show();
+                    $remove.show();
+                }
+            });
             frame.open();
         });
+
 
         $(document).on('click', '.media-remove-button', function(e) {
             e.preventDefault();
