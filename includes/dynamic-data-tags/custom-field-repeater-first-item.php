@@ -24,12 +24,12 @@
  * -----------------------------------------------------------------------
  */
 
-// 1. Register the dynamic tag in Bricks Builder.
+// 1. Register the dynamic tag in Bricks Builder with curly braces and placeholder.
 add_filter( 'bricks/dynamic_tags_list', function( $tags ) {
     $tags[] = [
-        'name'  => 'custom_field_repeater_first_item',
+        'name'  => '{custom_field_repeater_first_item:your_field_name}', // Shows curly braces and placeholder in list.
         'label' => 'Custom Field Repeater First Item',
-        'group' => 'SNN', // Use "SNN" group as per your example.
+        'group' => 'SNN', // Use "SNN" group.
     ];
     return $tags;
 });
@@ -39,7 +39,7 @@ function get_custom_field_repeater_first_item( $post_id, $field_name ) {
     $repeater = get_post_meta( $post_id, $field_name, true );
     if ( !empty( $repeater ) && is_array( $repeater ) ) {
         $first = $repeater[0];
-        // For array with one key (common in Meta Box, ACF), return its value.
+        // For array with one key (Meta Box/ACF common), return its value.
         if ( is_array( $first ) && count( $first ) === 1 ) {
             return esc_html( reset($first) );
         }
@@ -57,7 +57,7 @@ function get_custom_field_repeater_first_item( $post_id, $field_name ) {
 
 // 3. Render the dynamic tag {custom_field_repeater_first_item:your_field_name}
 add_filter( 'bricks/dynamic_data/render_tag', function( $tag_value, $post, $context ) {
-    if ( preg_match( '/^custom_field_repeater_first_item:([a-zA-Z0-9_\-]+)/', $tag_value, $matches ) ) {
+    if ( preg_match( '/^\{custom_field_repeater_first_item:([a-zA-Z0-9_\-]+)\}$/', $tag_value, $matches ) ) {
         $field_name = $matches[1];
         $post_id = isset( $post->ID ) ? $post->ID : $post;
         return get_custom_field_repeater_first_item( $post_id, $field_name );
