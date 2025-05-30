@@ -26,6 +26,11 @@ function snn_register_ai_settings() {
         'type' => 'array',
         'default' => [],
     ]);
+
+    // 1. Register new settings for custom provider
+    register_setting('snn_ai_settings_group', 'snn_custom_api_key');
+    register_setting('snn_ai_settings_group', 'snn_custom_api_endpoint');
+    register_setting('snn_ai_settings_group', 'snn_custom_model');
 }
 add_action('admin_init', 'snn_register_ai_settings');
 
@@ -92,6 +97,7 @@ function snn_render_ai_settings() {
                         <select name="snn_ai_provider" id="snn_ai_provider">
                             <option value="openai" <?php selected($ai_provider, 'openai'); ?>>OpenAI</option>
                             <option value="openrouter" <?php selected($ai_provider, 'openrouter'); ?>>OpenRouter</option>
+                            <option value="custom" <?php selected($ai_provider, 'custom'); ?>>Custom</option>
                         </select>
                     </td>
                 </tr>
@@ -227,6 +233,58 @@ function snn_render_ai_settings() {
                 </table>
             </div>
 
+            <!-- Custom API Settings -->
+            <div
+                id="custom-settings"
+                style="display: <?php echo ($ai_provider === 'custom' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
+            >
+                <h2><?php esc_html_e('Custom API Settings', 'snn'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_custom_api_key"><?php esc_html_e('Custom API Key', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="password"
+                                name="snn_custom_api_key"
+                                id="snn_custom_api_key"
+                                value="<?php echo esc_attr(get_option('snn_custom_api_key', '')); ?>"
+                                class="regular-text"
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_custom_api_endpoint"><?php esc_html_e('Custom API Endpoint', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="text"
+                                name="snn_custom_api_endpoint"
+                                id="snn_custom_api_endpoint"
+                                value="<?php echo esc_attr(get_option('snn_custom_api_endpoint', '')); ?>"
+                                class="regular-text"
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_custom_model"><?php esc_html_e('Custom Model', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="text"
+                                name="snn_custom_model"
+                                id="snn_custom_model"
+                                value="<?php echo esc_attr(get_option('snn_custom_model', '')); ?>"
+                                class="regular-text"
+                            />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
             <!-- Action Prompts -->
             <h2><?php esc_html_e('Action Prompts', 'snn'); ?></h2>
             <p>
@@ -313,15 +371,21 @@ function snn_render_ai_settings() {
                 if (providerSelect.value === 'openai') {
                     openaiSettingsDiv.style.display = isEnabled ? 'block' : 'none';
                     openrouterSettingsDiv.style.display = 'none';
+                    document.getElementById('custom-settings').style.display = 'none';
                     if (isEnabled) {
                         fetchOpenAiModels();
                     }
                 } else if (providerSelect.value === 'openrouter') {
                     openaiSettingsDiv.style.display = 'none';
                     openrouterSettingsDiv.style.display = isEnabled ? 'block' : 'none';
+                    document.getElementById('custom-settings').style.display = 'none';
                     if (isEnabled) {
                         fetchOpenRouterModels();
                     }
+                } else if (providerSelect.value === 'custom') {
+                    openaiSettingsDiv.style.display = 'none';
+                    openrouterSettingsDiv.style.display = 'none';
+                    document.getElementById('custom-settings').style.display = isEnabled ? 'block' : 'none';
                 }
             }
 
@@ -596,7 +660,11 @@ function snn_add_ai_script_to_footer() {
         return;
     }
 
-    if ($ai_provider === 'openrouter') {
+    if ($ai_provider === 'custom') {
+        $apiKey      = get_option('snn_custom_api_key', '');
+        $model       = get_option('snn_custom_model', '');
+        $apiEndpoint = get_option('snn_custom_api_endpoint', '');
+    } elseif ($ai_provider === 'openrouter') {
         $apiKey      = $openrouter_api_key;
         $model       = $openrouter_model;
         $apiEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
