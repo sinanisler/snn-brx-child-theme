@@ -1946,6 +1946,82 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
     echo '</div>'; 
     ?>
     <style>
+    .snn-metabox-wrapper{display:flex;flex-wrap:wrap;}
+    .snn-field-wrap{
+        padding:10px;
+        border:1px solid #eee !important;
+        border-radius:5px;
+        background:#fff;
+        box-sizing:border-box;
+    }
+    .snn-field-label{display:block;font-weight:bold;margin-bottom:8px;font-size:14px;}
+    .snn-field-wrap input[type="text"],
+    .snn-field-wrap input[type="number"],
+    .snn-field-wrap input[type="url"],
+    .snn-field-wrap input[type="email"],
+    .snn-field-wrap input[type="date"],
+    .snn-field-wrap input[type="time"],
+    .snn-field-wrap select,
+    .snn-field-wrap textarea{
+        width:100%;
+        max-width:600px;
+        padding:8px;
+        margin-bottom:5px;
+        box-sizing:border-box;
+    }
+    .snn-field-wrap textarea{min-height:80px;}
+    .snn-field-type-true_false input[type="checkbox"]{margin-top:5px;width:auto;}
+    .repeater-container{margin-top:5px;}
+    .repeater-item{
+        display:flex;
+        align-items:flex-start;
+        gap:10px;
+        margin-bottom:10px;
+        padding:10px;
+        background:#f9f9f9;
+        border:1px solid #e5e5e5;
+        border-radius:3px;
+    }
+    .repeater-content{flex-grow:1;}
+    .snn-field-type-media .media-uploader{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        flex-wrap:wrap;
+    }
+    .snn-field-type-media .media-preview-wrapper{
+        width:50px;
+        height:50px;
+        display:inline-flex;
+        justify-content:center;
+        align-items:center;
+        border:1px solid #ddd;
+        padding:2px;
+        background:#fff;
+        overflow:hidden;
+    }
+    .snn-field-type-media .media-preview-wrapper img,
+    .snn-field-type-media .media-preview-wrapper .dashicons{
+        max-width:100%;
+        max-height:100%;
+        object-fit:cover;
+    }
+    .snn-field-type-media .media-preview-wrapper .dashicons{
+        font-size:40px;
+        line-height:50px;
+        width:50px;
+        text-align:center;
+    }
+    .snn-field-type-checkbox .choice-item,
+    .snn-field-type-radio .choice-item{display:block;margin-bottom:5px;}
+    .snn-field-type-checkbox .choice-item input,
+    .snn-field-type-radio .choice-item input{margin-right:5px;width:auto;vertical-align:middle;}
+    .wp-picker-container{display:inline-block;}
+    .wp-picker-container .wp-color-result.button{margin:0;vertical-align:middle;}
+    .wp-picker-container .wp-picker-input-wrap input[type="text"].wp-color-picker{
+        width:80px;margin-left:5px;vertical-align:middle;
+    }
+    .media-filename{font-size:12px;color:#555;margin-top:4px;word-break:break-all;}
     </style>
     <?php
 }
