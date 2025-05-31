@@ -741,6 +741,9 @@ function snn_add_ai_script_to_footer() {
         #ariaLabel .snn-ai-button,
         [data-control="typography"] .snn-ai-button,
         #bricks-popup .snn-ai-button
+        [data-controlkey="_gridItemColumnSpan"] .snn-ai-button,
+        [data-controlkey="_gridItemRowSpan"] .snn-ai-button,
+        [data-control="gradient"] .snn-ai-button
         {
             display: none !important;
         }
