@@ -749,7 +749,7 @@ function snn_add_ai_script_to_footer() {
         .snn-ai-modal-body { padding: 15px; overflow-y: auto; flex: 1; }
         .snn-ai-prompt { width: 100%; min-height: 140px; padding: 8px; border-radius: 4px; margin-bottom: 10px; font-family: inherit; resize: vertical; background-color: var(--builder-bg-light); color: var(--builder-color); border: solid 1px #00000055; box-sizing: border-box; }
         .snn-ai-actions-container { margin-bottom: 10px; }
-        .snn-ai-action-button { display: inline-block; padding: 4px 8px; margin: 2px; background-color: var(--builder-bg); border: 1px solid #00000055; border-radius: 4px; cursor: pointer; color: var(--builder-color); font-size: 12px; }
+        .snn-ai-action-button { display: inline-block; padding: 4px 2px; margin: 2px; background-color: var(--builder-bg); border: 1px solid #00000055; border-radius: 4px; cursor: pointer; color: var(--builder-color); font-size: 14px; }
         .snn-ai-action-button.selected { background-color: var(--builder-bg-accent); color: var(--builder-color-accent); border-color: var(--builder-color-accent); }
         .snn-ai-submit, .snn-ai-copy, .snn-ai-apply, .snn-bulk-ai-submit, .snn-bulk-ai-apply { background-color: var(--builder-color-accent); color: var(--builder-bg); border: none; border-radius: 4px; padding: 10px 20px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; border: solid 1px transparent; margin-top: 5px; }
         .snn-ai-submit:hover, .snn-ai-copy:hover, .snn-ai-apply:hover, .snn-bulk-ai-submit:hover, .snn-bulk-ai-apply:hover { color: var(--builder-color-accent); background: var(--builder-bg); border: solid 1px #00000055; }
@@ -760,14 +760,16 @@ function snn_add_ai_script_to_footer() {
         @keyframes snn-ai-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .snn-bulk-ai-modal { width: 900px; max-height: 85vh; }
-        .snn-bulk-ai-fields-container { display: flex; flex-direction: column; gap: 10px; margin-bottom:15px; max-height: 300px; overflow-y:auto; padding-right:10px; }
-        .snn-bulk-ai-field-group { display: flex; flex-direction: column; gap:  ; position:relative; }
+        .snn-bulk-ai-fields-container { display: flex; flex-direction: column; gap: 4px; margin-bottom:15px; max-height: 300px; overflow-y:auto; padding-right:10px; }
+        .snn-bulk-ai-field-group { display: flex; flex-direction: column; gap: 5px; position:relative; } /* Adjusted gap */
         .snn-bulk-ai-field-header { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; position:relative;}
-        .snn-bulk-ai-field-checkbox { width:12px; height:12px; margin: 0; }
-        .snn-bulk-ai-field-group label { font-size: 12px; color: var(--builder-color-light); cursor: pointer; flex-grow: 1;  position: absolute; right: 0; width: auto; opacity:0.3;}
-        .snn-bulk-ai-field-group textarea { width: 100%; min-height: 40px; padding: 8px; border-radius: 4px; font-family: inherit; resize: vertical; background-color: var(--builder-bg-light); color: var(--builder-color); border: solid 1px #00000055; box-sizing: border-box; }
+        .snn-bulk-ai-field-checkbox { width:15px; height:15px; margin: 0; }
+        .snn-bulk-ai-field-group label { font-size: 14px; color: var(--builder-color-light); cursor: pointer; flex-grow: 1;  position: relative; top: 2px; width: auto; opacity:0.5;}
+        .snn-bulk-ai-field-group textarea { width: 100%; min-height: 30px; padding: 8px; border-radius: 4px; font-family: inherit; resize: vertical; background-color: var(--builder-bg-light); color: var(--builder-color); border: solid 1px #00000055; box-sizing: border-box; }
         .snn-bulk-ai-response-display { white-space: pre-wrap; max-height: 200px; overflow-y: auto; background-color: var(--builder-bg-light); padding: 10px; border-radius: 4px; margin-top: 10px; border: 1px solid var(--builder-border-color); font-size:12px;}
         .snn-bulk-ai-footer-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        #snn-bulk-ai-select-all,
+        #snn-bulk-ai-deselect-all{background:#293038; color:white; padding: 4px; border-radius: 5px;}
     </style>
 
     <div class="snn-ai-overlay" id="snn-ai-overlay">
@@ -803,6 +805,10 @@ function snn_add_ai_script_to_footer() {
                 <span class="snn-ai-close" id="snn-bulk-ai-close-button">X</span>
             </div>
             <div class="snn-ai-modal-body">
+                <div id="snn-bulk-ai-selection-actions" style="margin-bottom: 10px;">
+                    <button type="button" class="button" id="snn-bulk-ai-select-all"><?php esc_html_e('Select All', 'snn'); ?></button>
+                    <button type="button" class="button" id="snn-bulk-ai-deselect-all" style="margin-left: 5px;"><?php esc_html_e('Deselect All', 'snn'); ?></button>
+                </div>
                 <div id="snn-bulk-ai-fields-container" class="snn-bulk-ai-fields-container">
                     </div>
                 <hr style="margin: 15px 0;">
@@ -816,7 +822,7 @@ function snn_add_ai_script_to_footer() {
                 <button id="snn-bulk-ai-submit" class="snn-bulk-ai-submit"><?php esc_html_e('Regenerate Selected', 'snn'); ?></button>
                 <div id="snn-bulk-ai-spinner" class="snn-ai-spinner"></div>
                 <div id="snn-bulk-ai-response-display" class="snn-bulk-ai-response-display" style="display:none;">
-                    </div>
+                </div>
                  <div class="snn-bulk-ai-footer-actions">
                     <button id="snn-bulk-ai-apply" class="snn-bulk-ai-apply" style="display: none;"><?php esc_html_e('Apply Changes to Editor', 'snn'); ?></button>
                 </div>
@@ -1295,15 +1301,18 @@ function snn_add_ai_script_to_footer() {
         if(submitButton) updateSubmitButtonState(); 
 
         // --- NEW Bulk AI Modal Variables & Logic ---
-        const bulkAiOverlay              = document.getElementById('snn-bulk-ai-overlay');
-        const bulkAiCloseButton          = document.getElementById('snn-bulk-ai-close-button');
-        const bulkAiFieldsContainer      = document.getElementById('snn-bulk-ai-fields-container');
-        const bulkAiActionsContainer     = document.getElementById('snn-bulk-ai-actions-container');
-        const bulkAiPromptTextarea       = document.getElementById('snn-bulk-ai-prompt-textarea');
-        const bulkAiSubmitButton         = document.getElementById('snn-bulk-ai-submit');
-        const bulkAiSpinner              = document.getElementById('snn-bulk-ai-spinner');
-        const bulkAiResponseDisplay      = document.getElementById('snn-bulk-ai-response-display');
-        const bulkAiApplyButton          = document.getElementById('snn-bulk-ai-apply');
+        const bulkAiOverlay             = document.getElementById('snn-bulk-ai-overlay');
+        const bulkAiCloseButton         = document.getElementById('snn-bulk-ai-close-button');
+        const bulkAiFieldsContainer     = document.getElementById('snn-bulk-ai-fields-container');
+        const bulkAiActionsContainer    = document.getElementById('snn-bulk-ai-actions-container');
+        const bulkAiPromptTextarea      = document.getElementById('snn-bulk-ai-prompt-textarea');
+        const bulkAiSubmitButton        = document.getElementById('snn-bulk-ai-submit');
+        const bulkAiSpinner             = document.getElementById('snn-bulk-ai-spinner');
+        const bulkAiResponseDisplay     = document.getElementById('snn-bulk-ai-response-display');
+        const bulkAiApplyButton         = document.getElementById('snn-bulk-ai-apply');
+        const bulkAiSelectAllButton     = document.getElementById('snn-bulk-ai-select-all'); // ADDED
+        const bulkAiDeselectAllButton   = document.getElementById('snn-bulk-ai-deselect-all'); // ADDED
+
 
         let currentBulkElements = []; 
         let bulkSelectedPresets = [];
@@ -1354,7 +1363,7 @@ function snn_add_ai_script_to_footer() {
             currentBulkElements = [];
             let fieldIndex = 0;
 
-            function extractTextElements(elements) {
+            function extractTextElements(elements) { 
                 if (!elements || !Array.isArray(elements)) return;
                 elements.forEach(el => {
                     if (el && el.settings && typeof el.settings.text === 'string' && el.settings.text.trim() !== '') {
@@ -1367,13 +1376,15 @@ function snn_add_ai_script_to_footer() {
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
                         checkbox.className = 'snn-bulk-ai-field-checkbox';
-                        checkbox.id = `snn-bulk-checkbox-${el.id}-${fieldIndex}`; // Ensure unique ID
+                        checkbox.id = `snn-bulk-checkbox-${el.id}-${fieldIndex}`;
                         checkbox.checked = true; 
                         checkbox.dataset.elementId = el.id;
+                        
+                        checkbox.addEventListener('change', updateBulkSubmitButtonState); // ADDED
 
                         const label = document.createElement('label');
                         label.htmlFor = checkbox.id;
-                        label.textContent = `Field ${fieldIndex + 1} (ID: ${el.id}, Name: ${el.name || 'N/A'})`;
+                        label.textContent = `Field ${fieldIndex + 1} (${el.id}, ${el.name || 'N/A'})`;
                         
                         headerDiv.appendChild(checkbox);
                         headerDiv.appendChild(label);
@@ -1418,7 +1429,7 @@ function snn_add_ai_script_to_footer() {
 
 
             bulkAiOverlay.style.display = 'flex';
-            updateBulkSubmitButtonState();
+            updateBulkSubmitButtonState(); // ADDED Call
         }
 
         function hideBulkAiModal() {
@@ -1448,15 +1459,34 @@ function snn_add_ai_script_to_footer() {
         });
         
         function updateBulkSubmitButtonState() {
-            if (!bulkAiSubmitButton || !bulkAiPromptTextarea) return;
+            if (!bulkAiSubmitButton || !bulkAiPromptTextarea || !bulkAiFieldsContainer) return;
             const hasGeneralPrompt = bulkAiPromptTextarea.value.trim().length > 0;
             const hasBulkPresets = bulkSelectedPresets.length > 0;
+            
             const selectedFieldsCount = currentBulkElements.filter(el => el.checkboxElement && el.checkboxElement.checked).length;
             
             bulkAiSubmitButton.disabled = isBulkRequestPending || selectedFieldsCount === 0 || !(hasGeneralPrompt || hasBulkPresets);
         }
 
         if(bulkAiPromptTextarea) bulkAiPromptTextarea.addEventListener('input', updateBulkSubmitButtonState);
+        
+        // ADDED Event Listeners for Select All/Deselect All
+        if (bulkAiSelectAllButton && bulkAiFieldsContainer) {
+            bulkAiSelectAllButton.addEventListener('click', () => {
+                const checkboxes = bulkAiFieldsContainer.querySelectorAll('.snn-bulk-ai-field-checkbox');
+                checkboxes.forEach(cb => cb.checked = true);
+                updateBulkSubmitButtonState();
+            });
+        }
+
+        if (bulkAiDeselectAllButton && bulkAiFieldsContainer) {
+            bulkAiDeselectAllButton.addEventListener('click', () => {
+                const checkboxes = bulkAiFieldsContainer.querySelectorAll('.snn-bulk-ai-field-checkbox');
+                checkboxes.forEach(cb => cb.checked = false);
+                updateBulkSubmitButtonState();
+            });
+        }
+        // END of ADDED Event Listeners
         
         if(bulkAiSubmitButton) bulkAiSubmitButton.addEventListener('click', async () => {
             if (isBulkRequestPending) { console.warn("SNN Bulk AI: Request already pending."); return; }
@@ -1469,7 +1499,7 @@ function snn_add_ai_script_to_footer() {
                 return; 
             }
 
-            lastProcessedBulkElements = currentBulkElements.filter(el => el.checkboxElement && el.checkboxElement.checked);
+            lastProcessedBulkElements = currentBulkElements.filter(el => el.checkboxElement && el.checkboxElement.checked); // Ensured el.checkboxElement exists
 
             if (lastProcessedBulkElements.length === 0) {
                 console.warn("SNN Bulk AI: No elements selected to process.");
@@ -1644,14 +1674,14 @@ Do not add any extra explanations or text outside of the "||" separated segments
             }
             // Consider if a save action is needed:
             // if (window.bricks && typeof bricks.builder.save === 'function') {
-            //     bricks.builder.save(); 
+            //      bricks.builder.save(); 
             // }
 
             hideBulkAiModal();
             console.log(`SNN Bulk AI: Applied changes to ${appliedCount} elements.`);
             // You might want a more user-facing notification here. For example:
             // if (typeof bricks !== 'undefined' && bricks.notify) {
-            //     bricks.notify(`Successfully applied AI changes to ${appliedCount} elements.`, 'success');
+            //      bricks.notify(`Successfully applied AI changes to ${appliedCount} elements.`, 'success');
             // }
         });
 
@@ -1659,4 +1689,4 @@ Do not add any extra explanations or text outside of the "||" separated segments
     </script>
     <?php
 }
-add_action('wp_footer', 'snn_add_ai_script_to_footer', 99); 
+add_action('wp_footer', 'snn_add_ai_script_to_footer', 99);
