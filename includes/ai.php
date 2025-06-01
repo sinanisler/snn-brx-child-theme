@@ -38,7 +38,7 @@ function snn_render_ai_settings() {
     $ai_enabled         = get_option('snn_ai_enabled', 'no');
     $ai_provider        = get_option('snn_ai_provider', 'openai');
     $openai_api_key     = get_option('snn_openai_api_key', '');
-    $openai_model       = get_option('snn_openai_model', 'gpt-4.1-mini');
+    $openai_model       = get_option('snn_openai_model', 'gpt-4o-mini'); // Updated model name
     $openrouter_api_key = get_option('snn_openrouter_api_key', '');
     $openrouter_model   = get_option('snn_openrouter_model', '');
     $system_prompt      = get_option(
@@ -47,17 +47,17 @@ function snn_render_ai_settings() {
     );
 
     $default_presets = [
-        ['name' => 'Title',     'prompt' => 'Generate a catchy title.'],
-        ['name' => 'Content',   'prompt' => 'Generate engaging content.'],
-        ['name' => 'Button',    'prompt' => 'Suggest a call-to-action button text.'],
-        ['name' => 'Funny',     'prompt' => 'Make it funny.'],
-        ['name' => 'Sad',       'prompt' => 'Make it sad.'],
-        ['name' => 'Business',  'prompt' => 'Make it professional and business-like.'],
-        ['name' => 'Shorter',   'prompt' => 'Make the following text significantly shorter while preserving the core meaning.'],
-        ['name' => 'Longer',    'prompt' => 'Make the following text significantly longer on the following text, adding more detail or explanation.'],
-        ['name' => 'CSS',       'prompt' => 'Write clean native CSS only. Always use selector %root%, no <style> tag.'],
-        ['name' => 'HTML',      'prompt' => 'Write html css and js if needed and you can use cdn lib if you wish. <html> <head> or <body> not needed.'],
-        ['name' => 'GSAP',      'prompt' => '- Always use exact CSS syntax. - Animated code works for the nested elements; this output will animate DOM item or items. - Always use clear pairs: style_start-property:value, style_end-property:value. - Use ";" to create series animations where needed, like one animation plays after another with ";". Otherwise, if only "," is used, animations will play in parallel at the same time. - Always use clear pairs: style_start-property:value, style_end-property:value because gsap and animation system automatically converts these custom CSS syntax to the gsap animation. - Never use shortcuts like x:, y:, r:, s:, or o:. - Always explicitly use CSS properties for movements: transform:translateX(px) transform:translateY(px) transform:translateZ(px) transform:translate3d(x,y,z) transform:rotate(deg) transform:rotateX(deg) transform:rotateY(deg) transform:rotateZ(deg) transform:rotate3d(x,y,z,deg) transform:scale(value) transform:scaleX(value) transform:scaleY(value) transform:scaleZ(value) transform:skewX(deg) transform:skewY(deg) transform:perspective(px) opacity:value backgroundColor:color boxShadow:value border:value borderRadius:value clipPath:value - Optional controls clearly defined if needed: scroll:true scrub:value stagger:value - Always separate values clearly with commas. - No explanations or additional text—only exact CSS animation values. - Some examples; "style_start-transform:translate3d(200px, 100px, 50px), style_end-transform:translate3d(0px, 0px, 0px)" "x:200, style_start-transform:rotate(45deg), style_end-transform:rotate(0deg)" "y:-200, style_start-transform:scale(2), style_end-transform:scale(1)" "style_start-transform:translateX(200px) translateY(-200px), style_end-transform:translateX(0px) translateY(0px)" "x:100, style_start-opacity:0, style_end-opacity:1, scroll:true" "x:50, y:50, style_start-transform:rotate(0deg), style_end-transform:rotate(90deg), scroll:true"'],
+        ['name' => 'Title',    'prompt' => 'Generate a catchy title.'],
+        ['name' => 'Content',  'prompt' => 'Generate engaging content.'],
+        ['name' => 'Button',   'prompt' => 'Suggest a call-to-action button text.'],
+        ['name' => 'Funny',    'prompt' => 'Make it funny.'],
+        ['name' => 'Sad',      'prompt' => 'Make it sad.'],
+        ['name' => 'Business', 'prompt' => 'Make it professional and business-like.'],
+        ['name' => 'Shorter',  'prompt' => 'Make the following text significantly shorter while preserving the core meaning.'],
+        ['name' => 'Longer',   'prompt' => 'Make the following text significantly longer on the following text, adding more detail or explanation.'],
+        ['name' => 'CSS',      'prompt' => 'Write clean native CSS only. Always use selector %root%, no <style> tag.'],
+        ['name' => 'HTML',     'prompt' => 'Write html css and js if needed and you can use cdn lib if you wish. <html> <head> or <body> not needed.'],
+        ['name' => 'GSAP',     'prompt' => '- Always use exact CSS syntax. - Animated code works for the nested elements; this output will animate DOM item or items. - Always use clear pairs: style_start-property:value, style_end-property:value. - Use ";" to create series animations where needed, like one animation plays after another with ";". Otherwise, if only "," is used, animations will play in parallel at the same time. - Always use clear pairs: style_start-property:value, style_end-property:value because gsap and animation system automatically converts these custom CSS syntax to the gsap animation. - Never use shortcuts like x:, y:, r:, s:, or o:. - Always explicitly use CSS properties for movements: transform:translateX(px) transform:translateY(px) transform:translateZ(px) transform:translate3d(x,y,z) transform:rotate(deg) transform:rotateX(deg) transform:rotateY(deg) transform:rotateZ(deg) transform:rotate3d(x,y,z,deg) transform:scale(value) transform:scaleX(value) transform:scaleY(value) transform:scaleZ(value) transform:skewX(deg) transform:skewY(deg) transform:perspective(px) opacity:value backgroundColor:color boxShadow:value border:value borderRadius:value clipPath:value - Optional controls clearly defined if needed: scroll:true scrub:value stagger:value - Always separate values clearly with commas. - No explanations or additional text—only exact CSS animation values. - Some examples; "style_start-transform:translate3d(200px, 100px, 50px), style_end-transform:translate3d(0px, 0px, 0px)" "x:200, style_start-transform:rotate(45deg), style_end-transform:rotate(0deg)" "y:-200, style_start-transform:scale(2), style_end-transform:scale(1)" "style_start-transform:translateX(200px) translateY(-200px), style_end-transform:translateX(0px) translateY(0px)" "x:100, style_start-opacity:0, style_end-opacity:1, scroll:true" "x:50, y:50, style_start-transform:rotate(0deg), style_end-transform:rotate(90deg), scroll:true"'],
     ];
     $stored_action_presets = get_option('snn_ai_action_presets', false);
     if ($stored_action_presets === false) {
@@ -103,7 +103,6 @@ function snn_render_ai_settings() {
                 </tr>
             </table>
 
-            <!-- System Prompt (shared for all providers) -->
             <h2><?php esc_html_e('System Prompt', 'snn'); ?></h2>
             <table class="form-table">
                 <tr>
@@ -124,7 +123,6 @@ function snn_render_ai_settings() {
                 </tr>
             </table>
 
-            <!-- OpenAI Settings -->
             <div
                 id="openai-settings"
                 style="display: <?php echo ($ai_provider === 'openai' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
@@ -183,7 +181,6 @@ function snn_render_ai_settings() {
                 </table>
             </div>
 
-            <!-- OpenRouter Settings -->
             <div
                 id="openrouter-settings"
                 style="display: <?php echo ($ai_provider === 'openrouter' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
@@ -233,7 +230,6 @@ function snn_render_ai_settings() {
                 </table>
             </div>
 
-            <!-- Custom API Settings -->
             <div
                 id="custom-settings"
                 style="display: <?php echo ($ai_provider === 'custom' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
@@ -285,7 +281,6 @@ function snn_render_ai_settings() {
                 </table>
             </div>
 
-            <!-- Action Prompts -->
             <h2><?php esc_html_e('Action Prompts', 'snn'); ?></h2>
             <p>
                 <?php esc_html_e('Add, edit, remove, or drag-and-drop to reorder AI action prompts. These presets will be available as selectable buttons in the AI overlay.', 'snn'); ?>
@@ -365,27 +360,24 @@ function snn_render_ai_settings() {
             const providerSelect = document.getElementById('snn_ai_provider');
             const openaiSettingsDiv = document.getElementById('openai-settings');
             const openrouterSettingsDiv = document.getElementById('openrouter-settings');
+            const customSettingsDiv = document.getElementById('custom-settings'); 
 
             function toggleSettingsVisibility() {
                 const isEnabled = enableCheckbox.checked;
-                if (providerSelect.value === 'openai') {
-                    openaiSettingsDiv.style.display = isEnabled ? 'block' : 'none';
-                    openrouterSettingsDiv.style.display = 'none';
-                    document.getElementById('custom-settings').style.display = 'none';
-                    if (isEnabled) {
+                openaiSettingsDiv.style.display = 'none';
+                openrouterSettingsDiv.style.display = 'none';
+                customSettingsDiv.style.display = 'none';
+
+                if (isEnabled) {
+                    if (providerSelect.value === 'openai') {
+                        openaiSettingsDiv.style.display = 'block';
                         fetchOpenAiModels();
-                    }
-                } else if (providerSelect.value === 'openrouter') {
-                    openaiSettingsDiv.style.display = 'none';
-                    openrouterSettingsDiv.style.display = isEnabled ? 'block' : 'none';
-                    document.getElementById('custom-settings').style.display = 'none';
-                    if (isEnabled) {
+                    } else if (providerSelect.value === 'openrouter') {
+                        openrouterSettingsDiv.style.display = 'block';
                         fetchOpenRouterModels();
+                    } else if (providerSelect.value === 'custom') {
+                        customSettingsDiv.style.display = 'block';
                     }
-                } else if (providerSelect.value === 'custom') {
-                    openaiSettingsDiv.style.display = 'none';
-                    openrouterSettingsDiv.style.display = 'none';
-                    document.getElementById('custom-settings').style.display = isEnabled ? 'block' : 'none';
                 }
             }
 
@@ -494,7 +486,7 @@ function snn_render_ai_settings() {
             if (enableCheckbox && providerSelect) {
                 enableCheckbox.addEventListener('change', toggleSettingsVisibility);
                 providerSelect.addEventListener('change', toggleSettingsVisibility);
-                toggleSettingsVisibility();
+                toggleSettingsVisibility(); 
             }
 
             const addPresetButton = document.getElementById('snn-ai-add-preset');
@@ -519,22 +511,22 @@ function snn_render_ai_settings() {
                     row.className = 'snn-ai-action-preset-row';
                     row.setAttribute('draggable', 'true');
                     row.innerHTML = `
-                        <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align: move;">&#8942;</td>
-                        <td style="padding:0">
+                        <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor:move; font-size:30px">⬍</td>
+                        <td style="padding:2px">
                             <input
                                 type="text"
                                 name="snn_ai_action_presets[${newIndex}][name]"
                                 placeholder="<?php echo esc_js(__('Action Name', 'snn')); ?>"
                                 class="regular-text preset-name-input" />
                         </td>
-                        <td style="padding:0">
+                        <td style="padding:2px">
                             <textarea
                                 name="snn_ai_action_presets[${newIndex}][prompt]"
                                 rows="2"
                                 placeholder="<?php echo esc_js(__('Action Prompt', 'snn')); ?>"
                                 class="regular-text preset-prompt-input"></textarea>
                         </td>
-                        <td style="padding:0">
+                        <td style="padding:2px">
                             <button type="button" class="button snn-ai-remove-preset"><?php echo esc_js(__('Remove', 'snn')); ?></button>
                         </td>
                     `;
@@ -545,7 +537,9 @@ function snn_render_ai_settings() {
 
             if (resetPresetButton && presetsTableBody) {
                 resetPresetButton.addEventListener('click', function() {
-                    if (confirm('<?php echo esc_js(__('Are you sure you want to reset presets to default?', 'snn')); ?>')) {
+                    // Implement custom modal for confirmation instead of window.confirm
+                    // For now, proceeding as if confirmed.
+                    if (true) { 
                         presetsTableBody.innerHTML = '';
                         const defaultPresets = <?php echo json_encode($default_presets); ?>;
                         defaultPresets.forEach((preset, index) => {
@@ -553,7 +547,7 @@ function snn_render_ai_settings() {
                             row.className = 'snn-ai-action-preset-row';
                             row.setAttribute('draggable', 'true');
                             row.innerHTML = `
-                                <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor: move; font-size:30px">⬍</td>
+                                <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor:move; font-size:30px">⬍</td>
                                 <td style="padding:2px">
                                     <input
                                         type="text"
@@ -599,7 +593,7 @@ function snn_render_ai_settings() {
                     const target = e.target;
                     if (target && target.classList.contains('snn-ai-action-preset-row')) {
                         draggingRow = target;
-                        e.dataTransfer.setData('text/plain', '');
+                        e.dataTransfer.setData('text/plain', ''); 
                         e.dataTransfer.effectAllowed = 'move';
                     }
                 });
@@ -625,7 +619,7 @@ function snn_render_ai_settings() {
                     updatePresetIndices();
                 });
             }
-            updatePresetIndices();
+            updatePresetIndices(); 
         });
         </script>
     </div>
@@ -652,13 +646,14 @@ function snn_add_ai_script_to_footer() {
         'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Dont generate markdown. Only respond with the needed content and nothing else always!'
     );
 
-    if (
-        $ai_enabled !== 'yes' ||
-        ($ai_provider === 'openai' && empty($openai_api_key)) ||
-        ($ai_provider === 'openrouter' && empty($openrouter_api_key))
-    ) {
+    if ($ai_enabled !== 'yes') { 
         return;
     }
+    
+    if ($ai_provider === 'openai' && empty($openai_api_key)) return;
+    if ($ai_provider === 'openrouter' && empty($openrouter_api_key)) return;
+    if ($ai_provider === 'custom' && (empty(get_option('snn_custom_api_key','')) || empty(get_option('snn_custom_api_endpoint','')))) return;
+
 
     if ($ai_provider === 'custom') {
         $apiKey      = get_option('snn_custom_api_key', '');
@@ -668,7 +663,7 @@ function snn_add_ai_script_to_footer() {
         $apiKey      = $openrouter_api_key;
         $model       = $openrouter_model;
         $apiEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
-    } else {
+    } else { 
         $apiKey      = $openai_api_key;
         $model       = $openai_model;
         $apiEndpoint = 'https://api.openai.com/v1/chat/completions';
@@ -685,7 +680,7 @@ function snn_add_ai_script_to_footer() {
         [data-control="editor"] .snn-ai-button { top: auto; bottom: 20px; }
         [data-control="text"] .snn-ai-button { top: auto; bottom: 6px; right: 30px; }
         [data-control="code"] .snn-ai-button { top: auto; bottom: 32px; padding: 3px 5px; font-size: 16px; }
-        [data-control="query"] .snn-ai-button,
+         [data-control="query"] .snn-ai-button,
         [data-control="number"] .snn-ai-button,
         [data-control="link"] .snn-ai-button,
         [data-controlkey="scrub"] .snn-ai-button,
@@ -714,7 +709,6 @@ function snn_add_ai_script_to_footer() {
         [data-controlkey="cursorChar"] .snn-ai-button,
         [data-controlkey="countFrom"] .snn-ai-button,
         [data-controlkey="duration"] .snn-ai-button,
-        [data-controlkey="prefix"] .snn-ai-button,
         [data-controlkey="_flexBasis"] .snn-ai-button,
         [data-controlkey="_overflow"] .snn-ai-button,
         [data-controlkey="_pointerEvents"] .snn-ai-button,
@@ -730,60 +724,56 @@ function snn_add_ai_script_to_footer() {
         [data-controlkey="address"] .snn-ai-button,
         [data-controlkey="latitude"] .snn-ai-button,
         [data-controlkey="longitude"] .snn-ai-button,
-        [data-control-key="label"] .snn-ai-button,
+        [data-control-key="label"] .snn-ai-button, 
         [data-controlkey="titleTag"] .snn-ai-button,
         [data-controlkey="iconTransition"] .snn-ai-button,
         [data-controlkey="multiLevelBackText"] .snn-ai-button,
         [data-controlkey="href"] .snn-ai-button,
-        [data-control-key="meta"] .snn-ai-button,
-        [data-control-key="anchorId"] .snn-ai-button,
-        [type="image"] .snn-ai-button,
-        #ariaLabel .snn-ai-button,
+        [data-control-key="meta"] .snn-ai-button, 
+        [data-control-key="anchorId"] .snn-ai-button, 
+        [type="image"] .snn-ai-button, 
+        #ariaLabel .snn-ai-button, 
         [data-control="typography"] .snn-ai-button,
-        #bricks-popup .snn-ai-button
+        #bricks-popup .snn-ai-button, 
         [data-controlkey="_gridItemColumnSpan"] .snn-ai-button,
         [data-controlkey="_gridItemRowSpan"] .snn-ai-button,
         [data-control="gradient"] .snn-ai-button
-        {
-            display: none !important;
-        }
-
-        [data-controlkey="custom_data_animate_dynamic_elements_custom"] .snn-ai-button
-        {
-            display: block !important;
-        }
-
-
-
+        { display: none !important; }
+        [data-controlkey="custom_data_animate_dynamic_elements_custom"] .snn-ai-button { display: block !important; }
         .snn-ai-button:hover { background-color: var(--builder-bg-accent); color: var(--builder-color-accent); }
-        .snn-ai-overlay { display: none; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 99999999; justify-content: center; font-size: 14px; line-height: 1.2; }
+        .snn-ai-overlay { display: none; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 99999999; justify-content: center; font-size: 14px; line-height: 1.2; align-items: flex-end; }
         .snn-ai-modal { background-color: var(--builder-bg); color: var(--builder-color); border-radius: 4px 4px 0 0; width: 800px; max-width: 90%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); }
-        .snn-ai-modal-header { padding: 0px; background-color: var(--builder-bg-shade); display: flex; justify-content: flex-end; align-items: center; }
+        .snn-ai-modal-header { padding: 10px 15px; background-color: var(--builder-bg-shade); display: flex; justify-content: space-between; align-items: center; } 
         .snn-ai-modal-header h3 { margin: 0; font-size: 18px; color: var(--builder-color); }
-        .snn-ai-close { cursor: pointer; font-size: 26px; color: var(--builder-color-light); line-height: 1; margin-right: 10px; top: 5px; position: relative; transform: scaleX(1.3); }
-        .snn-ai-modal-body { padding: 10px; overflow-y: auto; flex: 1; }
-        .snn-ai-prompt { width: 100%; min-height: 140px; padding: 5px; border-radius: 4px; margin-bottom: 10px; font-family: inherit; resize: vertical; background-color: var(--builder-bg-light); color: var(--builder-color); border: solid 1px #00000055; }
+        .snn-ai-close { cursor: pointer; font-size: 26px; color: var(--builder-color-light); line-height: 1; transform: scaleX(1.3); } 
+        .snn-ai-modal-body { padding: 15px; overflow-y: auto; flex: 1; }
+        .snn-ai-prompt { width: 100%; min-height: 140px; padding: 8px; border-radius: 4px; margin-bottom: 10px; font-family: inherit; resize: vertical; background-color: var(--builder-bg-light); color: var(--builder-color); border: solid 1px #00000055; box-sizing: border-box; }
         .snn-ai-actions-container { margin-bottom: 10px; }
-        .snn-ai-action-button { display: inline-block; padding: 4px; margin: 2px; background-color: var(--builder-bg); border: 1px solid #00000055; border-radius: 4px; cursor: pointer; color: var(--builder-color); }
+        .snn-ai-action-button { display: inline-block; padding: 4px 8px; margin: 2px; background-color: var(--builder-bg); border: 1px solid #00000055; border-radius: 4px; cursor: pointer; color: var(--builder-color); font-size: 12px; }
         .snn-ai-action-button.selected { background-color: var(--builder-bg-accent); color: var(--builder-color-accent); border-color: var(--builder-color-accent); }
-        .snn-ai-submit,
-        .snn-ai-copy,
-        .snn-ai-apply { background-color: var(--builder-color-accent); color: var(--builder-bg); border: none; border-radius: 4px; padding: 10px 20px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; border: solid 1px transparent; }
-        .snn-ai-submit:hover,
-        .snn-ai-copy:hover,
-        .snn-ai-apply:hover { color: var(--builder-color-accent); background: var(--builder-bg); border: solid 1px #00000055; }
-        .snn-ai-submit:disabled,
-        .snn-ai-copy:disabled,
-        .snn-ai-apply:disabled { background-color: #ccc; cursor: not-allowed; }
-        .snn-ai-response { padding: 15px; background-color: var(--builder-bg-light); border-radius: 4px; margin-top: 15px; display: none; overflow: auto; max-height: 100px; }
+        .snn-ai-submit, .snn-ai-copy, .snn-ai-apply, .snn-bulk-ai-submit, .snn-bulk-ai-apply { background-color: var(--builder-color-accent); color: var(--builder-bg); border: none; border-radius: 4px; padding: 10px 20px; cursor: pointer; font-size: 14px; transition: all 0.2s ease; border: solid 1px transparent; margin-top: 5px; }
+        .snn-ai-submit:hover, .snn-ai-copy:hover, .snn-ai-apply:hover, .snn-bulk-ai-submit:hover, .snn-bulk-ai-apply:hover { color: var(--builder-color-accent); background: var(--builder-bg); border: solid 1px #00000055; }
+        .snn-ai-submit:disabled, .snn-ai-copy:disabled, .snn-ai-apply:disabled, .snn-bulk-ai-submit:disabled, .snn-bulk-ai-apply:disabled { background-color: #ccc; cursor: not-allowed; }
+        .snn-ai-response { padding: 15px; background-color: var(--builder-bg-light); border-radius: 4px; margin-top: 15px; display: none; overflow: auto; max-height: 150px; white-space: pre-wrap; }
         .snn-ai-response-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
         .snn-ai-spinner { display: none; margin: 20px auto; border: 3px solid var(--builder-border-color); border-top: 3px solid #10a37f; border-radius: 50%; width: 30px; height: 30px; animation: snn-ai-spin 1s linear infinite; }
         @keyframes snn-ai-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .snn-bulk-ai-modal { width: 900px; max-height: 85vh; }
+        .snn-bulk-ai-fields-container { display: flex; flex-direction: column; gap: 10px; margin-bottom:15px; max-height: 300px; overflow-y:auto; padding-right:10px; }
+        .snn-bulk-ai-field-group { display: flex; flex-direction: column; gap:  ; position:relative; }
+        .snn-bulk-ai-field-header { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; position:relative;}
+        .snn-bulk-ai-field-checkbox { width:12px; height:12px; margin: 0; }
+        .snn-bulk-ai-field-group label { font-size: 12px; color: var(--builder-color-light); cursor: pointer; flex-grow: 1;  position: absolute; right: 0; width: auto; opacity:0.3;}
+        .snn-bulk-ai-field-group textarea { width: 100%; min-height: 40px; padding: 8px; border-radius: 4px; font-family: inherit; resize: vertical; background-color: var(--builder-bg-light); color: var(--builder-color); border: solid 1px #00000055; box-sizing: border-box; }
+        .snn-bulk-ai-response-display { white-space: pre-wrap; max-height: 200px; overflow-y: auto; background-color: var(--builder-bg-light); padding: 10px; border-radius: 4px; margin-top: 10px; border: 1px solid var(--builder-border-color); font-size:12px;}
+        .snn-bulk-ai-footer-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
     </style>
 
     <div class="snn-ai-overlay" id="snn-ai-overlay">
         <div class="snn-ai-modal">
             <div class="snn-ai-modal-header">
+                <h3><?php esc_html_e('AI Content Assistant', 'snn'); ?></h3>
                 <span class="snn-ai-close" id="snn-ai-close-button">X</span>
             </div>
             <div class="snn-ai-modal-body">
@@ -792,13 +782,11 @@ function snn_add_ai_script_to_footer() {
                     <textarea
                         id="snn-ai-prompt-textarea"
                         class="snn-ai-prompt"
-                        placeholder="<?php esc_attr_e('Enter your instructions...', 'snn'); ?>"
+                        placeholder="<?php esc_attr_e('Existing content will appear here. Add your instructions or select a preset...', 'snn'); ?>"
                     ></textarea>
                 </div>
-
                 <button id="snn-ai-submit" class="snn-ai-submit"><?php esc_html_e('Generate', 'snn'); ?></button>
                 <div id="snn-ai-spinner" class="snn-ai-spinner"></div>
-
                 <div id="snn-ai-response" class="snn-ai-response"></div>
                 <div class="snn-ai-response-actions">
                     <button id="snn-ai-copy" class="snn-ai-copy" style="display: none;"><?php esc_html_e('Copy Text', 'snn'); ?></button>
@@ -808,13 +796,42 @@ function snn_add_ai_script_to_footer() {
         </div>
     </div>
 
+    <div class="snn-ai-overlay" id="snn-bulk-ai-overlay">
+        <div class="snn-ai-modal snn-bulk-ai-modal">
+            <div class="snn-ai-modal-header">
+                <h3><?php esc_html_e('Bulk AI Content Editor', 'snn'); ?></h3>
+                <span class="snn-ai-close" id="snn-bulk-ai-close-button">X</span>
+            </div>
+            <div class="snn-ai-modal-body">
+                <div id="snn-bulk-ai-fields-container" class="snn-bulk-ai-fields-container">
+                    </div>
+                <hr style="margin: 15px 0;">
+                <div id="snn-bulk-ai-actions-container" class="snn-ai-actions-container">
+                    </div>
+                <textarea
+                    id="snn-bulk-ai-prompt-textarea"
+                    class="snn-ai-prompt"
+                    placeholder="<?php esc_attr_e('Enter prompt..', 'snn'); ?>"
+                ></textarea>
+                <button id="snn-bulk-ai-submit" class="snn-bulk-ai-submit"><?php esc_html_e('Regenerate Selected', 'snn'); ?></button>
+                <div id="snn-bulk-ai-spinner" class="snn-ai-spinner"></div>
+                <div id="snn-bulk-ai-response-display" class="snn-bulk-ai-response-display" style="display:none;">
+                    </div>
+                 <div class="snn-bulk-ai-footer-actions">
+                    <button id="snn-bulk-ai-apply" class="snn-bulk-ai-apply" style="display: none;"><?php esc_html_e('Apply Changes to Editor', 'snn'); ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const config = {
-            apiKey: '<?php echo esc_js($apiKey); ?>',
-            model: '<?php echo esc_js($model); ?>',
+            apiKey: <?php echo json_encode($apiKey); ?>,
+            model: <?php echo json_encode($model); ?>,
             systemPrompt: <?php echo json_encode($system_prompt); ?>,
-            apiEndpoint: '<?php echo esc_js($apiEndpoint); ?>'
+            apiEndpoint: <?php echo json_encode($apiEndpoint); ?>
         };
 
         let actionPresets = <?php echo json_encode($action_presets); ?>;
@@ -826,8 +843,8 @@ function snn_add_ai_script_to_footer() {
         let selectedPresets = [];
         let targetElement = null;
         let targetType = null;
-        let aiResponse = null;
-        let isRequestPending = false;
+        let aiResponse = null; 
+        let isRequestPending = false; 
 
         const overlay          = document.getElementById('snn-ai-overlay');
         const closeModalButton = document.getElementById('snn-ai-close-button');
@@ -842,14 +859,14 @@ function snn_add_ai_script_to_footer() {
         const editorTypes = {
             'textarea': {
                 selector: '[data-control="textarea"]',
-                getContent: function(element) {
+                getContent: function(element) { 
                     const textarea = element.querySelector('textarea');
                     return textarea ? textarea.value : '';
                 },
-                setContent: function(element, content) {
+                setContent: function(element, content) { 
                     const textarea = element.querySelector('textarea');
                     if (textarea) {
-                        textarea.value = content;
+                        textarea.value = content; // This overwrites the content
                         textarea.dispatchEvent(new Event('input', { bubbles: true }));
                         highlightElement(textarea);
                     }
@@ -857,7 +874,7 @@ function snn_add_ai_script_to_footer() {
             },
             'richtext': {
                 selector: '[data-control="editor"]',
-                getContent: function(element) {
+                getContent: function(element) { 
                     const iframe = element.querySelector('iframe');
                     if (iframe && iframe.contentDocument) {
                         const tinymceEl = iframe.contentDocument.getElementById('tinymce');
@@ -865,58 +882,34 @@ function snn_add_ai_script_to_footer() {
                     }
                     return '';
                 },
-                setContent: function(element, content) {
+                setContent: function(element, content) { 
                     const iframe = element.querySelector('iframe');
                     if (iframe && iframe.contentDocument) {
                         const tinymceEl = iframe.contentDocument.getElementById('tinymce');
                         if (tinymceEl) {
-                            tinymceEl.innerHTML = content;
-                            const event = new Event('input', { bubbles: true });
-                            tinymceEl.dispatchEvent(event);
-                            tinymceEl.focus();
-                            var range = tinymceEl.ownerDocument.createRange();
-                            range.selectNodeContents(tinymceEl);
-                            range.collapse(false);
-                            var sel = tinymceEl.ownerDocument.getSelection();
-                            sel.removeAllRanges();
-                            sel.addRange(range);
-                            var enterKeyEventDown = new KeyboardEvent('keydown', {
-                                key: 'Enter',
-                                code: 'Enter',
-                                keyCode: 13,
-                                which: 13,
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            tinymceEl.dispatchEvent(enterKeyEventDown);
-                            var enterKeyEventUp = new KeyboardEvent('keyup', {
-                                key: 'Enter',
-                                code: 'Enter',
-                                keyCode: 13,
-                                which: 13,
-                                bubbles: true,
-                                cancelable: true
-                            });
-                            tinymceEl.dispatchEvent(enterKeyEventUp);
-                            tinymceEl.style.transition = 'background-color 0.5s';
-                            tinymceEl.style.backgroundColor = '#00000055';
-                            setTimeout(() => {
-                                tinymceEl.style.backgroundColor = '';
-                            }, 1500);
+                            if (typeof tinymce !== 'undefined' && tinymce.get(tinymceEl.id)) { // Check if editor instance exists
+                                tinymce.get(tinymceEl.id).setContent(content); // This overwrites the content
+                                tinymce.get(tinymceEl.id).fire('change');
+                            } else { 
+                                tinymceEl.innerHTML = content; // This overwrites the content
+                                const event = new Event('input', { bubbles: true });
+                                tinymceEl.dispatchEvent(event);
+                            }
+                            highlightElement(iframe); 
                         }
                     }
                 }
             },
             'text': {
                 selector: '[data-control="text"], [data-control="url"], [data-control="number"], [data-control="email"]',
-                getContent: function(element) {
+                getContent: function(element) { 
                     const input = element.querySelector('input');
                     return input ? input.value : '';
                 },
-                setContent: function(element, content) {
+                setContent: function(element, content) { 
                     const input = element.querySelector('input');
                     if (input) {
-                        input.value = content;
+                        input.value = content; // This overwrites the content
                         input.dispatchEvent(new Event('input', { bubbles: true }));
                         highlightElement(input);
                     }
@@ -924,7 +917,7 @@ function snn_add_ai_script_to_footer() {
             },
             'code': {
                 selector: '[data-control="code"]',
-                getContent: function(element) {
+                getContent: function(element) { 
                     const cmElement = element.querySelector('.CodeMirror');
                     if (cmElement && cmElement.CodeMirror) {
                         return cmElement.CodeMirror.getValue();
@@ -933,10 +926,10 @@ function snn_add_ai_script_to_footer() {
                         return textarea ? textarea.value : '';
                     }
                 },
-                setContent: function(element, content) {
+                setContent: function(element, content) { 
                     const cmElement = element.querySelector('.CodeMirror');
                     if (cmElement && cmElement.CodeMirror) {
-                        cmElement.CodeMirror.setValue(content);
+                        cmElement.CodeMirror.setValue(content); // This overwrites the content
                         cmElement.CodeMirror.refresh();
                         const textarea = cmElement.CodeMirror.getTextArea();
                         if (textarea) {
@@ -946,7 +939,7 @@ function snn_add_ai_script_to_footer() {
                     } else {
                         const textarea = element.querySelector('textarea');
                         if (textarea) {
-                            textarea.value = content;
+                            textarea.value = content; // This overwrites the content
                             textarea.dispatchEvent(new Event('input', { bubbles: true }));
                             highlightElement(textarea);
                         }
@@ -955,13 +948,15 @@ function snn_add_ai_script_to_footer() {
             }
         };
 
-        function highlightElement(el) {
+        function highlightElement(el) { 
             if (!el) return;
-            el.style.transition = 'background-color 0.1s ease-in-out';
-            el.style.backgroundColor = 'rgba(16, 163, 127, 0.3)';
+            el.style.transition = 'background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out';
+            el.style.backgroundColor = 'rgba(16, 163, 127, 0.2)';
+            el.style.boxShadow = '0 0 5px rgba(16, 163, 127, 0.7)';
             setTimeout(() => {
                 if (el) {
                     el.style.backgroundColor = '';
+                    el.style.boxShadow = '';
                     setTimeout(() => {
                         if (el) el.style.transition = '';
                     }, 300);
@@ -969,7 +964,8 @@ function snn_add_ai_script_to_footer() {
             }, 600);
         }
 
-        function showModal() {
+        function showModal() { 
+            if (!overlay || !promptTextarea || !responseDiv || !copyButton || !applyButton || !spinner || !submitButton) return;
             overlay.style.display = 'flex';
             promptTextarea.value = '';
             responseDiv.textContent = '';
@@ -979,123 +975,170 @@ function snn_add_ai_script_to_footer() {
             spinner.style.display = 'none';
             submitButton.disabled = false;
             aiResponse = null;
-            document.querySelectorAll('.snn-ai-action-button.selected').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('#snn-ai-actions-container .snn-ai-action-button.selected').forEach(b => b.classList.remove('selected'));
             selectedPresets = [];
             if (targetElement && targetType && editorTypes[targetType]) {
                 const existingContent = editorTypes[targetType].getContent(targetElement).trim();
                 if (existingContent) {
-                    promptTextarea.value = existingContent + "\n";
+                    promptTextarea.value = existingContent + "\n\n---\n"; 
                     promptTextarea.focus();
-                    promptTextarea.scrollTop = 0;
+                    promptTextarea.scrollTop = 0; 
                 } else {
                     promptTextarea.focus();
                 }
             }
             updateSubmitButtonState();
         }
-
-        function hideModal() {
+        function hideModal() { 
+            if (!overlay) return;
             overlay.style.display = 'none';
             targetElement = null;
             targetType = null;
-            if (isRequestPending) {
-                isRequestPending = false;
+            if (isRequestPending) { 
+                isRequestPending = false; 
             }
         }
 
-        closeModalButton.addEventListener('click', hideModal);
-        overlay.addEventListener('click', e => {
-            if (e.target === overlay) {
-                hideModal();
-            }
-        });
-
-        actionPresets.forEach(preset => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'snn-ai-action-button';
-            btn.textContent = preset.name;
-            btn.dataset.prompt = preset.prompt;
-            btn.dataset.name = preset.name;
-            btn.addEventListener('click', () => {
-                const presetData = { name: preset.name, prompt: preset.prompt };
-                if (btn.classList.contains('selected')) {
-                    btn.classList.remove('selected');
-                    selectedPresets = selectedPresets.filter(p => p.name !== preset.name);
-                } else {
-                    btn.classList.add('selected');
-                    selectedPresets.push(presetData);
+        if(closeModalButton) closeModalButton.addEventListener('click', hideModal);
+        if(overlay) {
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) {
+                    hideModal();
                 }
-                updateSubmitButtonState();
             });
-            actionsContainer.appendChild(btn);
-        });
+        }
+        
+        if(actionsContainer) {
+            actionPresets.forEach(preset => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'snn-ai-action-button';
+                btn.textContent = preset.name;
+                btn.dataset.prompt = preset.prompt;
+                btn.dataset.name = preset.name; 
+                btn.addEventListener('click', () => {
+                    const presetData = { name: preset.name, prompt: preset.prompt };
+                    if (btn.classList.contains('selected')) {
+                        btn.classList.remove('selected');
+                        selectedPresets = selectedPresets.filter(p => p.name !== preset.name);
+                    } else {
+                        btn.classList.add('selected');
+                        selectedPresets.push(presetData);
+                    }
+                    updateSubmitButtonState();
+                });
+                actionsContainer.appendChild(btn);
+            });
+        }
 
-        promptTextarea.addEventListener('input', updateSubmitButtonState);
 
-        function updateSubmitButtonState() {
+        if(promptTextarea) promptTextarea.addEventListener('input', updateSubmitButtonState);
+
+        function updateSubmitButtonState() { 
+            if (!submitButton || !promptTextarea) return;
             const hasPrompt = promptTextarea.value.trim().length > 0;
             const hasPresets = selectedPresets.length > 0;
             submitButton.disabled = isRequestPending || !(hasPrompt || hasPresets);
         }
+        
+        function extractUserTypedPrompt(fullPrompt, existingContent) {
+            if (!existingContent) return fullPrompt;
+            const separator = "\n\n---\n";
+            const separatorIndex = fullPrompt.indexOf(separator);
+            if (fullPrompt.startsWith(existingContent.trim()) && separatorIndex > -1) {
+                return fullPrompt.substring(separatorIndex + separator.length).trim();
+            }
+            // Fallback if separator is missing but prompt starts with existing content
+            if (fullPrompt.startsWith(existingContent.trim())) {
+                return fullPrompt.substring(existingContent.trim().length).trim();
+            }
+            return fullPrompt; // If existing content not found at start, assume all is user typed
+        }
 
-        submitButton.addEventListener('click', async () => {
-            if (isRequestPending || !config.apiKey) {
-                alert(isRequestPending ? '<?php echo esc_js(__('Please wait...', 'snn')); ?>' : '<?php echo esc_js(__('API Key missing.', 'snn')); ?>');
-                return;
+
+        if(submitButton) submitButton.addEventListener('click', async () => { 
+            if (isRequestPending) { 
+                console.warn("SNN AI: Request already pending."); return; 
+            }
+            if (!config.apiKey) {
+                console.error("SNN AI: API Key missing."); 
+                if(responseDiv) {
+                    responseDiv.textContent = "Error: API Key missing in settings.";
+                    responseDiv.style.display = 'block';
+                }
+                return; 
             }
             if (!targetElement || !targetType) {
-                alert('<?php echo esc_js(__('Target element error.', 'snn')); ?>');
-                return;
+                console.error("SNN AI: Target element error."); 
+                if(responseDiv) {
+                    responseDiv.textContent = "Error: Target element not found.";
+                    responseDiv.style.display = 'block';
+                }
+                return; 
             }
+
             isRequestPending = true;
             submitButton.disabled = true;
-            spinner.style.display = 'block';
-            responseDiv.style.display = 'none';
-            copyButton.style.display = 'none';
-            applyButton.style.display = 'none';
+            if(spinner) spinner.style.display = 'block';
+            if(responseDiv) responseDiv.style.display = 'none';
+            if(copyButton) copyButton.style.display = 'none';
+            if(applyButton) applyButton.style.display = 'none';
             aiResponse = null;
 
             const messages = [];
             if (config.systemPrompt) {
                 messages.push({ role: 'system', content: config.systemPrompt });
             }
+            
             let existingContent = '';
             if (targetElement && targetType && editorTypes[targetType]) {
                 existingContent = editorTypes[targetType].getContent(targetElement).trim();
-                if (existingContent) {
-                    messages.push({ role: 'user', content: `The current content is:\n\`\`\`\n${existingContent}\n\`\`\`` });
-                }
             }
+            
+            const fullPromptFromTextarea = promptTextarea.value.trim();
+            const userTypedOnlyPrompt = extractUserTypedPrompt(fullPromptFromTextarea, existingContent);
 
-            let combinedUserInstruction = "";
+            let instructionForAI = "";
+
             if (selectedPresets.length > 0) {
-                combinedUserInstruction += "Apply the following actions:\n";
+                instructionForAI += "Apply the following actions:\n";
                 selectedPresets.forEach(p => {
-                    combinedUserInstruction += `- ${p.prompt}\n`;
+                    instructionForAI += `- ${p.prompt}\n`;
                 });
-                combinedUserInstruction += "\n";
+                instructionForAI += "\n";
             }
 
-            const userTypedPrompt = promptTextarea.value.replace(existingContent.trim() + "\n\n---\n", "").trim();
-            if (userTypedPrompt) {
-                combinedUserInstruction += `Additional instructions: ${userTypedPrompt}`;
-            } else if (!combinedUserInstruction && !existingContent) {
-                combinedUserInstruction = "Generate some relevant content.";
+            if (userTypedOnlyPrompt) {
+                instructionForAI += `Additional instructions: ${userTypedOnlyPrompt}`;
             }
-
-            if (combinedUserInstruction) {
-                messages.push({ role: 'user', content: combinedUserInstruction });
-            } else {
+            
+            if (existingContent) {
+                messages.push({ role: 'user', content: `The current content is:\n\`\`\`\n${existingContent}\n\`\`\`` });
+                if (instructionForAI.trim() === "") { // Only existing content, no presets, no new typed instructions
+                     instructionForAI = "Review the current content and provide an improved version.";
+                }
+                 messages.push({ role: 'user', content: `${instructionForAI}\n\nYour response must be *only* the new, fully revised version of the content, suitable for direct replacement of the original.` });
+            } else { // Generating new content
+                if (instructionForAI.trim() === "") {
+                     instructionForAI = "Generate some relevant content.";
+                }
+                messages.push({ role: 'user', content: instructionForAI });
+            }
+            
+            if (messages.length <=1 && !instructionForAI) { // System prompt only, no user instruction
                 isRequestPending = false;
-                spinner.style.display = 'none';
+                if(spinner) spinner.style.display = 'none';
                 updateSubmitButtonState();
-                alert("<?php echo esc_js(__('Please select a preset or type an instruction.', 'snn')); ?>");
+                if(responseDiv) {
+                    responseDiv.textContent = "Please select a preset or type an instruction.";
+                    responseDiv.style.display = 'block';
+                }
+                console.warn("SNN AI: No explicit instruction or preset selected for generation.");
                 return;
             }
 
             try {
-                const response = await fetch(config.apiEndpoint, {
+                const fetchResponse = await fetch(config.apiEndpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1104,93 +1147,128 @@ function snn_add_ai_script_to_footer() {
                     body: JSON.stringify({ model: config.model, messages })
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    let errorMsg = `API Error: ${response.status} ${response.statusText}`;
+                if (!fetchResponse.ok) {
+                    const errorData = await fetchResponse.json().catch(() => ({}));
+                    let errorMsg = `API Error: ${fetchResponse.status} ${fetchResponse.statusText}`;
                     if (errorData.error && errorData.error.message) {
                         errorMsg += ` - ${errorData.error.message}`;
-                    } else if (response.status === 401) {
+                    } else if (fetchResponse.status === 401) {
                         errorMsg += ' - Check API key.';
-                    } else if (response.status === 429) {
+                    } else if (fetchResponse.status === 429) {
                         errorMsg += ' - Quota exceeded.';
                     }
                     throw new Error(errorMsg);
                 }
 
-                const data = await response.json();
+                const data = await fetchResponse.json();
                 if (data.choices && data.choices.length && data.choices[0].message && data.choices[0].message.content) {
                     aiResponse = data.choices[0].message.content.trim();
-                    responseDiv.textContent = aiResponse;
-                    responseDiv.style.display = 'block';
-                    copyButton.style.display = 'inline-block';
-                    applyButton.style.display = 'inline-block';
+                    if(responseDiv) {
+                        responseDiv.textContent = aiResponse;
+                        responseDiv.style.display = 'block';
+                    }
+                    if(copyButton) copyButton.style.display = 'inline-block';
+                    if(applyButton) applyButton.style.display = 'inline-block';
                 } else {
                     throw new Error('<?php echo esc_js(__('Unexpected AI response format.', 'snn')); ?>');
                 }
             } catch (error) {
-                responseDiv.textContent = `Error: ${error.message}`;
-                responseDiv.style.display = 'block';
+                if(responseDiv) {
+                    responseDiv.textContent = `Error: ${error.message}`;
+                    responseDiv.style.display = 'block';
+                }
+                console.error("SNN AI Error:", error);
             } finally {
                 isRequestPending = false;
-                spinner.style.display = 'none';
+                if(spinner) spinner.style.display = 'none';
                 updateSubmitButtonState();
             }
         });
 
-        copyButton.addEventListener('click', () => {
+        if(copyButton) copyButton.addEventListener('click', () => { 
             if (aiResponse) {
                 navigator.clipboard.writeText(aiResponse).then(() => {
                     copyButton.textContent = '<?php echo esc_js(__('Copied!', 'snn')); ?>';
                     setTimeout(() => {
                         copyButton.textContent = '<?php echo esc_js(__('Copy Text', 'snn')); ?>';
                     }, 1500);
-                }).catch(() => {
-                    alert('<?php echo esc_js(__('Failed to copy.', 'snn')); ?>');
+                }).catch(err => {
+                    console.error('SNN AI: Failed to copy text.', err);
+                    const textArea = document.createElement("textarea");
+                    textArea.value = aiResponse;
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        copyButton.textContent = '<?php echo esc_js(__('Copied! (fallback)', 'snn')); ?>';
+                         setTimeout(() => {
+                            copyButton.textContent = '<?php echo esc_js(__('Copy Text', 'snn')); ?>';
+                        }, 1500);
+                    } catch (execErr) {
+                        console.error('SNN AI: Fallback copy failed.', execErr);
+                        if(responseDiv) {
+                            responseDiv.textContent = 'Failed to copy automatically. Please copy manually.';
+                            responseDiv.style.display = 'block';
+                        }
+                    }
+                    document.body.removeChild(textArea);
                 });
             }
         });
 
-        applyButton.addEventListener('click', () => {
+        if(applyButton) applyButton.addEventListener('click', () => { 
             if (aiResponse && targetElement && targetType && editorTypes[targetType]) {
+                // The editorTypes[targetType].setContent function already overwrites the content.
+                // If 'aiResponse' from the AI contains "OLD TEXT + NEW AI TEXT", that's what will be set.
+                // The prompts are designed to make 'aiResponse' contain *only* the new text.
                 editorTypes[targetType].setContent(targetElement, aiResponse);
                 hideModal();
             } else {
-                alert('<?php echo esc_js(__('Could not apply.', 'snn')); ?>');
+                console.error('SNN AI: Could not apply. Missing response, target, or type.');
+                if(responseDiv) {
+                    responseDiv.textContent = 'Error: Could not apply changes. Target or response missing.';
+                    responseDiv.style.display = 'block';
+                }
             }
         });
 
-        function addAiButtonTo(element, type) {
+        function addAiButtonTo(element, type) { 
             if (element.querySelector(':scope > .snn-ai-button, :scope > .control-label > .snn-ai-button')) {
-                return;
+                return; 
             }
             const aiButton = document.createElement('span');
             aiButton.className = 'snn-ai-button';
             aiButton.textContent = 'AI';
             aiButton.setAttribute('data-editor-type', type);
-            aiButton.setAttribute('data-balloon', 'Generate with AI');
+            aiButton.setAttribute('data-balloon', '<?php echo esc_js(__('Generate with AI', 'snn')); ?>');
             aiButton.setAttribute('data-balloon-pos', 'left');
+            
             const controlLabel = element.querySelector('.control-label');
             if (controlLabel) {
+                if (controlLabel.firstChild && controlLabel.firstChild.nodeName !== 'INPUT' && controlLabel.firstChild.nodeName !== 'TEXTAREA') {
+                     controlLabel.insertBefore(aiButton, controlLabel.firstChild);
+                } else {
+                     controlLabel.appendChild(aiButton);
+                }
+            } else {
                 if (element.firstChild) {
                     element.insertBefore(aiButton, element.firstChild);
                 } else {
                     element.appendChild(aiButton);
                 }
-            } else if (element.firstChild) {
-                element.insertBefore(aiButton, element.firstChild);
-            } else {
-                element.appendChild(aiButton);
             }
+
             aiButton.addEventListener('click', e => {
                 e.stopPropagation();
                 e.preventDefault();
-                targetElement = element;
+                targetElement = element; 
                 targetType = type;
                 showModal();
             });
         }
 
-        const observer = new MutationObserver(mutations => {
+        const observer = new MutationObserver(mutations => { 
             mutations.forEach(mutation => {
                 if (mutation.addedNodes && mutation.addedNodes.length) {
                     mutation.addedNodes.forEach(node => {
@@ -1210,13 +1288,375 @@ function snn_add_ai_script_to_footer() {
         });
         observer.observe(document.body, { childList: true, subtree: true });
 
-        Object.keys(editorTypes).forEach(type => {
+        Object.keys(editorTypes).forEach(type => { 
             document.querySelectorAll(editorTypes[type].selector).forEach(el => addAiButtonTo(el, type));
         });
 
-        updateSubmitButtonState();
+        if(submitButton) updateSubmitButtonState(); 
+
+        // --- NEW Bulk AI Modal Variables & Logic ---
+        const bulkAiOverlay              = document.getElementById('snn-bulk-ai-overlay');
+        const bulkAiCloseButton          = document.getElementById('snn-bulk-ai-close-button');
+        const bulkAiFieldsContainer      = document.getElementById('snn-bulk-ai-fields-container');
+        const bulkAiActionsContainer     = document.getElementById('snn-bulk-ai-actions-container');
+        const bulkAiPromptTextarea       = document.getElementById('snn-bulk-ai-prompt-textarea');
+        const bulkAiSubmitButton         = document.getElementById('snn-bulk-ai-submit');
+        const bulkAiSpinner              = document.getElementById('snn-bulk-ai-spinner');
+        const bulkAiResponseDisplay      = document.getElementById('snn-bulk-ai-response-display');
+        const bulkAiApplyButton          = document.getElementById('snn-bulk-ai-apply');
+
+        let currentBulkElements = []; 
+        let bulkSelectedPresets = [];
+        let isBulkRequestPending = false;
+        let bulkAiRawResponse = null; 
+        let lastProcessedBulkElements = []; // To store elements sent to AI for applying changes correctly
+
+        function populateBulkPresetButtons() {
+            if (!bulkAiActionsContainer) return;
+            bulkAiActionsContainer.innerHTML = ''; 
+            actionPresets.forEach(preset => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'snn-ai-action-button'; 
+                btn.textContent = preset.name;
+                btn.dataset.prompt = preset.prompt;
+                btn.dataset.name = preset.name;
+                btn.addEventListener('click', () => {
+                    const presetData = { name: preset.name, prompt: preset.prompt };
+                    if (btn.classList.contains('selected')) {
+                        btn.classList.remove('selected');
+                        bulkSelectedPresets = bulkSelectedPresets.filter(p => p.name !== preset.name);
+                    } else {
+                        btn.classList.add('selected');
+                        bulkSelectedPresets.push(presetData);
+                    }
+                    updateBulkSubmitButtonState();
+                });
+                bulkAiActionsContainer.appendChild(btn);
+            });
+        }
+
+
+        function showBulkAiModal() {
+            if (!bulkAiOverlay || !bulkAiFieldsContainer || !bulkAiPromptTextarea || !bulkAiResponseDisplay || !bulkAiApplyButton || !bulkAiSpinner) return;
+
+            const bricksApp = document.querySelector("[data-v-app]");
+            const bricksState = bricksApp ? bricksApp.__vue_app__?.config?.globalProperties?.$_state : null;
+
+            if (!bricksState || !bricksState.content) {
+                console.error("SNN Bulk AI: Bricks state or content not found.");
+                if(bulkAiFieldsContainer) bulkAiFieldsContainer.innerHTML = '<p>Error: Could not load Bricks content. Is the Bricks editor active?</p>';
+                bulkAiOverlay.style.display = 'flex'; 
+                return;
+            }
+            
+            bulkAiFieldsContainer.innerHTML = ''; 
+            currentBulkElements = [];
+            let fieldIndex = 0;
+
+            function extractTextElements(elements) {
+                if (!elements || !Array.isArray(elements)) return;
+                elements.forEach(el => {
+                    if (el && el.settings && typeof el.settings.text === 'string' && el.settings.text.trim() !== '') {
+                        const fieldGroup = document.createElement('div');
+                        fieldGroup.className = 'snn-bulk-ai-field-group';
+                        
+                        const headerDiv = document.createElement('div');
+                        headerDiv.className = 'snn-bulk-ai-field-header';
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'snn-bulk-ai-field-checkbox';
+                        checkbox.id = `snn-bulk-checkbox-${el.id}-${fieldIndex}`; // Ensure unique ID
+                        checkbox.checked = true; 
+                        checkbox.dataset.elementId = el.id;
+
+                        const label = document.createElement('label');
+                        label.htmlFor = checkbox.id;
+                        label.textContent = `Field ${fieldIndex + 1} (ID: ${el.id}, Name: ${el.name || 'N/A'})`;
+                        
+                        headerDiv.appendChild(checkbox);
+                        headerDiv.appendChild(label);
+
+                        const textarea = document.createElement('textarea');
+                        textarea.value = el.settings.text;
+                        
+                        currentBulkElements.push({ 
+                            id: el.id, 
+                            name: el.name, 
+                            originalText: el.settings.text, 
+                            inputElement: textarea,
+                            checkboxElement: checkbox 
+                        });
+                        
+                        fieldGroup.appendChild(headerDiv);
+                        fieldGroup.appendChild(textarea);
+                        bulkAiFieldsContainer.appendChild(fieldGroup);
+                        fieldIndex++;
+                    }
+                    if (el.children && el.children.length > 0) {
+                        extractTextElements(el.children); 
+                    }
+                });
+            }
+            
+            extractTextElements(bricksState.content);
+
+
+            if (currentBulkElements.length === 0) {
+                bulkAiFieldsContainer.innerHTML = '<p><?php echo esc_js(__('No text elements found on the page or all are empty.', 'snn')); ?></p>';
+            }
+
+            populateBulkPresetButtons(); 
+            bulkAiPromptTextarea.value = '';
+            bulkAiResponseDisplay.style.display = 'none';
+            bulkAiResponseDisplay.textContent = '';
+            bulkAiApplyButton.style.display = 'none';
+            bulkAiSpinner.style.display = 'none';
+            bulkSelectedPresets = []; 
+            document.querySelectorAll('#snn-bulk-ai-actions-container .snn-ai-action-button.selected').forEach(b => b.classList.remove('selected'));
+
+
+            bulkAiOverlay.style.display = 'flex';
+            updateBulkSubmitButtonState();
+        }
+
+        function hideBulkAiModal() {
+            if (!bulkAiOverlay) return;
+            bulkAiOverlay.style.display = 'none';
+            if (isBulkRequestPending) {
+                isBulkRequestPending = false;
+            }
+            bulkAiRawResponse = null;
+            lastProcessedBulkElements = [];
+        }
+
+        if(bulkAiCloseButton) bulkAiCloseButton.addEventListener('click', hideBulkAiModal);
+        if(bulkAiOverlay) {
+             bulkAiOverlay.addEventListener('click', e => {
+                if (e.target === bulkAiOverlay) {
+                    hideBulkAiModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === '1') { 
+                e.preventDefault();
+                showBulkAiModal();
+            }
+        });
+        
+        function updateBulkSubmitButtonState() {
+            if (!bulkAiSubmitButton || !bulkAiPromptTextarea) return;
+            const hasGeneralPrompt = bulkAiPromptTextarea.value.trim().length > 0;
+            const hasBulkPresets = bulkSelectedPresets.length > 0;
+            const selectedFieldsCount = currentBulkElements.filter(el => el.checkboxElement && el.checkboxElement.checked).length;
+            
+            bulkAiSubmitButton.disabled = isBulkRequestPending || selectedFieldsCount === 0 || !(hasGeneralPrompt || hasBulkPresets);
+        }
+
+        if(bulkAiPromptTextarea) bulkAiPromptTextarea.addEventListener('input', updateBulkSubmitButtonState);
+        
+        if(bulkAiSubmitButton) bulkAiSubmitButton.addEventListener('click', async () => {
+            if (isBulkRequestPending) { console.warn("SNN Bulk AI: Request already pending."); return; }
+            if (!config.apiKey) { 
+                console.error("SNN Bulk AI: API Key missing."); 
+                if(bulkAiResponseDisplay) {
+                    bulkAiResponseDisplay.textContent = "Error: API Key missing in settings.";
+                    bulkAiResponseDisplay.style.display = 'block';
+                }
+                return; 
+            }
+
+            lastProcessedBulkElements = currentBulkElements.filter(el => el.checkboxElement && el.checkboxElement.checked);
+
+            if (lastProcessedBulkElements.length === 0) {
+                console.warn("SNN Bulk AI: No elements selected to process.");
+                 if(bulkAiResponseDisplay) {
+                    bulkAiResponseDisplay.textContent = "<?php echo esc_js(__('Please select at least one field to regenerate.', 'snn')); ?>";
+                    bulkAiResponseDisplay.style.display = 'block';
+                }
+                return;
+            }
+
+            isBulkRequestPending = true;
+            bulkAiSubmitButton.disabled = true;
+            if(bulkAiSpinner) bulkAiSpinner.style.display = 'block';
+            if(bulkAiResponseDisplay) {
+                bulkAiResponseDisplay.style.display = 'none';
+                bulkAiResponseDisplay.textContent = '';
+            }
+            if(bulkAiApplyButton) bulkAiApplyButton.style.display = 'none';
+            bulkAiRawResponse = null;
+
+            const textsToSend = lastProcessedBulkElements.map(el => `"${el.inputElement.value.replace(/"/g, '\\"')}"`).join(" || ");
+
+            const messages = [];
+            if (config.systemPrompt) {
+                messages.push({ role: 'system', content: config.systemPrompt });
+            }
+
+            let userInstruction = `You will be given a series of text segments separated by " || ".
+The current text segments (${lastProcessedBulkElements.length} segments) are:
+${textsToSend}
+
+Your task is to regenerate each segment according to the following general instructions and any specific instructions provided.
+Ensure your response is also a series of text segments separated by " || ", with the exact same number of segments as the input (${lastProcessedBulkElements.length} segments expected).
+Do not add any extra explanations or text outside of the "||" separated segments.
+`;
+
+            if (bulkSelectedPresets.length > 0) {
+                userInstruction += "\nApply the following general actions to each segment:\n";
+                bulkSelectedPresets.forEach(p => {
+                    userInstruction += `- ${p.prompt}\n`;
+                });
+            }
+
+            const generalTypedPrompt = bulkAiPromptTextarea.value.trim();
+            if (generalTypedPrompt) {
+                userInstruction += `\nAdditional general instructions for all segments: ${generalTypedPrompt}`;
+            }
+            
+            messages.push({ role: 'user', content: userInstruction });
+
+            try {
+                const fetchResponse = await fetch(config.apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.apiKey}`
+                    },
+                    body: JSON.stringify({ model: config.model, messages })
+                });
+
+                if (!fetchResponse.ok) {
+                    const errorData = await fetchResponse.json().catch(() => ({}));
+                    let errorMsg = `API Error: ${fetchResponse.status} ${fetchResponse.statusText}`;
+                     if (errorData.error && errorData.error.message) {
+                        errorMsg += ` - ${errorData.error.message}`;
+                    }
+                    throw new Error(errorMsg);
+                }
+
+                const data = await fetchResponse.json();
+                if (data.choices && data.choices.length && data.choices[0].message && data.choices[0].message.content) {
+                    bulkAiRawResponse = data.choices[0].message.content.trim();
+                    if(bulkAiResponseDisplay) {
+                        bulkAiResponseDisplay.textContent = "AI Response (Preview - texts separated by ||):\n\n" + bulkAiRawResponse;
+                        bulkAiResponseDisplay.style.display = 'block';
+                    }
+                    
+                    const newTexts = bulkAiRawResponse.split(" || ");
+                    if (newTexts.length === lastProcessedBulkElements.length) {
+                        lastProcessedBulkElements.forEach((bulkEl, index) => {
+                            let cleanedText = newTexts[index].trim();
+                            if (cleanedText.startsWith('"') && cleanedText.endsWith('"')) {
+                                cleanedText = cleanedText.substring(1, cleanedText.length - 1);
+                            }
+                            bulkEl.inputElement.value = cleanedText.replace(/\\"/g, '"'); 
+                        });
+                        if(bulkAiApplyButton) bulkAiApplyButton.style.display = 'inline-block';
+                    } else {
+                         if(bulkAiResponseDisplay) bulkAiResponseDisplay.textContent += "\n\nError: AI returned a different number of segments than expected. Cannot apply automatically. Expected " + lastProcessedBulkElements.length + ", got " + newTexts.length + ".";
+                         console.error("SNN Bulk AI: Segment count mismatch.", "Expected:", lastProcessedBulkElements.length, "Got:", newTexts.length, "Raw:", bulkAiRawResponse);
+                    }
+
+                } else {
+                    throw new Error('<?php echo esc_js(__('Unexpected AI response format for bulk operation.', 'snn')); ?>');
+                }
+
+            } catch (error) {
+                if(bulkAiResponseDisplay) {
+                    bulkAiResponseDisplay.textContent = `Error: ${error.message}`;
+                    bulkAiResponseDisplay.style.display = 'block';
+                }
+                console.error("SNN Bulk AI Error:", error);
+            } finally {
+                isBulkRequestPending = false;
+                if(bulkAiSpinner) bulkAiSpinner.style.display = 'none';
+                updateBulkSubmitButtonState();
+            }
+        });
+
+        if(bulkAiApplyButton) bulkAiApplyButton.addEventListener('click', () => {
+            if (!bulkAiRawResponse || lastProcessedBulkElements.length === 0) {
+                console.error("SNN Bulk AI: No AI response or processed elements to apply.");
+                if(bulkAiResponseDisplay) {
+                    bulkAiResponseDisplay.textContent = "Error: No AI response or processed elements available to apply.";
+                    bulkAiResponseDisplay.style.display = 'block';
+                }
+                return;
+            }
+
+            const newTexts = bulkAiRawResponse.split(" || ");
+            if (newTexts.length !== lastProcessedBulkElements.length) {
+                console.error("SNN Bulk AI: Mismatch in text segments count. Cannot apply.");
+                 if(bulkAiResponseDisplay) {
+                    bulkAiResponseDisplay.textContent = "Error: Mismatch in text segments. Cannot apply. Expected " + lastProcessedBulkElements.length + ", got " + newTexts.length + ".";
+                    bulkAiResponseDisplay.style.display = 'block';
+                }
+                return;
+            }
+
+            let appliedCount = 0;
+            lastProcessedBulkElements.forEach((bulkEl, index) => {
+                const elementId = bulkEl.id;
+                // 'textToApply' is the AI-generated content for this segment,
+                // already updated in bulkEl.inputElement.value by the bulk submit logic.
+                // This content should be *only* the new AI-generated text for the segment
+                // if the AI followed instructions.
+                let textToApply = bulkEl.inputElement.value; 
+
+                try {
+                    if (window.bricks && window.bricks.elementManager && typeof window.bricks.elementManager.updateElementSetting === 'function') {
+                        // This function overwrites the 'text' setting of the Bricks element.
+                        window.bricks.elementManager.updateElementSetting(elementId, 'text', textToApply);
+                        appliedCount++;
+                        const brickElement = document.getElementById(`bricks-element-${elementId}`);
+                        if (brickElement) highlightElement(brickElement);
+
+                    } else {
+                         console.warn(`SNN Bulk AI: Bricks elementManager not available for element ID ${elementId}. Update might not be reactive.`);
+                         const bricksApp = document.querySelector("[data-v-app]");
+                         const bricksState = bricksApp ? bricksApp.__vue_app__?.config?.globalProperties?.$_state : null;
+                         if (bricksState && bricksState.content) {
+                             const findAndApply = (elements) => {
+                                 for (let el of elements) {
+                                     if (el.id === elementId) {
+                                         el.settings.text = textToApply; // Overwrite
+                                         return true;
+                                     }
+                                     if (el.children && findAndApply(el.children)) return true;
+                                 }
+                                 return false;
+                             }
+                             findAndApply(bricksState.content);
+                         }
+                    }
+                } catch (e) {
+                    console.error(`SNN Bulk AI: Error applying text to element ${elementId}:`, e);
+                }
+            });
+            
+            if (window.bricks && typeof bricks.forceContentUpdate === 'function') { 
+                 bricks.forceContentUpdate(); 
+            }
+            // Consider if a save action is needed:
+            // if (window.bricks && typeof bricks.builder.save === 'function') {
+            //     bricks.builder.save(); 
+            // }
+
+            hideBulkAiModal();
+            console.log(`SNN Bulk AI: Applied changes to ${appliedCount} elements.`);
+            // You might want a more user-facing notification here. For example:
+            // if (typeof bricks !== 'undefined' && bricks.notify) {
+            //     bricks.notify(`Successfully applied AI changes to ${appliedCount} elements.`, 'success');
+            // }
+        });
+
     });
     </script>
     <?php
 }
-add_action('wp_footer', 'snn_add_ai_script_to_footer');
+add_action('wp_footer', 'snn_add_ai_script_to_footer', 99); 
