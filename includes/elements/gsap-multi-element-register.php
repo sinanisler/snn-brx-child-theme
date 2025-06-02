@@ -19,7 +19,7 @@ add_action( 'init', function () {
 
 // Fading
 'style_start-opacity:0, style_end-opacity:1' => esc_html__('Fade In ', 'snn'),
-'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Ou ', 'snn'),
+'style_start-opacity:1, style_end-opacity:0' => esc_html__('Fade Out ', 'snn'),
 
 'style_start-opacity:0, style_end-opacity:1, style_start-transform:translateY(-1000px), style_end-transform:translateY(0px)' => esc_html__('Fade In Down', 'snn'),
 'style_start-opacity:1, style_end-opacity:0, style_start-transform:translateY(0px), style_end-transform:translateY(1000px)' => esc_html__('Fade Out Down', 'snn'),
