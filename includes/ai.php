@@ -737,6 +737,10 @@ function snn_add_ai_script_to_footer() {
         #bricks-popup .snn-ai-button, 
         [data-controlkey="_gridItemColumnSpan"] .snn-ai-button,
         [data-controlkey="_gridItemRowSpan"] .snn-ai-button,
+        [data-controlkey="_gridTemplateColumns"] .snn-ai-button, 
+        [data-controlkey="_gridTemplateRows"] .snn-ai-button, 
+        [data-controlkey="_gridAutoColumns"] .snn-ai-button, 
+        [data-controlkey="_gridAutoRows"] .snn-ai-button, 
         [data-control="gradient"] .snn-ai-button
         { display: none !important; }
         [data-controlkey="custom_data_animate_dynamic_elements_custom"] .snn-ai-button { display: block !important; }
