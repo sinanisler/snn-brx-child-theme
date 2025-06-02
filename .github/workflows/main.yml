@@ -2,8 +2,7 @@ name: Bump version and Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
@@ -17,114 +16,99 @@ jobs:
       - name: Display current style.css before update
         run: cat style.css
 
-      - name: Check last commit message
-        id: check_last_commit
+      - name: Normalise commit message (lower-case once)
+        id: msg
         run: |
-          echo "last_commit_message=${{ github.event.head_commit.message }}" >> $GITHUB_OUTPUT
+          echo "msg=$(echo "${{ github.event.head_commit.message }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Get commit messages since last release
         id: get_commits
         run: |
           current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           last_tag="v${current_version}"
-          echo "Last tag: $last_tag"
           if git rev-parse "$last_tag" >/dev/null 2>&1; then
             commits=$(git log "$last_tag"..HEAD --pretty=format:"- %s")
           else
             commits=$(git log --pretty=format:"- %s")
           fi
-          if [ -z "$commits" ]; then
-            commits="No changes."
-          fi
-          echo "commit_messages<<EOF" >> $GITHUB_ENV
-          echo "$commits" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          [ -z "$commits" ] && commits="No changes."
+          {
+            echo "commit_messages<<EOF"
+            echo "$commits"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
 
-      # Handle PRERELEASE: does NOT bump version, just reuses current
+      # ---------- PRERELEASE ----------
       - name: Set current version for prerelease
-        if: contains(github.event.head_commit.message, 'alphatag')
+        if: contains(env.msg, '[alphatag]')
         run: |
-          current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
-          echo "current_version=$current_version" >> $GITHUB_ENV
-          echo "new_version=$current_version" >> $GITHUB_ENV
+          ver=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+          echo "current_version=$ver" >> $GITHUB_ENV
+          echo "new_version=$ver"     >> $GITHUB_ENV
 
-      # Handle RELEASE: bump version, update style.css
+      # ---------- RELEASE ----------
       - name: Bump version in style.css
-        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'alphatag')
+        if: contains(env.msg, '[release]') && !contains(env.msg, '[alphatag]')
         id: bump_version
         run: |
-          current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
-          echo "Current version: $current_version"
-          IFS='.' read -r -a version_parts <<< "$current_version"
-          MAJOR=${version_parts[0]}
-          MINOR=${version_parts[1]}
-          THRESHOLD=999
-          if [ "$MINOR" -ge "$THRESHOLD" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
+          ver=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
+          IFS='.' read -r major minor patch <<<"${ver}.0"   # default patch=0
+          threshold=999
+          if [ "$minor" -ge "$threshold" ]; then
+            major=$((major + 1)); minor=0
           else
-            MINOR=$((MINOR + 1))
+            minor=$((minor + 1))
           fi
-          new_version="${MAJOR}.${MINOR}"
-          awk -v new_version="$new_version" '{if ($1 == "Version:") {$2 = new_version} print}' style.css > style.css.tmp && mv style.css.tmp style.css
-          updated_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
-          echo "Updated version: $updated_version"
-          if [ "$updated_version" != "$new_version" ]; then
-            echo "Version update failed"
-            exit 1
-          fi
-          echo "current_version=$current_version" >> $GITHUB_ENV
-          echo "new_version=$new_version" >> $GITHUB_ENV
+          new="${major}.${minor}"
+          perl -0777 -pe "s/Version:\s*[0-9.]+/Version: ${new}/" -i style.css
+          echo "current_version=$ver"  >> $GITHUB_ENV
+          echo "new_version=$new"      >> $GITHUB_ENV
 
       - name: Display current style.css after update
         if: always()
         run: cat style.css
 
       - name: Commit changes
-        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'alphatag')
+        if: steps.bump_version.outcome == 'success'
         run: |
-          git config --global user.name "github-actions[bot]"
+          git config --global user.name  "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add style.css
           git commit -m "Bump version to ${{ env.new_version }}"
           git push
 
-      - name: Set Git user for tagging
-        if: contains(github.event.head_commit.message, 'alphatag')
+      - name: Set Git user (prerelease)
+        if: contains(env.msg, '[alphatag]')
         run: |
-          git config --global user.name "github-actions[bot]"
+          git config --global user.name  "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create new GitHub tag
-        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'alphatag')
+        if: steps.bump_version.outcome == 'success'
         run: |
           git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
           git push origin "v${{ env.new_version }}"
 
       - name: Create new GitHub prerelease tag
-        if: contains(github.event.head_commit.message, 'alphatag')
+        if: contains(env.msg, '[alphatag]')
         run: |
           git tag -a "v${{ env.new_version }}-pre" -m "Prerelease v${{ env.new_version }}"
           git push origin "v${{ env.new_version }}-pre"
 
       - name: Create zip file of the repository
-        if: contains(github.event.head_commit.message, 'release') || contains(github.event.head_commit.message, 'alphatag')
+        if: contains(env.msg, '[release]') || contains(env.msg, '[alphatag]')
         run: |
           shopt -s extglob
           mkdir snn-brx-child-theme
-          mv !(.git|*.github*|snn-brx-child-theme) snn-brx-child-theme/
+          mv !(.git|.github*|snn-brx-child-theme) snn-brx-child-theme/
           zip -r snn-brx-child-theme.zip snn-brx-child-theme -x "*.git*" "*.github*"
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          new_version: ${{ env.new_version }}
 
       - name: Create GitHub release
-        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'alphatag')
+        if: steps.bump_version.outcome == 'success'
         uses: softprops/action-gh-release@v1
         with:
           files: snn-brx-child-theme.zip
-          tag_name: "v${{ env.new_version }}"
+          tag_name:    "v${{ env.new_version }}"
           release_name: "Release v${{ env.new_version }}"
           body: |
             Version ${{ env.new_version }} release of the project.
@@ -133,12 +117,12 @@ jobs:
             ${{ env.commit_messages }}
 
       - name: Create GitHub prerelease
-        if: contains(github.event.head_commit.message, 'alphatag')
+        if: contains(env.msg, '[alphatag]')
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
           files: snn-brx-child-theme.zip
-          tag_name: "v${{ env.new_version }}-pre"
+          tag_name:    "v${{ env.new_version }}-pre"
           release_name: "Prerelease v${{ env.new_version }}"
           body: |
             Prerelease v${{ env.new_version }} of the project.
