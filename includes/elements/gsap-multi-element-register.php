@@ -480,7 +480,13 @@ add_action( 'init', function () {
 'stagger:1' => esc_html__('Stagger 1', 'snn'),
 'stagger:2' => esc_html__('Stagger 2', 'snn'),
 'stagger:3' => esc_html__('Stagger 3', 'snn'),
+'stagger:4' => esc_html__('Stagger 4', 'snn'),
+'stagger:5' => esc_html__('Stagger 5', 'snn'),
 'stagger:6' => esc_html__('Stagger 6', 'snn'),
+'stagger:7' => esc_html__('Stagger 7', 'snn'),
+'stagger:8' => esc_html__('Stagger 8', 'snn'),
+'stagger:9' => esc_html__('Stagger 9', 'snn'),
+'stagger:10' => esc_html__('Stagger 10', 'snn'),
 
 
 'duration:0.01' => esc_html__('Duration 0.01', 'snn'),
