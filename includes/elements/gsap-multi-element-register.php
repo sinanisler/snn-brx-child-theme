@@ -70,8 +70,14 @@ add_action( 'init', function () {
 'style_start-transform:translateX(-3000px), style_end-transform:translateX(0%)' => esc_html__('Slide In Left 3000px ', 'snn'),
 'style_start-transform:translateX(0%), style_end-transform:translateX(-3000px)' => esc_html__('Slide In Right 3000px', 'snn'),
 
-					
-					
+'style_start-transform:translateX(-100px), style_end-transform:translateX(0px)' => esc_html__('Slide In Left 100px ', 'snn'),
+'style_start-transform:translateX(0px), style_end-transform:translateX(-100px)' => esc_html__('Slide In Right 100px', 'snn'),
+
+'style_start-transform:translateY(100px), style_end-transform:translateY(0px)' => esc_html__('Slide In Top 100px', 'snn'),
+'style_start-transform:translateY(-100px), style_end-transform:translateY(0px)' => esc_html__('Slide In Bottom 100px', 'snn'),
+
+
+
 // All other animations kept exactly the same as you had
 // Rotating
 
