@@ -20,8 +20,9 @@ function snn_brx_check_theme_update_proxy($transient) {
     $response = wp_remote_get($update_proxy_url, array(
         'timeout' => 15,
         'headers' => array(
-            'Accept'     => 'application/vnd.github.v3+json',
-            'User-Agent' => 'WordPress/' . get_bloginfo('version') . '; ' . get_bloginfo('url'),
+            'Accept'      => 'application/vnd.github.v3+json',
+            'User-Agent'  => 'WordPress/' . get_bloginfo('version') . '; ' . get_bloginfo('url'),
+            'X-Site-Url'  => get_site_url(), 
         ),
     ));
 
