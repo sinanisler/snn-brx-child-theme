@@ -40,9 +40,9 @@ jobs:
           echo "$commits" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # Handle PRERELEASE: does NOT bump version, just reuses current
-      - name: Set current version for prerelease
-        if: contains(github.event.head_commit.message, 'prerelease')
+      # Handle alphatag: does NOT bump version, just reuses current
+      - name: Set current version for alphatag
+        if: contains(github.event.head_commit.message, 'alphatag')
         run: |
           current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
           echo "current_version=$current_version" >> $GITHUB_ENV
@@ -50,7 +50,7 @@ jobs:
 
       # Handle RELEASE: bump version, update style.css
       - name: Bump version in style.css
-        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'alphatag')
         id: bump_version
         run: |
           current_version=$(grep -oP 'Version:\s*\K[0-9.]+' style.css)
@@ -81,7 +81,7 @@ jobs:
         run: cat style.css
 
       - name: Commit changes
-        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'alphatag')
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -90,25 +90,25 @@ jobs:
           git push
 
       - name: Set Git user for tagging
-        if: contains(github.event.head_commit.message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'alphatag')
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create new GitHub tag
-        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'alphatag')
         run: |
           git tag -a "v${{ env.new_version }}" -m "Version ${{ env.new_version }}"
           git push origin "v${{ env.new_version }}"
 
-      - name: Create new GitHub prerelease tag
-        if: contains(github.event.head_commit.message, 'prerelease')
+      - name: Create new GitHub alphatag tag
+        if: contains(github.event.head_commit.message, 'alphatag')
         run: |
-          git tag -a "v${{ env.new_version }}-pre" -m "Prerelease v${{ env.new_version }}"
+          git tag -a "v${{ env.new_version }}-pre" -m "alphatag v${{ env.new_version }}"
           git push origin "v${{ env.new_version }}-pre"
 
       - name: Create zip file of the repository
-        if: contains(github.event.head_commit.message, 'release') || contains(github.event.head_commit.message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'release') || contains(github.event.head_commit.message, 'alphatag')
         run: |
           shopt -s extglob
           mkdir snn-brx-child-theme
@@ -120,7 +120,7 @@ jobs:
           new_version: ${{ env.new_version }}
 
       - name: Create GitHub release
-        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'prerelease')
+        if: contains(github.event.head_commit.message, 'release') && !contains(github.event.head_commit.message, 'alphatag')
         uses: softprops/action-gh-release@v1
         with:
           files: snn-brx-child-theme.zip
@@ -132,16 +132,16 @@ jobs:
             ## Changes
             ${{ env.commit_messages }}
 
-      - name: Create GitHub prerelease
-        if: contains(github.event.head_commit.message, 'prerelease')
+      - name: Create GitHub alphatag
+        if: contains(github.event.head_commit.message, 'alphatag')
         uses: softprops/action-gh-release@v1
         with:
-          prerelease: true
+          alphatag: true
           files: snn-brx-child-theme.zip
           tag_name: "v${{ env.new_version }}-pre"
-          release_name: "Prerelease v${{ env.new_version }}"
+          release_name: "alphatag v${{ env.new_version }}"
           body: |
-            Prerelease v${{ env.new_version }} of the project.
+            alphatag v${{ env.new_version }} of the project.
 
             ## Changes
             ${{ env.commit_messages }}
