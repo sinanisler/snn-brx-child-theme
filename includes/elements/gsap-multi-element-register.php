@@ -466,7 +466,15 @@ add_action( 'init', function () {
 'pin:true' => esc_html__('Pin True', 'snn'),
 'scrub:false' => esc_html__('Scrub False', 'snn'),
 
-
+'stagger:0.01' => esc_html__('Stagger 0.01', 'snn'),
+'stagger:0.02' => esc_html__('Stagger 0.02', 'snn'),
+'stagger:0.03' => esc_html__('Stagger 0.03', 'snn'),
+'stagger:0.04' => esc_html__('Stagger 0.04', 'snn'),
+'stagger:0.05' => esc_html__('Stagger 0.05', 'snn'),
+'stagger:0.06' => esc_html__('Stagger 0.06', 'snn'),
+'stagger:0.07' => esc_html__('Stagger 0.07', 'snn'),
+'stagger:0.08' => esc_html__('Stagger 0.08', 'snn'),
+'stagger:0.09' => esc_html__('Stagger 0.09', 'snn'),
 'stagger:0.1' => esc_html__('Stagger 0.1', 'snn'),
 'stagger:0.5' => esc_html__('Stagger 0.5', 'snn'),
 'stagger:1' => esc_html__('Stagger 1', 'snn'),
@@ -476,6 +484,9 @@ add_action( 'init', function () {
 
 
 'duration:0.01' => esc_html__('Duration 0.01', 'snn'),
+'duration:0.02' => esc_html__('Duration 0.02', 'snn'),
+'duration:0.03' => esc_html__('Duration 0.03', 'snn'),
+'duration:0.04' => esc_html__('Duration 0.04', 'snn'),
 'duration:0.05' => esc_html__('Duration 0.05', 'snn'),
 'duration:0.1' => esc_html__('Duration 0.1', 'snn'),
 'duration:0.2' => esc_html__('Duration 0.2', 'snn'),
