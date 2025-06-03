@@ -10,7 +10,7 @@ use Bricks\Frontend;
 /**
  * Nestable utility wrapper that shows its children only when every
  * behavioural rule passes (show-once, x-times, cooldown, dates,
- * device, day-of-week, referrer, URL-contains, per-session …).
+ * device, referrer, URL-contains, per-session …).
  * All CSS/JS is output inline.
  */
 class SNN_Element_Conditions extends Element {
@@ -99,24 +99,6 @@ class SNN_Element_Conditions extends Element {
 				'altFormat'  => 'F j, Y h:i K',
 				'time_24hr'  => true,
 			],
-		];
-
-		// Days of week
-		$this->controls['days'] = [
-			'tab'      => 'content',
-			'label'    => esc_html__( 'Days of week', 'snn' ),
-			'type'     => 'select',
-			'multiple' => true,
-			'options'  => [
-				'sun' => __( 'Sunday', 'snn' ),
-				'mon' => __( 'Monday', 'snn' ),
-				'tue' => __( 'Tuesday', 'snn' ),
-				'wed' => __( 'Wednesday', 'snn' ),
-				'thu' => __( 'Thursday', 'snn' ),
-				'fri' => __( 'Friday', 'snn' ),
-				'sat' => __( 'Saturday', 'snn' ),
-			],
-			'inline'   => true,
 		];
 
 		// Dynamic condition key/value (server-side)
@@ -216,7 +198,7 @@ class SNN_Element_Conditions extends Element {
 			'cooldown'      => 'int',
 			'start_date'    => 'str',
 			'end_date'      => 'str',
-			'days'          => 'str',
+			// 'days'       => 'str', // REMOVED days from map
 			'device'        => 'str',
 			'referrer'      => 'str',
 			'url_contains'  => 'str',
@@ -299,7 +281,7 @@ document.addEventListener('DOMContentLoaded',function(){
 			sessionLimit: parseInt(el.dataset.per_session||'0',10),
 			startDate:    dateParse(el.dataset.start_date),
 			endDate:      dateParse(el.dataset.end_date),
-			days:         el.dataset.days?el.dataset.days.split(','):[],
+			// days:      el.dataset.days?el.dataset.days.split(','):[], // REMOVED
 			device:       el.dataset.device?el.dataset.device.split(','):[],
 			referrer:     el.dataset.referrer||'',
 			urlContains:  el.dataset.url_contains||'',
@@ -318,12 +300,7 @@ document.addEventListener('DOMContentLoaded',function(){
 		if(o.startDate && now<o.startDate.getTime()) return;
 		if(o.endDate   && now>o.endDate.getTime())   return;
 
-		/* Days of week */
-		if(o.days.length){
-			const dayNames=['sun','mon','tue','wed','thu','fri','sat'];
-			const today   = dayNames[(new Date()).getDay()];
-			if(!o.days.includes(today)) return;
-		}
+		// Removed days of week check here
 
 		/* Device / OS checks */
 		if(o.device.length && !o.device.includes('') && !o.device.includes('any')){
