@@ -1426,7 +1426,7 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
             return wp_kses_post($value);
 
         case 'textarea':
-            return sanitize_textarea_field($value);
+            return wp_kses_post($value);
 
         case 'media':
             if ($field && !empty($field['return_full_url'])) {
