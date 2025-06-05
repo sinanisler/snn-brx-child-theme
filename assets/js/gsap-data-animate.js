@@ -4,7 +4,6 @@ window.onload = function () {
   setTimeout(() => {
     const animateElements = document.querySelectorAll('[data-animate]');
 
-    // -- DEVICE UTILS --
     function getDevice() {
       const width = window.innerWidth;
       if (width >= 991) return 'desktop';
@@ -259,12 +258,15 @@ window.onload = function () {
         }
         let key = option.substring(0, index).trim();
         let value = option.substring(index + 1).trim();
-        // ADD: device disable options support
         if (
           (key === 'desktop' || key === 'tablet' || key === 'mobile')
           && (value === 'false' || value === 'true')
         ) {
           acc[key] = value;
+          return acc;
+        }
+        if (key === 'once' && (value === 'true' || value === 'false')) {
+          acc.once = value === 'true';
           return acc;
         }
         if (key.startsWith('style_start-')) {
@@ -316,7 +318,8 @@ window.onload = function () {
         pinSpacing: options.pinSpacing || 'margin',
         invalidateOnRefresh: true,
         immediateRender: options.stagger ? false : true,
-        animation: gsap.timeline({ paused: true })
+        animation: gsap.timeline({ paused: true }),
+        ...(options.once !== undefined ? { once: options.once } : {})
       };
     }
 
