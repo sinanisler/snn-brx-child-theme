@@ -673,6 +673,9 @@ function snn_custom_codes_snippets_page() {
     ?>
     <div class="wrap">
         <h1> <?php esc_html_e( 'Manage Code Snippets', 'snn' ); ?> </h1>
+        <div class="notice notice-warning inline snn-php-execution-warning">
+            <p><strong>Warning:</strong> <?php esc_html_e( 'ATTENTION PLEASE! These settings are not for normal users! If you don’t have at least some basic knowledge of HTML, CSS, and FTP login, DO NOT USE IT!', 'snn' ); ?></p>
+        </div>
         
         <form method="post" action="admin.php?page=snn-custom-codes-snippets&tab=<?php echo esc_attr($current_tab_key); ?>">
             <?php wp_nonce_field( 'snn_save_codes_snippets', 'snn_codes_snippets_nonce' ); // Nonce for the whole form ?>
