@@ -41,7 +41,7 @@ function snn_enqueue_taxonomy_author_assets($hook) {
     // Common pages: term.php, edit-tags.php = Taxonomy editing
     // profile.php, user-edit.php = Author profile
     if ( in_array($hook, ['term.php', 'edit-tags.php', 'profile.php', 'user-edit.php'], true) ) {
-        wp_enqueue_media();          
+        wp_enqueue_media();        
         wp_enqueue_style('wp-color-picker'); 
         wp_enqueue_script('wp-color-picker'); 
         add_action('admin_footer', 'snn_output_dynamic_field_js');
@@ -64,20 +64,20 @@ function snn_custom_fields_page_callback() {
                     $choices_sanitized = sanitize_textarea_field($choices_raw);
 
                     $field_type_for_repeater_check = isset($field_data['type']) ? $field_data['type'] : 'text';
-                    $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text','select','checkbox','radio','true_false','url','email']);
+                    $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email']);
 
                     $new_fields[] = [
-                        'group_name'     => sanitize_text_field($field_data['group_name']),
-                        'label'          => sanitize_text_field($field_data['label']),
-                        'name'           => sanitize_key($field_data['name']),
-                        'type'           => sanitize_text_field($field_data['type']),
-                        'post_type'      => $post_types_selected,
-                        'taxonomies'     => $taxonomies_selected,
-                        'choices'        => $choices_sanitized,
-                        'repeater'       => (!$is_repeater_disabled_type && !empty($field_data['repeater'])) ? 1 : 0,
-                        'author'         => !empty($field_data['author']) ? 1 : 0,
-                        'options_page'   => !empty($field_data['options_page']) ? 1 : 0,
-                        'column_width'   => isset($field_data['column_width']) && is_numeric($field_data['column_width']) ? intval($field_data['column_width']) : '',
+                        'group_name'    => sanitize_text_field($field_data['group_name']),
+                        'label'         => sanitize_text_field($field_data['label']),
+                        'name'          => sanitize_key($field_data['name']),
+                        'type'          => sanitize_text_field($field_data['type']),
+                        'post_type'     => $post_types_selected,
+                        'taxonomies'    => $taxonomies_selected,
+                        'choices'       => $choices_sanitized,
+                        'repeater'      => (!$is_repeater_disabled_type && !empty($field_data['repeater'])) ? 1 : 0,
+                        'author'        => !empty($field_data['author']) ? 1 : 0,
+                        'options_page'  => !empty($field_data['options_page']) ? 1 : 0,
+                        'column_width'  => isset($field_data['column_width']) && is_numeric($field_data['column_width']) ? intval($field_data['column_width']) : '',
                         'return_full_url'=> ($field_data['type'] === 'media' && !empty($field_data['return_full_url'])) ? 1 : 0,
                     ];
                 }
@@ -104,7 +104,7 @@ function snn_custom_fields_page_callback() {
                     foreach ($custom_fields as $index => $field) {
                         $field_type = isset($field['type']) ? $field['type'] : 'text';
                         $show_choices = in_array($field_type, ['select','checkbox','radio']);
-                        $is_repeater_disabled_type = in_array($field_type, ['rich_text','select','checkbox','radio','true_false','url','email']);
+                        $is_repeater_disabled_type = in_array($field_type, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email']);
                         $repeater_title = $is_repeater_disabled_type ? 'This field type cannot be a repeater' : 'Allow multiple values';
                         ?>
                         <div class="custom-field-row" data-index="<?php echo $index; ?>">
@@ -146,6 +146,7 @@ function snn_custom_fields_page_callback() {
                                     <option value="number"    <?php selected($field_type, 'number'); ?>>Number</option>
                                     <option value="textarea"  <?php selected($field_type, 'textarea'); ?>>Textarea</option>
                                     <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>>Rich Text</option>
+                                    <option value="basic_rich_text" <?php selected($field_type, 'basic_rich_text'); ?>>Basic Rich Text</option>
                                     <option value="media"     <?php selected($field_type, 'media'); ?>>Media</option>
                                     <option value="date"      <?php selected($field_type, 'date'); ?>>Date</option>
                                     <option value="time"      <?php selected($field_type, 'time'); ?>>Time</option>
@@ -249,7 +250,7 @@ function snn_custom_fields_page_callback() {
                 const typeSelect = row.querySelector('.field-type-select');
                 const repeaterCheckbox = row.querySelector('.repeater-checkbox');
                 if (!typeSelect || !repeaterCheckbox) return;
-                const disable = ['rich_text','select','checkbox','radio','true_false','url','email'].includes(typeSelect.value);
+                const disable = ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email'].includes(typeSelect.value);
                 repeaterCheckbox.disabled = disable;
                 repeaterCheckbox.title = disable ? 'This field type cannot be a repeater' : 'Allow multiple values';
                 if (disable) {
@@ -315,6 +316,7 @@ function snn_custom_fields_page_callback() {
                             <option value="number">Number</option>
                             <option value="textarea">Textarea</option>
                             <option value="rich_text">Rich Text</option>
+                            <option value="basic_rich_text">Basic Rich Text</option>
                             <option value="media">Media</option>
                             <option value="date">Date</option>
                             <option value="time">Time</option>
@@ -565,7 +567,7 @@ function snn_register_dynamic_metaboxes() {
                 }
                 $grouped_fields[$pt][$group_name][] = $field;
 
-                $disallowed_for_repeater = ['rich_text','select','checkbox','radio','true_false','url','email'];
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $snn_repeater_fields_exist = true;
                 }
@@ -619,7 +621,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             if (!empty($field['post_type']) && in_array($current_post_type, $field['post_type'])) {
                 if ($field['type'] === 'media') $post_type_has_media = true;
                 if ($field['type'] === 'color') $post_type_has_color = true;
-                $disallowed_for_repeater = ['rich_text','select','checkbox','radio','true_false','url','email'];
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $post_type_has_repeater = true;
                 }
@@ -644,7 +646,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             if (!empty($field['author'])) {
                 if ($field['type'] === 'media') $has_author_media = true;
                 if ($field['type'] === 'color') $has_author_color = true;
-                $disallowed_for_repeater = ['rich_text','select','checkbox','radio','true_false','url','email'];
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $has_author_repeater = true; 
                 }
@@ -929,6 +931,11 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                  . '" name="' . esc_attr($name_attribute) . '">' . esc_textarea($value) . '</textarea>';
             break;
 
+        case 'basic_rich_text':
+             echo '<textarea class="snn-rich-text-editor" id="' . $id_attribute_base
+                  . '" name="' . esc_attr($name_attribute) . '">' . esc_textarea($value) . '</textarea>';
+             break;
+
         case 'rich_text':
             $editor_id = preg_replace('/\[|\]/', '_', $name_attribute);
             $editor_id = rtrim($editor_id, '_'); 
@@ -988,7 +995,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             echo '<button type="button" class="button media-upload-button">Select</button>';
             echo '<button type="button" class="button media-remove-button" style="' . (empty($value)?'display:none;':'') . '">X</button>';
             if (!empty($filename)) {
-                 echo '<div class="media-filename">' . $filename . '</div>';
+                  echo '<div class="media-filename">' . $filename . '</div>';
             }
             echo '</div>';
             break;
@@ -1454,8 +1461,7 @@ function snn_save_author_custom_fields($user_id) {
 function snn_sanitize_value_by_type($type, $value, $field = null) {
     switch ($type) {
         case 'rich_text':
-            return wp_kses_post($value);
-
+        case 'basic_rich_text':
         case 'textarea':
             return wp_kses_post($value);
 
@@ -1476,7 +1482,7 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
 
         case 'date': 
              if (preg_match("/^\d{4}-\d{2}-\d{2}$/", $value)) {
-                return sanitize_text_field($value);
+                 return sanitize_text_field($value);
              }
              return '';
         case 'color': 
@@ -1694,8 +1700,8 @@ function snn_output_dynamic_field_js() {
             if (typeof $.fn.datepicker === 'function') {
                 $newItem.find('input.snn-datepicker').each(function(){
                      if (!$(this).data('datepicker-initialized')) {
-                        $(this).datepicker({ dateFormat: 'yy-mm-dd' });
-                        $(this).data('datepicker-initialized', true);
+                         $(this).datepicker({ dateFormat: 'yy-mm-dd' });
+                         $(this).data('datepicker-initialized', true);
                     }
                 });
             }
@@ -1717,7 +1723,7 @@ function snn_output_dynamic_field_js() {
                     $('.repeater-item:not(.repeater-template) .wp-editor-wrap').each(function() {
                         var editorID = $(this).attr('id');
                          if (editorID) {
-                             editorID = editorID.replace('-wrap','');
+                              editorID = editorID.replace('-wrap','');
                         }
                     });
                 }
@@ -2081,7 +2087,7 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
             if ($field_cfg['type'] === 'color') $needs_color = true;
             if ($field_cfg['type'] === 'date') $needs_datepicker = true;
             
-            $disallowed_for_repeater = ['rich_text','select','checkbox','radio','true_false','url','email'];
+            $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
             if (!in_array($field_cfg['type'], $disallowed_for_repeater) && !empty($field_cfg['repeater'])) {
                  $needs_repeater_js = true; 
             }

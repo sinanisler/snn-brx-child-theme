@@ -39,10 +39,11 @@
 }
 
 .snn-rich-text-editor-select {
-    padding: 0 5px;
-    border: 1px solid #ddd;
+    padding: 0 5px !important;
+    border: 1px solid #ddd !important;
     border-radius: 4px;
-    min-width: 110px;
+    min-width: 60px;
+    margin:0 !important;
 }
 
 .snn-rich-text-editor-font-family {
@@ -51,7 +52,7 @@
 
 .snn-rich-text-editor-color-picker {
     width: 40px;
-    height: 40px;
+    height: 30px;
     padding: 0;
     border: none;
     cursor: pointer;
