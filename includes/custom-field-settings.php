@@ -41,9 +41,9 @@ function snn_enqueue_taxonomy_author_assets($hook) {
     // Common pages: term.php, edit-tags.php = Taxonomy editing
     // profile.php, user-edit.php = Author profile
     if ( in_array($hook, ['term.php', 'edit-tags.php', 'profile.php', 'user-edit.php'], true) ) {
-        wp_enqueue_media();
-        wp_enqueue_style('wp-color-picker');
-        wp_enqueue_script('wp-color-picker');
+        wp_enqueue_media();              
+        wp_enqueue_style('wp-color-picker'); 
+        wp_enqueue_script('wp-color-picker'); 
         add_action('admin_footer', 'snn_output_dynamic_field_js');
     }
 }
@@ -56,8 +56,8 @@ function snn_custom_fields_page_callback() {
     if (isset($_POST['snn_custom_fields_nonce']) && wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_custom_fields_save')) {
         $new_fields = [];
         if (!empty($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
-            foreach ($_POST['custom_fields'] as $field_data) {
-                if (!empty($field_data['slug_name']) && !empty($field_data['type']) && !empty($field_data['group_name'])) {
+            foreach ($_POST['custom_fields'] as $field_data) { // Changed $field to $field_data to avoid conflict with outer $field if any
+                if (!empty($field_data['name']) && !empty($field_data['type']) && !empty($field_data['group_name'])) {
                     $post_types_selected = isset($field_data['post_type']) && is_array($field_data['post_type']) ? array_map('sanitize_text_field', $field_data['post_type']) : [];
                     $taxonomies_selected = isset($field_data['taxonomies']) && is_array($field_data['taxonomies']) ? array_map('sanitize_text_field', $field_data['taxonomies']) : [];
                     $choices_raw = isset($field_data['choices']) ? trim($field_data['choices']) : '';
@@ -68,8 +68,7 @@ function snn_custom_fields_page_callback() {
 
                     $new_fields[] = [
                         'group_name'     => sanitize_text_field($field_data['group_name']),
-                        'field_name'     => sanitize_text_field($field_data['field_name']),
-                        'slug_name'      => sanitize_key($field_data['slug_name']),
+                        'name'           => sanitize_key($field_data['name']),
                         'type'           => sanitize_text_field($field_data['type']),
                         'post_type'      => $post_types_selected,
                         'taxonomies'     => $taxonomies_selected,
@@ -94,7 +93,7 @@ function snn_custom_fields_page_callback() {
             <?php wp_nonce_field('snn_custom_fields_save', 'snn_custom_fields_nonce'); ?>
             <div id="custom-field-settings">
                 <p>
-                    Define custom fields with group name, field name, slug name, field type, and assign to post type, taxonomy, author, or an options page:
+                    Define custom fields with group name, field name, field type, and assign to post type, taxonomy, author, or an options page:
                     <br>Select one or more to register the same Custom Field to Post Types, Taxonomies, or Author.
                     <br>Checking "Options Page" will make this field available on a new admin page named after its "Group Name".
                     <br>Press CTRL/CMD to select multiple or remove selection.
@@ -115,31 +114,26 @@ function snn_custom_fields_page_callback() {
                             </div>
                             <div class="field-group">
                                 <label>Group Name</label>
-                                <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name"
+                                <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" 
                                        value="<?php echo esc_attr($field['group_name'] ?? ''); ?>" />
                             </div>
                             <div class="field-group">
                                 <label>Field Name</label>
-                                <input type="text" name="custom_fields[<?php echo $index; ?>][field_name]" placeholder="Field Name"
-                                       value="<?php echo esc_attr($field['field_name'] ?? ''); ?>" />
-                            </div>
-                            <div class="field-group">
-                                <label>Slug Name</label>
-                                <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][slug_name]"
-                                       placeholder="slug_name"
-                                       value="<?php echo esc_attr($field['slug_name']); ?>" />
+                                <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][name]" 
+                                       placeholder="Field Name" 
+                                       value="<?php echo esc_attr($field['name']); ?>" />
                             </div>
                             <div class="field-group">
                                 <label>Width (%)</label>
                                 <input style="width:70px" type="number" min="10" max="100"
-                                       name="custom_fields[<?php echo $index; ?>][column_width]"
-                                       placeholder="25"
+                                       name="custom_fields[<?php echo $index; ?>][column_width]" 
+                                       placeholder="25" 
                                        value="<?php echo esc_attr($field['column_width'] ?? ''); ?>" />
                             </div>
                             <div class="field-group">
                                 <label>Field Type</label>
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
-                                    <option value="text"   <?php selected($field_type, 'text'); ?>>Text</option>
+                                    <option value="text"     <?php selected($field_type, 'text'); ?>>Text</option>
                                     <option value="number"   <?php selected($field_type, 'number'); ?>>Number</option>
                                     <option value="textarea" <?php selected($field_type, 'textarea'); ?>>Textarea</option>
                                     <option value="rich_text"<?php selected($field_type, 'rich_text'); ?>>Rich Text</option>
@@ -157,15 +151,15 @@ function snn_custom_fields_page_callback() {
                             </div>
                             <div class="field-group field-group-choices" style="<?php echo $show_choices ? '' : 'display:none;'; ?>">
                                 <label>Choices <small><code>(value:label)</code></small></label>
-                                <textarea name="custom_fields[<?php echo $index; ?>][choices]" rows="4"
-                                          placeholder="red : Red Color&#10;green : Green Color"><?php
-                                    echo esc_textarea($field['choices'] ?? ''); ?></textarea>
+                                <textarea name="custom_fields[<?php echo $index; ?>][choices]" rows="4" 
+                                          placeholder="red : Red Color&#10;green : Green Color"><?php 
+                                          echo esc_textarea($field['choices'] ?? ''); ?></textarea>
                             </div>
                             <div class="field-group">
                                 <label>Post Types</label>
                                 <select name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
                                     <?php foreach ($post_types as $pt) : ?>
-                                        <option value="<?php echo esc_attr($pt->name); ?>"
+                                        <option value="<?php echo esc_attr($pt->name); ?>" 
                                             <?php echo (!empty($field['post_type']) && in_array($pt->name, $field['post_type'])) ? 'selected' : ''; ?>>
                                             <?php echo esc_html($pt->label); ?>
                                         </option>
@@ -176,7 +170,7 @@ function snn_custom_fields_page_callback() {
                                 <label>Taxonomies</label>
                                 <select name="custom_fields[<?php echo $index; ?>][taxonomies][]" multiple>
                                     <?php foreach ($taxonomies as $tax) : ?>
-                                        <option value="<?php echo esc_attr($tax->name); ?>"
+                                        <option value="<?php echo esc_attr($tax->name); ?>" 
                                             <?php echo (!empty($field['taxonomies']) && in_array($tax->name, $field['taxonomies'])) ? 'selected' : ''; ?>>
                                             <?php echo esc_html($tax->label); ?>
                                         </option>
@@ -185,19 +179,19 @@ function snn_custom_fields_page_callback() {
                             </div>
                             <div class="field-group">
                                 <label>Author</label>
-                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][author]" value="1"
-                                    <?php checked(!empty($field['author'])); ?> />
+                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][author]" value="1" 
+                                       <?php checked(!empty($field['author'])); ?> />
                             </div>
                              <div class="field-group">
                                 <label>Options Page</label>
-                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][options_page]" value="1"
-                                    <?php checked(!empty($field['options_page'])); ?> />
+                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][options_page]" value="1" 
+                                       <?php checked(!empty($field['options_page'])); ?> />
                             </div>
                             <div class="field-group">
                                 <label>Repeater</label>
                                 <input type="checkbox" class="repeater-checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" value="1"
-                                    <?php checked(!empty($field['repeater'])); echo $is_repeater_disabled_type ? ' disabled' : ''; ?>
-                                    title="<?php echo esc_attr($repeater_title); ?>" />
+                                       <?php checked(!empty($field['repeater'])); echo $is_repeater_disabled_type ? ' disabled' : ''; ?>
+                                       title="<?php echo esc_attr($repeater_title); ?>" />
                             </div>
                             <?php if ($field_type === 'media') : ?>
                             <div class="field-group media-return-url-group">
@@ -257,25 +251,25 @@ function snn_custom_fields_page_callback() {
             function toggleMediaReturnUrlField(row) {
                 const typeSelect = row.querySelector('.field-type-select');
                 const mediaReturnGroup = row.querySelector('.media-return-url-group');
-                if (mediaReturnGroup) {
+                if (mediaReturnGroup) { 
                     mediaReturnGroup.style.display = (typeSelect && typeSelect.value === 'media') ? '' : 'none';
                 } else if (typeSelect && typeSelect.value === 'media') {
                 }
             }
-
+            
             function handleMediaReturnUrlForNewRow(row, fieldType) {
                 let mediaReturnGroup = row.querySelector('.media-return-url-group');
                 if (fieldType === 'media') {
                     if (!mediaReturnGroup) {
-                        const newIndex = row.dataset.index;
+                        const newIndex = row.dataset.index; 
                         const div = document.createElement('div');
                         div.classList.add('field-group', 'media-return-url-group');
                         div.innerHTML = `<label>Return Full URL</label><br><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1">`;
                         const repeaterDiv = row.querySelector('input[name*="[repeater]"]');
                         if (repeaterDiv && repeaterDiv.closest('.field-group')) {
-                            repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
+                             repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
                         } else {
-                            row.appendChild(div);
+                             row.appendChild(div); 
                         }
                         mediaReturnGroup = div;
                     }
@@ -300,8 +294,7 @@ function snn_custom_fields_page_callback() {
                         <button type="button" class="remove-field">Remove</button>
                     </div>
                     <div class="field-group"><label>Group Name</label><br><input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name"></div>
-                    <div class="field-group"><label>Field Name</label><br><input type="text" name="custom_fields[${newIndex}][field_name]" placeholder="Field Name"></div>
-                    <div class="field-group"><label>Slug Name</label><br><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][slug_name]" placeholder="slug_name"></div>
+                    <div class="field-group"><label>Field Name</label><br><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="Field Name"></div>
                     <div class="field-group"><label>Width (%)</label><br><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
                     <div class="field-group">
                         <label>Field Type</label><br>
@@ -345,7 +338,7 @@ function snn_custom_fields_page_callback() {
                 attachFieldNameSanitizer(newRow.querySelector('.sanitize-key'));
                 toggleChoicesField(newRow);
                 toggleRepeaterCheckbox(newRow);
-                handleMediaReturnUrlForNewRow(newRow, newRow.querySelector('.field-type-select').value);
+                handleMediaReturnUrlForNewRow(newRow, newRow.querySelector('.field-type-select').value); 
                 updateFieldIndexes();
             });
 
@@ -366,7 +359,7 @@ function snn_custom_fields_page_callback() {
                     const row = e.target.closest('.custom-field-row');
                     const next = row.nextElementSibling;
                     if (next) {
-                        fieldContainer.insertBefore(next, row);
+                        fieldContainer.insertBefore(next, row); 
                         updateFieldIndexes();
                     }
                 }
@@ -377,14 +370,14 @@ function snn_custom_fields_page_callback() {
                     const row = e.target.closest('.custom-field-row');
                     toggleChoicesField(row);
                     toggleRepeaterCheckbox(row);
-                    handleMediaReturnUrlForNewRow(row, e.target.value);
+                    handleMediaReturnUrlForNewRow(row, e.target.value); 
                 }
             });
 
             fieldContainer.querySelectorAll('.custom-field-row').forEach(function(row) {
                 toggleChoicesField(row);
                 toggleRepeaterCheckbox(row);
-                toggleMediaReturnUrlField(row);
+                toggleMediaReturnUrlField(row); 
                 attachFieldNameSanitizer(row.querySelector('.sanitize-key'));
             });
 
@@ -430,17 +423,17 @@ function snn_custom_fields_page_callback() {
                flex-wrap: wrap;
                gap: 10px;
                margin-bottom: 10px;
-               align-items: center;
+               align-items: center; 
            }
            .custom-field-row label {
                font-weight: bold;
-               font-size: 14px;
-               display: block;
-               margin-bottom: 3px;
+               font-size: 14px; 
+               display: block; 
+               margin-bottom: 3px; 
            }
-           .custom-field-row .field-group {
+           .custom-field-row .field-group { 
                 display: flex;
-                flex-direction: column;
+                flex-direction: column; 
            }
            .custom-field-row input,
            .custom-field-row select,
@@ -451,7 +444,7 @@ function snn_custom_fields_page_callback() {
                margin-left: 5px;
            }
            .custom-field-row {
-               gap: 15px;
+               gap: 15px; 
                margin-bottom: 15px;
                padding: 15px;
                border: 1px solid #ddd;
@@ -460,10 +453,10 @@ function snn_custom_fields_page_callback() {
            }
            .custom-field-row .buttons {
                display: flex;
-               flex-direction: row;
+               flex-direction: row; 
                gap: 5px;
-               margin-right: 10px;
-               order: -1;
+               margin-right: 10px; 
+               order: -1; 
            }
            #add-custom-field-row {
                color: #2271b1;
@@ -500,22 +493,22 @@ function snn_custom_fields_page_callback() {
                    align-items: flex-start;
                }
                .custom-field-row .buttons {
-                   flex-direction: row;
+                   flex-direction: row; 
                    gap: 10px;
-                   margin-bottom: 10px;
-                   order: 0;
+                   margin-bottom: 10px; 
+                   order: 0; 
                }
-               .custom-field-row .field-group,
+               .custom-field-row .field-group, 
                .custom-field-row input[type="text"],
-               .custom-field-row input[type="number"],
+               .custom-field-row input[type="number"], 
                .custom-field-row select,
-               .custom_field-row textarea {
-                   width: 100%;
+               .custom_field-row textarea { 
+                   width: 100%; 
                }
-               .custom-field-row input[style*="width:70px"] {
+               .custom-field-row input[style*="width:70px"] { 
                     width: 100% !important;
                }
-               .custom-field-row select[style*="width:140px"] {
+               .custom-field-row select[style*="width:140px"] { 
                     width: 100% !important;
                }
            }
@@ -580,16 +573,16 @@ function snn_register_dynamic_metaboxes() {
 
     if ($snn_media_fields_exist || $snn_repeater_fields_exist || $snn_color_fields_exist) {
         add_action('admin_enqueue_scripts', 'snn_enqueue_metabox_scripts');
-        if (is_admin()) {
-            add_action('admin_footer', 'snn_output_dynamic_field_js');
+        if (is_admin()) { 
+             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
     }
 }
 add_action('add_meta_boxes', 'snn_register_dynamic_metaboxes');
 
 function snn_enqueue_metabox_scripts($hook_suffix) {
-    global $pagenow;
-
+    global $pagenow; 
+    
     if (in_array($pagenow, ['post.php','post-new.php'])) {
         $current_post_type = get_current_screen()->post_type;
         $post_type_has_media = false;
@@ -628,7 +621,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
                 if ($field['type'] === 'color') $has_author_color = true;
                 $disallowed_for_repeater = ['rich_text','select','checkbox','radio','true_false','url','email'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
-                    $has_author_repeater = true;
+                    $has_author_repeater = true; 
                 }
             }
         }
@@ -641,11 +634,11 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
     }
-    if (in_array($pagenow, ['term.php','edit-tags.php'])) {
+    if (in_array($pagenow, ['term.php','edit-tags.php'])) { 
         $custom_fields = get_option('snn_custom_fields', []);
         $has_tax_media = false;
         $has_tax_color = false;
-
+        
         $current_taxonomy = isset($_GET['taxonomy']) ? sanitize_text_field($_GET['taxonomy']) : null;
         if(defined('DOING_AJAX') && DOING_AJAX && isset($_POST['taxonomy'])){ // Handle AJAX calls for terms screen (e.g. quick edit)
             $current_taxonomy = sanitize_text_field($_POST['taxonomy']);
@@ -665,7 +658,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             wp_enqueue_style('wp-color-picker');
             wp_enqueue_script('wp-color-picker');
         }
-        if ($has_tax_media || $has_tax_color) {
+        if ($has_tax_media || $has_tax_color) { 
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
     }
@@ -680,10 +673,9 @@ function snn_render_metabox_content($post, $metabox) {
     echo '<div class="snn-metabox-wrapper" style="display:flex;flex-wrap:wrap;">';
 
     foreach ($fields as $field) {
-        $slug_name   = $field['slug_name'];
-        $field_name  = !empty($field['field_name']) ? $field['field_name'] : ucwords(str_replace('_',' ',$slug_name));
+        $field_name  = $field['name'];
         $col_width   = !empty($field['column_width']) ? intval($field['column_width']) : 100;
-        $field_value = get_post_meta($post->ID, $slug_name, true);
+        $field_value = get_post_meta($post->ID, $field_name, true);
 
         if (is_array($field_value)) {
             $field_value = array_filter($field_value, function($val) {
@@ -691,22 +683,22 @@ function snn_render_metabox_content($post, $metabox) {
             });
         }
 
-        echo '<div class="snn-field-wrap snn-field-type-' . esc_attr($field['type'])
-             . (!empty($field['repeater']) ? ' snn-is-repeater' : '')
+        echo '<div class="snn-field-wrap snn-field-type-' . esc_attr($field['type']) 
+             . (!empty($field['repeater']) ? ' snn-is-repeater' : '') 
              . '" style="width:calc(' . $col_width . '% - 20px);margin-right:20px;margin-bottom:15px;box-sizing:border-box;">';
 
-        echo '<label class="snn-field-label" for="' . esc_attr($slug_name . '_0') . '">'
-             . esc_html($field_name) . '</label>';
-
+        echo '<label class="snn-field-label" for="' . esc_attr($field_name . '_0') . '">'
+             . esc_html(ucwords(str_replace('_',' ',$field_name))) . '</label>';
+        
         if (!empty($field['repeater'])) {
             $values = (is_array($field_value)) ? $field_value : [];
-            echo '<div class="repeater-container" data-field-name="' . esc_attr($slug_name) . '" data-name-prefix="custom_fields">';
+            echo '<div class="repeater-container" data-field-name="' . esc_attr($field_name) . '" data-name-prefix="custom_fields">';
 
             if (!empty($values)) {
                 foreach ($values as $index => $value) {
                     echo '<div class="repeater-item">';
                     echo '<div class="repeater-content">';
-                    snn_render_field_input($field, $value, $index, 'meta');
+                    snn_render_field_input($field, $value, $index, 'meta'); 
                     echo '</div>';
                     echo '<button type="button" class="button remove-repeater-item">Remove</button>';
                     echo '</div>';
@@ -715,7 +707,7 @@ function snn_render_metabox_content($post, $metabox) {
 
             echo '<div class="repeater-item repeater-template" style="display:none;">';
             echo '<div class="repeater-content">';
-            snn_render_field_input($field, '', '__index__', 'meta');
+            snn_render_field_input($field, '', '__index__', 'meta'); 
             echo '</div>';
             echo '<button type="button" class="button remove-repeater-item">Remove</button>';
             echo '</div>';
@@ -723,7 +715,7 @@ function snn_render_metabox_content($post, $metabox) {
             echo '<button type="button" class="button add-repeater-item">Add More +</button>';
             echo '</div>';
         } else {
-            snn_render_field_input($field, $field_value, '0', 'meta');
+            snn_render_field_input($field, $field_value, '0', 'meta'); 
         }
 
         echo '</div>';
@@ -732,9 +724,9 @@ function snn_render_metabox_content($post, $metabox) {
     ?>
     <style>
     .snn-field-wrap {
-        padding: 10px;
-        border: 1px solid #eee !important;
-        border-radius: 5px;
+        padding: 10px; 
+        border: 1px solid #eee !important; 
+        border-radius: 5px; 
         background: #fff;
     }
     .snn-field-label {
@@ -755,13 +747,13 @@ function snn_render_metabox_content($post, $metabox) {
         max-width: 600px;
         padding: 8px;
         margin-bottom: 5px;
-        box-sizing: border-box;
+        box-sizing: border-box; 
     }
     .snn-field-wrap textarea {
         min-height: 80px;
     }
     .snn-field-type-true_false input[type="checkbox"] {
-        margin-top: 5px;
+        margin-top: 5px; 
         width: auto;
     }
     .repeater-container {
@@ -781,7 +773,7 @@ function snn_render_metabox_content($post, $metabox) {
         flex-grow: 1;
     }
     .remove-repeater-item {
-        align-self: center;
+        align-self: center; 
     }
     .add-repeater-item {
         margin-top: 5px;
@@ -792,28 +784,28 @@ function snn_render_metabox_content($post, $metabox) {
         gap: 10px;
         flex-wrap: wrap;
     }
-    .snn-field-type-media .media-preview-wrapper {
-        width:50px;
+    .snn-field-type-media .media-preview-wrapper { 
+        width:50px; 
         height:50px;
-        display: inline-flex;
+        display: inline-flex; 
         justify-content: center;
         align-items: center;
-        border: 1px solid #ddd;
-        padding: 2px;
+        border: 1px solid #ddd; 
+        padding: 2px; 
         background: #fff;
         vertical-align: middle;
-        overflow: hidden;
+        overflow: hidden; 
     }
     .snn-field-type-media .media-preview-wrapper img,
     .snn-field-type-media .media-preview-wrapper .dashicons {
         max-width: 100%;
         max-height: 100%;
-        object-fit: cover;
+        object-fit: cover; 
     }
      .snn-field-type-media .media-preview-wrapper .dashicons {
-        font-size: 40px;
-        line-height: 50px;
-        width: 50px;
+        font-size: 40px; 
+        line-height: 50px; 
+        width: 50px; 
         text-align: center;
     }
 
@@ -827,56 +819,56 @@ function snn_render_metabox_content($post, $metabox) {
     }
     .snn-field-type-checkbox .choice-item input,
     .snn-field-type-radio .choice-item input {
-        margin-right: 5px;
-        width: auto;
+        margin-right: 5px; 
+        width: auto; 
         vertical-align: middle;
     }
     .wp-picker-container {
         display: inline-block;
     }
     .wp-picker-container .wp-color-result.button {
-        margin: 0;
+        margin: 0; 
         vertical-align: middle;
     }
     .wp-picker-container .wp-picker-input-wrap input[type=text].wp-color-picker {
-        width: 80px;
-        margin-left: 5px;
+        width: 80px; 
+        margin-left: 5px; 
         vertical-align: middle;
     }
     .media-filename {
-        font-size: 12px;
-        color: #555;
+        font-size: 12px; 
+        color: #555; 
         margin-top: 4px;
-        word-break: break-all;
+        word-break: break-all; 
     }
     </style>
     <?php
 }
 
 function snn_render_field_input($field, $value = '', $index = '0', $context = 'meta') {
-    $slug_name = $field['slug_name'];
+    $field_name = $field['name'];
     $field_type = $field['type'];
     $is_template = ($index === '__index__');
 
     $prefix = ($context === 'options_page') ? 'snn_page_options' : 'custom_fields';
-    $base_field_part = esc_attr($slug_name);
+    $base_field_part = esc_attr($field_name);
 
     if (!empty($field['repeater'])) {
         $currentIndex = $is_template ? '__index__' : intval($index);
-        if ($field_type === 'checkbox') {
+        if ($field_type === 'checkbox') { 
             $name_attribute = $prefix . '[' . $base_field_part . '][' . $currentIndex . '][]';
-        } else {
+        } else { 
             $name_attribute = $prefix . '[' . $base_field_part . '][' . $currentIndex . ']';
         }
-    } else {
-        if ($field_type === 'checkbox') {
+    } else { 
+        if ($field_type === 'checkbox') { 
             $name_attribute = $prefix . '[' . $base_field_part . '][]';
-        } else {
+        } else { 
             $name_attribute = $prefix . '[' . $base_field_part . ']';
         }
     }
-
-    $id_attribute_base = esc_attr($slug_name . '_' . ($is_template ? '__index__' : $index));
+    
+    $id_attribute_base = esc_attr($field_name . '_' . ($is_template ? '__index__' : $index));
 
     $choices = [];
     if (in_array($field_type, ['select','checkbox','radio']) && !empty($field['choices'])) {
@@ -886,7 +878,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             if (count($parts) === 2) {
                 $val   = trim($parts[0]);
                 $label = trim($parts[1]);
-                if ($val !== '') {
+                if ($val !== '') { 
                     $choices[$val] = $label;
                 }
             }
@@ -911,10 +903,10 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
 
         case 'rich_text':
             $editor_id = preg_replace('/\[|\]/', '_', $name_attribute);
-            $editor_id = rtrim($editor_id, '_');
-            $editor_id = sanitize_key($editor_id);
-            if ($is_template) {
-                $editor_id .= '_template';
+            $editor_id = rtrim($editor_id, '_'); 
+            $editor_id = sanitize_key($editor_id); 
+            if ($is_template) { 
+                 $editor_id .= '_template';
             }
 
             wp_editor(wp_kses_post($value), $editor_id, [
@@ -929,9 +921,9 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
         case 'media':
             $img_src = '';
             $filename = '';
-            $dashicon_class = 'dashicons-media-default';
+            $dashicon_class = 'dashicons-media-default'; 
             if (!empty($value)) {
-                if (is_numeric($value)) {
+                if (is_numeric($value)) { 
                     $attachment_id = intval($value);
                     $attachment = get_post($attachment_id);
                     if ($attachment) {
@@ -943,9 +935,9 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                         } elseif (strpos($mime_type, 'video/') === 0) $dashicon_class = 'dashicons-media-video';
                         elseif (strpos($mime_type, 'audio/') === 0) $dashicon_class = 'dashicons-media-audio';
                         elseif ($mime_type === 'application/pdf') $dashicon_class = 'dashicons-media-document';
-                        elseif (strpos($mime_type, 'application/') === 0 || strpos($mime_type, 'text/') === 0) $dashicon_class = 'dashicons-media-spreadsheet';
+                        elseif (strpos($mime_type, 'application/') === 0 || strpos($mime_type, 'text/') === 0) $dashicon_class = 'dashicons-media-spreadsheet'; 
                     }
-                } else {
+                } else { 
                     $filename = esc_html(basename($value));
                     $file_url_lower = strtolower($value);
                     if (preg_match('/\.(jpg|jpeg|png|gif|svg)$/', $file_url_lower)) $img_src = esc_url($value);
@@ -968,28 +960,28 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             echo '<button type="button" class="button media-upload-button">Select</button>';
             echo '<button type="button" class="button media-remove-button" style="' . (empty($value)?'display:none;':'') . '">X</button>';
             if (!empty($filename)) {
-                echo '<div class="media-filename">' . $filename . '</div>';
+                 echo '<div class="media-filename">' . $filename . '</div>';
             }
             echo '</div>';
             break;
 
         case 'date':
             echo '<input type="date" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value)
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
                  . '" placeholder="YYYY-MM-DD" class="snn-datepicker" />';
             break;
 
 
         case 'time':
             echo '<input type="time" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value)
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
                  . '" placeholder="HH:MM" class="snn-timepicker" />';
             break;
 
 
         case 'color':
             echo '<input type="text" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value)
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
                  . '" class="snn-color-picker" data-default-color="#ffffff" />';
             break;
 
@@ -1012,10 +1004,10 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                 $i = 0;
                 foreach ($choices as $val => $label) {
                     $choice_id = $id_attribute_base . '_' . $i++;
-                    $is_checked = in_array((string)$val, array_map('strval', $checked_values), true);
+                    $is_checked = in_array((string)$val, array_map('strval', $checked_values), true); 
                     echo '<span class="choice-item">';
-                    echo '<input type="checkbox" id="' . esc_attr($choice_id)
-                         . '" name="' . esc_attr($name_attribute)
+                    echo '<input type="checkbox" id="' . esc_attr($choice_id) 
+                         . '" name="' . esc_attr($name_attribute) 
                          . '" value="' . esc_attr($val) . '" ' . ($is_checked?'checked':'') . ' />';
                     echo '<label for="' . esc_attr($choice_id) . '">' . esc_html($label) . '</label>';
                     echo '</span>';
@@ -1033,8 +1025,8 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                 foreach ($choices as $val => $label) {
                     $choice_id = $id_attribute_base . '_' . $i++;
                     echo '<span class="choice-item">';
-                    echo '<input type="radio" id="' . esc_attr($choice_id)
-                         . '" name="' . esc_attr($name_attribute)
+                    echo '<input type="radio" id="' . esc_attr($choice_id) 
+                         . '" name="' . esc_attr($name_attribute) 
                          . '" value="' . esc_attr($val) . '" ' . checked($value, $val, false) . ' />';
                     echo '<label for="' . esc_attr($choice_id) . '">' . esc_html($label) . '</label>';
                     echo '</span>';
@@ -1046,24 +1038,24 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             break;
 
         case 'true_false':
-            echo '<input type="hidden" name="' . esc_attr($name_attribute) . '" value="0" />';
-            echo '<input type="checkbox" id="' . $id_attribute_base
+            echo '<input type="hidden" name="' . esc_attr($name_attribute) . '" value="0" />'; 
+            echo '<input type="checkbox" id="' . $id_attribute_base 
                  . '" name="' . esc_attr($name_attribute) . '" value="1" ' . checked($value, '1', false) . ' />';
             break;
 
         case 'url':
             echo '<input type="url" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value)
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
                  . '" placeholder="https://example.com" />';
             break;
 
         case 'email':
             echo '<input type="email" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value)
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
                  . '" placeholder="name@example.com" />';
             break;
 
-        default:
+        default: 
             echo '<input type="text" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
             break;
@@ -1077,7 +1069,7 @@ function snn_save_custom_fields_meta($post_id) {
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
         return $post_id;
     }
-
+    
     $post_type_object = get_post_type_object(get_post_type($post_id));
     if (!$post_type_object || !current_user_can($post_type_object->cap->edit_post, $post_id)) {
         return $post_id;
@@ -1087,44 +1079,44 @@ function snn_save_custom_fields_meta($post_id) {
         return $post_id;
     }
 
-    $custom_fields = get_option('snn_custom_fields', []);
+    $custom_fields = get_option('snn_custom_fields', []); // Reverted variable name
     $posted_data   = $_POST['custom_fields'] ?? [];
 
-    foreach ($custom_fields as $field) {
-        $slug_name = $field['slug_name'];
-        $current_post_type = get_post_type($post_id);
+    foreach ($custom_fields as $field) { // Reverted variable name
+        $field_name = $field['name'];
+        $current_post_type = get_post_type($post_id); // Renamed from $post_type for clarity
 
         if (empty($field['post_type']) || !in_array($current_post_type, $field['post_type'])) {
             continue;
         }
 
-        if (isset($posted_data[$slug_name])) {
-            $raw_value = $posted_data[$slug_name];
-            if (is_array($raw_value)) {
+        if (isset($posted_data[$field_name])) {
+            $raw_value = $posted_data[$field_name];
+            if (is_array($raw_value)) { 
                 $sanitized_values = array_map(function($item) use ($field) {
                     return snn_sanitize_value_by_type($field['type'], $item, $field);
                 }, $raw_value);
                 $sanitized_values = array_filter($sanitized_values, function($v) {
-                    return ($v !== null && $v !== '');
+                    return ($v !== null && $v !== ''); 
                 });
                 if (!empty($sanitized_values)) {
-                    update_post_meta($post_id, $slug_name, $sanitized_values);
+                    update_post_meta($post_id, $field_name, $sanitized_values);
                 } else {
-                    delete_post_meta($post_id, $slug_name);
+                    delete_post_meta($post_id, $field_name);
                 }
-            } else {
+            } else { 
                 $sanitized_value = snn_sanitize_value_by_type($field['type'], $raw_value, $field);
                 if ($sanitized_value !== '' && $sanitized_value !== null) {
-                    update_post_meta($post_id, $slug_name, $sanitized_value);
+                    update_post_meta($post_id, $field_name, $sanitized_value);
                 } else {
-                    delete_post_meta($post_id, $slug_name);
+                    delete_post_meta($post_id, $field_name);
                 }
             }
-        } else {
+        } else { 
             if ($field['type'] === 'true_false') {
-                update_post_meta($post_id, $slug_name, '0');
+                update_post_meta($post_id, $field_name, '0'); 
             } elseif ($field['type'] === 'checkbox') {
-                delete_post_meta($post_id, $slug_name);
+                delete_post_meta($post_id, $field_name); 
             }
         }
     }
@@ -1141,36 +1133,34 @@ function snn_register_dynamic_taxonomy_fields() {
             if (!empty($field['taxonomies']) && is_array($field['taxonomies'])) {
                 foreach ($field['taxonomies'] as $tax) {
                     add_action($tax . '_add_form_fields', function($taxonomy_slug) use ($field) { // Parameter is taxonomy slug
-                        $field_name = !empty($field['field_name']) ? $field['field_name'] : ucwords(str_replace('_',' ',$field['slug_name']));
                         ?>
-                        <div class="form-field snn-metabox-wrapper">
-                            <div class="snn-field-wrap" style="width:100%;box-sizing:border-box; padding:10px 0;">
-                                <label for="<?php echo esc_attr($field['slug_name'] . '_0'); ?>"><?php echo esc_html($field_name); ?></label>
+                        <div class="form-field snn-metabox-wrapper"> 
+                            <div class="snn-field-wrap" style="width:100%;box-sizing:border-box; padding:10px 0;"> 
+                                <label for="<?php echo esc_attr($field['name'] . '_0'); ?>"><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
                                 <?php snn_render_field_input($field, '', '0', 'meta'); ?>
                             </div>
                         </div>
                         <?php
-                    }, 10, 1);
+                    }, 10, 1); 
 
                     add_action($tax . '_edit_form_fields', function($term) use ($field) {
-                        $value = get_term_meta($term->term_id, $field['slug_name'], true);
-                        $field_name = !empty($field['field_name']) ? $field['field_name'] : ucwords(str_replace('_',' ',$field['slug_name']));
+                        $value = get_term_meta($term->term_id, $field['name'], true);
                         ?>
                         <tr class="form-field snn-metabox-wrapper">
                             <th scope="row">
-                                <label for="<?php echo esc_attr($field['slug_name'] . '_0'); ?>"><?php echo esc_html($field_name); ?></label>
+                                <label for="<?php echo esc_attr($field['name'] . '_0'); ?>"><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
                             </th>
-                            <td>
+                            <td> 
                                 <div class="snn-field-wrap" style="box-sizing:border-box;">
                                     <?php snn_render_field_input($field, $value, '0', 'meta'); ?>
                                 </div>
                             </td>
                         </tr>
                         <?php
-                    }, 10, 1);
+                    }, 10, 1); 
 
-                    add_action('created_' . $tax, 'snn_save_taxonomy_field_data', 10, 1);
-                    add_action('edited_' . $tax, 'snn_save_taxonomy_field_data', 10, 1);
+                    add_action('created_' . $tax, 'snn_save_taxonomy_field_data', 10, 1); 
+                    add_action('edited_' . $tax, 'snn_save_taxonomy_field_data', 10, 1);  
                 }
             }
         }
@@ -1186,16 +1176,16 @@ function snn_print_tax_styles() {
     }
     ?>
     <style>
-    .form-field .snn-metabox-wrapper {
-        background: transparent;
+    .form-field .snn-metabox-wrapper { 
+        background: transparent; 
         border: none;
         padding: 0;
-        margin-bottom: 10px;
+        margin-bottom: 10px; 
     }
-    .form-field .snn-field-wrap {
-        padding: 0;
+    .form-field .snn-field-wrap { 
+        padding: 0; 
     }
-    .snn-field-wrap label {
+    .snn-field-wrap label { 
         display: block;
         font-weight: bold;
         margin-bottom: 8px;
@@ -1205,11 +1195,11 @@ function snn_print_tax_styles() {
     .snn-field-wrap input[type="url"],
     .snn-field-wrap input[type="email"],
     .snn-field-wrap input[type="date"],
-    .snn-field-wrap input[type="time"],
+    .snn-field-wrap input[type="time"], 
     .snn-field-wrap select,
     .snn-field-wrap textarea {
         width: 100%;
-        max-width: 600px;
+        max-width: 600px; 
         padding: 8px;
         margin-bottom: 5px;
         box-sizing: border-box;
@@ -1229,47 +1219,47 @@ function snn_save_taxonomy_field_data($term_id) {
     $term = get_term($term_id);
     if (!$term || is_wp_error($term)) return;
     $taxonomy_obj = get_taxonomy($term->taxonomy);
-    if (!current_user_can($taxonomy_obj->cap->edit_terms)) {
+    if (!current_user_can($taxonomy_obj->cap->edit_terms)) { 
         return;
     }
 
-    $custom_fields = get_option('snn_custom_fields', []);
-    $posted_data   = $_POST['custom_fields'] ?? [];
+    $custom_fields = get_option('snn_custom_fields', []); // Reverted variable name
+    $posted_data   = $_POST['custom_fields'] ?? []; 
 
-    foreach ($custom_fields as $field) {
-        if (!empty($field['repeater'])) {
+    foreach ($custom_fields as $field) { // Reverted variable name
+        if (!empty($field['repeater'])) { 
             continue;
         }
         if (empty($field['taxonomies']) || !in_array($term->taxonomy, $field['taxonomies'])) {
             continue;
         }
 
-        $slug_name = $field['slug_name'];
-        if (isset($posted_data[$slug_name])) {
-            $raw_value = $posted_data[$slug_name];
-            if (is_array($raw_value)) {
+        $field_name = $field['name'];
+        if (isset($posted_data[$field_name])) {
+            $raw_value = $posted_data[$field_name]; // Renamed $val to $raw_value
+            if (is_array($raw_value)) { 
                 $sanitized = array_map(function($v) use ($field) {
                     return snn_sanitize_value_by_type($field['type'], $v, $field);
                 }, $raw_value);
                 $sanitized = array_filter($sanitized, function($v) { return ($v !== '' && $v !== null); });
                 if (!empty($sanitized)) {
-                    update_term_meta($term_id, $slug_name, $sanitized);
+                    update_term_meta($term_id, $field_name, $sanitized);
                 } else {
-                    delete_term_meta($term_id, $slug_name);
+                    delete_term_meta($term_id, $field_name);
                 }
-            } else {
-                $san = snn_sanitize_value_by_type($field['type'], $raw_value, $field);
+            } else { 
+                $san = snn_sanitize_value_by_type($field['type'], $raw_value, $field); // Renamed from $sanitized
                 if ($san !== '' && $san !== null) {
-                    update_term_meta($term_id, $slug_name, $san);
+                    update_term_meta($term_id, $field_name, $san);
                 } else {
-                    delete_term_meta($term_id, $slug_name);
+                    delete_term_meta($term_id, $field_name);
                 }
             }
-        } else {
+        } else { 
             if ($field['type'] === 'true_false') {
-                update_term_meta($term_id, $slug_name, '0');
+                update_term_meta($term_id, $field_name, '0');
             } elseif ($field['type'] === 'checkbox') {
-                delete_term_meta($term_id, $slug_name);
+                 delete_term_meta($term_id, $field_name); 
             }
         }
     }
@@ -1280,7 +1270,7 @@ function snn_add_author_profile_fields() {
     $author_fields = [];
 
     foreach ($custom_fields as $field) {
-        if (!empty($field['author']) && empty($field['repeater'])) {
+        if (!empty($field['author']) && empty($field['repeater'])) { 
             $author_fields[] = $field;
         }
     }
@@ -1293,18 +1283,18 @@ function snn_add_author_profile_fields() {
 }
 add_action('admin_init', 'snn_add_author_profile_fields');
 
-function snn_display_author_custom_fields($user) {
-    if (!current_user_can('edit_user', $user->ID)) {
+function snn_display_author_custom_fields($user) { // $user is the original parameter name
+    if (!current_user_can('edit_user', $user->ID)) { 
         return;
     }
-    $custom_fields = get_option('snn_custom_fields', []);
-    $author_fields = [];
+    $custom_fields = get_option('snn_custom_fields', []); // Original variable name
+    $author_fields = []; // Original variable name
     $needs_media = false;
     $needs_color = false;
 
-    foreach ($custom_fields as $field_config) {
-        if (!empty($field_config['author']) && empty($field_config['repeater'])) {
-            $author_fields[] = $field_config;
+    foreach ($custom_fields as $field_config) { // Use $field_config to avoid clash with $field in loop
+        if (!empty($field_config['author']) && empty($field_config['repeater'])) { 
+            $author_fields[] = $field_config; // Store the whole field config
             if ($field_config['type'] === 'media') $needs_media = true;
             if ($field_config['type'] === 'color') $needs_color = true;
         }
@@ -1319,24 +1309,23 @@ function snn_display_author_custom_fields($user) {
         wp_enqueue_style('wp-color-picker');
         wp_enqueue_script('wp-color-picker');
     }
-    if ($needs_media || $needs_color) {
-        add_action('admin_footer', 'snn_output_dynamic_field_js', 20);
+    if ($needs_media || $needs_color) { 
+        add_action('admin_footer', 'snn_output_dynamic_field_js', 20); 
     }
 
     ?>
     <h2>Custom Author Information</h2>
     <?php wp_nonce_field('snn_save_author_fields_' . $user->ID, 'snn_author_fields_nonce'); ?>
-    <table class="form-table snn-metabox-wrapper" role="presentation" style="border:none; background:transparent; padding:0;">
+    <table class="form-table snn-metabox-wrapper" role="presentation" style="border:none; background:transparent; padding:0;"> 
         <tbody>
         <?php
-        foreach ($author_fields as $field) {
-            $slug_name = $field['slug_name'];
-            $field_name = !empty($field['field_name']) ? $field['field_name'] : ucwords(str_replace('_',' ',$slug_name));
-            $value     = get_user_meta($user->ID, $slug_name, true);
+        foreach ($author_fields as $field) { // Use $field as in original logic for this loop
+            $field_name = $field['name'];
+            $value      = get_user_meta($user->ID, $field_name, true);
             ?>
             <tr class="snn-field-wrap snn-field-type-<?php echo esc_attr($field['type']); ?>">
                 <th>
-                    <label for="<?php echo esc_attr($slug_name . '_0'); ?>"><?php echo esc_html($field_name); ?></label>
+                    <label for="<?php echo esc_attr($field_name . '_0'); ?>"><?php echo esc_html(ucwords(str_replace('_',' ',$field_name))); ?></label>
                 </th>
                 <td>
                     <?php snn_render_field_input($field, $value, '0', 'meta'); ?>
@@ -1348,7 +1337,7 @@ function snn_display_author_custom_fields($user) {
         </tbody>
     </table>
     <style>
-    .form-table.snn-metabox-wrapper {
+    .form-table.snn-metabox-wrapper { 
         background: transparent;
         border: none;
         padding: 0;
@@ -1366,15 +1355,15 @@ function snn_display_author_custom_fields($user) {
     .snn-field-wrap input[type="time"],
     .snn-field-wrap select,
     .snn-field-wrap textarea {
-        width: 100%;
-        max-width: 400px;
+        width: 100%; 
+        max-width: 400px; 
         padding: 6px;
         box-sizing: border-box;
     }
     .snn-field-wrap textarea {
         min-height: 80px;
     }
-    .snn-field-wrap input[type="checkbox"] {
+    .snn-field-wrap input[type="checkbox"] { 
         width: auto;
     }
     .snn-field-type-media .media-uploader,
@@ -1386,46 +1375,46 @@ function snn_display_author_custom_fields($user) {
 }
 
 function snn_save_author_custom_fields($user_id) {
-    if (!isset($_POST['snn_author_fields_nonce']) ||
+    if (!isset($_POST['snn_author_fields_nonce']) ||  
         !wp_verify_nonce($_POST['snn_author_fields_nonce'], 'snn_save_author_fields_' . $user_id)) {
         return;
     }
-    if (!current_user_can('edit_user', $user_id)) {
+    if (!current_user_can('edit_user', $user_id)) { 
         return;
     }
-    $custom_fields = get_option('snn_custom_fields', []);
-    $posted_data   = $_POST['custom_fields'] ?? [];
+    $custom_fields = get_option('snn_custom_fields', []); // Reverted variable name
+    $posted_data   = $_POST['custom_fields'] ?? []; 
 
-    foreach ($custom_fields as $field) {
-        if (empty($field['author']) || !empty($field['repeater'])) {
+    foreach ($custom_fields as $field) { // Reverted variable name
+        if (empty($field['author']) || !empty($field['repeater'])) { 
             continue;
         }
-        $slug_name = $field['slug_name'];
-        if (isset($posted_data[$slug_name])) {
-            $raw_value = $posted_data[$slug_name];
-            if (is_array($raw_value)) {
-                $vals = array_map(function($v_item) use ($field) {
+        $field_name = $field['name'];
+        if (isset($posted_data[$field_name])) {
+            $raw_value = $posted_data[$field_name]; // Use $raw_value for clarity before sanitization
+            if (is_array($raw_value)) { 
+                $vals = array_map(function($v_item) use ($field) { // Renamed $v to $v_item
                     return snn_sanitize_value_by_type($field['type'], $v_item, $field);
                 }, $raw_value);
                 $vals = array_filter($vals, function($v_item) { return ($v_item !== '' && $v_item !== null); });
                 if (!empty($vals)) {
-                    update_user_meta($user_id, $slug_name, $vals);
+                    update_user_meta($user_id, $field_name, $vals);
                 } else {
-                    delete_user_meta($user_id, $slug_name);
+                    delete_user_meta($user_id, $field_name);
                 }
-            } else {
+            } else { 
                 $san = snn_sanitize_value_by_type($field['type'], $raw_value, $field);
                 if ($san !== '' && $san !== null) {
-                    update_user_meta($user_id, $slug_name, $san);
+                    update_user_meta($user_id, $field_name, $san);
                 } else {
-                    delete_user_meta($user_id, $slug_name);
+                    delete_user_meta($user_id, $field_name);
                 }
             }
-        } else {
+        } else { 
             if ($field['type'] === 'true_false') {
-                update_user_meta($user_id, $slug_name, '0');
+                update_user_meta($user_id, $field_name, '0');
             } elseif ($field['type'] === 'checkbox') {
-                delete_user_meta($user_id, $slug_name);
+                delete_user_meta($user_id, $field_name); 
             }
         }
     }
@@ -1444,31 +1433,31 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
                 if (is_numeric($value)) {
                     $url = wp_get_attachment_url(intval($value));
                     return $url ? esc_url_raw($url) : '';
-                } else {
+                } else { 
                     return $value ? esc_url_raw(trim($value)) : '';
                 }
-            } else {
+            } else { 
                 return $value ? intval($value) : '';
             }
 
         case 'number':
             return ($value === '' || $value === null) ? '' : (is_numeric($value) ? floatval($value) : '');
 
-        case 'date':
+        case 'date': 
              if (preg_match("/^\d{4}-\d{2}-\d{2}$/", $value)) {
                 return sanitize_text_field($value);
             }
             return '';
-        case 'color':
-            return sanitize_hex_color($value);
-        case 'select':
-        case 'radio':
-            return sanitize_text_field($value);
+        case 'color': 
+            return sanitize_hex_color($value); 
+        case 'select': 
+        case 'radio':  
+            return sanitize_text_field($value); 
+        
+        case 'checkbox': 
+            return sanitize_text_field($value); 
 
-        case 'checkbox':
-            return sanitize_text_field($value);
-
-        case 'time':
+        case 'time': 
             return preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $value) ? sanitize_text_field($value) : '';
 
         case 'true_false':
@@ -1480,7 +1469,7 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
         case 'email':
             return sanitize_email($value);
 
-        default:
+        default: 
             return sanitize_text_field($value);
     }
 }
@@ -1508,7 +1497,7 @@ function snn_output_dynamic_field_js() {
             var $remove = $uploader.find('.media-remove-button');
             var $input = $uploader.find('.media-value-field');
             var $filenameDisplay = $uploader.find('.media-filename');
-            if (!$filenameDisplay.length) {
+            if (!$filenameDisplay.length) { 
                 $filenameDisplay = $('<div class="media-filename"></div>').insertAfter($remove);
             }
 
@@ -1547,7 +1536,7 @@ function snn_output_dynamic_field_js() {
                             if (mimeType.indexOf('video/') === 0) dashiconClass = 'dashicons-media-video';
                             else if (mimeType.indexOf('audio/') === 0) dashiconClass = 'dashicons-media-audio';
                             else if (mimeType === 'application/pdf') dashiconClass = 'dashicons-media-document';
-                            else if (mimeType.indexOf('application/') === 0 || mimeType.indexOf('text/') === 0) dashiconClass = 'dashicons-media-spreadsheet';
+                            else if (mimeType.indexOf('application/') === 0 || mimeType.indexOf('text/') === 0) dashiconClass = 'dashicons-media-spreadsheet'; 
                             $newPreview.html('<span class="dashicons '+dashiconClass+' media-preview"></span>');
                         }
                         $newFilename.text(att.filename).show();
@@ -1573,7 +1562,7 @@ function snn_output_dynamic_field_js() {
                         if (mimeType.indexOf('video/') === 0) dashiconClass = 'dashicons-media-video';
                         else if (mimeType.indexOf('audio/') === 0) dashiconClass = 'dashicons-media-audio';
                         else if (mimeType === 'application/pdf') dashiconClass = 'dashicons-media-document';
-                        else if (mimeType.indexOf('application/') === 0 || mimeType.indexOf('text/') === 0) dashiconClass = 'dashicons-media-spreadsheet';
+                        else if (mimeType.indexOf('application/') === 0 || mimeType.indexOf('text/') === 0) dashiconClass = 'dashicons-media-spreadsheet'; 
                         $previewWrapper.html('<span class="dashicons '+dashiconClass+' media-preview"></span>');
                     }
                     $filenameDisplay.text(attachment.filename).show();
@@ -1589,23 +1578,23 @@ function snn_output_dynamic_field_js() {
             var $btn      = $(this);
             var $uploader = $btn.closest('.media-uploader');
             $uploader.find('.media-value-field').val('');
-            $uploader.find('.media-preview-wrapper').empty();
-            $uploader.find('.media-filename').empty().hide();
+            $uploader.find('.media-preview-wrapper').empty(); 
+            $uploader.find('.media-filename').empty().hide(); 
             $btn.hide();
         });
 
         $(document).on('click', '.add-repeater-item', function(e) {
             e.preventDefault();
             var $container = $(this).closest('.repeater-container');
-            var $template  = $container.find('.repeater-template').first().clone(true);
-
+            var $template  = $container.find('.repeater-template').first().clone(true); 
+            
             $template.removeClass('repeater-template').show();
-            $template.insertBefore($(this));
+            $template.insertBefore($(this)); 
 
             if ($template.find('.snn-color-picker').length) {
                 $template.find('.snn-color-picker').wpColorPicker();
             }
-
+            
             reindexRepeaterItems($container);
         });
 
@@ -1619,11 +1608,11 @@ function snn_output_dynamic_field_js() {
 
         function reindexRepeaterItems($container) {
             var namePrefix = $container.data('name-prefix') || 'custom_fields';
-            var mainFieldName = $container.data('field-name');
+            var mainFieldName = $container.data('field-name'); 
 
             $container.find('.repeater-item').not('.repeater-template').each(function(currentIndex) {
                 var $item = $(this);
-                $item.find('input, select, textarea, button').each(function() {
+                $item.find('input, select, textarea, button').each(function() { 
                     var $el = $(this);
                     var oldName = $el.attr('name');
                     var oldId = $el.attr('id');
@@ -1648,7 +1637,7 @@ function snn_output_dynamic_field_js() {
                                 $label.attr('for', newId);
                             }
                             if ($el.hasClass('wp-editor-area')) {
-                                var editorWrapId = newId + '-wrap';
+                                var editorWrapId = newId + '-wrap'; 
                                 var $editorWrap = $('#' + editorWrapId);
                             }
                         }
@@ -1660,7 +1649,7 @@ function snn_output_dynamic_field_js() {
         if ($('.snn-color-picker').length) {
             $('.snn-color-picker').wpColorPicker();
         }
-
+        
         if (typeof $.fn.datepicker === 'function') {
             $('input.snn-datepicker').each(function(){
                 if (!$(this).data('datepicker-initialized')) {
@@ -1670,19 +1659,19 @@ function snn_output_dynamic_field_js() {
             });
         }
          $(document).on('click', '.add-repeater-item', function() {
-            var $newItem = $(this).prev('.repeater-item');
+            var $newItem = $(this).prev('.repeater-item'); 
             if (typeof $.fn.datepicker === 'function') {
                 $newItem.find('input.snn-datepicker').each(function(){
                      if (!$(this).data('datepicker-initialized')) {
-                         $(this).datepicker({ dateFormat: 'yy-mm-dd' });
-                         $(this).data('datepicker-initialized', true);
+                        $(this).datepicker({ dateFormat: 'yy-mm-dd' });
+                        $(this).data('datepicker-initialized', true);
                     }
                 });
             }
         });
 
         if (typeof switchEditors !== 'undefined') {
-            $('.wp-editor-wrap').each(function() {
+            $('.wp-editor-wrap').each(function() { 
                 var editorID = $(this).attr('id');
                 if (editorID) {
                     editorID = editorID.replace('-wrap', '');
@@ -1696,12 +1685,12 @@ function snn_output_dynamic_field_js() {
                 if (typeof switchEditors !== 'undefined') {
                     $('.repeater-item:not(.repeater-template) .wp-editor-wrap').each(function() {
                         var editorID = $(this).attr('id');
-                          if (editorID) {
-                             editorID = editorID.replace('-wrap','');
+                         if (editorID) {
+                            editorID = editorID.replace('-wrap','');
                         }
                     });
                 }
-            }, 250);
+            }, 250); 
         });
     });
     </script>
@@ -1713,7 +1702,7 @@ function snn_init_tinymce_html_default() {
     global $pagenow;
     if (in_array($pagenow, ['post-new.php', 'post.php'])) {
         $screen = get_current_screen();
-        if ( isset($screen->post_type) ) {
+        if ( isset($screen->post_type) ) { 
             ?>
             <script type="text/javascript">
             jQuery(document).ready(function($) {
@@ -1733,9 +1722,9 @@ add_action('admin_enqueue_scripts', function ($hook) {
             ?>
             <script>
             jQuery(document).ready(function($) {
-                $('form#addtag, form#edittag').on('submit', function(event) {
-                    const form = this;
-                    const $submitButton = $(form).find('input[type="submit"], button[type="submit"]');
+                $('form#addtag, form#edittag').on('submit', function(event) { 
+                        const form = this;
+                        const $submitButton = $(form).find('input[type="submit"], button[type="submit"]');
                 });
             });
             </script>
@@ -1749,10 +1738,10 @@ function snn_taxonomy_overview_js() {
     jQuery(document).ready(function($) {
         $(document).ajaxComplete(function(event, xhr, settings) {
             if (settings && settings.data && typeof settings.data === 'string' && (
-                settings.data.includes('action=add-tag') ||
-                settings.data.includes('action=delete-tag') ||
-                settings.data.includes('action=editedtag') ||
-                settings.data.includes('action=inline-save-tax')
+                settings.data.includes('action=add-tag') ||    
+                settings.data.includes('action=delete-tag') || 
+                settings.data.includes('action=editedtag') ||  
+                settings.data.includes('action=inline-save-tax') 
             )) {
                 var isError = false;
                 if (xhr.responseXML && $(xhr.responseXML).find('wp_error').length > 0) {
@@ -1764,7 +1753,7 @@ function snn_taxonomy_overview_js() {
                 if (!isError) {
                     setTimeout(function() {
                         window.location.reload();
-                    }, 300);
+                    }, 300); 
                 }
             }
         });
@@ -1777,7 +1766,7 @@ add_action('admin_footer-edit-tags.php', 'snn_taxonomy_overview_js');
 global $snn_options_pages_hooks;
 $snn_options_pages_hooks = [];
 
-add_action('admin_menu', 'snn_register_options_pages', 20);
+add_action('admin_menu', 'snn_register_options_pages', 20); 
 function snn_register_options_pages() {
     $custom_fields = get_option('snn_custom_fields', []);
     if (empty($custom_fields)) return;
@@ -1792,23 +1781,23 @@ function snn_register_options_pages() {
     if (empty($options_page_groups)) return;
 
     global $snn_options_pages_hooks;
-    $base_position = 81;
+    $base_position = 81; 
 
     foreach ($options_page_groups as $group_name => $fields_for_group) {
         if (empty($fields_for_group)) continue;
 
         $menu_slug = 'snn_options_' . sanitize_title($group_name);
-        $page_title = esc_html($group_name) . ' Settings';
+        $page_title = esc_html($group_name) . ' Settings'; 
         $menu_title = esc_html($group_name);
 
         $hook = add_menu_page(
             $page_title,
             $menu_title,
-            'manage_options',
+            'manage_options', 
             $menu_slug,
-            'snn_render_actual_options_page_callback',
-            'dashicons-admin-settings',
-            $base_position++
+            'snn_render_actual_options_page_callback', 
+            'dashicons-admin-settings', 
+            $base_position++ 
         );
         if ($hook) {
             $snn_options_pages_hooks[] = $hook;
@@ -1818,12 +1807,12 @@ function snn_register_options_pages() {
 
 function snn_render_actual_options_page_callback() {
     $current_screen = get_current_screen();
-    $menu_slug_from_screen = $current_screen->id;
-
+    $menu_slug_from_screen = $current_screen->id; 
+    
     $options_page_slug_part = '';
     if (strpos($menu_slug_from_screen, 'toplevel_page_') === 0) {
         $options_page_slug_part = str_replace('toplevel_page_', '', $menu_slug_from_screen);
-    } else {
+    } else { 
         $options_page_slug_part = $menu_slug_from_screen;
     }
 
@@ -1838,7 +1827,7 @@ function snn_render_actual_options_page_callback() {
             if (sanitize_title($field_config['group_name']) === $group_name_sanitized) {
                 $fields_for_this_page[] = $field_config;
                 if (empty($actual_group_name_display)) {
-                    $actual_group_name_display = $field_config['group_name'];
+                    $actual_group_name_display = $field_config['group_name']; 
                 }
             }
         }
@@ -1854,18 +1843,18 @@ function snn_render_actual_options_page_callback() {
 
 
 function snn_options_page_form_handler($group_name_display, $fields_for_page, $group_slug_sanitized) {
-    if (isset($_POST['snn_options_page_nonce_' . $group_slug_sanitized]) &&
+    if (isset($_POST['snn_options_page_nonce_' . $group_slug_sanitized]) && 
         wp_verify_nonce($_POST['snn_options_page_nonce_' . $group_slug_sanitized], 'snn_save_options_for_' . $group_slug_sanitized)) {
-
+        
         $posted_options_data = $_POST['snn_page_options'] ?? [];
 
         foreach ($fields_for_page as $field_config) {
-            $slug_name = $field_config['slug_name'];
-            $option_key = 'snn_opt_' . $slug_name;
+            $field_name = $field_config['name'];
+            $option_key = 'snn_opt_' . $field_name; 
 
-            if (isset($posted_options_data[$slug_name])) {
-                $raw_value = $posted_options_data[$slug_name];
-                if (is_array($raw_value)) {
+            if (isset($posted_options_data[$field_name])) {
+                $raw_value = $posted_options_data[$field_name];
+                if (is_array($raw_value)) { 
                     $sanitized_values = array_map(function($item) use ($field_config) {
                         return snn_sanitize_value_by_type($field_config['type'], $item, $field_config);
                     }, $raw_value);
@@ -1873,9 +1862,9 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
                     if (!empty($sanitized_values)) {
                         update_option($option_key, $sanitized_values);
                     } else {
-                        delete_option($option_key);
+                        delete_option($option_key); 
                     }
-                } else {
+                } else { 
                     $sanitized_value = snn_sanitize_value_by_type($field_config['type'], $raw_value, $field_config);
                     if ($sanitized_value !== '' && $sanitized_value !== null) {
                         update_option($option_key, $sanitized_value);
@@ -1883,11 +1872,11 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
                         delete_option($option_key);
                     }
                 }
-            } else {
+            } else { 
                 if ($field_config['type'] === 'true_false') {
-                    update_option($option_key, '0');
+                    update_option($option_key, '0'); 
                 } elseif ($field_config['type'] === 'checkbox') {
-                    delete_option($option_key);
+                    delete_option($option_key); 
                 } else {
                     delete_option($option_key);
                 }
@@ -1898,36 +1887,34 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
 
     echo '<div class="wrap">';
     echo '<h1>' . esc_html($group_name_display) . '</h1>';
-    echo '<form method="post" action="">';
-
+    echo '<form method="post" action="">'; 
+    
     wp_nonce_field('snn_save_options_for_' . $group_slug_sanitized, 'snn_options_page_nonce_' . $group_slug_sanitized);
-
+    
     echo '<div class="snn-metabox-wrapper" style="display:flex;flex-wrap:wrap; background-color: #fff; padding: 20px; margin-top:15px; border: 1px solid #c3c4c7; box-shadow: 0 1px 1px rgba(0,0,0,.04);">';
 
     foreach ($fields_for_page as $field) {
-        $slug_name   = $field['slug_name'];
-        $option_key  = 'snn_opt_' . $slug_name;
+        $field_name  = $field['name'];
+        $option_key  = 'snn_opt_' . $field_name;
         $col_width   = !empty($field['column_width']) ? intval($field['column_width']) : 100;
         $field_value = get_option($option_key);
-        $field_name = !empty($field['field_name']) ? $field['field_name'] : ucwords(str_replace('_',' ',$slug_name));
 
-
-        if (is_array($field_value)) {
+        if (is_array($field_value)) { 
             $field_value = array_filter($field_value, function($val) { return $val !== ''; });
         }
 
-        echo '<div class="snn-field-wrap snn-field-type-' . esc_attr($field['type'])
-             . (!empty($field['repeater']) ? ' snn-is-repeater' : '')
+        echo '<div class="snn-field-wrap snn-field-type-' . esc_attr($field['type']) 
+             . (!empty($field['repeater']) ? ' snn-is-repeater' : '') 
              . '" style="width:calc(' . $col_width . '% - 20px); margin-right:20px; margin-bottom:15px; box-sizing:border-box; padding:10px; border:1px solid #eee; background:#fdfdfd;">';
+        
+        echo '<label class="snn-field-label" for="' . esc_attr($field_name . '_0') . '">' 
+             . esc_html(ucwords(str_replace('_',' ',$field_name))) . '</label>';
 
-        echo '<label class="snn-field-label" for="' . esc_attr($slug_name . '_0') . '">'
-             . esc_html($field_name) . '</label>';
-
-        $input_name_prefix = 'snn_page_options';
+        $input_name_prefix = 'snn_page_options'; 
 
         if (!empty($field['repeater'])) {
             $values = (is_array($field_value)) ? $field_value : [];
-            echo '<div class="repeater-container" data-field-name="' . esc_attr($slug_name) . '" data-name-prefix="' . $input_name_prefix . '">';
+            echo '<div class="repeater-container" data-field-name="' . esc_attr($field_name) . '" data-name-prefix="' . $input_name_prefix . '">';
 
             if (!empty($values)) {
                 foreach ($values as $index => $value_item) {
@@ -1950,13 +1937,13 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
         } else {
             snn_render_field_input($field, $field_value, '0', 'options_page');
         }
-        echo '</div>';
+        echo '</div>'; 
     }
-    echo '</div>';
-
+    echo '</div>'; 
+    
     submit_button();
     echo '</form>';
-    echo '</div>';
+    echo '</div>'; 
     ?>
     <style>
     .snn-metabox-wrapper{display:flex;flex-wrap:wrap;}
@@ -2041,18 +2028,18 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
 
 add_action('admin_enqueue_scripts', 'snn_enqueue_dynamic_options_page_scripts');
 function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
-    global $snn_options_pages_hooks;
+    global $snn_options_pages_hooks; 
     if (empty($snn_options_pages_hooks) || !in_array($hook_suffix, $snn_options_pages_hooks)) {
-        return;
+        return; 
     }
 
-    $current_screen = get_current_screen();
+    $current_screen = get_current_screen(); 
     $group_name_sanitized = str_replace(['toplevel_page_snn_options_', 'snn_options_'], '', $hook_suffix);
 
     $all_custom_fields = get_option('snn_custom_fields', []);
     $needs_media = false;
     $needs_color = false;
-    $needs_repeater_js = false;
+    $needs_repeater_js = false; 
     $needs_datepicker = false;
 
     foreach ($all_custom_fields as $field_cfg) {
@@ -2060,17 +2047,17 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
             if ($field_cfg['type'] === 'media') $needs_media = true;
             if ($field_cfg['type'] === 'color') $needs_color = true;
             if ($field_cfg['type'] === 'date') $needs_datepicker = true;
-
+            
             $disallowed_for_repeater = ['rich_text','select','checkbox','radio','true_false','url','email'];
             if (!in_array($field_cfg['type'], $disallowed_for_repeater) && !empty($field_cfg['repeater'])) {
-                 $needs_repeater_js = true;
+                 $needs_repeater_js = true; 
             }
         }
     }
 
     if ($needs_media) {
         wp_enqueue_media();
-        wp_enqueue_style('dashicons');
+        wp_enqueue_style('dashicons'); 
     }
     if ($needs_color) {
         wp_enqueue_style('wp-color-picker');
@@ -2080,7 +2067,7 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
         wp_enqueue_script('jquery-ui-datepicker');
     }
 
-    if ($needs_media || $needs_color || $needs_repeater_js || $needs_datepicker) {
+    if ($needs_media || $needs_color || $needs_repeater_js || $needs_datepicker) { 
         add_action('admin_footer', 'snn_output_dynamic_field_js');
     }
 }
