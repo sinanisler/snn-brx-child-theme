@@ -41,7 +41,7 @@ function snn_enqueue_taxonomy_author_assets($hook) {
     // Common pages: term.php, edit-tags.php = Taxonomy editing
     // profile.php, user-edit.php = Author profile
     if ( in_array($hook, ['term.php', 'edit-tags.php', 'profile.php', 'user-edit.php'], true) ) {
-        wp_enqueue_media();              
+        wp_enqueue_media();          
         wp_enqueue_style('wp-color-picker'); 
         wp_enqueue_script('wp-color-picker'); 
         add_action('admin_footer', 'snn_output_dynamic_field_js');
@@ -56,7 +56,7 @@ function snn_custom_fields_page_callback() {
     if (isset($_POST['snn_custom_fields_nonce']) && wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_custom_fields_save')) {
         $new_fields = [];
         if (!empty($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
-            foreach ($_POST['custom_fields'] as $field_data) { // Changed $field to $field_data to avoid conflict with outer $field if any
+            foreach ($_POST['custom_fields'] as $field_data) { 
                 if (!empty($field_data['name']) && !empty($field_data['type']) && !empty($field_data['group_name'])) {
                     $post_types_selected = isset($field_data['post_type']) && is_array($field_data['post_type']) ? array_map('sanitize_text_field', $field_data['post_type']) : [];
                     $taxonomies_selected = isset($field_data['taxonomies']) && is_array($field_data['taxonomies']) ? array_map('sanitize_text_field', $field_data['taxonomies']) : [];
@@ -68,6 +68,7 @@ function snn_custom_fields_page_callback() {
 
                     $new_fields[] = [
                         'group_name'     => sanitize_text_field($field_data['group_name']),
+                        'label'          => sanitize_text_field($field_data['label']),
                         'name'           => sanitize_key($field_data['name']),
                         'type'           => sanitize_text_field($field_data['type']),
                         'post_type'      => $post_types_selected,
@@ -112,16 +113,24 @@ function snn_custom_fields_page_callback() {
                                 <button type="button" class="move-down">▼</button>
                                 <button type="button" class="remove-field">Remove</button>
                             </div>
-                            <div class="field-group">
-                                <label>Group Name</label>
-                                <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" 
-                                       value="<?php echo esc_attr($field['group_name'] ?? ''); ?>" />
-                            </div>
-                            <div class="field-group">
-                                <label>Field Name</label>
-                                <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][name]" 
-                                       placeholder="Field Name" 
-                                       value="<?php echo esc_attr($field['name']); ?>" />
+                            <div class="field-identity-group">
+                                <div class="field-group">
+                                    <label>Group Name</label>
+                                    <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" 
+                                           value="<?php echo esc_attr($field['group_name'] ?? ''); ?>" />
+                                </div>
+                                <div class="field-group">
+                                    <label>Field Label</label>
+                                    <input type="text" name="custom_fields[<?php echo $index; ?>][label]" 
+                                           placeholder="Field Label Name" 
+                                           value="<?php echo esc_attr($field['label'] ?? ''); ?>" />
+                                </div>
+                                <div class="field-group">
+                                    <label>Slug Name</label>
+                                    <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][name]" 
+                                           placeholder="my_awesome_field" 
+                                           value="<?php echo esc_attr($field['name']); ?>" />
+                                </div>
                             </div>
                             <div class="field-group">
                                 <label>Width (%)</label>
@@ -133,20 +142,20 @@ function snn_custom_fields_page_callback() {
                             <div class="field-group">
                                 <label>Field Type</label>
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
-                                    <option value="text"     <?php selected($field_type, 'text'); ?>>Text</option>
-                                    <option value="number"   <?php selected($field_type, 'number'); ?>>Number</option>
-                                    <option value="textarea" <?php selected($field_type, 'textarea'); ?>>Textarea</option>
-                                    <option value="rich_text"<?php selected($field_type, 'rich_text'); ?>>Rich Text</option>
-                                    <option value="media"    <?php selected($field_type, 'media'); ?>>Media</option>
-                                    <option value="date"     <?php selected($field_type, 'date'); ?>>Date</option>
-                                    <option value="time" <?php selected($field_type, 'time'); ?>>Time</option>
-                                    <option value="color"    <?php selected($field_type, 'color'); ?>>Color</option>
-                                    <option value="select"   <?php selected($field_type, 'select'); ?>>Select</option>
-                                    <option value="checkbox" <?php selected($field_type, 'checkbox'); ?>>Checkbox</option>
-                                    <option value="radio"    <?php selected($field_type, 'radio'); ?>>Radio</option>
+                                    <option value="text"      <?php selected($field_type, 'text'); ?>>Text</option>
+                                    <option value="number"    <?php selected($field_type, 'number'); ?>>Number</option>
+                                    <option value="textarea"  <?php selected($field_type, 'textarea'); ?>>Textarea</option>
+                                    <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>>Rich Text</option>
+                                    <option value="media"     <?php selected($field_type, 'media'); ?>>Media</option>
+                                    <option value="date"      <?php selected($field_type, 'date'); ?>>Date</option>
+                                    <option value="time"      <?php selected($field_type, 'time'); ?>>Time</option>
+                                    <option value="color"     <?php selected($field_type, 'color'); ?>>Color</option>
+                                    <option value="select"    <?php selected($field_type, 'select'); ?>>Select</option>
+                                    <option value="checkbox"  <?php selected($field_type, 'checkbox'); ?>>Checkbox</option>
+                                    <option value="radio"     <?php selected($field_type, 'radio'); ?>>Radio</option>
                                     <option value="true_false"<?php selected($field_type, 'true_false'); ?>>True/False</option>
-                                    <option value="url"      <?php selected($field_type, 'url'); ?>>URL</option>
-                                    <option value="email"    <?php selected($field_type, 'email'); ?>>Email</option>
+                                    <option value="url"       <?php selected($field_type, 'url'); ?>>URL</option>
+                                    <option value="email"     <?php selected($field_type, 'email'); ?>>Email</option>
                                 </select>
                             </div>
                             <div class="field-group field-group-choices" style="<?php echo $show_choices ? '' : 'display:none;'; ?>">
@@ -293,11 +302,14 @@ function snn_custom_fields_page_callback() {
                         <button type="button" class="move-down">▼</button>
                         <button type="button" class="remove-field">Remove</button>
                     </div>
-                    <div class="field-group"><label>Group Name</label><br><input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name"></div>
-                    <div class="field-group"><label>Field Name</label><br><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="Field Name"></div>
-                    <div class="field-group"><label>Width (%)</label><br><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
+                    <div class="field-identity-group">
+                        <div class="field-group"><label>Group Name</label><input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name"></div>
+                        <div class="field-group"><label>Field Label</label><input type="text" name="custom_fields[${newIndex}][label]" placeholder="My Awesome Field"></div>
+                        <div class="field-group"><label>Slug Name</label><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="my_awesome_field"></div>
+                    </div>
+                    <div class="field-group"><label>Width (%)</label><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
                     <div class="field-group">
-                        <label>Field Type</label><br>
+                        <label>Field Type</label>
                         <select name="custom_fields[${newIndex}][type]" class="field-type-select" style="width:140px">
                             <option value="text">Text</option>
                             <option value="number">Number</option>
@@ -316,23 +328,23 @@ function snn_custom_fields_page_callback() {
                         </select>
                     </div>
                     <div class="field-group field-group-choices" style="display:none;">
-                        <label>Choices <small>(value:label)</small></label><br>
+                        <label>Choices <small>(value:label)</small></label>
                         <textarea name="custom_fields[${newIndex}][choices]" rows="4" placeholder="red : Red&#10;green : Green"></textarea>
                     </div>
-                    <div class="field-group"><label>Post Types</label><br><select name="custom_fields[${newIndex}][post_type][]" multiple>
+                    <div class="field-group"><label>Post Types</label><select name="custom_fields[${newIndex}][post_type][]" multiple>
                         <?php foreach ($post_types as $pt) : ?>
                             <option value="<?php echo esc_js($pt->name); ?>"><?php echo esc_js($pt->label); ?></option>
                         <?php endforeach; ?>
                     </select></div>
-                    <div class="field-group"><label>Taxonomies</label><br><select name="custom_fields[${newIndex}][taxonomies][]" multiple>
+                    <div class="field-group"><label>Taxonomies</label><select name="custom_fields[${newIndex}][taxonomies][]" multiple>
                         <?php foreach ($taxonomies as $tax) : ?>
                             <option value="<?php echo esc_js($tax->name); ?>"><?php echo esc_js($tax->label); ?></option>
                         <?php endforeach; ?>
                     </select></div>
-                    <div class="field-group"><label>Author</label><br><input type="checkbox" name="custom_fields[${newIndex}][author]" value="1"></div>
-                    <div class="field-group"><label>Options Page</label><br><input type="checkbox" name="custom_fields[${newIndex}][options_page]" value="1"></div>
-                    <div class="field-group"><label>Repeater</label><br><input type="checkbox" class="repeater-checkbox" name="custom_fields[${newIndex}][repeater]" value="1"></div>
-                    <div class="field-group media-return-url-group" style="display:none;"><label>Return Full URL</label><br><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1"></div>
+                    <div class="field-group"><label>Author</label><input type="checkbox" name="custom_fields[${newIndex}][author]" value="1"></div>
+                    <div class="field-group"><label>Options Page</label><input type="checkbox" name="custom_fields[${newIndex}][options_page]" value="1"></div>
+                    <div class="field-group"><label>Repeater</label><input type="checkbox" class="repeater-checkbox" name="custom_fields[${newIndex}][repeater]" value="1"></div>
+                    <div class="field-group media-return-url-group" style="display:none;"><label>Return Full URL</label><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1"></div>
                 `;
                 fieldContainer.appendChild(newRow);
                 attachFieldNameSanitizer(newRow.querySelector('.sanitize-key'));
@@ -414,104 +426,117 @@ function snn_custom_fields_page_callback() {
         </script>
 
         <style>
-           .custom-field-row [type="text"],
-           .custom-field-row input[type="number"] {
-               width:180px;
-           }
-           .custom-field-row {
-               display: flex;
-               flex-wrap: wrap;
-               gap: 10px;
-               margin-bottom: 10px;
-               align-items: center; 
-           }
-           .custom-field-row label {
-               font-weight: bold;
-               font-size: 14px; 
-               display: block; 
-               margin-bottom: 3px; 
-           }
-           .custom-field-row .field-group { 
+            .custom-field-row [type="text"],
+            .custom-field-row input[type="number"] {
+                width:180px;
+            }
+            .custom-field-row {
                 display: flex;
-                flex-direction: column; 
-           }
-           .custom-field-row input,
-           .custom-field-row select,
-           .custom-field-row textarea {
-               font-size: 14px;
-           }
-           .custom-field-row .buttons button {
-               margin-left: 5px;
-           }
-           .custom-field-row {
-               gap: 15px; 
-               margin-bottom: 15px;
-               padding: 15px;
-               border: 1px solid #ddd;
-               border-radius: 5px;
-               background-color: #f9f9f9;
-           }
-           .custom-field-row .buttons {
-               display: flex;
-               flex-direction: row; 
-               gap: 5px;
-               margin-right: 10px; 
-               order: -1; 
-           }
-           #add-custom-field-row {
-               color: #2271b1;
-               border-color: #2271b1;
-               background: #f6f7f7;
-               padding: 5px 20px;
-               border: solid 1px;
-               cursor: pointer;
-               border-radius: 3px;
-           }
-           #add-custom-field-row:hover {
-               background: #eee;
-           }
-           .submit input[type="submit"] {
-               background: #2271b1;
-               border-color: #2271b1;
-               color: #fff;
-               text-shadow: none;
-           }
-           .submit input[type="submit"]:hover {
-               background-color: #005177;
-           }
-           .buttons button {
-               cursor: pointer;
-               border: 1px solid gray;
-               padding: 4px 10px;
-           }
-           .buttons button:hover {
-               background: white;
-           }
-           @media (max-width: 768px) {
-               .custom-field-row {
-                   flex-direction: column;
-                   align-items: flex-start;
-               }
-               .custom-field-row .buttons {
-                   flex-direction: row; 
-                   gap: 10px;
-                   margin-bottom: 10px; 
-                   order: 0; 
-               }
-               .custom-field-row .field-group, 
-               .custom-field-row input[type="text"],
-               .custom-field-row input[type="number"], 
-               .custom-field-row select,
-               .custom_field-row textarea { 
-                   width: 100%; 
-               }
-               .custom-field-row input[style*="width:70px"] { 
-                    width: 100% !important;
-               }
-               .custom-field-row select[style*="width:140px"] { 
-                    width: 100% !important;
-               }
-           }
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 10px;
+                align-items: center; 
+            }
+            .custom-field-row label {
+                font-weight: bold;
+                font-size: 14px; 
+                display: block; 
+                margin-bottom: 3px; 
+            }
+            .custom-field-row .field-group { 
+                 display: flex;
+                 flex-direction: column; 
+            }
+            .field-identity-group {
+                display: flex;
+                flex-direction: column;
+                gap: 12px; 
+            }
+            .field-identity-group input{
+                height:25px ;
+                min-height:auto ;
+            }
+            .field-identity-group label{
+                line-height:0.5
+            }
+            .custom-field-row input,
+            .custom-field-row select,
+            .custom-field-row textarea {
+                font-size: 14px;
+            }
+            .custom-field-row .buttons button {
+                margin-left: 5px;
+            }
+            .custom-field-row {
+                gap: 15px; 
+                margin-bottom: 15px;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+            .custom-field-row .buttons {
+                display: flex;
+                flex-direction: row; 
+                gap: 5px;
+                margin-right: 10px; 
+                order: -1; 
+            }
+            #add-custom-field-row {
+                color: #2271b1;
+                border-color: #2271b1;
+                background: #f6f7f7;
+                padding: 5px 20px;
+                border: solid 1px;
+                cursor: pointer;
+                border-radius: 3px;
+            }
+            #add-custom-field-row:hover {
+                background: #eee;
+            }
+            .submit input[type="submit"] {
+                background: #2271b1;
+                border-color: #2271b1;
+                color: #fff;
+                text-shadow: none;
+            }
+            .submit input[type="submit"]:hover {
+                background-color: #005177;
+            }
+            .buttons button {
+                cursor: pointer;
+                border: 1px solid gray;
+                padding: 4px 10px;
+            }
+            .buttons button:hover {
+                background: white;
+            }
+            @media (max-width: 768px) {
+                .custom-field-row {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+                .custom-field-row .buttons {
+                    flex-direction: row; 
+                    gap: 10px;
+                    margin-bottom: 10px; 
+                    order: 0; 
+                }
+                .custom-field-row .field-group, 
+                .custom-field-row .field-identity-group,
+                .custom-field-row input[type="text"],
+                .custom-field-row input[type="number"], 
+                .custom-field-row select,
+                .custom_field-row textarea { 
+                    width: 100%; 
+                }
+                .custom-field-row input[style*="width:70px"] { 
+                     width: 100% !important;
+                }
+                .custom-field-row select[style*="width:140px"] { 
+                     width: 100% !important;
+                }
+            }
         </style>
     </div>
     <?php
@@ -682,13 +707,16 @@ function snn_render_metabox_content($post, $metabox) {
                 return $val !== '';
             });
         }
+        
+        // Determine the label: use new 'label' field if it exists, otherwise fallback to generating from 'name'
+        $field_label = (!empty($field['label'])) ? $field['label'] : ucwords(str_replace('_',' ',$field_name));
 
         echo '<div class="snn-field-wrap snn-field-type-' . esc_attr($field['type']) 
              . (!empty($field['repeater']) ? ' snn-is-repeater' : '') 
              . '" style="width:calc(' . $col_width . '% - 20px);margin-right:20px;margin-bottom:15px;box-sizing:border-box;">';
 
         echo '<label class="snn-field-label" for="' . esc_attr($field_name . '_0') . '">'
-             . esc_html(ucwords(str_replace('_',' ',$field_name))) . '</label>';
+             . esc_html($field_label) . '</label>';
         
         if (!empty($field['repeater'])) {
             $values = (is_array($field_value)) ? $field_value : [];
@@ -1079,12 +1107,12 @@ function snn_save_custom_fields_meta($post_id) {
         return $post_id;
     }
 
-    $custom_fields = get_option('snn_custom_fields', []); // Reverted variable name
+    $custom_fields = get_option('snn_custom_fields', []);
     $posted_data   = $_POST['custom_fields'] ?? [];
 
-    foreach ($custom_fields as $field) { // Reverted variable name
+    foreach ($custom_fields as $field) {
         $field_name = $field['name'];
-        $current_post_type = get_post_type($post_id); // Renamed from $post_type for clarity
+        $current_post_type = get_post_type($post_id);
 
         if (empty($field['post_type']) || !in_array($current_post_type, $field['post_type'])) {
             continue;
@@ -1133,10 +1161,11 @@ function snn_register_dynamic_taxonomy_fields() {
             if (!empty($field['taxonomies']) && is_array($field['taxonomies'])) {
                 foreach ($field['taxonomies'] as $tax) {
                     add_action($tax . '_add_form_fields', function($taxonomy_slug) use ($field) { // Parameter is taxonomy slug
+                        $field_label = (!empty($field['label'])) ? $field['label'] : ucwords(str_replace('_',' ',$field['name']));
                         ?>
                         <div class="form-field snn-metabox-wrapper"> 
                             <div class="snn-field-wrap" style="width:100%;box-sizing:border-box; padding:10px 0;"> 
-                                <label for="<?php echo esc_attr($field['name'] . '_0'); ?>"><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
+                                <label for="<?php echo esc_attr($field['name'] . '_0'); ?>"><?php echo esc_html($field_label); ?></label>
                                 <?php snn_render_field_input($field, '', '0', 'meta'); ?>
                             </div>
                         </div>
@@ -1145,10 +1174,11 @@ function snn_register_dynamic_taxonomy_fields() {
 
                     add_action($tax . '_edit_form_fields', function($term) use ($field) {
                         $value = get_term_meta($term->term_id, $field['name'], true);
+                        $field_label = (!empty($field['label'])) ? $field['label'] : ucwords(str_replace('_',' ',$field['name']));
                         ?>
                         <tr class="form-field snn-metabox-wrapper">
                             <th scope="row">
-                                <label for="<?php echo esc_attr($field['name'] . '_0'); ?>"><?php echo esc_html(ucwords(str_replace('_',' ',$field['name']))); ?></label>
+                                <label for="<?php echo esc_attr($field['name'] . '_0'); ?>"><?php echo esc_html($field_label); ?></label>
                             </th>
                             <td> 
                                 <div class="snn-field-wrap" style="box-sizing:border-box;">
@@ -1223,10 +1253,10 @@ function snn_save_taxonomy_field_data($term_id) {
         return;
     }
 
-    $custom_fields = get_option('snn_custom_fields', []); // Reverted variable name
+    $custom_fields = get_option('snn_custom_fields', []);
     $posted_data   = $_POST['custom_fields'] ?? []; 
 
-    foreach ($custom_fields as $field) { // Reverted variable name
+    foreach ($custom_fields as $field) {
         if (!empty($field['repeater'])) { 
             continue;
         }
@@ -1236,7 +1266,7 @@ function snn_save_taxonomy_field_data($term_id) {
 
         $field_name = $field['name'];
         if (isset($posted_data[$field_name])) {
-            $raw_value = $posted_data[$field_name]; // Renamed $val to $raw_value
+            $raw_value = $posted_data[$field_name];
             if (is_array($raw_value)) { 
                 $sanitized = array_map(function($v) use ($field) {
                     return snn_sanitize_value_by_type($field['type'], $v, $field);
@@ -1248,7 +1278,7 @@ function snn_save_taxonomy_field_data($term_id) {
                     delete_term_meta($term_id, $field_name);
                 }
             } else { 
-                $san = snn_sanitize_value_by_type($field['type'], $raw_value, $field); // Renamed from $sanitized
+                $san = snn_sanitize_value_by_type($field['type'], $raw_value, $field);
                 if ($san !== '' && $san !== null) {
                     update_term_meta($term_id, $field_name, $san);
                 } else {
@@ -1283,18 +1313,18 @@ function snn_add_author_profile_fields() {
 }
 add_action('admin_init', 'snn_add_author_profile_fields');
 
-function snn_display_author_custom_fields($user) { // $user is the original parameter name
+function snn_display_author_custom_fields($user) {
     if (!current_user_can('edit_user', $user->ID)) { 
         return;
     }
-    $custom_fields = get_option('snn_custom_fields', []); // Original variable name
-    $author_fields = []; // Original variable name
+    $custom_fields = get_option('snn_custom_fields', []);
+    $author_fields = [];
     $needs_media = false;
     $needs_color = false;
 
-    foreach ($custom_fields as $field_config) { // Use $field_config to avoid clash with $field in loop
+    foreach ($custom_fields as $field_config) {
         if (!empty($field_config['author']) && empty($field_config['repeater'])) { 
-            $author_fields[] = $field_config; // Store the whole field config
+            $author_fields[] = $field_config;
             if ($field_config['type'] === 'media') $needs_media = true;
             if ($field_config['type'] === 'color') $needs_color = true;
         }
@@ -1319,13 +1349,14 @@ function snn_display_author_custom_fields($user) { // $user is the original para
     <table class="form-table snn-metabox-wrapper" role="presentation" style="border:none; background:transparent; padding:0;"> 
         <tbody>
         <?php
-        foreach ($author_fields as $field) { // Use $field as in original logic for this loop
+        foreach ($author_fields as $field) {
             $field_name = $field['name'];
             $value      = get_user_meta($user->ID, $field_name, true);
+            $field_label = (!empty($field['label'])) ? $field['label'] : ucwords(str_replace('_',' ',$field_name));
             ?>
             <tr class="snn-field-wrap snn-field-type-<?php echo esc_attr($field['type']); ?>">
                 <th>
-                    <label for="<?php echo esc_attr($field_name . '_0'); ?>"><?php echo esc_html(ucwords(str_replace('_',' ',$field_name))); ?></label>
+                    <label for="<?php echo esc_attr($field_name . '_0'); ?>"><?php echo esc_html($field_label); ?></label>
                 </th>
                 <td>
                     <?php snn_render_field_input($field, $value, '0', 'meta'); ?>
@@ -1382,18 +1413,18 @@ function snn_save_author_custom_fields($user_id) {
     if (!current_user_can('edit_user', $user_id)) { 
         return;
     }
-    $custom_fields = get_option('snn_custom_fields', []); // Reverted variable name
+    $custom_fields = get_option('snn_custom_fields', []);
     $posted_data   = $_POST['custom_fields'] ?? []; 
 
-    foreach ($custom_fields as $field) { // Reverted variable name
+    foreach ($custom_fields as $field) {
         if (empty($field['author']) || !empty($field['repeater'])) { 
             continue;
         }
         $field_name = $field['name'];
         if (isset($posted_data[$field_name])) {
-            $raw_value = $posted_data[$field_name]; // Use $raw_value for clarity before sanitization
+            $raw_value = $posted_data[$field_name];
             if (is_array($raw_value)) { 
-                $vals = array_map(function($v_item) use ($field) { // Renamed $v to $v_item
+                $vals = array_map(function($v_item) use ($field) {
                     return snn_sanitize_value_by_type($field['type'], $v_item, $field);
                 }, $raw_value);
                 $vals = array_filter($vals, function($v_item) { return ($v_item !== '' && $v_item !== null); });
@@ -1446,8 +1477,8 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
         case 'date': 
              if (preg_match("/^\d{4}-\d{2}-\d{2}$/", $value)) {
                 return sanitize_text_field($value);
-            }
-            return '';
+             }
+             return '';
         case 'color': 
             return sanitize_hex_color($value); 
         case 'select': 
@@ -1686,7 +1717,7 @@ function snn_output_dynamic_field_js() {
                     $('.repeater-item:not(.repeater-template) .wp-editor-wrap').each(function() {
                         var editorID = $(this).attr('id');
                          if (editorID) {
-                            editorID = editorID.replace('-wrap','');
+                             editorID = editorID.replace('-wrap','');
                         }
                     });
                 }
@@ -1738,7 +1769,7 @@ function snn_taxonomy_overview_js() {
     jQuery(document).ready(function($) {
         $(document).ajaxComplete(function(event, xhr, settings) {
             if (settings && settings.data && typeof settings.data === 'string' && (
-                settings.data.includes('action=add-tag') ||    
+                settings.data.includes('action=add-tag') ||   
                 settings.data.includes('action=delete-tag') || 
                 settings.data.includes('action=editedtag') ||  
                 settings.data.includes('action=inline-save-tax') 
@@ -1898,6 +1929,8 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
         $option_key  = 'snn_opt_' . $field_name;
         $col_width   = !empty($field['column_width']) ? intval($field['column_width']) : 100;
         $field_value = get_option($option_key);
+        $field_label = (!empty($field['label'])) ? $field['label'] : ucwords(str_replace('_',' ',$field_name));
+
 
         if (is_array($field_value)) { 
             $field_value = array_filter($field_value, function($val) { return $val !== ''; });
@@ -1908,7 +1941,7 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
              . '" style="width:calc(' . $col_width . '% - 20px); margin-right:20px; margin-bottom:15px; box-sizing:border-box; padding:10px; border:1px solid #eee; background:#fdfdfd;">';
         
         echo '<label class="snn-field-label" for="' . esc_attr($field_name . '_0') . '">' 
-             . esc_html(ucwords(str_replace('_',' ',$field_name))) . '</label>';
+             . esc_html($field_label) . '</label>';
 
         $input_name_prefix = 'snn_page_options'; 
 
