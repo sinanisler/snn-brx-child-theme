@@ -7,75 +7,53 @@
 function applyInlineStyleToSelection(styleProp, value) {
     const sel = window.getSelection();
     if (!sel.rangeCount) return;
+
     let range = sel.getRangeAt(0);
 
-    if (range.collapsed) return;
-
-    function mergeAdjacentSpans(span, styleProp, value) {
-        // Merge with previous sibling
-        let prev = span.previousSibling;
-        if (prev && prev.nodeType === 1 && prev.tagName === 'SPAN' && prev.style[styleProp] === value) {
-            while (span.firstChild) prev.appendChild(span.firstChild);
-            span.remove();
-            span = prev;
+    // This function splits text nodes at the boundaries of the selection range.
+    // This is necessary to ensure that styling is only applied to the selected text,
+    // not the entire text node.
+    function splitTextBoundaries(r) {
+        if (r.startContainer.nodeType === 3 && r.startOffset > 0) {
+            r.setStart(r.startContainer.splitText(r.startOffset), 0);
         }
-        // Merge with next sibling
-        let next = span.nextSibling;
-        if (next && next.nodeType === 1 && next.tagName === 'SPAN' && next.style[styleProp] === value) {
-            while (next.firstChild) span.appendChild(next.firstChild);
-            next.remove();
+        if (r.endContainer.nodeType === 3 && r.endOffset < r.endContainer.length) {
+            r.endContainer.splitText(r.endOffset);
         }
     }
 
-    // If selection is fully within a text node or simple element, use surroundContents
-    if (range.canSurroundContents()) {
-        // Check if everything is already in a span with the style, just update style
-        let common = range.commonAncestorContainer;
-        if (common.nodeType === 3) common = common.parentNode;
-        if (common.nodeType === 1 && common.tagName === "SPAN") {
-            common.style[styleProp] = value;
+    // This function walks the DOM tree within the range and applies a callback
+    // to each text node found.
+    function walk(node, r, cb) {
+        if (node.nodeType === 3) { // It's a text node
+            cb(node);
         } else {
-            const span = document.createElement('span');
-            span.style[styleProp] = value;
-            range.surroundContents(span);
-            mergeAdjacentSpans(span, styleProp, value);
-        }
-        return;
-    }
-
-    // If not, handle each text node within the selection individually
-    let textNodes = [];
-    let treeWalker = document.createTreeWalker(
-        range.commonAncestorContainer,
-        NodeFilter.SHOW_TEXT,
-        {
-            acceptNode: function(node) {
-                return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+            // It's an element node, so we check its children.
+            for (let child of Array.from(node.childNodes)) {
+                // We only process nodes that are intersected by the selection range.
+                if (r.intersectsNode(child)) walk(child, r, cb);
             }
         }
-    );
-    while (treeWalker.nextNode()) {
-        textNodes.push(treeWalker.currentNode);
     }
 
-    textNodes.forEach(node => {
-        let nodeRange = document.createRange();
-        let start = 0;
-        let end = node.length;
-        if (node === range.startContainer) start = range.startOffset;
-        if (node === range.endContainer) end = range.endOffset;
-        if (start === end) return;
-        nodeRange.setStart(node, start);
-        nodeRange.setEnd(node, end);
+    splitTextBoundaries(range);
 
-        const styledSpan = document.createElement('span');
-        styledSpan.style[styleProp] = value;
-        nodeRange.surroundContents(styledSpan);
-        mergeAdjacentSpans(styledSpan, styleProp, value);
+    const ancestor = range.commonAncestorContainer;
+
+    // Walk through the selected nodes and apply the style.
+    walk(ancestor, range, txt => {
+        let span = txt.parentNode;
+        // If the text node is not already wrapped in a SPAN, create one.
+        if (!span || span.nodeName !== 'SPAN') {
+            const newSpan = document.createElement('span');
+            span ? span.insertBefore(newSpan, txt) : ancestor.appendChild(newSpan);
+            newSpan.appendChild(txt);
+            span = newSpan;
+        }
+        // Apply the style to the wrapper span.
+        span.style[styleProp] = value;
     });
 }
-
-// The rest of your code remains EXACTLY the same:
 
 /**
  * Initializes a rich text editor for a given textarea element.
@@ -94,18 +72,6 @@ function initSnnRichTextEditor(textarea) {
     container.className = 'snn-rich-text-editor-container';
     container.innerHTML = `
         <div class="snn-rich-text-editor-toolbar">
-            <div class="snn-rich-text-editor-toolbar-group">
-                <select class="snn-rich-text-editor-block-type snn-rich-text-editor-select">
-                    <option value="">Format</option>
-                    <option value="p">Paragraph</option>
-                    <option value="h1">Heading 1</option>
-                    <option value="h2">Heading 2</option>
-                    <option value="h3">Heading 3</option>
-                    <option value="h4">Heading 4</option>
-                    <option value="blockquote">Blockquote</option>
-                    <option value="pre">Preformatted</option>
-                </select>
-            </div>
             <div class="snn-rich-text-editor-toolbar-group">
                 <select class="snn-rich-text-editor-font-size snn-rich-text-editor-select">
                     <option value="">Size</option>
@@ -257,15 +223,6 @@ function initSnnRichTextEditor(textarea) {
             sync();
         };
     });
-
-    // Block type dropdown handler (Format: p, h1, h2, h3, h4, blockquote, pre)
-    container.querySelector('.snn-rich-text-editor-block-type').onchange = e => {
-        const v = e.target.value;
-        if (!v) return;
-        document.execCommand('formatBlock', false, v === 'p' ? 'P' : v.toUpperCase());
-        e.target.value = ''; // Reset dropdown
-        saveState(); sync();
-    };
 
     // Event listeners for toolbar controls that apply inline styles.
     container.querySelector('.snn-rich-text-editor-font-size').onchange = e => {
