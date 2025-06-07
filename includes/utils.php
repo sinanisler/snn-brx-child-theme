@@ -245,3 +245,39 @@ function myroles_hide_default_role_dropdown() {
 add_action( 'admin_head', 'myroles_hide_default_role_dropdown' );
 
 
+
+
+
+
+
+
+
+
+
+
+
+add_action('admin_enqueue_scripts', function() {
+    $theme_uri = get_stylesheet_directory_uri();
+    wp_enqueue_style(
+        'snn-rich-text-editor',
+        $theme_uri . '/assets/css/snn-rich-text-editor.css',
+        [],
+        '1.0'
+    );
+    wp_enqueue_script(
+        'snn-rich-text-editor',
+        $theme_uri . '/assets/js/snn-rich-text-editor.js',
+        [],
+        '1.0',
+        true
+    );
+    // Pass AJAX URL and nonce as array!
+    wp_localize_script(
+        'snn-rich-text-editor',
+        'snnRichTextEditorVars',
+        [
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('snn_comment_media_upload')
+        ]
+    );
+});
