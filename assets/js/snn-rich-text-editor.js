@@ -73,6 +73,18 @@ function initSnnRichTextEditor(textarea) {
     container.innerHTML = `
         <div class="snn-rich-text-editor-toolbar">
             <div class="snn-rich-text-editor-toolbar-group">
+                <select class="snn-rich-text-editor-block-type snn-rich-text-editor-select">
+                    <option value="">Format</option>
+                    <option value="p">Paragraph</option>
+                    <option value="h1">Heading 1</option>
+                    <option value="h2">Heading 2</option>
+                    <option value="h3">Heading 3</option>
+                    <option value="h4">Heading 4</option>
+                    <option value="blockquote">Blockquote</option>
+                    <option value="pre">Preformatted</option>
+                </select>
+            </div>
+            <div class="snn-rich-text-editor-toolbar-group">
                 <select class="snn-rich-text-editor-font-size snn-rich-text-editor-select">
                     <option value="">Size</option>
                     <option value="16px" selected>16</option>
@@ -223,6 +235,15 @@ function initSnnRichTextEditor(textarea) {
             sync();
         };
     });
+
+    // Block type dropdown handler (Format: p, h1, h2, h3, h4, blockquote, pre)
+    container.querySelector('.snn-rich-text-editor-block-type').onchange = e => {
+        const v = e.target.value;
+        if (!v) return;
+        document.execCommand('formatBlock', false, v === 'p' ? 'P' : v.toUpperCase());
+        e.target.value = ''; // Reset dropdown
+        saveState(); sync();
+    };
 
     // Event listeners for toolbar controls that apply inline styles.
     container.querySelector('.snn-rich-text-editor-font-size').onchange = e => {
