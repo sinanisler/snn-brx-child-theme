@@ -16,7 +16,7 @@ class Flipbox_Element extends Element {
     public $nestable_areas = ['front', 'back'];
 
     public function get_label() {
-        return esc_html__( 'Flipbox (Nestable)', 'bricks' );
+        return esc_html__( 'Flipbox (Nestable)', 'snn' );
     }
 
     public function set_controls() {
@@ -24,7 +24,7 @@ class Flipbox_Element extends Element {
         $this->controls['flipbox_height'] = [
             'tab'         => 'content',
             'type'        => 'number',
-            'label'       => esc_html__( 'Flipbox Height', 'bricks' ),
+            'label'       => esc_html__( 'Flipbox Height', 'snn' ),
             'default'     => 250,
             'min'         => 100,
             'max'         => 1000,
@@ -41,7 +41,7 @@ class Flipbox_Element extends Element {
         $this->controls['flipbox_perspective'] = [
             'tab'         => 'content',
             'type'        => 'number',
-            'label'       => esc_html__( 'Flipbox Perspective', 'bricks' ),
+            'label'       => esc_html__( 'Flipbox Perspective', 'snn' ),
             'default'     => '1000px',
             'step'        => 1,
             'unit'        => 'px',
@@ -50,19 +50,19 @@ class Flipbox_Element extends Element {
         // Flipbox Animation Control.
         $this->controls['flipbox_animation'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Flipbox Animation', 'bricks' ),
+            'label'   => esc_html__( 'Flipbox Animation', 'snn' ),
             'type'    => 'select',
             'options' => [
-                'left-to-right'         => esc_html__( 'Left to Right (Flip)', 'bricks' ),
-                'right-to-left'         => esc_html__( 'Right to Left (Flip)', 'bricks' ),
-                'top-to-bottom'         => esc_html__( 'Top to Bottom (Flip)', 'bricks' ),
-                'bottom-to-top'         => esc_html__( 'Bottom to Top (Flip)', 'bricks' ),
-                'fade'                  => esc_html__( 'Fade', 'bricks' ),
-                'spin-flip'             => esc_html__( 'Spin Flip', 'bricks' ),
-                'left-to-right-slide'   => esc_html__( 'Left to Right Slide', 'bricks' ),
-                'right-to-left-slide'   => esc_html__( 'Right to Left Slide', 'bricks' ),
-                'top-to-down-slide'     => esc_html__( 'Top to Down Slide', 'bricks' ),
-                'bottom-to-top-slide'   => esc_html__( 'Bottom to Top Slide', 'bricks' ),
+                'left-to-right'         => esc_html__( 'Left to Right (Flip)', 'snn' ),
+                'right-to-left'         => esc_html__( 'Right to Left (Flip)', 'snn' ),
+                'top-to-bottom'         => esc_html__( 'Top to Bottom (Flip)', 'snn' ),
+                'bottom-to-top'         => esc_html__( 'Bottom to Top (Flip)', 'snn' ),
+                'fade'                  => esc_html__( 'Fade', 'snn' ),
+                'spin-flip'             => esc_html__( 'Spin Flip', 'snn' ),
+                'left-to-right-slide'   => esc_html__( 'Left to Right Slide', 'snn' ),
+                'right-to-left-slide'   => esc_html__( 'Right to Left Slide', 'snn' ),
+                'top-to-down-slide'     => esc_html__( 'Top to Down Slide', 'snn' ),
+                'bottom-to-top-slide'   => esc_html__( 'Bottom to Top Slide', 'snn' ),
             ],
             'default' => 'left-to-right',
         ];

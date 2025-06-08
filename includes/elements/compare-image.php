@@ -14,7 +14,7 @@ class Prefix_Element_Compare_Image extends \Bricks\Element {
     public $nestable    = false;
 
     public function get_label() {
-        return esc_html__('Compare Image', 'bricks');
+        return esc_html__('Compare Image', 'snn');
     }
 
     public function set_control_groups() {
@@ -25,37 +25,37 @@ class Prefix_Element_Compare_Image extends \Bricks\Element {
         // Left Image
         $this->controls['left_image'] = [
             'tab'   => 'content',
-            'label' => esc_html__('Left Image', 'bricks'),
+            'label' => esc_html__('Left Image', 'snn'),
             'type'  => 'image',
         ];
 
         // Right Image
         $this->controls['right_image'] = [
             'tab'   => 'content',
-            'label' => esc_html__('Right Image', 'bricks'),
+            'label' => esc_html__('Right Image', 'snn'),
             'type'  => 'image',
         ];
 
         // Left Label
         $this->controls['left_label'] = [
             'tab'     => 'content',
-            'label'   => esc_html__('Left Label', 'bricks'),
+            'label'   => esc_html__('Left Label', 'snn'),
             'type'    => 'text',
-            'default' => esc_html__('Original', 'bricks'),
+            'default' => esc_html__('Original', 'snn'),
         ];
 
         // Right Label
         $this->controls['right_label'] = [
             'tab'     => 'content',
-            'label'   => esc_html__('Right Label', 'bricks'),
+            'label'   => esc_html__('Right Label', 'snn'),
             'type'    => 'text',
-            'default' => esc_html__('Modified', 'bricks'),
+            'default' => esc_html__('Modified', 'snn'),
         ];
 
         // Slider Icon Control
         $this->controls['slider_icon'] = [
             'tab'     => 'content',
-            'label'   => esc_html__('Slider Icon', 'bricks'),
+            'label'   => esc_html__('Slider Icon', 'snn'),
             'type'    => 'icon',
             'default' => [
                 'library' => 'themify',
@@ -66,7 +66,7 @@ class Prefix_Element_Compare_Image extends \Bricks\Element {
         // Slider Icon Color Control
         $this->controls['slider_icon_color'] = [
             'tab'    => 'content',
-            'label'  => esc_html__('Slider Icon Color', 'bricks'),
+            'label'  => esc_html__('Slider Icon Color', 'snn'),
             'type'   => 'color',
             'inline' => true,
             'css'    => [
@@ -83,7 +83,7 @@ class Prefix_Element_Compare_Image extends \Bricks\Element {
         // Slider Button Background Color Control
         $this->controls['slider_button_bg'] = [
             'tab'    => 'content',
-            'label'  => esc_html__('Slider Button Background Color', 'bricks'),
+            'label'  => esc_html__('Slider Button Background Color', 'snn'),
             'type'   => 'color',
             'inline' => true,
             'css'    => [

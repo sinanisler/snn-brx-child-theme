@@ -12,19 +12,19 @@ class Prefix_Element_Halftone extends \Bricks\Element {
 
 	// Return localized element label.
 	public function get_label() {
-		return esc_html__( 'Polkadot Halftone Image', 'bricks' );
+		return esc_html__( 'Polkadot Halftone Image', 'snn' );
 	}
 
 	// Set builder controls – all in the content tab.
 	public function set_controls() {
 		$this->controls['exampleImage'] = [
 			'tab'   => 'content',
-			'label' => esc_html__( 'Image', 'bricks' ),
+			'label' => esc_html__( 'Image', 'snn' ),
 			'type'  => 'image',
 		];
 		$this->controls['grid_size'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Grid Size', 'bricks' ),
+			'label'   => esc_html__( 'Grid Size', 'snn' ),
 			'type'    => 'slider',
 			'default' => 20,
 			'units'   => [
@@ -37,7 +37,7 @@ class Prefix_Element_Halftone extends \Bricks\Element {
 		];
 		$this->controls['brightness'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Brightness', 'bricks' ),
+			'label'   => esc_html__( 'Brightness', 'snn' ),
 			'type'    => 'slider',
 			'default' => -100,
 			'units'   => [
@@ -50,7 +50,7 @@ class Prefix_Element_Halftone extends \Bricks\Element {
 		];
 		$this->controls['contrast'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Contrast', 'bricks' ),
+			'label'   => esc_html__( 'Contrast', 'snn' ),
 			'type'    => 'slider',
 			'default' => 0,
 			'units'   => [
@@ -63,7 +63,7 @@ class Prefix_Element_Halftone extends \Bricks\Element {
 		];
 		$this->controls['gamma'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Gamma', 'bricks' ),
+			'label'   => esc_html__( 'Gamma', 'snn' ),
 			'type'    => 'slider',
 			'default' => 0.8,
 			'units'   => [
@@ -76,7 +76,7 @@ class Prefix_Element_Halftone extends \Bricks\Element {
 		];
 		$this->controls['smoothing'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Smoothing', 'bricks' ),
+			'label'   => esc_html__( 'Smoothing', 'snn' ),
 			'type'    => 'slider',
 			'default' => 0,
 			'units'   => [
@@ -89,13 +89,13 @@ class Prefix_Element_Halftone extends \Bricks\Element {
 		];
 		$this->controls['dither_type'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Dither Type', 'bricks' ),
+			'label'   => esc_html__( 'Dither Type', 'snn' ),
 			'type'    => 'select',
 			'options' => [
-				'None'           => esc_html__( 'None', 'bricks' ),
-				'FloydSteinberg' => esc_html__( 'Floyd-Steinberg', 'bricks' ),
-				'Ordered'        => esc_html__( 'Ordered', 'bricks' ),
-				'Noise'          => esc_html__( 'Noise', 'bricks' ),
+				'None'           => esc_html__( 'None', 'snn' ),
+				'FloydSteinberg' => esc_html__( 'Floyd-Steinberg', 'snn' ),
+				'Ordered'        => esc_html__( 'Ordered', 'snn' ),
+				'Noise'          => esc_html__( 'Noise', 'snn' ),
 			],
 			'default' => 'None',
             'description' => "<br>
@@ -126,9 +126,9 @@ class Prefix_Element_Halftone extends \Bricks\Element {
 			if ( ! empty( $this->settings['exampleImage']['id'] ) ) {
 				echo wp_get_attachment_image( $this->settings['exampleImage']['id'], 'full', false, [ 'class' => 'prefix-halftone-fallback' ] );
 			} else if ( ! empty( $this->settings['exampleImage']['url'] ) ) {
-				echo '<img class="prefix-halftone-fallback" src="' . esc_url( $this->settings['exampleImage']['url'] ) . '" alt="' . esc_attr__( 'Halftone Image', 'bricks' ) . '" />';
+				echo '<img class="prefix-halftone-fallback" src="' . esc_url( $this->settings['exampleImage']['url'] ) . '" alt="' . esc_attr__( 'Halftone Image', 'snn' ) . '" />';
 			} else {
-				esc_html_e( 'No image selected.', 'bricks' );
+				esc_html_e( 'No image selected.', 'snn' );
 			}
 			return;
 		}

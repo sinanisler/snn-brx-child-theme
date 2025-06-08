@@ -14,21 +14,21 @@ class Prefix_Element_Toggle_Text extends Element {
     public $nestable  = false;
 
     public function get_label(): string {
-        return esc_html__( 'Read More and Toggle Text', 'bricks' );
+        return esc_html__( 'Read More and Toggle Text', 'snn' );
     }
 
     public function set_controls(): void {
         $this->controls['text_content'] = [
             'tab'           => 'content',
-            'label'         => esc_html__( 'Text Content', 'bricks' ),
+            'label'         => esc_html__( 'Text Content', 'snn' ),
             'type'          => 'editor',
-            'default'       => esc_html__( 'Lorem ipsum dolor sinan amet...', 'bricks' ),
+            'default'       => esc_html__( 'Lorem ipsum dolor sinan amet...', 'snn' ),
             'inlineEditing' => true,
         ];
 
         $this->controls['text_height'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Text Height (px)', 'bricks' ),
+            'label'   => esc_html__( 'Text Height (px)', 'snn' ),
             'type'    => 'number',
             'default' => 100,
             'min'     => 0,
@@ -36,7 +36,7 @@ class Prefix_Element_Toggle_Text extends Element {
 
         $this->controls['button_selector'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Native Button Selector (ID)', 'bricks' ),
+            'label'       => esc_html__( 'Native Button Selector (ID)', 'snn' ),
             'type'        => 'text',
             'default'     => '',
             'placeholder' => '#my-button',
@@ -53,7 +53,7 @@ class Prefix_Element_Toggle_Text extends Element {
 
         $this->controls['text_typography'] = [
             'tab'   => 'style',
-            'label' => esc_html__( 'Text Typography', 'bricks' ),
+            'label' => esc_html__( 'Text Typography', 'snn' ),
             'type'  => 'typography',
             'css'   => [
                 [
@@ -68,7 +68,7 @@ class Prefix_Element_Toggle_Text extends Element {
         $unique_class = 'toggle-text-' . uniqid();
         $this->set_attribute( '_root', 'class', [ 'toggle-text-wrapper', $unique_class ] );
 
-        $text_content    = $this->settings['text_content'] ?? esc_html__( 'Your content goes here...', 'bricks' );
+        $text_content    = $this->settings['text_content'] ?? esc_html__( 'Your content goes here...', 'snn' );
         $text_height     = $this->settings['text_height'] ?? 100;
         $button_selector = $this->settings['button_selector'] ?? '';
 

@@ -14,7 +14,7 @@ class Svg_Text_Path_Element extends Element {
     public $nestable     = false;
 
     public function get_label() {
-        return esc_html__( 'SVG Text Path', 'bricks' );
+        return esc_html__( 'SVG Text Path', 'snn' );
     }
 
     public function set_control_groups() {
@@ -26,7 +26,7 @@ class Svg_Text_Path_Element extends Element {
         $this->controls['text'] = [
             'tab'     => 'content',
             'type'    => 'text',
-            'default' => esc_html__( 'Your Text Here', 'bricks' ),
+            'default' => esc_html__( 'Your Text Here', 'snn' ),
         ];
 
         // Select control for choosing the SVG path shape.
@@ -34,11 +34,11 @@ class Svg_Text_Path_Element extends Element {
             'tab'     => 'content',
             'type'    => 'select',
             'options' => [
-                'wave'   => esc_html__( 'Wave', 'bricks' ),
-                'arc'    => esc_html__( 'Arc', 'bricks' ),
-                'circle' => esc_html__( 'Circle', 'bricks' ),
-                'elypse' => esc_html__( 'Elypse', 'bricks' ),
-                'spiral' => esc_html__( 'Spiral', 'bricks' ),
+                'wave'   => esc_html__( 'Wave', 'snn' ),
+                'arc'    => esc_html__( 'Arc', 'snn' ),
+                'circle' => esc_html__( 'Circle', 'snn' ),
+                'elypse' => esc_html__( 'Elypse', 'snn' ),
+                'spiral' => esc_html__( 'Spiral', 'snn' ),
             ],
             'default' => 'wave',
         ];
@@ -47,15 +47,15 @@ class Svg_Text_Path_Element extends Element {
         $this->controls['custom_svg'] = [
             'tab'         => 'content',
             'type'        => 'svg',
-            'label'       => esc_html__( 'Custom SVG', 'bricks' ),
-            'description' => esc_html__( 'Upload your own SVG path. <br>Create a 510px x 170px transparent rectangle, draw your path inside it, group and export it.', 'bricks' ),
+            'label'       => esc_html__( 'Custom SVG', 'snn' ),
+            'description' => esc_html__( 'Upload your own SVG path. <br>Create a 510px x 170px transparent rectangle, draw your path inside it, group and export it.', 'snn' ),
         ];
 
         // New slider control to rotate the text (in degrees).
         $this->controls['rotate'] = [
             'tab'     => 'content',
             'type'    => 'slider',
-            'label'   => esc_html__( 'Rotate Text', 'bricks' ),
+            'label'   => esc_html__( 'Rotate Text', 'snn' ),
             'units'   => [
                 'deg' => [
                     'min'  => 0,
@@ -70,7 +70,7 @@ class Svg_Text_Path_Element extends Element {
         $this->controls['start_offset'] = [
             'tab'     => 'content',
             'type'    => 'number',
-            'label'   => esc_html__( 'Text Start Offset', 'bricks' ),
+            'label'   => esc_html__( 'Text Start Offset', 'snn' ),
             'default' => 0,
             'min'     => 0,
             'max'     => 100,
@@ -82,7 +82,7 @@ class Svg_Text_Path_Element extends Element {
         $this->controls['word_spacing'] = [
             'tab'     => 'content',
             'type'    => 'number',
-            'label'   => esc_html__( 'Word Spacing', 'bricks' ),
+            'label'   => esc_html__( 'Word Spacing', 'snn' ),
             'default' => 0,
             'min'     => 0,
             'max'     => 50,
@@ -94,7 +94,7 @@ class Svg_Text_Path_Element extends Element {
         $this->controls['path_stroke_color'] = [
             'tab'     => 'content',
             'type'    => 'color',
-            'label'   => esc_html__( 'Path Stroke Color', 'bricks' ),
+            'label'   => esc_html__( 'Path Stroke Color', 'snn' ),
             'default' => '#000000',
         ];
         
@@ -102,7 +102,7 @@ class Svg_Text_Path_Element extends Element {
         $this->controls['path_stroke_width'] = [
             'tab'     => 'content',
             'type'    => 'slider',
-            'label'   => esc_html__( 'Path Stroke Width', 'bricks' ),
+            'label'   => esc_html__( 'Path Stroke Width', 'snn' ),
             'units'   => [
                 'px' => [
                     'min'  => 0,

@@ -160,11 +160,11 @@ function myroles_show_role_checkboxes( $user ) {
 
 	// Nonce for save handler
 	wp_nonce_field( 'myroles_save_roles', 'myroles_nonce' );   ?>
-	<h2><?php esc_html_e( 'User Roles (multiple allowed)', 'my-textdomain' ); ?></h2>
+	<h2><?php esc_html_e( 'User Roles (multiple allowed)', 'snn' ); ?></h2>
 
 	<table class="form-table" role="presentation">
 		<tr>
-			<th><label for="user_roles[]"><?php esc_html_e( 'Assign Roles', 'my-textdomain' ); ?></label></th>
+			<th><label for="user_roles[]"><?php esc_html_e( 'Assign Roles', 'snn' ); ?></label></th>
 			<td>
 				<?php foreach ( $all_roles as $slug => $details ) : ?>
 					<label style="display:inline-block;margin-right:15px;">

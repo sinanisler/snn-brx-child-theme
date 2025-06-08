@@ -20,14 +20,14 @@ function custom_smtp_settings_init() {
 
     add_settings_section(
         'custom_smtp_settings_section',
-        __('SMTP Settings', 'textdomain'),
+        __('SMTP Settings', 'snn'),
         'custom_smtp_settings_section_callback',
         'smtp-settings'
     );
 
     add_settings_field(
         'enable_smtp',
-        __('Enable SMTP', 'textdomain'),
+        __('Enable SMTP', 'snn'),
         'custom_smtp_enable_smtp_render',
         'smtp-settings',
         'custom_smtp_settings_section'
@@ -35,7 +35,7 @@ function custom_smtp_settings_init() {
 
     add_settings_field(
         'smtp_host',
-        __('SMTP Host', 'textdomain'),
+        __('SMTP Host', 'snn'),
         'custom_smtp_smtp_host_render',
         'smtp-settings',
         'custom_smtp_settings_section'
@@ -43,7 +43,7 @@ function custom_smtp_settings_init() {
 
     add_settings_field(
         'smtp_encryption',
-        __('Encryption', 'textdomain'),
+        __('Encryption', 'snn'),
         'custom_smtp_smtp_encryption_render',
         'smtp-settings',
         'custom_smtp_settings_section'
@@ -51,7 +51,7 @@ function custom_smtp_settings_init() {
 
     add_settings_field(
         'smtp_port',
-        __('SMTP Port', 'textdomain'),
+        __('SMTP Port', 'snn'),
         'custom_smtp_smtp_port_render',
         'smtp-settings',
         'custom_smtp_settings_section'
@@ -59,7 +59,7 @@ function custom_smtp_settings_init() {
 
     add_settings_field(
         'smtp_username',
-        __('SMTP Username', 'textdomain'),
+        __('SMTP Username', 'snn'),
         'custom_smtp_smtp_username_render',
         'smtp-settings',
         'custom_smtp_settings_section'
@@ -67,7 +67,7 @@ function custom_smtp_settings_init() {
 
     add_settings_field(
         'smtp_password',
-        __('SMTP Password', 'textdomain'),
+        __('SMTP Password', 'snn'),
         'custom_smtp_smtp_password_render',
         'smtp-settings',
         'custom_smtp_settings_section'
@@ -105,7 +105,7 @@ function custom_smtp_settings_sanitize($input) {
 
 
 function custom_smtp_settings_section_callback() {
-    echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues.', 'textdomain') . '</p>';
+    echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues.', 'snn') . '</p>';
 }
 
 
@@ -129,9 +129,9 @@ function custom_smtp_smtp_encryption_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
     <select name='custom_smtp_settings[smtp_encryption]' id='smtp_encryption' onchange="updateSMTPPort()">
-        <option value='none' <?php selected($options['smtp_encryption'] ?? '', 'none'); ?>><?php _e('None', 'textdomain'); ?></option>
-        <option value='ssl' <?php selected($options['smtp_encryption'] ?? '', 'ssl'); ?>><?php _e('SSL', 'textdomain'); ?></option>
-        <option value='tls' <?php selected($options['smtp_encryption'] ?? '', 'tls'); ?>><?php _e('TLS', 'textdomain'); ?></option>
+        <option value='none' <?php selected($options['smtp_encryption'] ?? '', 'none'); ?>><?php _e('None', 'snn'); ?></option>
+        <option value='ssl' <?php selected($options['smtp_encryption'] ?? '', 'ssl'); ?>><?php _e('SSL', 'snn'); ?></option>
+        <option value='tls' <?php selected($options['smtp_encryption'] ?? '', 'tls'); ?>><?php _e('TLS', 'snn'); ?></option>
     </select>
     <script>
         function updateSMTPPort() {
@@ -271,7 +271,7 @@ function custom_smtp_handle_test_email_submission() {
         add_settings_error(
             'custom_smtp_test_email',
             'custom_smtp_nonce_failed',
-            __('Security check failed. Please refresh the page and try again.', 'textdomain'),
+            __('Security check failed. Please refresh the page and try again.', 'snn'),
             'error'
         );
         error_log("SMTP TEST: Nonce check failed.");
@@ -303,7 +303,7 @@ function custom_smtp_handle_test_email_submission() {
                 'custom_smtp_test_email',
                 'custom_smtp_port_blocked',
                 sprintf(
-                    __('Could not connect to %s on port %d. It may be blocked by your hosting environment.', 'textdomain'),
+                    __('Could not connect to %s on port %d. It may be blocked by your hosting environment.', 'snn'),
                     esc_html($host),
                     esc_html($port)
                 ),
@@ -315,8 +315,8 @@ function custom_smtp_handle_test_email_submission() {
     }
 
     // Attempt to send email using wp_mail()
-    $subject = __('SMTP Test Email', 'textdomain');
-    $message = __('This is a test email sent via your SMTP settings.', 'textdomain');
+    $subject = __('SMTP Test Email', 'snn');
+    $message = __('This is a test email sent via your SMTP settings.', 'snn');
     $headers = array('Content-Type: text/html; charset=UTF-8');
 
     error_log("SMTP TEST: Calling wp_mail() now...");
@@ -327,7 +327,7 @@ function custom_smtp_handle_test_email_submission() {
             'custom_smtp_test_email',
             'custom_smtp_test_email_success',
             sprintf(
-                __('Test email sent successfully to %s! Check the inbox.', 'textdomain'),
+                __('Test email sent successfully to %s! Check the inbox.', 'snn'),
                 esc_html($to)
             ),
             'updated'
@@ -337,7 +337,7 @@ function custom_smtp_handle_test_email_submission() {
         add_settings_error(
             'custom_smtp_test_email',
             'custom_smtp_test_email_failed',
-            __('Failed to send test email. Check your SMTP settings or logs for more information.', 'textdomain'),
+            __('Failed to send test email. Check your SMTP settings or logs for more information.', 'snn'),
             'error'
         );
         error_log("SMTP TEST: wp_mail() FAILED.");
@@ -353,7 +353,7 @@ function custom_smtp_settings_page() {
     settings_errors('custom_smtp_test_email');
     ?>
     <div class="wrap">
-        <h1><?php _e('Mail SMTP Settings', 'textdomain'); ?></h1>
+        <h1><?php _e('Mail SMTP Settings', 'snn'); ?></h1>
         <form action='options.php' method='post'>
             <?php
             settings_fields('custom_smtp_settings_group');
@@ -364,26 +364,26 @@ function custom_smtp_settings_page() {
 
         <hr />
 
-        <h2><?php _e('Send Test Email', 'textdomain'); ?></h2>
-        <p><?php _e('Use the form below to send a test email to any email address, using the configured SMTP settings.', 'textdomain'); ?></p>
+        <h2><?php _e('Send Test Email', 'snn'); ?></h2>
+        <p><?php _e('Use the form below to send a test email to any email address, using the configured SMTP settings.', 'snn'); ?></p>
         <form method="post">
             <?php wp_nonce_field('custom_smtp_send_test_email_action', 'custom_smtp_send_test_email_nonce'); ?>
             <table class="form-table">
                 <tr>
-                    <th scope="row"><?php _e('Recipient Email', 'textdomain'); ?></th>
+                    <th scope="row"><?php _e('Recipient Email', 'snn'); ?></th>
                     <td>
                         <input 
                             type="email" 
                             name="test_email_address" 
                             value="" 
-                            placeholder="<?php echo esc_attr__('you@example.com', 'textdomain'); ?>" 
+                            placeholder="<?php echo esc_attr__('you@example.com', 'snn'); ?>" 
                             size="40" 
                         />
                     </td>
                 </tr>
             </table>
             <input type="hidden" name="custom_smtp_send_test_email" value="1" />
-            <input type="submit" class="button button-primary" value="<?php esc_attr_e('Send Test Email', 'textdomain'); ?>" />
+            <input type="submit" class="button button-primary" value="<?php esc_attr_e('Send Test Email', 'snn'); ?>" />
         </form>
     </div>
     <?php

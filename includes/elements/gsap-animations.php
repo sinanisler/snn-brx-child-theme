@@ -15,7 +15,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     public $nestable     = true;
 
     public function get_label() {
-        return esc_html__( 'GSAP Animations (Nestable)', 'bricks' );
+        return esc_html__( 'GSAP Animations (Nestable)', 'snn' );
     }
 
     public function set_control_groups() {
@@ -43,7 +43,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
     public function set_controls() {
         $this->controls['gsap_animations'] = [
             'tab'           => 'content',
-            'label'         => esc_html__( 'GSAP Animations', 'bricks' ),
+            'label'         => esc_html__( 'GSAP Animations', 'snn' ),
             'type'          => 'repeater',
             'titleProperty' => '',
             'default'       => [
@@ -66,50 +66,50 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'style_end_custom'      => '',
                 ],
             ],
-            'placeholder'   => esc_html__( 'Animation', 'bricks' ),
+            'placeholder'   => esc_html__( 'Animation', 'snn' ),
             'fields'        => [
                 'x_start' => [
-                    'label'       => esc_html__( 'X Start', 'bricks' ),
+                    'label'       => esc_html__( 'X Start', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '0px',
                 ],
                 'x_end' => [
-                    'label'       => esc_html__( 'X End', 'bricks' ),
+                    'label'       => esc_html__( 'X End', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '0px',
                 ],
                 'y_start' => [
-                    'label'       => esc_html__( 'Y Start', 'bricks' ),
+                    'label'       => esc_html__( 'Y Start', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '0px',
                 ],
                 'y_end' => [
-                    'label'       => esc_html__( 'Y End', 'bricks' ),
+                    'label'       => esc_html__( 'Y End', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '0px',
                 ],
                 'style_start-scale' => [
-                    'label'       => esc_html__( 'Scale Start', 'bricks' ),
+                    'label'       => esc_html__( 'Scale Start', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '1',
                 ],
                 'style_end-scale' => [
-                    'label'       => esc_html__( 'Scale End', 'bricks' ),
+                    'label'       => esc_html__( 'Scale End', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '1',
                 ],
                 'style_start-rotate' => [
-                    'label'       => esc_html__( 'Rotate Start', 'bricks' ),
+                    'label'       => esc_html__( 'Rotate Start', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '0',
                 ],
                 'style_end-rotate' => [
-                    'label'       => esc_html__( 'Rotate End', 'bricks' ),
+                    'label'       => esc_html__( 'Rotate End', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '0',
                 ],
                 'style_start-opacity' => [
-                    'label'       => esc_html__( 'Opacity Start', 'bricks' ),
+                    'label'       => esc_html__( 'Opacity Start', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '1',
                     'min'         => '0',
@@ -117,7 +117,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'step'        => '0.1',
                 ],
                 'style_end-opacity' => [
-                    'label'       => esc_html__( 'Opacity End', 'bricks' ),
+                    'label'       => esc_html__( 'Opacity End', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '1',
                     'min'         => '0',
@@ -125,17 +125,17 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'step'        => '0.1',
                 ],
                 'style_start-filter' => [
-                    'label'       => esc_html__( 'Blur Start', 'bricks' ),
+                    'label'       => esc_html__( 'Blur Start', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '0px',
                 ],
                 'style_end-filter' => [
-                    'label'       => esc_html__( 'Blur End', 'bricks' ),
+                    'label'       => esc_html__( 'Blur End', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '0px',
                 ],
                 'style_start-grayscale' => [
-                    'label'       => esc_html__( 'Grayscale Start (%)', 'bricks' ),
+                    'label'       => esc_html__( 'Grayscale Start (%)', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '1-100',
                     'min'         => '0',
@@ -143,7 +143,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'step'        => '1',
                 ],
                 'style_end-grayscale' => [
-                    'label'       => esc_html__( 'Grayscale End (%)', 'bricks' ),
+                    'label'       => esc_html__( 'Grayscale End (%)', 'snn' ),
                     'type'        => 'number',
                     'placeholder' => '1-100',
                     'min'         => '100',
@@ -151,62 +151,62 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
                     'step'        => '1',
                 ],
                 'style_start_custom' => [
-                    'label'       => esc_html__( 'Style Start (Custom CSS)', 'bricks' ),
+                    'label'       => esc_html__( 'Style Start (Custom CSS)', 'snn' ),
                     'type'        => 'textarea',
                     'placeholder' => "background: red;\ncolor: white;",
-                    'description' => esc_html__( 'Enter custom CSS properties for start state (without selectors or braces)', 'bricks' ),
+                    'description' => esc_html__( 'Enter custom CSS properties for start state (without selectors or braces)', 'snn' ),
                 ],
                 'style_end_custom' => [
-                    'label'       => esc_html__( 'Style End (Custom CSS)', 'bricks' ),
+                    'label'       => esc_html__( 'Style End (Custom CSS)', 'snn' ),
                     'type'        => 'textarea',
                     'placeholder' => "background: blue;\ncolor: yellow;",
-                    'description' => esc_html__( 'Enter custom CSS properties for end state (without selectors or braces)', 'bricks' ),
+                    'description' => esc_html__( 'Enter custom CSS properties for end state (without selectors or braces)', 'snn' ),
                 ],
             ],
         ];
 
         $this->controls['loop'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Loop / yoyo', 'bricks' ),
+            'label'       => esc_html__( 'Loop / yoyo', 'snn' ),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__( 'Yes', 'bricks' ),
-                'false' => esc_html__( 'No', 'bricks' ),
+                'true'  => esc_html__( 'Yes', 'snn' ),
+                'false' => esc_html__( 'No', 'snn' ),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__( 'Select', 'bricks' ),
+            'placeholder' => esc_html__( 'Select', 'snn' ),
         ];
 
         $this->controls['scroll'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Scroll', 'bricks' ),
+            'label'       => esc_html__( 'Scroll', 'snn' ),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__( 'Yes', 'bricks' ),
-                'false' => esc_html__( 'No', 'bricks' ),
+                'true'  => esc_html__( 'Yes', 'snn' ),
+                'false' => esc_html__( 'No', 'snn' ),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__( 'Select', 'bricks' ),
+            'placeholder' => esc_html__( 'Select', 'snn' ),
         ];
 
         $this->controls['pin'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Pin', 'bricks' ),
+            'label'       => esc_html__( 'Pin', 'snn' ),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__( 'Yes', 'bricks' ),
-                'false' => esc_html__( 'No', 'bricks' ),
+                'true'  => esc_html__( 'Yes', 'snn' ),
+                'false' => esc_html__( 'No', 'snn' ),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__( 'Select', 'bricks' ),
+            'placeholder' => esc_html__( 'Select', 'snn' ),
         ];
 
         $this->controls['duration'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Duration', 'bricks' ),
+            'label'       => esc_html__( 'Duration', 'snn' ),
             'type'        => 'number',
             'placeholder' => '1',
             'min'         => 0,
@@ -215,7 +215,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $this->controls['delay'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Delay', 'bricks' ),
+            'label'       => esc_html__( 'Delay', 'snn' ),
             'type'        => 'number',
             'placeholder' => '0',
             'min'         => 0,
@@ -224,7 +224,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $this->controls['scrub'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Scrub', 'bricks' ),
+            'label'       => esc_html__( 'Scrub', 'snn' ),
             'type'        => 'text',
             'placeholder' => 'true, 1, 2',
             'inline'      => true,
@@ -232,7 +232,7 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $this->controls['stagger'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Stagger', 'bricks' ),
+            'label'       => esc_html__( 'Stagger', 'snn' ),
             'type'        => 'text',
             'placeholder' => '1, 2',
             'inline'      => true,
@@ -240,27 +240,27 @@ class Prefix_Element_Gsap_Animations extends \Bricks\Element {
 
         $this->controls['markers'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Markers', 'bricks' ),
+            'label'       => esc_html__( 'Markers', 'snn' ),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__( 'Yes', 'bricks' ),
-                'false' => esc_html__( 'No', 'bricks' ),
+                'true'  => esc_html__( 'Yes', 'snn' ),
+                'false' => esc_html__( 'No', 'snn' ),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__( 'Select', 'bricks' ),
+            'placeholder' => esc_html__( 'Select', 'snn' ),
         ];
 
         $this->controls['scroll_start'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Scroll Start', 'bricks' ),
+            'label'       => esc_html__( 'Scroll Start', 'snn' ),
             'type'        => 'text',
             'placeholder' => 'top 40% or +=2000px',
         ];
 
         $this->controls['scroll_end'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Scroll End', 'bricks' ),
+            'label'       => esc_html__( 'Scroll End', 'snn' ),
             'type'        => 'text',
             'placeholder' => 'bottom 60% or +=2000px',
         ];

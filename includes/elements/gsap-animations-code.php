@@ -15,7 +15,7 @@ class Prefix_Element_Gsap_Animations_Simple extends \Bricks\Element {
     public $nestable     = true;
 
     public function get_label() {
-        return esc_html__( 'GSAP Animations CODE (Nestable)', 'bricks' );
+        return esc_html__( 'GSAP Animations CODE (Nestable)', 'snn' );
     }
 
     public function set_control_groups() {
@@ -25,11 +25,11 @@ class Prefix_Element_Gsap_Animations_Simple extends \Bricks\Element {
     public function set_controls() {
         $this->controls['gsap_data_animate'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'GSAP data-animate CSS', 'bricks' ),
+            'label'       => esc_html__( 'GSAP data-animate CSS', 'snn' ),
             'type'        => 'code',
             'mode'        => 'c',
             'placeholder' => "e.g. x:100, opacity:0, duration:2;",
-            'description' => esc_html__( 'Enter your GSAP data-animate string. It will be output as the data-animate attribute.', 'bricks' ),
+            'description' => esc_html__( 'Enter your GSAP data-animate string. It will be output as the data-animate attribute.', 'snn' ),
         ];
     }
 

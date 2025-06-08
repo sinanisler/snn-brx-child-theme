@@ -25,28 +25,28 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
         public $nestable = false;
 
         public function get_label() {
-            return esc_html__( 'Like Button', 'bricks' );
+            return esc_html__( 'Like Button', 'snn' );
         }
 
         public function set_controls() {
             $this->controls['button_icon'] = [
                 'tab'     => 'content',
                 'type'    => 'icon',
-                'label'   => esc_html__( 'Button Icon', 'bricks' ),
+                'label'   => esc_html__( 'Button Icon', 'snn' ),
                 'default' => [ 'library' => 'fontawesomeRegular', 'icon' => 'fa fa-heart' ],
             ];
 
             $this->controls['liked_icon'] = [
                 'tab'     => 'content',
                 'type'    => 'icon',
-                'label'   => esc_html__( 'Liked Icon', 'bricks' ),
+                'label'   => esc_html__( 'Liked Icon', 'snn' ),
                 'default' => [ 'library' => 'fontawesomeSolid', 'icon' => 'fas fa-heart' ],
             ];
 
             $this->controls['show_like_count'] = [
                 'tab'     => 'content',
                 'type'    => 'checkbox',
-                'label'   => esc_html__( 'Show Like Count', 'bricks' ),
+                'label'   => esc_html__( 'Show Like Count', 'snn' ),
                 'inline'  => true,
                 'small'   => true,
                 'default' => true,
@@ -55,7 +55,7 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             $this->controls['identifier'] = [
                 'tab'         => 'content',
                 'type'        => 'text',
-                'label'       => esc_html__( 'Custom Identifier', 'bricks' ),
+                'label'       => esc_html__( 'Custom Identifier', 'snn' ),
                 'default'     => '',
                 'description' => 'Leave blank to use current post ID. <br><br>',
             ];
@@ -64,26 +64,26 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             $this->controls['balloon_text_like'] = [
                 'tab'         => 'content',
                 'type'        => 'text',
-                'label'       => esc_html__( 'Balloon Text (Like)', 'bricks' ),
-                'default'     => esc_html__( 'Like', 'bricks' ),
-                'placeholder' => esc_html__( 'Like', 'bricks' ),
+                'label'       => esc_html__( 'Balloon Text (Like)', 'snn' ),
+                'default'     => esc_html__( 'Like', 'snn' ),
+                'placeholder' => esc_html__( 'Like', 'snn' ),
             ];
 
             $this->controls['balloon_text_unlike'] = [
                 'tab'         => 'content',
                 'type'        => 'text',
-                'label'       => esc_html__( 'Balloon Text (Unlike)', 'bricks' ),
-                'default'     => esc_html__( 'Unlike', 'bricks' ),
-                'placeholder' => esc_html__( 'Unlike', 'bricks' ),
+                'label'       => esc_html__( 'Balloon Text (Unlike)', 'snn' ),
+                'default'     => esc_html__( 'Unlike', 'snn' ),
+                'placeholder' => esc_html__( 'Unlike', 'snn' ),
                 'description' => '',
             ];
 
             $this->controls['balloon_text_login_to_like'] = [
                 'tab'         => 'content',
                 'type'        => 'text',
-                'label'       => esc_html__( 'Balloon Text (Logged Only)', 'bricks' ),
-                'default'     => esc_html__( 'Login to Like', 'bricks' ),
-                'placeholder' => esc_html__( 'Login to Like', 'bricks' ),
+                'label'       => esc_html__( 'Balloon Text (Logged Only)', 'snn' ),
+                'default'     => esc_html__( 'Login to Like', 'snn' ),
+                'placeholder' => esc_html__( 'Login to Like', 'snn' ),
                 'description' => '<br><br>',
             ];
 
@@ -91,7 +91,7 @@ if ( ! class_exists( 'Like_Button_Element' ) ) {
             $this->controls['logged_user_only'] = [
                 'tab'     => 'content',
                 'type'    => 'checkbox',
-                'label'   => esc_html__( 'Logged User Only', 'bricks' ),
+                'label'   => esc_html__( 'Logged User Only', 'snn' ),
                 'inline'  => true,
                 'small'   => true,
                 'default' => false,
@@ -136,9 +136,9 @@ return [
             $liked      = snn_has_user_liked( $identifier, $logged_user_only );
 
             // Retrieve balloon text settings
-            $balloon_text_like   = ! empty( $this->settings['balloon_text_like'] ) ? $this->settings['balloon_text_like'] : esc_html__( 'Click to Like', 'bricks' );
-            $balloon_text_unlike = ! empty( $this->settings['balloon_text_unlike'] ) ? $this->settings['balloon_text_unlike'] : esc_html__( 'Click to Unlike', 'bricks' );
-            $balloon_text_login  = ! empty( $this->settings['balloon_text_login_to_like'] ) ? $this->settings['balloon_text_login_to_like'] : esc_html__( 'Login to Like', 'bricks' );
+            $balloon_text_like   = ! empty( $this->settings['balloon_text_like'] ) ? $this->settings['balloon_text_like'] : esc_html__( 'Click to Like', 'snn' );
+            $balloon_text_unlike = ! empty( $this->settings['balloon_text_unlike'] ) ? $this->settings['balloon_text_unlike'] : esc_html__( 'Click to Unlike', 'snn' );
+            $balloon_text_login  = ! empty( $this->settings['balloon_text_login_to_like'] ) ? $this->settings['balloon_text_login_to_like'] : esc_html__( 'Login to Like', 'snn' );
 
             // Set balloon text based on state:
             // If "Logged User Only" is enabled and the user is not logged in, use the login text.

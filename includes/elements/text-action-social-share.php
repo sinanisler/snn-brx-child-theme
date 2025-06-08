@@ -19,7 +19,7 @@ class SNN_Text_Action_Share extends Element {
             'tab'     => 'content',
             'type'    => 'info',
             'content' => esc_html__(
-                'Add action buttons for selected text. Use {text} and {url} in link - they will be replaced with user selection and page URL. Example: https://twitter.com/intent/tweet?text={text}%20{url}', 'bricks'
+                'Add action buttons for selected text. Use {text} and {url} in link - they will be replaced with user selection and page URL. Example: https://twitter.com/intent/tweet?text={text}%20{url}', 'snn'
             ),
         ];
 
@@ -30,7 +30,7 @@ class SNN_Text_Action_Share extends Element {
             'default'     => 'comment',
             'placeholder' => esc_html__( 'e.g. .selectable-comment-content-wrapper', 'snn' ),
             'description' => esc_html__(
-                'Only allow text selection & actions inside these elements. Use any valid CSS selector (e.g. .my-comments, #post-content, .comment-body). Leave blank for whole page.', 'bricks'
+                'Only allow text selection & actions inside these elements. Use any valid CSS selector (e.g. .my-comments, #post-content, .comment-body). Leave blank for whole page.', 'snn'
             ),
         ];
 

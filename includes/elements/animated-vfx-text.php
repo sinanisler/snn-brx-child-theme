@@ -13,7 +13,7 @@ class Animated_Text_Element extends Element {
     public $nestable = false;
 
     public function get_label() {
-        return esc_html__( 'Animated VFX Text', 'bricks' );
+        return esc_html__( 'Animated VFX Text', 'snn' );
     }
 
     public function set_control_groups() {
@@ -24,25 +24,25 @@ class Animated_Text_Element extends Element {
         // Single text control for Animated Text
         $this->controls['animated_text'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Animated Text', 'bricks' ),
+            'label'   => esc_html__( 'Animated Text', 'snn' ),
             'type'    => 'text',
-            'default' => esc_html__( 'Lorem ipsum dolor sinan amet animated text', 'bricks' ),
+            'default' => esc_html__( 'Lorem ipsum dolor sinan amet animated text', 'snn' ),
         ];
 
         // Select list for animation effects
         $this->controls['animation_effect'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Animation Effect', 'bricks' ),
+            'label'   => esc_html__( 'Animation Effect', 'snn' ),
             'type'    => 'select',
             'options' => [
-                'glitch'             => esc_html__( 'Glitch', 'bricks' ),
-                'rgbShift'           => esc_html__( 'RGB Shift', 'bricks' ),
-                'rainbow'            => esc_html__( 'Rainbow', 'bricks' ),
-                'warpTransition'     => esc_html__( 'Warp Transition', 'bricks' ),
-                'slitScanTransition' => esc_html__( 'Slit Scan Transition', 'bricks' ),
-                'pixelateTransition' => esc_html__( 'Pixelate Transition', 'bricks' ),
+                'glitch'             => esc_html__( 'Glitch', 'snn' ),
+                'rgbShift'           => esc_html__( 'RGB Shift', 'snn' ),
+                'rainbow'            => esc_html__( 'Rainbow', 'snn' ),
+                'warpTransition'     => esc_html__( 'Warp Transition', 'snn' ),
+                'slitScanTransition' => esc_html__( 'Slit Scan Transition', 'snn' ),
+                'pixelateTransition' => esc_html__( 'Pixelate Transition', 'snn' ),
                 // Removed Focus Transition because it doesn't work
-                'wavevy'             => esc_html__( 'Wavevy Wave Shader', 'bricks' ),
+                'wavevy'             => esc_html__( 'Wavevy Wave Shader', 'snn' ),
             ],
             'default' => 'glitch',
         ];
@@ -50,16 +50,16 @@ class Animated_Text_Element extends Element {
         // Select list for DOM element tag selection
         $this->controls['dom_element_tag'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'DOM Element Tag', 'bricks' ),
+            'label'   => esc_html__( 'DOM Element Tag', 'snn' ),
             'type'    => 'select',
             'options' => [
-                'h1'   => esc_html__( 'H1', 'bricks' ),
-                'h2'   => esc_html__( 'H2', 'bricks' ),
-                'h3'   => esc_html__( 'H3', 'bricks' ),
-                'h4'   => esc_html__( 'H4', 'bricks' ),
-                'p'    => esc_html__( 'Paragraph', 'bricks' ),
-                'span' => esc_html__( 'Span', 'bricks' ),
-                'div'  => esc_html__( 'Div', 'bricks' ),
+                'h1'   => esc_html__( 'H1', 'snn' ),
+                'h2'   => esc_html__( 'H2', 'snn' ),
+                'h3'   => esc_html__( 'H3', 'snn' ),
+                'h4'   => esc_html__( 'H4', 'snn' ),
+                'p'    => esc_html__( 'Paragraph', 'snn' ),
+                'span' => esc_html__( 'Span', 'snn' ),
+                'div'  => esc_html__( 'Div', 'snn' ),
             ],
             'default'     => 'div',
             'description' => "
@@ -75,7 +75,7 @@ class Animated_Text_Element extends Element {
         $this->controls['text_typography'] = [
             'tab'   => 'style',
             'group' => 'Typography',
-            'label' => esc_html__( 'Typography', 'bricks' ),
+            'label' => esc_html__( 'Typography', 'snn' ),
             'type'  => 'typography',
             'css'   => [
                 [

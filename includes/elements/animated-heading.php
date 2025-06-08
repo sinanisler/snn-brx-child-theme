@@ -14,7 +14,7 @@ class Animated_Headline_Element extends Element {
     public $nestable = false;
 
     public function get_label() {
-        return esc_html__('Animated Headline', 'bricks');
+        return esc_html__('Animated Headline', 'snn');
     }
 
     public function set_control_groups() {
@@ -27,26 +27,26 @@ class Animated_Headline_Element extends Element {
         $this->controls['before_text'] = [
             'tab'     => 'content',
             'type'    => 'text',
-            'default' => esc_html__('Before', 'bricks'),
+            'default' => esc_html__('Before', 'snn'),
         ];
 
         // Control for the dynamic animated text.
         $this->controls['dynamic_text'] = [
             'tab'     => 'content',
             'type'    => 'text',
-            'default' => esc_html__('Animated Headline', 'bricks'),
+            'default' => esc_html__('Animated Headline', 'snn'),
         ];
 
         // Control for text after the dynamic text.
         $this->controls['after_text'] = [
             'tab'     => 'content',
             'type'    => 'text',
-            'default' => esc_html__('After', 'bricks'),
+            'default' => esc_html__('After', 'snn'),
         ];
 
         // Control for the SVG stroke color.
         $this->controls['svg_color'] = [
-            'label'   => esc_html__('SVG Stroke Color', 'bricks'),
+            'label'   => esc_html__('SVG Stroke Color', 'snn'),
             'type'    => 'color',
             'default' => '#000000',
             'css'     => [
@@ -59,7 +59,7 @@ class Animated_Headline_Element extends Element {
 
         // Slider control for the SVG stroke width.
         $this->controls['stroke_width'] = [
-            'label'   => esc_html__('SVG Stroke Width', 'bricks'),
+            'label'   => esc_html__('SVG Stroke Width', 'snn'),
             'type'    => 'slider',
             'css'     => [
                 [
@@ -84,7 +84,7 @@ class Animated_Headline_Element extends Element {
 
         // Slider control for the SVG bottom position (in em).
         $this->controls['svg_bottom'] = [
-            'label'   => esc_html__('SVG Bottom', 'bricks'),
+            'label'   => esc_html__('SVG Bottom', 'snn'),
             'type'    => 'slider',
             'css'     => [
                 [
@@ -104,7 +104,7 @@ class Animated_Headline_Element extends Element {
 
         // Slider control for the SVG height (in em).
         $this->controls['svg_height'] = [
-            'label'   => esc_html__('SVG Height', 'bricks'),
+            'label'   => esc_html__('SVG Height', 'snn'),
             'type'    => 'slider',
             'css'     => [
                 [
@@ -125,7 +125,7 @@ class Animated_Headline_Element extends Element {
         // Checkbox to enable loop animation.
         $this->controls['loop_animation'] = [
             'tab'     => 'content',
-            'label'   => esc_html__('Loop Animation', 'bricks'),
+            'label'   => esc_html__('Loop Animation', 'snn'),
             'type'    => 'checkbox',
             'default' => false,
         ];
@@ -133,7 +133,7 @@ class Animated_Headline_Element extends Element {
         // Control for animation duration.
         $this->controls['animation_duration'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Duration', 'bricks'),
+            'label'       => esc_html__('Duration', 'snn'),
             'type'        => 'number',
             'placeholder' => '2s',
         ];
@@ -141,7 +141,7 @@ class Animated_Headline_Element extends Element {
         // New control for Rounded paths.
         $this->controls['rounded'] = [
             'tab'     => 'content',
-            'label'   => esc_html__('Rounded', 'bricks'),
+            'label'   => esc_html__('Rounded', 'snn'),
             'type'    => 'checkbox',
             'default' => false,
         ];
@@ -149,7 +149,7 @@ class Animated_Headline_Element extends Element {
         // New checkbox control for Text On Top.
         $this->controls['text_on_top'] = [
             'tab'     => 'content',
-            'label'   => esc_html__('Text On Top', 'bricks'),
+            'label'   => esc_html__('Text On Top', 'snn'),
             'type'    => 'checkbox',
             'default' => false,
         ];
@@ -159,13 +159,13 @@ class Animated_Headline_Element extends Element {
             'tab'     => 'content',
             'type'    => 'select',
             'options' => [
-                'option4' => esc_html__('Underline', 'bricks'),
-                'option1' => esc_html__('Underline Zigzag', 'bricks'),
-                'option3' => esc_html__('Underline Wavey', 'bricks'),
-                'option2' => esc_html__('Circle', 'bricks'),
-                'option5' => esc_html__('Double Line', 'bricks'),
-                'option6' => esc_html__('Strikethrough', 'bricks'),
-                'option7' => esc_html__('Strikethrough X', 'bricks'),
+                'option4' => esc_html__('Underline', 'snn'),
+                'option1' => esc_html__('Underline Zigzag', 'snn'),
+                'option3' => esc_html__('Underline Wavey', 'snn'),
+                'option2' => esc_html__('Circle', 'snn'),
+                'option5' => esc_html__('Double Line', 'snn'),
+                'option6' => esc_html__('Strikethrough', 'snn'),
+                'option7' => esc_html__('Strikethrough X', 'snn'),
             ],
             'default' => 'option4',
         ];
@@ -173,7 +173,7 @@ class Animated_Headline_Element extends Element {
         // Typography control for headline styling.
         $this->controls['headline_typography'] = [
             'group' => 'Typography',
-            'label' => esc_html__('Headline Typography', 'bricks'),
+            'label' => esc_html__('Headline Typography', 'snn'),
             'type'  => 'typography',
             'css'   => [
                 [
@@ -188,13 +188,13 @@ class Animated_Headline_Element extends Element {
             'tab'         => 'content',
             'type'        => 'select',
             'options'     => [
-                'h1'   => esc_html__('H1', 'bricks'),
-                'h2'   => esc_html__('H2', 'bricks'),
-                'h3'   => esc_html__('H3', 'bricks'),
-                'h4'   => esc_html__('H4', 'bricks'),
-                'p'    => esc_html__('Paragraph', 'bricks'),
-                'span' => esc_html__('Span', 'bricks'),
-                'div'  => esc_html__('Div', 'bricks'),
+                'h1'   => esc_html__('H1', 'snn'),
+                'h2'   => esc_html__('H2', 'snn'),
+                'h3'   => esc_html__('H3', 'snn'),
+                'h4'   => esc_html__('H4', 'snn'),
+                'p'    => esc_html__('Paragraph', 'snn'),
+                'span' => esc_html__('Span', 'snn'),
+                'div'  => esc_html__('Div', 'snn'),
             ],
             'placeholder' => 'div',
         ];
@@ -203,8 +203,8 @@ class Animated_Headline_Element extends Element {
         $this->controls['custom_svg'] = [
             'tab'         => 'content',
             'type'        => 'svg',
-            'label'       => esc_html__('Custom SVG', 'bricks'),
-            'description' => esc_html__('Upload your own SVG path. <br>Create 510px x 170px transparent rectangle and draw your path inside of that. Group it export it.', 'bricks'),
+            'label'       => esc_html__('Custom SVG', 'snn'),
+            'description' => esc_html__('Upload your own SVG path. <br>Create 510px x 170px transparent rectangle and draw your path inside of that. Group it export it.', 'snn'),
         ];
     }
 

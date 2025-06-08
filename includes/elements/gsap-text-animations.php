@@ -14,7 +14,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
     public $nestable = false;
 
     public function get_label() {
-        return esc_html__('GSAP Text Animations', 'bricks');
+        return esc_html__('GSAP Text Animations', 'snn');
     }
 
     public function set_control_groups() {
@@ -39,24 +39,24 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         // Content Controls
         $this->controls['text_content'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Text Content', 'bricks'),
+            'label'       => esc_html__('Text Content', 'snn'),
             'type'        => 'text',
-            'placeholder' => esc_html__('Enter your text content here', 'bricks'),
+            'placeholder' => esc_html__('Enter your text content here', 'snn'),
             'default'     => '',
         ];
 
         $this->controls['dom_element_tag'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('DOM Element Tag', 'bricks'),
+            'label'       => esc_html__('DOM Element Tag', 'snn'),
             'type'        => 'select',
             'options'     => [
-                'h1'   => esc_html__('H1', 'bricks'),
-                'h2'   => esc_html__('H2', 'bricks'),
-                'h3'   => esc_html__('H3', 'bricks'),
-                'h4'   => esc_html__('H4', 'bricks'),
-                'p'    => esc_html__('Paragraph', 'bricks'),
-                'span' => esc_html__('Span', 'bricks'),
-                'div'  => esc_html__('Div', 'bricks'),
+                'h1'   => esc_html__('H1', 'snn'),
+                'h2'   => esc_html__('H2', 'snn'),
+                'h3'   => esc_html__('H3', 'snn'),
+                'h4'   => esc_html__('H4', 'snn'),
+                'p'    => esc_html__('Paragraph', 'snn'),
+                'span' => esc_html__('Span', 'snn'),
+                'div'  => esc_html__('Div', 'snn'),
             ],
             'default'     => 'div'
         ];
@@ -66,7 +66,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         // have been removed from these preset strings.
         $this->controls['presets'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Select Animation Preset', 'bricks'),
+            'label'       => esc_html__('Select Animation Preset', 'snn'),
             'type'        => 'select',
             'options'     => [
  
@@ -248,77 +248,77 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
             'searchable' => true,
             'clearable' => true,
             'inline'      => false,
-            'placeholder' => esc_html__('Select Preset', 'bricks'),
+            'placeholder' => esc_html__('Select Preset', 'snn'),
         ];
 
         $this->controls['loop'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Loop', 'bricks'),
+            'label'       => esc_html__('Loop', 'snn'),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__('True', 'bricks'),
-                'false' => esc_html__('False', 'bricks'),
+                'true'  => esc_html__('True', 'snn'),
+                'false' => esc_html__('False', 'snn'),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__('Select', 'bricks'),
+            'placeholder' => esc_html__('Select', 'snn'),
         ];
 
         $this->controls['scroll'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Scroll', 'bricks'),
+            'label'       => esc_html__('Scroll', 'snn'),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__('True', 'bricks'),
-                'false' => esc_html__('False', 'bricks'),
+                'true'  => esc_html__('True', 'snn'),
+                'false' => esc_html__('False', 'snn'),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__('Select', 'bricks'),
+            'placeholder' => esc_html__('Select', 'snn'),
         ];
 
         $this->controls['splittext'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Split Text', 'bricks'),
+            'label'       => esc_html__('Split Text', 'snn'),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__('True', 'bricks'),
-                'false' => esc_html__('False', 'bricks'),
+                'true'  => esc_html__('True', 'snn'),
+                'false' => esc_html__('False', 'snn'),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__('Select', 'bricks'),
+            'placeholder' => esc_html__('Select', 'snn'),
         ];
 
         $this->controls['rand'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Random', 'bricks'),
+            'label'       => esc_html__('Random', 'snn'),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__('True', 'bricks'),
-                'false' => esc_html__('False', 'bricks'),
+                'true'  => esc_html__('True', 'snn'),
+                'false' => esc_html__('False', 'snn'),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__('Select', 'bricks'),
+            'placeholder' => esc_html__('Select', 'snn'),
         ];
 
         $this->controls['pin'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Pin', 'bricks'),
+            'label'       => esc_html__('Pin', 'snn'),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__('True', 'bricks'),
-                'false' => esc_html__('False', 'bricks'),
+                'true'  => esc_html__('True', 'snn'),
+                'false' => esc_html__('False', 'snn'),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__('Select', 'bricks'),
+            'placeholder' => esc_html__('Select', 'snn'),
         ];
 
         $this->controls['stagger'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Stagger', 'bricks'),
+            'label'       => esc_html__('Stagger', 'snn'),
             'type'        => 'number',
             'placeholder' => '0',
             'min'         => 0,
@@ -327,29 +327,29 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 
         $this->controls['scrub'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Scrub', 'bricks'),
+            'label'       => esc_html__('Scrub', 'snn'),
             'type'        => 'text',
-            'placeholder' => esc_html__('true, 1, 2', 'bricks'),
+            'placeholder' => esc_html__('true, 1, 2', 'snn'),
             'default'     => '',
             'inline'      => true,
         ];
 
         $this->controls['markers'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Markers', 'bricks'),
+            'label'       => esc_html__('Markers', 'snn'),
             'type'        => 'select',
             'options'     => [
-                'true'  => esc_html__('True', 'bricks'),
-                'false' => esc_html__('False', 'bricks'),
+                'true'  => esc_html__('True', 'snn'),
+                'false' => esc_html__('False', 'snn'),
             ],
             'default'     => '',
             'inline'      => true,
-            'placeholder' => esc_html__('Select', 'bricks'),
+            'placeholder' => esc_html__('Select', 'snn'),
         ];
 
         $this->controls['scroll_start'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Scroll Start (%)', 'bricks'),
+            'label'       => esc_html__('Scroll Start (%)', 'snn'),
             'type'        => 'number',
             'min'         => 0,
             'max'         => 100,
@@ -359,7 +359,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
 
         $this->controls['scroll_end'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Scroll End (%)', 'bricks'),
+            'label'       => esc_html__('Scroll End (%)', 'snn'),
             'type'        => 'number',
             'min'         => 0,
             'max'         => 100,
@@ -370,7 +370,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         $this->controls['animation_text_typography'] = [
             'tab'   => 'style',
             'group' => 'style',
-            'label' => esc_html__('Typography', 'bricks'),
+            'label' => esc_html__('Typography', 'snn'),
             'type'  => 'typography',
             'css'   => [
                 [

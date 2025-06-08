@@ -13,7 +13,7 @@ class Snn_Event_Action_Selector extends Element {
     public $nestable     = false;
 
     public function get_label() {
-        return esc_html__( 'Event ⇄ Action', 'bricks' );
+        return esc_html__( 'Event ⇄ Action', 'snn' );
     }
 
     public function set_controls() {
@@ -71,7 +71,7 @@ class Snn_Event_Action_Selector extends Element {
         // Controls (kept same)
         $this->controls['trigger_selector'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'DOM selector (event trigger)', 'bricks' ),
+            'label'       => esc_html__( 'DOM selector (event trigger)', 'snn' ),
             'type'        => 'text',
             'placeholder' => '.btn, #my-id, header a, …',
             'default'     => '.custom-selector',
@@ -79,7 +79,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['target_selector'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'DOM selector (action target)', 'bricks' ),
+            'label'       => esc_html__( 'DOM selector (action target)', 'snn' ),
             'type'        => 'text',
             'placeholder' => '.box, #same-id, body, …',
             'default'     => '.demo-target',
@@ -87,7 +87,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['event'] = [
             'tab'        => 'content',
-            'label'      => esc_html__( 'Event', 'bricks' ),
+            'label'      => esc_html__( 'Event', 'snn' ),
             'type'       => 'select',
             'options'    => array_combine( $events, $events ),
             'searchable' => true,
@@ -97,7 +97,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['action'] = [
             'tab'        => 'content',
-            'label'      => esc_html__( 'Action', 'bricks' ),
+            'label'      => esc_html__( 'Action', 'snn' ),
             'type'       => 'select',
             'options'    => array_combine( $actions, $actions ),
             'searchable' => true,
@@ -107,7 +107,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['class_name'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Class Name', 'bricks' ),
+            'label'    => esc_html__( 'Class Name', 'snn' ),
             'type'     => 'text',
             'default'  => 'active',
             'required' => [
@@ -118,7 +118,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['attribute_name'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Attribute Name', 'bricks' ),
+            'label'    => esc_html__( 'Attribute Name', 'snn' ),
             'type'     => 'text',
             'default'  => 'data-active',
             'required' => [
@@ -129,7 +129,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['attribute_value'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Attribute Value', 'bricks' ),
+            'label'    => esc_html__( 'Attribute Value', 'snn' ),
             'type'     => 'text',
             'default'  => 'true',
             'required' => [
@@ -140,7 +140,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['replace_html'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Replace HTML', 'bricks' ),
+            'label'    => esc_html__( 'Replace HTML', 'snn' ),
             'type'     => 'textarea',
             'required' => [
                 ['action', '=', ['Replace HTML']],
@@ -150,7 +150,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['append_html'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Append HTML', 'bricks' ),
+            'label'    => esc_html__( 'Append HTML', 'snn' ),
             'type'     => 'textarea',
             'required' => [
                 ['action', '=', ['Append HTML']],
@@ -160,7 +160,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['prepend_html'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Prepend HTML', 'bricks' ),
+            'label'    => esc_html__( 'Prepend HTML', 'snn' ),
             'type'     => 'textarea',
             'required' => [
                 ['action', '=', ['Prepend HTML']],
@@ -170,7 +170,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['style_property'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Style Property', 'bricks' ),
+            'label'    => esc_html__( 'Style Property', 'snn' ),
             'type'     => 'text',
             'default'  => 'display',
             'required' => [
@@ -181,7 +181,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['style_value'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Style Value', 'bricks' ),
+            'label'    => esc_html__( 'Style Value', 'snn' ),
             'type'     => 'text',
             'default'  => 'block',
             'required' => [
@@ -192,7 +192,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['custom_event_name'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Custom Event Name', 'bricks' ),
+            'label'    => esc_html__( 'Custom Event Name', 'snn' ),
             'type'     => 'text',
             'default'  => 'my-custom-event',
             'required' => [
@@ -202,7 +202,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['custom_js_function'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Custom JS Function Body', 'bricks' ),
+            'label'    => esc_html__( 'Custom JS Function Body', 'snn' ),
             'type'     => 'textarea',
             'required' => [
                 ['action', '=', ['Custom JS Function']],
@@ -212,7 +212,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['text_value'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Text Value', 'bricks' ),
+            'label'    => esc_html__( 'Text Value', 'snn' ),
             'type'     => 'text',
             'required' => [
                 ['action', '=', ['Change Text', 'Set Value']],
@@ -222,7 +222,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['download_url'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Download File URL', 'bricks' ),
+            'label'    => esc_html__( 'Download File URL', 'snn' ),
             'type'     => 'text',
             'required' => [
                 ['action', '=', ['Download File']],
@@ -232,7 +232,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['copy_value'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Copy This Text', 'bricks' ),
+            'label'    => esc_html__( 'Copy This Text', 'snn' ),
             'type'     => 'text',
             'required' => [
                 ['action', '=', ['Copy To Clipboard']],
@@ -242,7 +242,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['scroll_behavior'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Scroll Behavior', 'bricks' ),
+            'label'    => esc_html__( 'Scroll Behavior', 'snn' ),
             'type'     => 'select',
             'options'  => [
                 'smooth' => 'Smooth',
@@ -254,7 +254,7 @@ class Snn_Event_Action_Selector extends Element {
 
         $this->controls['scroll_block'] = [
             'tab'      => 'content',
-            'label'    => esc_html__( 'Scroll To Position', 'bricks' ),
+            'label'    => esc_html__( 'Scroll To Position', 'snn' ),
             'type'     => 'select',
             'options'  => [
                 'center'   => 'Center',
@@ -293,7 +293,7 @@ class Snn_Event_Action_Selector extends Element {
         if ( ! $trigger_sel || ! $event || ! $action ) {
             echo $this->render_element_placeholder( [
                 'icon-class' => 'ti-flash',
-                'text'       => esc_html__( 'Define trigger selector, event and action.', 'bricks' ),
+                'text'       => esc_html__( 'Define trigger selector, event and action.', 'snn' ),
             ] );
             return;
         }

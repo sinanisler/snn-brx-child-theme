@@ -19,7 +19,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         // Control for Enabling/Disabling Scroll Wheel Zoom
         $this->controls['enable_scroll_zoom'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Enable Scroll Zoom', 'bricks' ),
+            'label'   => esc_html__( 'Enable Scroll Zoom', 'snn' ),
             'type'    => 'checkbox',
             'inline'  => true,
             'small'   => true,
@@ -35,7 +35,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'default'       => [],
             'fields'        => [
                 'lat' => [
-                    'label'   => __( 'Latitude', 'bricks' ),
+                    'label'   => __( 'Latitude', 'snn' ),
                     'type'    => 'number',
                     'default' => 51.5238,
                     'step'    => 0.0001,
@@ -43,7 +43,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     'max'     => 90,
                 ],
                 'lng' => [
-                    'label'   => __( 'Longitude', 'bricks' ),
+                    'label'   => __( 'Longitude', 'snn' ),
                     'type'    => 'number',
                     'default' => -0.1583,
                     'step'    => 0.0001,
@@ -51,12 +51,12 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     'max'     => 180,
                 ],
                 'popup' => [
-                    'label'   => __( 'Popup Text', 'bricks' ),
+                    'label'   => __( 'Popup Text', 'snn' ),
                     'type'    => 'editor',
                     'default' => 'Marker Popup Text',
                 ],
                 'icon' => [
-                    'label'   => __( 'Icon', 'bricks' ),
+                    'label'   => __( 'Icon', 'snn' ),
                     'type'    => 'icon',
                     'default' => [
                         'library' => 'fontawesome',
@@ -64,7 +64,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     ],
                 ],
                 'icon_size' => [
-                    'label'   => __( 'Icon Size (px)', 'bricks' ),
+                    'label'   => __( 'Icon Size (px)', 'snn' ),
                     'type'    => 'number',
                     'default' => 24,
                     'step'    => 1,
@@ -72,7 +72,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     'inline'  => true,
                 ],
                 'icon_color' => [
-                    'label'   => __( 'Icon Color', 'bricks' ),
+                    'label'   => __( 'Icon Color', 'snn' ),
                     'type'    => 'color',
                     'default' => [
                         'hex'  => '#000000',
@@ -85,7 +85,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['map_center_lat'] = [
             'tab'     => 'content',
-            'label'   => __( 'Map Center Latitude', 'bricks' ),
+            'label'   => __( 'Map Center Latitude', 'snn' ),
             'type'    => 'number',
             'default' => 51.5238,
             'step'    => 0.0001,
@@ -95,7 +95,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['map_center_lng'] = [
             'tab'     => 'content',
-            'label'   => __( 'Map Center Longitude', 'bricks' ),
+            'label'   => __( 'Map Center Longitude', 'snn' ),
             'type'    => 'number',
             'default' => -0.1583,
             'step'    => 0.0001,
@@ -105,7 +105,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['zoom_level'] = [
             'tab'     => 'content',
-            'label'   => __( 'Zoom Level', 'bricks' ),
+            'label'   => __( 'Zoom Level', 'snn' ),
             'type'    => 'number',
             'default' => 18,
             'min'     => 1,
@@ -115,7 +115,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['map_height'] = [
             'tab'     => 'content',
-            'label'   => __( 'Map Height (px)', 'bricks' ),
+            'label'   => __( 'Map Height (px)', 'snn' ),
             'type'    => 'number',
             'default' => 400,
             'min'     => 100,
@@ -124,7 +124,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['popup_font_size'] = [
             'tab'    => 'content',
-            'label'  => __( 'Popup Font Size (px)', 'bricks' ),
+            'label'  => __( 'Popup Font Size (px)', 'snn' ),
             'type'   => 'number',
             'min'    => 10,
             'step'   => 1,
@@ -134,7 +134,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['map_style'] = [
             'tab'     => 'content',
-            'label'   => __( 'Map Style', 'bricks' ),
+            'label'   => __( 'Map Style', 'snn' ),
             'type'    => 'select',
             'options' => [
                 'default' => 'Default (OSM Free Tiles)',
@@ -147,7 +147,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         // New control: CSS filters for the .leaflet-pane element
         $this->controls['leaflet_pane_filters'] = [
             'tab'    => 'content',
-            'label'  => esc_html__( 'Leaflet Pane Filters', 'bricks' ),
+            'label'  => esc_html__( 'Leaflet Pane Filters', 'snn' ),
             'type'   => 'filters',
             'inline' => true,
             'css'    => [

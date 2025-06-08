@@ -34,7 +34,7 @@ class Timeline_Element extends Element {
     }
 
     public function get_label() {
-        return esc_html__( 'Timeline', 'bricks' );
+        return esc_html__( 'Timeline', 'snn' );
     }
 
     public function set_control_groups() {
@@ -46,7 +46,7 @@ class Timeline_Element extends Element {
         $this->controls['line_color'] = [
             'tab'     => 'content',
             'type'    => 'color',
-            'label'   => esc_html__( 'Timeline Line Color', 'bricks' ),
+            'label'   => esc_html__( 'Timeline Line Color', 'snn' ),
             'default' => '#3498db',
         ];
 
@@ -54,7 +54,7 @@ class Timeline_Element extends Element {
         $this->controls['dot_color'] = [
             'tab'     => 'content',
             'type'    => 'color',
-            'label'   => esc_html__( 'Timeline Dot Border Color', 'bricks' ),
+            'label'   => esc_html__( 'Timeline Dot Border Color', 'snn' ),
             'default' => '#3498db',
         ];
 
@@ -62,7 +62,7 @@ class Timeline_Element extends Element {
         $this->controls['mini_line_color'] = [
             'tab'     => 'content',
             'type'    => 'color',
-            'label'   => esc_html__( 'Mini Line Color', 'bricks' ),
+            'label'   => esc_html__( 'Mini Line Color', 'snn' ),
             'default' => '#3498db',
         ];
 
@@ -70,7 +70,7 @@ class Timeline_Element extends Element {
         $this->controls['line_width'] = [
             'tab'     => 'content',
             'type'    => 'number',
-            'label'   => esc_html__( 'Timeline Line Width', 'bricks' ),
+            'label'   => esc_html__( 'Timeline Line Width', 'snn' ),
             'default' => 6,
             'min'     => 1,
             'max'     => 20,
@@ -82,12 +82,12 @@ class Timeline_Element extends Element {
         $this->controls['timeline_points'] = [
             'tab'     => 'content',
             'type'    => 'repeater',
-            'label'   => esc_html__( 'Timeline Points', 'bricks' ),
+            'label'   => esc_html__( 'Timeline Points', 'snn' ),
             'default' => [],
             'fields'  => [
                 'point_content' => [
                     'type'    => 'editor',
-                    'label'   => esc_html__( 'Content', 'bricks' ),
+                    'label'   => esc_html__( 'Content', 'snn' ),
                     'default' => '<p>Timeline point content goes here.</p>',
                 ],
             ],

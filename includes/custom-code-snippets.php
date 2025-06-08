@@ -132,9 +132,9 @@ jQuery(document).ready(function($) {
         preview_text: '" . esc_js(__( 'Preview in Editor', 'snn' )) . "',
         error_text: '" . esc_js(__( 'Error', 'snn' )) . "',
         ajax_error_text: '" . esc_js(__( 'AJAX error fetching revision.', 'snn' )) . "',
-        confirm_restore_text: '" . esc_js(__('Are you sure you want to restore this revision and save? The current content in the editor will be overwritten, saved, and then executed. This could break your site if the revision contains errors.', 'snn-custom-codes')) . "',
-        confirm_clear_revisions_text: '" . esc_js(__('Are you absolutely sure you want to delete all revisions for this snippet? This action cannot be undone.', 'snn-custom-codes')) . "',
-        confirm_clear_logs_text: '" . esc_js(__('Are you absolutely sure you want to delete all error logs? This action cannot be undone.', 'snn-custom-codes')) . "'
+        confirm_restore_text: '" . esc_js(__('Are you sure you want to restore this revision and save? The current content in the editor will be overwritten, saved, and then executed. This could break your site if the revision contains errors.', 'snn')) . "',
+        confirm_clear_revisions_text: '" . esc_js(__('Are you absolutely sure you want to delete all revisions for this snippet? This action cannot be undone.', 'snn')) . "',
+        confirm_clear_logs_text: '" . esc_js(__('Are you absolutely sure you want to delete all error logs? This action cannot be undone.', 'snn')) . "'
     };
 
     // Handle 'Preview in Editor' button click for revisions
@@ -580,7 +580,7 @@ function snn_custom_codes_snippets_page() {
         if ( isset( $_POST['snn_clear_error_logs_button'] ) ) {
             check_admin_referer( 'snn_clear_error_logs_action', 'snn_clear_error_logs_nonce' );
             update_option( SNN_CUSTOM_CODES_LOG_OPTION, array() ); // Clear logs
-            add_settings_error('snn-custom-codes', 'logs_cleared', __('All error logs have been cleared.', 'snn-custom-codes'), 'updated');
+            add_settings_error('snn-custom-codes', 'logs_cleared', __('All error logs have been cleared.', 'snn'), 'updated');
             $_GET['tab'] = 'error_logs'; // Stay on the logs tab
         }
         // Handle Clear Revisions Action for a specific snippet
@@ -601,7 +601,7 @@ function snn_custom_codes_snippets_page() {
                         else add_settings_error('snn-custom-codes', 'revisions_clear_failed_none_deleted', sprintf(__( 'No revisions were deleted for "%s".', 'snn' ), esc_html($target_snippet_def['title'])), 'warning');
                     } else add_settings_error('snn-custom-codes', 'no_revisions_to_clear', sprintf(__( 'No revisions found to clear for "%s".', 'snn' ), esc_html($target_snippet_def['title'])), 'info');
                 } else {
-                    add_settings_error('snn-custom-codes', 'clear_revisions_failed_permissions', __('Failed to clear revisions. Invalid snippet or insufficient permissions.', 'snn-custom-codes'), 'error');
+                    add_settings_error('snn-custom-codes', 'clear_revisions_failed_permissions', __('Failed to clear revisions. Invalid snippet or insufficient permissions.', 'snn'), 'error');
                     $settings_saved_message_type = 'error';
                 }
                 $_GET['tab'] = $snippet_key_to_clear; // Stay on the current snippet tab
@@ -624,9 +624,9 @@ function snn_custom_codes_snippets_page() {
                         wp_restore_post_revision( $revision_id );
                         $_POST[ $target_snippet_def['field_id'] ] = $revision->post_content;
                         $_GET['tab'] = $snippet_key_for_restore;
-                        add_settings_error('snn-custom-codes', 'revision_restored', sprintf(__('Revision for "%s" has been loaded into the editor. Click "Save All Snippets & Settings" to make it live.', 'snn-custom-codes'), esc_html($target_snippet_def['title'])), 'updated');
+                        add_settings_error('snn-custom-codes', 'revision_restored', sprintf(__('Revision for "%s" has been loaded into the editor. Click "Save All Snippets & Settings" to make it live.', 'snn'), esc_html($target_snippet_def['title'])), 'updated');
                     } else {
-                        add_settings_error('snn-custom-codes', 'restore_failed', __('Failed to restore revision. Invalid ID or permissions.', 'snn-custom-codes'), 'error');
+                        add_settings_error('snn-custom-codes', 'restore_failed', __('Failed to restore revision. Invalid ID or permissions.', 'snn'), 'error');
                         $settings_saved_message_type = 'error';
                          $_GET['tab'] = $snippet_key_for_restore;
                     }
@@ -665,13 +665,13 @@ function snn_custom_codes_snippets_page() {
                         $post_data['ID'] = $snippet_post_id;
                         $updated_id = wp_update_post( $post_data, true );
                         if ( is_wp_error( $updated_id ) ) {
-                            add_settings_error('snn-custom-codes', 'update_failed_' . $key, sprintf(__('Failed to update snippet: %s - %s', 'snn-custom-codes'), esc_html($def['title']), esc_html($updated_id->get_error_message())), 'error');
+                            add_settings_error('snn-custom-codes', 'update_failed_' . $key, sprintf(__('Failed to update snippet: %s - %s', 'snn'), esc_html($def['title']), esc_html($updated_id->get_error_message())), 'error');
                             $all_snippets_processed_successfully = false;
                         }
                     } else { // New snippet, insert it
                         $inserted_id = wp_insert_post( $post_data, true );
                         if ( is_wp_error( $inserted_id ) ) {
-                            add_settings_error('snn-custom-codes', 'insert_failed_' . $key, sprintf(__('Failed to create snippet: %s - %s', 'snn-custom-codes'), esc_html($def['title']), esc_html($inserted_id->get_error_message())), 'error');
+                            add_settings_error('snn-custom-codes', 'insert_failed_' . $key, sprintf(__('Failed to create snippet: %s - %s', 'snn'), esc_html($def['title']), esc_html($inserted_id->get_error_message())), 'error');
                             $all_snippets_processed_successfully = false;
                         }
                     }
@@ -696,9 +696,9 @@ function snn_custom_codes_snippets_page() {
             }
 
             if ( $all_snippets_processed_successfully && !$has_specific_action_message && $settings_saved_message_type === 'updated' ) {
-                add_settings_error('snn-custom-codes', 'settings_saved', __('All snippets and settings saved.', 'snn-custom-codes'), 'updated');
+                add_settings_error('snn-custom-codes', 'settings_saved', __('All snippets and settings saved.', 'snn'), 'updated');
             } elseif (!$all_snippets_processed_successfully && $settings_saved_message_type !== 'error') {
-                add_settings_error('snn-custom-codes', 'save_errors', __('Some snippets could not be saved. Please check messages above.', 'snn-custom-codes'), 'error');
+                add_settings_error('snn-custom-codes', 'save_errors', __('Some snippets could not be saved. Please check messages above.', 'snn'), 'error');
             }
         }
     } // End of POST handling
@@ -880,7 +880,7 @@ function snn_custom_codes_snippets_page() {
                             <p class="snn-snippet-description"><?php echo wp_kses_post( $active_snippet_def['description'] ); ?></p>
                              <?php if ( $active_snippet_def['slug'] === 'snn-snippet-functions-php' ): ?>
                                 <div class="notice notice-warning inline snn-php-execution-warning">
-                                    <p><strong><?php esc_html_e('Warning:', 'snn-custom-codes'); ?></strong> <?php esc_html_e('Code in this section runs like functions.php. Errors here can easily break your site. Test thoroughly!', 'snn-custom-codes'); ?></p>
+                                    <p><strong><?php esc_html_e('Warning:', 'snn'); ?></strong> <?php esc_html_e('Code in this section runs like functions.php. Errors here can easily break your site. Test thoroughly!', 'snn'); ?></p>
                                 </div>
                             <?php endif; ?>
                             <textarea id="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>"
@@ -905,7 +905,7 @@ function snn_custom_codes_snippets_page() {
                                         $comparison_link       = admin_url( 'revision.php?revision=' . $revision->ID . '&nonce=' . $comparison_link_nonce );
                                         $time_diff             = human_time_diff( strtotime( $revision->post_date_gmt ), current_time( 'timestamp', true ) );
                                         $revision_date_title   = date_i18n( get_option('date_format') . ' ' . get_option('time_format'), strtotime( $revision->post_date ) );
-                                        $revision_info         = sprintf( '%s by %s (%s %s)', $revision_date_title, $revision_author_name, $time_diff, __('ago', 'snn-custom-codes') );
+                                        $revision_info         = sprintf( '%s by %s (%s %s)', $revision_date_title, $revision_author_name, $time_diff, __('ago', 'snn') );
                                     ?>
                                     <li>
                                         <span class="revision-info"><?php echo esc_html( $revision_info ); ?></span>
@@ -917,7 +917,7 @@ function snn_custom_codes_snippets_page() {
                                             <a href="<?php echo esc_url( $comparison_link ); ?>" target="_blank"
                                                class="button button-outlined button-small snn-view-comparison-link"
                                                title="<?php esc_attr_e( 'View full comparison in new tab', 'snn' ); ?>">
-                                                <span class="dashicons dashicons-search"></span> <?php esc_html_e('Compare', 'snn-custom-codes'); ?>
+                                                <span class="dashicons dashicons-search"></span> <?php esc_html_e('Compare', 'snn'); ?>
                                             </a>
                                             <button type="submit"
                                                     name="snn_restore_submit_button"
@@ -1212,7 +1212,7 @@ function snn_display_fatal_error_admin_notice() {
                 );
                 ?>
             </p>
-             <p><button type="button" class="button snn-dismiss-fatal-notice"><?php esc_html_e('Dismiss This Notice', 'snn-custom-codes'); ?></button></p>
+             <p><button type="button" class="button snn-dismiss-fatal-notice"><?php esc_html_e('Dismiss This Notice', 'snn'); ?></button></p>
         </div>
         <?php
     }

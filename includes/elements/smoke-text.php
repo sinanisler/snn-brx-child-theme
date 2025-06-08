@@ -14,7 +14,7 @@ class Prefix_Element_Smoke_Text extends \Bricks\Element {
     public $nestable = false;
 
     public function get_label() {
-        return esc_html__('Smoke Text', 'bricks');
+        return esc_html__('Smoke Text', 'snn');
     }
 
     public function set_control_groups() {
@@ -25,19 +25,19 @@ class Prefix_Element_Smoke_Text extends \Bricks\Element {
         // Textarea control for text input
         $this->controls['text_content'] = [
             'tab'         => 'content',
-            'label'       => esc_html__('Text Content', 'bricks'),
+            'label'       => esc_html__('Text Content', 'snn'),
             'type'        => 'textarea',
             'rows'        => 5, // Default number of rows
             'spellcheck'  => true, // Enable spellcheck
             'inlineEditing' => true, // Allow inline editing
-            'default'     => esc_html__('Lorem ipsum dolor sinan amet.', 'bricks'),
+            'default'     => esc_html__('Lorem ipsum dolor sinan amet.', 'snn'),
         ];
 
         // Typography control for text styling
         $this->controls['text_typography'] = [
             'tab'   => 'style',
             'group' => 'style',
-            'label' => esc_html__('Typography', 'bricks'),
+            'label' => esc_html__('Typography', 'snn'),
             'type'  => 'typography',
             'css'   => [
                 [

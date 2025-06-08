@@ -12,7 +12,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
 
   // Return localized element label
   public function get_label() {
-    return esc_html__( 'Advanced Image', 'bricks' );
+    return esc_html__( 'Advanced Image', 'snn' );
   }
 
   // Set builder controls
@@ -20,14 +20,14 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
     // Image Control
     $this->controls['image'] = [
       'tab'   => 'content',
-      'label' => esc_html__( 'Image', 'bricks' ),
+      'label' => esc_html__( 'Image', 'snn' ),
       'type'  => 'image',
     ];
 
     // CSS Filters Sliders
     $filters = [
       'blur' => [
-        'label'   => esc_html__( 'Blur', 'bricks' ),
+        'label'   => esc_html__( 'Blur', 'snn' ),
         'unit'    => 'px',
         'min'     => 0,
         'max'     => 10,
@@ -35,7 +35,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
         'default' => '0px'
       ],
       'brightness' => [
-        'label'   => esc_html__( 'Brightness', 'bricks' ),
+        'label'   => esc_html__( 'Brightness', 'snn' ),
         'unit'    => '%',
         'min'     => 0,
         'max'     => 200,
@@ -43,7 +43,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
         'default' => '100%'
       ],
       'contrast' => [
-        'label'   => esc_html__( 'Contrast', 'bricks' ),
+        'label'   => esc_html__( 'Contrast', 'snn' ),
         'unit'    => '%',
         'min'     => 0,
         'max'     => 200,
@@ -51,7 +51,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
         'default' => '100%'
       ],
       'grayscale' => [
-        'label'   => esc_html__( 'Grayscale', 'bricks' ),
+        'label'   => esc_html__( 'Grayscale', 'snn' ),
         'unit'    => '%',
         'min'     => 0,
         'max'     => 100,
@@ -59,7 +59,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
         'default' => '0%'
       ],
       'hue-rotate' => [
-        'label'   => esc_html__( 'Hue Rotate', 'bricks' ),
+        'label'   => esc_html__( 'Hue Rotate', 'snn' ),
         'unit'    => 'deg',
         'min'     => 0,
         'max'     => 360,
@@ -67,7 +67,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
         'default' => '0deg'
       ],
       'invert' => [
-        'label'   => esc_html__( 'Invert', 'bricks' ),
+        'label'   => esc_html__( 'Invert', 'snn' ),
         'unit'    => '%',
         'min'     => 0,
         'max'     => 100,
@@ -75,7 +75,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
         'default' => '0%'
       ],
       'opacity' => [
-        'label'   => esc_html__( 'Opacity', 'bricks' ),
+        'label'   => esc_html__( 'Opacity', 'snn' ),
         'unit'    => '%',
         'min'     => 0,
         'max'     => 100,
@@ -83,7 +83,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
         'default' => '100%'
       ],
       'saturate' => [
-        'label'   => esc_html__( 'Saturate', 'bricks' ),
+        'label'   => esc_html__( 'Saturate', 'snn' ),
         'unit'    => '%',
         'min'     => 0,
         'max'     => 300,
@@ -91,7 +91,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
         'default' => '100%'
       ],
       'sepia' => [
-        'label'   => esc_html__( 'Sepia', 'bricks' ),
+        'label'   => esc_html__( 'Sepia', 'snn' ),
         'unit'    => '%',
         'min'     => 0,
         'max'     => 100,
@@ -171,7 +171,7 @@ class Prefix_Element_Advanced_Image extends \Bricks\Element {
       );
       echo '</div>';
     } else {
-      esc_html_e( 'No image selected.', 'bricks' );
+      esc_html_e( 'No image selected.', 'snn' );
     }
   }
 }

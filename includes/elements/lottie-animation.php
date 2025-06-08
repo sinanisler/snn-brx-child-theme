@@ -23,7 +23,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Lottie JSON Upload
         $this->controls['lottie_json'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Lottie JSON File', 'bricks' ),
+            'label'       => esc_html__( 'Lottie JSON File', 'snn' ),
             'type'        => 'file',
             'accept'      => '.json',
             'description' => "Upload your Lottie JSON file here",
@@ -32,7 +32,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Loop Option
         $this->controls['loop'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Loop Animation', 'bricks' ),
+            'label'   => esc_html__( 'Loop Animation', 'snn' ),
             'type'    => 'checkbox',
             'inline'  => true,
             'small'   => true,
@@ -42,7 +42,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Autoplay Option
         $this->controls['autoplay'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Autoplay Animation', 'bricks' ),
+            'label'   => esc_html__( 'Autoplay Animation', 'snn' ),
             'type'    => 'checkbox',
             'inline'  => true,
             'small'   => true,
@@ -52,7 +52,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Play on Hover
         $this->controls['play_on_hover'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Play on Hover', 'bricks' ),
+            'label'       => esc_html__( 'Play on Hover', 'snn' ),
             'type'        => 'checkbox',
             'inline'      => true,
             'small'       => true,
@@ -63,7 +63,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Reset State on Mouse Leave (New Control)
         $this->controls['reset_on_mouse_leave'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Reset/Reverse State on Mouse Leave', 'bricks' ),
+            'label'       => esc_html__( 'Reset/Reverse State on Mouse Leave', 'snn' ),
             'type'        => 'checkbox',
             'inline'      => true,
             'small'       => true,
@@ -74,7 +74,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Pause on Mouse Leave
         $this->controls['pause_on_mouse_leave'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Pause on Mouse Leave', 'bricks' ),
+            'label'       => esc_html__( 'Pause on Mouse Leave', 'snn' ),
             'type'        => 'checkbox',
             'inline'      => true,
             'small'       => true,
@@ -85,7 +85,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Play on Click (optional toggle)
         $this->controls['play_on_click'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Play on Click', 'bricks' ),
+            'label'       => esc_html__( 'Play on Click', 'snn' ),
             'type'        => 'checkbox',
             'inline'      => true,
             'small'       => true,
@@ -96,7 +96,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Animation Speed
         $this->controls['animation_speed'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Animation Speed', 'bricks' ),
+            'label'   => esc_html__( 'Animation Speed', 'snn' ),
             'type'    => 'number',
             'default' => 1.0,
             'step'    => 0.1,
@@ -108,7 +108,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Animation Height
         $this->controls['animation_height'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Animation Height (px)', 'bricks' ),
+            'label'   => esc_html__( 'Animation Height (px)', 'snn' ),
             'type'    => 'number',
             'default' => 400,
             'min'     => 100,
@@ -118,7 +118,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Scroll Trigger Option
         $this->controls['scroll_trigger'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Enable Scroll Trigger', 'bricks' ),
+            'label'   => esc_html__( 'Enable Scroll Trigger', 'snn' ),
             'type'    => 'checkbox',
             'inline'  => true,
             'small'   => true,
@@ -129,7 +129,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Scroll Trigger Start
         $this->controls['scroll_trigger_start'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Scroll Trigger Start', 'bricks' ),
+            'label'   => esc_html__( 'Scroll Trigger Start', 'snn' ),
             'type'    => 'text',
             'default' => 'top center',
             'description' => "
@@ -140,7 +140,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Scroll Trigger End
         $this->controls['scroll_trigger_end'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Scroll Trigger End', 'bricks' ),
+            'label'   => esc_html__( 'Scroll Trigger End', 'snn' ),
             'type'    => 'text',
             'default' => 'bottom center',
             'description' => "
@@ -155,7 +155,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Scroll Trigger Markers
         $this->controls['scroll_trigger_markers'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Show Scroll Trigger Markers', 'bricks' ),
+            'label'   => esc_html__( 'Show Scroll Trigger Markers', 'snn' ),
             'type'    => 'checkbox',
             'inline'  => true,
             'small'   => true,
@@ -168,10 +168,10 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Link Control
         $this->controls['animation_link'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Link', 'bricks' ),
+            'label'       => esc_html__( 'Link', 'snn' ),
             'type'        => 'link',
             'pasteStyles' => false,
-            'placeholder' => esc_html__( 'http://yoursite.com', 'bricks' ),
+            'placeholder' => esc_html__( 'http://yoursite.com', 'snn' ),
             // You can uncomment and customize the 'exclude' parameter if needed
             // 'exclude'     => [
             //     'rel',
@@ -207,7 +207,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         $link_nofollow  = isset($animation_link['rel']) && strpos($animation_link['rel'], 'nofollow') !== false ? ' rel="nofollow"' : '';
 
         if ( empty( $lottie_json ) ) {
-            echo '<p>' . esc_html__( 'Please upload a Lottie JSON file.', 'bricks' ) . '</p>';
+            echo '<p>' . esc_html__( 'Please upload a Lottie JSON file.', 'snn' ) . '</p>';
             return;
         }
 

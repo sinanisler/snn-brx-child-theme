@@ -25,8 +25,8 @@ add_action('admin_init', 'snn_ensure_admin_capability');
 function snn_add_role_management_submenu_page() {
     add_submenu_page(
         'snn-settings',
-        __('Role Management', 'snn-role-manager'),
-        __('Role Management', 'snn-role-manager'),
+        __('Role Management', 'snn'),
+        __('Role Management', 'snn'),
         'manage_snn_roles',
         'snn-role-management',
         'snn_render_role_management_page'
@@ -93,7 +93,7 @@ function snn_handle_role_management_actions() {
         return;
     }
     if (!current_user_can('manage_snn_roles')) {
-        wp_die(__('You do not have sufficient permissions to manage roles.', 'snn-role-manager'));
+        wp_die(__('You do not have sufficient permissions to manage roles.', 'snn'));
     }
 
     $action = sanitize_key($_POST['snn_action']);
@@ -109,11 +109,11 @@ function snn_handle_role_management_actions() {
                 $allowed_page_ids_str = isset($_POST['snn_allowed_page_ids_hidden']) ? sanitize_text_field(wp_unslash($_POST['snn_allowed_page_ids_hidden'])) : '';
                 $allowed_page_ids = !empty($allowed_page_ids_str) ? explode(',', $allowed_page_ids_str) : [];
 
-                if (empty($role_id) || empty($role_display_name)) throw new Exception(__('Role ID and Display Name are required.', 'snn-role-manager'));
-                if (!preg_match('/^[a-z0-9_]+$/', $role_id)) throw new Exception(__('Role ID can only contain lowercase letters, numbers, and underscores.', 'snn-role-manager'));
-                if ($role_id === 'administrator') throw new Exception(__('Cannot create a role with the ID "administrator".', 'snn-role-manager'));
-                if (get_role($role_id)) throw new Exception(sprintf(__('Role "%s" already exists.', 'snn-role-manager'), esc_html($role_id)));
-                if (snn_is_core_role($role_id)) throw new Exception(sprintf(__('Cannot create a role with the core ID "%s". Use a unique ID.', 'snn-role-manager'), esc_html($role_id)));
+                if (empty($role_id) || empty($role_display_name)) throw new Exception(__('Role ID and Display Name are required.', 'snn'));
+                if (!preg_match('/^[a-z0-9_]+$/', $role_id)) throw new Exception(__('Role ID can only contain lowercase letters, numbers, and underscores.', 'snn'));
+                if ($role_id === 'administrator') throw new Exception(__('Cannot create a role with the ID "administrator".', 'snn'));
+                if (get_role($role_id)) throw new Exception(sprintf(__('Role "%s" already exists.', 'snn'), esc_html($role_id)));
+                if (snn_is_core_role($role_id)) throw new Exception(sprintf(__('Cannot create a role with the core ID "%s". Use a unique ID.', 'snn'), esc_html($role_id)));
 
                 $role_caps = [];
                 foreach ($capabilities_input as $cap_name => $value) {
@@ -127,10 +127,10 @@ function snn_handle_role_management_actions() {
                 $result = add_role($role_id, $role_display_name, $role_caps);
                 if ($result instanceof WP_Role) {
                     snn_update_role_page_restrictions($role_id, $allowed_page_ids);
-                    $message = sprintf(__('Role "%s" created successfully.', 'snn-role-manager'), esc_html($role_display_name));
+                    $message = sprintf(__('Role "%s" created successfully.', 'snn'), esc_html($role_display_name));
                     $type = 'success';
                 } else {
-                    throw new Exception(sprintf(__('Failed to create role "%s".', 'snn-role-manager'), esc_html($role_display_name)));
+                    throw new Exception(sprintf(__('Failed to create role "%s".', 'snn'), esc_html($role_display_name)));
                 }
                 break;
 
@@ -140,10 +140,10 @@ function snn_handle_role_management_actions() {
                 $allowed_page_ids_str = isset($_POST['snn_allowed_page_ids_hidden']) ? sanitize_text_field(wp_unslash($_POST['snn_allowed_page_ids_hidden'])) : '';
                 $allowed_page_ids = !empty($allowed_page_ids_str) ? explode(',', $allowed_page_ids_str) : [];
 
-                if ($role_id === 'administrator') throw new Exception(__('The Administrator role cannot be modified here.', 'snn-role-manager'));
+                if ($role_id === 'administrator') throw new Exception(__('The Administrator role cannot be modified here.', 'snn'));
                 $role = get_role($role_id);
-                if (!$role) throw new Exception(sprintf(__('Role "%s" not found for updating.', 'snn-role-manager'), esc_html($role_id)));
-                if (!isset(get_editable_roles()[$role_id])) throw new Exception(__('You do not have permission to edit this specific role.', 'snn-role-manager'));
+                if (!$role) throw new Exception(sprintf(__('Role "%s" not found for updating.', 'snn'), esc_html($role_id)));
+                if (!isset(get_editable_roles()[$role_id])) throw new Exception(__('You do not have permission to edit this specific role.', 'snn'));
 
                 $new_caps_selected = [];
                 foreach ($capabilities_input as $cap_name => $value) {
@@ -166,27 +166,27 @@ function snn_handle_role_management_actions() {
 
                 snn_update_role_page_restrictions($role_id, $allowed_page_ids);
 
-                $message = sprintf(__('Role "%s" updated successfully.', 'snn-role-manager'), esc_html(translate_user_role($role->name)));
+                $message = sprintf(__('Role "%s" updated successfully.', 'snn'), esc_html(translate_user_role($role->name)));
                 $type = 'success';
                 break;
 
             case 'delete_role':
                 $role_id = isset($_POST['role_id']) ? sanitize_key($_POST['role_id']) : '';
 
-                if (empty($role_id)) throw new Exception(__('No role specified for deletion.', 'snn-role-manager'));
-                if ($role_id === 'administrator') throw new Exception(__('The Administrator role cannot be deleted.', 'snn-role-manager'));
-                if (snn_is_core_role($role_id)) throw new Exception(__('Core WordPress roles cannot be deleted.', 'snn-role-manager'));
-                if (!isset(get_editable_roles()[$role_id])) throw new Exception(__('You do not have permission to delete this specific role.', 'snn-role-manager'));
+                if (empty($role_id)) throw new Exception(__('No role specified for deletion.', 'snn'));
+                if ($role_id === 'administrator') throw new Exception(__('The Administrator role cannot be deleted.', 'snn'));
+                if (snn_is_core_role($role_id)) throw new Exception(__('Core WordPress roles cannot be deleted.', 'snn'));
+                if (!isset(get_editable_roles()[$role_id])) throw new Exception(__('You do not have permission to delete this specific role.', 'snn'));
                 $role_to_delete = get_role($role_id);
-                if (!$role_to_delete) throw new Exception(sprintf(__('Role "%s" not found or already deleted.', 'snn-role-manager'), esc_html($role_id)));
+                if (!$role_to_delete) throw new Exception(sprintf(__('Role "%s" not found or already deleted.', 'snn'), esc_html($role_id)));
 
                 $role_display_name_before_delete = translate_user_role($role_to_delete->name);
                 if (remove_role($role_id)) {
                     snn_delete_role_page_restrictions($role_id);
-                    $message = sprintf(__('Role "%s" (%s) deleted successfully.', 'snn-role-manager'), esc_html($role_display_name_before_delete), esc_html($role_id));
+                    $message = sprintf(__('Role "%s" (%s) deleted successfully.', 'snn'), esc_html($role_display_name_before_delete), esc_html($role_id));
                     $type = 'success';
                 } else {
-                    throw new Exception(sprintf(__('Failed to delete role "%s".', 'snn-role-manager'), esc_html($role_display_name_before_delete)));
+                    throw new Exception(sprintf(__('Failed to delete role "%s".', 'snn'), esc_html($role_display_name_before_delete)));
                 }
                 break;
 
@@ -348,7 +348,7 @@ add_action('pre_get_posts', 'snn_filter_admin_page_list');
 
 function snn_render_role_management_page() {
     if (!current_user_can('manage_snn_roles')) {
-        wp_die(__('You do not have sufficient permissions to access this page.', 'snn-role-manager'));
+        wp_die(__('You do not have sufficient permissions to access this page.', 'snn'));
     }
     settings_errors('snn_role_manager_notices');
 
@@ -358,11 +358,11 @@ function snn_render_role_management_page() {
 
     if ($edit_role_id === 'administrator') {
         $edit_role_id = null;
-        add_settings_error('snn_role_manager_notices', 'cannot_edit_admin', __('The Administrator role cannot be managed here.', 'snn-role-manager'), 'error');
+        add_settings_error('snn_role_manager_notices', 'cannot_edit_admin', __('The Administrator role cannot be managed here.', 'snn'), 'error');
         settings_errors('snn_role_manager_notices');
         $active_tab = 'manage_roles';
     } elseif ($edit_role_id && !isset(get_editable_roles()[$edit_role_id])) {
-        add_settings_error('snn_role_manager_notices', 'cannot_edit_role', __('You do not have permission to edit the specified role.', 'snn-role-manager'), 'error');
+        add_settings_error('snn_role_manager_notices', 'cannot_edit_role', __('You do not have permission to edit the specified role.', 'snn'), 'error');
         settings_errors('snn_role_manager_notices');
         $edit_role_id = null;
         $active_tab = 'manage_roles';
@@ -371,18 +371,18 @@ function snn_render_role_management_page() {
     ?>
     <div class="wrap snn-role-manager">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-        <p><?php _e('Manage user roles and capabilities. Core roles cannot be deleted and the Administrator role cannot be modified. You can restrict editing access for roles to specific posts or pages.', 'snn-role-manager'); ?></p>
+        <p><?php _e('Manage user roles and capabilities. Core roles cannot be deleted and the Administrator role cannot be modified. You can restrict editing access for roles to specific posts or pages.', 'snn'); ?></p>
 
-        <nav class="nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e('Secondary menu', 'snn-role-manager'); ?>">
+        <nav class="nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e('Secondary menu', 'snn'); ?>">
             <a href="<?php echo esc_url(admin_url('admin.php?page=' . $page_slug . '&tab=manage_roles')); ?>"
                class="nav-tab <?php echo $active_tab == 'manage_roles' && !$edit_role_id ? 'nav-tab-active' : ''; ?>"
                aria-current="<?php echo $active_tab == 'manage_roles' && !$edit_role_id ? 'page' : 'false'; ?>">
-                <?php _e('Manage Roles', 'snn-role-manager'); ?>
+                <?php _e('Manage Roles', 'snn'); ?>
             </a>
             <a href="<?php echo esc_url(admin_url('admin.php?page=' . $page_slug . '&tab=add_role')); ?>"
                class="nav-tab <?php echo $active_tab == 'add_role' ? 'nav-tab-active' : ''; ?>"
                aria-current="<?php echo $active_tab == 'add_role' ? 'page' : 'false'; ?>">
-                <?php _e('Add New Role', 'snn-role-manager'); ?>
+                <?php _e('Add New Role', 'snn'); ?>
             </a>
             <?php
             if ($edit_role_id && $active_tab == 'manage_roles') :
@@ -390,7 +390,7 @@ function snn_render_role_management_page() {
                  if ($role_being_edited && isset(get_editable_roles()[$edit_role_id]) && $edit_role_id !== 'administrator') {
                       $edit_title = translate_user_role($role_being_edited->name);
                       ?>
-                      <span class="nav-tab nav-tab-active"><?php printf(__('Editing Role: %s', 'snn-role-manager'), esc_html($edit_title)); ?></span>
+                      <span class="nav-tab nav-tab-active"><?php printf(__('Editing Role: %s', 'snn'), esc_html($edit_title)); ?></span>
                       <?php
                  } else {
                       $edit_role_id = null;
@@ -425,17 +425,17 @@ function snn_render_manage_roles_list() {
     $all_restrictions = snn_get_all_page_restrictions();
     $page_slug = 'snn-role-management';
     ?>
-    <h2><?php _e('Existing Roles', 'snn-role-manager'); ?></h2>
-    <p><?php _e('View, edit, or delete user roles. Core roles cannot be deleted, and the Administrator role cannot be modified or deleted from this interface.', 'snn-role-manager'); ?></p>
+    <h2><?php _e('Existing Roles', 'snn'); ?></h2>
+    <p><?php _e('View, edit, or delete user roles. Core roles cannot be deleted, and the Administrator role cannot be modified or deleted from this interface.', 'snn'); ?></p>
 
     <table class="wp-list-table widefat fixed striped roles">
         <thead>
             <tr>
-                <th scope="col" id="role_name" class="manage-column column-role_name column-primary"><?php _e('Display Name', 'snn-role-manager'); ?></th>
-                <th scope="col" id="role_id" class="manage-column column-role_id"><?php _e('Role ID (Slug)', 'snn-role-manager'); ?></th>
-                <th scope="col" id="capabilities" class="manage-column column-capabilities"><?php _e('Capabilities', 'snn-role-manager'); ?></th>
-                <th scope="col" id="restrictions" class="manage-column column-restrictions"><?php _e('Post Edit Allowlist', 'snn-role-manager'); ?></th>
-                <th scope="col" id="actions" class="manage-column column-actions"><?php _e('Actions', 'snn-role-manager'); ?></th>
+                <th scope="col" id="role_name" class="manage-column column-role_name column-primary"><?php _e('Display Name', 'snn'); ?></th>
+                <th scope="col" id="role_id" class="manage-column column-role_id"><?php _e('Role ID (Slug)', 'snn'); ?></th>
+                <th scope="col" id="capabilities" class="manage-column column-capabilities"><?php _e('Capabilities', 'snn'); ?></th>
+                <th scope="col" id="restrictions" class="manage-column column-restrictions"><?php _e('Post Edit Allowlist', 'snn'); ?></th>
+                <th scope="col" id="actions" class="manage-column column-actions"><?php _e('Actions', 'snn'); ?></th>
             </tr>
         </thead>
         <tbody id="the-list">
@@ -451,21 +451,21 @@ function snn_render_manage_roles_list() {
                      $admin_capability_keys = array_keys($admin_caps); sort($admin_capability_keys);
                      ?>
                      <tr>
-                         <td class="column-role_name column-primary" data-colname="<?php esc_attr_e('Display Name', 'snn-role-manager'); ?>">
+                         <td class="column-role_name column-primary" data-colname="<?php esc_attr_e('Display Name', 'snn'); ?>">
                              <strong><?php echo esc_html($admin_role_name); ?></strong>
-                             <br><span class="description">(<?php _e('Core Role', 'snn-role-manager'); ?>)</span>
+                             <br><span class="description">(<?php _e('Core Role', 'snn'); ?>)</span>
                              <button type="button" class="toggle-row"><span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span></button>
                          </td>
-                         <td class="column-role_id" data-colname="<?php esc_attr_e('Role ID (Slug)', 'snn-role-manager'); ?>"><code>administrator</code></td>
-                         <td class="column-capabilities" data-colname="<?php esc_attr_e('Capabilities', 'snn-role-manager'); ?>">
-                             <?php if ($admin_cap_count > 0) : ?><details><summary><?php printf(_n('%d Capability', '%d Capabilities', $admin_cap_count, 'snn-role-manager'), $admin_cap_count); ?> <span class="details-hint">(<?php _e('click to view', 'snn-role-manager'); ?>)</span></summary><div class="capabilities-list"><?php echo implode(', ', array_map(function($cap) { return '<code>' . esc_html($cap) . '</code>'; }, $admin_capability_keys)); ?></div></details><?php else : ?><span class="na"><?php _e('None', 'snn-role-manager'); ?></span><?php endif; ?>
+                         <td class="column-role_id" data-colname="<?php esc_attr_e('Role ID (Slug)', 'snn'); ?>"><code>administrator</code></td>
+                         <td class="column-capabilities" data-colname="<?php esc_attr_e('Capabilities', 'snn'); ?>">
+                             <?php if ($admin_cap_count > 0) : ?><details><summary><?php printf(_n('%d Capability', '%d Capabilities', $admin_cap_count, 'snn'), $admin_cap_count); ?> <span class="details-hint">(<?php _e('click to view', 'snn'); ?>)</span></summary><div class="capabilities-list"><?php echo implode(', ', array_map(function($cap) { return '<code>' . esc_html($cap) . '</code>'; }, $admin_capability_keys)); ?></div></details><?php else : ?><span class="na"><?php _e('None', 'snn'); ?></span><?php endif; ?>
                          </td>
-                         <td class="column-restrictions" data-colname="<?php esc_attr_e('Post Edit Restrictions', 'snn-role-manager'); ?>">
-                             <span class="na"><?php _e('N/A', 'snn-role-manager'); ?></span>
+                         <td class="column-restrictions" data-colname="<?php esc_attr_e('Post Edit Restrictions', 'snn'); ?>">
+                             <span class="na"><?php _e('N/A', 'snn'); ?></span>
                          </td>
-                         <td class="column-actions" data-colname="<?php esc_attr_e('Actions', 'snn-role-manager'); ?>">
-                             <button class="button button-secondary button-small" disabled title="<?php esc_attr_e('Administrator role cannot be modified here.', 'snn-role-manager'); ?>"><?php _e('Edit', 'snn-role-manager'); ?></button>
-                             <button class="button button-link-delete button-small" disabled title="<?php esc_attr_e('Administrator role cannot be deleted.', 'snn-role-manager'); ?>"><?php _e('Delete', 'snn-role-manager'); ?></button>
+                         <td class="column-actions" data-colname="<?php esc_attr_e('Actions', 'snn'); ?>">
+                             <button class="button button-secondary button-small" disabled title="<?php esc_attr_e('Administrator role cannot be modified here.', 'snn'); ?>"><?php _e('Edit', 'snn'); ?></button>
+                             <button class="button button-link-delete button-small" disabled title="<?php esc_attr_e('Administrator role cannot be deleted.', 'snn'); ?>"><?php _e('Delete', 'snn'); ?></button>
                          </td>
                      </tr>
                      <?php
@@ -486,16 +486,16 @@ function snn_render_manage_roles_list() {
                     $has_restrictions = !empty($role_restrictions);
                     ?>
                     <tr>
-                        <td class="column-role_name column-primary" data-colname="<?php esc_attr_e('Display Name', 'snn-role-manager'); ?>">
+                        <td class="column-role_name column-primary" data-colname="<?php esc_attr_e('Display Name', 'snn'); ?>">
                             <strong><?php echo esc_html(translate_user_role($role_display_name)); ?></strong>
-                            <?php if ($is_core) echo '<br><span class="description">(' . __('Core Role', 'snn-role-manager') . ')</span>'; ?>
+                            <?php if ($is_core) echo '<br><span class="description">(' . __('Core Role', 'snn') . ')</span>'; ?>
                             <button type="button" class="toggle-row"><span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span></button>
                         </td>
-                        <td class="column-role_id" data-colname="<?php esc_attr_e('Role ID (Slug)', 'snn-role-manager'); ?>"><code><?php echo esc_html($role_id); ?></code></td>
-                        <td class="column-capabilities" data-colname="<?php esc_attr_e('Capabilities', 'snn-role-manager'); ?>">
-                             <?php if ($cap_count > 0) : ?><details><summary><?php printf(_n('%d Capability', '%d Capabilities', $cap_count, 'snn-role-manager'), $cap_count); ?> <span class="details-hint">(<?php _e('click to view', 'snn-role-manager'); ?>)</span></summary><div class="capabilities-list"><?php echo implode(', ', array_map(function($cap) { return '<code>' . esc_html($cap) . '</code>'; }, $capability_keys)); ?></div></details><?php else : ?><span class="na"><?php _e('None', 'snn-role-manager'); ?></span><?php endif; ?>
+                        <td class="column-role_id" data-colname="<?php esc_attr_e('Role ID (Slug)', 'snn'); ?>"><code><?php echo esc_html($role_id); ?></code></td>
+                        <td class="column-capabilities" data-colname="<?php esc_attr_e('Capabilities', 'snn'); ?>">
+                             <?php if ($cap_count > 0) : ?><details><summary><?php printf(_n('%d Capability', '%d Capabilities', $cap_count, 'snn'), $cap_count); ?> <span class="details-hint">(<?php _e('click to view', 'snn'); ?>)</span></summary><div class="capabilities-list"><?php echo implode(', ', array_map(function($cap) { return '<code>' . esc_html($cap) . '</code>'; }, $capability_keys)); ?></div></details><?php else : ?><span class="na"><?php _e('None', 'snn'); ?></span><?php endif; ?>
                         </td>
-                        <td class="column-restrictions" data-colname="<?php esc_attr_e('Post Edit Restrictions', 'snn-role-manager'); ?>">
+                        <td class="column-restrictions" data-colname="<?php esc_attr_e('Post Edit Restrictions', 'snn'); ?>">
                             <?php
                             if ($has_restrictions) {
                                 $restricted_post_titles = [];
@@ -512,54 +512,54 @@ function snn_render_manage_roles_list() {
                                 }
                                 $missing_ids = array_diff($role_restrictions, wp_list_pluck($restricted_posts, 'ID'));
                                 foreach ($missing_ids as $missing_id) {
-                                     $restricted_post_titles[] = sprintf(__('ID %d (Not Found)', 'snn-role-manager'), $missing_id);
+                                     $restricted_post_titles[] = sprintf(__('ID %d (Not Found)', 'snn'), $missing_id);
                                 }
 
                                 if (!empty($restricted_post_titles)) {
-                                    echo '<details><summary>' . sprintf(_n('%d Post', '%d Posts', count($role_restrictions), 'snn-role-manager'), count($role_restrictions)) . ' <span class="details-hint">(' . __('click to view', 'snn-role-manager') . ')</span></summary>';
+                                    echo '<details><summary>' . sprintf(_n('%d Post', '%d Posts', count($role_restrictions), 'snn'), count($role_restrictions)) . ' <span class="details-hint">(' . __('click to view', 'snn') . ')</span></summary>';
                                     echo '<div class="capabilities-list">' . implode('<br>', $restricted_post_titles) . '</div></details>';
                                 } else {
-                                     echo '<span class="na">' . __('None', 'snn-role-manager') . '</span>';
+                                     echo '<span class="na">' . __('None', 'snn') . '</span>';
                                 }
 
                             } else {
-                                echo '<span class="na">' . __('None', 'snn-role-manager') . '</span>';
+                                echo '<span class="na">' . __('None', 'snn') . '</span>';
                             }
                             ?>
                         </td>
-                        <td class="column-actions" data-colname="<?php esc_attr_e('Actions', 'snn-role-manager'); ?>">
+                        <td class="column-actions" data-colname="<?php esc_attr_e('Actions', 'snn'); ?>">
                             <?php if ($can_edit_this_role): ?>
-                                <a href="<?php echo esc_url(admin_url('admin.php?page=' . $page_slug . '&tab=manage_roles&edit_role=' . urlencode($role_id))); ?>" class="button button-secondary button-small"><?php _e('Edit', 'snn-role-manager'); ?></a>
+                                <a href="<?php echo esc_url(admin_url('admin.php?page=' . $page_slug . '&tab=manage_roles&edit_role=' . urlencode($role_id))); ?>" class="button button-secondary button-small"><?php _e('Edit', 'snn'); ?></a>
                             <?php else: ?>
-                                <button class="button button-secondary button-small" disabled title="<?php esc_attr_e('You do not have permission to edit this role.', 'snn-role-manager'); ?>"><?php _e('Edit', 'snn-role-manager'); ?></button>
+                                <button class="button button-secondary button-small" disabled title="<?php esc_attr_e('You do not have permission to edit this role.', 'snn'); ?>"><?php _e('Edit', 'snn'); ?></button>
                             <?php endif; ?>
 
                             <?php if (!$is_core && $can_edit_this_role) : ?>
-                                <form method="post" action="" class="delete-role-form" onsubmit="return confirm('<?php echo esc_js(sprintf(__('Are you absolutely sure you want to delete the role "%s"? This action cannot be undone. Users assigned to this role might lose permissions or be reassigned to the default role. Any post editing restrictions for this role will also be removed.', 'snn-role-manager'), translate_user_role($role_display_name))); ?>');">
+                                <form method="post" action="" class="delete-role-form" onsubmit="return confirm('<?php echo esc_js(sprintf(__('Are you absolutely sure you want to delete the role "%s"? This action cannot be undone. Users assigned to this role might lose permissions or be reassigned to the default role. Any post editing restrictions for this role will also be removed.', 'snn'), translate_user_role($role_display_name))); ?>');">
                                     <input type="hidden" name="snn_action" value="delete_role">
                                     <input type="hidden" name="role_id" value="<?php echo esc_attr($role_id); ?>">
                                     <?php wp_nonce_field('snn_role_action', '_snn_role_nonce'); ?>
-                                    <button type="submit" class="button button-link-delete button-small"><?php _e('Delete', 'snn-role-manager'); ?></button>
+                                    <button type="submit" class="button button-link-delete button-small"><?php _e('Delete', 'snn'); ?></button>
                                 </form>
                             <?php elseif ($is_core): ?>
-                                <button class="button button-link-delete button-small" disabled title="<?php esc_attr_e('Core roles cannot be deleted.', 'snn-role-manager'); ?>"><?php _e('Delete', 'snn-role-manager'); ?></button>
+                                <button class="button button-link-delete button-small" disabled title="<?php esc_attr_e('Core roles cannot be deleted.', 'snn'); ?>"><?php _e('Delete', 'snn'); ?></button>
                             <?php else: ?>
-                                <button class="button button-link-delete button-small" disabled title="<?php esc_attr_e('You do not have permission to delete this role.', 'snn-role-manager'); ?>"><?php _e('Delete', 'snn-role-manager'); ?></button>
+                                <button class="button button-link-delete button-small" disabled title="<?php esc_attr_e('You do not have permission to delete this role.', 'snn'); ?>"><?php _e('Delete', 'snn'); ?></button>
                             <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach;
             } else { ?>
-                <tr><td colspan="5"><?php _e('No editable roles found (excluding Administrator). If you expect to see core roles like Editor, check plugin conflicts or user permissions.', 'snn-role-manager'); ?></td></tr>
+                <tr><td colspan="5"><?php _e('No editable roles found (excluding Administrator). If you expect to see core roles like Editor, check plugin conflicts or user permissions.', 'snn'); ?></td></tr>
             <?php } ?>
         </tbody>
         <tfoot>
              <tr>
-                <th scope="col" class="manage-column column-role_name column-primary"><?php _e('Display Name', 'snn-role-manager'); ?></th>
-                <th scope="col" class="manage-column column-role_id"><?php _e('Role ID (Slug)', 'snn-role-manager'); ?></th>
-                <th scope="col" class="manage-column column-capabilities"><?php _e('Capabilities', 'snn-role-manager'); ?></th>
-                <th scope="col" class="manage-column column-restrictions"><?php _e('Post Edit Restrictions', 'snn-role-manager'); ?></th>
-                <th scope="col" class="manage-column column-actions"><?php _e('Actions', 'snn-role-manager'); ?></th>
+                <th scope="col" class="manage-column column-role_name column-primary"><?php _e('Display Name', 'snn'); ?></th>
+                <th scope="col" class="manage-column column-role_id"><?php _e('Role ID (Slug)', 'snn'); ?></th>
+                <th scope="col" class="manage-column column-capabilities"><?php _e('Capabilities', 'snn'); ?></th>
+                <th scope="col" class="manage-column column-restrictions"><?php _e('Post Edit Restrictions', 'snn'); ?></th>
+                <th scope="col" class="manage-column column-actions"><?php _e('Actions', 'snn'); ?></th>
              </tr>
         </tfoot>
     </table>
@@ -570,24 +570,24 @@ function snn_render_add_role_form() {
     $all_capabilities = snn_get_all_capabilities();
     $page_slug = 'snn-role-management';
     ?>
-    <h2><?php _e('Add New Role', 'snn-role-manager'); ?></h2>
-    <p><?php _e('Create a new custom user role and assign initial capabilities and optional post editing restrictions.', 'snn-role-manager'); ?></p>
+    <h2><?php _e('Add New Role', 'snn'); ?></h2>
+    <p><?php _e('Create a new custom user role and assign initial capabilities and optional post editing restrictions.', 'snn'); ?></p>
     <form method="post" action="<?php echo esc_url(admin_url('admin.php?page=' . $page_slug . '&tab=add_role')); ?>">
         <input type="hidden" name="snn_action" value="add_role">
         <?php wp_nonce_field('snn_role_action', '_snn_role_nonce'); ?>
         <table class="form-table" role="presentation"><tbody>
-            <tr><th scope="row"><label for="snn-role-id"><?php _e('Role ID (Slug)', 'snn-role-manager'); ?></label></th><td><input name="role_id" type="text" id="snn-role-id" value="" class="regular-text" required pattern="[a-z0-9_]+" title="<?php esc_attr_e('Lowercase letters, numbers, and underscores only.', 'snn-role-manager'); ?>" aria-describedby="snn-role-id-desc"><p class="description" id="snn-role-id-desc"><?php _e('Unique identifier (slug) for the role. Use only lowercase letters, numbers, and underscores (e.g., "event_manager"). Cannot be changed later. Cannot be "administrator" or a core role ID.', 'snn-role-manager'); ?></p></td></tr>
-            <tr><th scope="row"><label for="snn-role-display-name"><?php _e('Display Name', 'snn-role-manager'); ?></label></th><td><input name="role_display_name" type="text" id="snn-role-display-name" value="" class="regular-text" required aria-describedby="snn-role-display-name-desc"><p class="description" id="snn-role-display-name-desc"><?php _e('The name displayed in the WordPress admin area (e.g., "Event Manager").', 'snn-role-manager'); ?></p></td></tr>
+            <tr><th scope="row"><label for="snn-role-id"><?php _e('Role ID (Slug)', 'snn'); ?></label></th><td><input name="role_id" type="text" id="snn-role-id" value="" class="regular-text" required pattern="[a-z0-9_]+" title="<?php esc_attr_e('Lowercase letters, numbers, and underscores only.', 'snn'); ?>" aria-describedby="snn-role-id-desc"><p class="description" id="snn-role-id-desc"><?php _e('Unique identifier (slug) for the role. Use only lowercase letters, numbers, and underscores (e.g., "event_manager"). Cannot be changed later. Cannot be "administrator" or a core role ID.', 'snn'); ?></p></td></tr>
+            <tr><th scope="row"><label for="snn-role-display-name"><?php _e('Display Name', 'snn'); ?></label></th><td><input name="role_display_name" type="text" id="snn-role-display-name" value="" class="regular-text" required aria-describedby="snn-role-display-name-desc"><p class="description" id="snn-role-display-name-desc"><?php _e('The name displayed in the WordPress admin area (e.g., "Event Manager").', 'snn'); ?></p></td></tr>
             <tr>
-                <th scope="row"><?php _e('Initial Capabilities', 'snn-role-manager'); ?></th>
+                <th scope="row"><?php _e('Initial Capabilities', 'snn'); ?></th>
                 <td>
                     <p class="snn-capability-search-wrap">
-                        <label for="snn-capability-search-add" class="screen-reader-text"><?php _e('Search Capabilities:', 'snn-role-manager'); ?></label>
-                        <input type="text" id="snn-capability-search-add" class="regular-text snn-capability-search" placeholder="<?php esc_attr_e('Search Capabilities...', 'snn-role-manager'); ?>" aria-controls="snn-capabilities-list-add">
+                        <label for="snn-capability-search-add" class="screen-reader-text"><?php _e('Search Capabilities:', 'snn'); ?></label>
+                        <input type="text" id="snn-capability-search-add" class="regular-text snn-capability-search" placeholder="<?php esc_attr_e('Search Capabilities...', 'snn'); ?>" aria-controls="snn-capabilities-list-add">
                     </p>
                     <fieldset>
-                        <legend class="screen-reader-text"><span><?php _e('Capabilities', 'snn-role-manager'); ?></span></legend>
-                        <p><?php _e('Select the capabilities this role should have. The "read" capability is essential and automatically assigned. To enable post/page editing and restrictions, ensure the relevant "edit_posts", "edit_pages", or custom post type edit capability is selected.', 'snn-role-manager'); ?></p>
+                        <legend class="screen-reader-text"><span><?php _e('Capabilities', 'snn'); ?></span></legend>
+                        <p><?php _e('Select the capabilities this role should have. The "read" capability is essential and automatically assigned. To enable post/page editing and restrictions, ensure the relevant "edit_posts", "edit_pages", or custom post type edit capability is selected.', 'snn'); ?></p>
                         <div class="capabilities-checkbox-list">
                             <ul class="capabilities-columns" id="snn-capabilities-list-add">
                                 <?php if (!empty($all_capabilities)) : foreach ($all_capabilities as $cap) :
@@ -597,11 +597,11 @@ function snn_render_add_role_form() {
                                         <label title="<?php echo esc_attr($cap); ?>">
                                             <input type="checkbox" name="capabilities[<?php echo esc_attr($cap); ?>]" value="1" <?php checked($is_disabled); ?> <?php disabled($is_disabled); ?>>
                                             <code><?php echo esc_html($cap); ?></code>
-                                            <?php if ($is_disabled) echo ' <span class="required-cap">(' . __('Required', 'snn-role-manager') . ')</span>'; ?>
+                                            <?php if ($is_disabled) echo ' <span class="required-cap">(' . __('Required', 'snn') . ')</span>'; ?>
                                         </label>
                                     </li>
                                 <?php endforeach; else: ?>
-                                <li><?php _e('No capabilities found to assign.', 'snn-role-manager'); ?></li>
+                                <li><?php _e('No capabilities found to assign.', 'snn'); ?></li>
                                 <?php endif; ?>
                             </ul>
                         </div>
@@ -609,22 +609,22 @@ function snn_render_add_role_form() {
                 </td>
             </tr>
             <tr>
-                <th scope="row"><?php _e('Restrict Post Editing (Optional)', 'snn-role-manager'); ?></th>
+                <th scope="row"><?php _e('Restrict Post Editing (Optional)', 'snn'); ?></th>
                 <td>
                     <div class="snn-post-restriction-control">
-                        <label for="snn-post-search-add" class="screen-reader-text"><?php _e('Search Posts/Pages:', 'snn-role-manager'); ?></label>
-                        <input type="text" id="snn-post-search-add" class="regular-text snn-post-search-input" placeholder="<?php esc_attr_e('Search by title...', 'snn-role-manager'); ?>">
+                        <label for="snn-post-search-add" class="screen-reader-text"><?php _e('Search Posts/Pages:', 'snn'); ?></label>
+                        <input type="text" id="snn-post-search-add" class="regular-text snn-post-search-input" placeholder="<?php esc_attr_e('Search by title...', 'snn'); ?>">
                         <div class="snn-search-results" id="snn-search-results-add" style="display: none;"></div>
                         <div class="snn-selected-posts" id="snn-selected-posts-add">
-                            <span class="placeholder"><?php _e('No posts selected.', 'snn-role-manager'); ?></span>
+                            <span class="placeholder"><?php _e('No posts selected.', 'snn'); ?></span>
                         </div>
                         <input type="hidden" name="snn_allowed_page_ids_hidden" id="snn-allowed-page-ids-hidden-add" value="">
-                        <p class="description"><?php _e('Search for and select specific Posts, Pages, or other public post types that users with this role should be allowed to edit. Leave empty to allow editing of any post (requires the relevant "edit" capability above).', 'snn-role-manager'); ?></p>
+                        <p class="description"><?php _e('Search for and select specific Posts, Pages, or other public post types that users with this role should be allowed to edit. Leave empty to allow editing of any post (requires the relevant "edit" capability above).', 'snn'); ?></p>
                     </div>
                 </td>
             </tr>
         </tbody></table>
-        <?php submit_button(__('Add New Role', 'snn-role-manager')); ?>
+        <?php submit_button(__('Add New Role', 'snn')); ?>
     </form>
     <?php
 }
@@ -632,7 +632,7 @@ function snn_render_add_role_form() {
 function snn_render_edit_role_form($role_id) {
     $role_object = get_role($role_id);
     if (!$role_object || !isset(get_editable_roles()[$role_id]) || $role_id === 'administrator') {
-        wp_die(__('Invalid role specified, you do not have permission to edit it, or you attempted to edit the Administrator role.', 'snn-role-manager'));
+        wp_die(__('Invalid role specified, you do not have permission to edit it, or you attempted to edit the Administrator role.', 'snn'));
     }
 
     $role_caps = $role_object->capabilities;
@@ -669,16 +669,16 @@ function snn_render_edit_role_form($role_id) {
          foreach($missing_ids as $missing_id) {
               $selected_posts_data[] = [
                    'id' => $missing_id,
-                   'title' => sprintf(__('ID %d (Not Found)', 'snn-role-manager'), $missing_id),
-                   'type' => __('N/A', 'snn-role-manager')
+                   'title' => sprintf(__('ID %d (Not Found)', 'snn'), $missing_id),
+                   'type' => __('N/A', 'snn')
               ];
          }
     }
 
     $page_slug = 'snn-role-management';
     ?>
-    <h2><?php printf(__('Edit Role: %s', 'snn-role-manager'), esc_html(translate_user_role($role_object->name))); ?> <code>(<?php echo esc_html($role_id); ?>)</code></h2>
-    <?php if ($is_core) : ?><div class="notice notice-warning inline notice-alt"><p><strong><?php _e('Warning:', 'snn-role-manager'); ?></strong> <?php _e('You are editing a core WordPress role. Modifying core capabilities can lead to unexpected behavior or security issues. Proceed with caution.', 'snn-role-manager'); ?></p></div><?php endif; ?>
+    <h2><?php printf(__('Edit Role: %s', 'snn'), esc_html(translate_user_role($role_object->name))); ?> <code>(<?php echo esc_html($role_id); ?>)</code></h2>
+    <?php if ($is_core) : ?><div class="notice notice-warning inline notice-alt"><p><strong><?php _e('Warning:', 'snn'); ?></strong> <?php _e('You are editing a core WordPress role. Modifying core capabilities can lead to unexpected behavior or security issues. Proceed with caution.', 'snn'); ?></p></div><?php endif; ?>
 
     <form method="post" action="<?php echo esc_url(admin_url('admin.php?page=' . $page_slug . '&tab=manage_roles')); ?>">
         <input type="hidden" name="snn_action" value="update_role">
@@ -686,15 +686,15 @@ function snn_render_edit_role_form($role_id) {
         <?php wp_nonce_field('snn_role_action', '_snn_role_nonce'); ?>
         <table class="form-table" role="presentation"><tbody>
             <tr>
-                <th scope="row"><?php _e('Capabilities', 'snn-role-manager'); ?></th>
+                <th scope="row"><?php _e('Capabilities', 'snn'); ?></th>
                 <td>
                      <p class="snn-capability-search-wrap">
-                         <label for="snn-capability-search-edit" class="screen-reader-text"><?php _e('Search Capabilities:', 'snn-role-manager'); ?></label>
-                         <input type="text" id="snn-capability-search-edit" class="regular-text snn-capability-search" placeholder="<?php esc_attr_e('Search Capabilities...', 'snn-role-manager'); ?>" aria-controls="snn-capabilities-list-edit">
+                         <label for="snn-capability-search-edit" class="screen-reader-text"><?php _e('Search Capabilities:', 'snn'); ?></label>
+                         <input type="text" id="snn-capability-search-edit" class="regular-text snn-capability-search" placeholder="<?php esc_attr_e('Search Capabilities...', 'snn'); ?>" aria-controls="snn-capabilities-list-edit">
                      </p>
                     <fieldset>
-                        <legend class="screen-reader-text"><span><?php _e('Capabilities', 'snn-role-manager'); ?></span></legend>
-                        <p><?php _e('Select the capabilities this role should have. The "read" capability is essential and cannot be removed. To enable post/page editing and restrictions, ensure the relevant "edit" capability is selected.', 'snn-role-manager'); ?></p>
+                        <legend class="screen-reader-text"><span><?php _e('Capabilities', 'snn'); ?></span></legend>
+                        <p><?php _e('Select the capabilities this role should have. The "read" capability is essential and cannot be removed. To enable post/page editing and restrictions, ensure the relevant "edit" capability is selected.', 'snn'); ?></p>
                         <div class="capabilities-checkbox-list">
                             <ul class="capabilities-columns" id="snn-capabilities-list-edit">
                                 <?php if (!empty($combined_capabilities)) : foreach ($combined_capabilities as $cap) :
@@ -705,11 +705,11 @@ function snn_render_edit_role_form($role_id) {
                                         <label title="<?php echo esc_attr($cap); ?>">
                                             <input type="checkbox" name="capabilities[<?php echo esc_attr($cap); ?>]" value="1" <?php checked($is_checked); ?> <?php disabled($is_disabled); ?>>
                                             <code><?php echo esc_html($cap); ?></code>
-                                            <?php if ($is_disabled) echo ' <span class="required-cap">(' . __('Required', 'snn-role-manager') . ')</span>'; ?>
+                                            <?php if ($is_disabled) echo ' <span class="required-cap">(' . __('Required', 'snn') . ')</span>'; ?>
                                         </label>
                                     </li>
                                 <?php endforeach; else: ?>
-                                <li><?php _e('No capabilities found.', 'snn-role-manager'); ?></li>
+                                <li><?php _e('No capabilities found.', 'snn'); ?></li>
                                 <?php endif; ?>
                             </ul>
                         </div>
@@ -717,32 +717,32 @@ function snn_render_edit_role_form($role_id) {
                 </td>
             </tr>
             <tr>
-                <th scope="row"><?php _e('Restrict Post Editing (Optional)', 'snn-role-manager'); ?></th>
+                <th scope="row"><?php _e('Restrict Post Editing (Optional)', 'snn'); ?></th>
                  <td>
                     <div class="snn-post-restriction-control">
-                        <label for="snn-post-search-edit" class="screen-reader-text"><?php _e('Search Posts/Pages:', 'snn-role-manager'); ?></label>
-                        <input type="text" id="snn-post-search-edit" class="regular-text snn-post-search-input" placeholder="<?php esc_attr_e('Search by title...', 'snn-role-manager'); ?>">
+                        <label for="snn-post-search-edit" class="screen-reader-text"><?php _e('Search Posts/Pages:', 'snn'); ?></label>
+                        <input type="text" id="snn-post-search-edit" class="regular-text snn-post-search-input" placeholder="<?php esc_attr_e('Search by title...', 'snn'); ?>">
                         <div class="snn-search-results" id="snn-search-results-edit" style="display: none;"></div>
                         <div class="snn-selected-posts" id="snn-selected-posts-edit">
                              <?php if (empty($selected_posts_data)) : ?>
-                                 <span class="placeholder"><?php _e('No posts selected.', 'snn-role-manager'); ?></span>
+                                 <span class="placeholder"><?php _e('No posts selected.', 'snn'); ?></span>
                              <?php else : ?>
                                  <?php foreach ($selected_posts_data as $post_data) : ?>
                                      <span class="snn-selected-post-item" data-id="<?php echo esc_attr($post_data['id']); ?>">
                                          <?php echo esc_html($post_data['title']); ?> (<?php echo esc_html($post_data['type']); ?>)
-                                         <button type="button" class="snn-remove-post" aria-label="<?php esc_attr_e('Remove', 'snn-role-manager'); ?>">&times;</button>
+                                         <button type="button" class="snn-remove-post" aria-label="<?php esc_attr_e('Remove', 'snn'); ?>">&times;</button>
                                      </span>
                                  <?php endforeach; ?>
                              <?php endif; ?>
                         </div>
                         <input type="hidden" name="snn_allowed_page_ids_hidden" id="snn-allowed-page-ids-hidden-edit" value="<?php echo esc_attr($current_restrictions_str); ?>">
-                        <p class="description"><?php _e('Search for and select specific Posts, Pages, or other public post types that users with this role should be allowed to edit. Leave empty to allow editing of any post (requires the relevant "edit" capability above).', 'snn-role-manager'); ?></p>
+                        <p class="description"><?php _e('Search for and select specific Posts, Pages, or other public post types that users with this role should be allowed to edit. Leave empty to allow editing of any post (requires the relevant "edit" capability above).', 'snn'); ?></p>
                     </div>
                 </td>
             </tr>
         </tbody></table>
-        <?php submit_button(__('Update Role', 'snn-role-manager')); ?>
-        <a href="<?php echo esc_url(admin_url('admin.php?page=' . $page_slug . '&tab=manage_roles')); ?>" class="button button-secondary"><?php _e('Cancel', 'snn-role-manager'); ?></a>
+        <?php submit_button(__('Update Role', 'snn')); ?>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=' . $page_slug . '&tab=manage_roles')); ?>" class="button button-secondary"><?php _e('Cancel', 'snn'); ?></a>
     </form>
     <?php
 }
@@ -752,7 +752,7 @@ function snn_ajax_search_posts() {
     check_ajax_referer('snn_search_posts_nonce', 'nonce');
 
     if (!current_user_can('manage_snn_roles')) {
-        wp_send_json_error(['message' => __('Permission denied.', 'snn-role-manager')], 403);
+        wp_send_json_error(['message' => __('Permission denied.', 'snn')], 403);
     }
 
     $search_term = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
@@ -969,11 +969,11 @@ function snn_role_manager_inline_admin_js() {
         'ajax_url' => admin_url('admin-ajax.php'),
         'search_nonce' => wp_create_nonce('snn_search_posts_nonce'),
         'labels' => [
-            'no_results' => __('No posts found.', 'snn-role-manager'),
-            'error' => __('An error occurred. Please try again.', 'snn-role-manager'),
-            'remove' => __('Remove', 'snn-role-manager'),
-            'no_posts_selected' => __('No posts selected.', 'snn-role-manager'),
-            'loading' => __('Loading...', 'snn-role-manager'),
+            'no_results' => __('No posts found.', 'snn'),
+            'error' => __('An error occurred. Please try again.', 'snn'),
+            'remove' => __('Remove', 'snn'),
+            'no_posts_selected' => __('No posts selected.', 'snn'),
+            'loading' => __('Loading...', 'snn'),
         ]
     ];
     ?>
