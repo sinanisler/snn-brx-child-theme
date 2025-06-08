@@ -179,7 +179,7 @@ function myroles_show_role_checkboxes( $user ) {
 				<p class="description" style="margin-top:8px;color:#c00;font-weight:600;">
 					<?php esc_html_e(
 						'⚠ WARNING – You can assign multiple roles, but overlapping capabilities can clash. Grant the minimum required and test thoroughly.',
-						'my-textdomain'
+						'snn'
 					); ?>
 				</p>
 			</td>
