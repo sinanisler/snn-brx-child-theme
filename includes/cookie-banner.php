@@ -49,7 +49,7 @@ function snn_options_page() {
                 'title' => array(),
             ),
         );
-        $options['snn_cookie_settings_banner_description'] = isset($_POST['snn_cookie_settings_banner_description']) ? wp_kses( wp_unslash($_POST['snn_cookie_settings_banner_description']), $allowed ) : '';
+        $options['snn_cookie_settings_banner_description'] = isset($_POST['snn_cookie_settings_banner_description']) ? wp_unslash($_POST['snn_cookie_settings_banner_description']) : '';
         
         $options['snn_cookie_settings_accept_button']        = isset($_POST['snn_cookie_settings_accept_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_accept_button']) ) : '';
         $options['snn_cookie_settings_deny_button']          = isset($_POST['snn_cookie_settings_deny_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_deny_button']) ) : '';
@@ -526,7 +526,7 @@ function snn_output_cookie_banner() {
                     'title' => array(),
                 ),
             );
-            echo wp_kses( $options['snn_cookie_settings_banner_description'], $allowed );
+            echo  $options['snn_cookie_settings_banner_description'];
             ?>
         </div>
         <div class="snn-banner-buttons">
