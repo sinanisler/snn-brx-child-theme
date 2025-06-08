@@ -565,10 +565,10 @@ function snn_custom_codes_snippets_page() {
 
     // Definition for the advanced raw code snippet (handled separately)
     $advanced_snippet_def = array(
-        'title'       => __( 'Advance Code', 'snn' ),
+        'title'       => __( 'Advance Code (functions.php)', 'snn' ),
         'slug'        => 'snn-snippet-advanced-raw',
         'field_id'    => 'snn_advanced_raw_code',
-        'description' => __( '<strong>EXTREME DANGER:</strong> This code is saved directly to the database without any sanitization and is executed directly. There are no safeguards. Use this only if you are an expert and understand the risks of breaking your entire site. Revisions are NOT available for this snippet.', 'snn' ),
+        'description' => __( '<strong>EXTREME DANGER:</strong> This code is executed directly. There are no safeguards.  Use this only if you are an expert and understand the risks of breaking your entire site. Revisions are NOT available for this snippet.<br> This code runs directly like it runs in functions.php and with no sanitization regex safe.', 'snn' ),
     );
 
     $settings_saved_message_type = 'updated'; // Default message type for settings errors
