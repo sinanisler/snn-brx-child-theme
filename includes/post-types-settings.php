@@ -7,12 +7,12 @@ add_action( 'admin_menu', 'snn_add_custom_post_types_submenu' );
 
 function snn_add_custom_post_types_submenu() {
     add_submenu_page(
-        'snn-settings',                   
-        __( 'Register Post Types', 'snn' ),             
-        __( 'Post Types', 'snn' ),                      
-        'manage_options',                  
-        'snn-custom-post-types',           
-        'snn_render_custom_post_types_page'
+        'snn-settings',                         
+        __( 'Register Post Types', 'snn' ),    
+        __( 'Post Types', 'snn' ),               
+        'manage_options',                        
+        'snn-custom-post-types',                
+        'snn_render_custom_post_types_page'      
     );
 }
 
@@ -27,6 +27,7 @@ function snn_render_custom_post_types_page() {
         'thumbnail'       => __( 'Thumbnail', 'snn' ),
         'author'          => __( 'Author', 'snn' ),
         'excerpt'         => __( 'Excerpt', 'snn' ),
+        'comments'        => __( 'Comments', 'snn' ),
         'custom-fields'   => __( 'Custom Fields', 'snn' ),
         'revisions'       => __( 'Revisions', 'snn' ),
         'page-attributes' => __( 'Page Attributes', 'snn' ),
@@ -93,7 +94,7 @@ function snn_render_custom_post_types_page() {
                             <label><?php echo esc_html__( 'Post Type Name', 'snn' ); ?></label><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][name]" placeholder="<?php echo esc_attr__( 'Post Type Name', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['name'] ); ?>" />
                         </div>
- 
+    
                         <div class="post-type-slug">
                             <label><?php echo esc_html__( 'Post Type Slug (max 20 chars)', 'snn' ); ?></label><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="<?php echo esc_attr__( 'post-slug', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['slug'] ); ?>" maxlength="20" />
@@ -103,7 +104,7 @@ function snn_render_custom_post_types_page() {
                             <label><?php echo esc_html__( 'Dashicon', 'snn' ); ?> </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][dashicon]" placeholder="<?php echo esc_attr__( 'dashicons-admin-page', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['dashicon'] ); ?>" style="width:90px" />
                         </div>
- 
+    
                         <label><?php echo esc_html__( 'Private', 'snn' ); ?></label>
                         <div class="checkbox-container">
                             <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][private]" <?php checked( $post_type['private'], 1 ); ?> />
@@ -132,12 +133,14 @@ function snn_render_custom_post_types_page() {
             const fieldContainer = document.getElementById('custom-post-type-settings');
             const addFieldButton = document.getElementById('add-custom-post-type-row');
 
+            // Added 'comments' to the JS available supports object
             const availableSupports = {
                 'title': '<?php echo esc_js( __( 'Title', 'snn' ) ); ?>',
                 'editor': '<?php echo esc_js( __( 'Editor', 'snn' ) ); ?>',
                 'thumbnail': '<?php echo esc_js( __( 'Thumbnail', 'snn' ) ); ?>',
                 'author': '<?php echo esc_js( __( 'Author', 'snn' ) ); ?>',
                 'excerpt': '<?php echo esc_js( __( 'Excerpt', 'snn' ) ); ?>',
+                'comments': '<?php echo esc_js( __( 'Comments', 'snn' ) ); ?>',
                 'custom-fields': '<?php echo esc_js( __( 'Custom Fields', 'snn' ) ); ?>',
                 'revisions': '<?php echo esc_js( __( 'Revisions', 'snn' ) ); ?>',
                 'page-attributes': '<?php echo esc_js( __( 'Page Attributes', 'snn' ) ); ?>'
@@ -175,12 +178,14 @@ function snn_render_custom_post_types_page() {
                 });
             }
 
+            // MODIFIED: This function now disables the 'comments' checkbox by default for new rows.
             function generateSupportsHTML(index) {
                 let html = '<div class="supports-section">';
                 for (const [key, label] of Object.entries(availableSupports)) {
+                    const isChecked = key !== 'comments'; // Set checked state, false for 'comments'
                     html += `
                         <label>
-                            <input type="checkbox" name="custom_post_types[${index}][supports][${key}]" checked />
+                            <input type="checkbox" name="custom_post_types[${index}][supports][${key}]" ${isChecked ? 'checked' : ''} />
                             ${label}
                         </label>
                     `;
@@ -326,7 +331,8 @@ function snn_register_custom_post_types() {
     $custom_post_types = get_option( 'snn_custom_post_types', array() );
 
     foreach ( $custom_post_types as $post_type ) {
-        $supports = isset( $post_type['supports'] ) && is_array( $post_type['supports'] ) ? $post_type['supports'] : array( 'title', 'editor', 'thumbnail', 'author', 'excerpt', 'custom-fields', 'revisions', 'page-attributes' );
+        $default_supports = array( 'title', 'editor', 'thumbnail', 'author', 'excerpt', 'comments', 'custom-fields', 'revisions', 'page-attributes' );
+        $supports = isset( $post_type['supports'] ) && is_array( $post_type['supports'] ) ? $post_type['supports'] : $default_supports;
 
         $allowed_supports = array(
             'title',
@@ -334,6 +340,7 @@ function snn_register_custom_post_types() {
             'thumbnail',
             'author',
             'excerpt',
+            'comments',
             'custom-fields',
             'revisions',
             'page-attributes'
@@ -344,7 +351,7 @@ function snn_register_custom_post_types() {
             'label'         => $post_type['name'],
             'public'        => ! (bool) $post_type['private'],
             'has_archive'   => true,
-            'supports'      => ! empty( $supports ) ? $supports : array( 'title', 'editor', 'thumbnail', 'author', 'excerpt', 'custom-fields', 'revisions', 'page-attributes' ),
+            'supports'      => ! empty( $supports ) ? $supports : $default_supports,
             'show_in_rest'  => true,
             'menu_position' => 20,
             'menu_icon'     => ! empty( $post_type['dashicon'] ) ? $post_type['dashicon'] : 'dashicons-admin-page',
