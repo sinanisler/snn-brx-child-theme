@@ -598,6 +598,7 @@ add_action( 'init', function () {
 'mobile:false' => esc_html__('Mobile False', 'snn'),
 
 
+'once:true' => esc_html__('Mobile False', 'snn'),
 
 
 'custom' => esc_html__('Custom data-animate', 'snn'), 
