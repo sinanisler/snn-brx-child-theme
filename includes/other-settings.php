@@ -151,12 +151,6 @@ function snn_enqueue_gsap_callback() {
         - <?php _e('ScrollTrigger.min.php: A GSAP plugin that enables scroll-based animations.', 'snn'); ?><br>
         - <?php _e('gsap-data-animate.php: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.', 'snn'); ?><br>
         - <?php _e('lottie.min.php and Lottie Element', 'snn'); ?><br><br>
-        <?php
-            printf(
-                /* translators: %s: link to documentation */
-                __('Read <a href="https://github.com/sinanisler/snn-brx-child-theme/wiki/GSAP-ScrollTrigger-Animations" target="_blank">Documentation and Examples</a> for more details.', 'snn')
-            );
-        ?>
     </p>
     <?php
 }
