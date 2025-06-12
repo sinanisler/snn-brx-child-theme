@@ -128,7 +128,7 @@ function snn_custom_fields_page_callback() {
                                 <div class="field-group">
                                     <label>Slug Name</label>
                                     <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][name]" 
-                                           placeholder="my_awesome_field" 
+                                           placeholder="field_name" 
                                            value="<?php echo esc_attr($field['name']); ?>" />
                                 </div>
                             </div>
@@ -305,8 +305,8 @@ function snn_custom_fields_page_callback() {
                     </div>
                     <div class="field-identity-group">
                         <div class="field-group"><label>Group Name</label><input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name"></div>
-                        <div class="field-group"><label>Field Label</label><input type="text" name="custom_fields[${newIndex}][label]" placeholder="My Awesome Field"></div>
-                        <div class="field-group"><label>Slug Name</label><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="my_awesome_field"></div>
+                        <div class="field-group"><label>Field Label</label><input type="text" name="custom_fields[${newIndex}][label]" placeholder="Field Name"></div>
+                        <div class="field-group"><label>Slug Name</label><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="field_name"></div>
                     </div>
                     <div class="field-group"><label>Width (%)</label><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
                     <div class="field-group">
