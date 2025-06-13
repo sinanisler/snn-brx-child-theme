@@ -169,6 +169,16 @@ class SNN_Element_Conditions extends Element {
 			'options'    => $this->wp_roles_select(),
 			'inline'     => true,
 		];
+
+		// === Custom code action control (NEW) ===
+		$this->controls['custom_code'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Custom Code Action', 'snn' ),
+			'type'    => 'code',
+			'mode'    => 'css,js,html', // multi-mode, user can write any
+			'default' => '',
+			'description' => esc_html__( 'Custom code (CSS, JS, or HTML). Will be rendered if all conditions pass. Safe: JS is output in a <script> tag, CSS in <style>, HTML direct. Don’t include <script> or <style> tags in the code.', 'snn' ),
+		];
 	}
 
 	/* === Render === */
@@ -239,6 +249,12 @@ class SNN_Element_Conditions extends Element {
 		/* === Output wrapper + children === */
 		echo '<div ' . $this->render_attributes( '_root' ) . '>';
 		echo Frontend::render_children( $this );
+
+		/* === Output custom code if set and all conditions pass === */
+		if ( ! empty( $settings['custom_code'] ) ) {
+			$this->output_custom_code( $settings['custom_code'] );
+		}
+
 		echo '</div>';
 
 		/* === Inline style (only first instance prints it) === */
@@ -377,6 +393,35 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 })();</script>
 <?php
+		}
+	}
+
+	/* === Custom code action output === */
+	private function output_custom_code( $code ) {
+		$code = trim( $code );
+		if ( ! $code ) {
+			return;
+		}
+		// Separate and auto-wrap code by type
+		// Try JS (if starts with "js:"), CSS (if starts with "css:"), or HTML (else)
+		if ( stripos( $code, 'js:' ) === 0 ) {
+			$js = trim( substr( $code, 3 ) );
+			if ( $js ) {
+				echo '<script>' . $js . '</script>';
+			}
+		} elseif ( stripos( $code, 'css:' ) === 0 ) {
+			$css = trim( substr( $code, 4 ) );
+			if ( $css ) {
+				echo '<style>' . $css . '</style>';
+			}
+		} else {
+			// If it looks like <script> or <style> tag, just output
+			if ( preg_match( '/^\s*<(script|style)[\s>]/i', $code ) ) {
+				echo $code;
+			} else {
+				// Else treat as HTML
+				echo $code;
+			}
 		}
 	}
 
