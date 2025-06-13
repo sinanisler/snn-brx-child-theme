@@ -36,7 +36,7 @@ class SNN_Element_Conditions extends Element {
 			'tab'   => 'content',
 			'label' => esc_html__( 'Custom Selector (optional)', 'snn' ),
 			'type'  => 'text',
-			'description' => esc_html__( 'Any valid DOM selector (e.g. #my-id, .my-class, header, etc). If set, conditions apply to target(s) instead of this element.', 'snn' ),
+			'description' => esc_html__( 'Any valid DOM selector. If set, conditions apply to target(s) instead of this element.', 'snn' ),
 			'inline'=> false,
 		];
 
