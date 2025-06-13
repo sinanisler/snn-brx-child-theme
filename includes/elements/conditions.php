@@ -31,6 +31,15 @@ class SNN_Element_Conditions extends Element {
 	/* === Builder controls === */
 	public function set_controls() {
 
+		// Custom Selector (NEW, on top)
+		$this->controls['custom_selector'] = [
+			'tab'   => 'content',
+			'label' => esc_html__( 'Custom Selector (optional)', 'snn' ),
+			'type'  => 'text',
+			'description' => esc_html__( 'Any valid DOM selector (e.g. #my-id, .my-class, header, etc). If set, conditions apply to target(s) instead of this element.', 'snn' ),
+			'inline'=> false,
+		];
+
 		// Show once
 		$this->controls['show_once'] = [
 			'tab'   => 'content',
@@ -191,6 +200,7 @@ class SNN_Element_Conditions extends Element {
 
 		/* push every setting value to data-attributes */
 		$map = [
+			'custom_selector'=> 'str', // NEW, for JS
 			'show_once'     => 'bool',
 			'max_views'     => 'int',
 			'per_session'   => 'int',
@@ -198,7 +208,6 @@ class SNN_Element_Conditions extends Element {
 			'cooldown'      => 'int',
 			'start_date'    => 'str',
 			'end_date'      => 'str',
-			// 'days'       => 'str', // REMOVED days from map
 			'device'        => 'str',
 			'referrer'      => 'str',
 			'url_contains'  => 'str',
@@ -274,6 +283,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 		const o={
 			key:          el.dataset.key,
+			customSelector:el.dataset.custom_selector||'',
 			showOnce:     el.dataset.show_once==='1',
 			maxViews:     parseInt(el.dataset.max_views||'0',10),
 			delay:        parseInt(el.dataset.delay||'0',10)*1000,
@@ -281,7 +291,6 @@ document.addEventListener('DOMContentLoaded',function(){
 			sessionLimit: parseInt(el.dataset.per_session||'0',10),
 			startDate:    dateParse(el.dataset.start_date),
 			endDate:      dateParse(el.dataset.end_date),
-			// days:      el.dataset.days?el.dataset.days.split(','):[], // REMOVED
 			device:       el.dataset.device?el.dataset.device.split(','):[],
 			referrer:     el.dataset.referrer||'',
 			urlContains:  el.dataset.url_contains||'',
@@ -340,15 +349,27 @@ document.addEventListener('DOMContentLoaded',function(){
 		if(o.delay){setTimeout(render,o.delay);}else{render();}
 
 		function render(){
-			el.classList.remove('snn-hidden');
-			el.style.display='';
+			let targets = [];
+			if(o.customSelector){
+				try{
+					targets = Array.from(document.querySelectorAll(o.customSelector));
+				}catch(e){}
+			} else {
+				targets = [el];
+			}
+			targets.forEach(function(t){
+				t.classList.remove('snn-hidden');
+				t.style.display='';
+			});
 			st.setItem(o.key,JSON.stringify({v:views+1,l:Date.now()}));
 
 			/* auto-hide after cooldown (supports Delay+Cooldown combo) */
 			if(o.cooldown){
 				setTimeout(function(){
-					el.classList.add('snn-hidden');
-					el.style.display='none';
+					targets.forEach(function(t){
+						t.classList.add('snn-hidden');
+						t.style.display='none';
+					});
 				},o.cooldown);
 			}
 		}
