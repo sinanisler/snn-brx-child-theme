@@ -7,12 +7,12 @@ add_action( 'admin_menu', 'snn_add_custom_post_types_submenu' );
 
 function snn_add_custom_post_types_submenu() {
     add_submenu_page(
-        'snn-settings',                         
-        __( 'Register Post Types', 'snn' ),    
-        __( 'Post Types', 'snn' ),               
-        'manage_options',                        
-        'snn-custom-post-types',                
-        'snn_render_custom_post_types_page'      
+        'snn-settings',
+        __( 'Register Post Types', 'snn' ),
+        __( 'Post Types', 'snn' ),
+        'manage_options',
+        'snn-custom-post-types',
+        'snn_render_custom_post_types_page'
     );
 }
 
@@ -33,24 +33,35 @@ function snn_render_custom_post_types_page() {
         'page-attributes' => __( 'Page Attributes', 'snn' ),
     );
 
+    $additional_options = array(
+        'show_in_menu'      => __( 'Show in Menu', 'snn' ),
+        'show_ui'           => __( 'Show UI', 'snn' ),
+        'show_in_nav_menus' => __( 'Show in Nav Menus', 'snn' ),
+    );
+
     if ( isset( $_POST['snn_custom_post_types_nonce'] ) && wp_verify_nonce( $_POST['snn_custom_post_types_nonce'], 'snn_save_custom_post_types' ) ) {
         if ( isset( $_POST['custom_post_types'] ) && is_array( $_POST['custom_post_types'] ) ) {
             $custom_post_types = array();
 
             foreach ( $_POST['custom_post_types'] as $post_type ) {
                 if ( ! empty( $post_type['name'] ) && ! empty( $post_type['slug'] ) ) {
-                    // Collect supports, defaulting to all if not set
                     $supports = isset( $post_type['supports'] ) && is_array( $post_type['supports'] ) ? array_keys( $post_type['supports'] ) : array_keys( $available_supports );
-
-                    // Sanitize supports values
                     $supports = array_intersect( array_keys( $available_supports ), $supports );
 
+                    $show_in_menu      = isset( $post_type['show_in_menu'] ) ? 1 : 0;
+                    $show_ui           = isset( $post_type['show_ui'] ) ? 1 : 0;
+                    $show_in_nav_menus = isset( $post_type['show_in_nav_menus'] ) ? 1 : 0;
+                    $private           = isset( $post_type['private'] ) ? 1 : 0;
+
                     $custom_post_types[] = array(
-                        'name'     => sanitize_text_field( $post_type['name'] ),
-                        'slug'     => substr( sanitize_title( $post_type['slug'] ), 0, 20 ), // enforce max-20 char slug
-                        'private'  => isset( $post_type['private'] ) ? 1 : 0,
-                        'dashicon' => sanitize_text_field( $post_type['dashicon'] ),
-                        'supports' => $supports,
+                        'name'               => sanitize_text_field( $post_type['name'] ),
+                        'slug'               => substr( sanitize_title( $post_type['slug'] ), 0, 20 ),
+                        'private'            => $private,
+                        'dashicon'           => sanitize_text_field( $post_type['dashicon'] ),
+                        'supports'           => $supports,
+                        'show_in_menu'       => $show_in_menu,
+                        'show_ui'            => $show_ui,
+                        'show_in_nav_menus'  => $show_in_nav_menus,
                     );
                 }
             }
@@ -58,7 +69,6 @@ function snn_render_custom_post_types_page() {
             update_option( 'snn_custom_post_types', $custom_post_types );
             echo '<div class="updated"><p>' . __( 'Custom Post Types saved successfully.', 'snn' ) . '</p></div>';
         } else {
-            // If no custom post types are submitted, update the option to an empty array.
             update_option( 'snn_custom_post_types', array() );
             echo '<div class="updated"><p>' . __( 'Custom Post Types saved successfully.', 'snn' ) . '</p></div>';
         }
@@ -74,6 +84,11 @@ function snn_render_custom_post_types_page() {
             $post_type['dashicon'] = 'dashicons-admin-page';
         }
         $post_type['slug'] = substr( $post_type['slug'], 0, 20 );
+        // Always default to enabled for missing/empty new fields
+        $post_type['show_in_menu']      = ( isset( $post_type['show_in_menu'] ) && $post_type['show_in_menu'] !== '' ) ? $post_type['show_in_menu'] : 1;
+        $post_type['show_ui']           = ( isset( $post_type['show_ui'] ) && $post_type['show_ui'] !== '' ) ? $post_type['show_ui'] : 1;
+        $post_type['show_in_nav_menus'] = ( isset( $post_type['show_in_nav_menus'] ) && $post_type['show_in_nav_menus'] !== '' ) ? $post_type['show_in_nav_menus'] : 1;
+        $post_type['private']           = isset( $post_type['private'] ) ? $post_type['private'] : 0;
     }
     unset( $post_type );
     ?>
@@ -94,22 +109,14 @@ function snn_render_custom_post_types_page() {
                             <label><?php echo esc_html__( 'Post Type Name', 'snn' ); ?></label><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][name]" placeholder="<?php echo esc_attr__( 'Post Type Name', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['name'] ); ?>" />
                         </div>
-    
                         <div class="post-type-slug">
                             <label><?php echo esc_html__( 'Post Type Slug (max 20 chars)', 'snn' ); ?></label><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][slug]" placeholder="<?php echo esc_attr__( 'post-slug', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['slug'] ); ?>" maxlength="20" />
                         </div>
-
                         <div class="post-type-icon">
                             <label><?php echo esc_html__( 'Dashicon', 'snn' ); ?> </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][dashicon]" placeholder="<?php echo esc_attr__( 'dashicons-admin-page', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['dashicon'] ); ?>" style="width:90px" />
                         </div>
-    
-                        <label><?php echo esc_html__( 'Private', 'snn' ); ?></label>
-                        <div class="checkbox-container">
-                            <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][private]" <?php checked( $post_type['private'], 1 ); ?> />
-                        </div>
-
                         <!-- Supports Section -->
                         <div class="supports-section">
                             <?php foreach ( $available_supports as $key => $label ) : ?>
@@ -118,6 +125,18 @@ function snn_render_custom_post_types_page() {
                                     <?php echo esc_html( $label ); ?>
                                 </label>
                             <?php endforeach; ?>
+
+                            <?php foreach ( $additional_options as $opt_key => $opt_label ) : ?>
+                                <label>
+                                    <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][<?php echo esc_attr( $opt_key ); ?>]" <?php checked( !isset($post_type[$opt_key]) || $post_type[$opt_key], 1 ); ?> />
+                                    <?php echo esc_html( $opt_label ); ?>
+                                </label>
+                            <?php endforeach; ?>
+                            <!-- Move Private checkbox here, unchecked by default -->
+                            <label>
+                                <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][private]" <?php checked( isset($post_type['private']) && $post_type['private'], 1 ); ?> />
+                                <?php echo esc_html__( 'Private', 'snn' ); ?>
+                            </label>
                         </div>
                         <!-- End of Supports Section -->
                     </div>
@@ -133,7 +152,6 @@ function snn_render_custom_post_types_page() {
             const fieldContainer = document.getElementById('custom-post-type-settings');
             const addFieldButton = document.getElementById('add-custom-post-type-row');
 
-            // Added 'comments' to the JS available supports object
             const availableSupports = {
                 'title': '<?php echo esc_js( __( 'Title', 'snn' ) ); ?>',
                 'editor': '<?php echo esc_js( __( 'Editor', 'snn' ) ); ?>',
@@ -144,6 +162,12 @@ function snn_render_custom_post_types_page() {
                 'custom-fields': '<?php echo esc_js( __( 'Custom Fields', 'snn' ) ); ?>',
                 'revisions': '<?php echo esc_js( __( 'Revisions', 'snn' ) ); ?>',
                 'page-attributes': '<?php echo esc_js( __( 'Page Attributes', 'snn' ) ); ?>'
+            };
+
+            const additionalOptions = {
+                'show_in_menu': '<?php echo esc_js( __( 'Show in Menu', 'snn' ) ); ?>',
+                'show_ui': '<?php echo esc_js( __( 'Show UI', 'snn' ) ); ?>',
+                'show_in_nav_menus': '<?php echo esc_js( __( 'Show in Nav Menus', 'snn' ) ); ?>'
             };
 
             function slugify(value) {
@@ -178,17 +202,32 @@ function snn_render_custom_post_types_page() {
                 });
             }
 
-            // MODIFIED: This function now disables the 'comments' checkbox by default for new rows.
             function generateSupportsHTML(index) {
                 let html = '<div class="supports-section">';
                 for (const [key, label] of Object.entries(availableSupports)) {
-                    const isChecked = key !== 'comments'; // Set checked state, false for 'comments'
+                    const isChecked = key !== 'comments';
                     html += `
                         <label>
                             <input type="checkbox" name="custom_post_types[${index}][supports][${key}]" ${isChecked ? 'checked' : ''} />
                             ${label}
                         </label>
                     `;
+                    if (key === 'page-attributes') {
+                        for (const [optKey, optLabel] of Object.entries(additionalOptions)) {
+                            html += `
+                                <label>
+                                    <input type="checkbox" name="custom_post_types[${index}][${optKey}]" checked />
+                                    ${optLabel}
+                                </label>
+                            `;
+                        }
+                        html += `
+                            <label>
+                                <input type="checkbox" name="custom_post_types[${index}][private]" />
+                                <?php echo esc_html__( 'Private', 'snn' ); ?>
+                            </label>
+                        `;
+                    }
                 }
                 html += '</div>';
                 return html;
@@ -216,10 +255,6 @@ function snn_render_custom_post_types_page() {
                     <div class="post-type-icon">
                         <label><?php echo esc_html__( 'Dashicon', 'snn' ); ?> </label> <a href="https://developer.wordpress.org/resource/dashicons" target="_blank" style="text-decoration:none"><span class="dashicons dashicons-arrow-up-alt" style="rotate:45deg"></span></a><br>
                         <input type="text" name="custom_post_types[${newIndex}][dashicon]" placeholder="<?php echo esc_attr__( 'dashicons-admin-page', 'snn' ); ?>" style="width:90px" />
-                    </div>
-                    <label><?php echo esc_html__( 'Private', 'snn' ); ?></label>
-                    <div class="checkbox-container">
-                        <input type="checkbox" name="custom_post_types[${newIndex}][private]" />
                     </div>
                     <!-- Supports Section -->
                     ${generateSupportsHTML(newIndex)}
@@ -312,9 +347,7 @@ function snn_render_custom_post_types_page() {
                 flex-wrap: wrap;
                 padding-left:155px;
             }
-
             @media(max-width:768px){ .supports-section { padding-left:0; } }
-
             .custom-post-type-row button:hover{
                 background:none;
                 color:black; 
@@ -348,16 +381,19 @@ function snn_register_custom_post_types() {
         $supports = array_intersect( $supports, $allowed_supports );
 
         $args = array(
-            'label'         => $post_type['name'],
-            'public'        => ! (bool) $post_type['private'],
-            'has_archive'   => true,
-            'supports'      => ! empty( $supports ) ? $supports : $default_supports,
-            'show_in_rest'  => true,
-            'menu_position' => 20,
-            'menu_icon'     => ! empty( $post_type['dashicon'] ) ? $post_type['dashicon'] : 'dashicons-admin-page',
-            'hierarchical'  => true,
+            'label'             => $post_type['name'],
+            'public'            => ! (bool) $post_type['private'],
+            'has_archive'       => true,
+            'supports'          => ! empty( $supports ) ? $supports : $default_supports,
+            'show_in_rest'      => true,
+            'menu_position'     => 20,
+            'menu_icon'         => ! empty( $post_type['dashicon'] ) ? $post_type['dashicon'] : 'dashicons-admin-page',
+            'hierarchical'      => true,
+            'show_in_menu'      => ( isset($post_type['show_in_menu']) && $post_type['show_in_menu'] !== '' ) ? (bool)$post_type['show_in_menu'] : true,
+            'show_ui'           => ( isset($post_type['show_ui']) && $post_type['show_ui'] !== '' ) ? (bool)$post_type['show_ui'] : true,
+            'show_in_nav_menus' => ( isset($post_type['show_in_nav_menus']) && $post_type['show_in_nav_menus'] !== '' ) ? (bool)$post_type['show_in_nav_menus'] : true,
         );
 
-        register_post_type( substr( $post_type['slug'], 0, 20 ), $args ); // enforce max-20 char slug at registration
+        register_post_type( substr( $post_type['slug'], 0, 20 ), $args );
     }
 }
