@@ -386,8 +386,8 @@ function snn_register_custom_post_types() {
         $args = array(
             'label'         => $post_type['name'],
             'public'        => ! (bool) $post_type['private'],
-            'show_ui'       => ! empty( $post_type['show_in_ui'] ),   
-            'show_in_menu'  => ! empty( $post_type['show_in_menu'] ), 
+            'show_ui'       => (bool) ( $post_type['show_in_ui'] ?? 1 ),   // Default to true if not set
+            'show_in_menu'  => (bool) ( $post_type['show_in_menu'] ?? 1 ), // Default to true if not set
             'has_archive'   => true,
             'supports'      => ! empty( $supports ) ? $supports : $default_supports,
             'show_in_rest'  => true,
