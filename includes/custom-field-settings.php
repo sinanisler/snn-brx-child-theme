@@ -455,7 +455,7 @@ function snn_custom_fields_page_callback() {
                 gap: 8px; 
             }
             .field-identity-group input{
-                height:25px ;
+                height:auto;
                 min-height:auto ;
             }
             .field-identity-group label{
