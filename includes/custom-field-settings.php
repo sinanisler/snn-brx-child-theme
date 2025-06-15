@@ -430,7 +430,7 @@ function snn_custom_fields_page_callback() {
         <style>
             .custom-field-row [type="text"],
             .custom-field-row input[type="number"] {
-                width:180px;
+                width:140px;
             }
             .custom-field-row {
                 display: flex;
@@ -451,15 +451,15 @@ function snn_custom_fields_page_callback() {
             }
             .field-identity-group {
                 display: flex;
-                flex-direction: column;
-                gap: 12px; 
+                flex-direction: row;
+                gap: 8px; 
             }
             .field-identity-group input{
                 height:25px ;
                 min-height:auto ;
             }
             .field-identity-group label{
-                line-height:0.5
+                line-height:1
             }
             .custom-field-row input,
             .custom-field-row select,
