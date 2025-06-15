@@ -842,6 +842,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
     $field_name = $field['name'];
     $field_type = $field['type'];
     $is_template = ($index === '__index__');
+    $disabled_attr = $is_template ? ' disabled' : '';
 
     $prefix = ($context === 'options_page') ? 'snn_page_options' : 'custom_fields';
     $base_field_part = esc_attr($field_name);
@@ -881,22 +882,18 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
     switch ($field_type) {
         case 'text':
             echo '<input type="text" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '"' . $disabled_attr . ' />';
             break;
 
         case 'number':
             echo '<input type="number" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" step="any" />';
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" step="any"' . $disabled_attr . ' />';
             break;
 
         case 'textarea':
-            echo '<textarea id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '">' . esc_textarea($value) . '</textarea>';
-            break;
-
         case 'basic_rich_text':
-             echo '<textarea class="snn-rich-text-editor" id="' . $id_attribute_base
-                  . '" name="' . esc_attr($name_attribute) . '">' . esc_textarea($value) . '</textarea>';
+             echo '<textarea id="' . $id_attribute_base
+                  . '" name="' . esc_attr($name_attribute) . '"' . $disabled_attr . '>' . esc_textarea($value) . '</textarea>';
              break;
 
         case 'rich_text':
@@ -909,6 +906,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
 
             wp_editor(wp_kses_post($value), $editor_id, [
                 'textarea_name' => $name_attribute,
+                'disabled'      => $is_template,
                 'media_buttons' => true,
                 'textarea_rows' => 10,
                 'tinymce'       => true,
@@ -947,7 +945,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
 
             echo '<div class="media-uploader">';
             echo '<input type="hidden" class="media-value-field" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '"' . $disabled_attr . ' />';
             echo '<span class="media-preview-wrapper">';
             if ($img_src) {
                 echo '<img src="' . esc_url($img_src) . '" class="media-preview" />';
@@ -955,8 +953,8 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                 echo '<span class="dashicons ' . esc_attr($dashicon_class) . ' media-preview"></span>';
             }
             echo '</span>';
-            echo '<button type="button" class="button media-upload-button">Select</button>';
-            echo '<button type="button" class="button media-remove-button" style="' . (empty($value)?'display:none;':'') . '">X</button>';
+            echo '<button type="button" class="button media-upload-button"'. $disabled_attr .'>Select</button>';
+            echo '<button type="button" class="button media-remove-button" style="' . (empty($value)?'display:none;':'') . '"'. $disabled_attr .'>X</button>';
             if (!empty($filename)) {
                  echo '<div class="media-filename">' . $filename . '</div>';
             }
@@ -966,14 +964,14 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
         case 'date':
             echo '<input type="date" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
-                 . '" placeholder="YYYY-MM-DD" class="snn-datepicker" />';
+                 . '" placeholder="YYYY-MM-DD" class="snn-datepicker"' . $disabled_attr . ' />';
             break;
 
 
         case 'time':
             echo '<input type="time" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
-                 . '" placeholder="HH:MM" class="snn-timepicker" />';
+                 . '" placeholder="HH:MM" class="snn-timepicker"' . $disabled_attr . ' />';
             break;
 
 
@@ -981,11 +979,11 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             $color_value = esc_attr($value ? $value : '#000000');
             echo '<input type="color" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . $color_value
-                 . '" style="padding: 2px; height: 40px; width: 80px;" />';
+                 . '" style="padding: 2px; height: 40px; width: 80px;"' . $disabled_attr . ' />';
             break;
 
         case 'select':
-            echo '<select id="' . $id_attribute_base . '" name="' . esc_attr($name_attribute) . '">';
+            echo '<select id="' . $id_attribute_base . '" name="' . esc_attr($name_attribute) . '"' . $disabled_attr . '>';
             echo '<option value="">-- Select --</option>';
             if (!empty($choices)) {
                 foreach ($choices as $val => $label) {
@@ -1007,7 +1005,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                     echo '<span class="choice-item">';
                     echo '<input type="checkbox" id="' . esc_attr($choice_id) 
                          . '" name="' . esc_attr($name_attribute) 
-                         . '" value="' . esc_attr($val) . '" ' . ($is_checked?'checked':'') . ' />';
+                         . '" value="' . esc_attr($val) . '" ' . ($is_checked?'checked':'') . $disabled_attr . ' />';
                     echo '<label for="' . esc_attr($choice_id) . '">' . esc_html($label) . '</label>';
                     echo '</span>';
                 }
@@ -1026,7 +1024,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                     echo '<span class="choice-item">';
                     echo '<input type="radio" id="' . esc_attr($choice_id) 
                          . '" name="' . esc_attr($name_attribute) 
-                         . '" value="' . esc_attr($val) . '" ' . checked($value, $val, false) . ' />';
+                         . '" value="' . esc_attr($val) . '" ' . checked($value, $val, false) . $disabled_attr . ' />';
                     echo '<label for="' . esc_attr($choice_id) . '">' . esc_html($label) . '</label>';
                     echo '</span>';
                 }
@@ -1037,26 +1035,26 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             break;
 
         case 'true_false':
-            echo '<input type="hidden" name="' . esc_attr($name_attribute) . '" value="0" />'; 
+            echo '<input type="hidden" name="' . esc_attr($name_attribute) . '" value="0"' . $disabled_attr . ' />'; 
             echo '<input type="checkbox" id="' . $id_attribute_base 
-                 . '" name="' . esc_attr($name_attribute) . '" value="1" ' . checked($value, '1', false) . ' />';
+                 . '" name="' . esc_attr($name_attribute) . '" value="1" ' . checked($value, '1', false) . $disabled_attr . ' />';
             break;
 
         case 'url':
             echo '<input type="url" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
-                 . '" placeholder="https://example.com" />';
+                 . '" placeholder="https://example.com"' . $disabled_attr . ' />';
             break;
 
         case 'email':
             echo '<input type="email" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
-                 . '" placeholder="name@example.com" />';
+                 . '" placeholder="name@example.com"' . $disabled_attr . ' />';
             break;
 
         default: 
             echo '<input type="text" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" />';
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '"' . $disabled_attr . ' />';
             break;
     }
 }
@@ -1098,6 +1096,7 @@ function snn_save_custom_fields_meta($post_id) {
                 $sanitized_values = array_filter($sanitized_values, function($v) {
                     return ($v !== null && $v !== ''); 
                 });
+                $sanitized_values = array_values($sanitized_values);
                 if (!empty($sanitized_values)) {
                     update_post_meta($post_id, $field_name, $sanitized_values);
                 } else {
@@ -1242,6 +1241,7 @@ function snn_save_taxonomy_field_data($term_id) {
                     return snn_sanitize_value_by_type($field['type'], $v, $field);
                 }, $raw_value);
                 $sanitized = array_filter($sanitized, function($v) { return ($v !== '' && $v !== null); });
+                $sanitized = array_values($sanitized);
                 if (!empty($sanitized)) {
                     update_term_meta($term_id, $field_name, $sanitized);
                 } else {
@@ -1391,6 +1391,7 @@ function snn_save_author_custom_fields($user_id) {
                     return snn_sanitize_value_by_type($field['type'], $v_item, $field);
                 }, $raw_value);
                 $vals = array_filter($vals, function($v_item) { return ($v_item !== '' && $v_item !== null); });
+                $vals = array_values($vals);
                 if (!empty($vals)) {
                     update_user_meta($user_id, $field_name, $vals);
                 } else {
@@ -1512,6 +1513,8 @@ function snn_output_dynamic_field_js() {
                         var att = attachment.toJSON();
                         // Create a new repeater item for each media
                         var $template = $container.find('.repeater-template').clone(true).removeClass('repeater-template').show();
+                        $template.find('input, select, textarea, button').prop('disabled', false);
+
                         var $newInput = $template.find('.media-value-field');
                         var $newPreview = $template.find('.media-preview-wrapper');
                         var $newFilename = $template.find('.media-filename');
@@ -1582,6 +1585,8 @@ function snn_output_dynamic_field_js() {
             var $template  = $container.find('.repeater-template').first().clone(true); 
             
             $template.removeClass('repeater-template').show();
+            $template.find('input, select, textarea, button').prop('disabled', false);
+
             $template.insertBefore($(this)); 
 
             reindexRepeaterItems($container);
@@ -1844,6 +1849,7 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
                         return snn_sanitize_value_by_type($field_config['type'], $item, $field_config);
                     }, $raw_value);
                     $sanitized_values = array_filter($sanitized_values, function($v) { return ($v !== null && $v !== ''); });
+                    $sanitized_values = array_values($sanitized_values);
                     if (!empty($sanitized_values)) {
                         update_option($option_key, $sanitized_values);
                     } else {
