@@ -453,6 +453,7 @@ function snn_custom_fields_page_callback() {
                 display: flex;
                 flex-direction: row;
                 gap: 8px; 
+                margin-top: 4px;
             }
             .field-identity-group input{
                 height:auto;
