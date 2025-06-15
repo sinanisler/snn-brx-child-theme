@@ -141,19 +141,26 @@ function snn_render_search_logs_page() {
                 wp_delete_post($log_id, true);
             }
         }
-        // You can uncomment this section if you want to also remove the search_count terms completely:
-        /*
+        echo '<div class="updated"><p>All search logs have been cleared.</p></div>';
+    }
+
+    // Process "Clear Top 100 Searches" button
+    if (isset($_POST['snn_clear_top_searches'])) {
         $terms = get_terms(array(
             'taxonomy'   => 'snn_search_count',
+            'orderby'    => 'count',
+            'order'      => 'DESC',
+            'number'     => 100,
             'hide_empty' => false,
         ));
         if (!is_wp_error($terms) && !empty($terms)) {
             foreach ($terms as $term) {
                 wp_delete_term($term->term_id, 'snn_search_count');
             }
+            echo '<div class="updated"><p>Top 100 searches have been cleared.</p></div>';
+        } else {
+            echo '<div class="notice notice-info"><p>No top searches found to clear.</p></div>';
         }
-        */
-        echo '<div class="updated"><p>All search logs have been cleared.</p></div>';
     }
 
     $logging_enabled = get_option('snn_search_logging_enabled') === '1';
@@ -169,7 +176,7 @@ function snn_render_search_logs_page() {
                 Enable Search Logging
             </label>
             <br><br>
- 
+
             <label>
                 Maximum number of logs to keep:
                 <input type="number" name="snn_search_log_size_limit" 
@@ -177,13 +184,16 @@ function snn_render_search_logs_page() {
                        min="1" style="width: 100px;">
             </label>
             <br><br>
- 
+
             <?php submit_button('Save Changes', 'primary', 'snn_search_logging_submit', false); ?>
         </form>
 
         <?php if ($logging_enabled): ?>
-            <form method="post" action="">
+            <form method="post" action="" style="display:inline-block; margin-right:10px;">
                 <?php submit_button('Clear All Logs', 'delete', 'snn_clear_search_logs'); ?>
+            </form>
+            <form method="post" action="" style="display:inline-block;">
+                <?php submit_button('Clear Top 100 Searches', 'delete', 'snn_clear_top_searches'); ?>
             </form>
 
             <div style="display: flex; gap: 20px; margin-top:20px;">
