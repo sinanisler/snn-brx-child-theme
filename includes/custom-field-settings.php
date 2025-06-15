@@ -30,8 +30,6 @@ function snn_enqueue_scripts_for_custom_fields_page($hook_suffix) {
     $current_screen = get_current_screen();
     if ($current_screen && $current_screen->id === 'snn-settings_page_snn-custom-fields') {
         wp_enqueue_media();
-        wp_enqueue_style('wp-color-picker');
-        wp_enqueue_script('wp-color-picker');
         add_action('admin_footer', 'snn_output_dynamic_field_js');
     }
 }
@@ -41,9 +39,7 @@ function snn_enqueue_taxonomy_author_assets($hook) {
     // Common pages: term.php, edit-tags.php = Taxonomy editing
     // profile.php, user-edit.php = Author profile
     if ( in_array($hook, ['term.php', 'edit-tags.php', 'profile.php', 'user-edit.php'], true) ) {
-        wp_enqueue_media();        
-        wp_enqueue_style('wp-color-picker'); 
-        wp_enqueue_script('wp-color-picker'); 
+        wp_enqueue_media();       
         add_action('admin_footer', 'snn_output_dynamic_field_js');
     }
 }
@@ -142,7 +138,7 @@ function snn_custom_fields_page_callback() {
                             <div class="field-group">
                                 <label>Field Type</label>
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
-                                    <option value="text"      <?php selected($field_type, 'text'); ?>>Text</option>
+                                    <option value="text"    <?php selected($field_type, 'text'); ?>>Text</option>
                                     <option value="number"    <?php selected($field_type, 'number'); ?>>Number</option>
                                     <option value="textarea"  <?php selected($field_type, 'textarea'); ?>>Textarea</option>
                                     <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>>Rich Text</option>
@@ -446,8 +442,8 @@ function snn_custom_fields_page_callback() {
                 margin-bottom: 3px; 
             }
             .custom-field-row .field-group { 
-                 display: flex;
-                 flex-direction: column; 
+                display: flex;
+                flex-direction: column; 
             }
             .field-identity-group {
                 display: flex;
@@ -534,10 +530,10 @@ function snn_custom_fields_page_callback() {
                     width: 100%; 
                 }
                 .custom-field-row input[style*="width:70px"] { 
-                     width: 100% !important;
+                    width: 100% !important;
                 }
                 .custom-field-row select[style*="width:140px"] { 
-                     width: 100% !important;
+                    width: 100% !important;
                 }
             }
         </style>
@@ -551,10 +547,9 @@ function snn_custom_fields_page_callback() {
 function snn_register_dynamic_metaboxes() {
     $custom_fields = get_option('snn_custom_fields', []);
     $grouped_fields = [];
-    global $snn_repeater_fields_exist, $snn_media_fields_exist, $snn_color_fields_exist;
+    global $snn_repeater_fields_exist, $snn_media_fields_exist;
     $snn_repeater_fields_exist = false;
     $snn_media_fields_exist = false;
-    $snn_color_fields_exist = false;
 
     foreach ($custom_fields as $field) {
         $group_name = (!empty($field['group_name'])) ? $field['group_name'] : 'Custom Fields';
@@ -574,9 +569,6 @@ function snn_register_dynamic_metaboxes() {
                 }
                 if ($field['type'] === 'media') {
                     $snn_media_fields_exist = true;
-                }
-                if ($field['type'] === 'color') {
-                    $snn_color_fields_exist = true;
                 }
                 if ($field['type'] === 'date') {
                     wp_enqueue_script('jquery-ui-datepicker');
@@ -599,7 +591,7 @@ function snn_register_dynamic_metaboxes() {
         }
     }
 
-    if ($snn_media_fields_exist || $snn_repeater_fields_exist || $snn_color_fields_exist) {
+    if ($snn_media_fields_exist || $snn_repeater_fields_exist) {
         add_action('admin_enqueue_scripts', 'snn_enqueue_metabox_scripts');
         if (is_admin()) { 
              add_action('admin_footer', 'snn_output_dynamic_field_js');
@@ -614,14 +606,12 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
     if (in_array($pagenow, ['post.php','post-new.php'])) {
         $current_post_type = get_current_screen()->post_type;
         $post_type_has_media = false;
-        $post_type_has_color = false;
         $post_type_has_repeater = false;
 
         $custom_fields = get_option('snn_custom_fields', []);
         foreach ($custom_fields as $field) {
             if (!empty($field['post_type']) && in_array($current_post_type, $field['post_type'])) {
                 if ($field['type'] === 'media') $post_type_has_media = true;
-                if ($field['type'] === 'color') $post_type_has_color = true;
                 $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $post_type_has_repeater = true;
@@ -633,20 +623,14 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             wp_enqueue_media();
             wp_enqueue_style('dashicons');
         }
-        if ($post_type_has_color) {
-            wp_enqueue_style('wp-color-picker');
-            wp_enqueue_script('wp-color-picker');
-        }
     }
     if (in_array($hook_suffix, ['profile.php','user-edit.php'])) {
         $custom_fields = get_option('snn_custom_fields', []);
         $has_author_media = false;
-        $has_author_color = false;
         $has_author_repeater = false;
         foreach ($custom_fields as $field) {
             if (!empty($field['author'])) {
                 if ($field['type'] === 'media') $has_author_media = true;
-                if ($field['type'] === 'color') $has_author_color = true;
                 $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $has_author_repeater = true; 
@@ -654,18 +638,13 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             }
         }
         if ($has_author_media) wp_enqueue_media();
-        if ($has_author_color) {
-            wp_enqueue_style('wp-color-picker');
-            wp_enqueue_script('wp-color-picker');
-        }
-        if ($has_author_media || $has_author_color || $has_author_repeater) {
+        if ($has_author_media || $has_author_repeater) {
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
     }
     if (in_array($pagenow, ['term.php','edit-tags.php'])) { 
         $custom_fields = get_option('snn_custom_fields', []);
         $has_tax_media = false;
-        $has_tax_color = false;
         
         $current_taxonomy = isset($_GET['taxonomy']) ? sanitize_text_field($_GET['taxonomy']) : null;
         if(defined('DOING_AJAX') && DOING_AJAX && isset($_POST['taxonomy'])){ // Handle AJAX calls for terms screen (e.g. quick edit)
@@ -676,17 +655,12 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             foreach ($custom_fields as $field) {
                 if (!empty($field['taxonomies']) && in_array($current_taxonomy, $field['taxonomies'])) {
                     if ($field['type'] === 'media') $has_tax_media = true;
-                    if ($field['type'] === 'color') $has_tax_color = true;
                 }
             }
         }
 
         if ($has_tax_media) wp_enqueue_media();
-        if ($has_tax_color) {
-            wp_enqueue_style('wp-color-picker');
-            wp_enqueue_script('wp-color-picker');
-        }
-        if ($has_tax_media || $has_tax_color) { 
+        if ($has_tax_media) { 
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
     }
@@ -854,18 +828,6 @@ function snn_render_metabox_content($post, $metabox) {
         width: auto; 
         vertical-align: middle;
     }
-    .wp-picker-container {
-        display: inline-block;
-    }
-    .wp-picker-container .wp-color-result.button {
-        margin: 0; 
-        vertical-align: middle;
-    }
-    .wp-picker-container .wp-picker-input-wrap input[type=text].wp-color-picker {
-        width: 80px; 
-        margin-left: 5px; 
-        vertical-align: middle;
-    }
     .media-filename {
         font-size: 12px; 
         color: #555; 
@@ -996,7 +958,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             echo '<button type="button" class="button media-upload-button">Select</button>';
             echo '<button type="button" class="button media-remove-button" style="' . (empty($value)?'display:none;':'') . '">X</button>';
             if (!empty($filename)) {
-                  echo '<div class="media-filename">' . $filename . '</div>';
+                 echo '<div class="media-filename">' . $filename . '</div>';
             }
             echo '</div>';
             break;
@@ -1016,9 +978,10 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
 
 
         case 'color':
-            echo '<input type="text" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
-                 . '" class="snn-color-picker" data-default-color="#ffffff" />';
+            $color_value = esc_attr($value ? $value : '#000000');
+            echo '<input type="color" id="' . $id_attribute_base
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . $color_value
+                 . '" style="padding: 2px; height: 40px; width: 80px;" />';
             break;
 
         case 'select':
@@ -1245,8 +1208,7 @@ function snn_print_tax_styles() {
     .snn-field-wrap textarea {
         min-height: 80px;
     }
-    .snn-field-type-media .media-uploader,
-    .snn-field-type-color .wp-picker-container {
+    .snn-field-type-media .media-uploader {
         margin-top: 5px;
     }
     </style>
@@ -1328,13 +1290,11 @@ function snn_display_author_custom_fields($user) {
     $custom_fields = get_option('snn_custom_fields', []);
     $author_fields = [];
     $needs_media = false;
-    $needs_color = false;
 
     foreach ($custom_fields as $field_config) {
         if (!empty($field_config['author']) && empty($field_config['repeater'])) { 
             $author_fields[] = $field_config;
             if ($field_config['type'] === 'media') $needs_media = true;
-            if ($field_config['type'] === 'color') $needs_color = true;
         }
     }
 
@@ -1343,11 +1303,7 @@ function snn_display_author_custom_fields($user) {
     }
 
     if ($needs_media) wp_enqueue_media();
-    if ($needs_color) {
-        wp_enqueue_style('wp-color-picker');
-        wp_enqueue_script('wp-color-picker');
-    }
-    if ($needs_media || $needs_color) { 
+    if ($needs_media) { 
         add_action('admin_footer', 'snn_output_dynamic_field_js', 20); 
     }
 
@@ -1405,8 +1361,7 @@ function snn_display_author_custom_fields($user) {
     .snn-field-wrap input[type="checkbox"] { 
         width: auto;
     }
-    .snn-field-type-media .media-uploader,
-    .snn-field-type-color .wp-picker-container {
+    .snn-field-type-media .media-uploader {
         margin-top: 5px;
     }
     </style>
@@ -1482,9 +1437,9 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
             return ($value === '' || $value === null) ? '' : (is_numeric($value) ? floatval($value) : '');
 
         case 'date': 
-             if (preg_match("/^\d{4}-\d{2}-\d{2}$/", $value)) {
+            if (preg_match("/^\d{4}-\d{2}-\d{2}$/", $value)) {
                  return sanitize_text_field($value);
-             }
+            }
              return '';
         case 'color': 
             return sanitize_hex_color($value); 
@@ -1629,10 +1584,6 @@ function snn_output_dynamic_field_js() {
             $template.removeClass('repeater-template').show();
             $template.insertBefore($(this)); 
 
-            if ($template.find('.snn-color-picker').length) {
-                $template.find('.snn-color-picker').wpColorPicker();
-            }
-            
             reindexRepeaterItems($container);
         });
 
@@ -1683,10 +1634,6 @@ function snn_output_dynamic_field_js() {
                 });
             });
         }
-
-        if ($('.snn-color-picker').length) {
-            $('.snn-color-picker').wpColorPicker();
-        }
         
         if (typeof $.fn.datepicker === 'function') {
             $('input.snn-datepicker').each(function(){
@@ -1701,9 +1648,9 @@ function snn_output_dynamic_field_js() {
             if (typeof $.fn.datepicker === 'function') {
                 $newItem.find('input.snn-datepicker').each(function(){
                      if (!$(this).data('datepicker-initialized')) {
-                         $(this).datepicker({ dateFormat: 'yy-mm-dd' });
-                         $(this).data('datepicker-initialized', true);
-                    }
+                          $(this).datepicker({ dateFormat: 'yy-mm-dd' });
+                          $(this).data('datepicker-initialized', true);
+                     }
                 });
             }
         });
@@ -2056,11 +2003,6 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
     .snn-field-type-radio .choice-item{display:block;margin-bottom:5px;}
     .snn-field-type-checkbox .choice-item input,
     .snn-field-type-radio .choice-item input{margin-right:5px;width:auto;vertical-align:middle;}
-    .wp-picker-container{display:inline-block;}
-    .wp-picker-container .wp-color-result.button{margin:0;vertical-align:middle;}
-    .wp-picker-container .wp-picker-input-wrap input[type="text"].wp-color-picker{
-        width:80px;margin-left:5px;vertical-align:middle;
-    }
     .media-filename{font-size:12px;color:#555;margin-top:4px;word-break:break-all;}
     </style>
     <?php
@@ -2078,14 +2020,12 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
 
     $all_custom_fields = get_option('snn_custom_fields', []);
     $needs_media = false;
-    $needs_color = false;
     $needs_repeater_js = false; 
     $needs_datepicker = false;
 
     foreach ($all_custom_fields as $field_cfg) {
         if (!empty($field_cfg['options_page']) && !empty($field_cfg['group_name']) && sanitize_title($field_cfg['group_name']) === $group_name_sanitized) {
             if ($field_cfg['type'] === 'media') $needs_media = true;
-            if ($field_cfg['type'] === 'color') $needs_color = true;
             if ($field_cfg['type'] === 'date') $needs_datepicker = true;
             
             $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
@@ -2099,15 +2039,11 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
         wp_enqueue_media();
         wp_enqueue_style('dashicons'); 
     }
-    if ($needs_color) {
-        wp_enqueue_style('wp-color-picker');
-        wp_enqueue_script('wp-color-picker');
-    }
     if ($needs_datepicker) {
         wp_enqueue_script('jquery-ui-datepicker');
     }
 
-    if ($needs_media || $needs_color || $needs_repeater_js || $needs_datepicker) { 
+    if ($needs_media || $needs_repeater_js || $needs_datepicker) { 
         add_action('admin_footer', 'snn_output_dynamic_field_js');
     }
 }
