@@ -39,7 +39,7 @@ function snn_enqueue_taxonomy_author_assets($hook) {
     // Common pages: term.php, edit-tags.php = Taxonomy editing
     // profile.php, user-edit.php = Author profile
     if ( in_array($hook, ['term.php', 'edit-tags.php', 'profile.php', 'user-edit.php'], true) ) {
-        wp_enqueue_media();       
+        wp_enqueue_media();      
         add_action('admin_footer', 'snn_output_dynamic_field_js');
     }
 }
@@ -607,11 +607,13 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         $current_post_type = get_current_screen()->post_type;
         $post_type_has_media = false;
         $post_type_has_repeater = false;
+        $post_type_has_basic_rich_text = false;
 
         $custom_fields = get_option('snn_custom_fields', []);
         foreach ($custom_fields as $field) {
             if (!empty($field['post_type']) && in_array($current_post_type, $field['post_type'])) {
                 if ($field['type'] === 'media') $post_type_has_media = true;
+                if ($field['type'] === 'basic_rich_text') $post_type_has_basic_rich_text = true;
                 $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $post_type_has_repeater = true;
@@ -623,14 +625,19 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             wp_enqueue_media();
             wp_enqueue_style('dashicons');
         }
+        if ($post_type_has_basic_rich_text) {
+             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.0', true);
+        }
     }
     if (in_array($hook_suffix, ['profile.php','user-edit.php'])) {
         $custom_fields = get_option('snn_custom_fields', []);
         $has_author_media = false;
         $has_author_repeater = false;
+        $has_author_basic_rich_text = false;
         foreach ($custom_fields as $field) {
             if (!empty($field['author'])) {
                 if ($field['type'] === 'media') $has_author_media = true;
+                if ($field['type'] === 'basic_rich_text') $has_author_basic_rich_text = true;
                 $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $has_author_repeater = true; 
@@ -638,6 +645,9 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             }
         }
         if ($has_author_media) wp_enqueue_media();
+        if ($has_author_basic_rich_text) {
+             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.0', true);
+        }
         if ($has_author_media || $has_author_repeater) {
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
@@ -645,7 +655,8 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
     if (in_array($pagenow, ['term.php','edit-tags.php'])) { 
         $custom_fields = get_option('snn_custom_fields', []);
         $has_tax_media = false;
-        
+        $has_tax_basic_rich_text = false;
+       
         $current_taxonomy = isset($_GET['taxonomy']) ? sanitize_text_field($_GET['taxonomy']) : null;
         if(defined('DOING_AJAX') && DOING_AJAX && isset($_POST['taxonomy'])){ // Handle AJAX calls for terms screen (e.g. quick edit)
             $current_taxonomy = sanitize_text_field($_POST['taxonomy']);
@@ -655,11 +666,15 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             foreach ($custom_fields as $field) {
                 if (!empty($field['taxonomies']) && in_array($current_taxonomy, $field['taxonomies'])) {
                     if ($field['type'] === 'media') $has_tax_media = true;
+                    if ($field['type'] === 'basic_rich_text') $has_tax_basic_rich_text = true;
                 }
             }
         }
 
         if ($has_tax_media) wp_enqueue_media();
+        if ($has_tax_basic_rich_text) {
+             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.0', true);
+        }
         if ($has_tax_media) { 
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
@@ -892,7 +907,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
 
         case 'textarea':
         case 'basic_rich_text':
-             echo '<textarea id="' . $id_attribute_base
+             echo '<textarea class="snn-rich-text-editor" id="' . $id_attribute_base
                   . '" name="' . esc_attr($name_attribute) . '"' . $disabled_attr . '>' . esc_textarea($value) . '</textarea>';
              break;
 
@@ -1652,10 +1667,10 @@ function snn_output_dynamic_field_js() {
             var $newItem = $(this).prev('.repeater-item'); 
             if (typeof $.fn.datepicker === 'function') {
                 $newItem.find('input.snn-datepicker').each(function(){
-                     if (!$(this).data('datepicker-initialized')) {
-                          $(this).datepicker({ dateFormat: 'yy-mm-dd' });
-                          $(this).data('datepicker-initialized', true);
-                     }
+                       if (!$(this).data('datepicker-initialized')) {
+                             $(this).datepicker({ dateFormat: 'yy-mm-dd' });
+                             $(this).data('datepicker-initialized', true);
+                       }
                 });
             }
         });
@@ -2028,11 +2043,13 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
     $needs_media = false;
     $needs_repeater_js = false; 
     $needs_datepicker = false;
+    $needs_basic_rich_text = false;
 
     foreach ($all_custom_fields as $field_cfg) {
         if (!empty($field_cfg['options_page']) && !empty($field_cfg['group_name']) && sanitize_title($field_cfg['group_name']) === $group_name_sanitized) {
             if ($field_cfg['type'] === 'media') $needs_media = true;
             if ($field_cfg['type'] === 'date') $needs_datepicker = true;
+            if ($field_cfg['type'] === 'basic_rich_text') $needs_basic_rich_text = true;
             
             $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
             if (!in_array($field_cfg['type'], $disallowed_for_repeater) && !empty($field_cfg['repeater'])) {
@@ -2047,6 +2064,9 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
     }
     if ($needs_datepicker) {
         wp_enqueue_script('jquery-ui-datepicker');
+    }
+    if ($needs_basic_rich_text) {
+        wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.0', true);
     }
 
     if ($needs_media || $needs_repeater_js || $needs_datepicker) { 
