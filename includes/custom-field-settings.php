@@ -467,9 +467,9 @@ function snn_custom_fields_page_callback() {
                 margin-left: 5px;
             }
             .custom-field-row {
-                gap: 15px; 
-                margin-bottom: 15px;
-                padding: 15px;
+                gap: 10px; 
+                margin-bottom: 5px;
+                padding: 10px;
                 border: 1px solid #ddd;
                 border-radius: 5px;
                 background-color: #f9f9f9;
