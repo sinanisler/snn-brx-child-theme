@@ -626,7 +626,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             wp_enqueue_style('dashicons');
         }
         if ($post_type_has_basic_rich_text) {
-             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.0', true);
+             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.1', true);
         }
     }
     if (in_array($hook_suffix, ['profile.php','user-edit.php'])) {
@@ -646,7 +646,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         }
         if ($has_author_media) wp_enqueue_media();
         if ($has_author_basic_rich_text) {
-             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.0', true);
+             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.1', true);
         }
         if ($has_author_media || $has_author_repeater) {
             add_action('admin_footer', 'snn_output_dynamic_field_js');
@@ -673,7 +673,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
 
         if ($has_tax_media) wp_enqueue_media();
         if ($has_tax_basic_rich_text) {
-             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.0', true);
+             wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.1', true);
         }
         if ($has_tax_media) { 
             add_action('admin_footer', 'snn_output_dynamic_field_js');
@@ -2066,7 +2066,7 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
         wp_enqueue_script('jquery-ui-datepicker');
     }
     if ($needs_basic_rich_text) {
-        wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.1', true);
+        wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.1', true);
     }
 
     if ($needs_media || $needs_repeater_js || $needs_datepicker) { 
