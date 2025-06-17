@@ -231,6 +231,7 @@ add_action( 'init', function () {
 
 // Opacity Utility (great for fading/combos)
 'style_start-opacity:0, style_end-opacity:1' => esc_html__('Opacity 0 to 1', 'snn'),
+'style_start-opacity:0.1, style_end-opacity:1' => esc_html__('Opacity 0.1 to 1', 'snn'),
 'style_start-opacity:1, style_end-opacity:0' => esc_html__('Opacity 1 to 0', 'snn'),
 
 // Rotate
