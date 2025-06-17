@@ -2066,7 +2066,7 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
         wp_enqueue_script('jquery-ui-datepicker');
     }
     if ($needs_basic_rich_text) {
-        wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.0', true);
+        wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.0.1', true);
     }
 
     if ($needs_media || $needs_repeater_js || $needs_datepicker) { 

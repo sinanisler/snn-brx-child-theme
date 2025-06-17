@@ -294,5 +294,5 @@ function initSnnRichTextEditor(textarea) {
 
 // Auto-initialize all textareas with the class 'snn-rich-text-editor'
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('textarea.snn-rich-text-editor').forEach(initSnnRichTextEditor);
+    document.querySelectorAll('.snn-field-type-basic_rich_text textarea').forEach(initSnnRichTextEditor);
 });
