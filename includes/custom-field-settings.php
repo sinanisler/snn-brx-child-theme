@@ -3,8 +3,8 @@
 function snn_add_custom_fields_submenu() {
     add_submenu_page(
         'snn-settings',
-        'Register Custom Fields',
-        'Custom Fields',
+        __('Register Custom Fields', 'snn'),
+        __('Custom Fields', 'snn'),
         'manage_options',
         'snn-custom-fields',
         'snn_custom_fields_page_callback'
@@ -52,7 +52,7 @@ function snn_custom_fields_page_callback() {
     if (isset($_POST['snn_custom_fields_nonce']) && wp_verify_nonce($_POST['snn_custom_fields_nonce'], 'snn_custom_fields_save')) {
         $new_fields = [];
         if (!empty($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
-            foreach ($_POST['custom_fields'] as $field_data) { 
+            foreach ($_POST['custom_fields'] as $field_data) {  
                 if (!empty($field_data['name']) && !empty($field_data['type']) && !empty($field_data['group_name'])) {
                     $post_types_selected = isset($field_data['post_type']) && is_array($field_data['post_type']) ? array_map('sanitize_text_field', $field_data['post_type']) : [];
                     $taxonomies_selected = isset($field_data['taxonomies']) && is_array($field_data['taxonomies']) ? array_map('sanitize_text_field', $field_data['taxonomies']) : [];
@@ -81,19 +81,19 @@ function snn_custom_fields_page_callback() {
         }
         update_option('snn_custom_fields', $new_fields);
         $custom_fields = $new_fields;
-        echo '<div class="updated"><p>Custom fields saved successfully.</p></div>';
+        echo '<div class="updated"><p>' . esc_html__('Custom fields saved successfully.', 'snn') . '</p></div>';
     }
     ?>
     <div class="wrap">
-        <h1>Manage Custom Fields</h1>
+        <h1><?php esc_html_e('Manage Custom Fields', 'snn'); ?></h1>
         <form method="post">
             <?php wp_nonce_field('snn_custom_fields_save', 'snn_custom_fields_nonce'); ?>
             <div id="custom-field-settings">
                 <p>
-                    Define custom fields with group name, field name, field type, and assign to post type, taxonomy, author, or an options page:
-                    <br>Select one or more to register the same Custom Field to Post Types, Taxonomies, or Author.
-                    <br>Checking "Options Page" will make this field available on a new admin page named after its "Group Name".
-                    <br>Press CTRL/CMD to select multiple or remove selection.
+                    <?php esc_html_e('Define custom fields with group name, field name, field type, and assign to post type, taxonomy, author, or an options page:', 'snn'); ?>
+                    <br><?php esc_html_e('Select one or more to register the same Custom Field to Post Types, Taxonomies, or Author.', 'snn'); ?>
+                    <br><?php esc_html_e('Checking "Options Page" will make this field available on a new admin page named after its "Group Name".', 'snn'); ?>
+                    <br><?php esc_html_e('Press CTRL/CMD to select multiple or remove selection.', 'snn'); ?>
                 </p>
                 <?php
                 if (!empty($custom_fields) && is_array($custom_fields)) {
@@ -101,71 +101,71 @@ function snn_custom_fields_page_callback() {
                         $field_type = isset($field['type']) ? $field['type'] : 'text';
                         $show_choices = in_array($field_type, ['select','checkbox','radio']);
                         $is_repeater_disabled_type = in_array($field_type, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email']);
-                        $repeater_title = $is_repeater_disabled_type ? 'This field type cannot be a repeater' : 'Allow multiple values';
+                        $repeater_title = $is_repeater_disabled_type ? __('This field type cannot be a repeater', 'snn') : __('Allow multiple values', 'snn');
                         ?>
                         <div class="custom-field-row" data-index="<?php echo $index; ?>">
                             <div class="buttons">
                                 <button type="button" class="move-up">▲</button>
                                 <button type="button" class="move-down">▼</button>
-                                <button type="button" class="remove-field">Remove</button>
+                                <button type="button" class="remove-field"><?php esc_html_e('Remove', 'snn'); ?></button>
                             </div>
                             <div class="field-identity-group">
                                 <div class="field-group">
-                                    <label>Group Name</label>
-                                    <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="Group Name" 
+                                    <label><?php esc_html_e('Group Name', 'snn'); ?></label>
+                                    <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="<?php esc_attr_e('Group Name', 'snn'); ?>"  
                                            value="<?php echo esc_attr($field['group_name'] ?? ''); ?>" />
                                 </div>
                                 <div class="field-group">
-                                    <label>Field Label</label>
-                                    <input type="text" name="custom_fields[<?php echo $index; ?>][label]" 
-                                           placeholder="Field Label Name" 
+                                    <label><?php esc_html_e('Field Label', 'snn'); ?></label>
+                                    <input type="text" name="custom_fields[<?php echo $index; ?>][label]"  
+                                           placeholder="<?php esc_attr_e('Field Label Name', 'snn'); ?>"  
                                            value="<?php echo esc_attr($field['label'] ?? ''); ?>" />
                                 </div>
                                 <div class="field-group">
-                                    <label>Slug Name</label>
-                                    <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][name]" 
-                                           placeholder="field_name" 
+                                    <label><?php esc_html_e('Slug Name', 'snn'); ?></label>
+                                    <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][name]"  
+                                           placeholder="<?php esc_attr_e('field_name', 'snn'); ?>"  
                                            value="<?php echo esc_attr($field['name']); ?>" />
                                 </div>
                             </div>
                             <div class="field-group">
-                                <label>Width (%)</label>
+                                <label><?php esc_html_e('Width (%)', 'snn'); ?></label>
                                 <input style="width:70px" type="number" min="10" max="100"
-                                       name="custom_fields[<?php echo $index; ?>][column_width]" 
-                                       placeholder="25" 
+                                       name="custom_fields[<?php echo $index; ?>][column_width]"  
+                                       placeholder="25"  
                                        value="<?php echo esc_attr($field['column_width'] ?? ''); ?>" />
                             </div>
                             <div class="field-group">
-                                <label>Field Type</label>
+                                <label><?php esc_html_e('Field Type', 'snn'); ?></label>
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
-                                    <option value="text"    <?php selected($field_type, 'text'); ?>>Text</option>
-                                    <option value="number"    <?php selected($field_type, 'number'); ?>>Number</option>
-                                    <option value="textarea"  <?php selected($field_type, 'textarea'); ?>>Textarea</option>
-                                    <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>>Rich Text</option>
-                                    <option value="basic_rich_text" <?php selected($field_type, 'basic_rich_text'); ?>>Basic Rich Text</option>
-                                    <option value="media"     <?php selected($field_type, 'media'); ?>>Media</option>
-                                    <option value="date"      <?php selected($field_type, 'date'); ?>>Date</option>
-                                    <option value="time"      <?php selected($field_type, 'time'); ?>>Time</option>
-                                    <option value="color"     <?php selected($field_type, 'color'); ?>>Color</option>
-                                    <option value="select"    <?php selected($field_type, 'select'); ?>>Select</option>
-                                    <option value="checkbox"  <?php selected($field_type, 'checkbox'); ?>>Checkbox</option>
-                                    <option value="radio"     <?php selected($field_type, 'radio'); ?>>Radio</option>
-                                    <option value="true_false"<?php selected($field_type, 'true_false'); ?>>True/False</option>
-                                    <option value="url"       <?php selected($field_type, 'url'); ?>>URL</option>
-                                    <option value="email"     <?php selected($field_type, 'email'); ?>>Email</option>
+                                    <option value="text"    <?php selected($field_type, 'text'); ?>><?php esc_html_e('Text', 'snn'); ?></option>
+                                    <option value="number"    <?php selected($field_type, 'number'); ?>><?php esc_html_e('Number', 'snn'); ?></option>
+                                    <option value="textarea"  <?php selected($field_type, 'textarea'); ?>><?php esc_html_e('Textarea', 'snn'); ?></option>
+                                    <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>><?php esc_html_e('Rich Text', 'snn'); ?></option>
+                                    <option value="basic_rich_text" <?php selected($field_type, 'basic_rich_text'); ?>><?php esc_html_e('Basic Rich Text', 'snn'); ?></option>
+                                    <option value="media"     <?php selected($field_type, 'media'); ?>><?php esc_html_e('Media', 'snn'); ?></option>
+                                    <option value="date"      <?php selected($field_type, 'date'); ?>><?php esc_html_e('Date', 'snn'); ?></option>
+                                    <option value="time"      <?php selected($field_type, 'time'); ?>><?php esc_html_e('Time', 'snn'); ?></option>
+                                    <option value="color"     <?php selected($field_type, 'color'); ?>><?php esc_html_e('Color', 'snn'); ?></option>
+                                    <option value="select"    <?php selected($field_type, 'select'); ?>><?php esc_html_e('Select', 'snn'); ?></option>
+                                    <option value="checkbox"  <?php selected($field_type, 'checkbox'); ?>><?php esc_html_e('Checkbox', 'snn'); ?></option>
+                                    <option value="radio"     <?php selected($field_type, 'radio'); ?>><?php esc_html_e('Radio', 'snn'); ?></option>
+                                    <option value="true_false"<?php selected($field_type, 'true_false'); ?>><?php esc_html_e('True/False', 'snn'); ?></option>
+                                    <option value="url"       <?php selected($field_type, 'url'); ?>><?php esc_html_e('URL', 'snn'); ?></option>
+                                    <option value="email"     <?php selected($field_type, 'email'); ?>><?php esc_html_e('Email', 'snn'); ?></option>
                                 </select>
                             </div>
                             <div class="field-group field-group-choices" style="<?php echo $show_choices ? '' : 'display:none;'; ?>">
-                                <label>Choices <small><code>(value:label)</code></small></label>
-                                <textarea name="custom_fields[<?php echo $index; ?>][choices]" rows="4" 
-                                          placeholder="red : Red Color&#10;green : Green Color"><?php 
+                                <label><?php esc_html_e('Choices', 'snn'); ?> <small><code>(<?php esc_html_e('value:label', 'snn'); ?>)</code></small></label>
+                                <textarea name="custom_fields[<?php echo $index; ?>][choices]" rows="4"  
+                                          placeholder="red : <?php esc_attr_e('Red Color', 'snn'); ?>&#10;green : <?php esc_attr_e('Green Color', 'snn'); ?>"><?php  
                                           echo esc_textarea($field['choices'] ?? ''); ?></textarea>
                             </div>
                             <div class="field-group">
-                                <label>Post Types</label>
+                                <label><?php esc_html_e('Post Types', 'snn'); ?></label>
                                 <select name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
                                     <?php foreach ($post_types as $pt) : ?>
-                                        <option value="<?php echo esc_attr($pt->name); ?>" 
+                                        <option value="<?php echo esc_attr($pt->name); ?>"  
                                             <?php echo (!empty($field['post_type']) && in_array($pt->name, $field['post_type'])) ? 'selected' : ''; ?>>
                                             <?php echo esc_html($pt->label); ?>
                                         </option>
@@ -173,10 +173,10 @@ function snn_custom_fields_page_callback() {
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label>Taxonomies</label>
+                                <label><?php esc_html_e('Taxonomies', 'snn'); ?></label>
                                 <select name="custom_fields[<?php echo $index; ?>][taxonomies][]" multiple>
                                     <?php foreach ($taxonomies as $tax) : ?>
-                                        <option value="<?php echo esc_attr($tax->name); ?>" 
+                                        <option value="<?php echo esc_attr($tax->name); ?>"  
                                             <?php echo (!empty($field['taxonomies']) && in_array($tax->name, $field['taxonomies'])) ? 'selected' : ''; ?>>
                                             <?php echo esc_html($tax->label); ?>
                                         </option>
@@ -184,24 +184,24 @@ function snn_custom_fields_page_callback() {
                                 </select>
                             </div>
                             <div class="field-group">
-                                <label>Author</label>
-                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][author]" value="1" 
+                                <label><?php esc_html_e('Author', 'snn'); ?></label>
+                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][author]" value="1"  
                                        <?php checked(!empty($field['author'])); ?> />
                             </div>
                              <div class="field-group">
-                                <label>Options Page</label>
-                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][options_page]" value="1" 
+                                <label><?php esc_html_e('Options Page', 'snn'); ?></label>
+                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][options_page]" value="1"  
                                        <?php checked(!empty($field['options_page'])); ?> />
                             </div>
                             <div class="field-group">
-                                <label>Repeater</label>
+                                <label><?php esc_html_e('Repeater', 'snn'); ?></label>
                                 <input type="checkbox" class="repeater-checkbox" name="custom_fields[<?php echo $index; ?>][repeater]" value="1"
                                        <?php checked(!empty($field['repeater'])); echo $is_repeater_disabled_type ? ' disabled' : ''; ?>
                                        title="<?php echo esc_attr($repeater_title); ?>" />
                             </div>
                             <?php if ($field_type === 'media') : ?>
                             <div class="field-group media-return-url-group">
-                                <label>Return URL</label>
+                                <label><?php esc_html_e('Return URL', 'snn'); ?></label>
                                 <input type="checkbox" name="custom_fields[<?php echo $index; ?>][return_full_url]" value="1" <?php checked(!empty($field['return_full_url'])); ?> />
                             </div>
                             <?php endif; ?>
@@ -211,9 +211,9 @@ function snn_custom_fields_page_callback() {
                 }
                 ?>
             </div>
-            <button type="button" id="add-custom-field-row">Add New Field</button>
+            <button type="button" id="add-custom-field-row"><?php esc_html_e('Add New Field', 'snn'); ?></button>
             <br><br>
-            <?php submit_button('Save Custom Fields'); ?>
+            <?php submit_button(__('Save Custom Fields', 'snn')); ?>
         </form>
 
         <script>
@@ -248,7 +248,7 @@ function snn_custom_fields_page_callback() {
                 if (!typeSelect || !repeaterCheckbox) return;
                 const disable = ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email'].includes(typeSelect.value);
                 repeaterCheckbox.disabled = disable;
-                repeaterCheckbox.title = disable ? 'This field type cannot be a repeater' : 'Allow multiple values';
+                repeaterCheckbox.title = disable ? '<?php echo esc_js(__('This field type cannot be a repeater', 'snn')); ?>' : '<?php echo esc_js(__('Allow multiple values', 'snn')); ?>';
                 if (disable) {
                     repeaterCheckbox.checked = false;
                 }
@@ -270,12 +270,12 @@ function snn_custom_fields_page_callback() {
                         const newIndex = row.dataset.index; 
                         const div = document.createElement('div');
                         div.classList.add('field-group', 'media-return-url-group');
-                        div.innerHTML = `<label>Return Full URL</label><br><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1">`;
+                        div.innerHTML = `<label><?php esc_html_e('Return Full URL', 'snn'); ?></label><br><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1">`;
                         const repeaterDiv = row.querySelector('input[name*="[repeater]"]');
                         if (repeaterDiv && repeaterDiv.closest('.field-group')) {
-                             repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
+                            repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
                         } else {
-                             row.appendChild(div); 
+                            row.appendChild(div); 
                         }
                         mediaReturnGroup = div;
                     }
@@ -297,52 +297,52 @@ function snn_custom_fields_page_callback() {
                     <div class="buttons">
                         <button type="button" class="move-up">▲</button>
                         <button type="button" class="move-down">▼</button>
-                        <button type="button" class="remove-field">Remove</button>
+                        <button type="button" class="remove-field"><?php esc_html_e('Remove', 'snn'); ?></button>
                     </div>
                     <div class="field-identity-group">
-                        <div class="field-group"><label>Group Name</label><input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="Group Name"></div>
-                        <div class="field-group"><label>Field Label</label><input type="text" name="custom_fields[${newIndex}][label]" placeholder="Field Name"></div>
-                        <div class="field-group"><label>Slug Name</label><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="field_name"></div>
+                        <div class="field-group"><label><?php esc_html_e('Group Name', 'snn'); ?></label><input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="<?php esc_attr_e('Group Name', 'snn'); ?>"></div>
+                        <div class="field-group"><label><?php esc_html_e('Field Label', 'snn'); ?></label><input type="text" name="custom_fields[${newIndex}][label]" placeholder="<?php esc_attr_e('Field Name', 'snn'); ?>"></div>
+                        <div class="field-group"><label><?php esc_html_e('Slug Name', 'snn'); ?></label><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="<?php esc_attr_e('field_name', 'snn'); ?>"></div>
                     </div>
-                    <div class="field-group"><label>Width (%)</label><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
+                    <div class="field-group"><label><?php esc_html_e('Width (%)', 'snn'); ?></label><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
                     <div class="field-group">
-                        <label>Field Type</label>
+                        <label><?php esc_html_e('Field Type', 'snn'); ?></label>
                         <select name="custom_fields[${newIndex}][type]" class="field-type-select" style="width:140px">
-                            <option value="text">Text</option>
-                            <option value="number">Number</option>
-                            <option value="textarea">Textarea</option>
-                            <option value="rich_text">Rich Text</option>
-                            <option value="basic_rich_text">Basic Rich Text</option>
-                            <option value="media">Media</option>
-                            <option value="date">Date</option>
-                            <option value="time">Time</option>
-                            <option value="color">Color</option>
-                            <option value="select">Select</option>
-                            <option value="checkbox">Checkbox</option>
-                            <option value="radio">Radio</option>
-                            <option value="true_false">True / False</option>
-                            <option value="url">URL</option>
-                            <option value="email">Email</option>
+                            <option value="text"><?php esc_html_e('Text', 'snn'); ?></option>
+                            <option value="number"><?php esc_html_e('Number', 'snn'); ?></option>
+                            <option value="textarea"><?php esc_html_e('Textarea', 'snn'); ?></option>
+                            <option value="rich_text"><?php esc_html_e('Rich Text', 'snn'); ?></option>
+                            <option value="basic_rich_text"><?php esc_html_e('Basic Rich Text', 'snn'); ?></option>
+                            <option value="media"><?php esc_html_e('Media', 'snn'); ?></option>
+                            <option value="date"><?php esc_html_e('Date', 'snn'); ?></option>
+                            <option value="time"><?php esc_html_e('Time', 'snn'); ?></option>
+                            <option value="color"><?php esc_html_e('Color', 'snn'); ?></option>
+                            <option value="select"><?php esc_html_e('Select', 'snn'); ?></option>
+                            <option value="checkbox"><?php esc_html_e('Checkbox', 'snn'); ?></option>
+                            <option value="radio"><?php esc_html_e('Radio', 'snn'); ?></option>
+                            <option value="true_false"><?php esc_html_e('True / False', 'snn'); ?></option>
+                            <option value="url"><?php esc_html_e('URL', 'snn'); ?></option>
+                            <option value="email"><?php esc_html_e('Email', 'snn'); ?></option>
                         </select>
                     </div>
                     <div class="field-group field-group-choices" style="display:none;">
-                        <label>Choices <small>(value:label)</small></label>
-                        <textarea name="custom_fields[${newIndex}][choices]" rows="4" placeholder="red : Red&#10;green : Green"></textarea>
+                        <label><?php esc_html_e('Choices', 'snn'); ?> <small>(<?php esc_html_e('value:label', 'snn'); ?>)</small></label>
+                        <textarea name="custom_fields[${newIndex}][choices]" rows="4" placeholder="red : <?php esc_attr_e('Red', 'snn'); ?>&#10;green : <?php esc_attr_e('Green', 'snn'); ?>"></textarea>
                     </div>
-                    <div class="field-group"><label>Post Types</label><select name="custom_fields[${newIndex}][post_type][]" multiple>
+                    <div class="field-group"><label><?php esc_html_e('Post Types', 'snn'); ?></label><select name="custom_fields[${newIndex}][post_type][]" multiple>
                         <?php foreach ($post_types as $pt) : ?>
                             <option value="<?php echo esc_js($pt->name); ?>"><?php echo esc_js($pt->label); ?></option>
                         <?php endforeach; ?>
                     </select></div>
-                    <div class="field-group"><label>Taxonomies</label><select name="custom_fields[${newIndex}][taxonomies][]" multiple>
+                    <div class="field-group"><label><?php esc_html_e('Taxonomies', 'snn'); ?></label><select name="custom_fields[${newIndex}][taxonomies][]" multiple>
                         <?php foreach ($taxonomies as $tax) : ?>
                             <option value="<?php echo esc_js($tax->name); ?>"><?php echo esc_js($tax->label); ?></option>
                         <?php endforeach; ?>
                     </select></div>
-                    <div class="field-group"><label>Author</label><input type="checkbox" name="custom_fields[${newIndex}][author]" value="1"></div>
-                    <div class="field-group"><label>Options Page</label><input type="checkbox" name="custom_fields[${newIndex}][options_page]" value="1"></div>
-                    <div class="field-group"><label>Repeater</label><input type="checkbox" class="repeater-checkbox" name="custom_fields[${newIndex}][repeater]" value="1"></div>
-                    <div class="field-group media-return-url-group" style="display:none;"><label>Return Full URL</label><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1"></div>
+                    <div class="field-group"><label><?php esc_html_e('Author', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][author]" value="1"></div>
+                    <div class="field-group"><label><?php esc_html_e('Options Page', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][options_page]" value="1"></div>
+                    <div class="field-group"><label><?php esc_html_e('Repeater', 'snn'); ?></label><input type="checkbox" class="repeater-checkbox" name="custom_fields[${newIndex}][repeater]" value="1"></div>
+                    <div class="field-group media-return-url-group" style="display:none;"><label><?php esc_html_e('Return Full URL', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1"></div>
                 `;
                 fieldContainer.appendChild(newRow);
                 attachFieldNameSanitizer(newRow.querySelector('.sanitize-key'));
@@ -552,7 +552,7 @@ function snn_register_dynamic_metaboxes() {
     $snn_media_fields_exist = false;
 
     foreach ($custom_fields as $field) {
-        $group_name = (!empty($field['group_name'])) ? $field['group_name'] : 'Custom Fields';
+        $group_name = (!empty($field['group_name'])) ? $field['group_name'] : __('Custom Fields', 'snn');
         if (!empty($field['post_type']) && is_array($field['post_type'])) {
             foreach ($field['post_type'] as $pt) {
                 if (!isset($grouped_fields[$pt])) {
@@ -656,7 +656,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         $custom_fields = get_option('snn_custom_fields', []);
         $has_tax_media = false;
         $has_tax_basic_rich_text = false;
-       
+        
         $current_taxonomy = isset($_GET['taxonomy']) ? sanitize_text_field($_GET['taxonomy']) : null;
         if(defined('DOING_AJAX') && DOING_AJAX && isset($_POST['taxonomy'])){ // Handle AJAX calls for terms screen (e.g. quick edit)
             $current_taxonomy = sanitize_text_field($_POST['taxonomy']);
@@ -704,8 +704,8 @@ function snn_render_metabox_content($post, $metabox) {
         $field_label = (!empty($field['label'])) ? $field['label'] : ucwords(str_replace('_',' ',$field_name));
 
         echo '<div class="snn-field-wrap snn-field-type-' . esc_attr($field['type']) 
-             . (!empty($field['repeater']) ? ' snn-is-repeater' : '') 
-             . '" style="width:calc(' . $col_width . '% - 20px);margin-right:20px;margin-bottom:15px;box-sizing:border-box;">';
+               . (!empty($field['repeater']) ? ' snn-is-repeater' : '') 
+               . '" style="width:calc(' . $col_width . '% - 20px);margin-right:20px;margin-bottom:15px;box-sizing:border-box;">';
 
         echo '<label class="snn-field-label" for="' . esc_attr($field_name . '_0') . '">'
              . esc_html($field_label) . '</label>';
@@ -720,7 +720,7 @@ function snn_render_metabox_content($post, $metabox) {
                     echo '<div class="repeater-content">';
                     snn_render_field_input($field, $value, $index, 'meta'); 
                     echo '</div>';
-                    echo '<button type="button" class="button remove-repeater-item">Remove</button>';
+                    echo '<button type="button" class="button remove-repeater-item">' . esc_html__('Remove', 'snn') . '</button>';
                     echo '</div>';
                 }
             }
@@ -729,10 +729,10 @@ function snn_render_metabox_content($post, $metabox) {
             echo '<div class="repeater-content">';
             snn_render_field_input($field, '', '__index__', 'meta'); 
             echo '</div>';
-            echo '<button type="button" class="button remove-repeater-item">Remove</button>';
+            echo '<button type="button" class="button remove-repeater-item">' . esc_html__('Remove', 'snn') . '</button>';
             echo '</div>';
 
-            echo '<button type="button" class="button add-repeater-item">Add More +</button>';
+            echo '<button type="button" class="button add-repeater-item">' . esc_html__('Add More +', 'snn') . '</button>';
             echo '</div>';
         } else {
             snn_render_field_input($field, $field_value, '0', 'meta'); 
@@ -907,9 +907,9 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
 
         case 'textarea':
         case 'basic_rich_text':
-             echo '<textarea class="snn-rich-text-editor" id="' . $id_attribute_base
-                  . '" name="' . esc_attr($name_attribute) . '"' . $disabled_attr . '>' . esc_textarea($value) . '</textarea>';
-             break;
+               echo '<textarea class="snn-rich-text-editor" id="' . $id_attribute_base
+                     . '" name="' . esc_attr($name_attribute) . '"' . $disabled_attr . '>' . esc_textarea($value) . '</textarea>';
+               break;
 
         case 'rich_text':
             $editor_id = preg_replace('/\[|\]/', '_', $name_attribute);
@@ -968,7 +968,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                 echo '<span class="dashicons ' . esc_attr($dashicon_class) . ' media-preview"></span>';
             }
             echo '</span>';
-            echo '<button type="button" class="button media-upload-button"'. $disabled_attr .'>Select</button>';
+            echo '<button type="button" class="button media-upload-button"'. $disabled_attr .'>' . esc_html__('Select', 'snn') . '</button>';
             echo '<button type="button" class="button media-remove-button" style="' . (empty($value)?'display:none;':'') . '"'. $disabled_attr .'>X</button>';
             if (!empty($filename)) {
                  echo '<div class="media-filename">' . $filename . '</div>';
@@ -999,7 +999,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
 
         case 'select':
             echo '<select id="' . $id_attribute_base . '" name="' . esc_attr($name_attribute) . '"' . $disabled_attr . '>';
-            echo '<option value="">-- Select --</option>';
+            echo '<option value="">-- ' . esc_html__('Select', 'snn') . ' --</option>';
             if (!empty($choices)) {
                 foreach ($choices as $val => $label) {
                     echo '<option value="' . esc_attr($val) . '" ' . selected($value, $val, false) . '>'
@@ -1025,7 +1025,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                     echo '</span>';
                 }
             } else {
-                echo '<em>No choices defined.</em>';
+                echo '<em>' . esc_html__('No choices defined.', 'snn') . '</em>';
             }
             echo '</div>';
             break;
@@ -1044,7 +1044,7 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                     echo '</span>';
                 }
             } else {
-                echo '<em>No choices defined.</em>';
+                echo '<em>' . esc_html__('No choices defined.', 'snn') . '</em>';
             }
             echo '</div>';
             break;
@@ -1323,7 +1323,7 @@ function snn_display_author_custom_fields($user) {
     }
 
     ?>
-    <h2>Custom Author Information</h2>
+    <h2><?php esc_html_e('Custom Author Information', 'snn'); ?></h2>
     <?php wp_nonce_field('snn_save_author_fields_' . $user->ID, 'snn_author_fields_nonce'); ?>
     <table class="form-table snn-metabox-wrapper" role="presentation" style="border:none; background:transparent; padding:0;"> 
         <tbody>
@@ -1513,8 +1513,8 @@ function snn_output_dynamic_field_js() {
             // If inside a repeater, allow multiple selection
             var allowMultiple = !!$container.length;
             var frame = wp.media({
-                title: 'Choose Media',
-                button: { text: allowMultiple ? 'Add Selected' : 'Select' },
+                title: '<?php esc_html_e('Choose Media', 'snn'); ?>',
+                button: { text: allowMultiple ? '<?php esc_html_e('Add Selected', 'snn'); ?>' : '<?php esc_html_e('Select', 'snn'); ?>' },
                 multiple: allowMultiple
             });
 
@@ -1667,10 +1667,10 @@ function snn_output_dynamic_field_js() {
             var $newItem = $(this).prev('.repeater-item'); 
             if (typeof $.fn.datepicker === 'function') {
                 $newItem.find('input.snn-datepicker').each(function(){
-                       if (!$(this).data('datepicker-initialized')) {
+                        if (!$(this).data('datepicker-initialized')) {
                              $(this).datepicker({ dateFormat: 'yy-mm-dd' });
                              $(this).data('datepicker-initialized', true);
-                       }
+                        }
                 });
             }
         });
@@ -1692,7 +1692,7 @@ function snn_output_dynamic_field_js() {
                         var editorID = $(this).attr('id');
                          if (editorID) {
                               editorID = editorID.replace('-wrap','');
-                        }
+                         }
                     });
                 }
             }, 250); 
@@ -1792,7 +1792,7 @@ function snn_register_options_pages() {
         if (empty($fields_for_group)) continue;
 
         $menu_slug = 'snn_options_' . sanitize_title($group_name);
-        $page_title = esc_html($group_name) . ' Settings'; 
+        $page_title = esc_html($group_name) . __(' Settings', 'snn'); 
         $menu_title = esc_html($group_name);
 
         $hook = add_menu_page(
@@ -1839,7 +1839,7 @@ function snn_render_actual_options_page_callback() {
     }
 
     if (empty($fields_for_this_page)) {
-        echo '<div class="wrap"><h1>Error</h1><p>No fields configured for this options page or group not found.</p></div>';
+        echo '<div class="wrap"><h1>' . esc_html__('Error', 'snn') . '</h1><p>' . esc_html__('No fields configured for this options page or group not found.', 'snn') . '</p></div>';
         return;
     }
 
@@ -1888,7 +1888,7 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
                 }
             }
         }
-        echo '<div id="message" class="updated notice is-dismissible"><p>Settings saved.</p></div>';
+        echo '<div id="message" class="updated notice is-dismissible"><p>' . esc_html__('Settings saved.', 'snn') . '</p></div>';
     }
 
     echo '<div class="wrap">';
@@ -1930,7 +1930,7 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
                     echo '<div class="repeater-content">';
                     snn_render_field_input($field, $value_item, $index, 'options_page');
                     echo '</div>';
-                    echo '<button type="button" class="button remove-repeater-item">Remove</button>';
+                    echo '<button type="button" class="button remove-repeater-item">' . esc_html__('Remove', 'snn') . '</button>';
                     echo '</div>';
                 }
             }
@@ -1938,9 +1938,9 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
             echo '<div class="repeater-content">';
             snn_render_field_input($field, '', '__index__', 'options_page');
             echo '</div>';
-            echo '<button type="button" class="button remove-repeater-item">Remove</button>';
+            echo '<button type="button" class="button remove-repeater-item">' . esc_html__('Remove', 'snn') . '</button>';
             echo '</div>';
-            echo '<button type="button" class="button add-repeater-item">Add More +</button>';
+            echo '<button type="button" class="button add-repeater-item">' . esc_html__('Add More +', 'snn') . '</button>';
             echo '</div>';
         } else {
             snn_render_field_input($field, $field_value, '0', 'options_page');
