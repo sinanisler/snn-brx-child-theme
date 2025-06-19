@@ -37,7 +37,7 @@ class SNN_Element_Conditions extends Element {
 			'label' => esc_html__( 'Custom Selector (optional)', 'snn' ),
 			'type'  => 'text',
 			'description' => esc_html__( 'Any valid DOM selector. If set, conditions apply to target(s) instead of this element.', 'snn' ),
-			'inline'=> false,
+			'inline'=> true,
 		];
 
 		// Show once
@@ -51,32 +51,36 @@ class SNN_Element_Conditions extends Element {
 		$this->controls['max_views'] = [
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Max views (global)', 'snn' ),
-			'type'    => 'number',
+			'type'    => 'text',
 			'default' => 0,
+			'inline'=> true,
 		];
 
 		// Views per session
 		$this->controls['per_session'] = [
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Views per session', 'snn' ),
-			'type'    => 'number',
+			'type'    => 'text',
 			'default' => 0,
+			'inline'=> true,
 		];
 
 		// Delay
 		$this->controls['delay'] = [
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Delay (sec)', 'snn' ),
-			'type'    => 'number',
+			'type'    => 'text',
 			'default' => 0,
+			'inline'=> true,
 		];
 
 		// Cool-down (also auto-hide duration)
 		$this->controls['cooldown'] = [
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Cooldown (sec)', 'snn' ),
-			'type'    => 'number',
+			'type'    => 'text',
 			'default' => 0,
+			'inline'=> true,
 		];
 
 		// Start date
