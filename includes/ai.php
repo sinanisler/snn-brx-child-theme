@@ -741,8 +741,13 @@ function snn_add_ai_script_to_footer() {
         [data-controlkey="_gridTemplateRows"] .snn-ai-button, 
         [data-controlkey="_gridAutoColumns"] .snn-ai-button, 
         [data-controlkey="_gridAutoRows"] .snn-ai-button, 
-        [data-control="gradient"] .snn-ai-button
-        { display: none !important; }
+        [data-control="gradient"] .snn-ai-button,
+        #bricks-panel-component-instance .snn-ai-button
+
+        { 
+            display: none !important; 
+        }
+
         [data-controlkey="custom_data_animate_dynamic_elements_custom"] .snn-ai-button { display: block !important; }
         .snn-ai-button:hover { background-color: var(--builder-bg-accent); color: var(--builder-color-accent); }
         .snn-ai-overlay { display: none; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 99999999; justify-content: center; font-size: 14px; line-height: 1.2; align-items: flex-end; }
