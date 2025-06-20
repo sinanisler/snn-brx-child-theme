@@ -7,7 +7,7 @@ class Snn_Print_Page_Pdf extends Element {
     public $category     = 'snn';
     public $name         = 'snn-print-page-pdf';
     public $icon         = 'ti-printer';
-    public $css_selector = '.snn-print-page-pdf-wrapper';
+    public $css_selector = '.brxe-snn-print-page-pdf';
     public $scripts      = [];
     public $nestable     = false;
 
@@ -37,10 +37,8 @@ class Snn_Print_Page_Pdf extends Element {
         $print_selector = trim($this->settings['print_selector'] ?? '');
 
         // Only append, never overwrite classes!
-        $this->set_attribute('_root', 'class', 'snn-print-page-pdf-wrapper');
+        $this->set_attribute('_root', 'class', ['brxe-snn-print-page-pdf', 'snn-print-page-pdf-wrapper']);
         // $this->set_attribute('_root', 'type', 'button');
-        // Add minimal inline style so works in both editor and frontend
-        $this->set_attribute('_root', 'style', 'cursor:pointer;padding:10px 18px;');
 
         // Get Bricks-generated ID for the element
         $root_id = !empty($this->attributes['_root']['id']) ? $this->attributes['_root']['id'] : '';
@@ -52,7 +50,11 @@ class Snn_Print_Page_Pdf extends Element {
         // Only print styles for print mode (no visual styling)
         ?>
         <style>
-            .snn-printing .snn-print-section-to-print { 
+            .brxe-snn-print-page-pdf {
+                cursor: pointer;
+                padding: 10px 18px;
+            }
+            .snn-printing .snn-print-section-to-print {
             }
         </style>
         <script>
