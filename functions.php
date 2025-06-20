@@ -79,6 +79,8 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/element-event-action-selector.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/matrix.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/multi-step-form.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/query.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/print.php');
 
 
 // if GSAP setting is enabled Register Elements
