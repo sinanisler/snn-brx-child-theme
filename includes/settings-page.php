@@ -1,51 +1,50 @@
 <?php
 
 function snn_add_menu_page() {
- 
-    $dynamic_title = get_option('snn_menu_title', 'SNN Settings');
+    $dynamic_title = get_option('snn_menu_title', __('SNN Settings', 'snn'));
 
     add_menu_page(
-        'SNN Settings', 
-        $dynamic_title, 
-        'manage_options', 
-        'snn-settings', 
-        'snn_settings_page_callback', 
-        '', 
-        99 
+        __('SNN Settings', 'snn'),
+        $dynamic_title,
+        'manage_options',
+        'snn-settings',
+        'snn_settings_page_callback',
+        '',
+        99
     );
 }
 add_action('admin_menu', 'snn_add_menu_page');
 
 function snn_settings_page_callback() {
-    $dynamic_title = get_option('snn_menu_title', 'SNN Settings');
+    $dynamic_title = get_option('snn_menu_title', __('SNN Settings', 'snn'));
     ?>
     <div class="wrap">
-        <h1><?php echo $dynamic_title; ?> - Bricks Builder Child Theme Settings</h1>
+        <h1><?php echo esc_html($dynamic_title); ?> - <?php _e('Bricks Builder Child Theme Settings', 'snn'); ?></h1>
         
         <!-- Dashboard-like grid of big square buttons -->
         <div class="snn-dashboard-buttons">
             <?php
             $menu_items = array(
-                array('slug' => 'snn-settings',               'label' => $dynamic_title.' Settings',            'dashicon' => 'dashicons-admin-home'),
-                array('slug' => 'snn-other-settings',         'label' => 'GSAP, Lottie & Other Settings',          'dashicon' => 'dashicons-admin-generic'),
-                array('slug' => 'editor-settings',            'label' => 'Editor Settings',         'dashicon' => 'dashicons-edit'),
-                array('slug' => 'snn-security',               'label' => 'Security Settings',       'dashicon' => 'dashicons-shield'),
-                array('slug' => 'snn-custom-post-types',      'label' => 'Post Types',              'dashicon' => 'dashicons-admin-post'),
-                array('slug' => 'snn-custom-fields',          'label' => 'Custom Fields',           'dashicon' => 'dashicons-admin-page'),
-                array('slug' => 'snn-taxonomies',             'label' => 'Taxonomies',              'dashicon' => 'dashicons-category'),
-                array('slug' => 'login-settings',             'label' => 'Login Settings',          'dashicon' => 'dashicons-admin-users'),
-                array('slug' => 'snn-404-logs',               'label' => '404 Logs',                'dashicon' => 'dashicons-warning'),
-                array('slug' => 'snn-301-redirects',          'label' => '301 Redirects',           'dashicon' => 'dashicons-share'),
-                array('slug' => 'smtp-settings',              'label' => 'Mail SMTP Settings',      'dashicon' => 'dashicons-email'),
-                array('slug' => 'snn-mail-logs',              'label' => 'Mail Logs',               'dashicon' => 'dashicons-email-alt'),
-                array('slug' => 'snn-role-management',        'label' => 'Role Manager',            'dashicon' => 'dashicons-admin-users'),
-                array('slug' => 'snn-cookie-settings',        'label' => 'Cookie Settings',         'dashicon' => 'dashicons-admin-site'),
-                array('slug' => 'snn-accessibility-settings', 'label' => 'Accessibility Settings',  'dashicon' => 'dashicons-universal-access'),
-                array('slug' => 'snn-ai-settings',            'label' => 'AI Settings',             'dashicon' => 'dashicons-nametag'),
-                array('slug' => 'snn-search-logs',            'label' => 'Search Logs',             'dashicon' => 'dashicons-search'),
-                array('slug' => 'snn-block-editor-settings',  'label' => 'Block Editor Settings',   'dashicon' => 'dashicons-admin-customizer'),
-                array('slug' => 'snn-media-settings',         'label' => 'Media Settings',          'dashicon' => 'dashicons-format-image'),
-                array('slug' => 'snn-custom-codes-snippets',  'label' => 'Code Snippets',       'dashicon' => 'dashicons-editor-code'),
+                array('slug' => 'snn-settings',               'label' => $dynamic_title.' '.__('Settings', 'snn'),            'dashicon' => 'dashicons-admin-home'),
+                array('slug' => 'snn-other-settings',         'label' => __('GSAP, Lottie & Other Settings', 'snn'),          'dashicon' => 'dashicons-admin-generic'),
+                array('slug' => 'editor-settings',            'label' => __('Editor Settings', 'snn'),                        'dashicon' => 'dashicons-edit'),
+                array('slug' => 'snn-security',               'label' => __('Security Settings', 'snn'),                      'dashicon' => 'dashicons-shield'),
+                array('slug' => 'snn-custom-post-types',      'label' => __('Post Types', 'snn'),                             'dashicon' => 'dashicons-admin-post'),
+                array('slug' => 'snn-custom-fields',          'label' => __('Custom Fields', 'snn'),                          'dashicon' => 'dashicons-admin-page'),
+                array('slug' => 'snn-taxonomies',             'label' => __('Taxonomies', 'snn'),                             'dashicon' => 'dashicons-category'),
+                array('slug' => 'login-settings',             'label' => __('Login Settings', 'snn'),                         'dashicon' => 'dashicons-admin-users'),
+                array('slug' => 'snn-404-logs',               'label' => __('404 Logs', 'snn'),                               'dashicon' => 'dashicons-warning'),
+                array('slug' => 'snn-301-redirects',          'label' => __('301 Redirects', 'snn'),                          'dashicon' => 'dashicons-share'),
+                array('slug' => 'smtp-settings',              'label' => __('Mail SMTP Settings', 'snn'),                     'dashicon' => 'dashicons-email'),
+                array('slug' => 'snn-mail-logs',              'label' => __('Mail Logs', 'snn'),                              'dashicon' => 'dashicons-email-alt'),
+                array('slug' => 'snn-role-management',        'label' => __('Role Manager', 'snn'),                           'dashicon' => 'dashicons-admin-users'),
+                array('slug' => 'snn-cookie-settings',        'label' => __('Cookie Settings', 'snn'),                        'dashicon' => 'dashicons-admin-site'),
+                array('slug' => 'snn-accessibility-settings', 'label' => __('Accessibility Settings', 'snn'),                 'dashicon' => 'dashicons-universal-access'),
+                array('slug' => 'snn-ai-settings',            'label' => __('AI Settings', 'snn'),                            'dashicon' => 'dashicons-nametag'),
+                array('slug' => 'snn-search-logs',            'label' => __('Search Logs', 'snn'),                            'dashicon' => 'dashicons-search'),
+                array('slug' => 'snn-block-editor-settings',  'label' => __('Block Editor Settings', 'snn'),                  'dashicon' => 'dashicons-admin-customizer'),
+                array('slug' => 'snn-media-settings',         'label' => __('Media Settings', 'snn'),                         'dashicon' => 'dashicons-format-image'),
+                array('slug' => 'snn-custom-codes-snippets',  'label' => __('Code Snippets', 'snn'),                          'dashicon' => 'dashicons-editor-code'),
             );
             
             foreach ($menu_items as $item) {
@@ -63,17 +62,21 @@ function snn_settings_page_callback() {
 
         <div style="max-width:660px; margin-bottom:40px">
             <p style="line-height:24px !important;">
-                This theme is designed to give you the tools and solutions for <a href="https://bricksbuilder.io/" target="_blank">Bricks Builder</a>.
-                Post Types, Custom Fields, Taxonomies, SMTP Mail Setting, Custom Login Design,
+                <?php _e('This theme is designed to give you the tools and solutions for', 'snn'); ?>
+                <a href="https://wordpress.org/" target="_blank"><?php _e('WordPress', 'snn'); ?></a>
+                <?php _e('and', 'snn'); ?>
+                <a href="https://bricksbuilder.io/" target="_blank"><?php _e('Bricks Builder', 'snn'); ?></a>.
+                <?php _e('Post Types, Custom Fields, Taxonomies, SMTP Mail Setting, Custom Login Design,
                 Math Chaptcha for Login/Register, Security Features, 404 Logs, 301 Redirects and some Block Editor Features.
-                Everything is straightforward and ready to use. <br><br>
-                Enjoy building your site.<br><br>
+                Everything is straightforward and ready to use.', 'snn'); ?>
+                <br><br>
+                <?php _e('Enjoy building your site.', 'snn'); ?><br><br>
     
                 <a href="https://academy.bricksbuilder.io/topic/getting-started/" target="_blank"
-                style="font-size: 16px; text-decoration:none; line-height:40px">Bricks Builder Docs ➤</a><br>
+                style="font-size: 16px; text-decoration:none; line-height:40px"><?php _e('Bricks Builder Docs ➤', 'snn'); ?></a><br>
     
                 <a href="https://www.youtube.com/@bricksbuilder/videos" target="_blank"
-                style="font-size: 16px; text-decoration:none; line-height:40px">Bricks Builder Videos ➤</a><br>
+                style="font-size: 16px; text-decoration:none; line-height:40px"><?php _e('Bricks Builder Videos ➤', 'snn'); ?></a><br>
             </p>
         </div>
     
@@ -156,14 +159,14 @@ function snn_register_settings() {
 
     add_settings_section(
         'snn_general_section',
-        'General Setting',
+        __('General Setting', 'snn'),
         'snn_general_section_callback',
         'snn-settings'
     );
 
     add_settings_field(
         'snn_menu_title_field',
-        'White Label Name',
+        __('White Label Name', 'snn'),
         'snn_menu_title_field_callback',
         'snn-settings',
         'snn_general_section'
@@ -172,13 +175,13 @@ function snn_register_settings() {
 add_action('admin_init', 'snn_register_settings');
 
 function snn_general_section_callback() {
-    echo '<p>General setting for the SNN menu page.</p>';
+    echo '<p>' . esc_html__('General setting for the SNN menu page.', 'snn') . '</p>';
 }
 
 function snn_menu_title_field_callback() {
-    $menu_title = get_option('snn_menu_title', 'SNN Settings');
+    $menu_title = get_option('snn_menu_title', __('SNN Settings', 'snn'));
     echo '<input type="text" name="snn_menu_title" value="' . esc_attr($menu_title) . '" class="regular-text">';
-    echo '<p>You can rename SNN Settings title.</p>';
+    echo '<p>' . esc_html__('You can rename SNN Settings title.', 'snn') . '</p>';
 }
 
 function mytheme_customize_register( $wp_customize ) {
