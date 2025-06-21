@@ -55,10 +55,17 @@ function snn_options_page() {
         $options['snn_cookie_settings_deny_button']          = isset($_POST['snn_cookie_settings_deny_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_deny_button']) ) : '';
         $options['snn_cookie_settings_preferences_button']   = isset($_POST['snn_cookie_settings_preferences_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_preferences_button']) ) : '';
         $options['snn_cookie_settings_banner_position']      = isset($_POST['snn_cookie_settings_banner_position']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_position']) ) : '';
+        $options['snn_cookie_settings_banner_vertical_position'] = isset($_POST['snn_cookie_settings_banner_vertical_position']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_vertical_position']) ) : '';
+        $options['snn_cookie_settings_enable_overlay']       = isset($_POST['snn_cookie_settings_enable_overlay']) ? 'yes' : 'no';
+        $options['snn_cookie_settings_overlay_color']        = isset($_POST['snn_cookie_settings_overlay_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_overlay_color']) ) : '';
+        $options['snn_cookie_settings_overlay_opacity']      = isset($_POST['snn_cookie_settings_overlay_opacity']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_overlay_opacity']) ) : '';
         $options['snn_cookie_settings_banner_bg_color']      = isset($_POST['snn_cookie_settings_banner_bg_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_bg_color']) ) : '';
         $options['snn_cookie_settings_banner_text_color']    = isset($_POST['snn_cookie_settings_banner_text_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_text_color']) ) : '';
         $options['snn_cookie_settings_button_bg_color']      = isset($_POST['snn_cookie_settings_button_bg_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_bg_color']) ) : '';
         $options['snn_cookie_settings_button_text_color']    = isset($_POST['snn_cookie_settings_button_text_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_text_color']) ) : '';
+        $options['snn_cookie_settings_banner_width']         = isset($_POST['snn_cookie_settings_banner_width']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_width']) ) : '';
+        $options['snn_cookie_settings_banner_border_radius'] = isset($_POST['snn_cookie_settings_banner_border_radius']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_border_radius']) ) : '';
+        $options['snn_cookie_settings_button_border_radius'] = isset($_POST['snn_cookie_settings_button_border_radius']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_border_radius']) ) : '';
         
         $services = array();
         if ( isset($_POST['snn_cookie_settings_services']) && is_array($_POST['snn_cookie_settings_services']) ) {
@@ -95,10 +102,17 @@ function snn_options_page() {
             'snn_cookie_settings_services'             => array(),
             'snn_cookie_settings_custom_css'           => '',
             'snn_cookie_settings_banner_position'      => 'left',
+            'snn_cookie_settings_banner_vertical_position' => 'bottom',
+            'snn_cookie_settings_enable_overlay'       => 'no',
+            'snn_cookie_settings_overlay_color'        => '#000000',
+            'snn_cookie_settings_overlay_opacity'      => '0.5',
             'snn_cookie_settings_banner_bg_color'      => '#333333',
             'snn_cookie_settings_banner_text_color'    => '#ffffff',
             'snn_cookie_settings_button_bg_color'      => '#555555',
-            'snn_cookie_settings_button_text_color'    => '#ffffff'
+            'snn_cookie_settings_button_text_color'    => '#ffffff',
+            'snn_cookie_settings_banner_width'         => '400',
+            'snn_cookie_settings_banner_border_radius' => '10',
+            'snn_cookie_settings_button_border_radius' => '5'
         );
     }
     ?>
@@ -122,6 +136,7 @@ function snn_options_page() {
         <div class="snn-tabs">
             <span class="snn-tab active" data-tab="general"><?php _e('General Settings', 'snn'); ?></span>
             <span class="snn-tab" data-tab="scripts"><?php _e('Scripts & Services', 'snn'); ?></span>
+            <span class="snn-tab" data-tab="styles"><?php _e('Styles', 'snn'); ?></span>
         </div>
         <form method="post">
             <?php wp_nonce_field( 'snn_save_options', 'snn_options_nonce' ); ?>
@@ -193,27 +208,34 @@ function snn_options_page() {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Cookie Banner Background Color', 'snn'); ?></th>
+                        <th scope="row"><?php _e('Cookie Banner Vertical Position', 'snn'); ?></th>
                         <td>
-                            <input type="color" name="snn_cookie_settings_banner_bg_color" value="<?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : ''; ?>" class="snn-color-picker">
+                            <select name="snn_cookie_settings_banner_vertical_position" class="snn-select snn-banner-vertical-position">
+                                <option value="bottom" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'bottom'); ?>><?php _e('Bottom', 'snn'); ?></option>
+                                <option value="middle" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'middle'); ?>><?php _e('Middle', 'snn'); ?></option>
+                                <option value="top" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'top'); ?>><?php _e('Top', 'snn'); ?></option>
+                            </select>
+                            <p class="description"><?php _e('Select the vertical position of the cookie banner on your website.', 'snn'); ?></p>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Cookie Banner Text Color', 'snn'); ?></th>
+                        <th scope="row"><?php _e('Enable Overlay', 'snn'); ?></th>
                         <td>
-                            <input type="color" name="snn_cookie_settings_banner_text_color" value="<?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : ''; ?>" class="snn-color-picker">
+                            <input type="checkbox" name="snn_cookie_settings_enable_overlay" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_overlay']) ? $options['snn_cookie_settings_enable_overlay'] : 'no'), 'yes'); ?>>
+                            <span class="description"><?php _e('Check to enable a full page overlay behind the cookie banner.', 'snn'); ?></span>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Button Background Color', 'snn'); ?></th>
+                        <th scope="row"><?php _e('Overlay Color', 'snn'); ?></th>
                         <td>
-                            <input type="color" name="snn_cookie_settings_button_bg_color" value="<?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : ''; ?>" class="snn-color-picker">
+                            <input type="color" name="snn_cookie_settings_overlay_color" value="<?php echo isset($options['snn_cookie_settings_overlay_color']) ? esc_attr($options['snn_cookie_settings_overlay_color']) : '#000000'; ?>" class="snn-color-picker">
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('Button Text Color', 'snn'); ?></th>
+                        <th scope="row"><?php _e('Overlay Opacity', 'snn'); ?></th>
                         <td>
-                            <input type="color" name="snn_cookie_settings_button_text_color" value="<?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : ''; ?>" class="snn-color-picker">
+                            <input type="number" step="0.1" min="0" max="1" name="snn_cookie_settings_overlay_opacity" value="<?php echo isset($options['snn_cookie_settings_overlay_opacity']) ? esc_attr($options['snn_cookie_settings_overlay_opacity']) : '0.5'; ?>" class="snn-input">
+                            <p class="description"><?php _e('Set the opacity of the overlay (0 = transparent, 1 = opaque).', 'snn'); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -322,6 +344,55 @@ function snn_options_page() {
                             </script>
                         </td>
                     </tr>
+                </table>
+            </div>
+            <div id="styles" class="snn-tab-content">
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Cookie Banner Background Color', 'snn'); ?></th>
+                        <td>
+                            <input type="color" name="snn_cookie_settings_banner_bg_color" value="<?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>" class="snn-color-picker">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Cookie Banner Text Color', 'snn'); ?></th>
+                        <td>
+                            <input type="color" name="snn_cookie_settings_banner_text_color" value="<?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>" class="snn-color-picker">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Button Background Color', 'snn'); ?></th>
+                        <td>
+                            <input type="color" name="snn_cookie_settings_button_bg_color" value="<?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : '#555555'; ?>" class="snn-color-picker">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Button Text Color', 'snn'); ?></th>
+                        <td>
+                            <input type="color" name="snn_cookie_settings_button_text_color" value="<?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : '#ffffff'; ?>" class="snn-color-picker">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Banner Width', 'snn'); ?></th>
+                        <td>
+                            <input type="number" name="snn_cookie_settings_banner_width" value="<?php echo isset($options['snn_cookie_settings_banner_width']) ? esc_attr($options['snn_cookie_settings_banner_width']) : '400'; ?>" class="snn-input">
+                            <p class="description"><?php _e('Width of the cookie banner in pixels.', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Banner Border Radius', 'snn'); ?></th>
+                        <td>
+                            <input type="number" name="snn_cookie_settings_banner_border_radius" value="<?php echo isset($options['snn_cookie_settings_banner_border_radius']) ? esc_attr($options['snn_cookie_settings_banner_border_radius']) : '10'; ?>" class="snn-input">
+                            <p class="description"><?php _e('Border radius of the cookie banner in pixels.', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Button Border Radius', 'snn'); ?></th>
+                        <td>
+                            <input type="number" name="snn_cookie_settings_button_border_radius" value="<?php echo isset($options['snn_cookie_settings_button_border_radius']) ? esc_attr($options['snn_cookie_settings_button_border_radius']) : '5'; ?>" class="snn-input">
+                            <p class="description"><?php _e('Border radius of the buttons in pixels.', 'snn'); ?></p>
+                        </td>
+                    </tr>
                     <tr valign="top">
                         <th scope="row"><?php _e('Custom CSS for Cookie Banner', 'snn'); ?></th>
                         <td>
@@ -373,25 +444,51 @@ function snn_output_cookie_banner() {
     }
     
     $position = isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : 'left';
+    $vertical_position = isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : 'bottom';
+    $enable_overlay = isset($options['snn_cookie_settings_enable_overlay']) ? $options['snn_cookie_settings_enable_overlay'] : 'no';
+    $overlay_color = isset($options['snn_cookie_settings_overlay_color']) ? $options['snn_cookie_settings_overlay_color'] : '#000000';
+    $overlay_opacity = isset($options['snn_cookie_settings_overlay_opacity']) ? $options['snn_cookie_settings_overlay_opacity'] : '0.5';
+    $banner_width = isset($options['snn_cookie_settings_banner_width']) ? $options['snn_cookie_settings_banner_width'] : '400';
+    $banner_border_radius = isset($options['snn_cookie_settings_banner_border_radius']) ? $options['snn_cookie_settings_banner_border_radius'] : '10';
+    $button_border_radius = isset($options['snn_cookie_settings_button_border_radius']) ? $options['snn_cookie_settings_button_border_radius'] : '5';
     
     $accepted = isset($_COOKIE['snn_cookie_accepted']) ? $_COOKIE['snn_cookie_accepted'] : '';
     $banner_style = ( in_array($accepted, array('true', 'false', 'custom')) ) ? ' style="display: none;"' : '';
+    $overlay_style = ( in_array($accepted, array('true', 'false', 'custom')) ) ? ' style="display: none;"' : '';
     ?>
+    <?php if ($enable_overlay === 'yes') : ?>
+    <div id="snn-cookie-overlay" class="snn-cookie-overlay"<?php echo $overlay_style; ?> style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: <?php echo esc_attr($overlay_color); ?>; opacity: <?php echo esc_attr($overlay_opacity); ?>; z-index: 9998;<?php echo ( in_array($accepted, array('true', 'false', 'custom')) ) ? ' display: none;' : ''; ?>"></div>
+    <?php endif; ?>
+    
     <style id="snn-dynamic-styles">
     .snn-cookie-banner {
        position: fixed;
+       <?php if ($vertical_position === 'top') : ?>
+       top: 10px;
+       <?php elseif ($vertical_position === 'middle') : ?>
+       top: 50%;
+       transform: translateY(-50%);
+       <?php else : ?>
        bottom: 10px;
-       width: 400px;
+       <?php endif; ?>
+       width: <?php echo esc_attr($banner_width); ?>px;
        z-index: 9999;
        padding: 10px;
        background: <?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>;
        color: <?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;
        box-shadow:0px 0px 10px #00000055;
-       border-radius:10px;
+       border-radius:<?php echo esc_attr($banner_border_radius); ?>px;
        margin:10px;
     }
     .snn-cookie-banner.left { left: 0; }
-    .snn-cookie-banner.middle { left: 50%; transform: translateX(-50%); }
+    .snn-cookie-banner.middle { 
+        left: 50%; 
+        <?php if ($vertical_position === 'middle') : ?>
+        transform: translate(-50%, -50%);
+        <?php else : ?>
+        transform: translateX(-50%);
+        <?php endif; ?>
+    }
     .snn-cookie-banner.right { right: 0; }
     
     .snn-preferences-content {
@@ -414,7 +511,7 @@ function snn_output_cookie_banner() {
         border: none;
         padding: 10px;
         cursor: pointer;
-        border-radius:5px;
+        border-radius:<?php echo esc_attr($button_border_radius); ?>px;
         width: 100%;
         text-align: center;
     }
@@ -688,6 +785,7 @@ function snn_output_banner_js() {
         var denyBtn = document.querySelector('.snn-deny');
         var prefsBtn = document.querySelector('.snn-preferences');
         var banner = document.getElementById('snn-cookie-banner');
+        var overlay = document.getElementById('snn-cookie-overlay');
         
         if (acceptBtn) {
             acceptBtn.addEventListener('click', function(){
@@ -707,6 +805,7 @@ function snn_output_banner_js() {
                     injectAllConsentScripts();
                 }
                 if(banner) { banner.style.display = 'none'; }
+                if(overlay) { overlay.style.display = 'none'; }
             });
         }
         if (denyBtn) {
@@ -714,6 +813,7 @@ function snn_output_banner_js() {
                 setCookie('snn_cookie_accepted', 'false', 365);
                 eraseCookie('snn_cookie_services');
                 if(banner) { banner.style.display = 'none'; }
+                if(overlay) { overlay.style.display = 'none'; }
             });
         }
         if (prefsBtn) {
@@ -731,11 +831,14 @@ function snn_output_banner_js() {
         if (storedConsent === 'true') {
             injectAllConsentScripts();
             if(banner) { banner.style.display = 'none'; }
+            if(overlay) { overlay.style.display = 'none'; }
         } else if (storedConsent === 'false') {
             if(banner) { banner.style.display = 'none'; }
+            if(overlay) { overlay.style.display = 'none'; }
         } else if (storedConsent === 'custom') {
             injectCustomConsentScripts();
             if(banner) { banner.style.display = 'none'; }
+            if(overlay) { overlay.style.display = 'none'; }
         }
     })();
     </script>
