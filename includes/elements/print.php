@@ -16,71 +16,158 @@ class Snn_Print_Page_Pdf extends Element {
     }
 
     public function set_controls() {
-        $this->controls['button_text'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Button Text', 'snn' ),
-            'type'    => 'text',
-            'default' => esc_html__( 'Print Page', 'snn' ),
+        $this->controls['button_selector'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Button Selector', 'snn' ),
+            'type'        => 'text',
+            'default'     => '',
+            'placeholder' => '.my-btn or #my-btn',
+            'description' => esc_html__( 'Provide a CSS selector for the button you want to trigger the print action (e.g., .my-btn or #my-btn).', 'snn' ),
         ];
         $this->controls['print_selector'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Print Selector (optional)', 'snn' ),
+            'label'       => esc_html__( 'Print Selector', 'snn' ),
             'type'        => 'text',
             'default'     => '',
             'placeholder' => '.my-section or #my-id',
             'description' => esc_html__( 'If you want to print only a specific section, enter a CSS selector (like .my-section or #my-id). Leave blank to print the full page.', 'bricks' ),
         ];
+        $this->controls['print_button_text'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Print Button Text', 'snn' ),
+            'type'        => 'text',
+            'default'     => 'PRINT',
+            'placeholder' => 'PRINT',
+            'description' => esc_html__( 'Change the print button text in the popup.', 'snn' ),
+        ];
     }
 
     public function render() {
-        $button_text    = !empty($this->settings['button_text']) ? $this->settings['button_text'] : esc_html__( 'Print Page', 'snn' );
-        $print_selector = trim($this->settings['print_selector'] ?? '');
+        $button_selector = trim($this->settings['button_selector'] ?? '');
+        $print_selector  = trim($this->settings['print_selector'] ?? '');
+        $print_button_text = trim($this->settings['print_button_text'] ?? 'PRINT');
 
-        // Only append, never overwrite classes!
         $this->set_attribute('_root', 'class', ['brxe-snn-print-page-pdf', 'snn-print-page-pdf-wrapper']);
-        // $this->set_attribute('_root', 'type', 'button');
 
-        // Get Bricks-generated ID for the element
-        $root_id = !empty($this->attributes['_root']['id']) ? $this->attributes['_root']['id'] : '';
+        echo '<div ' . $this->render_attributes('_root') . '></div>';
 
-        echo '<button ' . $this->render_attributes('_root') . '>';
-        echo esc_html($button_text);
-        echo '</button>';
-
-        // Only print styles for print mode (no visual styling)
         ?>
         <style>
             .brxe-snn-print-page-pdf {
-                cursor: pointer;
-                padding: 10px 18px;
-            }
-            .snn-printing .snn-print-section-to-print {
+                display: contents;
             }
         </style>
         <script>
         (function(){
-            var btn = document.getElementById('<?php echo esc_js($root_id); ?>');
-            var selector = <?php echo json_encode($print_selector); ?>;
-            if (!btn) return;
-            btn.addEventListener('click', function() {
-                if(selector) {
-                    var el = document.querySelector(selector);
-                    if(el) {
-                        el.classList.add('snn-print-section-to-print');
-                        document.body.classList.add('snn-printing');
-                        window.print();
-                        setTimeout(function(){
-                            el.classList.remove('snn-print-section-to-print');
-                            document.body.classList.remove('snn-printing');
-                        }, 1000);
+            var btnSelector = <?php echo json_encode($button_selector); ?>;
+            var printSelector = <?php echo json_encode($print_selector); ?>;
+            var printButtonText = <?php echo json_encode($print_button_text); ?>;
+            if (!btnSelector) return;
+
+            function printSectionContent(el) {
+                // Collect all stylesheets
+                var css = '';
+                var stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"],style'));
+                stylesheets.forEach(function(node) {
+                    if(node.tagName === "LINK") {
+                        css += '<link rel="stylesheet" href="' + node.href + '" />';
                     } else {
-                        alert('No element found for selector: ' + selector);
-                        window.print();
+                        css += '<style>' + node.innerHTML + '</style>';
+                    }
+                });
+
+                // Open as big as possible
+                var width = window.screen.width;
+                var height = window.screen.height;
+                var printWindow = window.open('', '_blank', 'top=0,left=0,width=' + width + ',height=' + height + ',scrollbars=yes,resizable=yes');
+
+                // Style for print button
+                var printBtnCss = `
+                    <style>
+                        #snn-print-btn {
+                            position: fixed;
+                            top: 24px;
+                            right: 24px;
+                            z-index: 99999;
+                            padding: 18px 36px;
+                            font-size: 20px;
+                            background:rgb(29, 29, 29);
+                            color: #fff;
+                            border: none;
+                            border-radius: 6px;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+                            cursor: pointer;
+                            transition: background 0.2s;
+                        }
+                        #snn-print-btn:hover {
+                            background:rgb(0, 0, 0);
+                        }
+                        @media print {
+                            #snn-print-btn {
+                                display: none !important;
+                            }
+                        }
+                        html,body{
+                            margin:0;padding:10px;width:100vw;height:100vh;box-sizing:border-box;
+                        }
+                        @page{size:auto;margin:0;}
+                    </style>
+                `;
+
+                // Print button markup (customizable text)
+                var printBtnHtml = `<button id="snn-print-btn">` + (printButtonText || 'PRINT') + `</button>`;
+
+                printWindow.document.write(
+                    '<html><head><title>Print</title>' +
+                    css + printBtnCss +
+                    '</head><body>' +
+                    el.innerHTML + printBtnHtml +
+                    '</body></html>'
+                );
+                printWindow.document.close();
+
+                // Wait for popup ready
+                printWindow.onload = function(){
+                    // Attach click to PRINT button
+                    var btn = printWindow.document.getElementById('snn-print-btn');
+                    if (btn) {
+                        btn.addEventListener('click', function() {
+                            printWindow.print();
+                            printWindow.close();
+                        });
+                    }
+                };
+            }
+
+            function printHandler(e) {
+                e.preventDefault();
+                if (printSelector) {
+                    var el = document.querySelector(printSelector);
+                    if (el) {
+                        printSectionContent(el);
+                    } else {
+                        alert('No element found for selector: ' + printSelector);
                     }
                 } else {
                     window.print();
                 }
-            });
+            }
+
+            function attachHandler() {
+                var btns = document.querySelectorAll(btnSelector);
+                btns.forEach(function(btn) {
+                    btn.removeEventListener('click', printHandler);
+                    btn.addEventListener('click', printHandler);
+                });
+            }
+
+            if (document.readyState !== 'loading') {
+                attachHandler();
+            } else {
+                document.addEventListener('DOMContentLoaded', attachHandler);
+            }
+            document.addEventListener('bricks/frontend/render', attachHandler);
+
         })();
         </script>
         <?php
