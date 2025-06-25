@@ -29,11 +29,17 @@ class Snn_Image_Hotspots extends Element {
             'type'          => 'repeater',
             'titleProperty' => 'tooltip',
             'fields'        => [
+                'tooltip' => [
+                    'label'         => esc_html__( 'Tooltip Text', 'snn' ),
+                    'type'          => 'text',
+                    'default'       => 'Hotspot',
+                    'inlineEditing' => true,
+                ],
                 'x' => [
-                    'label'  => esc_html__( 'X (%)', 'snn' ),
-                    'type'   => 'slider',
-                    'units'  => [
-                        '%' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                    'label'   => esc_html__( 'X (%)', 'snn' ),
+                    'type'    => 'slider',
+                    'units'   => [
+                        'px' => [ 'min' => 0, 'max' => 100, 'step' => 0.1 ],
                     ],
                     'default' => '50%',
                 ],
@@ -41,7 +47,7 @@ class Snn_Image_Hotspots extends Element {
                     'label'   => esc_html__( 'Y (%)', 'snn' ),
                     'type'    => 'slider',
                     'units'   => [
-                        '%' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                        'px' => [ 'min' => 0, 'max' => 100, 'step' => 0.1 ],
                     ],
                     'default' => '50%',
                 ],
@@ -57,15 +63,7 @@ class Snn_Image_Hotspots extends Element {
                 'dot_color' => [
                     'label'   => esc_html__( 'Dot Color', 'snn' ),
                     'type'    => 'color',
-                    'default' => [
-                        'hex' => '#ffffff'
-                    ],
-                ],
-                'tooltip' => [
-                    'label'         => esc_html__( 'Tooltip Text', 'snn' ),
-                    'type'          => 'text',
-                    'default'       => 'Hotspot',
-                    'inlineEditing' => true,
+                    'default' => '#ccc',
                 ],
                 'tooltip_pos' => [
                     'label'   => esc_html__( 'Tooltip Position', 'snn' ),
@@ -183,12 +181,18 @@ class Snn_Image_Hotspots extends Element {
             $dot_size = isset( $hotspot['dot_size'] ) ? intval( $hotspot['dot_size'] ) : 20;
 
             // --- Color Robust Parsing ---
-            $dot_color = '#fff';
+            $dot_color = 'var(--septenary-color)'; // Set default
             if ( ! empty( $hotspot['dot_color'] ) ) {
                 $c = $hotspot['dot_color'];
                 if ( is_array( $c ) ) {
-                    if ( ! empty( $c['hex'] ) ) $dot_color = $c['hex'];
+                    // Prioritize 'raw' for CSS variables, fallback to 'hex'
+                    if ( isset( $c['raw'] ) ) {
+                        $dot_color = $c['raw'];
+                    } elseif ( isset( $c['hex'] ) ) {
+                        $dot_color = $c['hex'];
+                    }
                 } else {
+                    // Handle string values (like our default)
                     $dot_color = $c;
                 }
             }
