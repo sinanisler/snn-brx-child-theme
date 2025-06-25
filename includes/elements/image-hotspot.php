@@ -30,8 +30,8 @@ class Snn_Image_Hotspots extends Element {
             'titleProperty' => 'tooltip',
             'fields'        => [
                 'tooltip' => [
-                    'label'         => esc_html__( 'Tooltip Text', 'snn' ),
-                    'type'          => 'editor',
+                    'label'         => esc_html__( 'Tooltip Content', 'snn' ),
+                    'type'          => 'editor', // Allows HTML
                     'default'       => 'Hotspot',
                     'inlineEditing' => true,
                 ],
@@ -39,7 +39,7 @@ class Snn_Image_Hotspots extends Element {
                     'label'   => esc_html__( 'X (%)', 'snn' ),
                     'type'    => 'slider',
                     'units'   => [
-                        'px' => [ 'min' => 0, 'max' => 100, 'step' => 0.1 ],
+                        '%' => [ 'min' => 0, 'max' => 100, 'step' => 0.1 ],
                     ],
                     'default' => '50%',
                 ],
@@ -47,7 +47,7 @@ class Snn_Image_Hotspots extends Element {
                     'label'   => esc_html__( 'Y (%)', 'snn' ),
                     'type'    => 'slider',
                     'units'   => [
-                        'px' => [ 'min' => 0, 'max' => 100, 'step' => 0.1 ],
+                        '%' => [ 'min' => 0, 'max' => 100, 'step' => 0.1 ],
                     ],
                     'default' => '50%',
                 ],
@@ -61,9 +61,9 @@ class Snn_Image_Hotspots extends Element {
                     'inline' => true,
                 ],
                 'dot_border_radius' => [
-                    'label'   => esc_html__( 'Dot Border Radius (%)', 'snn' ),
-                    'type'    => 'slider',
-                     'units'   => [
+                    'label'   => esc_html__( 'Dot Radius (%)', 'snn' ),
+                    'type'    => 'number',
+                    'units'   => [
                         '%' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
                     ],
                     'default' => '50%',
@@ -94,6 +94,14 @@ class Snn_Image_Hotspots extends Element {
                     'type'    => 'color',
                     'default' => '#fff',
                 ],
+                'tooltip_width' => [
+                    'label'   => esc_html__( 'Tooltip Width (px)', 'snn' ),
+                    'type'    => 'number',
+                    'default' => 200,
+                    'placeholder' => 200,
+                    'step'    => 1,
+                    'inline'  => true,
+                ],
             ],
         ];
     }
@@ -104,7 +112,7 @@ class Snn_Image_Hotspots extends Element {
 
         $unique = 'image-hotspots-' . uniqid();
         $this->set_attribute( '_root', 'class', [ 'snn-image-hotspots-wrapper', $unique ] );
-        $this->set_attribute( '_root', 'style', 'position: relative; width: 100%; display: inline-block;' );
+        // $this->set_attribute( '_root', 'style', 'position: relative; width: 100%; display: inline-block;' );
 
         echo '<div ' . $this->render_attributes( '_root' ) . '>';
 
@@ -120,6 +128,11 @@ class Snn_Image_Hotspots extends Element {
 
         // --- Base CSS for hotspots and tooltips ---
         echo '<style>
+            .' . $unique . ' {
+                position: relative; 
+                width: 100%; 
+                display: inline-block;
+            }
             .' . $unique . ' .hotspot-dot {
                 cursor: pointer;
                 position: absolute;
@@ -139,14 +152,14 @@ class Snn_Image_Hotspots extends Element {
             }
 
             /* Custom Tooltip Base Styles */
-            .' . $unique . ' .hotspot-dot[data-snn-tooltip]:after {
-                content: attr(data-snn-tooltip);
+            .' . $unique . ' .snn-tooltip-content {
                 position: absolute;
-                padding: 6px 12px;
+                padding: 8px 14px;
                 border-radius: 5px;
                 font-size: 14px;
-                line-height: 1.4;
-                white-space: nowrap;
+                line-height: 1.5;
+                white-space: normal;
+                text-align: center;
                 z-index: 100;
                 opacity: 0;
                 visibility: hidden;
@@ -154,29 +167,29 @@ class Snn_Image_Hotspots extends Element {
                 transition: opacity 0.3s, visibility 0.3s;
             }
 
-            .' . $unique . ' .hotspot-dot:hover:after,
-            .' . $unique . ' .hotspot-dot:focus:after {
+            .' . $unique . ' .hotspot-dot:hover .snn-tooltip-content,
+            .' . $unique . ' .hotspot-dot:focus .snn-tooltip-content {
                 opacity: 1;
                 visibility: visible;
             }
 
             /* Tooltip Positioning */
-            .' . $unique . ' .hotspot-dot[data-snn-tooltip-pos="top"]:after {
+            .' . $unique . ' .hotspot-dot[data-snn-tooltip-pos="top"] .snn-tooltip-content {
                 bottom: calc(100% + 8px);
                 left: 50%;
                 transform: translateX(-50%);
             }
-            .' . $unique . ' .hotspot-dot[data-snn-tooltip-pos="bottom"]:after {
+            .' . $unique . ' .hotspot-dot[data-snn-tooltip-pos="bottom"] .snn-tooltip-content {
                 top: calc(100% + 8px);
                 left: 50%;
                 transform: translateX(-50%);
             }
-            .' . $unique . ' .hotspot-dot[data-snn-tooltip-pos="left"]:after {
+            .' . $unique . ' .hotspot-dot[data-snn-tooltip-pos="left"] .snn-tooltip-content {
                 right: calc(100% + 8px);
                 top: 50%;
                 transform: translateY(-50%);
             }
-            .' . $unique . ' .hotspot-dot[data-snn-tooltip-pos="right"]:after {
+            .' . $unique . ' .hotspot-dot[data-snn-tooltip-pos="right"] .snn-tooltip-content {
                 left: calc(100% + 8px);
                 top: 50%;
                 transform: translateY(-50%);
@@ -196,10 +209,13 @@ class Snn_Image_Hotspots extends Element {
                 $y = is_array( $hotspot['y'] ) ? floatval( $hotspot['y']['value'] ) : floatval( $hotspot['y'] );
             }
             $dot_size = isset( $hotspot['dot_size'] ) ? intval( $hotspot['dot_size'] ) : 20;
-            $dot_border_radius = isset( $hotspot['dot_border_radius'] ) ? (is_array( $hotspot['dot_border_radius'] ) ? $hotspot['dot_border_radius']['value'] : $hotspot['dot_border_radius'] . '%') : '50%';
-            if(is_numeric($dot_border_radius)) $dot_border_radius .= '%';
-
-
+            
+            $dot_border_radius = '50%';
+            if ( isset( $hotspot['dot_border_radius'] ) ) {
+                $br = $hotspot['dot_border_radius'];
+                $dot_border_radius = ( is_array( $br ) ? $br['value'] : $br ) . '%';
+            }
+            
             // --- Color Robust Parsing ---
             $parse_color = function( $color_setting, $default_color ) {
                 if ( ! empty( $color_setting ) ) {
@@ -214,31 +230,40 @@ class Snn_Image_Hotspots extends Element {
             $dot_color          = $parse_color( isset($hotspot['dot_color']) ? $hotspot['dot_color'] : null, '#333' );
             $tooltip_bg_color   = $parse_color( isset($hotspot['tooltip_bg_color']) ? $hotspot['tooltip_bg_color'] : null, '#333' );
             $tooltip_text_color = $parse_color( isset($hotspot['tooltip_text_color']) ? $hotspot['tooltip_text_color'] : null, '#fff' );
-
-
-            $tooltip     = isset( $hotspot['tooltip'] ) ? esc_attr( $hotspot['tooltip'] ) : '';
-            $tooltip_pos = isset( $hotspot['tooltip_pos'] ) ? esc_attr( $hotspot['tooltip_pos'] ) : 'top';
+            
+            $tooltip_content    = isset( $hotspot['tooltip'] ) ? $hotspot['tooltip'] : '';
+            $tooltip_pos        = isset( $hotspot['tooltip_pos'] ) ? esc_attr( $hotspot['tooltip_pos'] ) : 'top';
+            $tooltip_width      = isset( $hotspot['tooltip_width'] ) ? intval( $hotspot['tooltip_width'] ) : 0;
 
             $dot_id    = $unique . '-dot-' . $i;
             $dot_style = 'left:' . $x . '%; top:' . $y . '%; width:' . $dot_size . 'px; height:' . $dot_size . 'px; background:' . $dot_color . '; border-radius:' . $dot_border_radius . '; transform:translate(-50%,-50%);';
+            
+            // --- Tooltip Styles ---
+            $tooltip_inline_styles = "background: {$tooltip_bg_color}; color: {$tooltip_text_color};";
+            if ( $tooltip_width > 0 ) {
+                $tooltip_inline_styles .= " width: {$tooltip_width}px;";
+            }
 
-            // Append tooltip color styles for this specific dot
+            // Append tooltip color/width styles for this specific dot's tooltip
             $dynamic_styles .= "
-                #{$dot_id}:after {
-                    background: {$tooltip_bg_color};
-                    color: {$tooltip_text_color};
+                #{$dot_id} .snn-tooltip-content {
+                    {$tooltip_inline_styles}
                 }
             ";
-
+            
+            // --- Render Dot HTML ---
             echo '<div
                 tabindex="0"
                 id="' . esc_attr( $dot_id ) . '"
                 class="hotspot-dot"
-                role="tooltip"
+                role="button"
+                aria-describedby="tooltip-content-' . esc_attr( $dot_id ) . '"
                 style="' . esc_attr( $dot_style ) . '"
-                data-snn-tooltip="' . esc_attr( $tooltip ) . '"
                 data-snn-tooltip-pos="' . esc_attr( $tooltip_pos ) . '"
-            ></div>';
+            >';
+                // The actual tooltip element which can contain HTML
+                echo '<div class="snn-tooltip-content" role="tooltip" id="tooltip-content-' . esc_attr( $dot_id ) . '">' . $tooltip_content . '</div>';
+            echo '</div>';
         }
         
         // Output dynamic styles if any exist
