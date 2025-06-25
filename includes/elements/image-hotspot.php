@@ -102,6 +102,15 @@ class Snn_Image_Hotspots extends Element {
                     'step'    => 1,
                     'inline'  => true,
                 ],
+                'tooltip_border_radius' => [
+                    'label'   => esc_html__( 'Tooltip Border Radius (px)', 'snn' ),
+                    'type'    => 'number',
+                    'default' => 5,
+                    'min'     => 0,
+                    'max'     => 50,
+                    'step'    => 1,
+                    'inline'  => true,
+                ],
             ],
         ];
     }
@@ -234,12 +243,13 @@ class Snn_Image_Hotspots extends Element {
             $tooltip_content    = isset( $hotspot['tooltip'] ) ? $hotspot['tooltip'] : '';
             $tooltip_pos        = isset( $hotspot['tooltip_pos'] ) ? esc_attr( $hotspot['tooltip_pos'] ) : 'top';
             $tooltip_width      = isset( $hotspot['tooltip_width'] ) ? intval( $hotspot['tooltip_width'] ) : 0;
+            $tooltip_border_radius = isset( $hotspot['tooltip_border_radius'] ) ? intval( $hotspot['tooltip_border_radius'] ) : 5;
 
             $dot_id    = $unique . '-dot-' . $i;
             $dot_style = 'left:' . $x . '%; top:' . $y . '%; width:' . $dot_size . 'px; height:' . $dot_size . 'px; background:' . $dot_color . '; border-radius:' . $dot_border_radius . '; transform:translate(-50%,-50%);';
             
             // --- Tooltip Styles ---
-            $tooltip_inline_styles = "background: {$tooltip_bg_color}; color: {$tooltip_text_color};";
+            $tooltip_inline_styles = "background: {$tooltip_bg_color}; color: {$tooltip_text_color}; border-radius: {$tooltip_border_radius}px;";
             if ( $tooltip_width > 0 ) {
                 $tooltip_inline_styles .= " width: {$tooltip_width}px;";
             }
