@@ -31,7 +31,7 @@ class Snn_Image_Hotspots extends Element {
             'fields'        => [
                 'tooltip' => [
                     'label'         => esc_html__( 'Tooltip Text', 'snn' ),
-                    'type'          => 'text',
+                    'type'          => 'editor',
                     'default'       => 'Hotspot',
                     'inlineEditing' => true,
                 ],
@@ -52,18 +52,26 @@ class Snn_Image_Hotspots extends Element {
                     'default' => '50%',
                 ],
                 'dot_size' => [
-                    'label'   => esc_html__( 'Dot Size (px)', 'snn' ),
-                    'type'    => 'number',
+                    'label'  => esc_html__( 'Dot Size (px)', 'snn' ),
+                    'type'   => 'number',
                     'default' => 20,
-                    'min'     => 8,
-                    'max'     => 100,
-                    'step'    => 1,
-                    'inline'  => true,
+                    'min'    => 8,
+                    'max'    => 100,
+                    'step'   => 1,
+                    'inline' => true,
+                ],
+                'dot_border_radius' => [
+                    'label'   => esc_html__( 'Dot Border Radius (%)', 'snn' ),
+                    'type'    => 'slider',
+                     'units'   => [
+                        '%' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+                    ],
+                    'default' => '50%',
                 ],
                 'dot_color' => [
                     'label'   => esc_html__( 'Dot Color', 'snn' ),
                     'type'    => 'color',
-                    'default' => '#ccc',
+                    'default' => '#333',
                 ],
                 'tooltip_pos' => [
                     'label'   => esc_html__( 'Tooltip Position', 'snn' ),
@@ -75,6 +83,16 @@ class Snn_Image_Hotspots extends Element {
                         'left'   => esc_html__( 'Left', 'snn' ),
                     ],
                     'default' => 'top',
+                ],
+                'tooltip_bg_color' => [
+                    'label'   => esc_html__( 'Tooltip Background', 'snn' ),
+                    'type'    => 'color',
+                    'default' => '#333',
+                ],
+                'tooltip_text_color' => [
+                    'label'   => esc_html__( 'Tooltip Text Color', 'snn' ),
+                    'type'    => 'color',
+                    'default' => '#fff',
                 ],
             ],
         ];
@@ -100,7 +118,7 @@ class Snn_Image_Hotspots extends Element {
             echo '<div style="width:100%;min-height:300px;background:#f3f3f3;text-align:center;line-height:300px;">No Image Selected</div>';
         }
 
-        // CSS for hotspots and our new tooltip
+        // --- Base CSS for hotspots and tooltips ---
         echo '<style>
             .' . $unique . ' .hotspot-dot {
                 cursor: pointer;
@@ -120,12 +138,10 @@ class Snn_Image_Hotspots extends Element {
                 transform: translate(-50%,-50%) scale(1.15);
             }
 
-            /* Custom Tooltip Implementation (snn-balloon) */
+            /* Custom Tooltip Base Styles */
             .' . $unique . ' .hotspot-dot[data-snn-tooltip]:after {
                 content: attr(data-snn-tooltip);
                 position: absolute;
-                background: #333;
-                color: #fff;
                 padding: 6px 12px;
                 border-radius: 5px;
                 font-size: 14px;
@@ -167,7 +183,8 @@ class Snn_Image_Hotspots extends Element {
             }
         </style>';
 
-        // Hotspots HTML
+        // --- Per-Hotspot CSS and HTML ---
+        $dynamic_styles = '';
         foreach ( $hotspots as $i => $hotspot ) {
             // --- Parse X/Y value ---
             $x = 50;
@@ -179,29 +196,39 @@ class Snn_Image_Hotspots extends Element {
                 $y = is_array( $hotspot['y'] ) ? floatval( $hotspot['y']['value'] ) : floatval( $hotspot['y'] );
             }
             $dot_size = isset( $hotspot['dot_size'] ) ? intval( $hotspot['dot_size'] ) : 20;
+            $dot_border_radius = isset( $hotspot['dot_border_radius'] ) ? (is_array( $hotspot['dot_border_radius'] ) ? $hotspot['dot_border_radius']['value'] : $hotspot['dot_border_radius'] . '%') : '50%';
+            if(is_numeric($dot_border_radius)) $dot_border_radius .= '%';
+
 
             // --- Color Robust Parsing ---
-            $dot_color = 'var(--septenary-color)'; // Set default
-            if ( ! empty( $hotspot['dot_color'] ) ) {
-                $c = $hotspot['dot_color'];
-                if ( is_array( $c ) ) {
-                    // Prioritize 'raw' for CSS variables, fallback to 'hex'
-                    if ( isset( $c['raw'] ) ) {
-                        $dot_color = $c['raw'];
-                    } elseif ( isset( $c['hex'] ) ) {
-                        $dot_color = $c['hex'];
+            $parse_color = function( $color_setting, $default_color ) {
+                if ( ! empty( $color_setting ) ) {
+                    if ( is_array( $color_setting ) ) {
+                        return isset( $color_setting['raw'] ) ? $color_setting['raw'] : (isset($color_setting['hex']) ? $color_setting['hex'] : $default_color);
                     }
-                } else {
-                    // Handle string values (like our default)
-                    $dot_color = $c;
+                    return $color_setting;
                 }
-            }
+                return $default_color;
+            };
+
+            $dot_color          = $parse_color( isset($hotspot['dot_color']) ? $hotspot['dot_color'] : null, '#333' );
+            $tooltip_bg_color   = $parse_color( isset($hotspot['tooltip_bg_color']) ? $hotspot['tooltip_bg_color'] : null, '#333' );
+            $tooltip_text_color = $parse_color( isset($hotspot['tooltip_text_color']) ? $hotspot['tooltip_text_color'] : null, '#fff' );
+
 
             $tooltip     = isset( $hotspot['tooltip'] ) ? esc_attr( $hotspot['tooltip'] ) : '';
             $tooltip_pos = isset( $hotspot['tooltip_pos'] ) ? esc_attr( $hotspot['tooltip_pos'] ) : 'top';
 
             $dot_id    = $unique . '-dot-' . $i;
-            $dot_style = 'left:' . $x . '%; top:' . $y . '%; width:' . $dot_size . 'px; height:' . $dot_size . 'px; background:' . $dot_color . '; border-radius: 50%; transform:translate(-50%,-50%);';
+            $dot_style = 'left:' . $x . '%; top:' . $y . '%; width:' . $dot_size . 'px; height:' . $dot_size . 'px; background:' . $dot_color . '; border-radius:' . $dot_border_radius . '; transform:translate(-50%,-50%);';
+
+            // Append tooltip color styles for this specific dot
+            $dynamic_styles .= "
+                #{$dot_id}:after {
+                    background: {$tooltip_bg_color};
+                    color: {$tooltip_text_color};
+                }
+            ";
 
             echo '<div
                 tabindex="0"
@@ -212,6 +239,11 @@ class Snn_Image_Hotspots extends Element {
                 data-snn-tooltip="' . esc_attr( $tooltip ) . '"
                 data-snn-tooltip-pos="' . esc_attr( $tooltip_pos ) . '"
             ></div>';
+        }
+        
+        // Output dynamic styles if any exist
+        if ( ! empty( $dynamic_styles ) ) {
+            echo '<style>' . $dynamic_styles . '</style>';
         }
 
         echo '</div>';
