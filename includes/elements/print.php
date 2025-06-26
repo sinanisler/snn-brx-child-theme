@@ -16,21 +16,21 @@ class Snn_Print_Page_Pdf extends Element {
     }
 
     public function set_controls() {
-        $this->controls['button_selector'] = [
-            'tab'         => 'content',
-            'label'       => esc_html__( 'Button Selector', 'snn' ),
-            'type'        => 'text',
-            'default'     => '',
-            'placeholder' => '.my-btn or #my-btn',
-            'description' => esc_html__( 'Provide a CSS selector for the button you want to trigger the print action (e.g., .my-btn or #my-btn).', 'snn' ),
-        ];
         $this->controls['print_selector'] = [
             'tab'         => 'content',
             'label'       => esc_html__( 'Print Selector', 'snn' ),
             'type'        => 'text',
             'default'     => '',
-            'placeholder' => '.my-section or #my-id',
-            'description' => esc_html__( 'If you want to print only a specific section, enter a CSS selector (like .my-section or #my-id). Leave blank to print the full page.', 'bricks' ),
+            'placeholder' => '#brxe-xxxx',
+            'description' => esc_html__( 'If you want to print only a specific section, enter a CSS selector (#brxe-xxxx). Leave blank to print the full page.', 'bricks' ),
+        ];
+        $this->controls['button_selector'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Button Selector', 'snn' ),
+            'type'        => 'text',
+            'default'     => '',
+            'placeholder' => '#brxe-xxxx',
+            'description' => esc_html__( 'Provide a CSS selector for the button you want to trigger the print action (#brxe-xxxx).', 'snn' ),
         ];
         $this->controls['print_button_text'] = [
             'tab'         => 'content',
