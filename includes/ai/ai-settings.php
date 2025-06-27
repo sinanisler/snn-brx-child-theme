@@ -1,0 +1,751 @@
+<?php
+/**
+ * SNN AI Settings
+ *
+ * File: ai-settings.php
+ *
+ * Purpose: This file manages the administrative settings for the AI features. It is responsible for creating the
+ * "AI Settings" submenu within the WordPress admin dashboard, registering all necessary settings with the
+ * WordPress Settings API, and rendering the settings page itself. This includes the HTML form for all options
+ * like API keys, provider selection, model names, and the repeater field for custom action prompts. It also
+ * contains the client-side JavaScript necessary for the settings page to function, such as toggling setting
+ * visibility based on the selected provider and handling the dynamic "Action Prompts" repeater.
+ *
+ * ---
+ *
+ * This file is part of a 3-file system:
+ *
+ * 1. ai-settings.php (This file): Handles the backend WordPress admin settings UI and options saving.
+ * - Key Functions: snn_add_ai_settings_submenu(), snn_register_ai_settings(), snn_render_ai_settings().
+ * - It provides the user-configured values that the other files will use.
+ *
+ * 2. ai-api.php: A helper file that prepares the necessary configuration for making API calls.
+ * - Key Functions: snn_get_ai_api_config().
+ * - It reads the options saved by this settings file (e.g., 'snn_ai_provider', 'snn_openai_api_key') and
+ * determines the correct API endpoint, key, and model to be used by the frontend overlay. This abstracts
+ * the logic away from the overlay itself.
+ *
+ * 3. ai-overlay.php: Manages the frontend user interface that appears inside the Bricks builder.
+ * - Key Functions: snn_add_ai_script_to_footer().
+ * - It injects the "AI" button into builder controls, displays the AI assistant modal (both single and bulk),
+ * and contains the primary client-side JavaScript for interacting with the AI. It makes the final `fetch`
+ * request to the AI provider using the configuration prepared by `ai-api.php`.
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Exit if accessed directly.
+}
+
+function snn_add_ai_settings_submenu() {
+    add_submenu_page(
+        'snn-settings',
+        __('AI Settings', 'snn'),
+        __('AI Settings', 'snn'),
+        'manage_options',
+        'snn-ai-settings',
+        'snn_render_ai_settings'
+    );
+}
+add_action('admin_menu', 'snn_add_ai_settings_submenu');
+
+function snn_register_ai_settings() {
+    register_setting('snn_ai_settings_group', 'snn_ai_enabled');
+    register_setting('snn_ai_settings_group', 'snn_ai_provider', [
+        'default' => 'openai',
+    ]);
+    register_setting('snn_ai_settings_group', 'snn_openai_api_key');
+    register_setting('snn_ai_settings_group', 'snn_openai_model');
+    register_setting('snn_ai_settings_group', 'snn_openrouter_api_key');
+    register_setting('snn_ai_settings_group', 'snn_openrouter_model');
+    register_setting('snn_ai_settings_group', 'snn_system_prompt');
+    register_setting('snn_ai_settings_group', 'snn_ai_action_presets', [
+        'type' => 'array',
+        'default' => [],
+    ]);
+
+    // 1. Register new settings for custom provider
+    register_setting('snn_ai_settings_group', 'snn_custom_api_key');
+    register_setting('snn_ai_settings_group', 'snn_custom_api_endpoint');
+    register_setting('snn_ai_settings_group', 'snn_custom_model');
+}
+add_action('admin_init', 'snn_register_ai_settings');
+
+function snn_render_ai_settings() {
+    $ai_enabled           = get_option('snn_ai_enabled', 'no');
+    $ai_provider          = get_option('snn_ai_provider', 'openai');
+    $openai_api_key       = get_option('snn_openai_api_key', '');
+    $openai_model         = get_option('snn_openai_model', 'gpt-4o-mini'); // Updated model name
+    $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
+    $openrouter_model     = get_option('snn_openrouter_model', '');
+    $system_prompt        = get_option(
+        'snn_system_prompt',
+        'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Only respond with the needed content and nothing else always!'
+    );
+
+    $default_presets = [
+        ['name' => 'Title',    'prompt' => 'Generate a catchy title.'],
+        ['name' => 'Content',  'prompt' => 'Generate engaging content.'],
+        ['name' => 'Button',   'prompt' => 'Suggest a call-to-action button text.'],
+        ['name' => 'Funny',    'prompt' => 'Make it funny.'],
+        ['name' => 'Sad',      'prompt' => 'Make it sad.'],
+        ['name' => 'Business', 'prompt' => 'Make it professional and business-like.'],
+        ['name' => 'Shorter',  'prompt' => 'Make the following text significantly shorter while preserving the core meaning.'],
+        ['name' => 'Longer',   'prompt' => 'Make the following text significantly longer on the following text, adding more detail or explanation.'],
+        ['name' => 'CSS',      'prompt' => 'Write clean native CSS only. Always use selector %root%, no <style> tag.'],
+        ['name' => 'HTML',     'prompt' => 'Write html css and js if needed and you can use cdn lib if you wish. <html> <head> or <body> not needed.'],
+        ['name' => 'GSAP',     'prompt' => '- Always use exact CSS syntax. - Animated code works for the nested elements; this output will animate DOM item or items. - Always use clear pairs: style_start-property:value, style_end-property:value. - Use ";" to create series animations where needed, like one animation plays after another with ";". Otherwise, if only "," is used, animations will play in parallel at the same time. - Always use clear pairs: style_start-property:value, style_end-property:value because gsap and animation system automatically converts these custom CSS syntax to the gsap animation. - Never use shortcuts like x:, y:, r:, s:, or o:. - Always explicitly use CSS properties for movements: transform:translateX(px) transform:translateY(px) transform:translateZ(px) transform:translate3d(x,y,z) transform:rotate(deg) transform:rotateX(deg) transform:rotateY(deg) transform:rotateZ(deg) transform:rotate3d(x,y,z,deg) transform:scale(value) transform:scaleX(value) transform:scaleY(value) transform:scaleZ(value) transform:skewX(deg) transform:skewY(deg) transform:perspective(px) opacity:value backgroundColor:color boxShadow:value border:value borderRadius:value clipPath:value - Optional controls clearly defined if needed: scroll:true scrub:value stagger:value - Always separate values clearly with commas. - No explanations or additional text—only exact CSS animation values. - Some examples; "style_start-transform:translate3d(200px, 100px, 50px), style_end-transform:translate3d(0px, 0px, 0px)" "x:200, style_start-transform:rotate(45deg), style_end-transform:rotate(0deg)" "y:-200, style_start-transform:scale(2), style_end-transform:scale(1)" "style_start-transform:translateX(200px) translateY(-200px), style_end-transform:translateX(0px) translateY(0px)" "x:100, style_start-opacity:0, style_end-opacity:1, scroll:true" "x:50, y:50, style_start-transform:rotate(0deg), style_end-transform:rotate(90deg), scroll:true"'],
+    ];
+    $stored_action_presets = get_option('snn_ai_action_presets', false);
+    if ($stored_action_presets === false) {
+        $action_presets = $default_presets;
+    } elseif (!is_array($stored_action_presets) || empty($stored_action_presets)) {
+        $action_presets = $default_presets;
+    } else {
+        $action_presets = $stored_action_presets;
+    }
+
+    $action_presets = array_values($action_presets);
+    ?>
+    <div class="wrap">
+        <h1><?php esc_html_e('AI Settings', 'snn'); ?></h1>
+        <form method="post" action="options.php">
+            <?php settings_fields('snn_ai_settings_group'); ?>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="snn_ai_enabled"><?php esc_html_e('Enable AI Features', 'snn'); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="checkbox"
+                            name="snn_ai_enabled"
+                            id="snn_ai_enabled"
+                            value="yes"
+                            <?php checked($ai_enabled, 'yes'); ?>
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="snn_ai_provider"><?php esc_html_e('API Provider', 'snn'); ?></label>
+                    </th>
+                    <td>
+                        <select name="snn_ai_provider" id="snn_ai_provider">
+                            <option value="openai" <?php selected($ai_provider, 'openai'); ?>>OpenAI</option>
+                            <option value="openrouter" <?php selected($ai_provider, 'openrouter'); ?>>OpenRouter</option>
+                            <option value="custom" <?php selected($ai_provider, 'custom'); ?>>Custom</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <h2><?php esc_html_e('System Prompt', 'snn'); ?></h2>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="snn_system_prompt"><?php esc_html_e('System Prompt', 'snn'); ?></label>
+                    </th>
+                    <td>
+                        <textarea
+                            name="snn_system_prompt"
+                            id="snn_system_prompt"
+                            class="regular-text"
+                            rows="5"
+                        ><?php echo esc_textarea($system_prompt); ?></textarea>
+                        <p class="description">
+                            <?php esc_html_e('Enter the system prompt for AI interactions.', 'snn'); ?>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+
+            <div
+                id="openai-settings"
+                style="display: <?php echo ($ai_provider === 'openai' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
+            >
+                <h2><?php esc_html_e('OpenAI API Settings', 'snn'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_openai_api_key"><?php esc_html_e('OpenAI API Key', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="password"
+                                name="snn_openai_api_key"
+                                id="snn_openai_api_key"
+                                value="<?php echo esc_attr($openai_api_key); ?>"
+                                class="regular-text"
+                                autocomplete="new-password"
+                            />
+                            <p class="description">
+                                <?php
+                                printf(
+                                    wp_kses_post(
+                                        __('For more information, visit the <a href="%s" target="_blank" rel="noopener noreferrer">OpenAI API Keys page</a>.', 'snn')
+                                    ),
+                                    'https://platform.openai.com/account/api-keys'
+                                );
+                                ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_openai_model"><?php esc_html_e('OpenAI Model', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="text"
+                                name="snn_openai_model"
+                                id="snn_openai_model"
+                                class="regular-text"
+                                value="<?php echo esc_attr($openai_model); ?>"
+                                placeholder="<?php esc_attr_e('Search for model...', 'snn'); ?>"
+                                list="openai-models"
+                                autocomplete="off"
+                            >
+                            <datalist id="openai-models">
+                                <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
+                            </datalist>
+                            <p class="description">
+                                <?php esc_html_e('Select the OpenAI model to use. Start typing to search.', 'snn'); ?><br>
+                                <a href="https://platform.openai.com/docs/models" target="_blank"><?php esc_html_e('Model Info & Pricing', 'snn'); ?></a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div
+                id="openrouter-settings"
+                style="display: <?php echo ($ai_provider === 'openrouter' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
+            >
+                <h2><?php esc_html_e('OpenRouter API Settings', 'snn'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_openrouter_api_key"><?php esc_html_e('OpenRouter API Key', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="password"
+                                name="snn_openrouter_api_key"
+                                id="snn_openrouter_api_key"
+                                value="<?php echo esc_attr($openrouter_api_key); ?>"
+                                class="regular-text"
+                                autocomplete="new-password"
+                            />
+                            <p class="description"><?php esc_html_e('Enter your OpenRouter API key.', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_openrouter_model"><?php esc_html_e('OpenRouter Model', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="text"
+                                name="snn_openrouter_model"
+                                id="snn_openrouter_model"
+                                class="regular-text"
+                                value="<?php echo esc_attr($openrouter_model); ?>"
+                                placeholder="<?php esc_attr_e('Search for model...', 'snn'); ?>"
+                                list="openrouter-models"
+                                autocomplete="off"
+                            >
+                            <datalist id="openrouter-models">
+                                <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
+                            </datalist>
+                            <p class="description">
+                                <?php esc_html_e('Select the OpenRouter model to use. Start typing to search.', 'snn'); ?>
+                                <a href="https://openrouter.ai/models" target="_blank"><?php esc_html_e('Prices', 'snn'); ?></a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div
+                id="custom-settings"
+                style="display: <?php echo ($ai_provider === 'custom' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
+            >
+                <h2><?php esc_html_e('Custom API Settings', 'snn'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_custom_api_key"><?php esc_html_e('Custom API Key', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="password"
+                                name="snn_custom_api_key"
+                                id="snn_custom_api_key"
+                                value="<?php echo esc_attr(get_option('snn_custom_api_key', '')); ?>"
+                                class="regular-text"
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_custom_api_endpoint"><?php esc_html_e('Custom API Endpoint', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="text"
+                                name="snn_custom_api_endpoint"
+                                id="snn_custom_api_endpoint"
+                                value="<?php echo esc_attr(get_option('snn_custom_api_endpoint', '')); ?>"
+                                class="regular-text"
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_custom_model"><?php esc_html_e('Custom Model', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <input
+                                type="text"
+                                name="snn_custom_model"
+                                id="snn_custom_model"
+                                value="<?php echo esc_attr(get_option('snn_custom_model', '')); ?>"
+                                class="regular-text"
+                            />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <h2><?php esc_html_e('Action Prompts', 'snn'); ?></h2>
+            <p>
+                <?php esc_html_e('Add, edit, remove, or drag-and-drop to reorder AI action prompts. These presets will be available as selectable buttons in the AI overlay.', 'snn'); ?>
+            </p>
+
+            <table class="form-table" id="snn-ai-action-presets-table">
+                <tbody>
+                <?php if (!empty($action_presets)) : ?>
+                    <?php foreach ($action_presets as $index => $preset) : ?>
+                        <tr class="snn-ai-action-preset-row" draggable="true">
+                            <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor:move; font-size:30px">⬍</td>
+                            <td style="padding:2px">
+                                <input
+                                    type="text"
+                                    name="snn_ai_action_presets[<?php echo $index; ?>][name]"
+                                    value="<?php echo esc_attr($preset['name']); ?>"
+                                    placeholder="<?php esc_attr_e('Action Name', 'snn'); ?>"
+                                    class="regular-text preset-name-input"
+                                />
+                            </td>
+                            <td style="padding:2px">
+                                <textarea
+                                    name="snn_ai_action_presets[<?php echo $index; ?>][prompt]"
+                                    rows="2"
+                                    placeholder="<?php esc_attr_e('Action Prompt', 'snn'); ?>"
+                                    class="regular-text preset-prompt-input"
+                                ><?php echo esc_textarea($preset['prompt']); ?></textarea>
+                            </td>
+                            <td style="padding:2px">
+                                <button type="button" class="button snn-ai-remove-preset"><?php esc_html_e('Remove', 'snn'); ?></button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                </tbody>
+            </table>
+
+            <p>
+                <button type="button" class="button" id="snn-ai-add-preset"><?php esc_html_e('Add Preset', 'snn'); ?></button>
+                <button type="button" class="button" id="snn-ai-reset-presets" style="margin-left: 10px;"><?php esc_html_e('Reset Presets', 'snn'); ?></button>
+            </p>
+
+            <div id="snn-ai-import-export-container" style="margin-top: 20px;">
+                <button type="button" class="button" id="snn-ai-export-button"><?php esc_html_e('Export Presets', 'snn'); ?></button>
+                <button type="button" class="button" id="snn-ai-import-button" style="margin-left: 10px;"><?php esc_html_e('Import Presets', 'snn'); ?></button>
+
+                <div id="snn-ai-export-area" style="display: none; margin-top: 10px;">
+                    <h3><?php esc_html_e('Exported Presets', 'snn'); ?></h3>
+                    <p><?php esc_html_e('Copy the text below to save your presets.', 'snn'); ?></p>
+                    <textarea id="snn-ai-export-textarea" rows="8" style="width: 100%; max-width: 660px;" readonly></textarea>
+                </div>
+
+                <div id="snn-ai-import-area" style="display: none; margin-top: 10px;">
+                    <h3><?php esc_html_e('Import Presets', 'snn'); ?></h3>
+                    <p><?php esc_html_e('Paste your previously exported presets into the text area below and click "Import". This will add the imported presets to your current list, skipping any duplicates.', 'snn'); ?></p>
+                    <textarea id="snn-ai-import-textarea" rows="8" style="width: 100%; max-width: 660px;"></textarea>
+                    <p>
+                        <button type="button" class="button button-primary" id="snn-ai-import-apply-button"><?php esc_html_e('Import', 'snn'); ?></button>
+                        <span id="snn-ai-import-status" style="margin-left: 10px; font-style: italic;"></span>
+                    </p>
+                </div>
+            </div>
+
+            <style>
+            #snn-ai-action-presets-table {
+                max-width: 660px;
+            }
+            #snn-ai-action-presets-table td {
+                vertical-align: top;
+            }
+            .snn-ai-action-preset-row input.regular-text {
+                max-width: 220px;
+                height: 46px;
+            }
+            #openai-settings #snn_openai_model,
+            #openai-settings #snn_openai_api_key,
+            #openrouter-settings #snn_openrouter_api_key,
+            #openrouter-settings #snn_openrouter_model {
+                width: 430px;
+                max-width: 430px;
+            }
+            #openai-settings #snn_openai_api_key,
+            #openrouter-settings #snn_openrouter_api_key {
+                margin-bottom: 10px;
+            }
+            .snn-drag-over-row {
+                outline: 2px dashed #0073aa;
+            }
+            [name="snn_system_prompt"]{width:430px}
+            </style>
+
+            <?php submit_button(__('Save AI Settings', 'snn')); ?>
+        </form>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const enableCheckbox = document.getElementById('snn_ai_enabled');
+            const providerSelect = document.getElementById('snn_ai_provider');
+            const openaiSettingsDiv = document.getElementById('openai-settings');
+            const openrouterSettingsDiv = document.getElementById('openrouter-settings');
+            const customSettingsDiv = document.getElementById('custom-settings');
+
+            function toggleSettingsVisibility() {
+                const isEnabled = enableCheckbox.checked;
+                openaiSettingsDiv.style.display = 'none';
+                openrouterSettingsDiv.style.display = 'none';
+                customSettingsDiv.style.display = 'none';
+
+                if (isEnabled) {
+                    if (providerSelect.value === 'openai') {
+                        openaiSettingsDiv.style.display = 'block';
+                        fetchOpenAiModels();
+                    } else if (providerSelect.value === 'openrouter') {
+                        openrouterSettingsDiv.style.display = 'block';
+                        fetchOpenRouterModels();
+                    } else if (providerSelect.value === 'custom') {
+                        customSettingsDiv.style.display = 'block';
+                    }
+                }
+            }
+
+            function fetchOpenRouterModels() {
+                const dataListEl = document.getElementById('openrouter-models');
+                if (!dataListEl) return;
+                const openrouterKeyEl = document.getElementById('snn_openrouter_api_key');
+                const openrouterKey = openrouterKeyEl ? openrouterKeyEl.value.trim() : '';
+                if (!openrouterKey) {
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('OpenRouter key missing. Please add your key first.', 'snn'); ?></option>';
+                    return;
+                }
+                dataListEl.innerHTML = '<option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>';
+                let slowTimeout = setTimeout(function(){
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Still loading models... (this is taking longer than usual)', 'snn'); ?></option>';
+                }, 3000);
+                fetch('https://openrouter.ai/api/v1/models', {
+                    headers: { 'Authorization': 'Bearer ' + openrouterKey }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('OpenRouter models API error: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.data) {
+                        dataListEl.innerHTML = '';
+                        data.data.forEach(model => {
+                            const option = document.createElement('option');
+                            option.value = model.id;
+                            option.text = model.name + ' (' + model.context_length + ' tokens)';
+                            dataListEl.appendChild(option);
+                        });
+                    } else {
+                        dataListEl.innerHTML = '<option value=""><?php esc_html_e('No models found.', 'snn'); ?></option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching OpenRouter models:', error);
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Error loading models.', 'snn'); ?></option>';
+                })
+                .finally(() => {
+                    clearTimeout(slowTimeout);
+                });
+            }
+
+            function fetchOpenAiModels() {
+                const dataListEl = document.getElementById('openai-models');
+                if (!dataListEl) return;
+                const openAiApiKeyEl = document.getElementById('snn_openai_api_key');
+                const openAiApiKey = openAiApiKeyEl ? openAiApiKeyEl.value.trim() : '';
+                if (!openAiApiKey) {
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('OpenAI key missing. Please add your key first.', 'snn'); ?></option>';
+                    return;
+                }
+                dataListEl.innerHTML = '<option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>';
+                let slowTimeout = setTimeout(function(){
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Still loading models... (this is taking longer than usual)', 'snn'); ?></option>';
+                }, 3000);
+                fetch('https://api.openai.com/v1/models', {
+                    headers: { 'Authorization': 'Bearer ' + openAiApiKey }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('OpenAI models API error: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.data) {
+                        const forbiddenKeywords = [
+                            "babbage", "tts", "whisper", "moderation", "embedding", "transcribe", "dall", "audio"
+                        ];
+                        let filteredModels = data.data.filter(m => {
+                            const modelId = m.id.toLowerCase();
+                            return forbiddenKeywords.every(keyword => !modelId.includes(keyword));
+                        });
+                        let miniModels = filteredModels.filter(m => m.id.toLowerCase().includes('mini'));
+                        let otherModels = filteredModels.filter(m => !m.id.toLowerCase().includes('mini'));
+                        miniModels.sort((a, b) => a.id.localeCompare(b.id));
+                        otherModels.sort((a, b) => a.id.localeCompare(b.id));
+                        let sortedModels = miniModels.concat(otherModels);
+                        dataListEl.innerHTML = '';
+                        sortedModels.forEach(model => {
+                            if (model.id) {
+                                const option = document.createElement('option');
+                                option.value = model.id;
+                                option.text = model.id;
+                                dataListEl.appendChild(option);
+                            }
+                        });
+                    } else {
+                        dataListEl.innerHTML = '<option value=""><?php esc_html_e('No models found.', 'snn'); ?></option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching OpenAI models:', error);
+                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Error loading models.', 'snn'); ?></option>';
+                })
+                .finally(() => {
+                    clearTimeout(slowTimeout);
+                });
+            }
+
+            if (enableCheckbox && providerSelect) {
+                enableCheckbox.addEventListener('change', toggleSettingsVisibility);
+                providerSelect.addEventListener('change', toggleSettingsVisibility);
+                toggleSettingsVisibility();
+            }
+
+            const addPresetButton = document.getElementById('snn-ai-add-preset');
+            const resetPresetButton = document.getElementById('snn-ai-reset-presets');
+            const presetsTableBody = document.querySelector('#snn-ai-action-presets-table tbody');
+
+            function updatePresetIndices() {
+                if (!presetsTableBody) return;
+                const rows = presetsTableBody.querySelectorAll('tr.snn-ai-action-preset-row');
+                rows.forEach((row, index) => {
+                    const nameInput = row.querySelector('.preset-name-input');
+                    const promptInput = row.querySelector('.preset-prompt-input');
+                    if (nameInput) nameInput.name = `snn_ai_action_presets[${index}][name]`;
+                    if (promptInput) promptInput.name = `snn_ai_action_presets[${index}][prompt]`;
+                });
+            }
+
+            function createPresetRow(preset, index) {
+                const row = document.createElement('tr');
+                row.className = 'snn-ai-action-preset-row';
+                row.setAttribute('draggable', 'true');
+                row.innerHTML = `
+                    <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor:move; font-size:30px">⬍</td>
+                    <td style="padding:2px">
+                        <input
+                            type="text"
+                            name="snn_ai_action_presets[${index}][name]"
+                            value="${preset.name.replace(/"/g, '&quot;')}"
+                            placeholder="<?php echo esc_js(__('Action Name', 'snn')); ?>"
+                            class="regular-text preset-name-input" />
+                    </td>
+                    <td style="padding:2px">
+                        <textarea
+                            name="snn_ai_action_presets[${index}][prompt]"
+                            rows="2"
+                            placeholder="<?php echo esc_js(__('Action Prompt', 'snn')); ?>"
+                            class="regular-text preset-prompt-input">${preset.prompt}</textarea>
+                    </td>
+                    <td style="padding:2px">
+                        <button type="button" class="button snn-ai-remove-preset"><?php echo esc_js(__('Remove', 'snn')); ?></button>
+                    </td>
+                `;
+                return row;
+            }
+
+            if (addPresetButton && presetsTableBody) {
+                addPresetButton.addEventListener('click', function() {
+                    const newIndex = presetsTableBody.querySelectorAll('tr.snn-ai-action-preset-row').length;
+                    const newPreset = { name: '', prompt: '' };
+                    const row = createPresetRow(newPreset, newIndex);
+                    presetsTableBody.appendChild(row);
+                    updatePresetIndices();
+                });
+            }
+
+            if (resetPresetButton && presetsTableBody) {
+                resetPresetButton.addEventListener('click', function() {
+                    if (confirm('<?php echo esc_js(__('Are you sure you want to reset all presets to their defaults? This cannot be undone.', 'snn')); ?>')) {
+                        presetsTableBody.innerHTML = '';
+                        const defaultPresets = <?php echo json_encode($default_presets); ?>;
+                        defaultPresets.forEach((preset, index) => {
+                            const row = createPresetRow(preset, index);
+                            presetsTableBody.appendChild(row);
+                        });
+                        updatePresetIndices();
+                    }
+                });
+            }
+
+            if (presetsTableBody) {
+                presetsTableBody.addEventListener('click', function(e) {
+                    if (e.target && e.target.classList.contains('snn-ai-remove-preset')) {
+                        e.preventDefault();
+                        const row = e.target.closest('tr.snn-ai-action-preset-row');
+                        if (row) {
+                            row.remove();
+                            updatePresetIndices();
+                        }
+                    }
+                });
+            }
+
+            let draggingRow = null;
+            if (presetsTableBody) {
+                presetsTableBody.addEventListener('dragstart', (e) => {
+                    const target = e.target.closest('tr.snn-ai-action-preset-row');
+                    if (target) {
+                        draggingRow = target;
+                        e.dataTransfer.setData('text/plain', '');
+                        e.dataTransfer.effectAllowed = 'move';
+                    }
+                });
+                presetsTableBody.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const target = e.target.closest('tr.snn-ai-action-preset-row');
+                    if (target && target !== draggingRow) {
+                        const bounding = target.getBoundingClientRect();
+                        const offset = bounding.y + bounding.height / 2;
+                        if (e.clientY - offset > 0) {
+                            if (target.nextSibling !== draggingRow) {
+                                target.parentNode.insertBefore(draggingRow, target.nextSibling);
+                            }
+                        } else {
+                            if (target !== draggingRow.nextSibling) {
+                                target.parentNode.insertBefore(draggingRow, target);
+                            }
+                        }
+                    }
+                });
+                presetsTableBody.addEventListener('dragend', () => {
+                    draggingRow = null;
+                    updatePresetIndices();
+                });
+            }
+            updatePresetIndices();
+
+            // Import/Export Logic
+            const exportButton = document.getElementById('snn-ai-export-button');
+            const importButton = document.getElementById('snn-ai-import-button');
+            const exportArea = document.getElementById('snn-ai-export-area');
+            const importArea = document.getElementById('snn-ai-import-area');
+            const exportTextarea = document.getElementById('snn-ai-export-textarea');
+            const importTextarea = document.getElementById('snn-ai-import-textarea');
+            const importApplyButton = document.getElementById('snn-ai-import-apply-button');
+            const importStatus = document.getElementById('snn-ai-import-status');
+
+            if (exportButton) {
+                exportButton.addEventListener('click', () => {
+                    const presets = [];
+                    presetsTableBody.querySelectorAll('tr.snn-ai-action-preset-row').forEach(row => {
+                        const name = row.querySelector('.preset-name-input').value.trim();
+                        const prompt = row.querySelector('.preset-prompt-input').value.trim();
+                        if (name && prompt) {
+                            presets.push({ name, prompt });
+                        }
+                    });
+                    exportTextarea.value = JSON.stringify(presets, null, 2);
+                    exportArea.style.display = 'block';
+                    importArea.style.display = 'none';
+                    exportTextarea.select();
+                });
+            }
+
+            if (importButton) {
+                importButton.addEventListener('click', () => {
+                    importArea.style.display = 'block';
+                    exportArea.style.display = 'none';
+                    importStatus.textContent = '';
+                    importTextarea.value = '';
+                });
+            }
+
+            if (importApplyButton) {
+                importApplyButton.addEventListener('click', () => {
+                    const jsonString = importTextarea.value.trim();
+                    if (!jsonString) {
+                        importStatus.textContent = '<?php echo esc_js(__('Textarea is empty.', 'snn')); ?>';
+                        return;
+                    }
+                    try {
+                        const importedPresets = JSON.parse(jsonString);
+                        if (!Array.isArray(importedPresets)) {
+                             throw new Error('<?php echo esc_js(__('Data is not a valid array.', 'snn')); ?>');
+                        }
+
+                        const existingPresets = new Set();
+                        presetsTableBody.querySelectorAll('tr.snn-ai-action-preset-row').forEach(row => {
+                            const name = row.querySelector('.preset-name-input').value.trim().toLowerCase();
+                            const prompt = row.querySelector('.preset-prompt-input').value.trim().toLowerCase();
+                            existingPresets.add(`${name}|||${prompt}`);
+                        });
+
+                        let addedCount = 0;
+                        let skippedCount = 0;
+                        importedPresets.forEach(preset => {
+                            if (preset && typeof preset.name === 'string' && typeof preset.prompt === 'string') {
+                                const newName = preset.name.trim();
+                                const newPrompt = preset.prompt.trim();
+                                const presetKey = `${newName.toLowerCase()}|||${newPrompt.toLowerCase()}`;
+                                if (newName && newPrompt && !existingPresets.has(presetKey)) {
+                                    const newIndex = presetsTableBody.querySelectorAll('tr.snn-ai-action-preset-row').length;
+                                    const row = createPresetRow({ name: newName, prompt: newPrompt }, newIndex);
+                                    presetsTableBody.appendChild(row);
+                                    existingPresets.add(presetKey);
+                                    addedCount++;
+                                } else {
+                                    skippedCount++;
+                                }
+                            }
+                        });
+
+                        updatePresetIndices();
+                        importStatus.textContent = `<?php echo esc_js(__('Import complete!', 'snn')); ?> ${addedCount} <?php echo esc_js(__('presets added', 'snn')); ?>, ${skippedCount} <?php echo esc_js(__('duplicates skipped.', 'snn')); ?>`;
+
+                    } catch (error) {
+                        importStatus.textContent = `<?php echo esc_js(__('Invalid JSON format.', 'snn')); ?> ${error.message}`;
+                        console.error("Import error:", error);
+                    }
+                });
+            }
+        });
+        </script>
+    </div>
+    <?php
+}
