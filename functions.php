@@ -39,10 +39,13 @@ require_once SNN_PATH . 'includes/role-manager.php';
 require_once SNN_PATH . 'includes/custom-code-snippets.php';
 require_once SNN_PATH . 'includes/cookie-banner.php';
 require_once SNN_PATH . 'includes/accessibility-settings.php';
+
 // require_once SNN_PATH . 'includes/ai.php';
 require_once SNN_PATH . 'includes/ai/ai-settings.php';
 require_once SNN_PATH . 'includes/ai/ai-api.php';
 require_once SNN_PATH . 'includes/ai/ai-overlay.php';
+require_once SNN_PATH . 'includes/ai/ai-design.php';
+
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 
 
