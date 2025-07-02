@@ -602,7 +602,7 @@ add_action( 'init', function () {
 'once:true' => esc_html__('Once True', 'snn'),
 
 
-'custom' => esc_html__('Custom data-animate', 'snn'), 
+'custom' => esc_html__('/ Custom data-animate', 'snn'), 
 
 
 
