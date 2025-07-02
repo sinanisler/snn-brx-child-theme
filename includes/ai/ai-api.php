@@ -44,7 +44,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function snn_get_ai_api_config() {
     $ai_provider          = get_option('snn_ai_provider', 'openai');
     $openai_api_key       = get_option('snn_openai_api_key', '');
-    $openai_model         = get_option('snn_openai_model', 'gpt-4o-mini');
+    $openai_model         = get_option('snn_openai_model', 'gpt-4.1-mini');
     $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
     $openrouter_model     = get_option('snn_openrouter_model', '');
     $system_prompt        = get_option(
