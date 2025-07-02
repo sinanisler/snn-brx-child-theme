@@ -212,6 +212,10 @@ function snn_render_ai_settings() {
                                 <?php esc_html_e('Select the OpenAI model to use. Start typing to search.', 'snn'); ?><br>
                                 <a href="https://platform.openai.com/docs/models" target="_blank"><?php esc_html_e('Model Info & Pricing', 'snn'); ?></a>
                             </p>
+                            <div id="openai-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none;">
+                                <strong><?php esc_html_e('Selected Model Features:', 'snn'); ?></strong>
+                                <ul style="list-style-type: disc; margin-left: 20px;"></ul>
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -261,6 +265,10 @@ function snn_render_ai_settings() {
                                 <?php esc_html_e('Select the OpenRouter model to use. Start typing to search.', 'snn'); ?>
                                 <a href="https://openrouter.ai/models" target="_blank"><?php esc_html_e('Prices', 'snn'); ?></a>
                             </p>
+                            <div id="openrouter-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none;">
+                                <strong><?php esc_html_e('Selected Model Features:', 'snn'); ?></strong>
+                                <ul style="list-style-type: disc; margin-left: 20px;"></ul>
+                            </div>
                         </td>
                     </tr>
                 </table>
@@ -406,6 +414,13 @@ function snn_render_ai_settings() {
                 outline: 2px dashed #0073aa;
             }
             [name="snn_system_prompt"]{width:430px}
+            .selected-model-features ul {
+                padding-left: 20px;
+                margin-top: 5px;
+            }
+            .selected-model-features li {
+                margin-bottom: 3px;
+            }
             </style>
 
             <?php submit_button(__('Save AI Settings', 'snn')); ?>
@@ -419,11 +434,27 @@ function snn_render_ai_settings() {
             const openrouterSettingsDiv = document.getElementById('openrouter-settings');
             const customSettingsDiv = document.getElementById('custom-settings');
 
+            // Model feature display elements
+            const openaiModelInput = document.getElementById('snn_openai_model');
+            const openaiFeaturesDiv = document.getElementById('openai-selected-model-features');
+            const openaiFeaturesList = openaiFeaturesDiv ? openaiFeaturesDiv.querySelector('ul') : null;
+
+            const openrouterModelInput = document.getElementById('snn_openrouter_model');
+            const openrouterFeaturesDiv = document.getElementById('openrouter-selected-model-features');
+            const openrouterFeaturesList = openrouterFeaturesDiv ? openrouterFeaturesDiv.querySelector('ul') : null;
+
+            let allOpenAiModels = [];
+            let allOpenRouterModels = [];
+
             function toggleSettingsVisibility() {
                 const isEnabled = enableCheckbox.checked;
                 openaiSettingsDiv.style.display = 'none';
                 openrouterSettingsDiv.style.display = 'none';
                 customSettingsDiv.style.display = 'none';
+
+                // Hide feature divs when provider changes or AI is disabled
+                if (openaiFeaturesDiv) openaiFeaturesDiv.style.display = 'none';
+                if (openrouterFeaturesDiv) openrouterFeaturesDiv.style.display = 'none';
 
                 if (isEnabled) {
                     if (providerSelect.value === 'openai') {
@@ -435,6 +466,116 @@ function snn_render_ai_settings() {
                     } else if (providerSelect.value === 'custom') {
                         customSettingsDiv.style.display = 'block';
                     }
+                }
+            }
+
+            /**
+             * Formats a value for display, handling booleans, numbers (including timestamps), and null/undefined/empty strings.
+             * @param {*} value The value to format.
+             * @returns {string} The formatted value.
+             */
+            function formatValue(value) {
+                if (typeof value === 'boolean') {
+                    return value ? 'Yes' : 'No';
+                }
+                if (typeof value === 'number' && !isNaN(value) && value !== null) {
+                    // Check if it's a Unix timestamp (seconds or milliseconds)
+                    if (String(value).length === 10 || String(value).length === 13) {
+                        return new Date(value * (String(value).length === 10 ? 1000 : 1)).toLocaleString();
+                    }
+                    return value.toString();
+                }
+                if (value === null || value === undefined || value === '') {
+                    return 'N/A';
+                }
+                return value;
+            }
+
+            /**
+             * Displays all features of a given model object in a list, handling nested objects and arrays.
+             * @param {HTMLElement} featuresListElement The <ul> element to append features to.
+             * @param {Object} modelData The model object containing features.
+             */
+            function displayFeatures(featuresListElement, modelData) {
+                if (!featuresListElement || !modelData) return;
+                featuresListElement.innerHTML = ''; // Clear previous features
+
+                for (const key in modelData) {
+                    if (Object.prototype.hasOwnProperty.call(modelData, key)) {
+                        const value = modelData[key];
+                        const li = document.createElement('li');
+
+                        if (Array.isArray(value)) {
+                            // Handle arrays (e.g., supported_parameters, permissions)
+                            if (value.length > 0) {
+                                li.innerHTML = `<strong>${key}:</strong>`;
+                                const nestedUl = document.createElement('ul');
+                                value.forEach((item, index) => {
+                                    const nestedLi = document.createElement('li');
+                                    if (typeof item === 'object' && item !== null) {
+                                        // If array contains objects (like OpenAI permissions)
+                                        nestedLi.innerHTML = `<strong>Item ${index + 1}:</strong>`;
+                                        const deeperNestedUl = document.createElement('ul');
+                                        for (const itemKey in item) {
+                                            if (Object.prototype.hasOwnProperty.call(item, itemKey)) {
+                                                const deeperLi = document.createElement('li');
+                                                deeperLi.textContent = `${itemKey}: ${formatValue(item[itemKey])}`;
+                                                deeperNestedUl.appendChild(deeperLi);
+                                            }
+                                        }
+                                        nestedLi.appendChild(deeperNestedUl);
+                                    } else {
+                                        // If array contains primitive values (like supported_parameters)
+                                        nestedLi.textContent = formatValue(item);
+                                    }
+                                    nestedUl.appendChild(nestedLi);
+                                });
+                                li.appendChild(nestedUl);
+                            } else {
+                                li.textContent = `${key}: N/A (empty list)`;
+                            }
+                        } else if (typeof value === 'object' && value !== null) {
+                            // Handle nested objects (e.g., architecture, pricing, top_provider)
+                            li.innerHTML = `<strong>${key}:</strong>`;
+                            const nestedUl = document.createElement('ul');
+                            for (const nestedKey in value) {
+                                if (Object.prototype.hasOwnProperty.call(value, nestedKey)) {
+                                    const nestedLi = document.createElement('li');
+                                    nestedLi.textContent = `${nestedKey}: ${formatValue(value[nestedKey])}`;
+                                    nestedUl.appendChild(nestedLi);
+                                }
+                            }
+                            li.appendChild(nestedUl);
+                        } else {
+                            // Handle primitive values
+                            li.textContent = `${key}: ${formatValue(value)}`;
+                        }
+                        featuresListElement.appendChild(li);
+                    }
+                }
+            }
+
+            function displayOpenAiModelFeatures(modelId) {
+                if (!openaiFeaturesList) return;
+                openaiFeaturesDiv.style.display = 'none';
+
+                const selectedModel = allOpenAiModels.find(model => model.id === modelId);
+
+                if (selectedModel) {
+                    openaiFeaturesDiv.style.display = 'block';
+                    displayFeatures(openaiFeaturesList, selectedModel);
+                }
+            }
+
+            function displayOpenRouterModelFeatures(modelId) {
+                if (!openrouterFeaturesList) return;
+                openrouterFeaturesDiv.style.display = 'none';
+
+                const selectedModel = allOpenRouterModels.find(model => model.id === modelId);
+
+                if (selectedModel) {
+                    openrouterFeaturesDiv.style.display = 'block';
+                    displayFeatures(openrouterFeaturesList, selectedModel);
                 }
             }
 
@@ -462,13 +603,23 @@ function snn_render_ai_settings() {
                 })
                 .then(data => {
                     if (data && data.data) {
+                        allOpenRouterModels = data.data; // Store all models
                         dataListEl.innerHTML = '';
                         data.data.forEach(model => {
                             const option = document.createElement('option');
                             option.value = model.id;
-                            option.text = model.name + ' (' + model.context_length + ' tokens)';
+                            let priceInfo = '';
+                            if (model.pricing && model.pricing.prompt && model.pricing.completion) {
+                                const promptCost = (model.pricing.prompt.cost * 1000000).toFixed(6); // Per 1M tokens
+                                const completionCost = (model.pricing.completion.cost * 1000000).toFixed(6); // Per 1M tokens
+                                priceInfo = ` | Prompt: $${promptCost}/M, Comp: $${completionCost}/M`;
+                            }
+                            const providerInfo = model.top_provider ? ` | Provider: ${model.top_provider.name}` : '';
+                            option.text = `${model.name} (${model.id}) | ${model.context_length} tokens${priceInfo}${providerInfo}`;
                             dataListEl.appendChild(option);
                         });
+                        // Display features for the currently selected model if any
+                        displayOpenRouterModelFeatures(openrouterModelInput.value);
                     } else {
                         dataListEl.innerHTML = '<option value=""><?php esc_html_e('No models found.', 'snn'); ?></option>';
                     }
@@ -517,16 +668,19 @@ function snn_render_ai_settings() {
                         let otherModels = filteredModels.filter(m => !m.id.toLowerCase().includes('mini'));
                         miniModels.sort((a, b) => a.id.localeCompare(b.id));
                         otherModels.sort((a, b) => a.id.localeCompare(b.id));
-                        let sortedModels = miniModels.concat(otherModels);
+                        allOpenAiModels = miniModels.concat(otherModels); // Store all models
                         dataListEl.innerHTML = '';
-                        sortedModels.forEach(model => {
+                        allOpenAiModels.forEach(model => {
                             if (model.id) {
                                 const option = document.createElement('option');
                                 option.value = model.id;
-                                option.text = model.id;
+                                const ownedBy = model.owned_by ? ` (by ${model.owned_by})` : '';
+                                option.text = `${model.id}${ownedBy}`;
                                 dataListEl.appendChild(option);
                             }
                         });
+                        // Display features for the currently selected model if any
+                        displayOpenAiModelFeatures(openaiModelInput.value);
                     } else {
                         dataListEl.innerHTML = '<option value=""><?php esc_html_e('No models found.', 'snn'); ?></option>';
                     }
@@ -545,6 +699,19 @@ function snn_render_ai_settings() {
                 providerSelect.addEventListener('change', toggleSettingsVisibility);
                 toggleSettingsVisibility();
             }
+
+            // Add event listeners for model input changes to update features
+            if (openaiModelInput) {
+                openaiModelInput.addEventListener('input', (e) => {
+                    displayOpenAiModelFeatures(e.target.value);
+                });
+            }
+            if (openrouterModelInput) {
+                openrouterModelInput.addEventListener('input', (e) => {
+                    displayOpenRouterModelFeatures(e.target.value);
+                });
+            }
+
 
             const addPresetButton = document.getElementById('snn-ai-add-preset');
             const resetPresetButton = document.getElementById('snn-ai-reset-presets');
@@ -706,7 +873,7 @@ function snn_render_ai_settings() {
                     try {
                         const importedPresets = JSON.parse(jsonString);
                         if (!Array.isArray(importedPresets)) {
-                             throw new Error('<?php echo esc_js(__('Data is not a valid array.', 'snn')); ?>');
+                            throw new Error('<?php echo esc_js(__('Data is not a valid array.', 'snn')); ?>');
                         }
 
                         const existingPresets = new Set();
