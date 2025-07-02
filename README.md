@@ -60,7 +60,6 @@ The primary goal behind SNN-BRX is to **achieve a more efficient and simplified 
 2.  **Configuration:** Navigate to the "SNN Settings" panel in your WordPress dashboard to enable and configure the features you require.
 3.  **Explore Features:** Dive into the extensive features, from advanced animations and AI content generation to robust security and redirect management.
 
-## Features Deep Dive
 
 ### Custom Post Types, Fields, and Taxonomies
 
@@ -85,6 +84,7 @@ Supercharge your content creation:
 
 *   **AI Text Generation:** Generate or refine text, rich text, headings, and CSS directly within the Bricks Builder editor using OpenAI or OpenRouter APIs.
 *   **Bulk AI Content Editor:** Edit and generate content for multiple elements simultaneously, fix grammar, and adjust writing style with AI assistance.
+*   **AI Design Generator (ALPHA):** Create random creative designs with AI inside Brciks Builder Editor.
 
 ### SNN Color Sync Variables
 
