@@ -37,20 +37,24 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * This function reads the WordPress options for the AI provider, API keys, and models.
  * It then returns a structured array containing the final apiKey, model, apiEndpoint,
- * systemPrompt, and actionPresets to be used by the frontend JavaScript.
+ * systemPrompt, actionPresets, and responseFormat to be used by the frontend JavaScript.
  *
  * @return array An associative array containing the AI configuration.
  */
 function snn_get_ai_api_config() {
-    $ai_provider        = get_option('snn_ai_provider', 'openai');
-    $openai_api_key     = get_option('snn_openai_api_key', '');
-    $openai_model       = get_option('snn_openai_model', 'gpt-4o-mini');
-    $openrouter_api_key = get_option('snn_openrouter_api_key', '');
-    $openrouter_model   = get_option('snn_openrouter_model', '');
-    $system_prompt      = get_option(
+    $ai_provider          = get_option('snn_ai_provider', 'openai');
+    $openai_api_key       = get_option('snn_openai_api_key', '');
+    $openai_model         = get_option('snn_openai_model', 'gpt-4o-mini');
+    $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
+    $openrouter_model     = get_option('snn_openrouter_model', '');
+    $system_prompt        = get_option(
         'snn_system_prompt',
         'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Dont generate markdown. Only respond with the needed content and nothing else always!'
     );
+
+    // NEW: Retrieve the desired response format type from settings
+    // You would have added 'snn_ai_response_format_type' in ai-settings.php
+    $response_format_type = get_option('snn_ai_response_format_type', 'none'); // e.g., 'none', 'json_object'
 
     $apiKey      = '';
     $model       = '';
@@ -75,11 +79,20 @@ function snn_get_ai_api_config() {
         $action_presets = [];
     }
 
+    // Prepare the response format payload based on the setting
+    $responseFormat = [];
+    if ($response_format_type === 'json_object') {
+        $responseFormat = ['type' => 'json_object'];
+    }
+    // You could expand this for other structured formats if needed in the future,
+    // e.g., 'json_schema' if you also store a schema definition.
+
     return [
-        'apiKey'         => $apiKey,
-        'model'          => $model,
-        'apiEndpoint'    => $apiEndpoint,
-        'systemPrompt'   => $system_prompt,
-        'actionPresets'  => array_values($action_presets),
+        'apiKey'          => $apiKey,
+        'model'           => $model,
+        'apiEndpoint'     => $apiEndpoint,
+        'systemPrompt'    => $system_prompt,
+        'actionPresets'   => array_values($action_presets),
+        'responseFormat'  => $responseFormat, // This is the new part passed to ai-overlay.php
     ];
 }
