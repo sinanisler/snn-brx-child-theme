@@ -104,14 +104,14 @@ Focus on building, not managing plugins:
 
 ## Changelog
 
-Refer to the [Changelog](https://sinanisler.com/snn-brx/changelog/) for the latest updates and improvements.
+Refer to the [Changelog](https://github.com/sinanisler/snn-brx-child-theme/releases) for the latest updates and improvements.
 
 ## Roadmap
 
-Stay informed about future developments and planned features on the [Roadmap](https://sinanisler.com/snn-brx/roadmap/).
+Stay informed about future developments and planned features on the [Roadmap](https://sinanisler.com/snn-brx/#roadmap).
 
 ## Support and Community
 
-*   **FAQs:** Find answers to frequently asked questions on the [FAQs](https://sinanisler.com/snn-brx/faqs/) page.
-*   **Bug Report:** Report any issues you encounter via the [Bug Report](https://sinanisler.com/snn-brx/bug-report/) section.
-*   **Discussions:** Engage with the community and share your experiences in the [Discussions](https://sinanisler.com/snn-brx/discussions/) forum.
+*   **FAQs:** Find answers to frequently asked questions on the [FAQs](https://sinanisler.com/snn-brx/#faqs/) page.
+*   **Bug Report:** Report any issues you encounter via the [Bug Report](https://github.com/sinanisler/snn-brx-child-theme/issues) section.
+*   **Discussions:** Engage with the community and share your experiences in the [Discussions](https://github.com/sinanisler/snn-brx-child-theme/discussions/) forum.
