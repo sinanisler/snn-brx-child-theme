@@ -853,6 +853,9 @@ function snn_render_metabox_content($post, $metabox) {
         background:white;
         padding:2px;
     }
+    #ui-datepicker-div td{
+        padding:3px;
+    }
     </style>
     <?php
 }
