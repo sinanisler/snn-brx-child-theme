@@ -84,7 +84,7 @@ Supercharge your content creation:
 
 *   **AI Text Generation:** Generate or refine text, rich text, headings, and CSS directly within the Bricks Builder editor using OpenAI or OpenRouter APIs.
 *   **Bulk AI Content Editor:** Edit and generate content for multiple elements simultaneously, fix grammar, and adjust writing style with AI assistance.
-*   **AI Design Generator (ALPHA):** Create random creative designs with AI inside Brciks Builder Editor.
+*   **AI Design Generator (ALPHA):** Create random creative designs with AI inside Bricks Builder Editor.
 
 ### SNN Color Sync Variables
 
