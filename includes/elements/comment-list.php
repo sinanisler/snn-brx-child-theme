@@ -64,6 +64,7 @@ class SNN_Element_Comment_List extends Element {
 
         ?>
 <style>
+.snn-comment-list-wrapper{width:100%;}
 #comment{display:none!important}
 .snn-commentlist{list-style:none;margin:0;padding:0}
 .snn-comment-item{display:flex;align-items:flex-start;padding:25px 0;position:relative}
