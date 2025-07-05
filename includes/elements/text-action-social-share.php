@@ -286,7 +286,7 @@ class SNN_Text_Action_Share extends Element {
         .brxe-snn-text-action-share {
             /* Position defaults, will be set by JS using variables */
             position: fixed;
-            z-index: 99999;
+            z-index: 9999;
             pointer-events: none;
             top: 0;
             left: 0;
