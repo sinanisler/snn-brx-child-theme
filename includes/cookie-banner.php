@@ -533,7 +533,7 @@ function snn_output_cookie_banner() {
        <?php endif; ?>
        width: <?php echo esc_attr($banner_width); ?>px;
        z-index: 9999;
-       padding: 10px;
+       padding: 20px;
        background: <?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>;
        color: <?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;
        box-shadow:0px 0px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_spread']); ?>px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_color']); ?>44;
