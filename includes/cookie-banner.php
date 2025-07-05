@@ -79,6 +79,7 @@ function snn_options_page() {
                 }
                 $service_data = array();
                 $service_data['name'] = sanitize_text_field( wp_unslash($service['name']) );
+                $service_data['description'] = isset($service['description']) ? wp_unslash($service['description']) : ''; // NEW: Service Description
                 $service_data['script'] = isset($service['script']) ? wp_unslash($service['script']) : '';
                 $service_data['position'] = isset($service['position']) ? sanitize_text_field( wp_unslash($service['position']) ) : 'body_bottom';
                 $service_data['mandatory'] = isset($service['mandatory']) ? 'yes' : 'no';
@@ -105,7 +106,15 @@ function snn_options_page() {
             'snn_cookie_settings_accept_button'        => __('Accept', 'snn'),
             'snn_cookie_settings_deny_button'          => __('Deny', 'snn'),
             'snn_cookie_settings_preferences_button'   => __('Preferences', 'snn'),
-            'snn_cookie_settings_services'             => array(),
+            'snn_cookie_settings_services'             => array(
+                array(
+                    'name' => '',
+                    'description' => '', // NEW: Default for Service Description
+                    'script' => '',
+                    'position' => 'body_bottom',
+                    'mandatory' => 'no'
+                )
+            ),
             'snn_cookie_settings_custom_css'           => '',
             'snn_cookie_settings_banner_position'      => 'left',
             'snn_cookie_settings_banner_vertical_position' => 'bottom',
@@ -249,12 +258,15 @@ function snn_options_page() {
                                 if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) {
                                     foreach ( $options['snn_cookie_settings_services'] as $service ) {
                                         ?>
-                                        <div class="snn-service-item">
-                                            <label><?php _e('Service Name:', 'snn'); ?>
-                                                <input type="text" name="snn_cookie_settings_services[<?php echo $service_index; ?>][name]" value="<?php echo isset($service['name']) ? esc_attr($service['name']) : ''; ?>" class="snn-input snn-service-name">
-                                            </label>
-                                            <label><?php _e('Service Script Code (HTML allowed):', 'snn'); ?>
-                                                <textarea name="snn_cookie_settings_services[<?php echo $service_index; ?>][script]" rows="4" class="snn-textarea snn-service-script-code"><?php echo isset($service['script']) ? $service['script'] : ''; ?></textarea>
+                                    <div class="snn-service-item">
+                                        <label><?php _e('Service Name:', 'snn'); ?>
+                                            <input type="text" name="snn_cookie_settings_services[<?php echo $service_index; ?>][name]" value="<?php echo isset($service['name']) ? esc_attr($service['name']) : ''; ?>" class="snn-input snn-service-name">
+                                        </label>
+                                        <label><?php _e('Service Description:', 'snn'); ?>
+                                            <textarea name="snn_cookie_settings_services[<?php echo $service_index; ?>][description]" rows="2" class="snn-textarea snn-service-description"><?php echo isset($service['description']) ? $service['description'] : ''; ?></textarea>
+                                        </label>
+                                        <label><?php _e('Service Script Code (HTML allowed):', 'snn'); ?>
+                                            <textarea name="snn_cookie_settings_services[<?php echo $service_index; ?>][script]" rows="4" class="snn-textarea snn-service-script-code"><?php echo isset($service['script']) ? $service['script'] : ''; ?></textarea>
                                             </label>
                                             <label><?php _e('Script Position:', 'snn'); ?></label>
                                             <div class="snn-radio-group">
@@ -275,6 +287,9 @@ function snn_options_page() {
                                     <div class="snn-service-item">
                                         <label><?php _e('Service Name:', 'snn'); ?>
                                             <input type="text" name="snn_cookie_settings_services[0][name]" value="" class="snn-input snn-service-name">
+                                        </label>
+                                        <label><?php _e('Service Description:', 'snn'); ?>
+                                            <textarea name="snn_cookie_settings_services[0][description]" rows="2" class="snn-textarea snn-service-description"></textarea>
                                         </label>
                                         <label><?php _e('Service Script Code (HTML allowed):', 'snn'); ?>
                                             <textarea name="snn_cookie_settings_services[0][script]" rows="4" class="snn-textarea snn-service-script-code"></textarea>
@@ -305,6 +320,9 @@ function snn_options_page() {
                                         var newService = '<div class="snn-service-item">' +
                                             '<label><?php _e('Service Name:', 'snn'); ?>' +
                                                 '<input type="text" name="snn_cookie_settings_services[' + serviceIndex + '][name]" value="" class="snn-input snn-service-name">' +
+                                            '</label>' +
+                                            '<label><?php _e('Service Description:', 'snn'); ?>' +
+                                                '<textarea name="snn_cookie_settings_services[' + serviceIndex + '][description]" rows="2" class="snn-textarea snn-service-description"></textarea>' +
                                             '</label>' +
                                             '<label><?php _e('Service Script Code (HTML allowed):', 'snn'); ?>' +
                                                 '<textarea name="snn_cookie_settings_services[' + serviceIndex + '][script]" rows="4" class="snn-textarea snn-service-script-code"></textarea>' +
@@ -447,6 +465,7 @@ function snn_options_page() {
                                 <code>.snn-preferences-title</code> - <?php _e('The title in the preferences content', 'snn'); ?><br>
                                 <code>.snn-services-list</code> - <?php _e('The list of services', 'snn'); ?><br>
                                 <code>.snn-service-item</code> - <?php _e('Each individual service item', 'snn'); ?>
+                                <code>.snn-legal-text</code> - <?php _e('Bottom Rich Text', 'snn'); ?>
                             </p>
                         </td>
                     </tr>
@@ -638,19 +657,24 @@ function snn_output_cookie_banner() {
             <?php if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) { ?>
                 <ul class="snn-services-list" style="list-style: none; padding: 0;">
                 <?php foreach ( $options['snn_cookie_settings_services'] as $index => $service ) { ?>
-                    <li class="snn-service-item" style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
-                        <span class="snn-service-name">
-                            <?php echo esc_html( $service['name'] ); ?>
-                            <?php if ( isset($service['mandatory']) && $service['mandatory'] === 'yes' ) { ?>
-                                <span>
-                                        <?php _e('*', 'snn'); ?> 
-                                </span>
-                            <?php } ?>
-                        </span>
-                        <label class="snn-switch">
-                            <input type="checkbox" data-service-index="<?php echo esc_attr($index); ?>" class="snn-service-toggle" <?php echo (isset($service['mandatory']) && $service['mandatory'] === 'yes') ? 'checked disabled' : 'checked'; ?>>
-                            <span class="snn-slider"></span>
-                        </label>
+                    <li class="snn-service-item" style="margin-bottom: 10px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;">
+                        <div style="display: flex; justify-content: space-between; width: 100%;">
+                            <span class="snn-service-name">
+                                <strong><?php echo esc_html( $service['name'] ); ?></strong>
+                                <?php if ( isset($service['mandatory']) && $service['mandatory'] === 'yes' ) { ?>
+                                    <span>
+                                            <?php _e('*', 'snn'); ?> 
+                                    </span>
+                                <?php } ?>
+                            </span>
+                            <label class="snn-switch">
+                                <input type="checkbox" data-service-index="<?php echo esc_attr($index); ?>" class="snn-service-toggle" <?php echo (isset($service['mandatory']) && $service['mandatory'] === 'yes') ? 'checked disabled' : 'checked'; ?>>
+                                <span class="snn-slider"></span>
+                            </label>
+                        </div>
+                        <?php if ( !empty($service['description']) ) { ?>
+                            <p class="snn-service-description-text" style="margin-top: 5px; margin-bottom: 0; font-size: 0.9em;"><?php echo esc_html( $service['description'] ); ?></p>
+                        <?php } ?>
                     </li>
                 <?php } ?>
                 </ul>
@@ -710,7 +734,8 @@ function snn_output_service_scripts() {
                     class="snn-service-script" 
                     data-script="<?php echo esc_attr( base64_encode($service['script']) ); ?>" 
                     data-position="<?php echo esc_attr( isset($service['position']) ? $service['position'] : 'body_bottom' ); ?>"
-                    data-mandatory="<?php echo (isset($service['mandatory']) && $service['mandatory'] === 'yes') ? 'yes' : 'no'; ?>" 
+                    data-mandatory="<?php echo (isset($service['mandatory']) && $service['mandatory'] === 'yes') ? 'yes' : 'no'; ?>"
+                    data-description="<?php echo esc_attr( isset($service['description']) ? $service['description'] : '' ); ?>" 
                     style="display: none;">
                 </div>
                 <?php
@@ -791,6 +816,7 @@ function snn_output_banner_js() {
             mandatoryDivs.forEach(function(div){
                 var encoded = div.getAttribute('data-script');
                 var position = div.getAttribute('data-position') || 'body_bottom';
+                // var description = div.getAttribute('data-description'); // Description is for display, not script injection
                 if (encoded) {
                     var decoded = atob(encoded);
                     injectScript(decoded, position);
@@ -804,6 +830,7 @@ function snn_output_banner_js() {
                 if (div.getAttribute('data-mandatory') !== 'yes') {
                     var encoded = div.getAttribute('data-script');
                     var position = div.getAttribute('data-position') || 'body_bottom';
+                    // var description = div.getAttribute('data-description'); // Description is for display, not script injection
                     if (encoded) {
                         var decoded = atob(encoded);
                         injectScript(decoded, position);
@@ -822,6 +849,7 @@ function snn_output_banner_js() {
                         var id = div.getAttribute('id'); // format: snn-service-script-INDEX
                         var parts = id.split('-');
                         var index = parts[parts.length-1];
+                        // var description = div.getAttribute('data-description'); // Description is for display, not script injection
                         if(servicePrefs[index]) {
                             var encoded = div.getAttribute('data-script');
                             var position = div.getAttribute('data-position') || 'body_bottom';
