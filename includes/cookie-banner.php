@@ -50,6 +50,8 @@ function snn_options_page() {
             ),
         );
         $options['snn_cookie_settings_banner_description'] = isset($_POST['snn_cookie_settings_banner_description']) ? wp_unslash($_POST['snn_cookie_settings_banner_description']) : '';
+        $options['snn_cookie_settings_additional_description'] = isset($_POST['snn_cookie_settings_additional_description']) ? wp_unslash($_POST['snn_cookie_settings_additional_description']) : '';
+        $options['snn_cookie_settings_enable_legal_text'] = isset($_POST['snn_cookie_settings_enable_legal_text']) ? 'yes' : 'no';
         
         $options['snn_cookie_settings_accept_button']        = isset($_POST['snn_cookie_settings_accept_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_accept_button']) ) : '';
         $options['snn_cookie_settings_deny_button']          = isset($_POST['snn_cookie_settings_deny_button']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_deny_button']) ) : '';
@@ -98,6 +100,8 @@ function snn_options_page() {
             'snn_cookie_settings_disable_for_logged_in'  => 'no',
             'snn_cookie_settings_disable_scripts_for_logged_in' => 'no',
             'snn_cookie_settings_banner_description'   => __('This website uses cookies for analytics and functionality.', 'snn'),
+            'snn_cookie_settings_additional_description' => '<p style="text-align: center;"><a href="#">Imprint</a> - <a href="#">Privacy Policy</a></p>',
+            'snn_cookie_settings_enable_legal_text' => 'no',
             'snn_cookie_settings_accept_button'        => __('Accept', 'snn'),
             'snn_cookie_settings_deny_button'          => __('Deny', 'snn'),
             'snn_cookie_settings_preferences_button'   => __('Preferences', 'snn'),
@@ -178,6 +182,28 @@ function snn_options_page() {
                                 ) 
                             ); 
                             ?>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Legal Text or Links', 'snn'); ?></th>
+                        <td>
+                            <?php 
+                            wp_editor( 
+                                isset($options['snn_cookie_settings_additional_description']) ? $options['snn_cookie_settings_additional_description'] : '', 
+                                'snn_cookie_settings_additional_description_editor', 
+                                array(
+                                    'textarea_name' => 'snn_cookie_settings_additional_description',
+                                    'textarea_rows' => 3,
+                                ) 
+                            ); 
+                            ?>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Enable Legal Text/Links', 'snn'); ?></th>
+                        <td>
+                            <input type="checkbox" name="snn_cookie_settings_enable_legal_text" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_legal_text']) ? $options['snn_cookie_settings_enable_legal_text'] : 'no'), 'yes'); ?>>
+                            <span class="description"><?php _e('Check to enable the legal text/links in the cookie banner.', 'snn'); ?></span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -520,6 +546,14 @@ function snn_output_cookie_banner() {
     .snn-service-name span{ 
     font-weight:900;
     }
+    .snn-legal-text {
+        font-size: 14px;
+        margin-top: 10px; /* Add some spacing above the legal text */
+    }
+    .snn-legal-text {
+        font-size: 14px;
+        margin-top: 10px; /* Add some spacing above the legal text */
+    }
     .snn-banner-buttons .snn-button {
         background: <?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : '#555555'; ?>;
         color: <?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : '#ffffff'; ?>;
@@ -646,6 +680,13 @@ function snn_output_cookie_banner() {
             <button class="snn-button snn-deny"><?php echo esc_html( isset($options['snn_cookie_settings_deny_button']) ? $options['snn_cookie_settings_deny_button'] : __('Deny', 'snn') ); ?></button>
             <button class="snn-button snn-preferences"><?php echo esc_html( isset($options['snn_cookie_settings_preferences_button']) ? $options['snn_cookie_settings_preferences_button'] : __('Preferences', 'snn') ); ?></button>
         </div>
+        <?php if ( !empty($options['snn_cookie_settings_enable_legal_text']) && $options['snn_cookie_settings_enable_legal_text'] === 'yes' ) : ?>
+        <div class="snn-legal-text">
+            <?php 
+            echo  $options['snn_cookie_settings_additional_description'];
+            ?>
+        </div>
+        <?php endif; ?>
     </div>
     <?php
 }
