@@ -464,7 +464,7 @@ function snn_options_page() {
                                 <code>.snn-banner-buttons .snn-button</code> - <?php _e('The banner buttons (Accept, Deny, Preferences)', 'snn'); ?><br>
                                 <code>.snn-preferences-title</code> - <?php _e('The title in the preferences content', 'snn'); ?><br>
                                 <code>.snn-services-list</code> - <?php _e('The list of services', 'snn'); ?><br>
-                                <code>.snn-service-item</code> - <?php _e('Each individual service item', 'snn'); ?>
+                                <code>.snn-service-item</code> - <?php _e('Each individual service item', 'snn'); ?><br>
                                 <code>.snn-legal-text</code> - <?php _e('Bottom Rich Text', 'snn'); ?>
                             </p>
                         </td>
