@@ -59,6 +59,8 @@ function snn_options_page() {
         $options['snn_cookie_settings_enable_overlay']       = isset($_POST['snn_cookie_settings_enable_overlay']) ? 'yes' : 'no';
         $options['snn_cookie_settings_overlay_color']        = isset($_POST['snn_cookie_settings_overlay_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_overlay_color']) ) : '';
         $options['snn_cookie_settings_overlay_opacity']      = isset($_POST['snn_cookie_settings_overlay_opacity']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_overlay_opacity']) ) : '';
+        $options['snn_cookie_settings_banner_shadow_color']  = isset($_POST['snn_cookie_settings_banner_shadow_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_shadow_color']) ) : '';
+        $options['snn_cookie_settings_banner_shadow_spread'] = isset($_POST['snn_cookie_settings_banner_shadow_spread']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_shadow_spread']) ) : '';
         $options['snn_cookie_settings_banner_bg_color']      = isset($_POST['snn_cookie_settings_banner_bg_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_bg_color']) ) : '';
         $options['snn_cookie_settings_banner_text_color']    = isset($_POST['snn_cookie_settings_banner_text_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_banner_text_color']) ) : '';
         $options['snn_cookie_settings_button_bg_color']      = isset($_POST['snn_cookie_settings_button_bg_color']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_button_bg_color']) ) : '';
@@ -136,7 +138,7 @@ function snn_options_page() {
         <div class="snn-tabs">
             <span class="snn-tab active" data-tab="general"><?php _e('General Settings', 'snn'); ?></span>
             <span class="snn-tab" data-tab="scripts"><?php _e('Scripts & Services', 'snn'); ?></span>
-            <span class="snn-tab" data-tab="styles"><?php _e('Styles', 'snn'); ?></span>
+            <span class="snn-tab" data-tab="styles"><?php _e('Styles and Layout', 'snn'); ?></span>
         </div>
         <form method="post">
             <?php wp_nonce_field( 'snn_save_options', 'snn_options_nonce' ); ?>
@@ -194,48 +196,6 @@ function snn_options_page() {
                         <th scope="row"><?php _e('Preferences Button Text', 'snn'); ?></th>
                         <td>
                             <input type="text" name="snn_cookie_settings_preferences_button" value="<?php echo isset($options['snn_cookie_settings_preferences_button']) ? esc_attr($options['snn_cookie_settings_preferences_button']) : ''; ?>" class="snn-input snn-preferences-button">
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row"><?php _e('Cookie Banner Position', 'snn'); ?></th>
-                        <td>
-                            <select name="snn_cookie_settings_banner_position" class="snn-select snn-banner-position">
-                                <option value="left" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'left'); ?>><?php _e('Left', 'snn'); ?></option>
-                                <option value="middle" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'middle'); ?>><?php _e('Middle', 'snn'); ?></option>
-                                <option value="right" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'right'); ?>><?php _e('Right', 'snn'); ?></option>
-                            </select>
-                            <p class="description"><?php _e('Select the horizontal position of the cookie banner on your website.', 'snn'); ?></p>
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row"><?php _e('Cookie Banner Vertical Position', 'snn'); ?></th>
-                        <td>
-                            <select name="snn_cookie_settings_banner_vertical_position" class="snn-select snn-banner-vertical-position">
-                                <option value="bottom" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'bottom'); ?>><?php _e('Bottom', 'snn'); ?></option>
-                                <option value="middle" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'middle'); ?>><?php _e('Middle', 'snn'); ?></option>
-                                <option value="top" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'top'); ?>><?php _e('Top', 'snn'); ?></option>
-                            </select>
-                            <p class="description"><?php _e('Select the vertical position of the cookie banner on your website.', 'snn'); ?></p>
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row"><?php _e('Enable Overlay', 'snn'); ?></th>
-                        <td>
-                            <input type="checkbox" name="snn_cookie_settings_enable_overlay" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_overlay']) ? $options['snn_cookie_settings_enable_overlay'] : 'no'), 'yes'); ?>>
-                            <span class="description"><?php _e('Check to enable a full page overlay behind the cookie banner.', 'snn'); ?></span>
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row"><?php _e('Overlay Color', 'snn'); ?></th>
-                        <td>
-                            <input type="color" name="snn_cookie_settings_overlay_color" value="<?php echo isset($options['snn_cookie_settings_overlay_color']) ? esc_attr($options['snn_cookie_settings_overlay_color']) : '#000000'; ?>" class="snn-color-picker">
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row"><?php _e('Overlay Opacity', 'snn'); ?></th>
-                        <td>
-                            <input type="number" step="0.1" min="0" max="1" name="snn_cookie_settings_overlay_opacity" value="<?php echo isset($options['snn_cookie_settings_overlay_opacity']) ? esc_attr($options['snn_cookie_settings_overlay_opacity']) : '0.5'; ?>" class="snn-input">
-                            <p class="description"><?php _e('Set the opacity of the overlay (0 = transparent, 1 = opaque).', 'snn'); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -394,6 +354,61 @@ function snn_options_page() {
                         </td>
                     </tr>
                     <tr valign="top">
+                        <th scope="row"><?php _e('Cookie Banner Position', 'snn'); ?></th>
+                        <td>
+                            <select name="snn_cookie_settings_banner_position" class="snn-select snn-banner-position">
+                                <option value="left" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'left'); ?>><?php _e('Left', 'snn'); ?></option>
+                                <option value="middle" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'middle'); ?>><?php _e('Middle', 'snn'); ?></option>
+                                <option value="right" <?php selected((isset($options['snn_cookie_settings_banner_position']) ? $options['snn_cookie_settings_banner_position'] : ''), 'right'); ?>><?php _e('Right', 'snn'); ?></option>
+                            </select>
+                            <p class="description"><?php _e('Select the horizontal position of the cookie banner on your website.', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Cookie Banner Vertical Position', 'snn'); ?></th>
+                        <td>
+                            <select name="snn_cookie_settings_banner_vertical_position" class="snn-select snn-banner-vertical-position">
+                                <option value="bottom" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'bottom'); ?>><?php _e('Bottom', 'snn'); ?></option>
+                                <option value="middle" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'middle'); ?>><?php _e('Middle', 'snn'); ?></option>
+                                <option value="top" <?php selected((isset($options['snn_cookie_settings_banner_vertical_position']) ? $options['snn_cookie_settings_banner_vertical_position'] : ''), 'top'); ?>><?php _e('Top', 'snn'); ?></option>
+                            </select>
+                            <p class="description"><?php _e('Select the vertical position of the cookie banner on your website.', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Overlay Color', 'snn'); ?></th>
+                        <td>
+                            <input type="color" name="snn_cookie_settings_overlay_color" value="<?php echo isset($options['snn_cookie_settings_overlay_color']) ? esc_attr($options['snn_cookie_settings_overlay_color']) : '#000000'; ?>" class="snn-color-picker">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Overlay Opacity', 'snn'); ?></th>
+                        <td>
+                            <input type="number" step="0.1" min="0" max="1" name="snn_cookie_settings_overlay_opacity" value="<?php echo isset($options['snn_cookie_settings_overlay_opacity']) ? esc_attr($options['snn_cookie_settings_overlay_opacity']) : '0.5'; ?>" class="snn-input">
+                            <p class="description"><?php _e('Set the opacity of the overlay (0 = transparent, 1 = opaque).', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Enable Overlay', 'snn'); ?></th>
+                        <td>
+                            <input type="checkbox" name="snn_cookie_settings_enable_overlay" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_overlay']) ? $options['snn_cookie_settings_enable_overlay'] : 'no'), 'yes'); ?>>
+                            <span class="description"><?php _e('Check to enable a full page overlay behind the cookie banner.', 'snn'); ?></span>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Banner Shadow Color', 'snn'); ?></th>
+                        <td>
+                            <input type="color" name="snn_cookie_settings_banner_shadow_color" value="<?php echo isset($options['snn_cookie_settings_banner_shadow_color']) ? esc_attr($options['snn_cookie_settings_banner_shadow_color']) : '#000000'; ?>" class="snn-color-picker">
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Banner Shadow Spread', 'snn'); ?></th>
+                        <td>
+                            <input type="number" name="snn_cookie_settings_banner_shadow_spread" value="<?php echo isset($options['snn_cookie_settings_banner_shadow_spread']) ? esc_attr($options['snn_cookie_settings_banner_shadow_spread']) : '10'; ?>" class="snn-input">
+                            <p class="description"><?php _e('Set the spread radius of the box shadow in pixels.', 'snn'); ?></p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
                         <th scope="row"><?php _e('Custom CSS for Cookie Banner', 'snn'); ?></th>
                         <td>
                             <textarea name="snn_cookie_settings_custom_css" rows="5" class="snn-textarea snn-custom-css-textarea"><?php echo isset($options['snn_cookie_settings_custom_css']) ? esc_textarea($options['snn_cookie_settings_custom_css']) : ''; ?></textarea>
@@ -476,7 +491,7 @@ function snn_output_cookie_banner() {
        padding: 10px;
        background: <?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>;
        color: <?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;
-       box-shadow:0px 0px 10px #00000055;
+       box-shadow:0px 0px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_spread']); ?>px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_color']); ?>;
        border-radius:<?php echo esc_attr($banner_border_radius); ?>px;
        margin:10px;
     }
