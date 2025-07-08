@@ -651,177 +651,26 @@ function snn_output_banner_js() {
     }
     $cookie_banner_enabled = ( isset($options['snn_cookie_settings_enable_cookie_banner']) && $options['snn_cookie_settings_enable_cookie_banner'] === 'yes' ) ? 'true' : 'false';
     ?>
-    <script>
+
+<script>
     (function(){
-        function setCookie(name, value, days) {
-            var expires = "";
-            if (days) {
-                var date = new Date();
-                date.setTime(date.getTime() + (days*24*60*60*1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + (value || "")  + expires + "; path=/";
-        }
-        
-        function getCookie(name) {
-            var nameEQ = name + "=";
-            var ca = document.cookie.split(';');
-            for(var i=0;i < ca.length;i++) {
-                var c = ca[i];
-                while(c.charAt(0)==' ') c = c.substring(1,c.length);
-                if(c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-            }
-            return null;
-        }
-        
-        function eraseCookie(name) {   
-            document.cookie = name+'=; Max-Age=-99999999; path=/';  
-        }
-        
-        var cookieBannerEnabled = <?php echo $cookie_banner_enabled; ?>;
-        
-        function injectScript(decodedCode, position) {
-            var tempDiv = document.createElement('div');
-            tempDiv.innerHTML = decodedCode;
-        
-            var scripts = tempDiv.querySelectorAll('script');
-            scripts.forEach(function(s){
-                var newScript = document.createElement('script');
-                for (var i = 0; i < s.attributes.length; i++) {
-                    var attr = s.attributes[i];
-                    newScript.setAttribute(attr.name, attr.value);
-                }
-                newScript.text = s.text || '';
-                if (position === 'head') {
-                    document.head.appendChild(newScript);
-                } else if (position === 'body_top') {
-                    var body = document.body;
-                    if (body.firstChild) {
-                        body.insertBefore(newScript, body.firstChild);
-                    } else {
-                        body.appendChild(newScript);
-                    }
-                } else {
-                    document.body.appendChild(newScript);
-                }
-            });
-        }
-        
-        function injectMandatoryScripts() {
-            var mandatoryDivs = document.querySelectorAll('.snn-service-script[data-mandatory="yes"]');
-            mandatoryDivs.forEach(function(div){
-                var encoded = div.getAttribute('data-script');
-                var position = div.getAttribute('data-position') || 'body_bottom';
-                // var description = div.getAttribute('data-description'); // Description is for display, not script injection
-                if (encoded) {
-                    var decoded = atob(encoded);
-                    injectScript(decoded, position);
-                }
-            });
-        }
-        
-        function injectAllConsentScripts() {
-            var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
-            hiddenDivs.forEach(function(div){
-                if (div.getAttribute('data-mandatory') !== 'yes') {
-                    var encoded = div.getAttribute('data-script');
-                    var position = div.getAttribute('data-position') || 'body_bottom';
-                    // var description = div.getAttribute('data-description'); // Description is for display, not script injection
-                    if (encoded) {
-                        var decoded = atob(encoded);
-                        injectScript(decoded, position);
-                    }
-                }
-            });
-        }
-        
-        function injectCustomConsentScripts() {
-            var prefs = getCookie('snn_cookie_services');
-            if(prefs) {
-                var servicePrefs = JSON.parse(prefs);
-                var hiddenDivs = document.querySelectorAll('.snn-service-script[data-script]');
-                hiddenDivs.forEach(function(div){
-                    if (div.getAttribute('data-mandatory') !== 'yes') {
-                        var id = div.getAttribute('id'); // format: snn-service-script-INDEX
-                        var parts = id.split('-');
-                        var index = parts[parts.length-1];
-                        // var description = div.getAttribute('data-description'); // Description is for display, not script injection
-                        if(servicePrefs[index]) {
-                            var encoded = div.getAttribute('data-script');
-                            var position = div.getAttribute('data-position') || 'body_bottom';
-                            if (encoded) {
-                                var decoded = atob(encoded);
-                                injectScript(decoded, position);
-                            }
-                        }
-                    }
-                });
-            }
-        }
-        
+        function setCookie(n,v,d){var e="";if(d){var t=new Date;t.setTime(t.getTime()+864e5*d),e="; expires="+t.toUTCString()}document.cookie=n+"="+(v||"")+e+"; path=/"}
+        function getCookie(n){for(var e=n+"=",t=document.cookie.split(";"),i=0;i<t.length;i++){for(var o=t[i];" "==o.charAt(0);)o=o.substring(1,o.length);if(0==o.indexOf(e))return o.substring(e.length,o.length)}return null}
+        function eraseCookie(n){document.cookie=n+"=; Max-Age=-99999999; path=/"}
+        var cookieBannerEnabled=<?php echo $cookie_banner_enabled; ?>;
+        function injectScript(c,p){var d=document.createElement("div");d.innerHTML=c;d.querySelectorAll("script").forEach(function(s){var n=document.createElement("script");for(var i=0;i<s.attributes.length;i++){var a=s.attributes[i];n.setAttribute(a.name,a.value)}n.text=s.text||"";"head"===p?document.head.appendChild(n):"body_top"===p?document.body.firstChild?document.body.insertBefore(n,document.body.firstChild):document.body.appendChild(n):document.body.appendChild(n)})}
+        function injectMandatoryScripts(){document.querySelectorAll('.snn-service-script[data-mandatory="yes"]').forEach(function(d){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)})}
+        function injectAllConsentScripts(){document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}})}
+        function injectCustomConsentScripts(){var p=getCookie("snn_cookie_services");if(p){var s=JSON.parse(p);document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var i=d.getAttribute("id").split("-").pop();if(s[i]){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}}})}}
         injectMandatoryScripts();
-        
-        var acceptBtn = document.querySelector('.snn-accept');
-        var denyBtn = document.querySelector('.snn-deny');
-        var prefsBtn = document.querySelector('.snn-preferences');
-        var banner = document.getElementById('snn-cookie-banner');
-        var overlay = document.getElementById('snn-cookie-overlay');
-        
-        if (acceptBtn) {
-            acceptBtn.addEventListener('click', function(){
-                var toggles = document.querySelectorAll('.snn-service-toggle');
-                if(toggles.length > 0) {
-                    var servicePrefs = {};
-                    toggles.forEach(function(toggle) {
-                        var index = toggle.getAttribute('data-service-index');
-                        servicePrefs[index] = toggle.checked;
-                    });
-                    setCookie('snn_cookie_services', JSON.stringify(servicePrefs), 365);
-                    setCookie('snn_cookie_accepted', 'custom', 365);
-                    injectCustomConsentScripts();
-                } else {
-                    setCookie('snn_cookie_accepted', 'true', 365);
-                    eraseCookie('snn_cookie_services');
-                    injectAllConsentScripts();
-                }
-                if(banner) { banner.style.display = 'none'; }
-                if(overlay) { overlay.style.display = 'none'; }
-            });
-        }
-        if (denyBtn) {
-            denyBtn.addEventListener('click', function(){
-                setCookie('snn_cookie_accepted', 'false', 365);
-                eraseCookie('snn_cookie_services');
-                if(banner) { banner.style.display = 'none'; }
-                if(overlay) { overlay.style.display = 'none'; }
-            });
-        }
-        if (prefsBtn) {
-            prefsBtn.addEventListener('click', function(){
-                var prefsContent = document.querySelector('.snn-preferences-content');
-                if (prefsContent.style.display === 'none' || prefsContent.style.display === '') {
-                    prefsContent.style.display = 'block';
-                } else {
-                    prefsContent.style.display = 'none';
-                }
-            });
-        }
-        
-        var storedConsent = getCookie('snn_cookie_accepted');
-        if (storedConsent === 'true') {
-            injectAllConsentScripts();
-            if(banner) { banner.style.display = 'none'; }
-            if(overlay) { overlay.style.display = 'none'; }
-        } else if (storedConsent === 'false') {
-            if(banner) { banner.style.display = 'none'; }
-            if(overlay) { overlay.style.display = 'none'; }
-        } else if (storedConsent === 'custom') {
-            injectCustomConsentScripts();
-            if(banner) { banner.style.display = 'none'; }
-            if(overlay) { overlay.style.display = 'none'; }
-        }
+        var a=document.querySelector('.snn-accept'),y=document.querySelector('.snn-deny'),r=document.querySelector('.snn-preferences'),b=document.getElementById('snn-cookie-banner'),o=document.getElementById('snn-cookie-overlay');
+        a&&a.addEventListener('click',function(){var t=document.querySelectorAll('.snn-service-toggle');if(t.length>0){var s={};t.forEach(function(g){s[g.getAttribute('data-service-index')]=g.checked}),setCookie('snn_cookie_services',JSON.stringify(s),365),setCookie('snn_cookie_accepted','custom',365),injectCustomConsentScripts()}else setCookie('snn_cookie_accepted','true',365),eraseCookie('snn_cookie_services'),injectAllConsentScripts();b&&(b.style.display='none'),o&&(o.style.display='none')});
+        y&&y.addEventListener('click',function(){setCookie('snn_cookie_accepted','false',365),eraseCookie('snn_cookie_services'),b&&(b.style.display='none'),o&&(o.style.display='none')});
+        r&&r.addEventListener('click',function(){var t=document.querySelector('.snn-preferences-content');t.style.display==='none'||t.style.display===''?t.style.display='block':t.style.display='none'});
+        var s=getCookie('snn_cookie_accepted');
+        if('true'===s)injectAllConsentScripts(),b&&(b.style.display='none'),o&&(o.style.display='none');else if('false'===s)b&&(b.style.display='none'),o&&(o.style.display='none');else if('custom'===s)injectCustomConsentScripts(),b&&(b.style.display='none'),o&&(o.style.display='none')
     })();
-    </script>
+</script>
     <?php
 }
 add_action('wp_footer', 'snn_output_banner_js', 100);

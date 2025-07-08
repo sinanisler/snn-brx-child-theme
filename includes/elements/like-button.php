@@ -202,12 +202,10 @@ if ( is_user_logged_in() ) {
 
         $token = snn_get_or_create_token();
         ?>
-    <script>
-    // Expose the dynamic token to JS
-    var snn_token = "<?php echo $token; ?>";
 
-    // Save token to localStorage if not already present.
-    if(!localStorage.getItem('snn_token')) {
+<script>
+    var snn_token = "<?php echo $token; ?>";
+    if (!localStorage.getItem('snn_token')) {
         localStorage.setItem('snn_token', snn_token);
     } else {
         snn_token = localStorage.getItem('snn_token');
@@ -217,22 +215,18 @@ if ( is_user_logged_in() ) {
         document.querySelectorAll('.brxe-like-button').forEach(function(button) {
             const identifier = button.getAttribute('data-identifier');
             if (!identifier) return;
-            
             let url = "<?php echo rest_url('snn/v1/'); ?>" + snn_token + "/get-likes?identifier=" + encodeURIComponent(identifier) + "&loggedOnly=true";
-
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     button.querySelector('.default-icon').style.display = data.liked ? 'none' : 'inline';
-                    button.querySelector('.liked-icon').style.display   = data.liked ? 'inline' : 'none';
+                    button.querySelector('.liked-icon').style.display = data.liked ? 'inline' : 'none';
                     button.setAttribute('data-liked', data.liked ? 'true' : 'false');
-                    
                     const countElement = button.querySelector('.snn-like-count');
                     if (countElement && typeof data.count !== 'undefined') {
                         countElement.textContent = data.count;
                     }
-                    
-                    let likeText   = button.getAttribute('data-balloon-text-like');
+                    let likeText = button.getAttribute('data-balloon-text-like');
                     let unlikeText = button.getAttribute('data-balloon-text-unlike');
                     let balloonText = data.liked ? unlikeText : likeText;
                     button.setAttribute('data-balloon', balloonText);
@@ -245,34 +239,25 @@ if ( is_user_logged_in() ) {
     function snn_likeButton(el) {
         const identifier = el.getAttribute('data-identifier');
         el.classList.add('snn-loading');
-        
         fetch("<?php echo rest_url('snn/v1/'); ?>" + snn_token + "/like", {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-                identifier: identifier,
-                loggedOnly: 'true'
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: identifier, loggedOnly: 'true' })
         })
         .then(response => response.json())
         .then(data => {
             el.querySelector('.default-icon').style.display = data.liked ? 'none' : 'inline';
-            el.querySelector('.liked-icon').style.display   = data.liked ? 'inline' : 'none';
+            el.querySelector('.liked-icon').style.display = data.liked ? 'inline' : 'none';
             el.setAttribute('data-liked', data.liked ? 'true' : 'false');
-            
             const countElement = el.querySelector('.snn-like-count');
             if (countElement && typeof data.count !== 'undefined') {
                 countElement.textContent = data.count;
             }
-            
-            let likeText   = el.getAttribute('data-balloon-text-like');
+            let likeText = el.getAttribute('data-balloon-text-like');
             let unlikeText = el.getAttribute('data-balloon-text-unlike');
             let balloonText = data.liked ? unlikeText : likeText;
             el.setAttribute('data-balloon', balloonText);
             el.setAttribute('data-balloon-pos', 'top');
-
             el.classList.remove('snn-loading');
         })
         .catch(error => {
@@ -280,14 +265,14 @@ if ( is_user_logged_in() ) {
             el.classList.remove('snn-loading');
         });
     }
-    </script>
+</script>
 
-    <style>
-    .brxe-like-button.snn-loading {
-        opacity: 0.7;
-        pointer-events: none;
-    }
-    </style>
+<style>
+.brxe-like-button.snn-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+</style>
     <?php 
     });
 
