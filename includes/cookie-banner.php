@@ -521,135 +521,31 @@ function snn_output_cookie_banner() {
     <?php endif; ?>
     
     <style id="snn-dynamic-styles">
-    .snn-cookie-banner {
-       position: fixed;
-       <?php if ($vertical_position === 'top') : ?>
-       top: 10px;
-       <?php elseif ($vertical_position === 'middle') : ?>
-       top: 50%;
-       transform: translateY(-50%);
-       <?php else : ?>
-       bottom: 10px;
-       <?php endif; ?>
-       width: <?php echo esc_attr($banner_width); ?>px;
-       z-index: 9999;
-       padding: 20px;
-       background: <?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>;
-       color: <?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;
-       box-shadow:0px 0px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_spread']); ?>px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_color']); ?>44;
-       border-radius:<?php echo esc_attr($banner_border_radius); ?>px;
-       margin:10px;
-    }
-    .snn-cookie-banner.left { left: 0; }
-    .snn-cookie-banner.middle { 
-        left: 50%; 
-        <?php if ($vertical_position === 'middle') : ?>
-        transform: translate(-50%, -50%);
-        <?php else : ?>
-        transform: translateX(-50%);
-        <?php endif; ?>
-    }
-    .snn-cookie-banner.right { right: 0; }
-    
-    .snn-preferences-content {
-        display: none;
-    }
-    .snn-banner-buttons {
-        display: flex;
-        flex-direction: row;
-        gap:10px
-    }
-    .snn-banner-text{
-    margin-bottom:10px;
-    }
-    .snn-service-name span{ 
-    font-weight:900;
-    }
-    .snn-legal-text {
-        font-size: 14px;
-        margin-top: 10px; /* Add some spacing above the legal text */
-    }
-    .snn-legal-text {
-        font-size: 14px;
-        margin-top: 10px; /* Add some spacing above the legal text */
-    }
-    .snn-banner-buttons .snn-button {
-        background: <?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : '#555555'; ?>;
-        color: <?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : '#ffffff'; ?>;
-        border: none;
-        padding: 10px;
-        cursor: pointer;
-        border-radius:<?php echo esc_attr($button_border_radius); ?>px;
-        width: 100%;
-        text-align: center;
-    }
-    .snn-banner-buttons .snn-button:last-child {
-       margin-right: 0;
-    }
-    .snn-preferences-title {
-        margin-top: 0;
-        font-weight:600;
-        text-align:center;
-    }
-    .snn-switch {
-      position: relative;
-      display: inline-block;
-      width: 40px;
-      height: 20px;
-    }
-    .snn-switch input { display: none; }
-    .snn-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #d9534f;
-      transition: .4s;
-      border-radius: 20px;
-    }
-    .snn-slider:before {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      left: 2px;
-      bottom: 2px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-    .snn-switch input:checked + .snn-slider {
-      background-color: #5cb85c;
-    }
-    .snn-switch input:checked + .snn-slider:before {
-      transform: translateX(20px);
-    }
-    .snn-switch input:disabled + .snn-slider {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    @media (max-width: 768px) {
-      .snn-cookie-banner {
-          width: calc(100% - 20px);
-          left: 0 !important;
-          right: 0 !important;
-          transform: none !important;
-          padding: 10px;
-      }
-      .snn-banner-buttons {
-          display: flex;
-          flex-direction: column;
-      }
-      .snn-banner-buttons .snn-button {
-          width: 100%;
-          text-align: center;
-      }
-      .snn-banner-buttons .snn-button:last-child {
-          margin-bottom: 0;
-      }
-    }
+        .snn-cookie-banner {position:fixed;<?php if ($vertical_position === 'top') : ?>top:10px;<?php elseif ($vertical_position === 'middle') : ?>top:50%;transform:translateY(-50%);<?php else : ?>bottom:10px;<?php endif; ?>width:<?php echo esc_attr($banner_width); ?>px;z-index:9999;padding:20px;background:<?php echo isset($options['snn_cookie_settings_banner_bg_color']) ? esc_attr($options['snn_cookie_settings_banner_bg_color']) : '#333333'; ?>;color:<?php echo isset($options['snn_cookie_settings_banner_text_color']) ? esc_attr($options['snn_cookie_settings_banner_text_color']) : '#ffffff'; ?>;box-shadow:0px 0px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_spread']); ?>px <?php echo esc_attr($options['snn_cookie_settings_banner_shadow_color']); ?>44;border-radius:<?php echo esc_attr($banner_border_radius); ?>px;margin:10px;}
+        .snn-cookie-banner.left{left:0;}
+        .snn-cookie-banner.middle{left:50%;<?php if ($vertical_position === 'middle') : ?>transform:translate(-50%,-50%);<?php else : ?>transform:translateX(-50%);<?php endif; ?>}
+        .snn-cookie-banner.right{right:0;}
+        .snn-preferences-content{display:none;}
+        .snn-banner-buttons{display:flex;flex-direction:row;gap:10px}
+        .snn-banner-text{margin-bottom:10px;}
+        .snn-service-name span{font-weight:900;}
+        .snn-legal-text{font-size:14px;margin-top:10px;}
+        .snn-banner-buttons .snn-button{background:<?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : '#555555'; ?>;color:<?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : '#ffffff'; ?>;border:none;padding:10px;cursor:pointer;border-radius:<?php echo esc_attr($button_border_radius); ?>px;width:100%;text-align:center;}
+        .snn-banner-buttons .snn-button:last-child{margin-right:0;}
+        .snn-preferences-title{margin-top:0;font-weight:600;text-align:center;}
+        .snn-switch{position:relative;display:inline-block;width:40px;height:20px;}
+        .snn-switch input{display:none;}
+        .snn-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#d9534f;transition:.4s;border-radius:20px;}
+        .snn-slider:before{position:absolute;content:"";height:16px;width:16px;left:2px;bottom:2px;background-color:white;transition:.4s;border-radius:50%;}
+        .snn-switch input:checked+.snn-slider{background-color:#5cb85c;}
+        .snn-switch input:checked+.snn-slider:before{transform:translateX(20px);}
+        .snn-switch input:disabled+.snn-slider{background-color:#ccc;cursor:not-allowed;}
+        @media (max-width:768px){
+            .snn-cookie-banner{width:calc(100% - 20px);left:0!important;right:0!important;transform:none!important;padding:10px;}
+            .snn-banner-buttons{display:flex;flex-direction:column;}
+            .snn-banner-buttons .snn-button{width:100%;text-align:center;}
+            .snn-banner-buttons .snn-button:last-child{margin-bottom:0;}
+        }
     </style>
     <div id="snn-cookie-banner" class="snn-cookie-banner <?php echo esc_attr($position); ?>"<?php echo $banner_style; ?>>
         <div class="snn-preferences-content">
