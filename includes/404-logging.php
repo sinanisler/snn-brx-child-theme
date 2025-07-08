@@ -186,16 +186,18 @@ function snn_log_404_error() {
             update_post_meta($post_id, 'url', $_SERVER['REQUEST_URI']);
             update_post_meta($post_id, 'date_time', date('Y-m-d H:i:s'));
             update_post_meta($post_id, 'referrer', isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'n/a');
-            update_post_meta($post_id, 'ip_address', $_SERVER['REMOTE_ADDR']);
-            update_post_meta($post_id, 'user_agent', $_SERVER['HTTP_USER_AGENT']);
+            // Check if REMOTE_ADDR is set before using it
+            update_post_meta($post_id, 'ip_address', isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'n/a');
+            // Check if HTTP_USER_AGENT is set before using it
+            update_post_meta($post_id, 'user_agent', isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'n/a');
         }
     }
 }
 add_action('template_redirect', 'snn_log_404_error');
 
 function snn_render_404_logs_page() {
-    $logging_enabled      = get_option('snn_404_logging_enabled') === '1';
-    $log_size_limit       = get_option('snn_404_log_size_limit', 100);
+    $logging_enabled        = get_option('snn_404_logging_enabled') === '1';
+    $log_size_limit         = get_option('snn_404_log_size_limit', 100);
     $disable_bot_logging = get_option('snn_disable_bot_logging') === '1';
     $bot_blocklist = get_option('snn_bot_logging_blocklist', '');
     if (empty($bot_blocklist)) {
