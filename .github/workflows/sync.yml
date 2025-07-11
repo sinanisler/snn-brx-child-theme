@@ -1,61 +1,61 @@
-# A descriptive name for the GitHub Actions workflow.
 name: Sync File to Another Repository
 
-# This section defines the trigger for the workflow.
 on:
-  # The workflow will run on every push event.
   push:
-    # It is restricted to only run on pushes to the 'main' branch.
     branches:
       - main
 
-# This section defines the jobs that will run as part of the workflow.
 jobs:
-  # A single job named 'sync'.
   sync:
-    # The job will run on the latest version of an Ubuntu virtual machine.
     runs-on: ubuntu-latest
 
-    # This section lists the steps that the 'sync' job will execute.
+    env:
+      FILES_TO_SYNC: |
+        includes/301-redirect.php
+        includes/404-logging.php
+        functions.php
+
     steps:
-      # Step 1: Checks out your source repository's code into a 'source-repo' directory.
       - name: Checkout Source Repo
         uses: actions/checkout@v4
         with:
           path: source-repo
 
-      # Step 2: Checks out the destination repository into a 'destination-repo' directory.
-      # This pulls the entire destination repo so we can work with its contents.
       - name: Checkout Destination Repo
         uses: actions/checkout@v4
         with:
           repository: sinanisler/snn-block
           path: destination-repo
-          # This token needs 'repo' scope to be able to push changes back.
           token: ${{ secrets.SNNBRXSYNCSECRET }}
 
-      # Step 3: Copy the specific file from the source to the destination checkout.
-      # This command ensures the target directory exists and copies the file.
-      - name: Copy file to Destination Repo
+      - name: Copy files to Destination Repo
         run: |
-          mkdir -p destination-repo/includes
-          cp source-repo/includes/301-redirect.php destination-repo/includes/
+          # Loop through each file defined in the FILES_TO_SYNC variable.
+          for file_path in $FILES_TO_SYNC; do
+            echo "Processing file: $file_path"
+            # Create the destination directory structure if it doesn't exist.
+            mkdir -p "destination-repo/$(dirname "$file_path")"
+            # Copy the file from the source to the destination.
+            cp "source-repo/$file_path" "destination-repo/$file_path"
+          done
 
-      # Step 4: Use Git commands to commit and push ONLY the updated file.
-      # This is a safer method that avoids deleting other files.
       - name: Commit and Push Changes
         run: |
           cd destination-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Check if there are any changes to the file. If not, the script will exit.
+          # Check if there are any changes to the files. If not, the script will exit.
           if [[ -z $(git status --porcelain) ]]; then
             echo "No changes to commit."
             exit 0
           fi
           
-          # Add, commit, and push the specific file.
-          git add includes/301-redirect.php
-          git commit -m "ci: Automatic file sync of 301-redirect.php"
+          # Add each synced file to the git staging area.
+          for file_path in $FILES_TO_SYNC; do
+            git add "$file_path"
+          done
+
+          # Commit the changes with a generic message.
+          git commit -m "ci: Automatic file sync"
           git push
