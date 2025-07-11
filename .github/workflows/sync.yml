@@ -1,4 +1,4 @@
-# A descriptive name for the GitHub Actions workflow.
+# A descriptive name for the GitHub Actions workflow. 
 name: Sync File to Another Repository
 
 # This section defines the trigger for the workflow.
