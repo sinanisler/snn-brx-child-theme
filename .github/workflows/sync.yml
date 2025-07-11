@@ -27,16 +27,23 @@ jobs:
       # The push action works with directories, so we stage our single file here.
       - name: Stage file for syncing
         run: |
-          mkdir temp_for_sync
-          cp includes/301-redirect.php temp_for_sync/
+          mkdir -p temp_for_sync/includes
+          cp includes/301-redirect.php temp_for_sync/includes/
 
       # Step 3: Uses a third-party action to push the staged file to the target repository.
       # The inputs have been corrected based on the action's requirements.
       - name: Push file to Target Repo
         uses: cpina/github-action-push-to-another-repository@main
         env:
-          # A secret token is required to grant permission to push to the other repository.
-          # This should be stored in your repository's secrets.
+          # IMPORTANT: The 403 Forbidden error means your secret token is missing permissions.
+          # You must use a Personal Access Token (PAT) with the correct scope.
+          #
+          # HOW TO FIX:
+          # 1. Go to your GitHub Settings > Developer settings > Personal access tokens > Tokens (classic).
+          # 2. Generate a new token.
+          # 3. Give it the 'repo' scope. This is required to push to other repositories.
+          # 4. Copy the token and save it in this repository's Settings > Secrets and variables > Actions.
+          # 5. Make sure the secret name is exactly 'SNNBRXSYNCSECRET'.
           API_TOKEN_GITHUB: ${{ secrets.SNNBRXSYNCSECRET }}
         with:
           # The directory containing the file(s) to sync.
@@ -51,8 +58,10 @@ jobs:
           # The branch in the destination repository to push the file to.
           target-branch: 'main'
 
-          # The directory within the destination repo where the files will be placed.
-          target-directory: 'includes'
+          # WARNING: This action will make the target directory an exact mirror of the source directory.
+          # Any files in 'snn-block/includes' that are NOT in 'temp_for_sync/includes' WILL BE DELETED.
+          # In this case, it will push '301-redirect.php' and delete all other files in that directory.
+          target-directory: ''
 
           # The email for the user making the commit in the destination repository.
           user-email: 'actions@github.com'
