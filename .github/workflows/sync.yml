@@ -1,33 +1,31 @@
-name: Sync Files to another Repository
+name: Sync File to Another Repository
+
 on:
   push:
     branches:
       - main
-    paths:
-      - 'includes/301-redirect.php'
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Source Repo
-      uses: actions/checkout@v4
+      - name: Checkout Source Repo
+        uses: actions/checkout@v4
 
-    - name: Push files to Target Repo
-      uses: cpina/github-action-push-to-another-repository@main
-      env:
-        API_TOKEN_GITHUB: ${{ secrets.SNNBRXSYNCSECRET }}
-      with:
-        source-files: |
-          includes/301-redirect.php
-        
-        destination-repo: 'sinanisler/snn-block'
-        
-        destination-branch: 'main'
+      - name: Push file to Target Repo
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.SNNBRXSYNCSECRET }}
+        with:
+          source-files: 'includes/301-redirect.php'
+          
+          destination-repo: 'sinanisler/snn-block'
+          
+          destination-branch: 'main'
 
-        user-email: 'actions@github.com'
-        
-        user-name: 'GitHub Actions'
-        
-        commit-message: 'ci: Automatic file sync from source repo'
+          user-email: 'actions@github.com'
+          
+          user-name: 'GitHub Actions'
+          
+          commit-message: 'ci: Automatic file sync from source repo'
