@@ -1,4 +1,4 @@
-# A descriptive name for the GitHub Actions workflow.  
+# A descriptive name for the GitHub Actions workflow.
 name: Sync File to Another Repository
 
 # This section defines the trigger for the workflow.
@@ -18,56 +18,44 @@ jobs:
 
     # This section lists the steps that the 'sync' job will execute.
     steps:
-      # Step 1: Checks out your source repository's code.
-      # This allows the workflow to access the file you want to sync.
+      # Step 1: Checks out your source repository's code into a 'source-repo' directory.
       - name: Checkout Source Repo
         uses: actions/checkout@v4
-
-      # Step 2: Create a temporary directory to hold the file for syncing.
-      # The push action works with directories, so we stage our single file here.
-      - name: Stage file for syncing
-        run: |
-          mkdir -p temp_for_sync/includes
-          cp includes/301-redirect.php temp_for_sync/includes/
-
-      # Step 3: Uses a third-party action to push the staged file to the target repository.
-      # The inputs have been corrected based on the action's requirements.
-      - name: Push file to Target Repo
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          # IMPORTANT: The 403 Forbidden error means your secret token is missing permissions.
-          # You must use a Personal Access Token (PAT) with the correct scope.
-          #
-          # HOW TO FIX:
-          # 1. Go to your GitHub Settings > Developer settings > Personal access tokens > Tokens (classic).
-          # 2. Generate a new token.
-          # 3. Give it the 'repo' scope. This is required to push to other repositories.
-          # 4. Copy the token and save it in this repository's Settings > Secrets and variables > Actions.
-          # 5. Make sure the secret name is exactly 'SNNBRXSYNCSECRET'.
-          API_TOKEN_GITHUB: ${{ secrets.SNNBRXSYNCSECRET }}
         with:
-          # The directory containing the file(s) to sync.
-          source-directory: 'temp_for_sync'
-          
-          # The GitHub username or organization that owns the destination repository.
-          destination-github-username: 'sinanisler'
-          
-          # The name of the destination repository.
-          destination-repository-name: 'snn-block'
-          
-          # The branch in the destination repository to push the file to.
-          target-branch: 'main'
+          path: source-repo
 
-          # WARNING: This action will make the target directory an exact mirror of the source directory.
-          # Any files in 'snn-block/includes' that are NOT in 'temp_for_sync/includes' WILL BE DELETED.
-          # In this case, it will push '301-redirect.php' and delete all other files in that directory.
-          target-directory: ''
+      # Step 2: Checks out the destination repository into a 'destination-repo' directory.
+      # This pulls the entire destination repo so we can work with its contents.
+      - name: Checkout Destination Repo
+        uses: actions/checkout@v4
+        with:
+          repository: sinanisler/snn-block
+          path: destination-repo
+          # This token needs 'repo' scope to be able to push changes back.
+          token: ${{ secrets.SNNBRXSYNCSECRET }}
 
-          # The email for the user making the commit in the destination repository.
-          user-email: 'actions@github.com'
+      # Step 3: Copy the specific file from the source to the destination checkout.
+      # This command ensures the target directory exists and copies the file.
+      - name: Copy file to Destination Repo
+        run: |
+          mkdir -p destination-repo/includes
+          cp source-repo/includes/301-redirect.php destination-repo/includes/
+
+      # Step 4: Use Git commands to commit and push ONLY the updated file.
+      # This is a safer method that avoids deleting other files.
+      - name: Commit and Push Changes
+        run: |
+          cd destination-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # The name of the user making the commit.
-          user-name: 'GitHub Actions'
+          # Check if there are any changes to the file. If not, the script will exit.
+          if [[ -z $(git status --porcelain) ]]; then
+            echo "No changes to commit."
+            exit 0
+          fi
           
-          # The commit message to be used for the sync.
-          commit-message: 'ci: Automatic file sync from source repo'
+          # Add, commit, and push the specific file.
+          git add includes/301-redirect.php
+          git commit -m "ci: Automatic file sync of 301-redirect.php"
+          git push
