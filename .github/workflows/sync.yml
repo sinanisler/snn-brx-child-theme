@@ -13,7 +13,6 @@ jobs:
       FILES_TO_SYNC: |
         includes/301-redirect.php
         includes/404-logging.php
-        functions.php
 
     steps:
       - name: Checkout Source Repo
@@ -57,5 +56,5 @@ jobs:
           done
 
           # Commit the changes with a generic message.
-          git commit -m "ci: Automatic file sync"
+          git commit -m "SNN-BRX Sync"
           git push
