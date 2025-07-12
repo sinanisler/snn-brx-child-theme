@@ -22,6 +22,7 @@ jobs:
         includes/custom-code-snippets.php
         includes/cookie-banner.php
         includes/security-page.php
+        includes/disable-xmlrpc.php
         includes/login-math-captcha.php
         includes/login-settings.php
         includes/media-settings.php
