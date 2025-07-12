@@ -17,10 +17,7 @@ jobs:
         includes/post-types-settings.php
         includes/301-redirect.php
         includes/404-logging.php
-        includes/accessibility-settings.php
         includes/block-editor-settings.php
-        includes/custom-code-snippets.php
-        includes/cookie-banner.php
         includes/security-page.php
         includes/disable-xmlrpc.php
         includes/disable-wp-json-if-not-logged-in.php
@@ -34,6 +31,10 @@ jobs:
         includes/smtp-settings.php
         includes/mail-logging.php
         includes/search-loggins.php
+        includes/role-manager.php
+        includes/custom-code-snippets.php
+        includes/cookie-banner.php
+        includes/accessibility-settings.php
 
     steps:
       - name: Checkout Source Repo
