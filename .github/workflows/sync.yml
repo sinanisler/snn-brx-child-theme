@@ -11,8 +11,22 @@ jobs:
 
     env:
       FILES_TO_SYNC: |
+        includes/custom-field-settings.php
+        includes/taxonomy-settings.php
+        includes/post-types-settings.php
         includes/301-redirect.php
         includes/404-logging.php
+        includes/accessibility-settings.php
+        includes/block-editor-settings.php
+        includes/custom-code-snippets.php
+        includes/cookie-banner.php
+        includes/security-page.php
+        includes/login-math-captcha.php
+        includes/login-settings.php
+        includes/media-settings.php
+        includes/smtp-settings.php
+        includes/mail-logging.php
+        includes/search-loggins.php
 
     steps:
       - name: Checkout Source Repo
