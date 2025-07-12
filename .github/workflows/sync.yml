@@ -12,6 +12,7 @@ jobs:
     env:
       FILES_TO_SYNC: |
         includes/settings-page.php
+        includes/block-editor-settings.php
         includes/custom-field-settings.php
         includes/taxonomy-settings.php
         includes/post-types-settings.php
