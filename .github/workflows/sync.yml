@@ -1,4 +1,4 @@
-name: Sync File to Another Repository
+name: Sync Files
 
 on:
   push:
