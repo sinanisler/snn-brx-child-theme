@@ -23,6 +23,11 @@ jobs:
         includes/cookie-banner.php
         includes/security-page.php
         includes/disable-xmlrpc.php
+        includes/disable-wp-json-if-not-logged-in.php
+        includes/disable-file-editing.php
+        includes/remove-rss.php
+        includes/remove-wp-version.php
+        includes/disable-bundled-theme-install.php
         includes/login-math-captcha.php
         includes/login-settings.php
         includes/media-settings.php
