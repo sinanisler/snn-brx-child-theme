@@ -18,12 +18,15 @@ jobs:
         includes/301-redirect.php
         includes/404-logging.php
         includes/security-page.php
+        includes/security-page.php
+        includes/disable-emojis.php
+        includes/disable-gravatar.php
         includes/disable-xmlrpc.php
         includes/disable-wp-json-if-not-logged-in.php
+        includes/disable-bundled-theme-install.php
         includes/disable-file-editing.php
         includes/remove-rss.php
         includes/remove-wp-version.php
-        includes/disable-bundled-theme-install.php
         includes/login-math-captcha.php
         includes/login-settings.php
         includes/media-settings.php
