@@ -1,4 +1,4 @@
-<?php 
+<?php
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -77,6 +77,50 @@ function snn_validate_url($url) {
     return false;
 }
 
+function snn_clear_redirects_cache() {
+    delete_transient('snn_all_redirects_cache');
+}
+
+function snn_get_all_redirects() {
+    // If we are not in the admin area, try to get from transient cache first.
+    if ( ! is_admin() ) {
+        $redirects = get_transient('snn_all_redirects_cache');
+        // If the cache is not empty, return it.
+        if (false !== $redirects) {
+            return $redirects;
+        }
+    }
+
+    // If we are in the admin area, or the transient is empty, query the database.
+    $redirect_posts = get_posts(array(
+        'post_type'      => 'snn_301_redirects',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+    ));
+
+    $redirects = array();
+    if ($redirect_posts) {
+        foreach ($redirect_posts as $post) {
+            // Store the data in a structured array for easier access
+            $redirects[$post->ID] = array(
+                'ID'              => $post->ID,
+                'redirect_from'   => get_post_meta($post->ID, 'redirect_from', true),
+                'redirect_to'     => get_post_meta($post->ID, 'redirect_to', true),
+                'created_date'    => get_post_meta($post->ID, 'created_date', true),
+                'redirect_clicks' => (int) get_post_meta($post->ID, 'redirect_clicks', true),
+            );
+        }
+    }
+
+    // If we are not in the admin area, set the transient for future front-end requests.
+    if ( ! is_admin() ) {
+        set_transient('snn_all_redirects_cache', $redirects, 12 * HOUR_IN_SECONDS);
+    }
+
+    return $redirects;
+}
+
+
 function snn_render_301_redirects_page() {
     global $wpdb;
 
@@ -134,6 +178,7 @@ function snn_render_301_redirects_page() {
                 }
             }
             if ($imported_count > 0) {
+                snn_clear_redirects_cache(); // Clear cache on change
                 flush_rewrite_rules();
                 echo '<div class="notice notice-success"><p>' . sprintf(esc_html__('%d redirects imported successfully!', 'snn'), $imported_count) . '</p></div>';
             }
@@ -181,6 +226,7 @@ function snn_render_301_redirects_page() {
                     update_post_meta($post_id, 'created_date', current_time('mysql'));
                     update_post_meta($post_id, 'redirect_clicks', 0);
 
+                    snn_clear_redirects_cache(); // Clear cache on change
                     flush_rewrite_rules();
                     echo '<div class="notice notice-success"><p>' . esc_html__( 'Redirect added successfully!', 'snn' ) . '</p></div>';
                 }
@@ -192,6 +238,7 @@ function snn_render_301_redirects_page() {
     if (isset($_POST['delete_redirect']) && check_admin_referer('snn_301_redirect_delete_nonce')) {
         $post_id = intval($_POST['redirect_id']);
         if (wp_delete_post($post_id, true)) {
+            snn_clear_redirects_cache(); // Clear cache on change
             flush_rewrite_rules();
             echo '<div class="notice notice-success"><p>' . esc_html__( 'Redirect deleted successfully!', 'snn' ) . '</p></div>';
         }
@@ -229,6 +276,7 @@ function snn_render_301_redirects_page() {
                 update_post_meta($post_id, 'redirect_from', $new_redirect_from);
                 update_post_meta($post_id, 'redirect_to', $new_redirect_to);
 
+                snn_clear_redirects_cache(); // Clear cache on change
                 echo '<div class="notice notice-success"><p>' . esc_html__( 'Redirect updated successfully!', 'snn' ) . '</p></div>';
             }
         }
@@ -356,13 +404,15 @@ function snn_render_301_redirects_page() {
             </div>
 
             <?php
-            $redirects = get_posts(array(
-                'post_type'      => 'snn_301_redirects',
-                'posts_per_page' => -1,
-                'meta_key'       => 'redirect_clicks',
-                'orderby'        => 'meta_value_num',
-                'order'          => 'DESC'
-            ));
+            // Get redirects from our new cached function
+            $redirects = snn_get_all_redirects();
+            
+            // Sort by clicks for display purposes
+            if ($redirects) {
+                uasort($redirects, function($a, $b) {
+                    return $b['redirect_clicks'] <=> $a['redirect_clicks'];
+                });
+            }
 
             if ($redirects) : ?>
                 <table class="widefat fixed striped">
@@ -377,11 +427,11 @@ function snn_render_301_redirects_page() {
                     </thead>
                     <tbody>
                     <?php foreach ($redirects as $redirect) :
-                        $redirect_id   = $redirect->ID;
-                        $redirect_from = get_post_meta($redirect_id, 'redirect_from', true);
-                        $redirect_to   = get_post_meta($redirect_id, 'redirect_to', true);
-                        $created_date  = get_post_meta($redirect_id, 'created_date', true);
-                        $clicks        = (int) get_post_meta($redirect_id, 'redirect_clicks', true);
+                        $redirect_id   = $redirect['ID'];
+                        $redirect_from = $redirect['redirect_from'];
+                        $redirect_to   = $redirect['redirect_to'];
+                        $created_date  = $redirect['created_date'];
+                        $clicks        = $redirect['redirect_clicks'];
                         ?>
                         <tr id="redirect-row-<?php echo esc_attr($redirect_id); ?>">
                             <td>
@@ -705,74 +755,93 @@ function snn_handle_301_redirects() {
     $current_path = snn_normalize_path($path);
     $query_string = isset($parsed_url['query']) ? $parsed_url['query'] : '';
 
-    // Get all 301 redirect rules
-    $redirects = get_posts(array(
-        'post_type'      => 'snn_301_redirects',
-        'posts_per_page' => -1
-    ));
+    // Get all 301 redirect rules from our new cached function
+    $all_redirects = snn_get_all_redirects();
 
-    // First process exact (non-wildcard) redirects
-    foreach ($redirects as $redirect) {
-        $redirect_from = get_post_meta($redirect->ID, 'redirect_from', true);
-        if (substr($redirect_from, -2) !== '/*') {
-            if ($redirect_from === $current_path || $redirect_from === $current_path . '?' . $query_string) {
-                $redirect_to = get_post_meta($redirect->ID, 'redirect_to', true);
-                if ($query_string) {
-                    $redirect_to .= (strpos($redirect_to, '?') !== false) ? '&' : '?';
-                    $redirect_to .= $query_string;
-                }
-                if (strpos($redirect_to, 'http') !== 0) {
-                    $redirect_to = home_url($redirect_to);
-                }
-                $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
-                update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
-                snn_log_redirect($redirect_from, $redirect_to);
-                nocache_headers();
-                wp_redirect($redirect_to, 301);
-                exit;
+    if (empty($all_redirects)) {
+        return;
+    }
+
+    $exact_redirects = array();
+    $wildcard_redirects = array();
+
+    // Separate redirects into exact and wildcard matches for correct processing order
+    foreach ($all_redirects as $redirect) {
+        if (isset($redirect['redirect_from'])) {
+            if (substr($redirect['redirect_from'], -2) === '/*') {
+                $wildcard_redirects[] = $redirect;
+            } else {
+                $exact_redirects[] = $redirect;
             }
         }
     }
 
-    // Then process wildcard redirects (redirects ending with "/*")
-    foreach ($redirects as $redirect) {
-        $redirect_from = get_post_meta($redirect->ID, 'redirect_from', true);
-        if (substr($redirect_from, -2) === '/*') {
-            $redirect_to = get_post_meta($redirect->ID, 'redirect_to', true);
-            $base_from = substr($redirect_from, 0, -2);
-            if ($current_path === $base_from || strpos($current_path, $base_from . '/') === 0) {
-                $leftover = '';
-                if (strlen($current_path) > strlen($base_from)) {
-                    $leftover = substr($current_path, strlen($base_from));
-                }
-                $leftover = ltrim($leftover, '/');
-
-                if (strpos($leftover, '..') !== false) {
-                    continue;
-                }
-
-                $base_to = $redirect_to;
-                if (substr($redirect_to, -2) === '/*') {
-                    $base_to = substr($redirect_to, 0, -2);
-                }
-                $final_destination = rtrim($base_to, '/');
-                if ($leftover !== '') {
-                    $final_destination .= '/' . $leftover;
-                }
-                if ($query_string) {
-                    $final_destination .= (strpos($final_destination, '?') !== false) ? '&' : '?';
-                    $final_destination .= $query_string;
-                }
-                if (strpos($final_destination, 'http') !== 0) {
-                    $final_destination = home_url($final_destination);
-                }
-                $clicks = (int) get_post_meta($redirect->ID, 'redirect_clicks', true);
-                update_post_meta($redirect->ID, 'redirect_clicks', $clicks + 1);
-                snn_log_redirect($current_path, $final_destination);
-                nocache_headers();
-                wp_redirect($final_destination, 301);
-                exit;
+    // First process exact (non-wildcard) redirects
+    foreach ($exact_redirects as $redirect) {
+        $redirect_from = $redirect['redirect_from'];
+        if ($redirect_from === $current_path || $redirect_from === $current_path . '?' . $query_string) {
+            $redirect_to = $redirect['redirect_to'];
+            if ($query_string) {
+                $redirect_to .= (strpos($redirect_to, '?') !== false) ? '&' : '?';
+                $redirect_to .= $query_string;
             }
+            if (strpos($redirect_to, 'http') !== 0) {
+                $redirect_to = home_url($redirect_to);
+            }
+            
+            // Update click count directly in the DB. This does not invalidate the cache.
+            $clicks = (int) get_post_meta($redirect['ID'], 'redirect_clicks', true);
+            update_post_meta($redirect['ID'], 'redirect_clicks', $clicks + 1);
+
+            snn_log_redirect($redirect_from, $redirect_to);
+            nocache_headers();
+            wp_redirect($redirect_to, 301);
+            exit;
+        }
+    }
+
+    // Then process wildcard redirects (redirects ending with "/*")
+    foreach ($wildcard_redirects as $redirect) {
+        $redirect_from = $redirect['redirect_from'];
+        $redirect_to   = $redirect['redirect_to'];
+        $base_from     = substr($redirect_from, 0, -2);
+        
+        if ($current_path === $base_from || strpos($current_path, $base_from . '/') === 0) {
+            $leftover = '';
+            if (strlen($current_path) > strlen($base_from)) {
+                $leftover = substr($current_path, strlen($base_from));
+            }
+            $leftover = ltrim($leftover, '/');
+
+            // Prevent directory traversal attacks
+            if (strpos($leftover, '..') !== false) {
+                continue;
+            }
+
+            $base_to = $redirect_to;
+            if (substr($redirect_to, -2) === '/*') {
+                $base_to = substr($redirect_to, 0, -2);
+            }
+            $final_destination = rtrim($base_to, '/');
+            if ($leftover !== '') {
+                $final_destination .= '/' . $leftover;
+            }
+            if ($query_string) {
+                $final_destination .= (strpos($final_destination, '?') !== false) ? '&' : '?';
+                $final_destination .= $query_string;
+            }
+            if (strpos($final_destination, 'http') !== 0) {
+                $final_destination = home_url($final_destination);
+            }
+            
+            // Update click count directly in the DB
+            $clicks = (int) get_post_meta($redirect['ID'], 'redirect_clicks', true);
+            update_post_meta($redirect['ID'], 'redirect_clicks', $clicks + 1);
+
+            snn_log_redirect($current_path, $final_destination);
+            nocache_headers();
+            wp_redirect($final_destination, 301);
+            exit;
         }
     }
 }
@@ -862,11 +931,13 @@ function snn_get_client_ip() {
 function snn_activate_301_redirects() {
     snn_register_301_redirects_post_type();
     snn_register_redirect_logs_post_type();
+    snn_clear_redirects_cache(); // Clear cache on activation
     flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'snn_activate_301_redirects');
 
 function snn_deactivate_301_redirects() {
+    snn_clear_redirects_cache(); // Clear cache on deactivation
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'snn_deactivate_301_redirects');
