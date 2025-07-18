@@ -43,6 +43,7 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-search-logs',            'label' => __('Search Logs', 'snn'),                            'dashicon' => 'dashicons-search'),
                 array('slug' => 'snn-block-editor-settings',  'label' => __('Block Editor Settings', 'snn'),                  'dashicon' => 'dashicons-admin-customizer'),
                 array('slug' => 'snn-media-settings',         'label' => __('Media Settings', 'snn'),                         'dashicon' => 'dashicons-format-image'),
+                array('slug' => 'snn-activity-log',           'label' => __('Activity Logs', 'snn'),                          'dashicon' => 'dashicons-text'),
                 array('slug' => 'snn-custom-codes-snippets',  'label' => __('Code Snippets', 'snn'),                          'dashicon' => 'dashicons-editor-code'),
             );
             
