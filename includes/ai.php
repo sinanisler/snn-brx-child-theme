@@ -43,7 +43,7 @@ function snn_render_ai_settings() {
     $openrouter_model     = get_option('snn_openrouter_model', '');
     $system_prompt        = get_option(
         'snn_system_prompt',
-        'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Only respond with the needed content and nothing else always!'
+        'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly.'
     );
 
     $default_presets = [
