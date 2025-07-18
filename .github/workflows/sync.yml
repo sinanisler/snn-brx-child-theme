@@ -38,6 +38,7 @@ jobs:
         includes/cookie-banner.php
         includes/accessibility-settings.php
         includes/other-settings.php
+        includes/activity-logs.php
 
     steps:
       - name: Checkout Source Repo
