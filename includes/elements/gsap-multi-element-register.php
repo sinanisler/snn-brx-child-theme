@@ -16,6 +16,8 @@ add_action( 'init', function () {
                 'tab'         => 'content',
                 'label'       => esc_html__( 'Select Animation', 'snn' ),
                 'type'        => 'select',
+
+
                 'options'     => [
                     // Group: Opacity
                     'style_start-opacity'   => esc_html__('Opacity Start', 'snn'),
@@ -65,7 +67,11 @@ add_action( 'init', function () {
                     'style_start-font-weight' => esc_html__('Font Weight Start', 'snn'),
                     'style_end-font-weight'   => esc_html__('Font Weight End', 'snn'),
 
-                    // -- NEW CONTROLS END HERE --
+                    // Group: Background
+                    'style_start-background-size' => esc_html__('Background Size Start', 'snn'),
+                    'style_end-background-size'   => esc_html__('Background Size End', 'snn'),
+                    'style_start-background-position' => esc_html__('Background Position Start', 'snn'),
+                    'style_end-background-position'   => esc_html__('Background Position End', 'snn'),
 
                     // Group: SplitText
                     'splittext:true' => esc_html__('Splittext True', 'snn'),
@@ -159,8 +165,6 @@ add_action( 'init', function () {
                 'inline'      => true,
             ];
 
-            // -- NEW CONTROLS DEFINITIONS START HERE --
-
             // Width Controls
             $controls['custom_data_animate_start_width_value'] = [
                 'tab' => 'content', 'label' => esc_html__('Start Width', 'snn'), 'type' => 'text',
@@ -251,7 +255,25 @@ add_action( 'init', function () {
                 'placeholder' => '700', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-font-weight'], 'inline' => true,
             ];
 
-            // -- NEW CONTROLS DEFINITIONS END HERE --
+            // Background Size Controls
+            $controls['custom_data_animate_start_background_size_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Background Size', 'snn'), 'type' => 'text',
+                'placeholder' => '100%, cover', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-background-size'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_background_size_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Background Size', 'snn'), 'type' => 'text',
+                'placeholder' => '120%, auto', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-background-size'], 'inline' => true,
+            ];
+
+            // Background Position Controls
+            $controls['custom_data_animate_start_background_position_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Background Position', 'snn'), 'type' => 'text',
+                'placeholder' => '0% 50%, center', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-background-position'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_background_position_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Background Position', 'snn'), 'type' => 'text',
+                'placeholder' => '100% 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-background-position'], 'inline' => true,
+            ];
         
             // Custom data-animate text input control
             $controls['custom_data_animate_dynamic_elements_custom'] = [
