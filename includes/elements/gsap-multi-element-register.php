@@ -14,14 +14,47 @@ add_action( 'init', function () {
                 'type'        => 'select',
                 'options'     => [
 
-					'style_start-opacity'   => esc_html__('Opacity Start', 'snn'),
-                    'style_end-opacity'     => esc_html__('Opacity End', 'snn'),
+'style_start-opacity'   => esc_html__('Opacity Start', 'snn'),
+'style_end-opacity'     => esc_html__('Opacity End', 'snn'),
 
-					'style_start-transform' => esc_html__('Transform Start', 'snn'),
-                    'style_end-transform'   => esc_html__('Transform End', 'snn'),
+'style_start-transform' => esc_html__('Transform Start', 'snn'),
+'style_end-transform'   => esc_html__('Transform End', 'snn'),
 
-					'style_start-filter'    => esc_html__('Filter Start', 'snn'),
-                    'style_end-filter'      => esc_html__('Filter End', 'snn'),
+'style_start-filter'    => esc_html__('Filter Start', 'snn'),
+'style_end-filter'      => esc_html__('Filter End', 'snn'),
+
+
+
+
+
+
+
+
+
+
+'splittext:true' => esc_html__('Splittext True', 'snn'),
+'splittext:word' => esc_html__('Splittext Words', 'snn'),
+'splittext:line' => esc_html__('Splittext Line', 'snn'),
+
+
+
+'markers:true' => esc_html__('Markers True', 'snn'),
+'scroll:false' => esc_html__('Scroll False', 'snn'),
+'loop:true' => esc_html__('Loop True', 'snn'),
+'pin:true' => esc_html__('Pin True', 'snn'),
+'scrub:false' => esc_html__('Scrub False', 'snn'),
+
+
+
+'desktop:false' => esc_html__('Desktop False', 'snn'),
+'tablet:false' => esc_html__('Tablet False', 'snn'),
+'mobile:false' => esc_html__('Mobile False', 'snn'),
+
+
+'once:true' => esc_html__('Once True', 'snn'),
+
+
+
 
 					'custom'                => esc_html__('/ Custom data-animate', 'snn'),
                 ],
@@ -37,6 +70,10 @@ add_action( 'init', function () {
 
 
             // -- CONDITIONAL CONTROLS --
+
+
+			// add more property requered controls here
+
 
             // Opacity Start Value control
             $controls['custom_data_animate_start_opacity_value'] = [
