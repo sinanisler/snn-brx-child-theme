@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 // Defines the target elements for the animation controls.
 $targets = [ 'section', 'container', 'block', 'div' , 'heading' , 'text-basic' , 'text' ];
