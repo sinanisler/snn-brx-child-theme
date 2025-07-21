@@ -16,85 +16,90 @@ add_action( 'init', function () {
                 'tab'         => 'content',
                 'label'       => esc_html__( 'Select Animation', 'snn' ),
                 'type'        => 'select',
-
-
                 'options'     => [
                     // Group: Opacity
-                    'style_start-opacity'   => esc_html__('Opacity Start', 'snn'),
-                    'style_end-opacity'     => esc_html__('Opacity End', 'snn'),
+                    'style_start-opacity'         => esc_html__('Opacity Start', 'snn'),
+                    'style_end-opacity'           => esc_html__('Opacity End', 'snn'),
 
                     // Group: Transform (Raw)
-                    'style_start-transform' => esc_html__('Transform Start', 'snn'),
-                    'style_end-transform'   => esc_html__('Transform End', 'snn'),
+                    'style_start-transform'       => esc_html__('Transform Start', 'snn'),
+                    'style_end-transform'         => esc_html__('Transform End', 'snn'),
 
                     // Group: Filter
-                    'style_start-filter'    => esc_html__('Filter Start', 'snn'),
-                    'style_end-filter'      => esc_html__('Filter End', 'snn'),
+                    'style_start-filter'          => esc_html__('Filter Start', 'snn'),
+                    'style_end-filter'            => esc_html__('Filter End', 'snn'),
 
                     // Group: Width
-                    'style_start-width'     => esc_html__('Width Start', 'snn'),
-                    'style_end-width'       => esc_html__('Width End', 'snn'),
+                    'style_start-width'           => esc_html__('Width Start', 'snn'),
+                    'style_end-width'             => esc_html__('Width End', 'snn'),
 
                     // Group: Height
-                    'style_start-height'    => esc_html__('Height Start', 'snn'),
-                    'style_end-height'      => esc_html__('Height End', 'snn'),
+                    'style_start-height'          => esc_html__('Height Start', 'snn'),
+                    'style_end-height'            => esc_html__('Height End', 'snn'),
 
                     // Group: Rotate
-                    'style_start-rotate'    => esc_html__('Rotate Start', 'snn'),
-                    'style_end-rotate'      => esc_html__('Rotate End', 'snn'),
+                    'style_start-rotate'          => esc_html__('Rotate Start', 'snn'),
+                    'style_end-rotate'            => esc_html__('Rotate End', 'snn'),
 
                     // Group: X Movement
-                    'style_start-x'         => esc_html__('X Move Start', 'snn'),
-                    'style_end-x'           => esc_html__('X Move End', 'snn'),
+                    'style_start-x'               => esc_html__('X Move Start', 'snn'),
+                    'style_end-x'                 => esc_html__('X Move End', 'snn'),
 
                     // Group: Y Movement
-                    'style_start-y'         => esc_html__('Y Move Start', 'snn'),
-                    'style_end-y'           => esc_html__('Y Move End', 'snn'),
+                    'style_start-y'               => esc_html__('Y Move Start', 'snn'),
+                    'style_end-y'                 => esc_html__('Y Move End', 'snn'),
                     
                     // Group: Scale
-                    'style_start-scale'     => esc_html__('Scale Start', 'snn'),
-                    'style_end-scale'       => esc_html__('Scale End', 'snn'),
+                    'style_start-scale'           => esc_html__('Scale Start', 'snn'),
+                    'style_end-scale'             => esc_html__('Scale End', 'snn'),
 
                     // Group: Border Radius
-                    'style_start-border-radius' => esc_html__('Border Radius Start', 'snn'),
-                    'style_end-border-radius'   => esc_html__('Border Radius End', 'snn'),
+                    'style_start-border-radius'   => esc_html__('Border Radius Start', 'snn'),
+                    'style_end-border-radius'     => esc_html__('Border Radius End', 'snn'),
 
                     // Group: Font Size
-                    'style_start-font-size' => esc_html__('Font Size Start', 'snn'),
-                    'style_end-font-size'   => esc_html__('Font Size End', 'snn'),
+                    'style_start-font-size'       => esc_html__('Font Size Start', 'snn'),
+                    'style_end-font-size'         => esc_html__('Font Size End', 'snn'),
 
                     // Group: Font Weight
-                    'style_start-font-weight' => esc_html__('Font Weight Start', 'snn'),
-                    'style_end-font-weight'   => esc_html__('Font Weight End', 'snn'),
+                    'style_start-font-weight'     => esc_html__('Font Weight Start', 'snn'),
+                    'style_end-font-weight'       => esc_html__('Font Weight End', 'snn'),
 
                     // Group: Background
-                    'style_start-background-size' => esc_html__('Background Size Start', 'snn'),
-                    'style_end-background-size'   => esc_html__('Background Size End', 'snn'),
+                    'style_start-background-size'     => esc_html__('Background Size Start', 'snn'),
+                    'style_end-background-size'       => esc_html__('Background Size End', 'snn'),
                     'style_start-background-position' => esc_html__('Background Position Start', 'snn'),
                     'style_end-background-position'   => esc_html__('Background Position End', 'snn'),
 
                     // Group: SplitText
-                    'splittext:true' => esc_html__('Splittext True', 'snn'),
-                    'splittext:word' => esc_html__('Splittext Words', 'snn'),
-                    'splittext:line' => esc_html__('Splittext Line', 'snn'),
+                    'splittext:true'              => esc_html__('Splittext True', 'snn'),
+                    'splittext:word'              => esc_html__('Splittext Words', 'snn'),
+                    'splittext:line'              => esc_html__('Splittext Line', 'snn'),
 
                     // Group: ScrollTrigger Options
-                    'markers:true' => esc_html__('Markers True', 'snn'),
-                    'scroll:false' => esc_html__('Scroll False', 'snn'),
-                    'loop:true'    => esc_html__('Loop True', 'snn'),
-                    'pin:true'     => esc_html__('Pin True', 'snn'),
-                    'scrub:false'  => esc_html__('Scrub False', 'snn'),
+                    'markers:true'                => esc_html__('Markers True', 'snn'),
+                    'scroll:false'                => esc_html__('Scroll False', 'snn'),
+                    'loop:true'                   => esc_html__('Loop True', 'snn'),
+                    'pin:true'                    => esc_html__('Pin True', 'snn'),
+                    'scrub:false'                 => esc_html__('Scrub False', 'snn'),
 
                     // Group: Responsive Visibility
-                    'desktop:false' => esc_html__('Desktop False', 'snn'),
-                    'tablet:false'  => esc_html__('Tablet False', 'snn'),
-                    'mobile:false'  => esc_html__('Mobile False', 'snn'),
+                    'desktop:false'               => esc_html__('Desktop False', 'snn'),
+                    'tablet:false'                => esc_html__('Tablet False', 'snn'),
+                    'mobile:false'                => esc_html__('Mobile False', 'snn'),
 
+                    // Group: New Direct Animation Properties
+                    'start'                       => esc_html__('Start Trigger', 'snn'),
+                    'end'                         => esc_html__('End Trigger', 'snn'),
+                    'duration'                    => esc_html__('Duration', 'snn'),
+                    'stagger'                     => esc_html__('Stagger', 'snn'),
+                    'delay'                       => esc_html__('Delay', 'snn'),
+                    
                     // Group: Misc
-                    'once:true' => esc_html__('Once True', 'snn'),
+                    'once:true'                   => esc_html__('Once True', 'snn'),
                     
                     // Group: Custom Input
-                    'custom' => esc_html__('/ Custom data-animate', 'snn'),
+                    'custom'                      => esc_html__('/ Custom data-animate', 'snn'),
                 ],
                 'default'     => '',
                 'multiple'    => true,
@@ -257,22 +262,72 @@ add_action( 'init', function () {
 
             // Background Size Controls
             $controls['custom_data_animate_start_background_size_value'] = [
-                'tab' => 'content', 'label' => esc_html__('Start Background Size', 'snn'), 'type' => 'text',
+                'tab' => 'content', 'label' => esc_html__('Start Background Size', 'snn'), 'type' => 'text', // Changed to text for 'cover', 'auto'
                 'placeholder' => '100%, cover', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-background-size'], 'inline' => true,
             ];
             $controls['custom_data_animate_end_background_size_value'] = [
-                'tab' => 'content', 'label' => esc_html__('End Background Size', 'snn'), 'type' => 'text',
+                'tab' => 'content', 'label' => esc_html__('End Background Size', 'snn'), 'type' => 'text', // Changed to text for 'cover', 'auto'
                 'placeholder' => '120%, auto', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-background-size'], 'inline' => true,
             ];
 
             // Background Position Controls
             $controls['custom_data_animate_start_background_position_value'] = [
-                'tab' => 'content', 'label' => esc_html__('Start Background Position', 'snn'), 'type' => 'text',
+                'tab' => 'content', 'label' => esc_html__('Start Background Position', 'snn'), 'type' => 'text', // Changed to text for 'center'
                 'placeholder' => '0% 50%, center', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-background-position'], 'inline' => true,
             ];
             $controls['custom_data_animate_end_background_position_value'] = [
-                'tab' => 'content', 'label' => esc_html__('End Background Position', 'snn'), 'type' => 'text',
+                'tab' => 'content', 'label' => esc_html__('End Background Position', 'snn'), 'type' => 'text', // Changed to text for 'center'
                 'placeholder' => '100% 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-background-position'], 'inline' => true,
+            ];
+
+            // New: Start Trigger Control
+            $controls['custom_data_animate_start_value'] = [
+                'tab'         => 'content',
+                'label'       => esc_html__( 'Start Trigger', 'snn' ),
+                'type'        => 'text',
+                'placeholder' => 'top center, 20% 80%',
+                'required'    => [ 'custom_data_animate_dynamic_elements', 'includes', 'start' ],
+                'inline'      => true,
+            ];
+
+            // New: End Trigger Control
+            $controls['custom_data_animate_end_value'] = [
+                'tab'         => 'content',
+                'label'       => esc_html__( 'End Trigger', 'snn' ),
+                'type'        => 'text',
+                'placeholder' => 'bottom center, 80% 20%',
+                'required'    => [ 'custom_data_animate_dynamic_elements', 'includes', 'end' ],
+                'inline'      => true,
+            ];
+
+            // New: Duration Control
+            $controls['custom_data_animate_duration_value'] = [
+                'tab'         => 'content',
+                'label'       => esc_html__( 'Duration (seconds)', 'snn' ),
+                'type'        => 'number',
+                'placeholder' => '1, 0.5',
+                'required'    => [ 'custom_data_animate_dynamic_elements', 'includes', 'duration' ],
+                'inline'      => true,
+            ];
+
+            // New: Stagger Control
+            $controls['custom_data_animate_stagger_value'] = [
+                'tab'         => 'content',
+                'label'       => esc_html__( 'Stagger (seconds)', 'snn' ),
+                'type'        => 'number',
+                'placeholder' => '0.1, 0.05',
+                'required'    => [ 'custom_data_animate_dynamic_elements', 'includes', 'stagger' ],
+                'inline'      => true,
+            ];
+
+            // New: Delay Control
+            $controls['custom_data_animate_delay_value'] = [
+                'tab'         => 'content',
+                'label'       => esc_html__( 'Delay (seconds)', 'snn' ),
+                'type'        => 'number',
+                'placeholder' => '0.5, 1',
+                'required'    => [ 'custom_data_animate_dynamic_elements', 'includes', 'delay' ],
+                'inline'      => true,
             ];
         
             // Custom data-animate text input control
@@ -337,6 +392,15 @@ add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $el
                 $final_attributes[] = $option . ':' . esc_attr($value);
             }
         } 
+        // Handle new direct animation properties (start, end, duration, stagger, delay)
+        elseif (in_array($option, ['start', 'end', 'duration', 'stagger', 'delay'])) {
+            $setting_key = 'custom_data_animate_' . $option . '_value';
+            $value = $element->settings[$setting_key] ?? '';
+            
+            if ($value !== '') {
+                $final_attributes[] = $option . ':' . esc_attr($value);
+            }
+        }
         // Handle the custom text input
         elseif ($option === 'custom') {
             if ($custom_value !== '') {
