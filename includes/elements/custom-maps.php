@@ -303,11 +303,11 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                         '<?php echo $icon_html_escaped; ?>',
                         <?php echo $icon_size; ?>,
                         '<?php echo $icon_color; ?>',
-                        '<?php echo $icon_label_escaped; ?>'
+                        '<?php echo str_replace(array("\r", "\n"), '', $icon_label_escaped); ?>'
                     )
                 }
             ).bindPopup(
-                '<div class="custom-openstreetmap-popup"><?php echo $popup_escaped; ?></div>'
+                '<div class="custom-openstreetmap-popup"><?php echo str_replace(array("\r", "\n"), '', $popup_escaped); ?></div>'
             ).addTo(map);
 
             <?php endforeach; ?>
