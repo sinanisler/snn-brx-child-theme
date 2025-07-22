@@ -74,53 +74,53 @@ add_action( 'admin_init', 'snn_activity_log_register_settings' );
 function snn_get_logging_options() {
     return array(
         'user_activities' => array(
-            'user_login'          => __( 'User Login', 'snn-activity-log' ),
-            'user_logout'         => __( 'User Logout', 'snn-activity-log' ),
-            'user_register'       => __( 'User Registration', 'snn-activity-log' ),
-            'user_profile_update' => __( 'User Profile Updates', 'snn-activity-log' ),
-            'user_deleted'        => __( 'User Deletion', 'snn-activity-log' ),
-            'user_role_change'    => __( 'User Role Changes', 'snn-activity-log' ),
-            'password_reset'      => __( 'Password Reset Requests', 'snn-activity-log' ),
-            'failed_login'        => __( 'Failed Login Attempts', 'snn-activity-log' ),
+            'user_login'            => __( 'User Login', 'snn-activity-log' ),
+            'user_logout'           => __( 'User Logout', 'snn-activity-log' ),
+            'user_register'         => __( 'User Registration', 'snn-activity-log' ),
+            'user_profile_update'   => __( 'User Profile Updates', 'snn-activity-log' ),
+            'user_deleted'          => __( 'User Deletion', 'snn-activity-log' ),
+            'user_role_change'      => __( 'User Role Changes', 'snn-activity-log' ),
+            'password_reset'        => __( 'Password Reset Requests', 'snn-activity-log' ),
+            'failed_login'          => __( 'Failed Login Attempts', 'snn-activity-log' ),
         ),
         'content_activities' => array(
-            'post_created'        => __( 'Post/Page Creation', 'snn-activity-log' ),
-            'post_updated'        => __( 'Post/Page Updates', 'snn-activity-log' ),
-            'post_deleted'        => __( 'Post/Page Deletion', 'snn-activity-log' ),
-            'post_trashed'        => __( 'Post/Page Trashed', 'snn-activity-log' ),
-            'post_status_change'  => __( 'Post Status Changes', 'snn-activity-log' ),
-            'attachment_uploaded' => __( 'Media Uploads', 'snn-activity-log' ),
-            'attachment_deleted'  => __( 'Media Deletion', 'snn-activity-log' ),
-            'attachment_updated'  => __( 'Media Updates', 'snn-activity-log' ),
+            'post_created'          => __( 'Post/Page Creation', 'snn-activity-log' ),
+            'post_updated'          => __( 'Post/Page Updates', 'snn-activity-log' ),
+            'post_deleted'          => __( 'Post/Page Deletion', 'snn-activity-log' ),
+            'post_trashed'          => __( 'Post/Page Trashed', 'snn-activity-log' ),
+            'post_status_change'    => __( 'Post Status Changes', 'snn-activity-log' ),
+            'attachment_uploaded'   => __( 'Media Uploads', 'snn-activity-log' ),
+            'attachment_deleted'    => __( 'Media Deletion', 'snn-activity-log' ),
+            'attachment_updated'    => __( 'Media Updates', 'snn-activity-log' ),
         ),
         'comment_activities' => array(
-            'comment_posted'     => __( 'Comment Posted', 'snn-activity-log' ),
-            'comment_approved'   => __( 'Comment Approved', 'snn-activity-log' ),
-            'comment_unapproved' => __( 'Comment Unapproved', 'snn-activity-log' ),
-            'comment_trashed'    => __( 'Comment Trashed', 'snn-activity-log' ),
-            'comment_spammed'    => __( 'Comment Marked as Spam', 'snn-activity-log' ),
-            'comment_deleted'    => __( 'Comment Deleted', 'snn-activity-log' ),
+            'comment_posted'        => __( 'Comment Posted', 'snn-activity-log' ),
+            'comment_approved'      => __( 'Comment Approved', 'snn-activity-log' ),
+            'comment_unapproved'    => __( 'Comment Unapproved', 'snn-activity-log' ),
+            'comment_trashed'       => __( 'Comment Trashed', 'snn-activity-log' ),
+            'comment_spammed'       => __( 'Comment Marked as Spam', 'snn-activity-log' ),
+            'comment_deleted'       => __( 'Comment Deleted', 'snn-activity-log' ),
         ),
         'system_activities' => array(
-            'plugin_activated'   => __( 'Plugin Activation', 'snn-activity-log' ),
-            'plugin_deactivated' => __( 'Plugin Deactivation', 'snn-activity-log' ),
-            'plugin_deleted'     => __( 'Plugin Deletion', 'snn-activity-log' ),
-            'theme_switched'     => __( 'Theme Switch', 'snn-activity-log' ),
-            'theme_updated'      => __( 'Theme Updates', 'snn-activity-log' ),
-            'theme_deleted'      => __( 'Theme Deletion', 'snn-activity-log' ),
-            'core_updated'       => __( 'WordPress Core Updates', 'snn-activity-log' ),
-            'widget_updated'     => __( 'Widget Changes', 'snn-activity-log' ),
-            'menu_updated'       => __( 'Menu Updates', 'snn-activity-log' ),
-            'option_updated'     => __( 'Settings Changes', 'snn-activity-log' ),
-            'export_performed'   => __( 'Data Exports', 'snn-activity-log' ),
-            'cron_executed'      => __( 'Scheduled Tasks (Cron)', 'snn-activity-log' ),
+            'plugin_activated'      => __( 'Plugin Activation', 'snn-activity-log' ),
+            'plugin_deactivated'    => __( 'Plugin Deactivation', 'snn-activity-log' ),
+            'plugin_deleted'        => __( 'Plugin Deletion', 'snn-activity-log' ),
+            'theme_switched'        => __( 'Theme Switch', 'snn-activity-log' ),
+            'theme_updated'         => __( 'Theme Updates', 'snn-activity-log' ),
+            'theme_deleted'         => __( 'Theme Deletion', 'snn-activity-log' ),
+            'core_updated'          => __( 'WordPress Core Updates', 'snn-activity-log' ),
+            'widget_updated'        => __( 'Widget Changes', 'snn-activity-log' ),
+            'menu_updated'          => __( 'Menu Updates', 'snn-activity-log' ),
+            'option_updated'        => __( 'Settings Changes', 'snn-activity-log' ),
+            'export_performed'      => __( 'Data Exports', 'snn-activity-log' ),
+            'cron_executed'         => __( 'Scheduled Tasks (Cron)', 'snn-activity-log' ),
         ),
         'security_activities' => array(
-            'file_edited'          => __( 'Theme/Plugin File Edits', 'snn-activity-log' ),
+            'file_edited'           => __( 'Theme/Plugin File Edits', 'snn-activity-log' ),
             'user_capability_change' => __( 'User Capability Changes', 'snn-activity-log' ),
-            'privacy_request'      => __( 'Privacy Data Requests', 'snn-activity-log' ),
-            'privacy_erase'        => __( 'Privacy Data Erasure', 'snn-activity-log' ),
-            'application_password' => __( 'Application Password Events', 'snn-activity-log' ),
+            'privacy_request'       => __( 'Privacy Data Requests', 'snn-activity-log' ),
+            'privacy_erase'         => __( 'Privacy Data Erasure', 'snn-activity-log' ),
+            'application_password'  => __( 'Application Password Events', 'snn-activity-log' ),
         ),
         'taxonomy_activities' => array(
             'term_created' => __( 'Category/Tag Creation', 'snn-activity-log' ),
@@ -597,6 +597,10 @@ function snn_activity_log_page_html() {
                         </button>
                     </h3>
                     <div class="snn-accordion-content" style="display: none;">
+                        <div style="padding: 10px 0; border-bottom: 1px solid #e1e4e8;">
+                            <button type="button" id="snn-select-all-logs" class="button"><?php _e( 'Select All', 'snn-activity-log' ); ?></button>
+                            <button type="button" id="snn-deselect-all-logs" class="button"><?php _e( 'Deselect All', 'snn-activity-log' ); ?></button>
+                        </div>
                         <table class="form-table snn-logging-options">
                             <?php
                             $logging_options = snn_get_logging_options();
@@ -675,9 +679,9 @@ function snn_activity_log_page_html() {
                         <td colspan="4"><?php _e( 'No activity logged yet.', 'snn-activity-log' ); ?></td>
                     </tr>
                 <?php endif; ?>
-                   <tr id="snn-no-search-results" style="display: none;">
-                    <td colspan="4"><?php _e( 'No matching logs found.', 'snn-activity-log' ); ?></td>
-                </tr>
+                       <tr id="snn-no-search-results" style="display: none;">
+                        <td colspan="4"><?php _e( 'No matching logs found.', 'snn-activity-log' ); ?></td>
+                    </tr>
             </tbody>
         </table>
     </div>
@@ -811,7 +815,29 @@ function snn_activity_log_page_html() {
                     content.style.display = expanded ? 'none' : 'block';
                 });
             });
+
+            // Select/Deselect All functionality
+            const selectAllButton = document.getElementById('snn-select-all-logs');
+            const deselectAllButton = document.getElementById('snn-deselect-all-logs');
+            const logCheckboxes = document.querySelectorAll('.snn-logging-options input[type="checkbox"]');
+
+            if (selectAllButton) {
+                selectAllButton.addEventListener('click', function() {
+                    logCheckboxes.forEach(checkbox => {
+                        checkbox.checked = true;
+                    });
+                });
+            }
+
+            if (deselectAllButton) {
+                deselectAllButton.addEventListener('click', function() {
+                    logCheckboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                });
+            }
         });
     </script>
     <?php
 }
+
