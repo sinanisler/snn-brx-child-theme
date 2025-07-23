@@ -19,7 +19,7 @@ class SNN_Text_Action_Share extends Element {
             'tab'     => 'content',
             'type'    => 'info',
             'content' => esc_html__(
-                'Add action buttons for selected text. Use {text} and {url} in link - they will be replaced with user selection and page URL. Example: https://twitter.com/intent/tweet?text={text}%20{url}', 'snn'
+                'Add action buttons for selected text. Use {text}, {url}, and {image} in link - they will be replaced with user selection, page URL, and featured image URL. Example: https://twitter.com/intent/tweet?text={text}%20{url}', 'snn'
             ),
         ];
 
@@ -53,9 +53,9 @@ class SNN_Text_Action_Share extends Element {
                     ],
                 ],
                 'link' => [
-                    'label'       => esc_html__( 'Action Link (use {text} and/or {url})', 'snn' ),
+                    'label'       => esc_html__( 'Action Link (use {text}, {url}, {image})', 'snn' ),
                     'type'        => 'text',
-                    'placeholder' => esc_html__( 'https://twitter.com/intent/tweet?text={text} {url}', 'snn' ),
+                    'placeholder' => esc_html__( 'https://twitter.com/intent/tweet?text={text} {url} {image}', 'snn' ),
                 ],
                 'target' => [
                     'label' => esc_html__( 'Open in new tab?', 'snn' ),
@@ -101,6 +101,18 @@ class SNN_Text_Action_Share extends Element {
         $wrapper_bg_color = $this->settings['wrapper_bg_color']['hex'] ?? '#fff';
         $icon_color = $this->settings['icon_color']['hex'] ?? '#23282d';
 
+        // Get featured image URL for current post
+        $featured_image_url = '';
+        if ( function_exists('get_the_ID') && function_exists('get_the_post_thumbnail_url') ) {
+            $post_id = get_the_ID();
+            if ( $post_id ) {
+                $img_url = get_the_post_thumbnail_url( $post_id, 'full' );
+                if ( $img_url ) {
+                    $featured_image_url = $img_url;
+                }
+            }
+        }
+
         $uniqid = 'snn-text-action-share-bar-' . uniqid();
 
         $this->set_attribute('_root', 'class', [ 'brxe-snn-text-action-share', $uniqid ]);
@@ -138,6 +150,7 @@ class SNN_Text_Action_Share extends Element {
             const domSelector = <?php echo json_encode($dom_selector); ?>.trim();
             const offsetY = <?php echo intval($offsetY); ?>;
             const offsetX = <?php echo intval($offsetX); ?>;
+            const featuredImageUrl = <?php echo json_encode($featured_image_url); ?>;
 
             function isSelectionInsideAllowedArea() {
                 if (!domSelector) return true; // all page
@@ -166,7 +179,8 @@ class SNN_Text_Action_Share extends Element {
                     let linkTemplate = actions[idx].link || '#';
                     let link = linkTemplate
                         .replace(/\{text\}/g, encodeURIComponent(selectedText))
-                        .replace(/\{url\}/g, encodeURIComponent(url));
+                        .replace(/\{url\}/g, encodeURIComponent(url))
+                        .replace(/\{image\}/g, encodeURIComponent(featuredImageUrl));
                     btn.setAttribute('href', link);
                 });
             }
