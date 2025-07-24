@@ -89,6 +89,7 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/query.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/print.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/image-hotspot.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/video-player.php');
 
 
 // if GSAP setting is enabled Register Elements
