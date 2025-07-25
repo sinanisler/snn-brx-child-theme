@@ -58,8 +58,7 @@ class SNN_Audio_Player_Element extends Element {
             'type'          => 'repeater',
             'titleProperty' => 'title',
             'default'       => [
-                ['title' => 'Intro', 'time'  => '0:05'],
-                ['title' => 'Main Part', 'time'  => '0:30'],
+                ['title' => 'Be Brave', 'time'  => '0:05'],
             ],
             'fields'        => [
                 'title' => ['label' => esc_html__( 'Title', 'bricks' ), 'type'  => 'text'],
@@ -199,11 +198,9 @@ class SNN_Audio_Player_Element extends Element {
                 align-items: center; 
                 background-color: var(--player-background-color); 
                 overflow: hidden; 
-                box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1), 0px 4px 6px -2px rgba(0,0,0,0.05); 
                 height: var(--player-height); 
                 padding: 16px; 
                 gap: 16px; 
-                border-radius: 8px; 
             }
             #" . esc_attr($root_id) . " .snn-audio-cover-art { 
                 width: calc(var(--player-height) - 32px); 
