@@ -127,6 +127,14 @@ class SNN_Video_Player_Element extends Element {
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 0.2)', // Already raw, kept as is
         ];
+
+        // New control for button color
+        $this->controls['button_color'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Button Color', 'bricks' ),
+            'type'  => 'color',
+            'default' => 'rgba(255, 255, 255, 1)', // Default to white
+        ];
     }
 
     public function render() {
@@ -151,7 +159,7 @@ class SNN_Video_Player_Element extends Element {
         // Prioritize manual URL if provided, otherwise use media library URL
         $video_url = ! empty( $manual_video_url ) ? $manual_video_url : $video_file_url;
 
-        $poster_url = ! empty( $settings['poster_image']['id'] ) ? wp_get_attachment_image_url( $settings['poster_image']['id'], 'full' ) : 'https://placehold.co/896x400/111827/FFF?text=Video+Player';
+        $poster_url = ! empty( $settings['poster_image']['id'] ) ? wp_get_attachment_image_url( $settings['poster_image']['id'], 'full' ) : '';
         $chapters   = $settings['chapters'] ?? [];
 
         $autoplay           = ! empty( $settings['autoplay'] );
@@ -163,11 +171,12 @@ class SNN_Video_Player_Element extends Element {
         $player_max_width = $settings['player_max_width'] ?? '896px';
 
         // Color settings - Prioritize 'raw', then 'hex', then default
-        $accent_color      = $settings['primary_accent_color']['raw'] ?? $settings['primary_accent_color']['hex'] ?? '#3b82f6';
-        $text_color        = $settings['text_color']['raw'] ?? $settings['text_color']['hex'] ?? '#ffffff';
-        $slider_track      = $settings['slider_track_color']['raw'] ?? $settings['slider_track_color']['hex'] ?? 'rgba(255, 255, 255, 0.3)';
+        $accent_color        = $settings['primary_accent_color']['raw'] ?? $settings['primary_accent_color']['hex'] ?? '#3b82f6';
+        $text_color          = $settings['text_color']['raw'] ?? $settings['text_color']['hex'] ?? '#ffffff';
+        $slider_track        = $settings['slider_track_color']['raw'] ?? $settings['slider_track_color']['hex'] ?? 'rgba(255, 255, 255, 0.3)';
         $chapter_dot_color = $settings['chapter_dot_color']['raw'] ?? $settings['chapter_dot_color']['hex'] ?? '#ffffff';
-        $btn_hover_bg      = $settings['button_hover_background']['raw'] ?? $settings['button_hover_background']['hex'] ?? 'rgba(255, 255, 255, 0.2)';
+        $btn_hover_bg        = $settings['button_hover_background']['raw'] ?? $settings['button_hover_background']['hex'] ?? 'rgba(255, 255, 255, 0.2)';
+        $button_color        = $settings['button_color']['raw'] ?? $settings['button_color']['hex'] ?? 'rgba(255, 255, 255, 1)'; // New button color
 
         // Start rendering the root element
         echo "<div {$this->render_attributes('_root')}>";
@@ -175,9 +184,9 @@ class SNN_Video_Player_Element extends Element {
         // Output the scoped CSS. Using esc_attr() for security.
         echo "<style>
             /* Scoping all styles to the unique root ID */
-            #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
+            #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
             #" . esc_attr($root_id) . " .snn-video-container { position: relative; background-color: #000; overflow: hidden;   /* 0.5rem * 15 */ box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); height: var(--player-height); }
-            #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block;    /* 0.5rem * 15 */ object-fit: cover; }
+            #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block;     /* 0.5rem * 15 */ object-fit: cover; }
             #" . esc_attr($root_id) . " .snn-video-container:fullscreen { width: 100vw; height: 100vh; max-width: 100%; border-radius: 0; }
             #" . esc_attr($root_id) . " .snn-controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease-in-out;   }
             #" . esc_attr($root_id) . " .snn-video-container:hover .snn-controls-overlay, #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
@@ -188,7 +197,7 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar { display: flex; align-items: center; justify-content: space-between; color: var(--text-color); }
             #" . esc_attr($root_id) . " .snn-controls-left, #" . esc_attr($root_id) . " .snn-controls-right { display: flex; align-items: center; gap: 10px; }
-            #" . esc_attr($root_id) . " .snn-control-button { background: none; border: none; color: var(--text-color); padding: 10px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+            #" . esc_attr($root_id) . " .snn-control-button { background: none; border: none; color: var(--button-color); padding: 10px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
             #" . esc_attr($root_id) . " .snn-control-button:hover { background-color: var(--button-hover-background); }
             #" . esc_attr($root_id) . " .snn-control-button svg { width: 24px; height: 24px; fill: currentColor; }
             #" . esc_attr($root_id) . " .snn-volume-container { display: flex; align-items: center; }
