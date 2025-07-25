@@ -262,21 +262,21 @@ add_action( 'init', function () {
 
             // Background Size Controls
             $controls['custom_data_animate_start_background_size_value'] = [
-                'tab' => 'content', 'label' => esc_html__('Start Background Size', 'snn'), 'type' => 'text', // Changed to text for 'cover', 'auto'
+                'tab' => 'content', 'label' => esc_html__('Start Background Size', 'snn'), 'type' => 'text',
                 'placeholder' => '100%, cover', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-background-size'], 'inline' => true,
             ];
             $controls['custom_data_animate_end_background_size_value'] = [
-                'tab' => 'content', 'label' => esc_html__('End Background Size', 'snn'), 'type' => 'text', // Changed to text for 'cover', 'auto'
+                'tab' => 'content', 'label' => esc_html__('End Background Size', 'snn'), 'type' => 'text',
                 'placeholder' => '120%, auto', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-background-size'], 'inline' => true,
             ];
 
             // Background Position Controls
             $controls['custom_data_animate_start_background_position_value'] = [
-                'tab' => 'content', 'label' => esc_html__('Start Background Position', 'snn'), 'type' => 'text', // Changed to text for 'center'
+                'tab' => 'content', 'label' => esc_html__('Start Background Position', 'snn'), 'type' => 'text',
                 'placeholder' => '0% 50%, center', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-background-position'], 'inline' => true,
             ];
             $controls['custom_data_animate_end_background_position_value'] = [
-                'tab' => 'content', 'label' => esc_html__('End Background Position', 'snn'), 'type' => 'text', // Changed to text for 'center'
+                'tab' => 'content', 'label' => esc_html__('End Background Position', 'snn'), 'type' => 'text',
                 'placeholder' => '100% 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-background-position'], 'inline' => true,
             ];
 
@@ -347,74 +347,75 @@ add_action( 'init', function () {
     }
 } );
 
-// This filter processes the settings and adds the final `data-animate` attribute to the element.
 add_filter( 'bricks/element/render_attributes', function( $attributes, $key, $element ) {
     global $targets;
 
     $selected_options = $element->settings['custom_data_animate_dynamic_elements'] ?? [];
     $custom_value     = $element->settings['custom_data_animate_dynamic_elements_custom'] ?? '';
 
-    // Only proceed if the element is in our target list and animation options are selected
     if ( ! in_array( $element->name, $targets, true ) || empty( $selected_options ) ) {
         return $attributes; 
     }
 
-    // Ensure selected_options is an array
     if ( ! is_array( $selected_options ) ) {
         $selected_options = explode( ',', $selected_options );
     }
 
     $final_attributes = [];
 
-    // Loop through each selected option from the dropdown
     foreach ($selected_options as $option) {
-        // Handle options that require a user-defined value (e.g., style_start-opacity)
+        
+        // --- BACKWARD COMPATIBILITY & PROCESSING LOGIC ---
+        
         if (str_starts_with($option, 'style_start-')) {
-            $property = str_replace('style_start-', '', $option);
-            // Dynamically create the setting key name to look for the value
-            $setting_key = 'custom_data_animate_start_' . str_replace('-', '_', $property) . '_value';
-            
-            $value = $element->settings[$setting_key] ?? '';
-            
-            if ($value !== '') {
-                // Combine the option and its value, e.g., "style_start-opacity:0.1"
-                $final_attributes[] = $option . ':' . esc_attr($value);
+            // Check if it's an old value (contains ':') or a new key
+            if (strpos($option, ':') !== false) {
+                $final_attributes[] = $option; // It's an old value, use it directly
+            } else {
+                // It's a new key, get the value from its dedicated field
+                $property = str_replace('style_start-', '', $option);
+                $setting_key = 'custom_data_animate_start_' . str_replace('-', '_', $property) . '_value';
+                $value = $element->settings[$setting_key] ?? '';
+                if ($value !== '') {
+                    $final_attributes[] = $option . ':' . esc_attr($value);
+                }
             }
         } 
-        // Handle 'end' state options similarly
         elseif (str_starts_with($option, 'style_end-')) {
-            $property = str_replace('style_end-', '', $option);
-            $setting_key = 'custom_data_animate_end_' . str_replace('-', '_', $property) . '_value';
-            
-            $value = $element->settings[$setting_key] ?? '';
-            
-            if ($value !== '') {
-                $final_attributes[] = $option . ':' . esc_attr($value);
+            // Check if it's an old value (contains ':') or a new key
+            if (strpos($option, ':') !== false) {
+                $final_attributes[] = $option; // It's an old value, use it directly
+            } else {
+                // It's a new key, get the value from its dedicated field
+                $property = str_replace('style_end-', '', $option);
+                $setting_key = 'custom_data_animate_end_' . str_replace('-', '_', $property) . '_value';
+                $value = $element->settings[$setting_key] ?? '';
+                if ($value !== '') {
+                    $final_attributes[] = $option . ':' . esc_attr($value);
+                }
             }
         } 
-        // Handle new direct animation properties (start, end, duration, stagger, delay)
         elseif (in_array($option, ['start', 'end', 'duration', 'stagger', 'delay'])) {
+            // New system keys that require a value
             $setting_key = 'custom_data_animate_' . $option . '_value';
             $value = $element->settings[$setting_key] ?? '';
-            
             if ($value !== '') {
                 $final_attributes[] = $option . ':' . esc_attr($value);
             }
         }
-        // Handle the custom text input
         elseif ($option === 'custom') {
+            // Handle the custom text input
             if ($custom_value !== '') {
                 $final_attributes[] = $custom_value;
             }
         } 
-        // Handle simple boolean-like options (e.g., 'pin:true')
         else {
             $final_attributes[] = $option;
         }
     }
     
-    // If we have attributes to add, combine them into a single string and add to the element.
     if ( ! empty( $final_attributes ) ) {
+        // Use array_unique to prevent duplicates if both old and new data somehow coexist.
         $attributes[ $key ]['data-animate'] = implode( ',', array_unique($final_attributes) );
     }
 
