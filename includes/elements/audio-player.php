@@ -279,6 +279,10 @@ class SNN_Audio_Player_Element extends Element {
                 height: 24px; 
                 fill: currentColor; 
             }
+            /* Rotate rewind button icon */
+            #" . esc_attr($root_id) . " .snn-rewind-btn svg {
+                transform: rotate(180deg);
+            }
             #" . esc_attr($root_id) . " .snn-play-pause-btn { 
                 width: 56px; 
                 height: 56px; 
@@ -392,7 +396,7 @@ class SNN_Audio_Player_Element extends Element {
 
                 <div class="snn-audio-controls-bar">
                     <div class="snn-audio-controls-left">
-                           <div class="snn-volume-container">
+                            <div class="snn-volume-container">
                                 <button class="snn-audio-control-button snn-mute-btn" aria-label="Mute/Unmute"></button>
                                 <input type="range" class="snn-audio-slider snn-volume-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
                             </div>
@@ -412,8 +416,15 @@ class SNN_Audio_Player_Element extends Element {
         
         ?>
         <script>
+        // Global map to store player instances (audio element, config, and wrapper)
+        // This ensures the global keydown listener can access specific player data.
+        window.snnAudioPlayers = window.snnAudioPlayers || {};
+        // Global variable to track the ID of the currently playing audio player.
+        window.snnCurrentlyPlayingPlayerId = window.snnCurrentlyPlayingPlayerId || null;
+
         (() => {
             const playerWrapper = document.getElementById('<?php echo esc_js($root_id); ?>');
+            // Prevent re-initialization if the script runs multiple times for the same element
             if (!playerWrapper || playerWrapper.dataset.snnAudioPlayerInitialized) {
                 return;
             }
@@ -422,16 +433,16 @@ class SNN_Audio_Player_Element extends Element {
             // --- CONFIGURATION & ELEMENTS ---
             const CONFIG = {
                 CHAPTERS: <?php echo json_encode($chapters); ?>,
-                KEY_SEEK_SECONDS: 5,
-                REWIND_SECONDS: 10, 
-                FORWARD_SECONDS: 10, 
+                KEY_SEEK_SECONDS: 5, // Default seek seconds for keyboard shortcuts
+                REWIND_SECONDS: 10,  // Rewind button seconds
+                FORWARD_SECONDS: 10, // Forward button seconds
                 INITIAL_MUTED: <?php echo json_encode($muted); ?>,
             };
 
             const ICONS = {
                 play: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 6v12l10-6z"></path></svg>`,
                 pause: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`,
-                rewind: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.5 12l8.5 6V6m-9 6l8.5 6V6l-8.5 6z" transform="scale(1.2) translate(-2, -2)"></path></svg>`,
+                // Use the same forward icon, CSS will rotate it for rewind
                 forward: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 6v12l8.5-6M13 6v12l8.5-6" transform="scale(1.2) translate(-2, -2)"></path></svg>`,
                 volumeHigh: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`,
                 volumeMute: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`,
@@ -449,9 +460,18 @@ class SNN_Audio_Player_Element extends Element {
             const progressTooltip  = playerWrapper.querySelector('.snn-audio-progress-tooltip');
             const chapterTooltip   = playerWrapper.querySelector('.snn-audio-chapter-tooltip');
 
+            // If essential elements are missing, stop initialization
             if (!audio || !playPauseBtn) return; 
 
-            let isSeeking = false, lastVolume = audio.volume;
+            // Store this player's instance data in the global map
+            window.snnAudioPlayers['<?php echo esc_js($root_id); ?>'] = {
+                audio: audio,
+                config: CONFIG,
+                playerWrapper: playerWrapper
+            };
+
+            // Initialize lastVolume on the audio object itself for persistence
+            audio.lastVolume = audio.volume;
 
             const timeToSeconds = (timeString) => {
                 if (!timeString || typeof timeString !== 'string') return 0;
@@ -477,8 +497,17 @@ class SNN_Audio_Player_Element extends Element {
                 bar.style.background = `linear-gradient(to right, ${accentColor} ${progress}%, ${trackColor} ${progress}%)`;
             };
 
-            const togglePlayPause = () => audio.paused || audio.ended ? audio.play() : audio.pause();
-            const updatePlayPauseIcon = () => { if(playPauseBtn) playPauseBtn.innerHTML = audio.paused ? ICONS.play : ICONS.pause; };
+            const togglePlayPause = () => {
+                if (audio.paused || audio.ended) {
+                    audio.play();
+                } else {
+                    audio.pause();
+                }
+            };
+
+            const updatePlayPauseIcon = () => { 
+                if(playPauseBtn) playPauseBtn.innerHTML = audio.paused ? ICONS.play : ICONS.pause; 
+            };
             
             const updateMuteIcon = () => { 
                 if(muteBtn) muteBtn.innerHTML = audio.muted || audio.volume === 0 ? ICONS.volumeMute : ICONS.volumeHigh; 
@@ -487,15 +516,16 @@ class SNN_Audio_Player_Element extends Element {
             const toggleMute = () => {
                 audio.muted = !audio.muted;
                 if (audio.muted) {
-                    if (audio.volume > 0) lastVolume = audio.volume;
+                    if (audio.volume > 0) audio.lastVolume = audio.volume; // Store current volume before muting
                     audio.volume = 0;
                 } else {
-                    audio.volume = lastVolume > 0 ? lastVolume : 1;
+                    audio.volume = audio.lastVolume > 0 ? audio.lastVolume : 1; // Restore last volume or default to 1
                 }
             };
 
             const updateProgress = () => {
-                if (isSeeking || isNaN(audio.duration)) return;
+                // Only update if not actively seeking to prevent jumpiness
+                if (audio.dataset.isSeeking === 'true' || isNaN(audio.duration)) return; 
                 if (progressBar) progressBar.value = (audio.currentTime / audio.duration) * 100;
                 if (timeDisplay) timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 0)}`;
                 updateProgressBarFill(progressBar);
@@ -506,16 +536,16 @@ class SNN_Audio_Player_Element extends Element {
                 chapterDotsContainer.innerHTML = '';
                 CONFIG.CHAPTERS.forEach(chapter => {
                     const seconds = timeToSeconds(chapter.time);
-                    if (seconds > audio.duration) return;
+                    if (seconds > audio.duration) return; // Skip chapters beyond audio duration
 
                     const dot = document.createElement('div');
                     dot.className = 'snn-audio-chapter-dot';
                     dot.style.left = `${(seconds / audio.duration) * 100}%`;
                     dot.dataset.title = chapter.title;
-                    dot.style.pointerEvents = 'auto';
+                    dot.style.pointerEvents = 'auto'; // Make dots clickable
 
                     dot.addEventListener('click', e => {
-                        e.stopPropagation();
+                        e.stopPropagation(); // Prevent progress bar click event from firing
                         audio.currentTime = seconds;
                         audio.play();
                     });
@@ -526,6 +556,7 @@ class SNN_Audio_Player_Element extends Element {
                         chapterTooltip.style.opacity = '1';
                         const dotRect = dot.getBoundingClientRect();
                         const containerRect = chapterDotsContainer.getBoundingClientRect();
+                        // Position tooltip relative to the dot
                         chapterTooltip.style.left = `${dotRect.left - containerRect.left + (dotRect.width / 2)}px`;
                     });
 
@@ -537,21 +568,24 @@ class SNN_Audio_Player_Element extends Element {
                 });
             };
 
-            const handleKeydown = (e) => {
-                const activeEl = document.activeElement;
-                if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) return;
-
-                switch (e.key.toLowerCase()) {
-                    case ' ': case 'k': e.preventDefault(); togglePlayPause(); break;
-                    case 'm': e.preventDefault(); toggleMute(); break;
-                    case 'arrowright': e.preventDefault(); audio.currentTime = Math.min(audio.duration, audio.currentTime + CONFIG.KEY_SEEK_SECONDS); break;
-                    case 'arrowleft': e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - CONFIG.KEY_SEEK_SECONDS); break;
+            // --- EVENT LISTENERS (Player-specific) ---
+            audio.addEventListener('play', () => {
+                window.snnCurrentlyPlayingPlayerId = '<?php echo esc_js($root_id); ?>'; // Set this player as active
+                updatePlayPauseIcon();
+            });
+            audio.addEventListener('pause', () => {
+                updatePlayPauseIcon();
+                // If this player was the active one, clear the active ID
+                if (window.snnCurrentlyPlayingPlayerId === '<?php echo esc_js($root_id); ?>') {
+                    window.snnCurrentlyPlayingPlayerId = null; 
                 }
-            };
-
-            // --- EVENT LISTENERS ---
-            audio.addEventListener('play', updatePlayPauseIcon);
-            audio.addEventListener('pause', updatePlayPauseIcon);
+            });
+            audio.addEventListener('ended', () => {
+                updatePlayPauseIcon();
+                if (window.snnCurrentlyPlayingPlayerId === '<?php echo esc_js($root_id); ?>') {
+                    window.snnCurrentlyPlayingPlayerId = null; 
+                }
+            });
             audio.addEventListener('volumechange', () => {
                 if (volumeSlider) volumeSlider.value = audio.volume;
                 updateMuteIcon();
@@ -561,6 +595,7 @@ class SNN_Audio_Player_Element extends Element {
             audio.addEventListener('loadedmetadata', () => {
                 updateProgress();
                 generateChapters();
+                // Apply initial muted state after metadata is loaded
                 if (CONFIG.INITIAL_MUTED) {
                     audio.muted = true;
                     audio.volume = 0;
@@ -576,18 +611,18 @@ class SNN_Audio_Player_Element extends Element {
             muteBtn?.addEventListener('click', (e) => { e.stopPropagation(); toggleMute(); });
             
             volumeSlider?.addEventListener('input', () => {
-                audio.muted = false;
+                audio.muted = false; // Unmute if volume is adjusted
                 audio.volume = volumeSlider.value;
             });
 
             progressBar?.addEventListener('input', e => {
-                isSeeking = true;
+                audio.dataset.isSeeking = 'true'; // Set flag to prevent timeupdate from overriding
                 const scrubTime = (e.target.value / 100) * audio.duration;
                 if(timeDisplay) timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(audio.duration)}`;
                 updateProgressBarFill(progressBar);
             });
             progressBar?.addEventListener('change', e => {
-                isSeeking = false;
+                audio.dataset.isSeeking = 'false'; // Clear flag
                 audio.currentTime = (e.target.value / 100) * audio.duration;
             });
             progressBar?.addEventListener('mousemove', e => {
@@ -600,16 +635,71 @@ class SNN_Audio_Player_Element extends Element {
             });
             progressBar?.addEventListener('mouseleave', () => { if(progressTooltip) progressTooltip.style.opacity = '0'; });
 
-            document.addEventListener('keydown', handleKeydown);
-
             // --- INITIALIZATION ---
-            if (rewindBtn) rewindBtn.innerHTML = ICONS.rewind;
+            // Assign the forward icon to both forward and rewind buttons.
+            // CSS will handle the rotation for rewind.
+            if (rewindBtn) rewindBtn.innerHTML = ICONS.forward; 
             if (forwardBtn) forwardBtn.innerHTML = ICONS.forward;
             updatePlayPauseIcon();
             updateMuteIcon();
             updateProgressBarFill(progressBar);
             updateProgressBarFill(volumeSlider);
         })();
+
+        // --- GLOBAL KEYDOWN LISTENER (Added only once) ---
+        // This listener will control only the currently playing audio player.
+        if (!window.snnAudioPlayerGlobalKeyListenerAdded) {
+            document.addEventListener('keydown', (e) => {
+                // Ignore key events if an input, textarea, or editable element is focused
+                const activeEl = document.activeElement;
+                if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
+                    return; 
+                }
+
+                // Only proceed if there's an actively playing audio player
+                if (window.snnCurrentlyPlayingPlayerId && window.snnAudioPlayers[window.snnCurrentlyPlayingPlayerId]) {
+                    const activePlayerInstance = window.snnAudioPlayers[window.snnCurrentlyPlayingPlayerId];
+                    const activeAudio = activePlayerInstance.audio;
+                    const activeConfig = activePlayerInstance.config;
+
+                    if (!activeAudio || !activeConfig) return;
+
+                    switch (e.key.toLowerCase()) {
+                        case ' ': 
+                        case 'k': 
+                            e.preventDefault(); 
+                            if (activeAudio.paused || activeAudio.ended) {
+                                activeAudio.play();
+                            } else {
+                                activeAudio.pause();
+                            }
+                            break;
+                        case 'm': 
+                            e.preventDefault(); 
+                            // Toggle mute for the active player
+                            activeAudio.muted = !activeAudio.muted;
+                            if (activeAudio.muted) {
+                                if (activeAudio.volume > 0) activeAudio.lastVolume = activeAudio.volume; // Store last volume
+                                activeAudio.volume = 0;
+                            } else {
+                                activeAudio.volume = activeAudio.lastVolume > 0 ? activeAudio.lastVolume : 1; // Restore volume
+                            }
+                            // Manually dispatch 'volumechange' to trigger the active player's UI update
+                            activeAudio.dispatchEvent(new Event('volumechange'));
+                            break;
+                        case 'arrowright': 
+                            e.preventDefault(); 
+                            activeAudio.currentTime = Math.min(activeAudio.duration, activeAudio.currentTime + activeConfig.KEY_SEEK_SECONDS); 
+                            break;
+                        case 'arrowleft': 
+                            e.preventDefault(); 
+                            activeAudio.currentTime = Math.max(0, activeAudio.currentTime - activeConfig.KEY_SEEK_SECONDS); 
+                            break;
+                    }
+                }
+            });
+            window.snnAudioPlayerGlobalKeyListenerAdded = true; // Set flag to prevent multiple additions
+        }
         </script>
         <?php
         echo "</div>"; // End of root element
