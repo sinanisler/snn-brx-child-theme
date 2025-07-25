@@ -201,7 +201,7 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-video-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-video-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
             #" . esc_attr($root_id) . " .snn-video-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
-            #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: var(--chapter-dot-color); border-radius: 50%; cursor: pointer; transition: transform 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 60%; transform: translate(-50%, -50%); width: 12px; height: 12px; background: var(--chapter-dot-color); border-radius: 50%; cursor: pointer; transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-chapter-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
             #" . esc_attr($root_id) . " .snn-hidden { display: none !important; }
             /* Styles for chapter tooltip */
