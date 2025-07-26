@@ -53,9 +53,87 @@ add_action( 'init', function () {
                     'style_start-scale'           => esc_html__('Scale Start', 'snn'),
                     'style_end-scale'             => esc_html__('Scale End', 'snn'),
 
+                    // Group: Scale Individual Axis
+                    'style_start-scaleX'          => esc_html__('Scale X Start', 'snn'),
+                    'style_end-scaleX'            => esc_html__('Scale X End', 'snn'),
+                    'style_start-scaleY'          => esc_html__('Scale Y Start', 'snn'),
+                    'style_end-scaleY'            => esc_html__('Scale Y End', 'snn'),
+
+                    // Group: Skew
+                    'style_start-skewX'           => esc_html__('Skew X Start', 'snn'),
+                    'style_end-skewX'             => esc_html__('Skew X End', 'snn'),
+                    'style_start-skewY'           => esc_html__('Skew Y Start', 'snn'),
+                    'style_end-skewY'             => esc_html__('Skew Y End', 'snn'),
+
+                    // Group: 3D Rotations
+                    'style_start-rotateX'         => esc_html__('Rotate X Start', 'snn'),
+                    'style_end-rotateX'           => esc_html__('Rotate X End', 'snn'),
+                    'style_start-rotateY'         => esc_html__('Rotate Y Start', 'snn'),
+                    'style_end-rotateY'           => esc_html__('Rotate Y End', 'snn'),
+                    'style_start-rotateZ'         => esc_html__('Rotate Z Start', 'snn'),
+                    'style_end-rotateZ'           => esc_html__('Rotate Z End', 'snn'),
+
+                    // Group: Perspective
+                    'style_start-perspective'     => esc_html__('Perspective Start', 'snn'),
+                    'style_end-perspective'       => esc_html__('Perspective End', 'snn'),
+
+                    // Group: Color Animations
+                    'style_start-color'           => esc_html__('Text Color Start', 'snn'),
+                    'style_end-color'             => esc_html__('Text Color End', 'snn'),
+                    'style_start-background-color' => esc_html__('Background Color Start', 'snn'),
+                    'style_end-background-color'   => esc_html__('Background Color End', 'snn'),
+                    'style_start-border-color'    => esc_html__('Border Color Start', 'snn'),
+                    'style_end-border-color'      => esc_html__('Border Color End', 'snn'),
+                    'style_start-fill'            => esc_html__('SVG Fill Start', 'snn'),
+                    'style_end-fill'              => esc_html__('SVG Fill End', 'snn'),
+                    'style_start-stroke'          => esc_html__('SVG Stroke Start', 'snn'),
+                    'style_end-stroke'            => esc_html__('SVG Stroke End', 'snn'),
+
+                    // Group: Layout Properties - Margin
+                    'style_start-margin'          => esc_html__('Margin Start', 'snn'),
+                    'style_end-margin'            => esc_html__('Margin End', 'snn'),
+                    'style_start-margin-top'      => esc_html__('Margin Top Start', 'snn'),
+                    'style_end-margin-top'        => esc_html__('Margin Top End', 'snn'),
+                    'style_start-margin-right'    => esc_html__('Margin Right Start', 'snn'),
+                    'style_end-margin-right'      => esc_html__('Margin Right End', 'snn'),
+                    'style_start-margin-bottom'   => esc_html__('Margin Bottom Start', 'snn'),
+                    'style_end-margin-bottom'     => esc_html__('Margin Bottom End', 'snn'),
+                    'style_start-margin-left'     => esc_html__('Margin Left Start', 'snn'),
+                    'style_end-margin-left'       => esc_html__('Margin Left End', 'snn'),
+
+                    // Group: Layout Properties - Padding
+                    'style_start-padding'         => esc_html__('Padding Start', 'snn'),
+                    'style_end-padding'           => esc_html__('Padding End', 'snn'),
+                    'style_start-padding-top'     => esc_html__('Padding Top Start', 'snn'),
+                    'style_end-padding-top'       => esc_html__('Padding Top End', 'snn'),
+                    'style_start-padding-right'   => esc_html__('Padding Right Start', 'snn'),
+                    'style_end-padding-right'     => esc_html__('Padding Right End', 'snn'),
+                    'style_start-padding-bottom'  => esc_html__('Padding Bottom Start', 'snn'),
+                    'style_end-padding-bottom'    => esc_html__('Padding Bottom End', 'snn'),
+                    'style_start-padding-left'    => esc_html__('Padding Left Start', 'snn'),
+                    'style_end-padding-left'      => esc_html__('Padding Left End', 'snn'),
+
+                    // Group: Layout Properties - Position
+                    'style_start-top'             => esc_html__('Top Position Start', 'snn'),
+                    'style_end-top'               => esc_html__('Top Position End', 'snn'),
+                    'style_start-right'           => esc_html__('Right Position Start', 'snn'),
+                    'style_end-right'             => esc_html__('Right Position End', 'snn'),
+                    'style_start-bottom'          => esc_html__('Bottom Position Start', 'snn'),
+                    'style_end-bottom'            => esc_html__('Bottom Position End', 'snn'),
+                    'style_start-left'            => esc_html__('Left Position Start', 'snn'),
+                    'style_end-left'              => esc_html__('Left Position End', 'snn'),
+                    'style_start-z-index'         => esc_html__('Z-Index Start', 'snn'),
+                    'style_end-z-index'           => esc_html__('Z-Index End', 'snn'),
+
                     // Group: Border Radius
                     'style_start-border-radius'   => esc_html__('Border Radius Start', 'snn'),
                     'style_end-border-radius'     => esc_html__('Border Radius End', 'snn'),
+
+                    // Group: Border Properties
+                    'style_start-border-width'    => esc_html__('Border Width Start', 'snn'),
+                    'style_end-border-width'      => esc_html__('Border Width End', 'snn'),
+                    'style_start-outline'         => esc_html__('Outline Start', 'snn'),
+                    'style_end-outline'           => esc_html__('Outline End', 'snn'),
 
                     // Group: Font Size
                     'style_start-font-size'       => esc_html__('Font Size Start', 'snn'),
@@ -64,6 +142,26 @@ add_action( 'init', function () {
                     // Group: Font Weight
                     'style_start-font-weight'     => esc_html__('Font Weight Start', 'snn'),
                     'style_end-font-weight'       => esc_html__('Font Weight End', 'snn'),
+
+                    // Group: Text Properties
+                    'style_start-line-height'     => esc_html__('Line Height Start', 'snn'),
+                    'style_end-line-height'       => esc_html__('Line Height End', 'snn'),
+                    'style_start-letter-spacing'  => esc_html__('Letter Spacing Start', 'snn'),
+                    'style_end-letter-spacing'    => esc_html__('Letter Spacing End', 'snn'),
+                    'style_start-word-spacing'    => esc_html__('Word Spacing Start', 'snn'),
+                    'style_end-word-spacing'      => esc_html__('Word Spacing End', 'snn'),
+                    'style_start-text-indent'     => esc_html__('Text Indent Start', 'snn'),
+                    'style_end-text-indent'       => esc_html__('Text Indent End', 'snn'),
+
+                    // Group: Advanced Effects
+                    'style_start-clip-path'       => esc_html__('Clip Path Start', 'snn'),
+                    'style_end-clip-path'         => esc_html__('Clip Path End', 'snn'),
+                    'style_start-mask'            => esc_html__('Mask Start', 'snn'),
+                    'style_end-mask'              => esc_html__('Mask End', 'snn'),
+                    'style_start-box-shadow'      => esc_html__('Box Shadow Start', 'snn'),
+                    'style_end-box-shadow'        => esc_html__('Box Shadow End', 'snn'),
+                    'style_start-text-shadow'     => esc_html__('Text Shadow Start', 'snn'),
+                    'style_end-text-shadow'       => esc_html__('Text Shadow End', 'snn'),
 
                     // Group: Background
                     'style_start-background-size'     => esc_html__('Background Size Start', 'snn'),
@@ -228,6 +326,334 @@ add_action( 'init', function () {
             $controls['custom_data_animate_end_scale_value'] = [
                 'tab' => 'content', 'label' => esc_html__('End Scale', 'snn'), 'type' => 'number',
                 'placeholder' => '1', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-scale'], 'inline' => true,
+            ];
+
+            // Individual Scale Controls
+            $controls['custom_data_animate_start_scaleX_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Scale X', 'snn'), 'type' => 'number',
+                'placeholder' => '0.5', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-scaleX'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_scaleX_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Scale X', 'snn'), 'type' => 'number',
+                'placeholder' => '1', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-scaleX'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_scaleY_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Scale Y', 'snn'), 'type' => 'number',
+                'placeholder' => '0.5', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-scaleY'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_scaleY_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Scale Y', 'snn'), 'type' => 'number',
+                'placeholder' => '1', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-scaleY'], 'inline' => true,
+            ];
+
+            // Skew Controls
+            $controls['custom_data_animate_start_skewX_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Skew X', 'snn'), 'type' => 'text',
+                'placeholder' => '0deg, 15deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-skewX'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_skewX_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Skew X', 'snn'), 'type' => 'text',
+                'placeholder' => '45deg, 0deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-skewX'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_skewY_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Skew Y', 'snn'), 'type' => 'text',
+                'placeholder' => '0deg, 15deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-skewY'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_skewY_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Skew Y', 'snn'), 'type' => 'text',
+                'placeholder' => '45deg, 0deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-skewY'], 'inline' => true,
+            ];
+
+            // 3D Rotation Controls
+            $controls['custom_data_animate_start_rotateX_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Rotate X', 'snn'), 'type' => 'text',
+                'placeholder' => '0deg, 90deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-rotateX'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_rotateX_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Rotate X', 'snn'), 'type' => 'text',
+                'placeholder' => '360deg, 0deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-rotateX'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_rotateY_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Rotate Y', 'snn'), 'type' => 'text',
+                'placeholder' => '0deg, 90deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-rotateY'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_rotateY_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Rotate Y', 'snn'), 'type' => 'text',
+                'placeholder' => '360deg, 0deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-rotateY'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_rotateZ_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Rotate Z', 'snn'), 'type' => 'text',
+                'placeholder' => '0deg, 90deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-rotateZ'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_rotateZ_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Rotate Z', 'snn'), 'type' => 'text',
+                'placeholder' => '360deg, 0deg', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-rotateZ'], 'inline' => true,
+            ];
+
+            // Perspective Controls
+            $controls['custom_data_animate_start_perspective_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Perspective', 'snn'), 'type' => 'text',
+                'placeholder' => '1000px, 500px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-perspective'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_perspective_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Perspective', 'snn'), 'type' => 'text',
+                'placeholder' => '2000px, 800px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-perspective'], 'inline' => true,
+            ];
+
+            // Color Controls
+            $controls['custom_data_animate_start_color_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Text Color', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-color'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_color_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Text Color', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-color'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_background_color_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Background Color', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-background-color'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_background_color_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Background Color', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-background-color'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_border_color_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Border Color', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-border-color'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_border_color_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Border Color', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-border-color'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_fill_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start SVG Fill', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-fill'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_fill_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End SVG Fill', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-fill'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_stroke_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start SVG Stroke', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-stroke'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_stroke_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End SVG Stroke', 'snn'), 'type' => 'color',
+                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-stroke'], 'inline' => true,
+            ];
+
+            // Margin Controls
+            $controls['custom_data_animate_start_margin_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Margin', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px 20px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-margin'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_margin_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Margin', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-margin'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_margin_top_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Margin Top', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-margin-top'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_margin_top_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Margin Top', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-margin-top'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_margin_right_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Margin Right', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-margin-right'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_margin_right_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Margin Right', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-margin-right'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_margin_bottom_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Margin Bottom', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-margin-bottom'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_margin_bottom_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Margin Bottom', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-margin-bottom'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_margin_left_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Margin Left', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-margin-left'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_margin_left_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Margin Left', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-margin-left'], 'inline' => true,
+            ];
+
+            // Padding Controls
+            $controls['custom_data_animate_start_padding_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Padding', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px 20px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-padding'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_padding_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Padding', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-padding'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_padding_top_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Padding Top', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-padding-top'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_padding_top_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Padding Top', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-padding-top'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_padding_right_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Padding Right', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-padding-right'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_padding_right_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Padding Right', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-padding-right'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_padding_bottom_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Padding Bottom', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-padding-bottom'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_padding_bottom_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Padding Bottom', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-padding-bottom'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_padding_left_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Padding Left', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 10px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-padding-left'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_padding_left_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Padding Left', 'snn'), 'type' => 'text',
+                'placeholder' => '20px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-padding-left'], 'inline' => true,
+            ];
+
+            // Position Controls
+            $controls['custom_data_animate_start_top_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Top Position', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-top'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_top_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Top Position', 'snn'), 'type' => 'text',
+                'placeholder' => '100px, 10%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-top'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_right_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Right Position', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-right'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_right_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Right Position', 'snn'), 'type' => 'text',
+                'placeholder' => '100px, 10%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-right'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_bottom_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Bottom Position', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-bottom'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_bottom_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Bottom Position', 'snn'), 'type' => 'text',
+                'placeholder' => '100px, 10%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-bottom'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_left_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Left Position', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-left'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_left_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Left Position', 'snn'), 'type' => 'text',
+                'placeholder' => '100px, 10%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-left'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_z_index_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Z-Index', 'snn'), 'type' => 'number',
+                'placeholder' => '1, 10', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-z-index'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_z_index_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Z-Index', 'snn'), 'type' => 'number',
+                'placeholder' => '100, 1', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-z-index'], 'inline' => true,
+            ];
+
+            // Border Width Controls
+            $controls['custom_data_animate_start_border_width_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Border Width', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 1px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-border-width'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_border_width_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Border Width', 'snn'), 'type' => 'text',
+                'placeholder' => '5px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-border-width'], 'inline' => true,
+            ];
+
+            // Outline Controls
+            $controls['custom_data_animate_start_outline_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Outline', 'snn'), 'type' => 'text',
+                'placeholder' => 'none, 1px solid red', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-outline'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_outline_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Outline', 'snn'), 'type' => 'text',
+                'placeholder' => '3px solid blue, none', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-outline'], 'inline' => true,
+            ];
+
+            // Text Properties Controls
+            $controls['custom_data_animate_start_line_height_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Line Height', 'snn'), 'type' => 'text',
+                'placeholder' => '1, 1.5', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-line-height'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_line_height_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Line Height', 'snn'), 'type' => 'text',
+                'placeholder' => '2, 1', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-line-height'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_letter_spacing_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Letter Spacing', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 2px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-letter-spacing'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_letter_spacing_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Letter Spacing', 'snn'), 'type' => 'text',
+                'placeholder' => '5px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-letter-spacing'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_word_spacing_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Word Spacing', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 5px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-word-spacing'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_word_spacing_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Word Spacing', 'snn'), 'type' => 'text',
+                'placeholder' => '10px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-word-spacing'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_text_indent_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Text Indent', 'snn'), 'type' => 'text',
+                'placeholder' => '0px, 20px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-text-indent'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_text_indent_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Text Indent', 'snn'), 'type' => 'text',
+                'placeholder' => '50px, 0px', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-text-indent'], 'inline' => true,
+            ];
+
+            // Advanced Effects Controls
+            $controls['custom_data_animate_start_clip_path_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Clip Path', 'snn'), 'type' => 'text',
+                'placeholder' => 'circle(0%), polygon(0 0, 0 0, 0 0)', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-clip-path'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_clip_path_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Clip Path', 'snn'), 'type' => 'text',
+                'placeholder' => 'circle(100%), polygon(0 0, 100% 0, 100% 100%, 0 100%)', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-clip-path'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_mask_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Mask', 'snn'), 'type' => 'text',
+                'placeholder' => 'none, url(#mask)', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-mask'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_mask_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Mask', 'snn'), 'type' => 'text',
+                'placeholder' => 'url(#mask2), none', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-mask'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_box_shadow_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Box Shadow', 'snn'), 'type' => 'text',
+                'placeholder' => 'none, 0 0 10px rgba(0,0,0,0.5)', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-box-shadow'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_box_shadow_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Box Shadow', 'snn'), 'type' => 'text',
+                'placeholder' => '0 0 20px rgba(0,0,0,0.8), none', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-box-shadow'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_start_text_shadow_value'] = [
+                'tab' => 'content', 'label' => esc_html__('Start Text Shadow', 'snn'), 'type' => 'text',
+                'placeholder' => 'none, 1px 1px 2px rgba(0,0,0,0.5)', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-text-shadow'], 'inline' => true,
+            ];
+            $controls['custom_data_animate_end_text_shadow_value'] = [
+                'tab' => 'content', 'label' => esc_html__('End Text Shadow', 'snn'), 'type' => 'text',
+                'placeholder' => '2px 2px 4px rgba(0,0,0,0.8), none', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-text-shadow'], 'inline' => true,
             ];
 
             // Border Radius Controls
