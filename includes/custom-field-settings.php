@@ -433,8 +433,11 @@ function snn_custom_fields_page_callback() {
                 flex-wrap: wrap;
                 gap: 10px;
                 margin-bottom: 10px;
-                align-items: center; 
+                align-items: center;
             }
+
+            .field-group select            {min-height:60px !important;}
+
             .custom-field-row label {
                 font-weight: bold;
                 font-size: 14px; 
@@ -535,6 +538,7 @@ function snn_custom_fields_page_callback() {
                 .custom-field-row select[style*="width:140px"] { 
                     width: 100% !important;
                 }
+                
             }
         </style>
     </div>
