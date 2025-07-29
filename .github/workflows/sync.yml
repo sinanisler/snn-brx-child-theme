@@ -46,41 +46,64 @@ jobs:
         with:
           path: source-repo
 
-      - name: Checkout Destination Repo
+      # Sync to sinanisler/snn-block
+      - name: Checkout Destination Repo (snn-block)
         uses: actions/checkout@v4
         with:
           repository: sinanisler/snn-block
-          path: destination-repo
+          path: destination-repo-block
           token: ${{ secrets.SNNBRXSYNCSECRET }}
 
-      - name: Copy files to Destination Repo
+      - name: Copy files to Destination Repo (snn-block)
         run: |
-          # Loop through each file defined in the FILES_TO_SYNC variable.
           for file_path in $FILES_TO_SYNC; do
-            echo "Processing file: $file_path"
-            # Create the destination directory structure if it doesn't exist.
-            mkdir -p "destination-repo/$(dirname "$file_path")"
-            # Copy the file from the source to the destination.
-            cp "source-repo/$file_path" "destination-repo/$file_path"
+            echo "Processing file: $file_path (snn-block)"
+            mkdir -p "destination-repo-block/$(dirname "$file_path")"
+            cp "source-repo/$file_path" "destination-repo-block/$file_path"
           done
 
-      - name: Commit and Push Changes
+      - name: Commit and Push Changes (snn-block)
         run: |
-          cd destination-repo
+          cd destination-repo-block
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Check if there are any changes to the files. If not, the script will exit.
           if [[ -z $(git status --porcelain) ]]; then
             echo "No changes to commit."
             exit 0
           fi
-          
-          # Add each synced file to the git staging area.
           for file_path in $FILES_TO_SYNC; do
             git add "$file_path"
           done
+          git commit -m "SNN-BRX Sync"
+          git push
 
-          # Commit the changes with a generic message.
+      # Sync to sinanisler/snn-shop
+      - name: Checkout Destination Repo (snn-shop)
+        uses: actions/checkout@v4
+        with:
+          repository: sinanisler/snn-shop
+          path: destination-repo-shop
+          token: ${{ secrets.SNNBRXSYNCSECRET }}
+
+      - name: Copy files to Destination Repo (snn-shop)
+        run: |
+          for file_path in $FILES_TO_SYNC; do
+            echo "Processing file: $file_path (snn-shop)"
+            mkdir -p "destination-repo-shop/$(dirname "$file_path")"
+            cp "source-repo/$file_path" "destination-repo-shop/$file_path"
+          done
+
+      - name: Commit and Push Changes (snn-shop)
+        run: |
+          cd destination-repo-shop
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [[ -z $(git status --porcelain) ]]; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          for file_path in $FILES_TO_SYNC; do
+            git add "$file_path"
+          done
           git commit -m "SNN-BRX Sync"
           git push
