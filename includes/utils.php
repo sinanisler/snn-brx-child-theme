@@ -2,6 +2,61 @@
 
 
 
+
+
+/**
+ * Custom Menu Item Image Field
+ *
+ * This code adds a custom field to WordPress menu items, allowing users to input
+ * an image URL directly. The image URL is then saved as meta data
+ * for the menu item.
+ */
+add_action( 'wp_nav_menu_item_custom_fields', 'my_custom_menu_item_image_field', 10, 2 );
+function my_custom_menu_item_image_field( $item_id, $item ) {
+    $image_url = get_post_meta( $item_id, '_menu_item_image_url', true );
+    ?>
+    <p class="field-custom-image description description-wide">
+        <label for="edit-menu-item-image-<?php echo esc_attr( $item_id ); ?>">
+            <?php esc_html_e( 'Menu Item Image URL', 'your-text-domain' ); ?><br />
+            <input type="text" id="edit-menu-item-image-<?php echo esc_attr( $item_id ); ?>"
+                   class="widefat menu-item-image-url"
+                   name="menu-item-image[<?php echo esc_attr( $item_id ); ?>]"
+                   value="<?php echo esc_url( $image_url ); ?>"
+                   placeholder="<?php esc_attr_e( 'Enter image URL', 'your-text-domain' ); ?>" />
+            <span class="description"><?php esc_html_e( 'Enter the full URL for the menu item image.', 'your-text-domain' ); ?></span>
+        </label>
+    </p>
+    <?php
+}
+
+add_action( 'wp_update_nav_menu_item', 'my_custom_menu_item_image_field_save', 10, 3 );
+function my_custom_menu_item_image_field_save( $menu_id, $menu_item_db_id, $args ) {
+    if ( isset( $_POST['menu-item-image'][ $menu_item_db_id ] ) ) {
+        $image_url = sanitize_url( $_POST['menu-item-image'][ $menu_item_db_id ] );
+        update_post_meta( $menu_item_db_id, '_menu_item_image_url', $image_url );
+    } else {
+        delete_post_meta( $menu_item_db_id, '_menu_item_image_url' );
+    }
+}
+
+function get_menu_item_image_url( $menu_item_id ) {
+    return get_post_meta( $menu_item_id, '_menu_item_image_url', true );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // WP-Admin Backend Custom JS and CSS in <head>
 function snn_custom_css_utils() { ?>
     <style>
