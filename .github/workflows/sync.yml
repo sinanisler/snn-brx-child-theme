@@ -74,7 +74,7 @@ jobs:
           for file_path in $FILES_TO_SYNC; do
             git add "$file_path"
           done
-          git commit -m "SNN-BRX Sync"
+          git commit -m "SNN-BRX Features Sync"
           git push
 
       # Sync to sinanisler/snn-shop
