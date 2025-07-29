@@ -91,7 +91,6 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/image-hotspot.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/video-player.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/audio-player.php');
-\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/nav-menu.php');
 
 
 // if GSAP setting is enabled Register Elements
