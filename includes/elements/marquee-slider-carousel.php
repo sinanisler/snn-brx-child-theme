@@ -58,7 +58,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
 
         $this->controls['duration'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Duration (seconds)', 'bricks' ),
+            'label'   => esc_html__( 'Duration (Speed)', 'bricks' ),
             'type'    => 'number',
             'unit'    => 's',
             'default' => 30,
@@ -70,7 +70,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
             'label'   => esc_html__( 'Gap', 'bricks' ),
             'type'    => 'number',
             'units'   => ['px', 'rem', 'em', '%'],
-            'default' => '1.5rem',
+            'default' => '20px',
             'inline'  => true,
         ];
 
@@ -78,11 +78,34 @@ class Snn_Marquee_Slider_Carousel extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Pause on Hover', 'bricks' ),
             'type'    => 'checkbox',
-            'default' => true,
+            'default' => false,
+            'inline'  => true,
+        ];
+        
+        $this->controls['enableFade'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Enable Edge Fade', 'bricks' ),
+            'type'    => 'checkbox',
+            'default' => false,
             'inline'  => true,
         ];
 
         // --- Item Style Settings ---
+        $this->controls['itemWidth'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Item Max Width', 'bricks' ),
+            'type'    => 'number',
+            'units'   => ['px', 'rem', 'em', '%'],
+            'default' => '',
+            'css'     => [
+                [
+                    'property' => 'max-width', 
+                    'selector' => '.marquee__item',
+                ],
+            ],
+            'inline'  => true,
+        ];
+
         $this->controls['imageHeight'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Image Height', 'bricks' ),
@@ -106,7 +129,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 'grayscale' => esc_html__( 'Grayscale to Color', 'bricks' ),
                 'opacity'   => esc_html__( 'Fade In', 'bricks' ),
             ],
-            'default' => 'grayscale',
+            'default' => 'none',
             'inline'  => true,
         ];
 
@@ -136,10 +159,10 @@ class Snn_Marquee_Slider_Carousel extends Element {
         echo '<div ' . $this->render_attributes( '_root' ) . '>';
 
         // --- Dynamic CSS Generation ---
-        $direction = $settings['direction'] ?? 'left';
         $gap = $settings['gap'] ?? '1.5rem';
-        $pause_on_hover = $settings['pauseOnHover'] ?? true;
-        $image_effect = $settings['imageEffect'] ?? 'grayscale';
+        $pause_on_hover = $settings['pauseOnHover'] ?? false;
+        $image_effect = $settings['imageEffect'] ?? 'none';
+        $enable_fade = $settings['enableFade'] ?? false; 
 
         echo "<style>
             /* Marquee Container */
@@ -170,13 +193,22 @@ class Snn_Marquee_Slider_Carousel extends Element {
             }
             " : "") . "
 
-            /* --- Directional Styles --- */
-            /* Horizontal */
+            /* --- Edge Fade Effect (Conditional) --- */
+            " . ($enable_fade ? "
             .{$unique_id}[data-direction=\"left\"],
             .{$unique_id}[data-direction=\"right\"] {
                 -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
                 mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
             }
+            .{$unique_id}[data-direction=\"up\"],
+            .{$unique_id}[data-direction=\"down\"] {
+                -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+                mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+            }
+            " : "") . "
+
+            /* --- Directional Styles --- */
+            /* Horizontal Animation */
             .{$unique_id}[data-direction=\"left\"] .marquee__track {
                 animation: marquee-horizontal var(--marquee-duration) linear infinite var(--marquee-direction);
             }
@@ -184,21 +216,18 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 animation: marquee-horizontal var(--marquee-duration) linear infinite reverse;
             }
 
-            /* Vertical */
+            /* Vertical Container & Animation */
             .{$unique_id}[data-direction=\"up\"],
             .{$unique_id}[data-direction=\"down\"] {
                 max-height: 500px;
-                -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-                mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
             }
             .{$unique_id}[data-direction=\"up\"] .marquee__track,
             .{$unique_id}[data-direction=\"down\"] .marquee__track {
                 flex-direction: column;
                 min-width: auto;
                 min-height: 100%;
-                animation-name: marquee-vertical;
             }
-             .{$unique_id}[data-direction=\"up\"] .marquee__track {
+            .{$unique_id}[data-direction=\"up\"] .marquee__track {
                 animation: marquee-vertical var(--marquee-duration) linear infinite var(--marquee-direction);
             }
             .{$unique_id}[data-direction=\"down\"] .marquee__track {
@@ -211,9 +240,13 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
+                overflow: hidden; /* Added to contain children */
             }
             .{$unique_id} .marquee__item--text {
-                white-space: nowrap;
+                white-space: normal; /* Changed from nowrap to normal */
+                overflow: hidden; /* Added to hide overflow text */
+                text-overflow: ellipsis; /* Added to show ... for truncated text */
+                text-align: center; /* Added for better look on wrapped text */
             }
             .{$unique_id} .marquee__item img {
                 width: auto;
