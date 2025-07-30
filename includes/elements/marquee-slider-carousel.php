@@ -6,12 +6,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 use Bricks\Element;
 
 class Snn_Marquee_Slider_Carousel extends Element {
-    public $category     = 'snn'; // Using 'snn' category as per your examples
-    public $name         = 'snn-marquee-slider';
-    public $icon         = 'ti-layout-slider-alt'; // A suitable icon for a marquee/slider
-    public $css_selector = '.snn-marquee-wrapper';
-    public $scripts      = []; // Scripts will be enqueued inline
-    public $nestable     = false;
+    public $category      = 'snn'; // Using 'snn' category as per your examples
+    public $name          = 'snn-marquee-slider';
+    public $icon          = 'ti-layout-slider-alt'; // A suitable icon for a marquee/slider
+    public $css_selector  = '.snn-marquee-wrapper';
+    public $scripts       = []; // Scripts will be enqueued inline
+    public $nestable      = false;
 
     public function get_label() {
         return esc_html__( 'Marquee Slider Carousel', 'bricks' );
@@ -147,7 +147,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
     }
 
     public function render() {
-        $settings = $this->settings;
+        $settings  = $this->settings;
         $unique_id = 'snn-marquee-' . $this->id;
 
         // Set root attributes
@@ -159,10 +159,10 @@ class Snn_Marquee_Slider_Carousel extends Element {
         echo '<div ' . $this->render_attributes( '_root' ) . '>';
 
         // --- Dynamic CSS Generation ---
-        $gap = $settings['gap'] ?? '1.5rem';
+        $gap            = $settings['gap'] ?? '1.5rem';
         $pause_on_hover = $settings['pauseOnHover'] ?? false;
-        $image_effect = $settings['imageEffect'] ?? 'none';
-        $enable_fade = $settings['enableFade'] ?? false; 
+        $image_effect   = $settings['imageEffect'] ?? 'none';
+        $enable_fade    = $settings['enableFade'] ?? false; 
 
         echo "<style>
             /* Marquee Container */
@@ -185,13 +185,6 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 gap: var(--marquee-gap);
                 min-width: 100%;
             }
-
-            /* Pause on Hover */
-            " . ($pause_on_hover ? "
-            .{$unique_id}:hover .marquee__track {
-                animation-play-state: paused;
-            }
-            " : "") . "
 
             /* --- Edge Fade Effect (Conditional) --- */
             " . ($enable_fade ? "
@@ -274,6 +267,13 @@ class Snn_Marquee_Slider_Carousel extends Element {
             }
             " : "") . "
 
+            /* --- FIX: Pause on Hover (Moved here to ensure it overrides animation) --- */
+            " . ($pause_on_hover ? "
+            .{$unique_id}:hover .marquee__track {
+                animation-play-state: paused;
+            }
+            " : "") . "
+
             /* --- Keyframes & Accessibility --- */
             @keyframes marquee-horizontal {
                 from { transform: translateX(0); }
@@ -302,7 +302,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
         if ( ! empty( $settings['items'] ) && is_array( $settings['items'] ) ) {
             foreach ( $settings['items'] as $item ) {
                 $has_link = ! empty( $item['link']['url'] );
-                $tag = $has_link ? 'a' : 'div';
+                $tag      = $has_link ? 'a' : 'div';
 
                 // Set link attributes if a link is provided
                 if ( $has_link ) {
