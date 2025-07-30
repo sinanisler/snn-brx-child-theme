@@ -312,7 +312,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 echo "<{$tag} class='marquee__item' " . ($has_link ? $this->render_attributes( "item-{$item['_id']}" ) : '') . ">";
 
                 if ( ! empty( $item['image']['id'] ) ) {
-                    echo wp_get_attachment_image( $item['image']['id'], 'full', false, ['loading' => 'lazy'] );
+                    echo wp_get_attachment_image( $item['image']['id'], 'full', false, ['loading' => 'eager'] );
                 }
                 if ( ! empty( $item['text'] ) ) {
                     echo '<div class="marquee__item--text">' . esc_html( $item['text'] ) . '</div>';
@@ -323,28 +323,52 @@ class Snn_Marquee_Slider_Carousel extends Element {
         }
         echo '</div>'; // .marquee__track
 
-        // --- Inline JavaScript for cloning and observation ---
+        // --- Inline JavaScript for robust cloning and observation ---
         ?>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const marqueeEl = document.querySelector('.<?php echo esc_js( $unique_id ); ?>');
                 if (!marqueeEl) return;
 
-                const setupMarquee = (el) => {
-                    const track = el.querySelector('.marquee__track');
-                    if (!track || track.children.length <= 1) return;
+                const setupMarquee = () => {
+                    const track = marqueeEl.querySelector('.marquee__track');
+                    if (!track || track.children.length === 0) return;
 
-                    // Clone items for a seamless loop
-                    const originalItems = Array.from(track.children);
-                    originalItems.forEach(item => {
-                        const clone = item.cloneNode(true);
-                        clone.setAttribute('aria-hidden', 'true');
-                        track.appendChild(clone);
-                    });
+                    const direction = marqueeEl.dataset.direction || 'left';
+                    const isVertical = direction === 'up' || direction === 'down';
+                    
+                    // Store original items and remove any pre-existing clones
+                    const originalItems = Array.from(track.querySelectorAll('.marquee__item:not(.is-clone)'));
+                    track.querySelectorAll('.is-clone').forEach(clone => clone.remove());
+
+                    if (originalItems.length === 0) return;
+
+                    // Get initial sizes
+                    const containerSize = isVertical ? marqueeEl.offsetHeight : marqueeEl.offsetWidth;
+                    let trackSize = isVertical ? track.scrollHeight : track.scrollWidth;
+                    
+                    // If content is smaller than the container, cloning is not needed.
+                    if (trackSize >= containerSize) {
+                        // **This is the core fix:** Clone items until the track is at least double the container size.
+                        // This guarantees there's always content to fill the space, preventing the "jump".
+                        while (trackSize < containerSize * 2) {
+                            originalItems.forEach(item => {
+                                const clone = item.cloneNode(true);
+                                clone.setAttribute('aria-hidden', 'true');
+                                clone.classList.add('is-clone'); // Add a class for easy identification
+                                track.appendChild(clone);
+                            });
+                            trackSize = isVertical ? track.scrollHeight : track.scrollWidth;
+                        }
+                    }
                 };
 
-                // IntersectionObserver for performance
-                const observer = new IntersectionObserver((entries) => {
+                // Use ResizeObserver for robust handling of responsive changes.
+                const resizeObserver = new ResizeObserver(() => setupMarquee());
+                resizeObserver.observe(marqueeEl);
+                
+                // IntersectionObserver for performance (pauses when off-screen).
+                const visibilityObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             entry.target.classList.add('is-in-view');
@@ -354,8 +378,10 @@ class Snn_Marquee_Slider_Carousel extends Element {
                     });
                 }, { threshold: 0.1 });
 
-                setupMarquee(marqueeEl);
-                observer.observe(marqueeEl);
+                visibilityObserver.observe(marqueeEl);
+                
+                // Initial setup. A small timeout can help ensure all assets are loaded and dimensions are correct.
+                setTimeout(setupMarquee, 100);
             });
         </script>
         <?php
