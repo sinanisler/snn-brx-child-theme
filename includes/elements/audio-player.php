@@ -567,6 +567,16 @@ class SNN_Audio_Player_Element extends Element {
 
             // --- EVENT LISTENERS (Player-specific) ---
             audio.addEventListener('play', () => {
+                // Pause all other audio players when this one starts playing
+                Object.keys(window.snnAudioPlayers).forEach(playerId => {
+                    if (playerId !== '<?php echo esc_js($root_id); ?>') {
+                        const otherPlayer = window.snnAudioPlayers[playerId];
+                        if (otherPlayer && otherPlayer.audio && !otherPlayer.audio.paused) {
+                            otherPlayer.audio.pause();
+                        }
+                    }
+                });
+                
                 window.snnCurrentlyPlayingPlayerId = '<?php echo esc_js($root_id); ?>'; // Set this player as active
                 updatePlayPauseIcon();
             });
