@@ -115,3 +115,11 @@ Stay informed about future developments and planned features on the [Roadmap](ht
 *   **FAQs:** Find answers to frequently asked questions on the [FAQs](https://sinanisler.com/snn-brx/#faqs/) page.
 *   **Bug Report:** Report any issues you encounter via the [Bug Report](https://github.com/sinanisler/snn-brx-child-theme/issues) section.
 *   **Discussions:** Engage with the community and share your experiences in the [Discussions](https://github.com/sinanisler/snn-brx-child-theme/discussions/) forum.
+
+
+
+
+
+## How can I report security bugs?
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/d0bb078b-0841-4526-ab62-6e39cf6a9579)
