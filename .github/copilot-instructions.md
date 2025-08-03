@@ -315,8 +315,14 @@ Custom dynamic data tags in `includes/dynamic-data-tags/` extend Bricks' data ca
 6. **Register Element**: Add to `functions.php` or use class registration
 7. **Handle Assets**: Enqueue scripts/styles in render method if needed
 
+**Element Registration Example:**
+After creating your element (e.g., `gallery-box.php`), register it in `functions.php` like this:
+```php
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gallery-box.php');
+```
+
 ### Element Development Best Practices
-- **Unique IDs**: Generate unique root IDs for scoped styling
+- **Unique IDs**: $root_id = $this->attributes['_root']['id']; or if attr need to be added to dom $this->set_attribute( '_root', 'class', 'brxe-flipbox flip-container' );
 - **Settings Validation**: Always provide defaults and validate user input
 - **Responsive Considerations**: Include device-specific controls where appropriate
 - **Inline Styles**: Use scoped CSS with unique selectors for complex styling
