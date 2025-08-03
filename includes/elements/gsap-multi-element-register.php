@@ -84,10 +84,6 @@ add_action( 'init', function () {
                     'style_end-background-color'   => esc_html__('Background Color End', 'snn'),
                     'style_start-border-color'    => esc_html__('Border Color Start', 'snn'),
                     'style_end-border-color'      => esc_html__('Border Color End', 'snn'),
-                    'style_start-fill'            => esc_html__('SVG Fill Start', 'snn'),
-                    'style_end-fill'              => esc_html__('SVG Fill End', 'snn'),
-                    'style_start-stroke'          => esc_html__('SVG Stroke Start', 'snn'),
-                    'style_end-stroke'            => esc_html__('SVG Stroke End', 'snn'),
 
                     // Group: Layout Properties - Margin
                     'style_start-margin'          => esc_html__('Margin Start', 'snn'),
@@ -424,22 +420,6 @@ add_action( 'init', function () {
             $controls['custom_data_animate_end_border_color_value'] = [
                 'tab' => 'content', 'label' => esc_html__('End Border Color', 'snn'), 'type' => 'color',
                 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-border-color'], 'inline' => true,
-            ];
-            $controls['custom_data_animate_start_fill_value'] = [
-                'tab' => 'content', 'label' => esc_html__('Start SVG Fill', 'snn'), 'type' => 'color',
-                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-fill'], 'inline' => true,
-            ];
-            $controls['custom_data_animate_end_fill_value'] = [
-                'tab' => 'content', 'label' => esc_html__('End SVG Fill', 'snn'), 'type' => 'color',
-                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-fill'], 'inline' => true,
-            ];
-            $controls['custom_data_animate_start_stroke_value'] = [
-                'tab' => 'content', 'label' => esc_html__('Start SVG Stroke', 'snn'), 'type' => 'color',
-                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-stroke'], 'inline' => true,
-            ];
-            $controls['custom_data_animate_end_stroke_value'] = [
-                'tab' => 'content', 'label' => esc_html__('End SVG Stroke', 'snn'), 'type' => 'color',
-                'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-stroke'], 'inline' => true,
             ];
 
             // Margin Controls
