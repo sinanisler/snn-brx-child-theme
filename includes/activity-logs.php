@@ -670,7 +670,7 @@ function snn_activity_log_page_html() {
                             <td><?php echo get_the_date( 'Y-m-d H:i:s' ); ?></td>
                             <td><?php echo esc_html( $user_info ); ?></td>
                             <td><?php echo esc_html( $action ); ?></td>
-                            <td><pre><?php echo esc_html( get_the_content() ); ?></pre></td>
+                            <td><code><?php echo esc_html( get_the_content() ); ?></code></td>
                         </tr>
                     <?php endwhile;
                     wp_reset_postdata(); // Restore original post data.
