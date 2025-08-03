@@ -643,9 +643,9 @@ function snn_activity_log_page_html() {
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th scope="col" style="width:150px;"><?php _e( 'Date', 'snn-activity-log' ); ?></th>
-                    <th scope="col"><?php _e( 'User', 'snn-activity-log' ); ?></th>
-                    <th scope="col"><?php _e( 'Action', 'snn-activity-log' ); ?></th>
+                    <th scope="col" style="width:140px;"><?php _e( 'Date', 'snn-activity-log' ); ?></th>
+                    <th scope="col" style="width:140px;"><?php _e( 'User', 'snn-activity-log' ); ?></th>
+                    <th scope="col" style="width:250px;"><?php _e( 'Action', 'snn-activity-log' ); ?></th>
                     <th scope="col"><?php _e( 'Details', 'snn-activity-log' ); ?></th>
                 </tr>
             </thead>
@@ -670,7 +670,7 @@ function snn_activity_log_page_html() {
                             <td><?php echo get_the_date( 'Y-m-d H:i:s' ); ?></td>
                             <td><?php echo esc_html( $user_info ); ?></td>
                             <td><?php echo esc_html( $action ); ?></td>
-                            <td><code><?php echo esc_html( get_the_content() ); ?></code></td>
+                            <td><pre><?php echo esc_html( get_the_content() ); ?></pre></td>
                         </tr>
                     <?php endwhile;
                     wp_reset_postdata(); // Restore original post data.
