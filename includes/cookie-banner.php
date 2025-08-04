@@ -529,7 +529,7 @@ function snn_output_cookie_banner() {
         .snn-banner-buttons{display:flex;flex-direction:row;gap:10px}
         .snn-banner-text{margin-bottom:10px;}
         .snn-service-name span{font-weight:900;}
-        .snn-legal-text{font-size:14px;margin-top:10px;}
+        .snn-legal-text{margin-top:10px;}
         .snn-banner-buttons .snn-button{background:<?php echo isset($options['snn_cookie_settings_button_bg_color']) ? esc_attr($options['snn_cookie_settings_button_bg_color']) : '#555555'; ?>;color:<?php echo isset($options['snn_cookie_settings_button_text_color']) ? esc_attr($options['snn_cookie_settings_button_text_color']) : '#ffffff'; ?>;border:none;padding:10px;cursor:pointer;border-radius:<?php echo esc_attr($button_border_radius); ?>px;width:100%;text-align:center;}
         .snn-banner-buttons .snn-button:last-child{margin-right:0;}
         .snn-preferences-title{margin-top:0;font-weight:600;text-align:center;}
