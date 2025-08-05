@@ -285,7 +285,7 @@ function snn_custom_codes_snippets_admin_styles() {
         /* General styling for the settings page */
         h3{margin-top:10px} /* Reset margin for h3 if needed */
         th,td{padding:0 !important} /* Reset padding for th,td if needed by theme */
-        .CodeMirror { min-height: 620px !important; border: 1px solid #ddd; }
+        .CodeMirror { min-height: 500px !important; border: 1px solid #ddd; }
         .snn-snippet-nav-tab-wrapper { margin-bottom: 15px; }
         .snn-snippet-description { margin-bottom: 10px; font-style: italic; color: #555; }
         .form-table th { width: 200px; } /* Consistent width for settings labels */
@@ -761,6 +761,7 @@ function snn_custom_codes_snippets_page() {
 
         <div class="notice notice-warning inline snn-php-execution-warning">
             <p><strong>Warning:</strong> <?php esc_html_e( 'ATTENTION PLEASE! These settings are not for normal users! If you don’t have at least some basic knowledge of HTML, CSS, and FTP login, DO NOT USE IT!', 'snn' ); ?></p>
+            <p><strong>INFO:</strong> <?php esc_html_e( 'If needed use define( ‘SNN_CODE_DISABLE’, true ); in functions.php or wp-config.php file to disable the code snippets feature temporarly. ', 'snn' ); ?></p>
         </div>
 
         <form method="post" action="admin.php?page=snn-custom-codes-snippets&tab=<?php echo esc_attr($current_tab_key); ?>">
