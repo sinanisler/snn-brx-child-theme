@@ -41,13 +41,14 @@ add_action( 'init', function () {
                     'style_start-rotate'          => esc_html__('Rotate Start', 'snn'),
                     'style_end-rotate'            => esc_html__('Rotate End', 'snn'),
 
+
                     // Group: X Movement
-                    'style_start-x'               => esc_html__('X Move Start', 'snn'),
-                    'style_end-x'                 => esc_html__('X Move End', 'snn'),
+                    'style_start-x'               => esc_html__('Move Translate X Start', 'snn'),
+                    'style_end-x'                 => esc_html__('Move Translate X End', 'snn'),
 
                     // Group: Y Movement
-                    'style_start-y'               => esc_html__('Y Move Start', 'snn'),
-                    'style_end-y'                 => esc_html__('Y Move End', 'snn'),
+                    'style_start-y'               => esc_html__('Move Translate Y Start', 'snn'),
+                    'style_end-y'                 => esc_html__('Move Translate Y End', 'snn'),
                     
                     // Group: Scale
                     'style_start-scale'           => esc_html__('Scale Start', 'snn'),
@@ -296,21 +297,21 @@ add_action( 'init', function () {
 
             // X Move Controls
             $controls['custom_data_animate_start_x_value'] = [
-                'tab' => 'content', 'label' => esc_html__('Start X Move', 'snn'), 'type' => 'text',
+                'tab' => 'content', 'label' => esc_html__('Start Move Translate X', 'snn'), 'type' => 'text',
                 'placeholder' => '-100px, 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-x'], 'inline' => true,
             ];
             $controls['custom_data_animate_end_x_value'] = [
-                'tab' => 'content', 'label' => esc_html__('End X Move', 'snn'), 'type' => 'text',
+                'tab' => 'content', 'label' => esc_html__('End Move Translate X', 'snn'), 'type' => 'text',
                 'placeholder' => '0px, 0%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-x'], 'inline' => true,
             ];
 
             // Y Move Controls
             $controls['custom_data_animate_start_y_value'] = [
-                'tab' => 'content', 'label' => esc_html__('Start Y Move', 'snn'), 'type' => 'text',
+                'tab' => 'content', 'label' => esc_html__('Start Move Translate Y', 'snn'), 'type' => 'text',
                 'placeholder' => '-100px, 50%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_start-y'], 'inline' => true,
             ];
             $controls['custom_data_animate_end_y_value'] = [
-                'tab' => 'content', 'label' => esc_html__('End Y Move', 'snn'), 'type' => 'text',
+                'tab' => 'content', 'label' => esc_html__('End Move Translate Y', 'snn'), 'type' => 'text',
                 'placeholder' => '0px, 0%', 'required' => ['custom_data_animate_dynamic_elements', 'includes', 'style_end-y'], 'inline' => true,
             ];
 
