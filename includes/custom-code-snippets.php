@@ -285,7 +285,7 @@ function snn_custom_codes_snippets_admin_styles() {
         /* General styling for the settings page */
         h3{margin-top:10px} /* Reset margin for h3 if needed */
         th,td{padding:0 !important} /* Reset padding for th,td if needed by theme */
-        .CodeMirror { min-height: 500px !important; border: 1px solid #ddd; }
+        .CodeMirror { min-height: 600px !important; border: 1px solid #ddd; }
         .snn-snippet-nav-tab-wrapper { margin-bottom: 15px; }
         .snn-snippet-description { margin-bottom: 10px; font-style: italic; color: #555; }
         .form-table th { width: 200px; } /* Consistent width for settings labels */
