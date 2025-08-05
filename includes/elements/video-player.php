@@ -55,6 +55,13 @@ class SNN_Video_Player_Element extends Element {
             'default' => false, // Default to off
         ];
 
+        $this->controls['loop'] = [
+            'tab' => 'content',
+            'label' => esc_html__( 'Loop', 'bricks' ),
+            'type' => 'checkbox',
+            'default' => false,
+        ];
+
         $this->controls['disable_autohide'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Disable Auto Hide Controls', 'bricks' ),
@@ -164,6 +171,7 @@ class SNN_Video_Player_Element extends Element {
 
         $autoplay           = ! empty( $settings['autoplay'] );
         $muted              = ! empty( $settings['muted'] );
+        $loop               = ! empty( $settings['loop'] );
         $disable_autohide = ! empty( $settings['disable_autohide'] );
 
         // Layout settings
@@ -240,6 +248,7 @@ class SNN_Video_Player_Element extends Element {
             <video class="snn-video" poster="<?php echo esc_url( $poster_url ); ?>" playsinline
                 <?php echo $autoplay ? 'autoplay' : ''; ?>
                 <?php echo $muted ? 'muted' : ''; ?>
+                <?php echo $loop ? 'loop' : ''; ?>
             >
                 <source src="<?php echo esc_url( $video_url ); ?>" type="video/mp4">
                 Your browser does not support the video tag.
