@@ -77,34 +77,4 @@ jobs:
           git commit -m "SNN-BRX Features Sync"
           git push
 
-      # Sync to sinanisler/snn-shop
-      - name: Checkout Destination Repo (snn-shop)
-        uses: actions/checkout@v4
-        with:
-          repository: sinanisler/snn-shop
-          path: destination-repo-shop
-          token: ${{ secrets.SNNBRXSYNCSECRET }}
-
-      - name: Copy files to Destination Repo (snn-shop)
-        run: |
-          for file_path in $FILES_TO_SYNC; do
-            echo "Processing file: $file_path (snn-shop)"
-            mkdir -p "destination-repo-shop/$(dirname "$file_path")"
-            cp "source-repo/$file_path" "destination-repo-shop/$file_path"
-          done
-
-      - name: Commit and Push Changes (snn-shop)
-        run: |
-          cd destination-repo-shop
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [[ -z $(git status --porcelain) ]]; then
-            echo "No changes to commit."
-            exit 0
-          fi
-          for file_path in $FILES_TO_SYNC; do
-            git add "$file_path"
-          done
-          git commit -m "SNN-BRX Features Sync"
-          git push
  
