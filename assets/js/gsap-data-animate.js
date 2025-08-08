@@ -85,6 +85,13 @@ window.onload = function () {
       return 0;
     }
 
+    function getTimelinePosition(options, index) {
+      if (options.t_start !== undefined) {
+        return options.t_start;
+      }
+      return index > 0 ? `+=${options.delay || 0}` : 0;
+    }
+
     animateElements.forEach(element => {
       const animations = element
         .getAttribute('data-animate')
@@ -99,7 +106,7 @@ window.onload = function () {
 
       if (firstOptions.trigger === 'true') {
         const timeline = gsap.timeline({ paused: true });
-        animations.forEach(animation => {
+        animations.forEach((animation, index) => {
           const options = parseAnimationOptions(animation);
           if (shouldDisableForDevice(options)) return; // skip this part if disabled
           const hasRotate = (options.startStyles.rotate !== undefined || options.endStyles.rotate !== undefined);
@@ -119,7 +126,9 @@ window.onload = function () {
             ...rotateProp,
             ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
             ...cleanEndStyles,
-            duration: options.duration || 1,
+            duration: options.t_end !== undefined && options.t_start !== undefined 
+              ? Math.max(0, options.t_end - options.t_start) 
+              : (options.duration || 1),
             delay: options.delay || 0,
             stagger: options.stagger ? getStaggerValue(options) : 0,
             ...(options.ease ? { ease: options.ease } : {}),
@@ -127,7 +136,8 @@ window.onload = function () {
           };
           timeline.to(
             splitText(element, options),
-            addVisibilityCallback(animationProps)
+            addVisibilityCallback(animationProps),
+            getTimelinePosition(options, index)
           );
         });
         element._gsapAnimationInstance = timeline;
@@ -157,7 +167,9 @@ window.onload = function () {
             ...rotateProp,
             ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
             ...cleanEndStyles,
-            duration: options.duration || 1,
+            duration: options.t_end !== undefined && options.t_start !== undefined 
+              ? Math.max(0, options.t_end - options.t_start) 
+              : (options.duration || 1),
             delay: options.delay || 0,
             stagger: options.stagger ? getStaggerValue(options) : 0,
             ...(options.ease ? { ease: options.ease } : {}),
@@ -169,7 +181,7 @@ window.onload = function () {
           timeline.to(
             splitText(element, options),
             addVisibilityCallback(animationProps),
-            index > 0 ? `+=${options.delay || 0}` : 0
+            getTimelinePosition(options, index)
           );
         });
         element._gsapAnimationInstance = timeline;
@@ -216,7 +228,9 @@ window.onload = function () {
           ...cleanEndStyles,
           scrollTrigger: scrollTriggerConfig !== false ? scrollTriggerConfig : null,
           stagger: options.stagger ? getStaggerValue(options) : 0,
-          duration: options.duration || 1,
+          duration: options.t_end !== undefined && options.t_start !== undefined 
+            ? Math.max(0, options.t_end - options.t_start) 
+            : (options.duration || 1),
           delay: options.delay || 0,
           paused: options.scroll === 'false',
           ...(options.ease ? { ease: options.ease } : {}),
@@ -302,7 +316,7 @@ window.onload = function () {
           } else {
             acc.endStyles[cssProp] = value;
           }
-        } else if (key === 'duration' || key === 'delay') {
+        } else if (key === 'duration' || key === 'delay' || key === 't_start' || key === 't_end') {
           acc[key] = parseFloat(value.replace('s', ''));
         } else {
           acc[key] = value;
@@ -480,7 +494,7 @@ window.onload = function () {
         // timeline-style (trigger:true)
         if (firstOptions.trigger === 'true') {
           const timeline = gsap.timeline({ paused: true });
-          animations.forEach(animation => {
+          animations.forEach((animation, index) => {
             const options = parseAnimationOptions(animation);
             if (shouldDisableForDevice(options)) return;
             const { hasRotate, rotateProp, cleanEndStyles } = buildRotateAndClean(options);
@@ -491,7 +505,9 @@ window.onload = function () {
               ...rotateProp,
               ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
               ...cleanEndStyles,
-              duration: options.duration || 1,
+              duration: options.t_end !== undefined && options.t_start !== undefined 
+                ? Math.max(0, options.t_end - options.t_start) 
+                : (options.duration || 1),
               delay: options.delay || 0,
               stagger: options.stagger ? getStaggerValue(options) : 0,
               ...(options.ease ? { ease: options.ease } : {}),
@@ -499,7 +515,8 @@ window.onload = function () {
             };
             timeline.to(
               splitText(element, options),
-              addVisibilityCallback(animationProps)
+              addVisibilityCallback(animationProps),
+              getTimelinePosition(options, index)
             );
           });
           element._gsapAnimationInstance = timeline;
@@ -525,7 +542,9 @@ window.onload = function () {
               ...rotateProp,
               ...(options.o || options.opacity ? { opacity: parseFloat(options.o || options.opacity) } : {}),
               ...cleanEndStyles,
-              duration: options.duration || 1,
+              duration: options.t_end !== undefined && options.t_start !== undefined 
+                ? Math.max(0, options.t_end - options.t_start) 
+                : (options.duration || 1),
               delay: options.delay || 0,
               stagger: options.stagger ? getStaggerValue(options) : 0,
               ...(options.ease ? { ease: options.ease } : {}),
@@ -538,7 +557,7 @@ window.onload = function () {
             timeline.to(
               splitText(element, options),
               addVisibilityCallback(animationProps),
-              index > 0 ? `+=${options.delay || 0}` : 0
+              getTimelinePosition(options, index)
             );
           });
 
@@ -598,7 +617,9 @@ window.onload = function () {
           ...cleanEndStyles,
           scrollTrigger: scrollTriggerConfig !== false ? scrollTriggerConfig : null,
           stagger: options.stagger ? getStaggerValue(options) : 0,
-          duration: options.duration || 1,
+          duration: options.t_end !== undefined && options.t_start !== undefined 
+            ? Math.max(0, options.t_end - options.t_start) 
+            : (options.duration || 1),
           delay: options.delay || 0,
           paused: options.scroll === 'false',
           ...(options.ease ? { ease: options.ease } : {}),
