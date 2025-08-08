@@ -237,7 +237,7 @@ function snn_enqueue_gsap_scripts() {
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
         wp_enqueue_script('gsap-js', SNN_URL_ASSETS . 'js/gsap.min.js', array(), null, true);
         wp_enqueue_script('gsap-st-js', SNN_URL_ASSETS . 'js/ScrollTrigger.min.js', array('gsap-js'), null, true);
-        wp_enqueue_script('gsap-data-js', SNN_URL_ASSETS . 'js/gsap-data-animate.js?v0.04', array(), null, true);
+        wp_enqueue_script('gsap-data-js', SNN_URL_ASSETS . 'js/gsap-data-animate.js?v0.05', array(), null, true);
         wp_enqueue_script('lottie-js', SNN_URL_ASSETS . 'js/lottie.min.js', array(), null, true);
     }
 }
