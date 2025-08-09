@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 $targets = [ 'section', 'container', 'block', 'div' , 'heading' , 'text-basic' , 'text' ];
 
