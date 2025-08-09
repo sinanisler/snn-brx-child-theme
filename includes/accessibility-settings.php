@@ -106,9 +106,18 @@ add_action('admin_init', 'snn_register_accessibility_settings');
 function snn_sanitize_accessibility_settings( $input ) {
     $sanitized = [];
     $sanitized['enqueue_accessibility'] = ! empty( $input['enqueue_accessibility'] ) ? 1 : 0;
-    $sanitized['main_color']              = ! empty( $input['main_color'] )
-        ? sanitize_hex_color( $input['main_color'] )
-        : '#000000';
+    $color = ! empty( $input['main_color'] ) ? trim( $input['main_color'] ) : '#000000';
+
+    // Allow hex color OR css variable
+    if ( preg_match( '/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $color ) ) {
+        $sanitized['main_color'] = sanitize_hex_color( $color );
+    } elseif ( preg_match( '/^var\(--[a-zA-Z0-9-_]+\)$/', $color ) ) {
+        // Accept css var as is
+        $sanitized['main_color'] = $color;
+    } else {
+        // Fallback default
+        $sanitized['main_color'] = '#000000';
+    }
     $sanitized['btn_width']              = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 45;
     $sanitized['btn_height']             = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 45;
     $align = isset( $input['btn_alignment'] ) ? $input['btn_alignment'] : 'left';
@@ -136,8 +145,44 @@ function snn_enqueue_accessibility_callback() {
 function snn_main_color_callback() {
     $opt = get_option('snn_accessibility_settings');
     $val = ! empty($opt['main_color']) ? $opt['main_color'] : '#07757f';
+
+    // If value looks like hex, separate it, else empty for color picker.
+    $hex_val = (preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $val)) ? $val : '#07757f';
     ?>
-    <input type="color" name="snn_accessibility_settings[main_color]" value="<?php echo esc_attr($val); ?>">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <!-- Color picker for hex colors -->
+        <input 
+            id="snn_colorpicker" 
+            type="color" 
+            value="<?php echo esc_attr($hex_val); ?>"
+            style="width:60px; height:34px;"
+        >
+
+        <!-- Text input for css var or hex -->
+        <input 
+            id="snn_colorinput"
+            name="snn_accessibility_settings[main_color]" 
+            type="text" 
+            value="<?php echo esc_attr($val); ?>" 
+            placeholder="#07757f or var(--your-css-var)" 
+            style="width:200px;"
+        >
+    </div>
+    <p><?php esc_html_e( 'Pick a hex color or enter a CSS variable like var(--primary-color).', 'snn' ); ?></p>
+
+    <script>
+    (function(){
+    const colorPicker = document.getElementById('snn_colorpicker');
+    const colorInput = document.getElementById('snn_colorinput');
+
+    colorPicker.addEventListener('input', function(){
+        colorInput.value = colorPicker.value;
+    });
+
+    // On page load, trigger input event on text input to sync color picker
+    colorInput.dispatchEvent(new Event('input'));
+})();
+    </script>
     <?php
 }
 function snn_btn_width_callback() {
