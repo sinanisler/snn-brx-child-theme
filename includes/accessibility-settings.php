@@ -102,7 +102,6 @@ function snn_register_accessibility_settings() {
 }
 add_action('admin_init', 'snn_register_accessibility_settings');
 
-// Sanitization callback.
 function snn_sanitize_accessibility_settings( $input ) {
     $sanitized = [];
     $sanitized['enqueue_accessibility'] = ! empty( $input['enqueue_accessibility'] ) ? 1 : 0;
@@ -128,12 +127,10 @@ function snn_sanitize_accessibility_settings( $input ) {
     return $sanitized;
 }
 
-// Section callback.
 function snn_accessibility_settings_section_callback() {
     echo '<p>' . esc_html__( 'Configure the accessibility options for your site below.', 'snn' ) . '</p>';
 }
 
-// Field callbacks.
 function snn_enqueue_accessibility_callback() {
     $opt = get_option('snn_accessibility_settings');
     ?>
@@ -172,16 +169,16 @@ function snn_main_color_callback() {
 
     <script>
     (function(){
-    const colorPicker = document.getElementById('snn_colorpicker');
-    const colorInput = document.getElementById('snn_colorinput');
+        const colorPicker = document.getElementById('snn_colorpicker');
+        const colorInput = document.getElementById('snn_colorinput');
 
-    colorPicker.addEventListener('input', function(){
-        colorInput.value = colorPicker.value;
-    });
+        colorPicker.addEventListener('input', function(){
+            colorInput.value = colorPicker.value;
+        });
 
-    // On page load, trigger input event on text input to sync color picker
-    colorInput.dispatchEvent(new Event('input'));
-})();
+        // On page load, trigger input event on text input to sync color picker
+        colorInput.dispatchEvent(new Event('input'));
+    })();
     </script>
     <?php
 }
