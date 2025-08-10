@@ -39,7 +39,7 @@ jobs:
         includes/accessibility-settings.php
         includes/other-settings.php
         includes/activity-logs.php
-        assets/js/gsap.js
+        assets/js/gsap.min.js
         assets/js/ScrollTrigger.min.js
         assets/js/gsap-data-animate.js
         assets/js/lottie.min.js
