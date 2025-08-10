@@ -39,6 +39,12 @@ jobs:
         includes/accessibility-settings.php
         includes/other-settings.php
         includes/activity-logs.php
+        assets/js/gsap.js
+        assets/js/ScrollTrigger.min.js
+        assets/js/gsap-data-animate.js
+        assets/js/lottie.min.js
+        assets/js/snn-rich-text-editor.js
+        assets/css/snn-rich-text-editor.css
 
     steps:
       - name: Checkout Source Repo
