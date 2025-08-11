@@ -22,17 +22,44 @@ class Snn_Image_Hotspots extends Element {
             'type'  => 'image',
         ];
 
-        // Hotspot repeater
+        // Global dot controls
+        $this->controls['dot_size'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Dot Size (px)', 'snn' ),
+            'type'  => 'number',
+            'default' => 20,
+            'min'    => 8,
+            'max'    => 100,
+            'step'   => 1,
+        ];
+        $this->controls['dot_border_radius'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Dot Radius (%)', 'snn' ),
+            'type'  => 'number',
+            'units' => [
+                '%' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
+            ],
+            'default' => '50%',
+        ];
+        $this->controls['dot_color'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Dot Color', 'snn' ),
+            'type'  => 'color',
+            'default' => '#333',
+        ];
+
+        // Hotspot repeater (without dot size, radius, color)
         $this->controls['hotspots'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'Hotspots', 'snn' ),
             'type'          => 'repeater',
-            'titleProperty' => 'tooltip',
+            'titleProperty' => 'pin',
             'fields'        => [
                 'tooltip' => [
                     'label'         => esc_html__( 'Tooltip Content', 'snn' ),
                     'type'          => 'editor', // Allows HTML
                     'default'       => 'Hotspot',
+                    'titleProperty' => 'label',
                     'inlineEditing' => true,
                 ],
                 'x' => [
@@ -50,28 +77,6 @@ class Snn_Image_Hotspots extends Element {
                         '%' => [ 'min' => 0, 'max' => 100, 'step' => 0.1 ],
                     ],
                     'default' => '50%',
-                ],
-                'dot_size' => [
-                    'label'  => esc_html__( 'Dot Size (px)', 'snn' ),
-                    'type'   => 'number',
-                    'default' => 20,
-                    'min'    => 8,
-                    'max'    => 100,
-                    'step'   => 1,
-                    'inline' => true,
-                ],
-                'dot_border_radius' => [
-                    'label'   => esc_html__( 'Dot Radius (%)', 'snn' ),
-                    'type'    => 'number',
-                    'units'   => [
-                        '%' => [ 'min' => 0, 'max' => 100, 'step' => 1 ],
-                    ],
-                    'default' => '50%',
-                ],
-                'dot_color' => [
-                    'label'   => esc_html__( 'Dot Color', 'snn' ),
-                    'type'    => 'color',
-                    'default' => '#333',
                 ],
                 'tooltip_pos' => [
                     'label'   => esc_html__( 'Tooltip Position', 'snn' ),
@@ -118,6 +123,22 @@ class Snn_Image_Hotspots extends Element {
     public function render() {
         $main_image = isset( $this->settings['main_image'] ) ? $this->settings['main_image'] : false;
         $hotspots   = isset( $this->settings['hotspots'] ) ? $this->settings['hotspots'] : [];
+        // Global dot settings
+        $dot_size = isset($this->settings['dot_size']) ? intval($this->settings['dot_size']) : 20;
+        $dot_border_radius = '50%';
+        if (isset($this->settings['dot_border_radius'])) {
+            $br = $this->settings['dot_border_radius'];
+            $dot_border_radius = (is_array($br) ? $br['value'] : $br) . '%';
+        }
+        $dot_color = '#333';
+        if (isset($this->settings['dot_color'])) {
+            $c = $this->settings['dot_color'];
+            if (is_array($c)) {
+                $dot_color = isset($c['raw']) ? $c['raw'] : (isset($c['hex']) ? $c['hex'] : '#333');
+            } else {
+                $dot_color = $c;
+            }
+        }
 
         $unique = 'image-hotspots-' . uniqid();
         $this->set_attribute( '_root', 'class', [ 'snn-image-hotspots-wrapper', $unique ] );
@@ -217,15 +238,8 @@ class Snn_Image_Hotspots extends Element {
             if ( isset( $hotspot['y'] ) ) {
                 $y = is_array( $hotspot['y'] ) ? floatval( $hotspot['y']['value'] ) : floatval( $hotspot['y'] );
             }
-            $dot_size = isset( $hotspot['dot_size'] ) ? intval( $hotspot['dot_size'] ) : 20;
-            
-            $dot_border_radius = '50%';
-            if ( isset( $hotspot['dot_border_radius'] ) ) {
-                $br = $hotspot['dot_border_radius'];
-                $dot_border_radius = ( is_array( $br ) ? $br['value'] : $br ) . '%';
-            }
-            
-            // --- Color Robust Parsing ---
+
+            // --- Tooltip Color Parsing ---
             $parse_color = function( $color_setting, $default_color ) {
                 if ( ! empty( $color_setting ) ) {
                     if ( is_array( $color_setting ) ) {
@@ -236,10 +250,9 @@ class Snn_Image_Hotspots extends Element {
                 return $default_color;
             };
 
-            $dot_color          = $parse_color( isset($hotspot['dot_color']) ? $hotspot['dot_color'] : null, '#333' );
             $tooltip_bg_color   = $parse_color( isset($hotspot['tooltip_bg_color']) ? $hotspot['tooltip_bg_color'] : null, '#333' );
             $tooltip_text_color = $parse_color( isset($hotspot['tooltip_text_color']) ? $hotspot['tooltip_text_color'] : null, '#fff' );
-            
+
             $tooltip_content    = isset( $hotspot['tooltip'] ) ? $hotspot['tooltip'] : '';
             $tooltip_pos        = isset( $hotspot['tooltip_pos'] ) ? esc_attr( $hotspot['tooltip_pos'] ) : 'top';
             $tooltip_width      = isset( $hotspot['tooltip_width'] ) ? intval( $hotspot['tooltip_width'] ) : 0;
@@ -247,7 +260,7 @@ class Snn_Image_Hotspots extends Element {
 
             $dot_id    = $unique . '-dot-' . $i;
             $dot_style = 'left:' . $x . '%; top:' . $y . '%; width:' . $dot_size . 'px; height:' . $dot_size . 'px; background:' . $dot_color . '; border-radius:' . $dot_border_radius . '; transform:translate(-50%,-50%);';
-            
+
             // --- Tooltip Styles ---
             $tooltip_inline_styles = "background: {$tooltip_bg_color}; color: {$tooltip_text_color}; border-radius: {$tooltip_border_radius}px;";
             if ( $tooltip_width > 0 ) {
@@ -260,7 +273,7 @@ class Snn_Image_Hotspots extends Element {
                     {$tooltip_inline_styles}
                 }
             ";
-            
+
             // --- Render Dot HTML ---
             echo '<div
                 tabindex="0"
