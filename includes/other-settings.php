@@ -53,7 +53,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'revisions_limit',
-        __('Limit Post Revisions', 'snn'),
+        __('Limit Post Revisions (Per Post)', 'snn'),
         'snn_revisions_limit_callback',
         'snn-other-settings',
         'snn_other_settings_section'
