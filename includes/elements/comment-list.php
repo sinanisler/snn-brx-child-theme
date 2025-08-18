@@ -52,15 +52,31 @@ class SNN_Element_Comment_List extends Element {
                 ],
             ],
         ];
+        $this->controls['moderation_notice'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Moderation notice text', 'snn' ),
+            'type'    => 'text',
+            'default' => esc_html__( 'Your comment is saved and waiting for approval.', 'snn' ),
+            'placeholder' => esc_html__( 'Your comment is saved and waiting for approval.', 'snn' ),
+        ];
     }
 
     public function render() {
+
         $avatar  = intval( $this->settings['avatar'] ?? 48 );
         $order   = $this->settings['order'] ?? 'ASC';
         $enable  = ! empty( $this->settings['inline_edit'] );
 
         $this->set_attribute( '_root', 'class', 'snn-comment-list-wrapper' );
         echo '<div ' . $this->render_attributes( '_root' ) . '>';
+
+        // --- MODERATION NOTIFICATION & UNAPPROVED COMMENT ---
+        $unapproved_id = isset($_GET['unapproved']) ? intval($_GET['unapproved']) : 0;
+        $moderation_hash = isset($_GET['moderation-hash']) ? sanitize_text_field($_GET['moderation-hash']) : '';
+        $shown_unapproved = false;
+        $moderation_notice = isset($this->settings['moderation_notice']) && $this->settings['moderation_notice'] !== ''
+            ? $this->settings['moderation_notice']
+            : esc_html__('Your comment is saved and waiting for approval.', 'snn');
 
         ?>
 <style>
@@ -78,6 +94,8 @@ class SNN_Element_Comment_List extends Element {
 .snn-comment-reply{margin-top:8px;font-size:13px}
 .snn-comment-reply a{text-decoration:none;color:#0073aa}
 .snn-comment-reply a:hover{color:#005177}
+.snn-comment-moderation-notice{background:#fff3cd;color:#856404;padding:12px;border-radius:6px;margin-bottom:20px;border:1px solid #ffeeba;font-size:16px;font-weight:bold;}
+.snn-comment-unapproved{opacity:0.7;border:2px dashed #ffeeba;}
 <?php if ( $enable ) : ?>
 .snn-comment-edit-btn,.snn-comment-delete-btn,.snn-comment-save-btn,.snn-comment-cancel-btn{position:absolute;bottom:10px;right:0px;padding:3px 6px;font-size:11px;background:#eee;border:1px solid #ccc;border-radius:4px;cursor:pointer;line-height:1;display:none}
 .snn-comment-delete-btn{right:55px}.snn-comment-save-btn{right:10px}.snn-comment-cancel-btn{right:55px}
@@ -92,6 +110,37 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
 <?php endif; ?>
 </style>
         <?php
+
+        // Show moderation notice and unapproved comment if present
+        if ($unapproved_id && $moderation_hash) {
+            $unapproved_comment = get_comment($unapproved_id);
+            if (
+                $unapproved_comment &&
+                $unapproved_comment->comment_approved == '0' &&
+                $unapproved_comment->comment_post_ID == get_the_ID()
+            ) {
+                // Show notification
+                echo '<div class="snn-comment-moderation-notice">' . esc_html($moderation_notice) . '</div>';
+                // Show the unapproved comment
+                echo '<ul class="snn-commentlist">';
+                echo '<li class="snn-comment-item snn-comment-unapproved" id="comment-' . esc_attr($unapproved_comment->comment_ID) . '">';
+                echo '<comment class="snn-comment-body">';
+                echo '<div class="snn-comment-author snn-comment-vcard">';
+                echo get_avatar($unapproved_comment, $avatar);
+                echo '<span class="snn-comment-author-link">' . esc_html($unapproved_comment->comment_author) . '</span>';
+                echo '<div class="snn-comment-metadata">';
+                echo '<time datetime="' . esc_attr(get_comment_time('c', true, $unapproved_comment)) . '">' .
+                    esc_html(get_comment_date('', $unapproved_comment)) . ' at ' .
+                    esc_html(get_comment_time('', true, $unapproved_comment)) . '</time>';
+                echo '</div></div>';
+                echo '<div class="snn-comment-content">';
+                echo apply_filters('comment_text', $unapproved_comment->comment_content, $unapproved_comment);
+                echo '</div>';
+                echo '</comment></li></ul>';
+                $shown_unapproved = true;
+            }
+        }
+
         $comments = get_comments( [
             'post_id' => get_the_ID(),
             'status'  => 'approve',
