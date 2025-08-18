@@ -135,7 +135,7 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
         </div>
         <div class="snn-comment-content">
             <?php
-                echo $comment->comment_content;
+                echo apply_filters( 'comment_text', $comment->comment_content, $comment );
             ?>
         </div>
     </comment>
