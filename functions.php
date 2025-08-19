@@ -61,6 +61,7 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/custom-field-repeater-first-
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
 require_once SNN_PATH . 'includes/auto-update-snn-brx-github.php';
+require_once SNN_PATH . 'query/snn-repeaters-and-queries.php';
 
 // Register Custom Bricks Builder Elements
 add_action('init', function () {
