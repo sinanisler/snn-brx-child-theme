@@ -141,7 +141,10 @@ function snn_options_page() {
             .snn-textarea { width: 500px; }
             .snn-input { width: 300px; }
             .snn-color-picker { }
-            .snn-services-repeater .snn-service-item { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; max-width:600px }
+            .snn-services-repeater .snn-service-item { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; max-width:600px; position: relative; }
+            .snn-service-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; }
+            .snn-move-btn { background: transparent; border: none; padding: 2px 4px; line-height: 1; cursor: pointer; color: #555; font-size: 14px; }
+            .snn-move-btn:hover { color: #000; }
             .snn-custom-css-textarea { width: 500px; }
             .snn-tab { cursor:pointer; display: inline-block; margin-right: 10px; padding: 8px 12px; border: 1px solid #ccc; border-bottom: none; background: #f1f1f1; }
             .snn-tab.active { background: #fff; font-weight: bold; }
@@ -186,7 +189,7 @@ function snn_options_page() {
                         <th scope="row"><?php _e('Preferences Title', 'snn'); ?></th>
                         <td>
                             <input type="text" name="snn_cookie_settings_preferences_title" value="<?php echo isset($options['snn_cookie_settings_preferences_title']) ? esc_attr($options['snn_cookie_settings_preferences_title']) : ''; ?>" class="snn-input">
-                            <p class="description"><?php _e('Heading shown above the preferences section in the cookie banner.', 'snn'); ?></p>
+                            <p class="description"><?php _e('Preferences title text in the cookie banner.', 'snn'); ?></p>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -270,6 +273,10 @@ function snn_options_page() {
                                     foreach ( $options['snn_cookie_settings_services'] as $service ) {
                                         ?>
                                     <div class="snn-service-item">
+                                        <div class="snn-service-actions" aria-label="Reorder service">
+                                            <button type="button" class="snn-move-btn snn-move-up" title="Move up">▲</button>
+                                            <button type="button" class="snn-move-btn snn-move-down" title="Move down">▼</button>
+                                        </div>
                                         <label><?php _e('Service Name:', 'snn'); ?>
                                             <input type="text" name="snn_cookie_settings_services[<?php echo $service_index; ?>][name]" value="<?php echo isset($service['name']) ? esc_attr($service['name']) : ''; ?>" class="snn-input snn-service-name">
                                         </label>
@@ -296,6 +303,10 @@ function snn_options_page() {
                                 } else {
                                     ?>
                                     <div class="snn-service-item">
+                                        <div class="snn-service-actions" aria-label="Reorder service">
+                                            <button type="button" class="snn-move-btn snn-move-up" title="Move up">▲</button>
+                                            <button type="button" class="snn-move-btn snn-move-down" title="Move down">▼</button>
+                                        </div>
                                         <label><?php _e('Service Name:', 'snn'); ?>
                                             <input type="text" name="snn_cookie_settings_services[0][name]" value="" class="snn-input snn-service-name">
                                         </label>
@@ -329,6 +340,10 @@ function snn_options_page() {
                                     $('#add-service').click(function(e){
                                         e.preventDefault();
                                         var newService = '<div class="snn-service-item">' +
+                                            '<div class="snn-service-actions" aria-label="Reorder service">' +
+                                                '<button type="button" class="snn-move-btn snn-move-up" title="Move up">▲</button>' +
+                                                '<button type="button" class="snn-move-btn snn-move-down" title="Move down">▼</button>' +
+                                            '</div>' +
                                             '<label><?php _e('Service Name:', 'snn'); ?>' +
                                                 '<input type="text" name="snn_cookie_settings_services[' + serviceIndex + '][name]" value="" class="snn-input snn-service-name">' +
                                             '</label>' +
@@ -353,6 +368,23 @@ function snn_options_page() {
                                     $('#services-repeater').on('click', '.remove-service', function(e){
                                         e.preventDefault();
                                         $(this).closest('.snn-service-item').remove();
+                                    });
+                                    // Reordering handlers (delegate to container)
+                                    $('#services-repeater').on('click', '.snn-move-up', function(e){
+                                        e.preventDefault();
+                                        var $item = $(this).closest('.snn-service-item');
+                                        var $prev = $item.prev('.snn-service-item');
+                                        if ($prev.length) {
+                                            $item.insertBefore($prev);
+                                        }
+                                    });
+                                    $('#services-repeater').on('click', '.snn-move-down', function(e){
+                                        e.preventDefault();
+                                        var $item = $(this).closest('.snn-service-item');
+                                        var $next = $item.next('.snn-service-item');
+                                        if ($next.length) {
+                                            $item.insertAfter($next);
+                                        }
                                     });
                                 });
                             })(jQuery);
