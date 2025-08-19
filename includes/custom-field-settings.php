@@ -57,7 +57,7 @@ function snn_custom_fields_page_callback() {
                     $post_types_selected = isset($field_data['post_type']) && is_array($field_data['post_type']) ? array_map('sanitize_text_field', $field_data['post_type']) : [];
                     $taxonomies_selected = isset($field_data['taxonomies']) && is_array($field_data['taxonomies']) ? array_map('sanitize_text_field', $field_data['taxonomies']) : [];
                     $choices_raw = isset($field_data['choices']) ? trim($field_data['choices']) : '';
-                    $choices_sanitized = sanitize_textarea_field($choices_raw);
+                    $choices_sanitized = wp_unslash(sanitize_textarea_field($choices_raw));
 
                     $field_type_for_repeater_check = isset($field_data['type']) ? $field_data['type'] : 'text';
                     $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email']);
@@ -159,7 +159,7 @@ function snn_custom_fields_page_callback() {
                                 <label><?php esc_html_e('Choices', 'snn'); ?> <small><code>(<?php esc_html_e('value:label', 'snn'); ?>)</code></small></label>
                                 <textarea name="custom_fields[<?php echo $index; ?>][choices]" rows="4"  
                                           placeholder="red : <?php esc_attr_e('Red Color', 'snn'); ?>&#10;green : <?php esc_attr_e('Green Color', 'snn'); ?>"><?php  
-                                          echo esc_textarea($field['choices'] ?? ''); ?></textarea>
+                                          echo esc_textarea(wp_unslash($field['choices'] ?? '')); ?></textarea>
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Post Types', 'snn'); ?></label>
