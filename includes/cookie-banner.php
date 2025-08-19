@@ -32,8 +32,10 @@ function snn_options_page() {
         $options = array();
         $options['snn_cookie_settings_enable_cookie_banner'] = isset($_POST['snn_cookie_settings_enable_cookie_banner']) ? 'yes' : 'no';
         $options['snn_cookie_settings_disable_for_logged_in']  = isset($_POST['snn_cookie_settings_disable_for_logged_in']) ? 'yes' : 'no';
-        // NEW: Disable Scripts for Logged-In Users option
+    // NEW: Disable Scripts for Logged-In Users option
         $options['snn_cookie_settings_disable_scripts_for_logged_in'] = isset($_POST['snn_cookie_settings_disable_scripts_for_logged_in']) ? 'yes' : 'no';
+    // NEW: Preferences Title
+    $options['snn_cookie_settings_preferences_title'] = isset($_POST['snn_cookie_settings_preferences_title']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_preferences_title']) ) : '';
 
         // Allow <p> tags with style and class, plus basic tags.
         $allowed = array(
@@ -74,7 +76,8 @@ function snn_options_page() {
         $services = array();
         if ( isset($_POST['snn_cookie_settings_services']) && is_array($_POST['snn_cookie_settings_services']) ) {
             foreach( $_POST['snn_cookie_settings_services'] as $service ) {
-                if ( empty( $service['name'] ) ) {
+                // Only skip if ALL fields are empty (completely empty service)
+                if ( empty( $service['name'] ) && empty( $service['description'] ) && empty( $service['script'] ) ) {
                     continue;
                 }
                 $service_data = array();
@@ -100,6 +103,7 @@ function snn_options_page() {
             'snn_cookie_settings_enable_cookie_banner' => 'no',
             'snn_cookie_settings_disable_for_logged_in'  => 'no',
             'snn_cookie_settings_disable_scripts_for_logged_in' => 'no',
+            'snn_cookie_settings_preferences_title' => __('Cookie Preferences', 'snn'),
             'snn_cookie_settings_banner_description'   => __('This website uses cookies for analytics and functionality.', 'snn'),
             'snn_cookie_settings_additional_description' => '<p style="text-align: center;"><a href="#">Imprint</a> - <a href="#">Privacy Policy</a></p>',
             'snn_cookie_settings_enable_legal_text' => 'no',
@@ -176,6 +180,13 @@ function snn_options_page() {
                         <td>
                             <input type="checkbox" name="snn_cookie_settings_disable_scripts_for_logged_in" value="yes" <?php checked((isset($options['snn_cookie_settings_disable_scripts_for_logged_in']) ? $options['snn_cookie_settings_disable_scripts_for_logged_in'] : 'no'), 'yes'); ?>>
                             <span class="description"><?php _e('Check to disable the scripts loading for logged-in users.', 'snn'); ?></span>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Preferences Title', 'snn'); ?></th>
+                        <td>
+                            <input type="text" name="snn_cookie_settings_preferences_title" value="<?php echo isset($options['snn_cookie_settings_preferences_title']) ? esc_attr($options['snn_cookie_settings_preferences_title']) : ''; ?>" class="snn-input">
+                            <p class="description"><?php _e('Heading shown above the preferences section in the cookie banner.', 'snn'); ?></p>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -548,8 +559,8 @@ function snn_output_cookie_banner() {
         }
     </style>
     <div id="snn-cookie-banner" class="snn-cookie-banner <?php echo esc_attr($position); ?>"<?php echo $banner_style; ?>>
-        <div class="snn-preferences-content">
-            <div class="snn-preferences-title"><?php _e('Cookie Preferences', 'snn'); ?></div>
+    <div class="snn-preferences-title"><?php echo esc_html( isset($options['snn_cookie_settings_preferences_title']) ? $options['snn_cookie_settings_preferences_title'] : __('Cookie Preferences', 'snn') ); ?></div>
+    <div class="snn-preferences-content">
             <?php if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) { ?>
                 <ul class="snn-services-list" style="list-style: none; padding: 0;">
                 <?php foreach ( $options['snn_cookie_settings_services'] as $index => $service ) { ?>
@@ -569,7 +580,7 @@ function snn_output_cookie_banner() {
                             </label>
                         </div>
                         <?php if ( !empty($service['description']) ) { ?>
-                            <p class="snn-service-description-text" style="margin-top: 5px; margin-bottom: 0; font-size: 0.9em;"><?php echo esc_html( $service['description'] ); ?></p>
+                            <p class="snn-service-description-text" style="margin-top: 5px; margin-bottom: 0;  "><?php echo esc_html( $service['description'] ); ?></p>
                         <?php } ?>
                     </li>
                 <?php } ?>
