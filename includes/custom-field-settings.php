@@ -787,14 +787,17 @@ function snn_render_metabox_content($post, $metabox) {
         display: flex;
         align-items: flex-start;
         gap: 10px;
-        margin-bottom: 10px;
-        padding: 10px;
+        margin-bottom: 5px;
+        padding: 5px;
         background: #f9f9f9;
         border: 1px solid #e5e5e5;
         border-radius: 3px;
     }
     .repeater-content {
         flex-grow: 1;
+    }
+    .repeater-content input {
+        margin-bottom:0 !important;
     }
     .remove-repeater-item {
         align-self: center; 
