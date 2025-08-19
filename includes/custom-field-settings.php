@@ -62,11 +62,13 @@ function snn_custom_fields_page_callback() {
                     $field_type_for_repeater_check = isset($field_data['type']) ? $field_data['type'] : 'text';
                     $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email']);
 
+                    // Only sanitize text fields with sanitize_text_field, but leave textarea/rich_text/basic_rich_text raw
+                    $type = isset($field_data['type']) ? $field_data['type'] : 'text';
                     $new_fields[] = [
                         'group_name'    => sanitize_text_field($field_data['group_name']),
                         'label'         => sanitize_text_field($field_data['label']),
                         'name'          => sanitize_key($field_data['name']),
-                        'type'          => sanitize_text_field($field_data['type']),
+                        'type'          => sanitize_text_field($type),
                         'post_type'     => $post_types_selected,
                         'taxonomies'    => $taxonomies_selected,
                         'choices'       => $choices_sanitized,
@@ -74,7 +76,11 @@ function snn_custom_fields_page_callback() {
                         'author'        => !empty($field_data['author']) ? 1 : 0,
                         'options_page'  => !empty($field_data['options_page']) ? 1 : 0,
                         'column_width'  => isset($field_data['column_width']) && is_numeric($field_data['column_width']) ? intval($field_data['column_width']) : '',
-                        'return_full_url'=> ($field_data['type'] === 'media' && !empty($field_data['return_full_url'])) ? 1 : 0,
+                        'return_full_url'=> ($type === 'media' && !empty($field_data['return_full_url'])) ? 1 : 0,
+                        // For textarea/rich_text/basic_rich_text, do NOT sanitize the value here
+                        'default_value' => in_array($type, ['textarea', 'rich_text', 'basic_rich_text']) && isset($field_data['default_value'])
+                            ? $field_data['default_value']
+                            : (isset($field_data['default_value']) ? sanitize_text_field($field_data['default_value']) : ''),
                     ];
                 }
             }
