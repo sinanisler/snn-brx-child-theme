@@ -54,26 +54,26 @@ function snn_custom_fields_page_callback() {
         if (!empty($_POST['custom_fields']) && is_array($_POST['custom_fields'])) {
             foreach ($_POST['custom_fields'] as $field_data) {  
                 if (!empty($field_data['name']) && !empty($field_data['type']) && !empty($field_data['group_name'])) {
-                    $post_types_selected = isset($field_data['post_type']) && is_array($field_data['post_type']) ? $field_data['post_type'] : [];
-                    $taxonomies_selected = isset($field_data['taxonomies']) && is_array($field_data['taxonomies']) ? $field_data['taxonomies'] : [];
+                    $post_types_selected = isset($field_data['post_type']) && is_array($field_data['post_type']) ? array_map('sanitize_text_field', $field_data['post_type']) : [];
+                    $taxonomies_selected = isset($field_data['taxonomies']) && is_array($field_data['taxonomies']) ? array_map('sanitize_text_field', $field_data['taxonomies']) : [];
                     $choices_raw = isset($field_data['choices']) ? trim($field_data['choices']) : '';
-                    $choices_sanitized = $choices_raw;
+                    $choices_sanitized = sanitize_textarea_field($choices_raw);
 
                     $field_type_for_repeater_check = isset($field_data['type']) ? $field_data['type'] : 'text';
                     $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email']);
 
                     $new_fields[] = [
-                        'group_name'    => $field_data['group_name'],
-                        'label'         => $field_data['label'],
+                        'group_name'    => sanitize_text_field($field_data['group_name']),
+                        'label'         => sanitize_text_field($field_data['label']),
                         'name'          => sanitize_key($field_data['name']),
-                        'type'          => $field_data['type'],
+                        'type'          => sanitize_text_field($field_data['type']),
                         'post_type'     => $post_types_selected,
                         'taxonomies'    => $taxonomies_selected,
-                        'choices'       => $choices_raw,
-                        'repeater'      => !empty($field_data['repeater']) ? 1 : 0,
+                        'choices'       => $choices_sanitized,
+                        'repeater'      => (!$is_repeater_disabled_type && !empty($field_data['repeater'])) ? 1 : 0,
                         'author'        => !empty($field_data['author']) ? 1 : 0,
                         'options_page'  => !empty($field_data['options_page']) ? 1 : 0,
-                        'column_width'  => isset($field_data['column_width']) ? $field_data['column_width'] : '',
+                        'column_width'  => isset($field_data['column_width']) && is_numeric($field_data['column_width']) ? intval($field_data['column_width']) : '',
                         'return_full_url'=> ($field_data['type'] === 'media' && !empty($field_data['return_full_url'])) ? 1 : 0,
                     ];
                 }
