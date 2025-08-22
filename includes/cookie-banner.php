@@ -129,7 +129,7 @@ function snn_options_page() {
             'snn_cookie_settings_banner_text_color'    => '#000000',
             'snn_cookie_settings_button_bg_color'      => '#000000',
             'snn_cookie_settings_button_text_color'    => '#ffffff',
-            'snn_cookie_settings_banner_width'         => '400',
+            'snn_cookie_settings_banner_width'         => '500',
             'snn_cookie_settings_banner_border_radius' => '0',
             'snn_cookie_settings_button_border_radius' => '0'
         );
