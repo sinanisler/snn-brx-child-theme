@@ -8,7 +8,7 @@ class Custom_HTML_CSS_Script extends \Bricks\Element {
   public $css_selector = '.snn-brx-html-css-script-wrapper';
 
   public function get_label() {
-    return 'Custom Code HTML JS CSS';
+    return 'Code HTML JS CSS';
   }
 
   public function set_controls() {
