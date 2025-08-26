@@ -1,5 +1,65 @@
 <?php
 
+/**
+ * SNN Bricks Custom Repeaters & Dynamic Data Integration
+ * ----------------------------------------------------
+ *
+ * This file extends Bricks Builder with custom query types and dynamic data tags for custom field repeaters.
+ *
+ * Features implemented:
+ *
+ * 1. **Custom Query Types for Repeaters**
+ *    - Registers new query types for each custom field marked as a repeater (see `bricks/setup/control_options`).
+ *    - Allows Bricks Query Loop to fetch repeater data from post meta, enabling looped display of custom repeater fields.
+ *    - See Bricks docs: https://academy.bricksbuilder.io/article/query-loop/
+ *
+ * 2. **Custom Dynamic Data Tags for Repeater Items**
+ *    - Registers dynamic data tags for each repeater field (e.g. `{snn_cf_fieldname}`) for use in Bricks templates.
+ *    - Enables output of current repeater item or subfields inside the query loop context.
+ *    - See Bricks docs: https://academy.bricksbuilder.io/article/dynamic-data/
+ *
+ * 3. **Context-Aware Dynamic Data Rendering**
+ *    - When inside a repeater query loop, dynamic tags output the current item or subfield value.
+ *    - Outside the loop, tags fallback to first item or post meta value.
+ *    - Supports grouped repeaters and direct subfield access.
+ *
+ * 4. **Global Variables for Template Usage**
+ *    - Sets global variables for current repeater item and field, making them accessible in template PHP or dynamic tag rendering.
+ *    - Cleans up globals after loop ends for safety.
+ *
+ * 5. **Bricks Hooks Used**
+ *    - `bricks/setup/control_options`: Register custom query types.
+ *    - `bricks/query/run`: Provide repeater data for custom query types.
+ *    - `bricks/query/loop_object`: Set global context for current repeater item.
+ *    - `bricks/dynamic_tags_list`: Register custom dynamic data tags.
+ *    - `bricks/dynamic_data/render_tag`: Render individual dynamic data tags.
+ *    - `bricks/dynamic_data/render_content`: Render content with multiple dynamic tags.
+ *    - `bricks/frontend/render_data`: Ensure frontend rendering of dynamic tags.
+ *    - `bricks/query/after_loop`: Clean up global variables after loop.
+ *
+ * 6. **Compatibility**
+ *    - Works with Bricks Query Loop for posts, terms, users, and custom repeaters.
+ *    - Supports ACF, Meta Box, JetEngine, and native WordPress custom fields as repeaters.
+ *    - See Bricks docs for custom fields: https://academy.bricksbuilder.io/article/dynamic-data/#custom-fields-integrations
+ *
+ * 7. **Usage**
+ *    - In Bricks Builder, enable Query Loop on a container and select the custom repeater query type.
+ *    - Use `{snn_cf_fieldname}` or `{snn_cf_fieldname_subfield}` in child elements to output repeater data.
+ *    - Supports fallback to first item if not in loop context.
+ *
+ * 8. **Extensibility**
+ *    - Easily add new repeater fields via the `snn_custom_fields` option.
+ *    - Extend dynamic tag rendering for more complex field structures as needed.
+ *
+ * For more info, see Bricks official docs:
+ * - Query Loop: https://academy.bricksbuilder.io/article/query-loop/
+ * - Dynamic Data: https://academy.bricksbuilder.io/article/dynamic-data/
+ * - Custom Fields: https://academy.bricksbuilder.io/article/dynamic-data/#custom-fields-integrations
+ *
+ * Author: SNN Team
+ * Date: 2025-08-25
+ */
+
 
 
 
