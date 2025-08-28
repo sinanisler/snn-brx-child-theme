@@ -34,6 +34,10 @@ function snn_options_page() {
         $options['snn_cookie_settings_disable_for_logged_in']  = isset($_POST['snn_cookie_settings_disable_for_logged_in']) ? 'yes' : 'no';
     // NEW: Disable Scripts for Logged-In Users option
         $options['snn_cookie_settings_disable_scripts_for_logged_in'] = isset($_POST['snn_cookie_settings_disable_scripts_for_logged_in']) ? 'yes' : 'no';
+    // NEW: Google Analytics Consent Mode
+        $options['snn_cookie_settings_enable_ga_consent'] = isset($_POST['snn_cookie_settings_enable_ga_consent']) ? 'yes' : 'no';
+    // NEW: Microsoft Clarity Consent Mode
+        $options['snn_cookie_settings_enable_clarity_consent'] = isset($_POST['snn_cookie_settings_enable_clarity_consent']) ? 'yes' : 'no';
     // NEW: Preferences Title
     $options['snn_cookie_settings_preferences_title'] = isset($_POST['snn_cookie_settings_preferences_title']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_preferences_title']) ) : '';
 
@@ -117,6 +121,8 @@ function snn_options_page() {
             'snn_cookie_settings_enable_cookie_banner' => 'no',
             'snn_cookie_settings_disable_for_logged_in'  => 'no',
             'snn_cookie_settings_disable_scripts_for_logged_in' => 'no',
+            'snn_cookie_settings_enable_ga_consent' => 'no',
+            'snn_cookie_settings_enable_clarity_consent' => 'no',
             'snn_cookie_settings_preferences_title' => __('Cookie Preferences', 'snn'),
             'snn_cookie_settings_banner_description'   => __('This website uses cookies for analytics and functionality.', 'snn'),
             'snn_cookie_settings_additional_description' => '<p style="text-align: center;"><a href="#">Imprint</a> - <a href="#">Privacy Policy</a></p>',
@@ -197,6 +203,20 @@ function snn_options_page() {
                         <td>
                             <input type="checkbox" name="snn_cookie_settings_disable_scripts_for_logged_in" value="yes" <?php checked((isset($options['snn_cookie_settings_disable_scripts_for_logged_in']) ? $options['snn_cookie_settings_disable_scripts_for_logged_in'] : 'no'), 'yes'); ?>>
                             <span class="description"><?php _e('Check to disable the scripts loading for logged-in users.', 'snn'); ?></span>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Enable Google Analytics Consent Mode', 'snn'); ?></th>
+                        <td>
+                            <input type="checkbox" name="snn_cookie_settings_enable_ga_consent" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_ga_consent']) ? $options['snn_cookie_settings_enable_ga_consent'] : 'no'), 'yes'); ?>>
+                            <span class="description"><?php _e('Check to enable Google Analytics Consent Mode v2. This will automatically send consent status to Google Analytics when users accept/deny cookies.', 'snn'); ?></span>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Enable Microsoft Clarity Consent Mode', 'snn'); ?></th>
+                        <td>
+                            <input type="checkbox" name="snn_cookie_settings_enable_clarity_consent" value="yes" <?php checked((isset($options['snn_cookie_settings_enable_clarity_consent']) ? $options['snn_cookie_settings_enable_clarity_consent'] : 'no'), 'yes'); ?>>
+                            <span class="description"><?php _e('Check to enable Microsoft Clarity Consent Mode v2. This will automatically send consent status to Clarity when users accept/deny cookies.', 'snn'); ?></span>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -737,6 +757,8 @@ function snn_output_banner_js() {
          return;
     }
     $cookie_banner_enabled = ( isset($options['snn_cookie_settings_enable_cookie_banner']) && $options['snn_cookie_settings_enable_cookie_banner'] === 'yes' ) ? 'true' : 'false';
+    $ga_consent_enabled = ( isset($options['snn_cookie_settings_enable_ga_consent']) && $options['snn_cookie_settings_enable_ga_consent'] === 'yes' ) ? 'true' : 'false';
+    $clarity_consent_enabled = ( isset($options['snn_cookie_settings_enable_clarity_consent']) && $options['snn_cookie_settings_enable_clarity_consent'] === 'yes' ) ? 'true' : 'false';
     ?>
 
 <script>
@@ -745,17 +767,83 @@ function snn_output_banner_js() {
         function getCookie(n){for(var e=n+"=",t=document.cookie.split(";"),i=0;i<t.length;i++){for(var o=t[i];" "==o.charAt(0);)o=o.substring(1,o.length);if(0==o.indexOf(e))return o.substring(e.length,o.length)}return null}
         function eraseCookie(n){document.cookie=n+"=; Max-Age=-99999999; path=/"}
         var cookieBannerEnabled=<?php echo $cookie_banner_enabled; ?>;
+        var gaConsentEnabled=<?php echo $ga_consent_enabled; ?>;
+        var clarityConsentEnabled=<?php echo $clarity_consent_enabled; ?>;
+        
+        function updateGoogleAnalyticsConsent(accepted){
+            if(gaConsentEnabled && typeof gtag !== 'undefined'){
+                gtag('consent', 'update', {
+                    'analytics_storage': accepted ? 'granted' : 'denied',
+                    'ad_storage': accepted ? 'granted' : 'denied',
+                    'ad_user_data': accepted ? 'granted' : 'denied',
+                    'ad_personalization': accepted ? 'granted' : 'denied'
+                });
+            }
+        }
+        
+        function updateClarityConsent(accepted){
+            if(clarityConsentEnabled && typeof window.clarity !== 'undefined'){
+                window.clarity('consentv2', {
+                    ad_Storage: accepted ? "granted" : "denied",
+                    analytics_Storage: accepted ? "granted" : "denied"
+                });
+            }
+        }
+        
         function injectScript(c,p){var d=document.createElement("div");d.innerHTML=c;d.querySelectorAll("script").forEach(function(s){var n=document.createElement("script");for(var i=0;i<s.attributes.length;i++){var a=s.attributes[i];n.setAttribute(a.name,a.value)}n.text=s.text||"";"head"===p?document.head.appendChild(n):"body_top"===p?document.body.firstChild?document.body.insertBefore(n,document.body.firstChild):document.body.appendChild(n):document.body.appendChild(n)})}
         function injectMandatoryScripts(){document.querySelectorAll('.snn-service-script[data-mandatory="yes"]').forEach(function(d){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)})}
         function injectAllConsentScripts(){document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}})}
         function injectCustomConsentScripts(){var p=getCookie("snn_cookie_services");if(p){var s=JSON.parse(p);document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var i=d.getAttribute("id").split("-").pop();if(s[i]){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}}})}}
         injectMandatoryScripts();
         var a=document.querySelector('.snn-accept'),y=document.querySelector('.snn-deny'),r=document.querySelector('.snn-preferences'),b=document.getElementById('snn-cookie-banner'),o=document.getElementById('snn-cookie-overlay');
-        a&&a.addEventListener('click',function(){var t=document.querySelectorAll('.snn-service-toggle');if(t.length>0){var s={};t.forEach(function(g){s[g.getAttribute('data-service-index')]=g.checked}),setCookie('snn_cookie_services',JSON.stringify(s),365),setCookie('snn_cookie_accepted','custom',365),injectCustomConsentScripts()}else setCookie('snn_cookie_accepted','true',365),eraseCookie('snn_cookie_services'),injectAllConsentScripts();b&&(b.style.display='none'),o&&(o.style.display='none')});
-        y&&y.addEventListener('click',function(){setCookie('snn_cookie_accepted','false',365),eraseCookie('snn_cookie_services'),b&&(b.style.display='none'),o&&(o.style.display='none')});
+        a&&a.addEventListener('click',function(){
+            var t=document.querySelectorAll('.snn-service-toggle');
+            if(t.length>0){
+                var s={};
+                t.forEach(function(g){s[g.getAttribute('data-service-index')]=g.checked});
+                setCookie('snn_cookie_services',JSON.stringify(s),365);
+                setCookie('snn_cookie_accepted','custom',365);
+                injectCustomConsentScripts();
+                updateGoogleAnalyticsConsent(true);
+                updateClarityConsent(true);
+            }else{
+                setCookie('snn_cookie_accepted','true',365);
+                eraseCookie('snn_cookie_services');
+                injectAllConsentScripts();
+                updateGoogleAnalyticsConsent(true);
+                updateClarityConsent(true);
+            }
+            b&&(b.style.display='none');
+            o&&(o.style.display='none');
+        });
+        y&&y.addEventListener('click',function(){
+            setCookie('snn_cookie_accepted','false',365);
+            eraseCookie('snn_cookie_services');
+            updateGoogleAnalyticsConsent(false);
+            updateClarityConsent(false);
+            b&&(b.style.display='none');
+            o&&(o.style.display='none');
+        });
         r&&r.addEventListener('click',function(){var t=document.querySelector('.snn-preferences-content');t.style.display==='none'||t.style.display===''?t.style.display='block':t.style.display='none'});
         var s=getCookie('snn_cookie_accepted');
-        if('true'===s)injectAllConsentScripts(),b&&(b.style.display='none'),o&&(o.style.display='none');else if('false'===s)b&&(b.style.display='none'),o&&(o.style.display='none');else if('custom'===s)injectCustomConsentScripts(),b&&(b.style.display='none'),o&&(o.style.display='none')
+        if('true'===s){
+            injectAllConsentScripts();
+            updateGoogleAnalyticsConsent(true);
+            updateClarityConsent(true);
+            b&&(b.style.display='none');
+            o&&(o.style.display='none');
+        }else if('false'===s){
+            updateGoogleAnalyticsConsent(false);
+            updateClarityConsent(false);
+            b&&(b.style.display='none');
+            o&&(o.style.display='none');
+        }else if('custom'===s){
+            injectCustomConsentScripts();
+            updateGoogleAnalyticsConsent(true);
+            updateClarityConsent(true);
+            b&&(b.style.display='none');
+            o&&(o.style.display='none');
+        }
     })();
 </script>
     <?php
