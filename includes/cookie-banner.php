@@ -75,18 +75,32 @@ function snn_options_page() {
         
         $services = array();
         if ( isset($_POST['snn_cookie_settings_services']) && is_array($_POST['snn_cookie_settings_services']) ) {
-            foreach( $_POST['snn_cookie_settings_services'] as $service ) {
-                // Only skip if ALL fields are empty (completely empty service)
-                if ( empty( $service['name'] ) && empty( $service['description'] ) && empty( $service['script'] ) ) {
+            // Sort by key to handle sparse arrays properly
+            ksort($_POST['snn_cookie_settings_services']);
+            
+            foreach( $_POST['snn_cookie_settings_services'] as $index => $service ) {
+                // Only skip if ALL fields are completely empty (trim whitespace)
+                if ( empty( trim($service['name']) ) && 
+                     empty( trim($service['description']) ) && 
+                     empty( trim($service['script']) ) ) {
                     continue;
                 }
+                
                 $service_data = array();
-                $service_data['name'] = sanitize_text_field( wp_unslash($service['name']) );
-                $service_data['description'] = isset($service['description']) ? wp_unslash($service['description']) : ''; // NEW: Service Description
+                $service_data['name'] = isset($service['name']) ? sanitize_text_field( wp_unslash($service['name']) ) : '';
+                $service_data['description'] = isset($service['description']) ? wp_unslash($service['description']) : '';
                 $service_data['script'] = isset($service['script']) ? wp_unslash($service['script']) : '';
                 $service_data['position'] = isset($service['position']) ? sanitize_text_field( wp_unslash($service['position']) ) : 'body_bottom';
                 $service_data['mandatory'] = isset($service['mandatory']) ? 'yes' : 'no';
+                
+                // Always add the service to preserve data
                 $services[] = $service_data;
+            }
+        } else {
+            // If no services are posted, preserve existing services to prevent data loss
+            $existing_options = get_option( SNN_OPTIONS );
+            if ( isset($existing_options['snn_cookie_settings_services']) && is_array($existing_options['snn_cookie_settings_services']) ) {
+                $services = $existing_options['snn_cookie_settings_services'];
             }
         }
         $options['snn_cookie_settings_services'] = $services;
@@ -337,8 +351,26 @@ function snn_options_page() {
                             (function($){
                                 $(document).ready(function(){
                                     var serviceIndex = <?php echo $service_index; ?>;
+                                    
+                                    // Function to reindex all services to prevent gaps
+                                    function reindexServices() {
+                                        $('#services-repeater .snn-service-item').each(function(index) {
+                                            $(this).find('input, textarea, select').each(function() {
+                                                var name = $(this).attr('name');
+                                                if (name && name.includes('snn_cookie_settings_services[')) {
+                                                    var newName = name.replace(/snn_cookie_settings_services\[\d+\]/, 'snn_cookie_settings_services[' + index + ']');
+                                                    $(this).attr('name', newName);
+                                                }
+                                            });
+                                        });
+                                        serviceIndex = $('#services-repeater .snn-service-item').length;
+                                    }
+                                    
                                     $('#add-service').click(function(e){
                                         e.preventDefault();
+                                        // Reindex before adding new service to prevent gaps
+                                        reindexServices();
+                                        
                                         var newService = '<div class="snn-service-item">' +
                                             '<div class="snn-service-actions" aria-label="Reorder service">' +
                                                 '<button type="button" class="snn-move-btn snn-move-up" title="Move up">▲</button>' +
@@ -365,10 +397,14 @@ function snn_options_page() {
                                         $('#services-repeater').append(newService);
                                         serviceIndex++;
                                     });
+                                    
                                     $('#services-repeater').on('click', '.remove-service', function(e){
                                         e.preventDefault();
                                         $(this).closest('.snn-service-item').remove();
+                                        // Reindex after removal to prevent gaps
+                                        reindexServices();
                                     });
+                                    
                                     // Reordering handlers (delegate to container)
                                     $('#services-repeater').on('click', '.snn-move-up', function(e){
                                         e.preventDefault();
@@ -376,16 +412,24 @@ function snn_options_page() {
                                         var $prev = $item.prev('.snn-service-item');
                                         if ($prev.length) {
                                             $item.insertBefore($prev);
+                                            // Reindex after reordering
+                                            reindexServices();
                                         }
                                     });
+                                    
                                     $('#services-repeater').on('click', '.snn-move-down', function(e){
                                         e.preventDefault();
                                         var $item = $(this).closest('.snn-service-item');
                                         var $next = $item.next('.snn-service-item');
                                         if ($next.length) {
                                             $item.insertAfter($next);
+                                            // Reindex after reordering
+                                            reindexServices();
                                         }
                                     });
+                                    
+                                    // Initial reindex on page load to fix any existing gaps
+                                    reindexServices();
                                 });
                             })(jQuery);
                             </script>
