@@ -69,7 +69,7 @@ function snn_register_editor_settings() {
 
     add_settings_field(
         'snn_bricks_builder_color_fix_field',
-        __('SNN Settings Panel and Bricks Builder Global Colors Sync with Color Palette', 'snn'),
+        __('Enable SNN-BRX Panel. Image Optimizer, Clamp Generator and old Global Colors', 'snn'),
         'snn_render_checkbox_field',
         'snn-editor-settings',
         'snn_editor_settings_section'
@@ -108,10 +108,7 @@ function snn_render_checkbox_field() {
     ?>
     <input type="checkbox" id="snn_bricks_builder_color_fix" name="snn_editor_settings[snn_bricks_builder_color_fix]" value="1" <?php checked(1, $checked, true); ?> />
     <label for="snn_bricks_builder_color_fix">
-        <?php _e('Enable Bricks Builder Editor Color Fix', 'snn'); ?><br>
-        <?php _e('This setting will show the primary global color variables inside all color palettes.<br>
-        It will load those color palettes as :root frontend colors as well.<br>
-        Only create one Theme Style.<br>', 'snn'); ?>
+        <?php _e('Enable SNN-BRX Editor Panel', 'snn'); ?><br>
     </label>
     <?php
 }
