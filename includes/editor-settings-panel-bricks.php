@@ -1,6 +1,8 @@
 <?php 
 
-// Include color sync functionality
+// Include functionality files
+require_once SNN_PATH . '/includes/editor-settings-panel-image-opt.php';
+require_once SNN_PATH . '/includes/editor-settings-panel-clamp.php';
 require_once SNN_PATH . '/includes/editor-settings-panel-color-sync.php';
 
 function snn_panel_custom_inline_styles_and_scripts_improved() {
@@ -85,13 +87,12 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
                     }
                 });
 
+                // Safer close logic: only close when clicking directly on the semi-transparent backdrop (#snn-popup)
                 document.addEventListener("click", function(e) {
-                    if (e.target.closest('.snn-enhance-li')) {
-                        return;
-                    }
-                    var popup = document.getElementById("snn-popup");
-                    var popupInner = document.getElementById("snn-popup-inner");
-                    if (popup && popup.classList.contains("active") && popupInner && !popupInner.contains(e.target)) {
+                    const popup = document.getElementById("snn-popup");
+                    if (!popup || !popup.classList.contains("active")) return;
+                    // Close only if the backdrop itself (not children) was clicked
+                    if (e.target === popup) {
                         popup.classList.remove("active");
                     }
                 });
@@ -101,6 +102,27 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
                         var popup = document.getElementById("snn-popup");
                         if (popup && popup.classList.contains("active")) {
                             popup.classList.remove("active");
+                        }
+                    }
+                });
+
+                // Tab functionality
+                document.addEventListener("click", function(e) {
+                    if (e.target.classList.contains("snn-tab-button")) {
+                        // Remove active class from all tabs and contents
+                        document.querySelectorAll(".snn-tab-button").forEach(function(btn) {
+                            btn.classList.remove("active");
+                        });
+                        document.querySelectorAll(".snn-tab-content").forEach(function(content) {
+                            content.classList.remove("active");
+                        });
+                        
+                        // Add active class to clicked tab and corresponding content
+                        e.target.classList.add("active");
+                        var targetTab = e.target.getAttribute("data-tab");
+                        var targetContent = document.getElementById("snn-tab-" + targetTab);
+                        if (targetContent) {
+                            targetContent.classList.add("active");
                         }
                     }
                 });
@@ -116,7 +138,7 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
         .snn-enhance-li i{font-size:19px;opacity:0.8;}
         #snn-popup-inner{background-color:var(--builder-bg);border-radius:var(--builder-border-radius);box-shadow:0 6px 24px 0 rgba(0, 0, 0, 0.25);display:flex;flex-direction:column;height:100%;max-width:1200px;overflow-y:auto;position:relative;width:100%;color:#fff;padding:20px;}
         #snn-popup .snn-filters li.active{background-color:var(--builder-bg-accent);border-radius:var(--builder-border-radius);color:#fff;}
-        #snn-popup .snn-title-wrapper{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;position:relative;}
+        #snn-popup .snn-title-wrapper{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0;position:relative;}
         .snn-close-button{cursor:pointer;font-size:28px;background:transparent;border:none;color:var(--builder-color-accent);transform:scaleX(1.3);}
         .snn-close-button:hover{color:white;}
         .snn-toolbar-container{background-color:#f5f5f5 !important;border:1px solid #ddd !important;padding:10px !important;border-radius:5px !important;}
@@ -126,6 +148,15 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
         .snn-panel-button{align-items:center;background-color:var(--builder-bg-3);border-radius:var(--builder-border-radius);cursor:pointer;display:flex;height:var(--builder-popup-input-height);width:157px;padding:12px;font-size:16px;letter-spacing:0.3px;}
         .snn-panel-button:hover{background-color:var(--builder-color-accent);color:black;}
         .snn-panel-button svg{margin-right:10px;}
+        
+        /* Tab Styles */
+        .snn-tabs-container{margin-bottom:20px;}
+        .snn-tab-buttons{display:flex;border-bottom:1px solid var(--builder-bg-3);margin-bottom:20px;}
+        .snn-tab-button{background:transparent;border:none;padding:12px 20px;color:var(--builder-color-accent);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.3s ease;}
+        .snn-tab-button:hover{background-color:var(--builder-bg-3);}
+        .snn-tab-button.active{color:#fff;border-bottom-color:var(--builder-color-accent);}
+        .snn-tab-content{display:none;}
+        .snn-tab-content.active{display:block;}
         </style>
  
         <?php
@@ -146,16 +177,41 @@ function snn_popup_container_improved() {
         <div id="snn-popup" class="snn-popup docs">
             <div id="snn-popup-inner" class="snn-popup-inner">
                 <div class="snn-title-wrapper">
-                    <h1><?php _e('Settings', 'snn'); ?></h1>
+                    <h1></h1>
                     <button class="snn-close-button"><?php _e('X', 'snn'); ?></button>
                 </div>
                 <div class="snn-settings-content-wrapper">
-                    <?php 
-                    // Include color section from the color sync file
-                    if (function_exists('snn_render_color_section')) {
-                        snn_render_color_section();
-                    }
-                    ?>
+                    <div class="snn-tabs-container">
+                        <div class="snn-tab-buttons">
+                            <button class="snn-tab-button active" data-tab="image-opt"><?php _e('Image Optimization', 'snn'); ?></button>
+                            <button class="snn-tab-button" data-tab="clamp"><?php _e('Clamp Calculator', 'snn'); ?></button>
+                            <button class="snn-tab-button" data-tab="color-sync"><?php _e('Color Sync', 'snn'); ?></button>
+                        </div>
+                        
+                        <div id="snn-tab-image-opt" class="snn-tab-content active">
+                            <?php 
+                            if (function_exists('snn_render_image_optimization_section')) {
+                                snn_render_image_optimization_section();
+                            }
+                            ?>
+                        </div>
+                        
+                        <div id="snn-tab-clamp" class="snn-tab-content">
+                            <?php 
+                            if (function_exists('snn_render_clamp_calculator_section')) {
+                                snn_render_clamp_calculator_section();
+                            }
+                            ?>
+                        </div>
+                        
+                        <div id="snn-tab-color-sync" class="snn-tab-content">
+                            <?php 
+                            if (function_exists('snn_render_color_section')) {
+                                snn_render_color_section();
+                            }
+                            ?>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="snn-panel-button" data-balloon="<?php esc_attr_e('Refresh Editor After Save', 'snn'); ?>" data-balloon-pos="top">
