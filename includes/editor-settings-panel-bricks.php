@@ -34,7 +34,15 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
                     li.innerHTML = '<?php echo esc_js(__('S', 'snn')); ?>';
                     li.addEventListener("click", function() {
                         const popup = document.querySelector("#snn-popup");
-                        if (popup) popup.classList.add("active");
+                        if (popup) {
+                            popup.classList.add("active");
+                            // Set initial tab class if not already set
+                            if (!popup.classList.contains("snn-tab-image-opt-active") && 
+                                !popup.classList.contains("snn-tab-clamp-active") && 
+                                !popup.classList.contains("snn-tab-color-sync-active")) {
+                                popup.classList.add("snn-tab-image-opt-active");
+                            }
+                        }
                     });
 
                     const waitForChildren = setInterval(() => {
@@ -124,6 +132,15 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
                         if (targetContent) {
                             targetContent.classList.add("active");
                         }
+                        
+                        // Update popup container class for save button visibility
+                        var popup = document.getElementById("snn-popup");
+                        if (popup) {
+                            // Remove all tab-specific classes
+                            popup.classList.remove("snn-tab-image-opt-active", "snn-tab-clamp-active", "snn-tab-color-sync-active");
+                            // Add current tab class
+                            popup.classList.add("snn-tab-" + targetTab + "-active");
+                        }
                     }
                 });
 
@@ -157,6 +174,10 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
         .snn-tab-button.active{color:#fff;border-bottom-color:var(--builder-color-accent);}
         .snn-tab-content{display:none;}
         .snn-tab-content.active{display:block;}
+        
+        /* Hide save button for specific tabs */
+        .snn-panel-button{display:none;}
+        .snn-tab-color-sync-active .snn-panel-button{display:flex;}
         </style>
  
         <?php
@@ -174,7 +195,7 @@ function snn_popup_container_improved() {
         current_user_can('manage_options')
     ) {
         ?>
-        <div id="snn-popup" class="snn-popup docs">
+        <div id="snn-popup" class="snn-popup docs snn-tab-image-opt-active">
             <div id="snn-popup-inner" class="snn-popup-inner">
                 <div class="snn-title-wrapper">
                     <h1></h1>
