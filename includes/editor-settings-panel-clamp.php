@@ -7,8 +7,7 @@ function snn_render_clamp_calculator_section() {
 ?>
 <div class="snn-settings-content-wrapper-section">
     <div class="snn-settings-content-wrapper-section-title">
-        <?php _e('Clamp Calculator', 'snn'); ?>
-        <p style="margin-bottom:20px; font-size:14px; color:var(--builder-color-accent); max-width:550px"><?php _e('Generate CSS clamp() values for responsive typography and spacing. (Do not forget to match your HTML font-size with clamp.)', 'snn'); ?></p>
+        <p style="margin-bottom:20px; font-size:14px; color:var(--builder-color-accent); max-width:550px"><?php _e('Generate CSS clamp() values for responsive typography and spacing. (Do not forget to match your HTML font-size with clamp.  Go to: Theme Styles > Typography > HTML font-size)', 'snn'); ?></p>
     </div>
     <div class="snn-settings-content-wrapper-section-setting-area snn-clamp-container">
         
@@ -89,14 +88,14 @@ function snn_render_clamp_calculator_section() {
     
     /* Custom focus ring colors for dark inputs */
     .snn-clamp-container input[type="number"]:focus {
-        border-color: var(--blue-500);
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        border-color: var(--builder-color-accent);
+        box-shadow: 0 0 0 2px var(--builder-color-accent);
     }
-    .snn-clamp-container #minSize:focus { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
-    .snn-clamp-container #maxSize:focus { box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5); border-color: #22c55e; }
-    .snn-clamp-container #minViewport:focus { box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.5); border-color: #a855f7; }
-    .snn-clamp-container #maxViewport:focus { box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5); border-color: #ef4444; }
-    .snn-clamp-container #rootFontSize:focus { box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.5); border-color: #eab308; }
+    .snn-clamp-container #minSize:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
+    .snn-clamp-container #maxSize:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
+    .snn-clamp-container #minViewport:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
+    .snn-clamp-container #maxViewport:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
+    .snn-clamp-container #rootFontSize:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
 
     /* Buttons */
     .snn-clamp-container .copy-btn {
@@ -218,7 +217,7 @@ function snn_render_clamp_calculator_section() {
         </div>
 
         <div class="input-group md-col-span-2">
-            <label for="rootFontSize">Your HTML Root Font Size (px):</label>
+            <label for="rootFontSize">HTML Root Font Size (px):</label>
             <input type="number" id="rootFontSize" value="16" min="1" step="1" placeholder="e.g. 16"
                    data-tooltip="The base font size on your HTML root (usually 16px). Used for 'rem' conversion.">
         </div>
