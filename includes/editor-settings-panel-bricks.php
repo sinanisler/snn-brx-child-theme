@@ -205,7 +205,7 @@ function snn_popup_container_improved() {
                     <div class="snn-tabs-container">
                         <div class="snn-tab-buttons">
                             <button class="snn-tab-button active" data-tab="image-opt"><?php _e('Image Optimization', 'snn'); ?></button>
-                            <button class="snn-tab-button" data-tab="clamp"><?php _e('Clamp Calculator', 'snn'); ?></button>
+                            <button class="snn-tab-button" data-tab="clamp"><?php _e('Clamp Generator', 'snn'); ?></button>
                             <button class="snn-tab-button" data-tab="color-sync"><?php _e('Color Sync', 'snn'); ?></button>
                         </div>
                         
