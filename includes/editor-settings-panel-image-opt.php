@@ -8,7 +8,7 @@ function snn_render_image_optimization_section() {
     <div class="snn-settings-content-wrapper-section">
         <div class="snn-settings-content-wrapper-section-title">
             
-            <p style="margin-bottom:20px; font-size:14px; color:var(--builder-color-accent); max-width:550px"><?php _e('Optimize or Convert or Resize gigantic images. Fast. It uses your cpu to optimize images. If the iamge count is more than 5 it will create .zip download.', 'snn'); ?></p>
+            <p style="margin-bottom:20px; font-size:14px; color:var(--builder-color-accent); max-width:550px"><?php _e('Optimize or Convert or Resize gigantic images. Fast. It uses your cpu to optimize images. If img count is more than 5 it will create .zip download.', 'snn'); ?></p>
         </div>
         <div class="snn-settings-content-wrapper-section-setting-area snn-image-optimize-container">
             
