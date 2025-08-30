@@ -205,7 +205,7 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar { display: flex; align-items: center; justify-content: space-between; color: var(--text-color); }
             #" . esc_attr($root_id) . " .snn-controls-left, #" . esc_attr($root_id) . " .snn-controls-right { display: flex; align-items: center; gap: 10px; }
-            #" . esc_attr($root_id) . " .snn-control-button { background: none; border: none; color: var(--button-color); padding: 5px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+            #" . esc_attr($root_id) . " .snn-control-button { background: none; border: none; color: var(--button-color); padding: 5px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; filter:drop-shadow(0px 0px 2px #00000099) }
             #" . esc_attr($root_id) . " .snn-control-button:hover { background-color: var(--button-hover-background); }
             #" . esc_attr($root_id) . " .snn-control-button svg { width: 30px; height: 30px; fill: currentColor; }
             #" . esc_attr($root_id) . " .snn-volume-container { display: flex; align-items: center; }
