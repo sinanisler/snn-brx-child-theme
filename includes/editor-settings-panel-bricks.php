@@ -478,184 +478,34 @@ function snn_custom_inline_styles_and_scripts_improved() {
         </script>
 
         <style>
-            #snn-popup {
-                align-items: center;
-                background-color: #ffffffdd;
-                bottom: 0;
-                color: #fff;
-                display: none;
-                font-size: 14px;
-                justify-content: center;
-                left: 0;
-                padding: 60px;
-                position: fixed;
-                right: 0;
-                top: 0;
-                z-index: 10001;
-            }
-            #snn-popup.active {
-                display: flex;
-            }
-            #snn-popup h1 {
-                font-size: 2em;
-                font-weight: 600;
-            }
-            .snn-enhance-li {
-                width:26px !important;
-                padding-left: 3px;
-                font-size: 21px;
-                letter-spacing: -0.3px;
-                padding-top: 0px;
-                color: #b0b4b7;
-            }
-            .snn-enhance-li i{
-                font-size: 19px;
-                opacity: 0.8;
-            }
-            #snn-popup-inner {
-                background-color: var(--builder-bg);
-                border-radius: var(--builder-border-radius);
-                box-shadow: 0 6px 24px 0 rgba(0, 0, 0, 0.25);
-                display: flex;
-                flex-direction: column;
-                height: 100%;
-                max-width: 1200px;
-                overflow-y: auto;
-                position: relative;
-                width: 100%;
-                color: #fff;
-                padding: 20px;
-            }
-            #snn-popup .snn-filters li.active {
-                background-color: var(--builder-bg-accent);
-                border-radius: var(--builder-border-radius);
-                color: #fff;
-            }
-            #snn-popup .snn-title-wrapper {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 10px;
-                position: relative;
-            }
-            .snn-close-button {
-                cursor: pointer;
-                font-size: 28px;
-                background: transparent;
-                border: none;
-                color: var(--builder-color-accent);
-                transform: scaleX(1.3);
-            }
-            .snn-close-button:hover {
-                color: white;
-            }
-            .snn-toolbar-container {
-                background-color: #f5f5f5 !important;
-                border: 1px solid #ddd !important;
-                padding: 10px !important;
-                border-radius: 5px !important;
-            }
-            .snn-toolbar-container:hover {
-                background-color: #e0e0e0 !important;
-            }
-            .snn-toolbar-container li {
-                font-size: 12px;
-            }
-            .snn-settings-content-wrapper {
-                height: calc(100% - 50px);
-            }
-            .snn-panel-button {
-                align-items: center;
-                background-color: var(--builder-bg-3);
-                border-radius: var(--builder-border-radius);
-                cursor: pointer;
-                display: flex;
-                height: var(--builder-popup-input-height);
-                width: 157px;
-                padding: 12px;
-                font-size: 16px;
-                letter-spacing: 0.3px;
-            }
-            .snn-panel-button:hover {
-                background-color: var(--builder-color-accent);
-                color: black;
-            }
-            .snn-panel-button svg {
-                margin-right: 10px;
-            }
-            .snn-settings-content-wrapper-section {
-                padding: 10px;
-                border: solid #00000055 1px;
-                border-radius: 4px;
-                margin-bottom: 15px;
-            }
-            .snn-color-row {
-                display: flex;
-                align-items: center;
-                margin-bottom: 4px;
-            }
-            .snn-color-row .snn-color-name-input,
-            .snn-color-row .snn-shade-input {
-                width: 120px;
-                text-align: center;
-                font-size: 14px;
-                margin-right: 10px;
-                background: #171a1d;
-                line-height: 32px;
-                height: 32px;
-                color: #868686;
-                border: none;
-                padding: 0;
-            }
-            .snn-color-row input[type="text"] {
-                padding: 5px;
-                font-size: 16px;
-                width: 170px;
-                text-align: center;
-                margin-right: 10px;
-                background: #171a1d;
-                border: 0;
-                line-height: 22px;
-            }
-            .snn-color-row input[type="text"]::placeholder,
-            .snn-color-row .snn-shade-input::placeholder {
-                color: #ffffff44;
-            }
-            .snn-color-row input[type="color"] {
-                width: 50px;
-                height: 22px;
-                border: none;
-                cursor: pointer;
-                margin-right: 10px;
-                padding: 0;
-            }
-            .snn-color-row button.snn-remove-color {
-                padding: 5px 10px;
-                font-size: 14px;
-                cursor: pointer;
-                background: #171a1d;
-                color: white;
-            }
-            .snn-color-row button.snn-remove-color:hover {
-                background-color: var(--builder-color-accent);
-                color: black;
-            }
-            #snn-add-color {
-                margin-top: 10px;
-                padding: 8px 12px;
-                font-size: 14px;
-                cursor: pointer;
-                background: #171a1d;
-                color: white;
-            }
-            .snn-feedback-after-save {
-                margin-bottom: 10px;
-                font-size: 14px;
-                color: #0f0;
-            }
-            .snn-settings-content-wrapper-section-title {
-                margin-bottom: 5px;
-            }
+        #snn-popup{align-items:center;background-color:#ffffffdd;bottom:0;color:#fff;display:none;font-size:14px;justify-content:center;left:0;padding:60px;position:fixed;right:0;top:0;z-index:10001;}
+        #snn-popup.active{display:flex;}
+        #snn-popup h1{font-size:2em;font-weight:600;}
+        .snn-enhance-li{width:26px !important;padding-left:3px;font-size:21px;letter-spacing:-0.3px;padding-top:0px;color:#b0b4b7;}
+        .snn-enhance-li i{font-size:19px;opacity:0.8;}
+        #snn-popup-inner{background-color:var(--builder-bg);border-radius:var(--builder-border-radius);box-shadow:0 6px 24px 0 rgba(0, 0, 0, 0.25);display:flex;flex-direction:column;height:100%;max-width:1200px;overflow-y:auto;position:relative;width:100%;color:#fff;padding:20px;}
+        #snn-popup .snn-filters li.active{background-color:var(--builder-bg-accent);border-radius:var(--builder-border-radius);color:#fff;}
+        #snn-popup .snn-title-wrapper{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;position:relative;}
+        .snn-close-button{cursor:pointer;font-size:28px;background:transparent;border:none;color:var(--builder-color-accent);transform:scaleX(1.3);}
+        .snn-close-button:hover{color:white;}
+        .snn-toolbar-container{background-color:#f5f5f5 !important;border:1px solid #ddd !important;padding:10px !important;border-radius:5px !important;}
+        .snn-toolbar-container:hover{background-color:#e0e0e0 !important;}
+        .snn-toolbar-container li{font-size:12px;}
+        .snn-settings-content-wrapper{height:calc(100% - 50px);}
+        .snn-panel-button{align-items:center;background-color:var(--builder-bg-3);border-radius:var(--builder-border-radius);cursor:pointer;display:flex;height:var(--builder-popup-input-height);width:157px;padding:12px;font-size:16px;letter-spacing:0.3px;}
+        .snn-panel-button:hover{background-color:var(--builder-color-accent);color:black;}
+        .snn-panel-button svg{margin-right:10px;}
+        .snn-settings-content-wrapper-section{padding:10px;border:solid #00000055 1px;border-radius:4px;margin-bottom:15px;}
+        .snn-color-row{display:flex;align-items:center;margin-bottom:4px;}
+        .snn-color-row .snn-color-name-input,.snn-color-row .snn-shade-input{width:120px;text-align:center;font-size:14px;margin-right:10px;background:#171a1d;line-height:32px;height:32px;color:#868686;border:none;padding:0;}
+        .snn-color-row input[type="text"]{padding:5px;font-size:16px;width:170px;text-align:center;margin-right:10px;background:#171a1d;border:0;line-height:22px;}
+        .snn-color-row input[type="text"]::placeholder,.snn-color-row .snn-shade-input::placeholder{color:#ffffff44;}
+        .snn-color-row input[type="color"]{width:50px;height:22px;border:none;cursor:pointer;margin-right:10px;padding:0;}
+        .snn-color-row button.snn-remove-color{padding:5px 10px;font-size:14px;cursor:pointer;background:#171a1d;color:white;}
+        .snn-color-row button.snn-remove-color:hover{background-color:var(--builder-color-accent);color:black;}
+        #snn-add-color{margin-top:10px;padding:8px 12px;font-size:14px;cursor:pointer;background:#171a1d;color:white;}
+        .snn-feedback-after-save{margin-bottom:10px;font-size:14px;color:#0f0;}
+        .snn-settings-content-wrapper-section-title{margin-bottom:5px;}
         </style>
  
         <?php
