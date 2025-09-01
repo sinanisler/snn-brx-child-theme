@@ -106,9 +106,17 @@ add_action('admin_init', 'snn_register_accessibility_settings');
 function snn_sanitize_accessibility_settings( $input ) {
     $sanitized = [];
     $sanitized['enqueue_accessibility'] = ! empty( $input['enqueue_accessibility'] ) ? 1 : 0;
-    $sanitized['main_color']              = ! empty( $input['main_color'] )
-        ? sanitize_hex_color( $input['main_color'] )
-        : '#000000';
+    
+    // Sanitize color input - allow any valid CSS color value
+    if ( ! empty( $input['main_color'] ) ) {
+        $color = trim( $input['main_color'] );
+        // Basic sanitization - remove potentially harmful characters but allow CSS color formats
+        $color = preg_replace('/[<>"\']/', '', $color);
+        $sanitized['main_color'] = $color;
+    } else {
+        $sanitized['main_color'] = '#07757f';
+    }
+    
     $sanitized['btn_width']              = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 45;
     $sanitized['btn_height']             = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 45;
     $align = isset( $input['btn_alignment'] ) ? $input['btn_alignment'] : 'left';
@@ -137,7 +145,30 @@ function snn_main_color_callback() {
     $opt = get_option('snn_accessibility_settings');
     $val = ! empty($opt['main_color']) ? $opt['main_color'] : '#07757f';
     ?>
-    <input type="color" name="snn_accessibility_settings[main_color]" value="<?php echo esc_attr($val); ?>">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="color" id="snn_color_picker" value="<?php echo esc_attr($val); ?>" style="width: 50px; height: 40px; border: none; cursor: pointer;">
+        <input type="text" name="snn_accessibility_settings[main_color]" id="snn_color_input" value="<?php echo esc_attr($val); ?>" placeholder="e.g., #07757f, rgb(7, 117, 127), var(--primary-color)" style="width: 300px; padding: 5px;">
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const colorPicker = document.getElementById('snn_color_picker');
+        const colorInput = document.getElementById('snn_color_input');
+        
+        // Update text input when color picker changes
+        colorPicker.addEventListener('input', function() {
+            colorInput.value = this.value;
+        });
+        
+        // Update color picker when text input changes (if it's a valid hex color)
+        colorInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            // Check if it's a valid hex color
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                colorPicker.value = value;
+            }
+        });
+    });
+    </script>
     <?php
 }
 function snn_btn_width_callback() {
@@ -276,7 +307,13 @@ function snn_output_accessibility_widget_footer() {
     }
     .asw-adjust-font > div { margin-top: 0 !important; gap: 5px; }
     .asw-menu-header div[role=button] { padding: 8px !important; }
-    .asw-menu-btn svg {
+    .asw-menu-btn svg{
+        width:  calc(<?php echo esc_html($w / 1.4); ?>px / 1.4 ) !important;
+        height: calc(<?php echo esc_html($w / 1.4); ?>px / 1.4 ) !important;
+        min-width: auto !important;
+        min-height: auto !important;
+    }
+    .asw-menu-btn {
         width: <?php echo esc_html($w / 1.4); ?>px !important;
         height: <?php echo esc_html($w / 1.4); ?>px !important;
         min-width: auto !important;
