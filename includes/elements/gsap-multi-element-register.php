@@ -462,7 +462,10 @@ add_action( 'init', function () {
 
 					
 'end:0%+=1000px' => esc_html__('End 0%+=1000px', 'snn'),
+'end:0%+=1500px' => esc_html__('End 0%+=1500px', 'snn'),
 'end:0%+=2000px' => esc_html__('End 0%+=2000px', 'snn'),
+'end:0%+=3000px' => esc_html__('End 0%+=3000px', 'snn'),
+'end:0%+=4000px' => esc_html__('End 0%+=4000px', 'snn'),
 
 
 
