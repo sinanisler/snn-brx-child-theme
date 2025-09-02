@@ -12,14 +12,10 @@ function snn_render_image_optimization_section() {
         </div>
         <div class="snn-settings-content-wrapper-section-setting-area snn-image-optimize-container">
             
-        
 
-
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/javascript-canvas-to-blob/3.29.0/js/canvas-to-blob.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="/wp-content/themes/snn-brx-child-theme/assets/js/FileSaver.min.js"></script>
+<script src="/wp-content/themes/snn-brx-child-theme/assets/js/canvas-to-blob.min.js"></script>
+<script src="/wp-content/themes/snn-brx-child-theme/assets/js/jszip.min.js"></script>
 
 <style>
   /* General & App Layout */
