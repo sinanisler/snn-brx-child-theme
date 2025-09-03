@@ -482,21 +482,21 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    function setConvertingState(isConverting) {
-        if (isConverting) {
-            convertButton.disabled = true;
-            convertButtonText.textContent = 'Converting...';
-            convertButtonIcon.innerHTML = '<div class="spinner"></div>';
-        } else {
-            convertButton.disabled = false;
-            convertButtonText.textContent = 'Convert Images';
-            convertButtonIcon.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-                </svg>`;
-        }
+  function setConvertingState(isConverting) {
+    if (isConverting) {
+      convertButton.disabled = true;
+      convertButtonText.textContent = 'Converting...';
+      convertButtonIcon.innerHTML = '<div class="spinner"></div>';
+    } else {
+      convertButton.disabled = false;
+      convertButtonText.textContent = 'Convert and Optimize';
+      convertButtonIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+        </svg>`;
     }
+  }
 
     uploadArea.onclick = (e) => {
       if (e.target.closest('button[data-id]')) {
@@ -562,106 +562,137 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     };
 
+    // Store converted blobs for download after conversion
+    let convertedBlobs = [];
+    let conversionDone = false;
+
+    function resetDownloadState() {
+        convertedBlobs = [];
+        conversionDone = false;
+        convertButtonText.textContent = 'Convert and Optimize';
+        convertButton.disabled = false;
+    }
+
+    // Reset button when selection changes
+    function onSelectionChange() {
+        resetDownloadState();
+    }
+
+    // Call on selection change
+    imageInput.onchange = (e) => {
+      handleFiles(e.target.files);
+      imageInput.value = null;
+      onSelectionChange();
+    };
+    clearAllButton.onclick = () => {
+      selectedFiles.forEach(fileObj => {
+        if (fileObj.thumbnailUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(fileObj.thumbnailUrl);
+        }
+      });
+      selectedFiles = [];
+      renderPreviews();
+      showMessage('All selections cleared.', 'info');
+      imageInput.value = null;
+      onSelectionChange();
+    };
+
+    // Convert and Optimize on first click, Download on second click
     imageForm.onsubmit = (e) => {
       e.preventDefault();
       messageArea.innerHTML = '';
 
-      if (selectedFiles.length === 0) {
-        showMessage('Please select one or more images to convert.', 'error');
-        return;
-      }
-
-      setConvertingState(true);
-
-      const resizeWidth = resizeWidthInput.value ? parseInt(resizeWidthInput.value) : null;
-      if (resizeWidth !== null && (isNaN(resizeWidth) || resizeWidth <= 0)) {
-          showMessage('Invalid resize width. Please enter a positive number or leave blank.', 'error');
-          setConvertingState(false);
+      if (!conversionDone) {
+        // Start conversion
+        if (selectedFiles.length === 0) {
+          showMessage('Please select one or more images to convert.', 'error');
           return;
-      }
-
-      const format = formatSelect.value;
-      let finalQuality;
-
-      if (format === 'image/png') {
-        finalQuality = undefined;
-      } else {
-        let parsedQuality = parseFloat(qualityInput.value);
-        if (isNaN(parsedQuality) || parsedQuality < 0 || parsedQuality > 1) {
-          showMessage('Invalid quality value. Using default. Please enter a number between 0.0 and 1.0.', 'error');
+        }
+        setConvertingState(true);
+        const resizeWidth = resizeWidthInput.value ? parseInt(resizeWidthInput.value) : null;
+        if (resizeWidth !== null && (isNaN(resizeWidth) || resizeWidth <= 0)) {
+            showMessage('Invalid resize width. Please enter a positive number or leave blank.', 'error');
+            setConvertingState(false);
+            return;
+        }
+        const format = formatSelect.value;
+        let finalQuality;
+        if (format === 'image/png') {
           finalQuality = undefined;
         } else {
-          finalQuality = parsedQuality;
-        }
-      }
-
-      let processedCount = 0;
-      let successCount = 0;
-      let errorCount = 0;
-      let collectedBlobs = [];
-
-      selectedFiles.forEach(fileObj => {
-        processAndConvertFile(fileObj.file, resizeWidth, format, finalQuality, (blob, name) => {
-          processedCount++;
-          if (blob && name) {
-            collectedBlobs.push({ name: name, blob: blob });
-            successCount++;
+          let parsedQuality = parseFloat(qualityInput.value);
+          if (isNaN(parsedQuality) || parsedQuality < 0 || parsedQuality > 1) {
+            showMessage('Invalid quality value. Using default. Please enter a number between 0.0 and 1.0.', 'error');
+            finalQuality = undefined;
           } else {
-            errorCount++;
+            finalQuality = parsedQuality;
           }
-
-          if (processedCount === selectedFiles.length) {
-            setConvertingState(false);
-            if (successCount > 0) {
-              // Only zip if more than 5 images, else download separately (single or multiple).
-              if (successCount > 5) {
-                const zip = new JSZip();
-                collectedBlobs.forEach(item => {
-                  zip.file(item.name, item.blob);
-                });
-                zip.generateAsync({ type: "blob" })
-                  .then(function(content) {
-                    saveAs(content, "converted_images.zip");
-                    let message = `Successfully converted ${successCount} image(s) and downloaded as a ZIP.`;
-                    if (errorCount > 0) {
-                      message += ` ${errorCount} image(s) failed to convert.`;
-                      showMessage(message, 'error');
-                    } else {
-                      showMessage(message, 'success');
-                    }
-                  })
-                  .catch(function (err) {
-                    let message = `Error creating ZIP file: ${err.message}.`;
-                    if (errorCount > 0) {
-                        message += ` Additionally, ${errorCount} image(s) failed to convert before ZIP creation.`;
-                    }
-                    showMessage(message, 'error');
-                  });
+        }
+        let processedCount = 0;
+        let successCount = 0;
+        let errorCount = 0;
+        let collectedBlobs = [];
+        selectedFiles.forEach(fileObj => {
+          processAndConvertFile(fileObj.file, resizeWidth, format, finalQuality, (blob, name) => {
+            processedCount++;
+            if (blob && name) {
+              collectedBlobs.push({ name: name, blob: blob });
+              successCount++;
+            } else {
+              errorCount++;
+            }
+            if (processedCount === selectedFiles.length) {
+              setConvertingState(false);
+              if (successCount > 0) {
+                convertedBlobs = collectedBlobs;
+                conversionDone = true;
+                convertButtonText.textContent = 'Download';
+                convertButton.disabled = false;
+                showMessage(`Successfully converted ${successCount} image(s). Click 'Download' to save.`, 'success');
               } else {
-                // Single image: download directly; 2-5 images: download one by one (no zip).
-                collectedBlobs.forEach((item, idx) => {
-                  setTimeout(() => {
-                    saveAs(item.blob, item.name);
-                  }, idx * 200); // Delay each by 200ms to help browser download.
-                });
-                let message = `Successfully converted and downloaded ${successCount} image(s).`;
+                convertedBlobs = [];
+                conversionDone = false;
+                convertButtonText.textContent = 'Convert and Optimize';
+                convertButton.disabled = false;
                 if (errorCount > 0) {
-                  message += ` ${errorCount} image(s) failed to convert.`;
-                  showMessage(message, 'error');
+                  showMessage(`${errorCount} image(s) failed to convert.`, 'error');
                 } else {
-                  showMessage(message, 'success');
+                  showMessage('Conversion process completed, but no files were processed successfully or failed explicitly.', 'info');
                 }
               }
-            } else {
-              if (errorCount > 0) {
-                showMessage(`${errorCount} image(s) failed to convert. Please check individual error messages if any.`, 'error');
-              } else if (selectedFiles.length > 0) {
-                showMessage('Conversion process completed, but no files were processed successfully or failed explicitly.', 'info');
-              }
             }
-          }
+          });
         });
-      });
+      } else {
+        // Download phase
+        if (convertedBlobs.length === 0) {
+          showMessage('No converted images to download.', 'error');
+          return;
+        }
+        if (convertedBlobs.length > 5) {
+          const zip = new JSZip();
+          convertedBlobs.forEach(item => {
+            zip.file(item.name, item.blob);
+          });
+          zip.generateAsync({ type: "blob" })
+            .then(function(content) {
+              saveAs(content, "converted_images.zip");
+              showMessage(`Downloaded ${convertedBlobs.length} images as ZIP.`, 'success');
+              resetDownloadState();
+            })
+            .catch(function (err) {
+              showMessage(`Error creating ZIP file: ${err.message}.`, 'error');
+            });
+        } else {
+          convertedBlobs.forEach((item, idx) => {
+            setTimeout(() => {
+              saveAs(item.blob, item.name);
+            }, idx * 200);
+          });
+          showMessage(`Downloaded ${convertedBlobs.length} image(s).`, 'success');
+          resetDownloadState();
+        }
+      }
     };
 
     function processAndConvertFile(file, targetWidth, format, qualityParam, callback) {
