@@ -235,6 +235,66 @@ function snn_render_image_optimization_section() {
     opacity: 0.7;
     cursor: wait;
   }
+
+  /* Button Container */
+  .snn-image-optimize-container .button-container {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+  .snn-image-optimize-container .button-container button {
+    flex: 1;
+  }
+
+  /* Save to Media Library Button */
+  .snn-image-optimize-container #saveToMediaButton {
+    background-color: var(--builder-color-accent);
+    color: black;
+    font-weight: 600;
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 150ms ease-in-out;
+  }
+  .snn-image-optimize-container #saveToMediaButton:hover {
+    filter: brightness(1.1);
+  }
+  .snn-image-optimize-container #saveToMediaButton:focus {
+    outline: 2px solid var(--builder-color-accent);
+    outline-offset: 2px;
+  }
+  .snn-image-optimize-container #saveToMediaButton:disabled {
+    opacity: 0.7;
+    cursor: wait;
+  }
+
+  /* Progress Bar */
+  .snn-image-optimize-container .progress-container {
+    width: 100%;
+    background-color: #f3f4f6;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 16px;
+    display: none;
+  }
+  .snn-image-optimize-container .progress-bar {
+    height: 8px;
+    background-color: var(--builder-color-accent);
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+  .snn-image-optimize-container .progress-text {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #6b7280;
+  }
   .snn-image-optimize-container .spinner {
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
@@ -311,15 +371,25 @@ function snn_render_image_optimization_section() {
         <input type="number" id="qualityInput" min="0" max="1" step="0.01" value="0.85" class="form-input">
       </div>
     </div>
-    <button type="submit" id="convertButton">
-      <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor" id="convertButtonIcon">
-        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-      </svg>
-
-      <span id="convertButtonText">Download</span>
-
-    </button>
+    <div class="button-container">
+      <button type="submit" id="convertButton">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor" id="convertButtonIcon">
+          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+        </svg>
+        <span id="convertButtonText">Download</span>
+      </button>
+      <button type="button" id="saveToMediaButton" class="hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor" id="saveToMediaButtonIcon">
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+        <span id="saveToMediaButtonText">Save to Media Library</span>
+      </button>
+    </div>
+    <div class="progress-container" id="progressContainer">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="progress-text" id="progressText"></div>
+    </div>
   </form>
 
   <div id="messageArea"></div>
@@ -341,6 +411,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const convertButton = document.getElementById('convertButton');
     const convertButtonText = document.getElementById('convertButtonText');
     const convertButtonIcon = document.getElementById('convertButtonIcon');
+    const saveToMediaButton = document.getElementById('saveToMediaButton');
+    const saveToMediaButtonText = document.getElementById('saveToMediaButtonText');
+    const saveToMediaButtonIcon = document.getElementById('saveToMediaButtonIcon');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
 
     let selectedFiles = [];
 
@@ -571,6 +647,8 @@ document.addEventListener('DOMContentLoaded', function () {
         conversionDone = false;
         convertButtonText.textContent = 'Convert and Optimize';
         convertButton.disabled = false;
+        saveToMediaButton.classList.add('hidden');
+        progressContainer.style.display = 'none';
     }
 
     // Reset button when selection changes
@@ -648,7 +726,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 conversionDone = true;
                 convertButtonText.textContent = 'Download';
                 convertButton.disabled = false;
-                showMessage(`Successfully converted ${successCount} image(s). Click 'Download' to save.`, 'success');
+                saveToMediaButton.classList.remove('hidden');
+                showMessage(`Successfully converted ${successCount} image(s). Click 'Download' to save or 'Save to Media Library'.`, 'success');
               } else {
                 convertedBlobs = [];
                 conversionDone = false;
@@ -763,6 +842,114 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       img.src = imageUrl;
     }
+
+    // Save to Media Library functionality
+    saveToMediaButton.onclick = async () => {
+      if (convertedBlobs.length === 0) {
+        showMessage('No converted images to save to media library.', 'error');
+        return;
+      }
+
+      setSavingState(true);
+      showProgress(0, convertedBlobs.length);
+      
+      const chunkSize = 5;
+      let successCount = 0;
+      let errorCount = 0;
+      
+      for (let i = 0; i < convertedBlobs.length; i += chunkSize) {
+        const chunk = convertedBlobs.slice(i, i + chunkSize);
+        const chunkPromises = chunk.map((item, index) => {
+          const globalIndex = i + index;
+          return saveImageToMediaLibrary(item.blob, item.name, globalIndex);
+        });
+        
+        const results = await Promise.allSettled(chunkPromises);
+        
+        results.forEach((result, index) => {
+          const globalIndex = i + index;
+          if (result.status === 'fulfilled' && result.value.success) {
+            successCount++;
+          } else {
+            errorCount++;
+            console.error(`Failed to save image ${globalIndex + 1}:`, result.reason || result.value);
+          }
+          
+          updateProgress(globalIndex + 1, convertedBlobs.length, successCount, errorCount);
+        });
+        
+        // Small delay between chunks to prevent overwhelming the server
+        if (i + chunkSize < convertedBlobs.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      setSavingState(false);
+      hideProgress();
+      
+      if (successCount > 0) {
+        showMessage(`Successfully saved ${successCount} image(s) to media library${errorCount > 0 ? ` (${errorCount} failed)` : ''}.`, 'success');
+      } else {
+        showMessage(`Failed to save images to media library. Please check console for details.`, 'error');
+      }
+    };
+
+    function setSavingState(isSaving) {
+      saveToMediaButton.disabled = isSaving;
+      convertButton.disabled = isSaving;
+      
+      if (isSaving) {
+        saveToMediaButtonText.textContent = 'Saving...';
+        saveToMediaButtonIcon.innerHTML = '<div class="spinner"></div>';
+      } else {
+        saveToMediaButtonText.textContent = 'Save to Media Library';
+        saveToMediaButtonIcon.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>`;
+      }
+    }
+
+    function showProgress(current, total) {
+      progressContainer.style.display = 'block';
+      updateProgress(current, total, 0, 0);
+    }
+
+    function updateProgress(current, total, successCount, errorCount) {
+      const percentage = (current / total) * 100;
+      progressBar.style.width = percentage + '%';
+      progressText.textContent = `Processing ${current}/${total} images... (${successCount} saved, ${errorCount} failed)`;
+    }
+
+    function hideProgress() {
+      setTimeout(() => {
+        progressContainer.style.display = 'none';
+        progressBar.style.width = '0%';
+        progressText.textContent = '';
+      }, 2000);
+    }
+
+    async function saveImageToMediaLibrary(blob, filename, index) {
+      return new Promise((resolve) => {
+        const formData = new FormData();
+        formData.append('action', 'snn_save_optimized_image');
+        formData.append('image', blob, filename);
+        formData.append('filename', filename);
+        formData.append('nonce', '<?php echo wp_create_nonce('snn_save_image_nonce'); ?>');
+
+        fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          resolve(data);
+        })
+        .catch(error => {
+          resolve({ success: false, error: error.message });
+        });
+      });
+    }
 });
 </script>
 
@@ -778,4 +965,75 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
     </div>
     <?php
+}
+
+// AJAX handler for saving optimized images to media library
+add_action('wp_ajax_snn_save_optimized_image', 'snn_save_optimized_image_handler');
+
+function snn_save_optimized_image_handler() {
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'snn_save_image_nonce')) {
+        wp_die(json_encode(['success' => false, 'error' => 'Invalid nonce']));
+    }
+
+    // Check user capabilities
+    if (!current_user_can('upload_files')) {
+        wp_die(json_encode(['success' => false, 'error' => 'Insufficient permissions']));
+    }
+
+    // Check if file was uploaded
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        wp_die(json_encode(['success' => false, 'error' => 'No file uploaded or upload error']));
+    }
+
+    $uploaded_file = $_FILES['image'];
+    $filename = sanitize_file_name($_POST['filename']);
+    
+    // Validate file type
+    $allowed_types = ['image/jpeg', 'image/png', 'image/webp'];
+    $file_type = wp_check_filetype($filename);
+    
+    if (!in_array($uploaded_file['type'], $allowed_types)) {
+        wp_die(json_encode(['success' => false, 'error' => 'Invalid file type']));
+    }
+
+    // Create unique filename to avoid conflicts
+    $upload_dir = wp_upload_dir();
+    $unique_filename = wp_unique_filename($upload_dir['path'], $filename);
+    $file_path = $upload_dir['path'] . '/' . $unique_filename;
+
+    // Move uploaded file to uploads directory
+    if (!move_uploaded_file($uploaded_file['tmp_name'], $file_path)) {
+        wp_die(json_encode(['success' => false, 'error' => 'Failed to move uploaded file']));
+    }
+
+    // Prepare attachment data
+    $attachment = array(
+        'guid'           => $upload_dir['url'] . '/' . $unique_filename,
+        'post_mime_type' => $uploaded_file['type'],
+        'post_title'     => preg_replace('/\.[^.]+$/', '', $unique_filename),
+        'post_content'   => '',
+        'post_status'    => 'inherit'
+    );
+
+    // Insert attachment into database
+    $attachment_id = wp_insert_attachment($attachment, $file_path);
+
+    if (is_wp_error($attachment_id)) {
+        // Clean up file if database insertion failed
+        @unlink($file_path);
+        wp_die(json_encode(['success' => false, 'error' => 'Failed to insert attachment']));
+    }
+
+    // Generate attachment metadata
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
+    $attachment_data = wp_generate_attachment_metadata($attachment_id, $file_path);
+    wp_update_attachment_metadata($attachment_id, $attachment_data);
+
+    wp_die(json_encode([
+        'success' => true, 
+        'attachment_id' => $attachment_id,
+        'filename' => $unique_filename,
+        'url' => $upload_dir['url'] . '/' . $unique_filename
+    ]));
 }
