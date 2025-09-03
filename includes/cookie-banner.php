@@ -222,8 +222,8 @@ function snn_options_page() {
                     <tr valign="top">
                         <th scope="row"><?php _e('Preferences Title', 'snn'); ?></th>
                         <td>
-                            <input type="text" name="snn_cookie_settings_preferences_title" value="<?php echo isset($options['snn_cookie_settings_preferences_title']) ? esc_attr($options['snn_cookie_settings_preferences_title']) : ''; ?>" class="snn-input">
-                            <p class="description"><?php _e('Preferences title text in the cookie banner.', 'snn'); ?></p>
+                                <input type="text" name="snn_cookie_settings_preferences_title" value="<?php echo isset($options['snn_cookie_settings_preferences_title']) && $options['snn_cookie_settings_preferences_title'] !== '' ? esc_attr($options['snn_cookie_settings_preferences_title']) : 'Cookie Preferences'; ?>" class="snn-input">
+                                <p class="description"><?php _e('Preferences title text in the cookie banner.', 'snn'); ?></p>
                         </td>
                     </tr>
                     <tr valign="top">
