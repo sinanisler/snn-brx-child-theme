@@ -13,9 +13,9 @@ function snn_render_image_optimization_section() {
         <div class="snn-settings-content-wrapper-section-setting-area snn-image-optimize-container">
             
 
-<script src="/wp-content/themes/snn-brx-child-theme/assets/js/FileSaver.min.js"></script>
-<script src="/wp-content/themes/snn-brx-child-theme/assets/js/canvas-to-blob.min.js"></script>
-<script src="/wp-content/themes/snn-brx-child-theme/assets/js/jszip.min.js"></script>
+<script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/FileSaver.min.js"></script>
+<script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/canvas-to-blob.min.js"></script>
+<script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/jszip.min.js"></script>
 
 <style>
   /* General & App Layout */
