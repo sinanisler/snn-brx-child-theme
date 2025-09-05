@@ -3,7 +3,7 @@
 [![GPL-3.0](https://img.shields.io/github/license/ESKYoung/shields-io-visitor-counter?logo=GNU&logoColor=FFFFFF)](https://github.com/sinanisler/snn-brx-child-theme/blob/main/license.txt)
 [![Gmail Badge](https://img.shields.io/badge/-Download_Latest_Release-29903b?style=flat&logo=Download&logoColor=white)](https://sinanisler.com/snn-brx-download)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sinanisler/snn-brx-child-theme)
-[![Sponsor me](https://img.shields.io/badge/Sponsor--The--Project--GitHub-brightgreen)](https://github.com/sponsors/sinanisler)
+[![Sponsor me](https://img.shields.io/badge/Sponsor--me--❤-GitHub-green)](https://github.com/sponsors/sinanisler)
 
 
 
