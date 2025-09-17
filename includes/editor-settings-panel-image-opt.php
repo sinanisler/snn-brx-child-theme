@@ -286,14 +286,15 @@ function snn_render_image_optimization_section() {
   .snn-image-optimize-container .progress-bar {
     height: 8px;
     background-color: var(--builder-color-accent);
-    transition: width 0.3s ease;
+    transition: width 0.1s ease; /* OPTIMIZATION 3: Faster animation for immediate feedback */
     width: 0%;
   }
   .snn-image-optimize-container .progress-text {
     text-align: center;
     margin-top: 8px;
     font-size: 14px;
-    color: #6b7280;
+    color: var(--builder-color-accent); /* OPTIMIZATION 3: More visible progress text */
+    font-weight: 500; /* OPTIMIZATION 3: Bold text for better visibility */
   }
   .snn-image-optimize-container .spinner {
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -843,7 +844,7 @@ document.addEventListener('DOMContentLoaded', function () {
       img.src = imageUrl;
     }
 
-    // Save to Media Library functionality
+    // OPTIMIZED Save to Media Library functionality
     saveToMediaButton.onclick = async () => {
       if (convertedBlobs.length === 0) {
         showMessage('No converted images to save to media library.', 'error');
@@ -853,34 +854,34 @@ document.addEventListener('DOMContentLoaded', function () {
       setSavingState(true);
       showProgress(0, convertedBlobs.length);
       
-      const chunkSize = 5;
       let successCount = 0;
       let errorCount = 0;
       
-      for (let i = 0; i < convertedBlobs.length; i += chunkSize) {
-        const chunk = convertedBlobs.slice(i, i + chunkSize);
-        const chunkPromises = chunk.map((item, index) => {
-          const globalIndex = i + index;
-          return saveImageToMediaLibrary(item.blob, item.name, globalIndex);
-        });
+      // OPTIMIZATION 2: Process images ONE AT A TIME for faster feedback and less server load
+      for (let i = 0; i < convertedBlobs.length; i++) {
+        const item = convertedBlobs[i];
         
-        const results = await Promise.allSettled(chunkPromises);
-        
-        results.forEach((result, index) => {
-          const globalIndex = i + index;
-          if (result.status === 'fulfilled' && result.value.success) {
+        try {
+          // OPTIMIZATION 1: Skip metadata generation for faster processing - thumbnails generated later
+          const result = await saveImageToMediaLibrary(item.blob, item.name, i, true);
+          
+          if (result.success) {
             successCount++;
           } else {
             errorCount++;
-            console.error(`Failed to save image ${globalIndex + 1}:`, result.reason || result.value);
+            console.error(`Failed to save image ${i + 1}:`, result.error);
           }
-          
-          updateProgress(globalIndex + 1, convertedBlobs.length, successCount, errorCount);
-        });
+        } catch (error) {
+          errorCount++;
+          console.error(`Failed to save image ${i + 1}:`, error);
+        }
         
-        // Small delay between chunks to prevent overwhelming the server
-        if (i + chunkSize < convertedBlobs.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        // OPTIMIZATION 3: Update progress immediately after each image
+        updateProgress(i + 1, convertedBlobs.length, successCount, errorCount);
+        
+        // OPTIMIZATION 3: Shorter delay between requests (100ms instead of 500ms)
+        if (i < convertedBlobs.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
       
@@ -888,7 +889,8 @@ document.addEventListener('DOMContentLoaded', function () {
       hideProgress();
       
       if (successCount > 0) {
-        showMessage(`Successfully saved ${successCount} image(s) to media library${errorCount > 0 ? ` (${errorCount} failed)` : ''}.`, 'success');
+        const message = `Successfully saved ${successCount} image(s) to media library${errorCount > 0 ? ` (${errorCount} failed)` : ''}. Thumbnails are being generated in the background.`;
+        showMessage(message, 'success');
       } else {
         showMessage(`Failed to save images to media library. Please check console for details.`, 'error');
       }
@@ -915,10 +917,16 @@ document.addEventListener('DOMContentLoaded', function () {
       updateProgress(current, total, 0, 0);
     }
 
+    // OPTIMIZATION 3: Enhanced progress display with better feedback
     function updateProgress(current, total, successCount, errorCount) {
       const percentage = (current / total) * 100;
       progressBar.style.width = percentage + '%';
-      progressText.textContent = `Processing ${current}/${total} images... (${successCount} saved, ${errorCount} failed)`;
+      
+      if (current === total) {
+        progressText.textContent = `Completed! ${successCount} saved${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+      } else {
+        progressText.textContent = `Saving ${current}/${total} images... (${successCount} saved${errorCount > 0 ? `, ${errorCount} failed` : ''})`;
+      }
     }
 
     function hideProgress() {
@@ -929,24 +937,39 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 2000);
     }
 
-    async function saveImageToMediaLibrary(blob, filename, index) {
+    // Updated saveImageToMediaLibrary function with skip metadata option and timeout handling
+    async function saveImageToMediaLibrary(blob, filename, index, skipMetadata = false) {
       return new Promise((resolve) => {
         const formData = new FormData();
         formData.append('action', 'snn_save_optimized_image');
         formData.append('image', blob, filename);
         formData.append('filename', filename);
+        formData.append('skip_metadata', skipMetadata ? 'true' : 'false');
         formData.append('nonce', '<?php echo wp_create_nonce('snn_save_image_nonce'); ?>');
+
+        // OPTIMIZATION 3: Reduce timeout for faster failure detection
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
         fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
           method: 'POST',
-          body: formData
+          body: formData,
+          signal: controller.signal
         })
-        .then(response => response.json())
+        .then(response => {
+          clearTimeout(timeoutId);
+          return response.json();
+        })
         .then(data => {
           resolve(data);
         })
         .catch(error => {
-          resolve({ success: false, error: error.message });
+          clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            resolve({ success: false, error: 'Request timeout' });
+          } else {
+            resolve({ success: false, error: error.message });
+          }
         });
       });
     }
@@ -988,6 +1011,7 @@ function snn_save_optimized_image_handler() {
 
     $uploaded_file = $_FILES['image'];
     $filename = sanitize_file_name($_POST['filename']);
+    $skip_metadata = isset($_POST['skip_metadata']) && $_POST['skip_metadata'] === 'true';
     
     // Validate file type
     $allowed_types = ['image/jpeg', 'image/png', 'image/webp'];
@@ -1025,15 +1049,42 @@ function snn_save_optimized_image_handler() {
         wp_die(json_encode(['success' => false, 'error' => 'Failed to insert attachment']));
     }
 
-    // Generate attachment metadata
+    // OPTIMIZATION 1: Deferred metadata generation
+    if ($skip_metadata) {
+        // Schedule background metadata generation instead of doing it immediately
+        wp_schedule_single_event(time(), 'snn_generate_attachment_metadata', array($attachment_id, $file_path));
+        
+        wp_die(json_encode([
+            'success' => true, 
+            'attachment_id' => $attachment_id,
+            'filename' => $unique_filename,
+            'url' => $upload_dir['url'] . '/' . $unique_filename,
+            'metadata_deferred' => true
+        ]));
+    } else {
+        // Generate attachment metadata immediately (original behavior)
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        $attachment_data = wp_generate_attachment_metadata($attachment_id, $file_path);
+        wp_update_attachment_metadata($attachment_id, $attachment_data);
+
+        wp_die(json_encode([
+            'success' => true, 
+            'attachment_id' => $attachment_id,
+            'filename' => $unique_filename,
+            'url' => $upload_dir['url'] . '/' . $unique_filename
+        ]));
+    }
+}
+
+// Hook for background metadata generation
+add_action('snn_generate_attachment_metadata', 'snn_background_generate_metadata', 10, 2);
+
+function snn_background_generate_metadata($attachment_id, $file_path) {
+    if (!file_exists($file_path)) {
+        return;
+    }
+    
     require_once(ABSPATH . 'wp-admin/includes/image.php');
     $attachment_data = wp_generate_attachment_metadata($attachment_id, $file_path);
     wp_update_attachment_metadata($attachment_id, $attachment_data);
-
-    wp_die(json_encode([
-        'success' => true, 
-        'attachment_id' => $attachment_id,
-        'filename' => $unique_filename,
-        'url' => $upload_dir['url'] . '/' . $unique_filename
-    ]));
 }
