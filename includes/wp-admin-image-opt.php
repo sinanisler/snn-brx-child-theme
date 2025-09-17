@@ -27,7 +27,7 @@ function snn_image_optimization_page() {
     ?>
     <div class="wrap">
         <h1><?php _e('Image Optimization', 'snn'); ?></h1>
-        <p class="description"><?php _e('Optimize, convert, and resize images before adding them to your media library. This tool processes images locally in your browser for fast optimization.', 'snn'); ?></p>
+        <p class="description"><?php _e('Optimize, convert, and resize images before adding them to your media library.', 'snn'); ?></p>
         
         <?php snn_render_wp_admin_image_optimization_section(); ?>
     </div>
