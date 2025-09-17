@@ -46,12 +46,8 @@ function snn_render_wp_admin_image_optimization_section() {
 <style>
   /* General & App Layout */
   .snn-wp-admin-image-optimize-container .app-container {
-    max-width: 1100px;
     margin: 20px 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    background: #fff;
-    padding: 20px;
-    border: 1px solid #c3c4c7;
     border-radius: 4px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
   }
@@ -240,6 +236,7 @@ function snn_render_wp_admin_image_optimization_section() {
     background-position: right 8px center;
     background-size: 16px 16px;
     padding-right: 32px;
+    max-width:100%;
   }
   .snn-wp-admin-image-optimize-container #qualityInputContainer.disabled {
     opacity: 0.5;
