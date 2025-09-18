@@ -343,7 +343,7 @@ function snn_render_image_optimization_section() {
         <p class="upload-text">
           <span class="upload-text-highlight">Click to upload</span> or drag and drop images here.
         </p>
-        <p class="upload-subtext">You can also paste images (Ctrl+V or CMD+V).</p>
+        
       </div>
 
       <div id="selectedFilesPreview" class="hidden"></div>
