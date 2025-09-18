@@ -319,15 +319,12 @@ function snn_render_image_optimization_section() {
   }
   .snn-image-optimize-container .message.error {
       color: #dc2626;
-      background-color: #fee2e2;
   }
   .snn-image-optimize-container .message.success {
       color: #16a34a;
-      background-color: #dcfce7;
   }
   .snn-image-optimize-container .message.info {
       color: #2563eb;
-      background-color: #dbeafe;
   }
 </style>
 
