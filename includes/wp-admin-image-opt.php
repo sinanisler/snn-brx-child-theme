@@ -1,17 +1,43 @@
 <?php
 
-// Image optimization functionality for SNN Bricks editor
+// WordPress Admin Image Optimization Page
+// Adds a submenu under Media for image optimization
 
-// Function to render the image optimization section in the popup
-function snn_render_image_optimization_section() {
+// Prevent direct access
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Add admin menu item
+add_action('admin_menu', 'snn_add_image_optimization_menu');
+
+function snn_add_image_optimization_menu() {
+    add_submenu_page(
+        'upload.php',                           // Parent slug (Media menu)
+        __('Image Optimization', 'snn'),        // Page title
+        __('Image Optimization', 'snn'),        // Menu title
+        'upload_files',                         // Capability
+        'snn-image-optimization',               // Menu slug
+        'snn_image_optimization_page'           // Callback function
+    );
+}
+
+// Render the image optimization page
+function snn_image_optimization_page() {
     ?>
-    <div class="snn-settings-content-wrapper-section">
-        <div class="snn-settings-content-wrapper-section-title">
-            
-            <p style="margin-bottom:20px; font-size:14px; color:var(--builder-color-accent); max-width:550px"><?php _e('Optimize or Convert or Resize gigantic images. Fast. It uses your cpu to optimize images. If img count is more than 5 it will create .zip download.', 'snn'); ?></p>
-        </div>
-        <div class="snn-settings-content-wrapper-section-setting-area snn-image-optimize-container">
-            
+    <div class="wrap">
+        <h1><?php _e('Image Optimization', 'snn'); ?></h1>
+        <p class="description"><?php _e('Optimize, convert, and resize images before adding them to your media library.', 'snn'); ?></p>
+        
+        <?php snn_render_wp_admin_image_optimization_section(); ?>
+    </div>
+    <?php
+}
+
+// Function to render the image optimization section
+function snn_render_wp_admin_image_optimization_section() {
+    ?>
+    <div class="snn-wp-admin-image-optimize-container">
 
 <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/FileSaver.min.js"></script>
 <script src="<?php echo get_stylesheet_directory_uri(); ?>/assets/js/canvas-to-blob.min.js"></script>
@@ -19,25 +45,25 @@ function snn_render_image_optimization_section() {
 
 <style>
   /* General & App Layout */
-  .snn-image-optimize-container .app-container {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    font-family: sans-serif;
+  .snn-wp-admin-image-optimize-container .app-container {
+    margin: 20px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
   }
-  .snn-image-optimize-container .hidden {
+  .snn-wp-admin-image-optimize-container .hidden {
     display: none;
   }
 
   /* Upload Area */
-  .snn-image-optimize-container #uploadAreaWrapper {
+  .snn-wp-admin-image-optimize-container #uploadAreaWrapper {
     margin-bottom: 24px;
   }
-  .snn-image-optimize-container #uploadArea {
-    border: 2px dashed #000000ff;
-    border-radius: 8px;
+  .snn-wp-admin-image-optimize-container #uploadArea {
+    border: 2px dashed #c3c4c7;
+    border-radius: 4px;
     cursor: pointer;
-    background-color: #000000ff;
+    background-color: #f6f7f7;
     position: relative;
     min-height: 150px;
     display: flex;
@@ -46,36 +72,37 @@ function snn_render_image_optimization_section() {
     align-items: center;
     transition: border-color 200ms, background-color 200ms;
   }
-  .snn-image-optimize-container #uploadArea:hover, .snn-image-optimize-container #uploadArea.drag-over {
-    border-color: #1a1a1aff;
-    background-color: #000000ff;
+  .snn-wp-admin-image-optimize-container #uploadArea:hover, 
+  .snn-wp-admin-image-optimize-container #uploadArea.drag-over {
+    border-color: #2271b1;
+    background-color: #f0f6fc;
   }
-  .snn-image-optimize-container #uploadAreaInitialContent {
+  .snn-wp-admin-image-optimize-container #uploadAreaInitialContent {
     padding: 24px;
     text-align: center;
   }
-  .snn-image-optimize-container .upload-icon {
+  .snn-wp-admin-image-optimize-container .upload-icon {
     height: 48px;
     width: 48px;
     margin: 0 auto 8px auto;
-    color: #e6e6e6ff;
+    color: #646970;
   }
-  .snn-image-optimize-container .upload-text {
-    color: #e6e6e6ff;
-  }
-  .snn-image-optimize-container .upload-text-highlight {
-    font-weight: 600;
-    color: var(--builder-color-accent);
-  }
-  .snn-image-optimize-container .upload-subtext {
+  .snn-wp-admin-image-optimize-container .upload-text {
+    color: #50575e;
     font-size: 14px;
-    color: #e6e6e6ff;
+  }
+  .snn-wp-admin-image-optimize-container .upload-text-highlight {
+    font-weight: 600;
+    color: #2271b1;
+  }
+  .snn-wp-admin-image-optimize-container .upload-subtext {
+    font-size: 13px;
+    color: #646970;
     margin-top: 4px;
   }
 
   /* File Previews */
-  .snn-image-optimize-container #selectedFilesPreview {
-    width: 100%;
+  .snn-wp-admin-image-optimize-container #selectedFilesPreview {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
@@ -83,46 +110,46 @@ function snn_render_image_optimization_section() {
     overflow-y: auto;
     max-height: 300px;
   }
-  .snn-image-optimize-container .preview-item {
+  .snn-wp-admin-image-optimize-container .preview-item {
     position: relative;
-    border: 1px solid #000000ff;
-    border-radius: 6px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
     padding: 8px;
-    background-color: #000000ff;
+    background-color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 128px;
     transition: box-shadow 150ms;
   }
-  .snn-image-optimize-container .preview-item:hover {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  .snn-wp-admin-image-optimize-container .preview-item:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
   }
-  .snn-image-optimize-container .preview-img {
+  .snn-wp-admin-image-optimize-container .preview-img {
     width: 96px;
     height: 96px;
     object-fit: contain;
-    border-radius: 4px;
+    border-radius: 2px;
     margin-bottom: 4px;
-    background-color: #f1f5f9;
+    background-color: #f6f7f7;
   }
-  .snn-image-optimize-container .preview-name {
+  .snn-wp-admin-image-optimize-container .preview-name {
     display: block;
     font-size: 11px;
-    color: #ffffffff;
+    color: #50575e;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100%;
     text-align: center;
   }
-  .snn-image-optimize-container .remove-btn {
+  .snn-wp-admin-image-optimize-container .remove-btn {
     position: absolute;
     top: -8px;
     right: -8px;
-    background-color: #ef4444;
+    background-color: #d63638;
     color: white;
-    border-radius: 9999px;
+    border-radius: 50%;
     width: 24px;
     height: 24px;
     display: flex;
@@ -135,87 +162,95 @@ function snn_render_image_optimization_section() {
     border: none;
     cursor: pointer;
   }
-  .snn-image-optimize-container .preview-item:hover .remove-btn, .snn-image-optimize-container .remove-btn:focus {
+  .snn-wp-admin-image-optimize-container .preview-item:hover .remove-btn, 
+  .snn-wp-admin-image-optimize-container .remove-btn:focus {
     opacity: 1;
   }
-  .snn-image-optimize-container .remove-btn:focus {
-     box-shadow: 0 0 0 2px #f87171;
+  .snn-wp-admin-image-optimize-container .remove-btn:focus {
+     box-shadow: 0 0 0 2px #d63638;
   }
   
   /* Clear All Button */
-  .snn-image-optimize-container #clearAllButton {
+  .snn-wp-admin-image-optimize-container #clearAllButton {
     margin-top: 8px;
     width: auto;
-    color: #dc2626;
+    color: #d63638;
     background-color: transparent;
     font-weight: 500;
     padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #fca5a5;
+    border-radius: 3px;
+    border: 1px solid #d63638;
     transition: color 150ms, background-color 150ms;
     cursor: pointer;
+    font-size: 13px;
   }
-  .snn-image-optimize-container #clearAllButton:hover {
-    color: #991b1b;
-    background-color: #fef2f2;
+  .snn-wp-admin-image-optimize-container #clearAllButton:hover {
+    color: #fff;
+    background-color: #d63638;
   }
   
   /* Form & Inputs */
-  .snn-image-optimize-container #imageForm {
+  .snn-wp-admin-image-optimize-container #imageForm {
     margin-bottom: 24px;
     display: flex;
     flex-direction: column;
     gap: 24px;
   }
-  .snn-image-optimize-container .form-grid {
+  .snn-wp-admin-image-optimize-container .form-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
     align-items: end;
   }
   @media (min-width: 768px) {
-    .snn-image-optimize-container .form-grid {
+    .snn-wp-admin-image-optimize-container .form-grid {
       grid-template-columns: repeat(3, 1fr);
     }
   }
-  .snn-image-optimize-container .form-label {
+  .snn-wp-admin-image-optimize-container .form-label {
     display: block;
     font-weight: 500;
-    color: #ffffffff;
+    color: #1d2327;
     margin-bottom: 4px;
+    font-size: 14px;
   }
-  .snn-image-optimize-container .form-input {
+  .snn-wp-admin-image-optimize-container .form-input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #000000;
-    border-radius: 6px;
-    box-shadow: #000000;
+    padding: 8px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
     transition: border-color 150ms, box-shadow 150ms;
-    background: #000000;
-    color:white;
+    background: #fff;
+    color: #2c3338;
+    font-size: 14px;
   }
-  .snn-image-optimize-container .form-input:focus {
+  .snn-wp-admin-image-optimize-container .form-input:focus {
     outline: none;
-    border-color: var(--builder-color-accent);
-    
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
   }
-  .snn-image-optimize-container select.form-input {
-      background-color: #000000;
+  .snn-wp-admin-image-optimize-container select.form-input {
+    background-color: #fff;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><polygon fill='%23646970' points='6,8 14,8 10,12'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px 16px;
+    padding-right: 32px;
+    max-width:100%;
   }
-  .snn-image-optimize-container #qualityInputContainer.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+  .snn-wp-admin-image-optimize-container #qualityInputContainer.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
   
-  /* Convert Button */
-  .snn-image-optimize-container #convertButton {
+  /* Buttons */
+  .snn-wp-admin-image-optimize-container #convertButton {
     width: 100%;
-    background-color: #000000ff;
+    background-color: #2271b1;
     color: white;
-    font-weight: 600;
-    padding: 20px;
-    border-radius: 6px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -223,37 +258,37 @@ function snn_render_image_optimization_section() {
     border: none;
     cursor: pointer;
     transition: background-color 150ms ease-in-out;
+    font-size: 14px;
   }
-  .snn-image-optimize-container #convertButton:hover {
-    background-color: #1f2937;
+  .snn-wp-admin-image-optimize-container #convertButton:hover {
+    background-color: #135e96;
   }
-  .snn-image-optimize-container #convertButton:focus {
-    outline: 2px solid #4b5563;
+  .snn-wp-admin-image-optimize-container #convertButton:focus {
+    outline: 2px solid #2271b1;
     outline-offset: 2px;
   }
-  .snn-image-optimize-container #convertButton:disabled {
+  .snn-wp-admin-image-optimize-container #convertButton:disabled {
     opacity: 0.7;
     cursor: wait;
   }
 
   /* Button Container */
-  .snn-image-optimize-container .button-container {
+  .snn-wp-admin-image-optimize-container .button-container {
     display: flex;
     gap: 12px;
     width: 100%;
   }
-  .snn-image-optimize-container .button-container button {
+  .snn-wp-admin-image-optimize-container .button-container button {
     flex: 1;
   }
 
   /* Save to Media Library Button */
-  .snn-image-optimize-container #saveToMediaButton {
-    background-color: var(--builder-color-accent);
-    color: black;
-    font-weight: 600;
-    padding: 20px;
-    border-radius: 6px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  .snn-wp-admin-image-optimize-container #saveToMediaButton {
+    background-color: #00a32a;
+    color: white;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -261,42 +296,44 @@ function snn_render_image_optimization_section() {
     border: none;
     cursor: pointer;
     transition: background-color 150ms ease-in-out;
+    font-size: 14px;
   }
-  .snn-image-optimize-container #saveToMediaButton:hover {
-    filter: brightness(1.1);
+  .snn-wp-admin-image-optimize-container #saveToMediaButton:hover {
+    background-color: #008a20;
   }
-  .snn-image-optimize-container #saveToMediaButton:focus {
-    outline: 2px solid var(--builder-color-accent);
+  .snn-wp-admin-image-optimize-container #saveToMediaButton:focus {
+    outline: 2px solid #00a32a;
     outline-offset: 2px;
   }
-  .snn-image-optimize-container #saveToMediaButton:disabled {
+  .snn-wp-admin-image-optimize-container #saveToMediaButton:disabled {
     opacity: 0.7;
     cursor: wait;
   }
 
   /* Progress Bar */
-  .snn-image-optimize-container .progress-container {
+  .snn-wp-admin-image-optimize-container .progress-container {
     width: 100%;
-    background-color: #f3f4f6;
-    border-radius: 6px;
+    background-color: #f0f0f1;
+    border-radius: 3px;
     overflow: hidden;
     margin-top: 16px;
     display: none;
+    border: 1px solid #c3c4c7;
   }
-  .snn-image-optimize-container .progress-bar {
+  .snn-wp-admin-image-optimize-container .progress-bar {
     height: 8px;
-    background-color: var(--builder-color-accent);
-    transition: width 0.1s ease; /* OPTIMIZATION 3: Faster animation for immediate feedback */
+    background-color: #2271b1;
+    transition: width 0.1s ease;
     width: 0%;
   }
-  .snn-image-optimize-container .progress-text {
+  .snn-wp-admin-image-optimize-container .progress-text {
     text-align: center;
     margin-top: 8px;
-    font-size: 14px;
-    color: var(--builder-color-accent); /* OPTIMIZATION 3: More visible progress text */
-    font-weight: 500; /* OPTIMIZATION 3: Bold text for better visibility */
+    font-size: 13px;
+    color: #2271b1;
+    font-weight: 500;
   }
-  .snn-image-optimize-container .spinner {
+  .snn-wp-admin-image-optimize-container .spinner {
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     border-top-color: #fff;
@@ -309,22 +346,42 @@ function snn_render_image_optimization_section() {
   }
 
   /* Message Area */
-  .snn-image-optimize-container .message {
-      font-weight: 500;
-      padding: 12px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-      margin-top: 16px;
-      text-align: center;
+  .snn-wp-admin-image-optimize-container .message {
+    font-weight: 500;
+    padding: 12px 16px;
+    border-radius: 3px;
+    margin-top: 16px;
+    text-align: left;
+    border-left: 4px solid;
+    font-size: 14px;
   }
-  .snn-image-optimize-container .message.error {
-      color: #dc2626;
+  .snn-wp-admin-image-optimize-container .message.error {
+    color: #d63638;
+    background-color: #fcf0f1;
+    border-left-color: #d63638;
   }
-  .snn-image-optimize-container .message.success {
-      color: #16a34a;
+  .snn-wp-admin-image-optimize-container .message.success {
+    color: #00a32a;
+    background-color: #f0f6fc;
+    border-left-color: #00a32a;
   }
-  .snn-image-optimize-container .message.info {
-      color: #2563eb;
+  .snn-wp-admin-image-optimize-container .message.info {
+    color: #2271b1;
+    background-color: #f0f6fc;
+    border-left-color: #2271b1;
+  }
+
+  /* WordPress admin responsive adjustments */
+  @media screen and (max-width: 782px) {
+    .snn-wp-admin-image-optimize-container .app-container {
+      padding: 15px;
+    }
+    .snn-wp-admin-image-optimize-container .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .snn-wp-admin-image-optimize-container .button-container {
+      flex-direction: column;
+    }
   }
 </style>
 
@@ -340,7 +397,7 @@ function snn_render_image_optimization_section() {
         <p class="upload-text">
           <span class="upload-text-highlight">Click to upload</span> or drag and drop images here.
         </p>
-        
+        <p class="upload-subtext">You can also paste images (Ctrl+V or CMD+V).</p>
       </div>
 
       <div id="selectedFilesPreview" class="hidden"></div>
@@ -375,7 +432,7 @@ function snn_render_image_optimization_section() {
           <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
           <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
         </svg>
-        <span id="convertButtonText">Download</span>
+        <span id="convertButtonText">Convert and Optimize</span>
       </button>
       <button type="button" id="saveToMediaButton" class="hidden">
         <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor" id="saveToMediaButtonIcon">
@@ -426,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function () {
       messageArea.innerHTML = '';
       const p = document.createElement('p');
       p.textContent = message;
-      p.classList.add('message', type); // types are 'error', 'success', 'info'
+      p.classList.add('message', type);
       messageArea.appendChild(p);
       setTimeout(() => {
         if (messageArea.contains(p)) {
@@ -440,12 +497,12 @@ document.addEventListener('DOMContentLoaded', function () {
         uploadAreaInitialContent.classList.remove('hidden');
         selectedFilesPreview.classList.add('hidden');
         selectedFilesPreview.innerHTML = '';
-        uploadArea.style.display = 'flex'; // Re-apply flex properties
+        uploadArea.style.display = 'flex';
         clearAllButton.classList.add('hidden');
       } else {
         uploadAreaInitialContent.classList.add('hidden');
         selectedFilesPreview.classList.remove('hidden');
-        uploadArea.style.display = 'block'; // Change display for preview layout
+        uploadArea.style.display = 'block';
         clearAllButton.classList.remove('hidden');
       }
     }
@@ -486,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
         img.alt = `Preview of ${fileObj.file.name}`;
         img.className = 'preview-img';
         img.onerror = function() {
-          img.src = `https://placehold.co/96x96/e2e8f0/94a3b8?text=Preview N/A`;
+          img.src = `https://placehold.co/96x96/f6f7f7/646970?text=Preview N/A`;
           img.alt = `Preview not available for ${fileObj.file.name}`;
         };
 
@@ -556,21 +613,21 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-  function setConvertingState(isConverting) {
-    if (isConverting) {
-      convertButton.disabled = true;
-      convertButtonText.textContent = 'Converting...';
-      convertButtonIcon.innerHTML = '<div class="spinner"></div>';
-    } else {
-      convertButton.disabled = false;
-      convertButtonText.textContent = 'Convert and Optimize';
-      convertButtonIcon.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor">
-        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-        </svg>`;
+    function setConvertingState(isConverting) {
+      if (isConverting) {
+        convertButton.disabled = true;
+        convertButtonText.textContent = 'Converting...';
+        convertButtonIcon.innerHTML = '<div class="spinner"></div>';
+      } else {
+        convertButton.disabled = false;
+        convertButtonText.textContent = 'Convert and Optimize';
+        convertButtonIcon.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:20px; height:20px;" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+          </svg>`;
+      }
     }
-  }
 
     uploadArea.onclick = (e) => {
       if (e.target.closest('button[data-id]')) {
@@ -589,6 +646,7 @@ document.addEventListener('DOMContentLoaded', function () {
       renderPreviews();
       showMessage('All selections cleared.', 'info');
       imageInput.value = null;
+      onSelectionChange();
     };
 
     formatSelect.onchange = updateQualityInputState;
@@ -596,6 +654,7 @@ document.addEventListener('DOMContentLoaded', function () {
     imageInput.onchange = (e) => {
       handleFiles(e.target.files);
       imageInput.value = null;
+      onSelectionChange();
     };
 
     uploadArea.ondragover = (e) => {
@@ -649,29 +708,9 @@ document.addEventListener('DOMContentLoaded', function () {
         progressContainer.style.display = 'none';
     }
 
-    // Reset button when selection changes
     function onSelectionChange() {
         resetDownloadState();
     }
-
-    // Call on selection change
-    imageInput.onchange = (e) => {
-      handleFiles(e.target.files);
-      imageInput.value = null;
-      onSelectionChange();
-    };
-    clearAllButton.onclick = () => {
-      selectedFiles.forEach(fileObj => {
-        if (fileObj.thumbnailUrl.startsWith('blob:')) {
-          URL.revokeObjectURL(fileObj.thumbnailUrl);
-        }
-      });
-      selectedFiles = [];
-      renderPreviews();
-      showMessage('All selections cleared.', 'info');
-      imageInput.value = null;
-      onSelectionChange();
-    };
 
     // Convert and Optimize on first click, Download on second click
     imageForm.onsubmit = (e) => {
@@ -841,7 +880,7 @@ document.addEventListener('DOMContentLoaded', function () {
       img.src = imageUrl;
     }
 
-    // OPTIMIZED Save to Media Library functionality
+    // Save to Media Library functionality
     saveToMediaButton.onclick = async () => {
       if (convertedBlobs.length === 0) {
         showMessage('No converted images to save to media library.', 'error');
@@ -854,12 +893,10 @@ document.addEventListener('DOMContentLoaded', function () {
       let successCount = 0;
       let errorCount = 0;
       
-      // OPTIMIZATION 2: Process images ONE AT A TIME for faster feedback and less server load
       for (let i = 0; i < convertedBlobs.length; i++) {
         const item = convertedBlobs[i];
         
         try {
-          // OPTIMIZATION 1: Skip metadata generation for faster processing - thumbnails generated later
           const result = await saveImageToMediaLibrary(item.blob, item.name, i, true);
           
           if (result.success) {
@@ -873,10 +910,8 @@ document.addEventListener('DOMContentLoaded', function () {
           console.error(`Failed to save image ${i + 1}:`, error);
         }
         
-        // OPTIMIZATION 3: Update progress immediately after each image
         updateProgress(i + 1, convertedBlobs.length, successCount, errorCount);
         
-        // OPTIMIZATION 3: Shorter delay between requests (100ms instead of 500ms)
         if (i < convertedBlobs.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -888,6 +923,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (successCount > 0) {
         const message = `Successfully saved ${successCount} image(s) to media library${errorCount > 0 ? ` (${errorCount} failed)` : ''}. Thumbnails are being generated in the background.`;
         showMessage(message, 'success');
+        
+        // Reset the form after successful save
+        resetDownloadState();
+        
+        // Optionally clear selections
+        setTimeout(() => {
+          clearAllButton.click();
+        }, 2000);
       } else {
         showMessage(`Failed to save images to media library. Please check console for details.`, 'error');
       }
@@ -914,7 +957,6 @@ document.addEventListener('DOMContentLoaded', function () {
       updateProgress(current, total, 0, 0);
     }
 
-    // OPTIMIZATION 3: Enhanced progress display with better feedback
     function updateProgress(current, total, successCount, errorCount) {
       const percentage = (current / total) * 100;
       progressBar.style.width = percentage + '%';
@@ -934,7 +976,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }, 2000);
     }
 
-    // Updated saveImageToMediaLibrary function with skip metadata option and timeout handling
     async function saveImageToMediaLibrary(blob, filename, index, skipMetadata = false) {
       return new Promise((resolve) => {
         const formData = new FormData();
@@ -944,9 +985,8 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('skip_metadata', skipMetadata ? 'true' : 'false');
         formData.append('nonce', '<?php echo wp_create_nonce('snn_save_image_nonce'); ?>');
 
-        // OPTIMIZATION 3: Reduce timeout for faster failure detection
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
         fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
           method: 'POST',
@@ -973,115 +1013,29 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-
-
-
-
-
-
-
-
-        
-        </div>
     </div>
     <?php
 }
 
-// AJAX handler for saving optimized images to media library
-add_action('wp_ajax_snn_save_optimized_image', 'snn_save_optimized_image_handler');
+// Add admin styles for better integration
+add_action('admin_head', 'snn_image_optimization_admin_styles');
 
-function snn_save_optimized_image_handler() {
-    // Verify nonce
-    if (!wp_verify_nonce($_POST['nonce'], 'snn_save_image_nonce')) {
-        wp_die(json_encode(['success' => false, 'error' => 'Invalid nonce']));
+function snn_image_optimization_admin_styles() {
+    $current_screen = get_current_screen();
+    if ($current_screen && $current_screen->id === 'media_page_snn-image-optimization') {
+        ?>
+        <style>
+        .wrap {
+            margin-right: 20px;
+        }
+        .wrap h1 {
+            margin-bottom: 10px;
+        }
+        .wrap .description {
+            margin-bottom: 20px;
+            color: #646970;
+        }
+        </style>
+        <?php
     }
-
-    // Check user capabilities
-    if (!current_user_can('upload_files')) {
-        wp_die(json_encode(['success' => false, 'error' => 'Insufficient permissions']));
-    }
-
-    // Check if file was uploaded
-    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-        wp_die(json_encode(['success' => false, 'error' => 'No file uploaded or upload error']));
-    }
-
-    $uploaded_file = $_FILES['image'];
-    $filename = sanitize_file_name($_POST['filename']);
-    $skip_metadata = isset($_POST['skip_metadata']) && $_POST['skip_metadata'] === 'true';
-    
-    // Validate file type
-    $allowed_types = ['image/jpeg', 'image/png', 'image/webp'];
-    $file_type = wp_check_filetype($filename);
-    
-    if (!in_array($uploaded_file['type'], $allowed_types)) {
-        wp_die(json_encode(['success' => false, 'error' => 'Invalid file type']));
-    }
-
-    // Create unique filename to avoid conflicts
-    $upload_dir = wp_upload_dir();
-    $unique_filename = wp_unique_filename($upload_dir['path'], $filename);
-    $file_path = $upload_dir['path'] . '/' . $unique_filename;
-
-    // Move uploaded file to uploads directory
-    if (!move_uploaded_file($uploaded_file['tmp_name'], $file_path)) {
-        wp_die(json_encode(['success' => false, 'error' => 'Failed to move uploaded file']));
-    }
-
-    // Prepare attachment data
-    $attachment = array(
-        'guid'           => $upload_dir['url'] . '/' . $unique_filename,
-        'post_mime_type' => $uploaded_file['type'],
-        'post_title'     => preg_replace('/\.[^.]+$/', '', $unique_filename),
-        'post_content'   => '',
-        'post_status'    => 'inherit'
-    );
-
-    // Insert attachment into database
-    $attachment_id = wp_insert_attachment($attachment, $file_path);
-
-    if (is_wp_error($attachment_id)) {
-        // Clean up file if database insertion failed
-        @unlink($file_path);
-        wp_die(json_encode(['success' => false, 'error' => 'Failed to insert attachment']));
-    }
-
-    // OPTIMIZATION 1: Deferred metadata generation
-    if ($skip_metadata) {
-        // Schedule background metadata generation instead of doing it immediately
-        wp_schedule_single_event(time(), 'snn_generate_attachment_metadata', array($attachment_id, $file_path));
-        
-        wp_die(json_encode([
-            'success' => true, 
-            'attachment_id' => $attachment_id,
-            'filename' => $unique_filename,
-            'url' => $upload_dir['url'] . '/' . $unique_filename,
-            'metadata_deferred' => true
-        ]));
-    } else {
-        // Generate attachment metadata immediately (original behavior)
-        require_once(ABSPATH . 'wp-admin/includes/image.php');
-        $attachment_data = wp_generate_attachment_metadata($attachment_id, $file_path);
-        wp_update_attachment_metadata($attachment_id, $attachment_data);
-
-        wp_die(json_encode([
-            'success' => true, 
-            'attachment_id' => $attachment_id,
-            'filename' => $unique_filename,
-            'url' => $upload_dir['url'] . '/' . $unique_filename
-        ]));
-    }
-}
-
-// Hook for background metadata generation
-add_action('snn_generate_attachment_metadata', 'snn_background_generate_metadata', 10, 2);
-
-function snn_background_generate_metadata($attachment_id, $file_path) {
-    if (!file_exists($file_path)) {
-        return;
-    }
-    
-    require_once(ABSPATH . 'wp-admin/includes/image.php');
-    $attachment_data = wp_generate_attachment_metadata($attachment_id, $file_path);
-    wp_update_attachment_metadata($attachment_id, $attachment_data);
 }

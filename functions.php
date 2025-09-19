@@ -1,4 +1,4 @@
-<?php                                                                          
+<?php                                                                         
 // DO NOT TOUCH THIS FILE 
 
 
@@ -48,6 +48,7 @@ require_once SNN_PATH . 'includes/ai/ai-overlay.php';
 require_once SNN_PATH . 'includes/ai/ai-design.php';
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
+require_once SNN_PATH . 'includes/wp-admin-image-opt.php';
 
 
 // Register Custom Dynamic Data Tags
