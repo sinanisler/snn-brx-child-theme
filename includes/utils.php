@@ -65,7 +65,7 @@ function snn_custom_css_utils_wp_footer() {
 			float:left;
 		}
 
-        [data-control=color] .bricks-control-popup .color-palette{ grid-template-columns: repeat(auto-fit,minmax(32px,32px)) ; }
+        [data-control=color] .bricks-control-popup .color-palette{ grid-template-columns: repeat(auto-fit,minmax(36px,36px)) ; }
 
     </style>
     <?php
