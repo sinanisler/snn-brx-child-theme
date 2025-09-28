@@ -202,6 +202,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     }
                     .leaflet-icon-custom svg {
                         width: 100% !important;
+                        height:auto ;
                     }
                     .leaflet-marker-icon {
                         height: auto !important;
