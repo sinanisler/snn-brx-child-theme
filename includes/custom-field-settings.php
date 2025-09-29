@@ -1812,7 +1812,7 @@ function snn_register_options_pages() {
         $hook = add_menu_page(
             $page_title,
             $menu_title,
-            'manage_options', 
+            'edit_pages', 
             $menu_slug,
             'snn_render_actual_options_page_callback', 
             'dashicons-admin-settings', 
