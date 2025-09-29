@@ -187,7 +187,7 @@ function snn_render_mail_logs_page() {
 
         $args = array(
             'post_type'      => 'snn_mail_logs',
-            'posts_per_page' => 100,
+            'posts_per_page' => $log_size_limit,
             'orderby'        => 'date',
             'order'          => 'DESC'
         );
