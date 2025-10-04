@@ -211,15 +211,14 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-control-button { background: none; border: none; color: var(--button-color); padding: 5px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; filter:drop-shadow(0px 0px 2px #00000099) }
             #" . esc_attr($root_id) . " .snn-control-button:hover { background-color: var(--button-hover-background); }
             #" . esc_attr($root_id) . " .snn-control-button svg { width: 30px; height: 30px; fill: currentColor; }
-            #" . esc_attr($root_id) . " .snn-volume-container { display: flex; align-items: center; }
+            #" . esc_attr($root_id) . " .snn-volume-container { display: flex; align-items: center; position: relative; }
             #" . esc_attr($root_id) . " .snn-volume-container .snn-volume-slider { width: 0; transition: width 0.3s ease; opacity: 0; }
             #" . esc_attr($root_id) . " .snn-volume-container:hover .snn-volume-slider { width: 75px; opacity: 1; }
-            #" . esc_attr($root_id) . " .snn-volume-slider { margin-left: 7.5px; }
-            #" . esc_attr($root_id) . " .snn-video-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: transparent; cursor: pointer; border-radius: 5px; position: absolute; top: 0; left: 0; z-index: 0; }
-            #" . esc_attr($root_id) . " .snn-video-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
-            #" . esc_attr($root_id) . " .snn-video-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
-            #" . esc_attr($root_id) . " .snn-video-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
-            #" . esc_attr($root_id) . " .snn-volume-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: var(--slider-track-color); cursor: pointer; border-radius: 5px; transition: height 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: transparent; cursor: pointer; border-radius: 5px; position: absolute; top: 0; left: 0; z-index: 0; }
+            #" . esc_attr($root_id) . " .snn-volume-slider { -webkit-appearance: none; appearance: none; height: 5px; background: var(--slider-track-color); cursor: pointer; border-radius: 5px; transition: height 0.2s ease, width 0.3s ease, opacity 0.3s ease; margin-left: 7.5px; position: relative; }
+            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
+            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
             #" . esc_attr($root_id) . " .snn-volume-slider:hover { height: 8px; }
             #" . esc_attr($root_id) . " .snn-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-volume-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
