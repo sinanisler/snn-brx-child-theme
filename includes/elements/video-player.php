@@ -142,6 +142,12 @@ class SNN_Video_Player_Element extends Element {
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 1)',
         ];
+            $this->controls['tooltip_text_color'] = [
+                'tab'   => 'content',
+                'label' => esc_html__( 'Tooltip Text Color', 'bricks' ),
+                'type'  => 'color',
+                'default' => 'rgba(255, 255, 255, 1)',
+            ];
     }
 
     public function render() {
@@ -177,11 +183,13 @@ class SNN_Video_Player_Element extends Element {
         $chapter_dot_color = $settings['chapter_dot_color']['raw'] ?? $settings['chapter_dot_color']['hex'] ?? '#ffffff';
         $btn_hover_bg        = $settings['button_hover_background']['raw'] ?? $settings['button_hover_background']['hex'] ?? 'rgba(255, 255, 255, 0.2)';
         $button_color        = $settings['button_color']['raw'] ?? $settings['button_color']['hex'] ?? 'rgba(255, 255, 255, 1)';
+        $tooltip_text_color  = $settings['tooltip_text_color']['raw'] ?? $settings['tooltip_text_color']['hex'] ?? 'rgba(0, 0, 0, 1)';
 
         echo "<div {$this->render_attributes('_root')}>";
 
         echo "<style>
             #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
+            #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; --tooltip-text-color: {$tooltip_text_color}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
             #" . esc_attr($root_id) . " .snn-video-container { position: relative; background-color: #000; overflow: hidden; height: var(--player-height); }
             #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: cover; }
             #" . esc_attr($root_id) . " .snn-video-container:fullscreen { width: 100vw; height: 100vh; max-width: 100%; border-radius: 0; }
@@ -191,10 +199,11 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; }
             #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; height: 5px; }
             #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--text-color); font-size: 14px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 200px; overflow: hidden; text-overflow: ellipsis; z-index: 10; }
+            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--tooltip-text-color); font-size: 14px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 200px; overflow: hidden; text-overflow: ellipsis; z-index: 10; }
             #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; }
             #" . esc_attr($root_id) . " .snn-chapter-sections-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; z-index: 3; pointer-events: all; }
             #" . esc_attr($root_id) . " .snn-chapter-section { position: relative; height: 5px; background: transparent; transition: height 0.15s ease; cursor: pointer; display: flex; align-items: flex-end; }
-            #" . esc_attr($root_id) . " .snn-chapter-section:hover { transform:scaleY(1.4)}
+            #" . esc_attr($root_id) . " .snn-chapter-section:hover { transform:scaleY(1.6)}
             #" . esc_attr($root_id) . " .snn-chapter-section-fill { position: absolute; bottom: 0; left: 0; width: 0%; height: 100%; background: var(--primary-accent-color); transition: width 0.1s linear; pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-chapter-section-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: var(--slider-track-color); pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar { display: flex; align-items: center; justify-content: space-between; color: var(--text-color); }
