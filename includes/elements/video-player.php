@@ -171,7 +171,7 @@ class SNN_Video_Player_Element extends Element {
         $player_height      = $settings['player_height'] ?? '400px';
         $player_max_width = $settings['player_max_width'] ?? '896px';
 
-        $accent_color        = $settings['primary_accent_color']['raw'] ?? $settings['primary_accent_color']['hex'] ?? '#3b82f6';
+        $accent_color        = $settings['primary_accent_color']['raw'] ?? $settings['primary_accent_color']['hex'] ?? '#ffd64f';
         $text_color          = $settings['text_color']['raw'] ?? $settings['text_color']['hex'] ?? '#ffffff';
         $slider_track        = $settings['slider_track_color']['raw'] ?? $settings['slider_track_color']['hex'] ?? 'rgba(255, 255, 255, 0.3)';
         $chapter_dot_color = $settings['chapter_dot_color']['raw'] ?? $settings['chapter_dot_color']['hex'] ?? '#ffffff';
@@ -189,9 +189,14 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-video-container:hover .snn-controls-overlay, #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
             #" . esc_attr($root_id) . " .snn-controls-hidden .snn-controls-overlay { cursor: none; opacity: 0; pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; }
-            #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; }
-            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--text-color); font-size: 14px; border-radius: 3.75px; padding: 3.75px 7.5px; top: -30px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
-            #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
+            #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; height: 5px; }
+            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--text-color); font-size: 14px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 200px; overflow: hidden; text-overflow: ellipsis; z-index: 10; }
+            #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; }
+            #" . esc_attr($root_id) . " .snn-chapter-sections-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; z-index: 3; pointer-events: all; }
+            #" . esc_attr($root_id) . " .snn-chapter-section { position: relative; height: 5px; background: transparent; transition: height 0.15s ease; cursor: pointer; display: flex; align-items: flex-end; }
+            #" . esc_attr($root_id) . " .snn-chapter-section:hover { transform:scaleY(1.4)}
+            #" . esc_attr($root_id) . " .snn-chapter-section-fill { position: absolute; bottom: 0; left: 0; width: 0%; height: 100%; background: var(--primary-accent-color); transition: width 0.1s linear; pointer-events: none; }
+            #" . esc_attr($root_id) . " .snn-chapter-section-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: var(--slider-track-color); pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar { display: flex; align-items: center; justify-content: space-between; color: var(--text-color); }
             #" . esc_attr($root_id) . " .snn-controls-left, #" . esc_attr($root_id) . " .snn-controls-right { display: flex; align-items: center; gap: 10px; }
             #" . esc_attr($root_id) . " .snn-control-button { background: none; border: none; color: var(--button-color); padding: 5px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; filter:drop-shadow(0px 0px 2px #00000099) }
@@ -201,12 +206,16 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-volume-container .snn-volume-slider { width: 0; transition: width 0.3s ease; opacity: 0; }
             #" . esc_attr($root_id) . " .snn-volume-container:hover .snn-volume-slider { width: 75px; opacity: 1; }
             #" . esc_attr($root_id) . " .snn-volume-slider { margin-left: 7.5px; }
-            #" . esc_attr($root_id) . " .snn-video-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: var(--slider-track-color); cursor: pointer; border-radius: 5px; transition: height 0.2s ease; }
-            #" . esc_attr($root_id) . " .snn-video-slider:hover { height: 8px; }
+            #" . esc_attr($root_id) . " .snn-video-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: transparent; cursor: pointer; border-radius: 5px; position: absolute; top: 0; left: 0; z-index: 0; }
             #" . esc_attr($root_id) . " .snn-video-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-video-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
             #" . esc_attr($root_id) . " .snn-video-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
-            #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 55%; transform: translate(-50%, -50%); width: 4px; height: 5px; background: var(--chapter-dot-color); border-radius: 2px; cursor: pointer; transition: transform 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-volume-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: var(--slider-track-color); cursor: pointer; border-radius: 5px; transition: height 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-volume-slider:hover { height: 8px; }
+            #" . esc_attr($root_id) . " .snn-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-volume-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
+            #" . esc_attr($root_id) . " .snn-volume-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
+            #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 4px; height: 5px; background: var(--chapter-dot-color); border-radius: 2px; cursor: pointer; transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-chapter-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
             #" . esc_attr($root_id) . " .snn-hidden { display: none !important; }
         </style>";
@@ -226,6 +235,7 @@ class SNN_Video_Player_Element extends Element {
                 <div class="snn-controls-bar-container">
                     <div class="snn-progress-container">
                         <div class="snn-progress-tooltip">00:00</div>
+                        <div class="snn-chapter-sections-container"></div>
                         <input type="range" class="snn-video-slider snn-progress-bar" min="0" max="100" step="0.1" value="0">
                         <div class="snn-chapter-dots-container"></div>
                     </div>
@@ -289,6 +299,7 @@ class SNN_Video_Player_Element extends Element {
             const progressBar             = playerWrapper.querySelector('.snn-progress-bar');
             const timeDisplay             = playerWrapper.querySelector('.snn-time-display');
             const chapterDotsContainer = playerWrapper.querySelector('.snn-chapter-dots-container');
+            const chapterSectionsContainer = playerWrapper.querySelector('.snn-chapter-sections-container');
             const progressTooltip         = playerWrapper.querySelector('.snn-progress-tooltip');
             const fullscreenIcon          = playerWrapper.querySelector('.snn-fullscreen-icon');
             const fullscreenExitIcon      = playerWrapper.querySelector('.snn-fullscreen-exit-icon');
@@ -296,6 +307,7 @@ class SNN_Video_Player_Element extends Element {
             if (!video || !controlsOverlay || !playPauseBtn) return;
 
             let isSeeking = false, inactivityTimer, lastVolume = video.volume, isPlayerInView = false;
+            let chapterSections = [];
 
             const timeToSeconds = (timeString) => {
                 if (!timeString || typeof timeString !== 'string') return 0;
@@ -375,11 +387,31 @@ class SNN_Video_Player_Element extends Element {
                 fullscreenExitIcon?.classList.toggle('snn-hidden', !isFullscreen);
             };
 
+            const updateChapterSectionsFill = () => {
+                if (!chapterSections.length || isNaN(video.duration)) return;
+                
+                const currentTime = video.currentTime;
+                
+                chapterSections.forEach((section) => {
+                    const sectionFill = section.element.querySelector('.snn-chapter-section-fill');
+                    if (!sectionFill) return;
+                    
+                    if (currentTime < section.startTime) {
+                        sectionFill.style.width = '0%';
+                    } else if (currentTime >= section.endTime) {
+                        sectionFill.style.width = '100%';
+                    } else {
+                        const sectionProgress = ((currentTime - section.startTime) / (section.endTime - section.startTime)) * 100;
+                        sectionFill.style.width = `${sectionProgress}%`;
+                    }
+                });
+            };
+
             const updateProgress = () => {
                 if (isSeeking || isNaN(video.duration)) return;
                 if (progressBar) progressBar.value = (video.currentTime / video.duration) * 100;
                 if (timeDisplay) timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration || 0)}`;
-                updateProgressBarFill(progressBar);
+                updateChapterSectionsFill();
             };
 
             const hideControls = () => {
@@ -395,6 +427,98 @@ class SNN_Video_Player_Element extends Element {
                 if (!CONFIG.DISABLE_AUTOHIDE) {
                     inactivityTimer = setTimeout(hideControls, CONFIG.INACTIVITY_TIMEOUT);
                 }
+            };
+
+            const generateChapterSections = () => {
+                if (!chapterSectionsContainer || isNaN(video.duration)) return;
+                chapterSectionsContainer.innerHTML = '';
+                chapterSections = [];
+                
+                const sections = processChapterSections();
+                if (sections.length === 0) {
+                    const defaultSection = document.createElement('div');
+                    defaultSection.className = 'snn-chapter-section';
+                    defaultSection.style.width = '100%';
+                    defaultSection.innerHTML = `
+                        <div class="snn-chapter-section-bg"></div>
+                        <div class="snn-chapter-section-fill"></div>
+                    `;
+                    
+                    defaultSection.addEventListener('click', (e) => {
+                        const rect = defaultSection.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const percent = clickX / rect.width;
+                        video.currentTime = percent * video.duration;
+                        video.play();
+                    });
+                    
+                    defaultSection.addEventListener('mousemove', (e) => {
+                        if (!progressTooltip || isNaN(video.duration)) return;
+                        const rect = defaultSection.getBoundingClientRect();
+                        const mouseX = e.clientX - rect.left;
+                        const percent = Math.max(0, Math.min(1, mouseX / rect.width));
+                        const hoverTime = percent * video.duration;
+                        
+                        progressTooltip.style.left = `${e.clientX - chapterSectionsContainer.getBoundingClientRect().left}px`;
+                        progressTooltip.textContent = formatTime(hoverTime);
+                        progressTooltip.style.opacity = '1';
+                    });
+                    
+                    defaultSection.addEventListener('mouseleave', () => {
+                        if (progressTooltip) progressTooltip.style.opacity = '0';
+                    });
+                    
+                    chapterSectionsContainer.appendChild(defaultSection);
+                    chapterSections.push({
+                        startTime: 0,
+                        endTime: video.duration,
+                        element: defaultSection
+                    });
+                    return;
+                }
+
+                sections.forEach((section) => {
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'snn-chapter-section';
+                    const widthPercent = ((section.endTime - section.startTime) / video.duration) * 100;
+                    sectionDiv.style.width = `${widthPercent}%`;
+                    sectionDiv.dataset.title = section.title;
+                    sectionDiv.innerHTML = `
+                        <div class="snn-chapter-section-bg"></div>
+                        <div class="snn-chapter-section-fill"></div>
+                    `;
+                    
+                    sectionDiv.addEventListener('click', (e) => {
+                        const rect = sectionDiv.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const sectionPercent = clickX / rect.width;
+                        const targetTime = section.startTime + (sectionPercent * (section.endTime - section.startTime));
+                        video.currentTime = targetTime;
+                        video.play();
+                    });
+                    
+                    sectionDiv.addEventListener('mousemove', (e) => {
+                        if (!progressTooltip || isNaN(video.duration)) return;
+                        const rect = sectionDiv.getBoundingClientRect();
+                        const mouseX = e.clientX - rect.left;
+                        const sectionPercent = Math.max(0, Math.min(1, mouseX / rect.width));
+                        const hoverTime = section.startTime + (sectionPercent * (section.endTime - section.startTime));
+                        
+                        progressTooltip.style.left = `${e.clientX - chapterSectionsContainer.getBoundingClientRect().left}px`;
+                        progressTooltip.textContent = `${formatTime(hoverTime)} - ${section.title}`;
+                        progressTooltip.style.opacity = '1';
+                    });
+                    
+                    sectionDiv.addEventListener('mouseleave', () => {
+                        if (progressTooltip) progressTooltip.style.opacity = '0';
+                    });
+                    
+                    chapterSectionsContainer.appendChild(sectionDiv);
+                    chapterSections.push({
+                        ...section,
+                        element: sectionDiv
+                    });
+                });
             };
 
             const generateChapters = () => {
@@ -450,6 +574,7 @@ class SNN_Video_Player_Element extends Element {
             video.addEventListener('timeupdate', updateProgress);
             video.addEventListener('loadedmetadata', () => {
                 updateProgress();
+                generateChapterSections();
                 generateChapters();
                 if (CONFIG.INITIAL_MUTED) {
                     video.muted = true;
@@ -486,32 +611,27 @@ class SNN_Video_Player_Element extends Element {
                 isSeeking = true;
                 const scrubTime = (e.target.value / 100) * video.duration;
                 if(timeDisplay) timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
-                updateProgressBarFill(progressBar);
+                
+                const percent = e.target.value / 100;
+                chapterSections.forEach((section) => {
+                    const sectionFill = section.element.querySelector('.snn-chapter-section-fill');
+                    if (!sectionFill) return;
+                    
+                    if (scrubTime < section.startTime) {
+                        sectionFill.style.width = '0%';
+                    } else if (scrubTime >= section.endTime) {
+                        sectionFill.style.width = '100%';
+                    } else {
+                        const sectionProgress = ((scrubTime - section.startTime) / (section.endTime - section.startTime)) * 100;
+                        sectionFill.style.width = `${sectionProgress}%`;
+                    }
+                });
             });
+            
             progressBar?.addEventListener('change', e => {
                 isSeeking = false;
                 video.currentTime = (e.target.value / 100) * video.duration;
             });
-            progressBar?.addEventListener('mousemove', e => {
-                if (!progressTooltip || isNaN(video.duration)) return;
-                const rect = progressBar.getBoundingClientRect();
-                const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                const hoverTime = percent * video.duration;
-                
-                progressTooltip.style.left = `${percent * 100}%`;
-                
-                const sections = processChapterSections();
-                const currentChapter = getChapterAtTime(hoverTime, sections);
-                
-                if (currentChapter) {
-                    progressTooltip.textContent = `${formatTime(hoverTime)} - ${currentChapter.title}`;
-                } else {
-                    progressTooltip.textContent = formatTime(hoverTime);
-                }
-                
-                progressTooltip.style.opacity = '1';
-            });
-            progressBar?.addEventListener('mouseleave', () => { if(progressTooltip) progressTooltip.style.opacity = '0'; });
 
             document.addEventListener('keydown', handleKeydown);
             document.addEventListener('fullscreenchange', updateFullscreenIcons);
@@ -531,7 +651,6 @@ class SNN_Video_Player_Element extends Element {
 
             updatePlayPauseIcon();
             updateMuteIcon();
-            updateProgressBarFill(progressBar);
             updateProgressBarFill(volumeSlider);
             if (CONFIG.DISABLE_AUTOHIDE) {
                 showControls();
