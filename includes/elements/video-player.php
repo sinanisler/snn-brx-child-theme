@@ -6,11 +6,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 use Bricks\Element;
 
 class SNN_Video_Player_Element extends Element {
-    public $category     = 'snn'; // Custom category for your elements
+    public $category     = 'snn';
     public $name         = 'snn-video-player';
-    public $icon         = 'ti-control-play'; // A suitable icon from Themify Icons
+    public $icon         = 'ti-control-play';
     public $css_selector = '.snn-player-wrapper';
-    public $scripts      = []; // Scripts will be enqueued in the render method
+    public $scripts      = [];
     public $nestable     = false;
 
     public function get_label() {
@@ -21,7 +21,7 @@ class SNN_Video_Player_Element extends Element {
         $this->controls['video_file'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Video File (Media Library)', 'bricks' ),
-            'type'  => 'video', // Allows selecting video from the media library
+            'type'  => 'video',
             'default' => [
                 'url' => 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
             ],
@@ -45,14 +45,14 @@ class SNN_Video_Player_Element extends Element {
             'tab'   => 'content',
             'label' => esc_html__( 'Autoplay', 'bricks' ),
             'type'  => 'checkbox',
-            'default' => false, // Default to off
+            'default' => false,
         ];
 
         $this->controls['muted'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Muted', 'bricks' ),
             'type'  => 'checkbox',
-            'default' => false, // Default to off
+            'default' => false,
         ];
 
         $this->controls['loop'] = [
@@ -66,7 +66,7 @@ class SNN_Video_Player_Element extends Element {
             'tab'   => 'content',
             'label' => esc_html__( 'Disable Auto Hide Controls', 'bricks' ),
             'type'  => 'checkbox',
-            'default' => false, // Default to off
+            'default' => false,
         ];
 
         $this->controls['chapters'] = [
@@ -75,11 +75,13 @@ class SNN_Video_Player_Element extends Element {
             'type'          => 'repeater',
             'titleProperty' => 'title',
             'default'       => [
-                ['title' => 'Be Brave', 'time'  => '0:05'],
+                ['title' => 'Intro', 'time'  => '00:00'],
+                ['title' => 'Chapter 1', 'time'  => '02:00'],
+                ['title' => 'Chapter 2', 'time'  => '04:00'],
             ],
             'fields'        => [
-                'title' => ['label' => esc_html__( 'Title', 'bricks' ), 'type'  => 'text'],
-                'time'  => ['label' => esc_html__( 'Time (e.g., 1:45)', 'bricks' ), 'type' => 'text', 'placeholder' => 'm:ss'],
+                'title' => ['label' => esc_html__( 'Chapter Title', 'bricks' ), 'type'  => 'text'],
+                'time'  => ['label' => esc_html__( 'Start Time (e.g., 0:00, 1:45)', 'bricks' ), 'type' => 'text', 'placeholder' => 'm:ss'],
             ],
         ];
 
@@ -99,56 +101,52 @@ class SNN_Video_Player_Element extends Element {
             'default' => '100%',
         ];
 
-        // Modified color controls to use 'raw' defaults
         $this->controls['primary_accent_color'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Primary Accent', 'bricks' ),
             'type'  => 'color',
-            'default' => 'rgba(0, 0, 0, 1)', // Raw RGBA default
+            'default' => 'rgba(0, 0, 0, 1)',
         ];
 
         $this->controls['text_color'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Text & Icons Color', 'bricks' ),
             'type'  => 'color',
-            'default' => 'rgba(255, 255, 255, 1)', // Raw RGBA default
+            'default' => 'rgba(255, 255, 255, 1)',
         ];
 
         $this->controls['slider_track_color'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Slider Track', 'bricks' ),
             'type'  => 'color',
-            'default' => 'rgba(255, 255, 255, 0.3)', // Already raw, kept as is
+            'default' => 'rgba(255, 255, 255, 0.3)',
         ];
 
         $this->controls['chapter_dot_color'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Chapter Dot', 'bricks' ),
             'type'  => 'color',
-            'default' => 'rgba(255, 255, 255, 1)', // Raw RGBA default
+            'default' => 'rgba(255, 255, 255, 1)',
         ];
 
         $this->controls['button_hover_background'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Button Hover BG', 'bricks' ),
             'type'  => 'color',
-            'default' => 'rgba(255, 255, 255, 0.2)', // Already raw, kept as is
+            'default' => 'rgba(255, 255, 255, 0.2)',
         ];
 
-        // New control for button color
         $this->controls['button_color'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Button Color', 'bricks' ),
             'type'  => 'color',
-            'default' => 'rgba(255, 255, 255, 1)', // Default to white
+            'default' => 'rgba(255, 255, 255, 1)',
         ];
     }
 
     public function render() {
         $settings = $this->settings;
 
-        // Adopt the robust ID generation from the working example.
-        // This ensures the element always has a unique ID for CSS and JS scoping.
         if ( ! empty( $this->attributes['_root']['id'] ) ) {
             $root_id = $this->attributes['_root']['id'];
         } else {
@@ -156,14 +154,10 @@ class SNN_Video_Player_Element extends Element {
             $this->set_attribute( '_root', 'id', $root_id );
         }
 
-        // Add a class to the root element for general styling and identification.
         $this->set_attribute( '_root', 'class', 'brxe-snn-video-player snn-player-wrapper' );
 
-        // Get settings with defaults
         $video_file_url = ! empty( $settings['video_file']['url'] ) ? $settings['video_file']['url'] : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
         $manual_video_url = ! empty( $settings['video_url_manual'] ) ? $settings['video_url_manual'] : '';
-
-        // Prioritize manual URL if provided, otherwise use media library URL
         $video_url = ! empty( $manual_video_url ) ? $manual_video_url : $video_file_url;
 
         $poster_url = ! empty( $settings['poster_image']['id'] ) ? wp_get_attachment_image_url( $settings['poster_image']['id'], 'full' ) : '';
@@ -174,34 +168,29 @@ class SNN_Video_Player_Element extends Element {
         $loop               = ! empty( $settings['loop'] );
         $disable_autohide = ! empty( $settings['disable_autohide'] );
 
-        // Layout settings
         $player_height      = $settings['player_height'] ?? '400px';
         $player_max_width = $settings['player_max_width'] ?? '896px';
 
-        // Color settings - Prioritize 'raw', then 'hex', then default
         $accent_color        = $settings['primary_accent_color']['raw'] ?? $settings['primary_accent_color']['hex'] ?? '#3b82f6';
         $text_color          = $settings['text_color']['raw'] ?? $settings['text_color']['hex'] ?? '#ffffff';
         $slider_track        = $settings['slider_track_color']['raw'] ?? $settings['slider_track_color']['hex'] ?? 'rgba(255, 255, 255, 0.3)';
         $chapter_dot_color = $settings['chapter_dot_color']['raw'] ?? $settings['chapter_dot_color']['hex'] ?? '#ffffff';
         $btn_hover_bg        = $settings['button_hover_background']['raw'] ?? $settings['button_hover_background']['hex'] ?? 'rgba(255, 255, 255, 0.2)';
-        $button_color        = $settings['button_color']['raw'] ?? $settings['button_color']['hex'] ?? 'rgba(255, 255, 255, 1)'; // New button color
+        $button_color        = $settings['button_color']['raw'] ?? $settings['button_color']['hex'] ?? 'rgba(255, 255, 255, 1)';
 
-        // Start rendering the root element
         echo "<div {$this->render_attributes('_root')}>";
 
-        // Output the scoped CSS. Using esc_attr() for security.
         echo "<style>
-            /* Scoping all styles to the unique root ID */
             #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
-            #" . esc_attr($root_id) . " .snn-video-container { position: relative; background-color: #000; overflow: hidden;   height: var(--player-height); }
-            #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block;     /* 0.5rem * 15 */ object-fit: cover; }
+            #" . esc_attr($root_id) . " .snn-video-container { position: relative; background-color: #000; overflow: hidden; height: var(--player-height); }
+            #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: cover; }
             #" . esc_attr($root_id) . " .snn-video-container:fullscreen { width: 100vw; height: 100vh; max-width: 100%; border-radius: 0; }
-            #" . esc_attr($root_id) . " .snn-controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease-in-out;   }
+            #" . esc_attr($root_id) . " .snn-controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease-in-out; }
             #" . esc_attr($root_id) . " .snn-video-container:hover .snn-controls-overlay, #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
             #" . esc_attr($root_id) . " .snn-controls-hidden .snn-controls-overlay { cursor: none; opacity: 0; pointer-events: none; }
-            #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; /* 0.6rem * 15, 1rem * 15 */ }
-            #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; /* 0.5rem * 15 */ }
-            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--text-color); font-size: 14px; /* 0.75rem * 15 */ border-radius: 3.75px; /* 0.25rem * 15 */ padding: 3.75px 7.5px; /* 0.25rem * 15, 0.5rem * 15 */ top: -30px; /* -2rem * 15 */ pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); }
+            #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; }
+            #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; }
+            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--text-color); font-size: 14px; border-radius: 3.75px; padding: 3.75px 7.5px; top: -30px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
             #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar { display: flex; align-items: center; justify-content: space-between; color: var(--text-color); }
             #" . esc_attr($root_id) . " .snn-controls-left, #" . esc_attr($root_id) . " .snn-controls-right { display: flex; align-items: center; gap: 10px; }
@@ -210,39 +199,18 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-control-button svg { width: 30px; height: 30px; fill: currentColor; }
             #" . esc_attr($root_id) . " .snn-volume-container { display: flex; align-items: center; }
             #" . esc_attr($root_id) . " .snn-volume-container .snn-volume-slider { width: 0; transition: width 0.3s ease; opacity: 0; }
-            #" . esc_attr($root_id) . " .snn-volume-container:hover .snn-volume-slider { width: 75px; /* 5rem * 15 */ opacity: 1; }
-            #" . esc_attr($root_id) . " .snn-volume-slider { margin-left: 7.5px; /* 0.5rem * 15 */ }
-            /* Renamed .snn-slider to .snn-video-slider */
+            #" . esc_attr($root_id) . " .snn-volume-container:hover .snn-volume-slider { width: 75px; opacity: 1; }
+            #" . esc_attr($root_id) . " .snn-volume-slider { margin-left: 7.5px; }
             #" . esc_attr($root_id) . " .snn-video-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: var(--slider-track-color); cursor: pointer; border-radius: 5px; transition: height 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-video-slider:hover { height: 8px; }
             #" . esc_attr($root_id) . " .snn-video-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-video-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
             #" . esc_attr($root_id) . " .snn-video-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
-            #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 60%; transform: translate(-50%, -50%); width: 12px; height: 12px; background: var(--chapter-dot-color); border-radius: 50%; cursor: pointer; transition: transform 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 55%; transform: translate(-50%, -50%); width: 4px; height: 5px; background: var(--chapter-dot-color); border-radius: 2px; cursor: pointer; transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-chapter-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
             #" . esc_attr($root_id) . " .snn-hidden { display: none !important; }
-            /* Styles for chapter tooltip */
-            #" . esc_attr($root_id) . " .snn-chapter-tooltip {
-                position: absolute;
-                background-color: var(--primary-accent-color);
-                color: var(--text-color);
-                font-size: 15px; /* 0.75rem * 15 */
-                border-radius: 3.75px; /* 0.25rem * 15 */
-                padding: 3.75px 7.5px; /* 0.25rem * 15, 0.5rem * 15 */
-                bottom: 20px; /* MODIFIED: Position from bottom to grow upwards */
-                pointer-events: none;
-                opacity: 0;
-                transition: opacity 0.2s;
-                white-space: normal; /* Allow text to wrap */
-                word-wrap: break-word; /* Break long words */
-                max-width: 50%; /* Limit tooltip width */
-                text-align: center; /* Center wrapped text */
-                transform: translateX(-50%); /* Center horizontally by default */
-                z-index: 10; /* Ensure it's above other elements */
-            }
         </style>";
 
-        // Output the HTML structure
         ?>
         <div class="snn-video-container">
             <video class="snn-video" poster="<?php echo esc_url( $poster_url ); ?>" playsinline
@@ -260,7 +228,6 @@ class SNN_Video_Player_Element extends Element {
                         <div class="snn-progress-tooltip">00:00</div>
                         <input type="range" class="snn-video-slider snn-progress-bar" min="0" max="100" step="0.1" value="0">
                         <div class="snn-chapter-dots-container"></div>
-                        <div class="snn-chapter-tooltip"></div>
                     </div>
 
                     <div class="snn-controls-bar">
@@ -285,28 +252,17 @@ class SNN_Video_Player_Element extends Element {
             </div>
         </div>
         <?php
-        // End of root element div is at the very end
 
-        // Output the JavaScript.
         ?>
         <script>
-        // The main problem was running the script inside 'DOMContentLoaded'.
-        // The Bricks editor re-renders elements without firing that event.
-        // By wrapping the code in an Immediately Invoked Function Expression (IIFE),
-        // it runs as soon as the browser parses this script tag, which is right
-        // after the element's HTML has been rendered. This works reliably on
-        // both the frontend and in the editor.
         (() => {
-            // Use the unique root ID to find the correct player instance.
             const playerWrapper = document.getElementById('<?php echo esc_js($root_id); ?>');
 
-            // Guard against this script running on the wrong element or running twice.
             if (!playerWrapper || playerWrapper.dataset.snnPlayerInitialized) {
                 return;
             }
             playerWrapper.dataset.snnPlayerInitialized = 'true';
 
-            // --- CONFIGURATION & ELEMENTS ---
             const CONFIG = {
                 INACTIVITY_TIMEOUT: 3000,
                 CHAPTERS: <?php echo json_encode($chapters); ?>,
@@ -322,7 +278,6 @@ class SNN_Video_Player_Element extends Element {
                 volumeMute: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`,
             };
 
-            // Get all required DOM elements, with checks to prevent errors
             const videoContainer          = playerWrapper.querySelector('.snn-video-container');
             const video                   = playerWrapper.querySelector('.snn-video');
             const controlsOverlay         = playerWrapper.querySelector('.snn-controls-overlay');
@@ -335,16 +290,13 @@ class SNN_Video_Player_Element extends Element {
             const timeDisplay             = playerWrapper.querySelector('.snn-time-display');
             const chapterDotsContainer = playerWrapper.querySelector('.snn-chapter-dots-container');
             const progressTooltip         = playerWrapper.querySelector('.snn-progress-tooltip');
-            const chapterTooltip          = playerWrapper.querySelector('.snn-chapter-tooltip');
             const fullscreenIcon          = playerWrapper.querySelector('.snn-fullscreen-icon');
             const fullscreenExitIcon      = playerWrapper.querySelector('.snn-fullscreen-exit-icon');
 
-            if (!video || !controlsOverlay || !playPauseBtn) return; // Essential elements check
+            if (!video || !controlsOverlay || !playPauseBtn) return;
 
-            // MODIFIED: Use `isPlayerInView` to track if the player is visible in the viewport.
             let isSeeking = false, inactivityTimer, lastVolume = video.volume, isPlayerInView = false;
 
-            // --- HELPER FUNCTIONS (more readable) ---
             const timeToSeconds = (timeString) => {
                 if (!timeString || typeof timeString !== 'string') return 0;
                 const parts = timeString.split(':').map(Number);
@@ -365,7 +317,31 @@ class SNN_Video_Player_Element extends Element {
                 bar.style.background = `linear-gradient(to right, ${accentColor} ${progress}%, ${trackColor} ${progress}%)`;
             };
 
-            // --- CORE PLAYER LOGIC ---
+            const processChapterSections = () => {
+                if (!CONFIG.CHAPTERS || CONFIG.CHAPTERS.length === 0 || isNaN(video.duration)) return [];
+                
+                const sections = [];
+                const sortedChapters = [...CONFIG.CHAPTERS]
+                    .map(ch => ({ title: ch.title, startTime: timeToSeconds(ch.time) }))
+                    .filter(ch => ch.startTime <= video.duration)
+                    .sort((a, b) => a.startTime - b.startTime);
+
+                for (let i = 0; i < sortedChapters.length; i++) {
+                    const chapter = sortedChapters[i];
+                    const nextChapter = sortedChapters[i + 1];
+                    sections.push({
+                        title: chapter.title,
+                        startTime: chapter.startTime,
+                        endTime: nextChapter ? nextChapter.startTime : video.duration
+                    });
+                }
+                return sections;
+            };
+
+            const getChapterAtTime = (timeInSeconds, sections) => {
+                return sections.find(section => timeInSeconds >= section.startTime && timeInSeconds < section.endTime);
+            };
+
             const togglePlayPause = () => video.paused || video.ended ? video.play() : video.pause();
             const updatePlayPauseIcon = () => { if(playPauseBtn) playPauseBtn.innerHTML = video.paused ? ICONS.play : ICONS.pause; };
             
@@ -424,47 +400,24 @@ class SNN_Video_Player_Element extends Element {
             const generateChapters = () => {
                 if (!chapterDotsContainer || isNaN(video.duration) || !CONFIG.CHAPTERS) return;
                 chapterDotsContainer.innerHTML = '';
-                CONFIG.CHAPTERS.forEach(chapter => {
-                    const seconds = timeToSeconds(chapter.time);
-                    if (seconds > video.duration) return;
+                
+                const sections = processChapterSections();
+                if (sections.length === 0) return;
+
+                sections.forEach((section, index) => {
+                    if (section.startTime === 0) return;
 
                     const dot = document.createElement('div');
                     dot.className = 'snn-chapter-dot';
-                    dot.style.left = `${(seconds / video.duration) * 100}%`;
-                    dot.dataset.title = chapter.title;
+                    dot.style.left = `${(section.startTime / video.duration) * 100}%`;
+                    dot.dataset.title = section.title;
+                    dot.dataset.time = section.startTime;
                     dot.style.pointerEvents = 'auto';
 
                     dot.addEventListener('click', e => {
                         e.stopPropagation();
-                        video.currentTime = seconds;
+                        video.currentTime = section.startTime;
                         video.play();
-                    });
-
-                    dot.addEventListener('mouseenter', e => {
-                        if (!chapterTooltip || !progressBar) return;
-                        chapterTooltip.textContent = dot.dataset.title;
-                        chapterTooltip.style.opacity = '1';
-                        chapterTooltip.style.left = dot.style.left;
-                        chapterTooltip.style.transform = 'translateX(-50%)';
-                        setTimeout(() => {
-                            if (!playerWrapper.contains(chapterTooltip)) return;
-                            const progressBarRect = progressBar.getBoundingClientRect();
-                            const tooltipRect = chapterTooltip.getBoundingClientRect();
-                            if (tooltipRect.left < progressBarRect.left) {
-                                chapterTooltip.style.left = '0px';
-                                chapterTooltip.style.transform = 'translateX(0)';
-                            } else if (tooltipRect.right > progressBarRect.right) {
-                                chapterTooltip.style.left = '100%';
-                                chapterTooltip.style.transform = 'translateX(-100%)';
-                            }
-                        }, 0);
-                    });
-
-                    dot.addEventListener('mouseleave', () => {
-                        if (chapterTooltip) {
-                            chapterTooltip.style.opacity = '0';
-                            chapterTooltip.style.transform = 'translateX(-50%)';
-                        }
                     });
 
                     chapterDotsContainer.appendChild(dot);
@@ -472,7 +425,6 @@ class SNN_Video_Player_Element extends Element {
             };
 
             const handleKeydown = (e) => {
-                // MODIFIED: Only apply shortcuts if the player is in the viewport.
                 if (!isPlayerInView) return;
 
                 const activeEl = document.activeElement;
@@ -488,7 +440,6 @@ class SNN_Video_Player_Element extends Element {
                 }
             };
 
-            // --- EVENT LISTENERS ---
             video.addEventListener('play', updatePlayPauseIcon);
             video.addEventListener('pause', updatePlayPauseIcon);
             video.addEventListener('volumechange', () => {
@@ -509,7 +460,6 @@ class SNN_Video_Player_Element extends Element {
                 updateProgressBarFill(volumeSlider);
             });
 
-            // Controls visibility on hover (independent of keyboard shortcuts)
             videoContainer?.addEventListener('mouseenter', showControls);
             videoContainer?.addEventListener('mousemove', showControls);
             videoContainer?.addEventListener('mouseleave', () => {
@@ -519,7 +469,6 @@ class SNN_Video_Player_Element extends Element {
                 }
             });
 
-            // Click/Input handlers
             controlsOverlay?.addEventListener('click', togglePlayPause);
             controlsOverlay?.addEventListener('dblclick', toggleFullscreen);
             controlsBarContainer?.addEventListener('click', e => e.stopPropagation());
@@ -547,31 +496,39 @@ class SNN_Video_Player_Element extends Element {
                 if (!progressTooltip || isNaN(video.duration)) return;
                 const rect = progressBar.getBoundingClientRect();
                 const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                const hoverTime = percent * video.duration;
+                
                 progressTooltip.style.left = `${percent * 100}%`;
-                progressTooltip.textContent = formatTime(percent * video.duration);
+                
+                const sections = processChapterSections();
+                const currentChapter = getChapterAtTime(hoverTime, sections);
+                
+                if (currentChapter) {
+                    progressTooltip.textContent = `${formatTime(hoverTime)} - ${currentChapter.title}`;
+                } else {
+                    progressTooltip.textContent = formatTime(hoverTime);
+                }
+                
                 progressTooltip.style.opacity = '1';
             });
             progressBar?.addEventListener('mouseleave', () => { if(progressTooltip) progressTooltip.style.opacity = '0'; });
 
-            // Global listeners
             document.addEventListener('keydown', handleKeydown);
             document.addEventListener('fullscreenchange', updateFullscreenIcons);
 
-            // --- NEW: INTERSECTION OBSERVER FOR VIEWPORT-AWARE KEYBOARD SHORTCUTS ---
             const observerCallback = (entries) => {
                 entries.forEach(entry => {
                     isPlayerInView = entry.isIntersecting;
                 });
             };
             const observer = new IntersectionObserver(observerCallback, {
-                root: null, // Observe intersections relative to the viewport
-                threshold: 0.25 // Fire when at least 25% of the player is visible
+                root: null,
+                threshold: 0.25
             });
             if (playerWrapper) {
                 observer.observe(playerWrapper);
             }
 
-            // --- INITIALIZATION ---
             updatePlayPauseIcon();
             updateMuteIcon();
             updateProgressBarFill(progressBar);
@@ -586,6 +543,6 @@ class SNN_Video_Player_Element extends Element {
         })();
         </script>
         <?php
-        echo "</div>"; // End of root element
+        echo "</div>";
     }
 }
