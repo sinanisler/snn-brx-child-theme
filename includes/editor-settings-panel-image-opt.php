@@ -277,7 +277,6 @@ function snn_render_image_optimization_section() {
   /* Progress Bar */
   .snn-image-optimize-container .progress-container {
     width: 100%;
-    background-color: #f3f4f6;
     border-radius: 6px;
     overflow: hidden;
     margin-top: 16px;
