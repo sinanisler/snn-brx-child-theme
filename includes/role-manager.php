@@ -454,7 +454,7 @@ function snn_render_manage_roles_list() {
                          <td class="column-role_name column-primary" data-colname="<?php esc_attr_e('Display Name', 'snn'); ?>">
                              <strong><?php echo esc_html($admin_role_name); ?></strong>
                              <br><span class="description">(<?php _e('Core Role', 'snn'); ?>)</span>
-                             <button type="button" class="toggle-row"><span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span></button>
+                             <button type="button" class="toggle-row"><span class="screen-reader-text"><?php _e( 'Show more details', 'snn' ); ?></span></button>
                          </td>
                          <td class="column-role_id" data-colname="<?php esc_attr_e('Role ID (Slug)', 'snn'); ?>"><code>administrator</code></td>
                          <td class="column-capabilities" data-colname="<?php esc_attr_e('Capabilities', 'snn'); ?>">
@@ -489,7 +489,7 @@ function snn_render_manage_roles_list() {
                         <td class="column-role_name column-primary" data-colname="<?php esc_attr_e('Display Name', 'snn'); ?>">
                             <strong><?php echo esc_html(translate_user_role($role_display_name)); ?></strong>
                             <?php if ($is_core) echo '<br><span class="description">(' . __('Core Role', 'snn') . ')</span>'; ?>
-                            <button type="button" class="toggle-row"><span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span></button>
+                            <button type="button" class="toggle-row"><span class="screen-reader-text"><?php _e( 'Show more details', 'snn' ); ?></span></button>
                         </td>
                         <td class="column-role_id" data-colname="<?php esc_attr_e('Role ID (Slug)', 'snn'); ?>"><code><?php echo esc_html($role_id); ?></code></td>
                         <td class="column-capabilities" data-colname="<?php esc_attr_e('Capabilities', 'snn'); ?>">
