@@ -121,4 +121,4 @@ if (!empty($options['enqueue_gsap'])) {
 
 
 // Load Translations
-load_theme_textdomain('snn', get_template_directory() . '/languages');
+load_theme_textdomain('snn', SNN_PATH . '/languages');
