@@ -3,8 +3,8 @@
 function snn_add_search_logs_page() {
     add_submenu_page(
         'snn-settings',
-        'Search Logs',
-        'Search Logs',
+        __('Search Logs', 'snn'),
+        __('Search Logs', 'snn'),
         'manage_options',
         'snn-search-logs',
         'snn_render_search_logs_page'
@@ -141,7 +141,7 @@ function snn_render_search_logs_page() {
                 wp_delete_post($log_id, true);
             }
         }
-        echo '<div class="updated"><p>All search logs have been cleared.</p></div>';
+    echo '<div class="updated"><p>' . __('All search logs have been cleared.', 'snn') . '</p></div>';
     }
 
     // Process "Clear Top 100 Searches" button
@@ -157,9 +157,9 @@ function snn_render_search_logs_page() {
             foreach ($terms as $term) {
                 wp_delete_term($term->term_id, 'snn_search_count');
             }
-            echo '<div class="updated"><p>Top 100 searches have been cleared.</p></div>';
+            echo '<div class="updated"><p>' . __('Top 100 searches have been cleared.', 'snn') . '</p></div>';
         } else {
-            echo '<div class="notice notice-info"><p>No top searches found to clear.</p></div>';
+            echo '<div class="notice notice-info"><p>' . __('No top searches found to clear.', 'snn') . '</p></div>';
         }
     }
 
@@ -167,39 +167,39 @@ function snn_render_search_logs_page() {
     $log_size_limit  = get_option('snn_search_log_size_limit', 100);
     ?>
     <div class="wrap">
-        <h1>Search Logs</h1>
+        <h1><?php echo esc_html(__('Search Logs', 'snn')); ?></h1>
 
         <form method="post" action="">
             <label>
                 <input type="checkbox" name="snn_search_logging_enabled" 
-                       <?php checked($logging_enabled); ?>>
-                Enable Search Logging
+                       <?php checked($logging_enabled); ?> >
+                <?php echo esc_html(__('Enable Search Logging', 'snn')); ?>
             </label>
             <br><br>
 
             <label>
-                Maximum number of logs to keep:
+                <?php echo esc_html(__('Maximum number of logs to keep:', 'snn')); ?>
                 <input type="number" name="snn_search_log_size_limit" 
                        value="<?php echo esc_attr($log_size_limit); ?>" 
                        min="1" style="width: 100px;">
             </label>
             <br><br>
 
-            <?php submit_button('Save Changes', 'primary', 'snn_search_logging_submit', false); ?>
+            <?php submit_button(__('Save Changes', 'snn'), 'primary', 'snn_search_logging_submit', false); ?>
         </form>
 
         <?php if ($logging_enabled): ?>
             <form method="post" action="" style="display:inline-block; margin-right:10px;">
-                <?php submit_button('Clear All Logs', 'delete', 'snn_clear_search_logs'); ?>
+                <?php submit_button(__('Clear All Logs', 'snn'), 'delete', 'snn_clear_search_logs'); ?>
             </form>
             <form method="post" action="" style="display:inline-block;">
-                <?php submit_button('Clear Top 100 Searches', 'delete', 'snn_clear_top_searches'); ?>
+                <?php submit_button(__('Clear Top 100 Searches', 'snn'), 'delete', 'snn_clear_top_searches'); ?>
             </form>
 
             <div style="display: flex; gap: 20px; margin-top:20px;">
                 <!-- Search Logs Table -->
                 <div style="flex: 1;">
-                    <h2>Recent Search Logs</h2>
+                    <h2><?php echo esc_html(__('Recent Search Logs', 'snn')); ?></h2>
                     <?php
                     $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
                     $logs_per_page = 100;
@@ -218,10 +218,10 @@ function snn_render_search_logs_page() {
                     <table class="wp-list-table widefat fixed striped">
                         <thead>
                             <tr>
-                                <th>Search Query</th>
-                                <th>Date</th>
-                                <th>IP Address</th>
-                                <th>User Agent</th>
+                                <th><?php echo esc_html(__('Search Query', 'snn')); ?></th>
+                                <th><?php echo esc_html(__('Date', 'snn')); ?></th>
+                                <th><?php echo esc_html(__('IP Address', 'snn')); ?></th>
+                                <th><?php echo esc_html(__('User Agent', 'snn')); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -248,7 +248,7 @@ function snn_render_search_logs_page() {
                             } else {
                                 ?>
                                 <tr>
-                                    <td colspan="4">No logs found.</td>
+                                    <td colspan="4"><?php echo esc_html(__('No logs found.', 'snn')); ?></td>
                                 </tr>
                                 <?php
                             }
@@ -277,12 +277,12 @@ function snn_render_search_logs_page() {
 
                 <!-- Top 100 Searches Table -->
                 <div style="flex: 1;">
-                    <h2>Top 100 Searches</h2>
+                    <h2><?php echo esc_html(__('Top 100 Searches', 'snn')); ?></h2>
                     <table class="wp-list-table widefat fixed striped">
                         <thead>
                             <tr>
-                                <th>Search Query</th>
-                                <th>Count</th>
+                                <th><?php echo esc_html(__('Search Query', 'snn')); ?></th>
+                                <th><?php echo esc_html(__('Count', 'snn')); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -307,7 +307,7 @@ function snn_render_search_logs_page() {
                             } else {
                                 ?>
                                 <tr>
-                                    <td colspan="2">No searches found.</td>
+                                    <td colspan="2"><?php echo esc_html(__('No searches found.', 'snn')); ?></td>
                                 </tr>
                                 <?php
                             }
