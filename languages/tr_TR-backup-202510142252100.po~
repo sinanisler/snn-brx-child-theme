@@ -3,9 +3,9 @@ msgstr ""
 "Project-Id-Version: SNN-BRX - Bricks Builder Child Theme\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-10-14 22:24+0000\n"
-"PO-Revision-Date: 2025-10-14 22:52+0000\n"
+"PO-Revision-Date: 2025-10-14 22:33+0000\n"
 "Last-Translator: \n"
-"Language-Team: Türkçe\n"
+"Language-Team: Turkish\n"
 "Language: tr_TR\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "MIME-Version: 1.0\n"
@@ -843,11 +843,11 @@ msgstr "Yukarı Zıpla"
 
 #: includes/settings-page.php:68
 msgid "Bricks Builder"
-msgstr "Bricks Builder"
+msgstr "Tuğla Oluşturucu"
 
 #: includes/settings-page.php:22
 msgid "Bricks Builder Child Theme Settings"
-msgstr "Bricks Builder Çocuk Tema Ayarları"
+msgstr "Tuğla Oluşturucu Çocuk Tema Ayarları"
 
 #: includes/settings-page.php:76
 msgid "Bricks Builder Docs ➤"
@@ -855,7 +855,7 @@ msgstr ""
 
 #: includes/editor-settings-bricks.php:19
 msgid "Bricks Builder Editor Settings"
-msgstr "Bricks Builder Düzenleyici Ayarları"
+msgstr "Tuğla Oluşturucu Düzenleyici Ayarları"
 
 #: includes/settings-page.php:79
 msgid "Bricks Builder Videos ➤"
@@ -5900,7 +5900,7 @@ msgstr "SNN-BRX'İN"
 
 #. Name of the theme
 msgid "SNN-BRX - Bricks Builder Child Theme"
-msgstr "SNN-BRX-Bricks Builder Çocuk Teması"
+msgstr "SNN-BRX-Tuğla Oluşturucu Çocuk Teması"
 
 #. Description of the theme
 msgid ""
@@ -5909,8 +5909,8 @@ msgid ""
 "powerful child theme."
 msgstr ""
 "SNN-BRX Çocuk Teması, ajanslar ve profesyoneller için amaca yönelik temel "
-"bir bina paketidir ve Bricks Builder projelerinizi güçlü bir çocuk temasıyla "
-"düzene sokar."
+"bir bina paketidir ve Tuğla Oluşturucu projelerinizi güçlü bir çocuk "
+"temasıyla düzene sokar."
 
 #: includes/editor-settings-panel-color-sync.php:447
 #: includes/editor-settings-panel-color-sync.php:492
