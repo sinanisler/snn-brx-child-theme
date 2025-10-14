@@ -5,8 +5,8 @@ add_action('admin_menu', 'custom_smtp_add_admin_menu');
 function custom_smtp_add_admin_menu() {
     add_submenu_page(
         'snn-settings',
-        'Mail SMTP Settings',
-        'Mail SMTP Settings',
+        __('Mail SMTP Settings', 'snn'),
+        __('Mail SMTP Settings', 'snn'),
         'manage_options',
         'snn-smtp-settings',
         'custom_smtp_settings_page'
