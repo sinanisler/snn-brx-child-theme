@@ -117,3 +117,8 @@ if (!empty($options['enqueue_gsap'])) {
     require_once SNN_PATH . 'includes/elements/gsap-multi-element-register.php';
 
 }
+
+
+
+// Load Translations
+load_theme_textdomain('snn', get_template_directory() . '/languages');
