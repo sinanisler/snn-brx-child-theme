@@ -207,12 +207,12 @@ function snn_render_mail_logs_page() {
         echo '<table class="wp-list-table wp-mail-log-list widefat fixed striped">';
         echo '<thead>';
         echo '<tr>';
-        echo '<th class="delete">' . __('Delete', 'snn') . '</th>';
+        echo '<th class="actions">' . __('Actions', 'snn') . '</th>';
         echo '<th class="date">' . __('Date & Time', 'snn') . '</th>';
+        echo '<th class="subject">' . __('Subject', 'snn') . '</th>';
         echo '<th class="from">' . __('From', 'snn') . '</th>';
         echo '<th class="to">' . __('To', 'snn') . '</th>';
-        echo '<th class="subject">' . __('Subject', 'snn') . '</th>';
-        echo '<th class="actions">' . __('Actions', 'snn') . '</th>';
+        echo '<th class="delete">' . __('Delete', 'snn') . '</th>';
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
@@ -233,20 +233,22 @@ function snn_render_mail_logs_page() {
 
             echo '<tr class="mail-log-row" data-log-id="' . esc_attr($log->ID) . '">';
 
-            // Delete Button (left).
+            // View Message Button (first column)
+            echo '<td>';
+            echo '<button type="button" class="button button-secondary snn-view-message" data-log-id="' . esc_attr($log->ID) . '">' . __('View Message', 'snn') . '</button>';
+            echo '</td>';
+
+            echo '<td>' . esc_html($date_time) . '</td>';
+            echo '<td>' . esc_html($subject) . '</td>';
+            echo '<td>' . esc_html($from) . '</td>';
+            echo '<td>' . esc_html($to) . '</td>';
+            
+            // Delete Button (last column)
             echo '<td>';
             echo '<form method="post" action="">';
             echo '<input type="hidden" name="snn_delete_log_id" value="' . esc_attr($log->ID) . '">';
             submit_button(__('Delete', 'snn'), 'delete', 'snn_delete_log', false);
             echo '</form>';
-            echo '</td>';
-
-            echo '<td>' . esc_html($date_time) . '</td>';
-            echo '<td>' . esc_html($from) . '</td>';
-            echo '<td>' . esc_html($to) . '</td>';
-            echo '<td>' . esc_html($subject) . '</td>';
-            echo '<td>';
-            echo '<button type="button" class="button button-secondary snn-view-message" data-log-id="' . esc_attr($log->ID) . '">' . __('View Message', 'snn') . '</button>';
             echo '</td>';
 
             echo '</tr>';
@@ -294,7 +296,11 @@ function snn_render_mail_logs_page() {
     border-top: 1px solid #ddd;
 }
 .mail-log-content {
-    padding: 15px;
+    padding: 0px;
+}
+.mail-log-content h3{
+    padding: 0px;
+    margin:0px;
 }
 .mail-log-message-content {
     background: #fff;
@@ -303,6 +309,10 @@ function snn_render_mail_logs_page() {
     margin-bottom: 15px;
     max-height: 400px;
     overflow-y: auto;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 .mail-log-message-content iframe {
     width: 100%;
@@ -352,11 +362,26 @@ jQuery(document).ready(function($) {
                 loadingDiv.hide();
                 
                 if (response.success) {
-                    // Display message in iframe for safe rendering
-                    var messageHtml = '<iframe sandbox style="width:100%; min-height:250px; border:none;" srcdoc="' + 
-                        response.data.message.replace(/"/g, '&quot;') + '"></iframe>';
+                    var message = response.data.message;
                     
-                    detailsRow.find('.mail-log-message-content').html(messageHtml);
+                    // Check if message contains HTML tags
+                    var isHTML = /<[a-z][\s\S]*>/i.test(message);
+                    
+                    if (isHTML) {
+                        // Display HTML message in iframe for safe rendering
+                        var messageHtml = '<iframe sandbox style="width:100%; min-height:250px; border:none;" srcdoc="' + 
+                            '<html><head><style>body { font-family: Arial, Helvetica, sans-serif; line-height: 1.6; padding: 10px; }</style></head><body>' +
+                            message.replace(/"/g, '&quot;') + '</body></html>"></iframe>';
+                        detailsRow.find('.mail-log-message-content').html(messageHtml);
+                    } else {
+                        // Display plain text message with preserved formatting
+                        detailsRow.find('.mail-log-message-content').html(
+                            '<pre style="margin: 0; font-family: Arial, Helvetica, sans-serif; white-space: pre-wrap; word-wrap: break-word;">' + 
+                            $('<div>').text(message).html() + 
+                            '</pre>'
+                        );
+                    }
+                    
                     detailsRow.find('.mail-log-headers-content').html(response.data.headers);
                     messageWrapper.show();
                 } else {
