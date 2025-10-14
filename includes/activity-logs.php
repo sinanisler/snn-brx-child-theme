@@ -5,25 +5,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Registers a custom post type for storing activity log entries.
+ * Register a custom post type for storing activity log entries.
  * This post type is set to be private and not queryable by the public.
+ * Registered directly since this file is included early in the theme loading process.
  */
-function snn_register_activity_log_post_type() {
-    $args = array(
-        'public'                => false,
-        'publicly_queryable'    => false,
-        'show_ui'               => false,
-        'show_in_menu'          => false,
-        'query_var'             => false,
-        'rewrite'               => false,
-        'capability_type'       => 'post',
-        'has_archive'           => false,
-        'hierarchical'          => false,
-        'supports'              => array( 'title', 'editor' ),
-    );
-    register_post_type( 'snn_activity_log', $args );
-}
-add_action( 'init', 'snn_register_activity_log_post_type' );
+register_post_type( 'snn_activity_log', array(
+    'public'                => false,
+    'publicly_queryable'    => false,
+    'show_ui'               => false,
+    'show_in_menu'          => false,
+    'query_var'             => false,
+    'rewrite'               => false,
+    'capability_type'       => 'post',
+    'has_archive'           => false,
+    'hierarchical'          => false,
+    'supports'              => array( 'title', 'editor' ),
+) );
 
 /**
  * Adds the "Activity Logs" submenu page under the 'snn-settings' parent menu.
