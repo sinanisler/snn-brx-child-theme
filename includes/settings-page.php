@@ -34,7 +34,7 @@ function snn_settings_page_callback() {
                 array('slug' => 'login-settings',             'label' => __('Login Settings', 'snn'),                         'dashicon' => 'dashicons-admin-users'),
                 array('slug' => 'snn-404-logs',               'label' => __('404 Logs', 'snn'),                               'dashicon' => 'dashicons-warning'),
                 array('slug' => 'snn-301-redirects',          'label' => __('301 Redirects', 'snn'),                          'dashicon' => 'dashicons-share'),
-                array('slug' => 'smtp-settings',              'label' => __('Mail SMTP Settings', 'snn'),                     'dashicon' => 'dashicons-email'),
+                array('slug' => 'snn-smtp-settings',          'label' => __('Mail SMTP Settings', 'snn'),                     'dashicon' => 'dashicons-email'),
                 array('slug' => 'snn-mail-logs',              'label' => __('Mail Logs', 'snn'),                              'dashicon' => 'dashicons-email-alt'),
                 array('slug' => 'snn-role-management',        'label' => __('Role Manager', 'snn'),                           'dashicon' => 'dashicons-admin-users'),
                 array('slug' => 'snn-cookie-settings',        'label' => __('Cookie Settings', 'snn'),                        'dashicon' => 'dashicons-admin-site'),

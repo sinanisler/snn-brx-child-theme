@@ -8,7 +8,7 @@ function custom_smtp_add_admin_menu() {
         'Mail SMTP Settings',
         'Mail SMTP Settings',
         'manage_options',
-        'smtp-settings',
+        'snn-smtp-settings',
         'custom_smtp_settings_page'
     );
 }
@@ -22,14 +22,14 @@ function custom_smtp_settings_init() {
         'custom_smtp_settings_section',
         __('SMTP Settings', 'snn'),
         'custom_smtp_settings_section_callback',
-        'smtp-settings'
+        'snn-smtp-settings'
     );
 
     add_settings_field(
         'enable_smtp',
         __('Enable SMTP', 'snn'),
         'custom_smtp_enable_smtp_render',
-        'smtp-settings',
+        'snn-smtp-settings',
         'custom_smtp_settings_section'
     );
 
@@ -37,7 +37,7 @@ function custom_smtp_settings_init() {
         'smtp_host',
         __('SMTP Host', 'snn'),
         'custom_smtp_smtp_host_render',
-        'smtp-settings',
+        'snn-smtp-settings',
         'custom_smtp_settings_section'
     );
 
@@ -45,7 +45,7 @@ function custom_smtp_settings_init() {
         'smtp_encryption',
         __('Encryption', 'snn'),
         'custom_smtp_smtp_encryption_render',
-        'smtp-settings',
+        'snn-smtp-settings',
         'custom_smtp_settings_section'
     );
 
@@ -53,7 +53,7 @@ function custom_smtp_settings_init() {
         'smtp_port',
         __('SMTP Port', 'snn'),
         'custom_smtp_smtp_port_render',
-        'smtp-settings',
+        'snn-smtp-settings',
         'custom_smtp_settings_section'
     );
 
@@ -61,7 +61,7 @@ function custom_smtp_settings_init() {
         'smtp_username',
         __('SMTP Username', 'snn'),
         'custom_smtp_smtp_username_render',
-        'smtp-settings',
+        'snn-smtp-settings',
         'custom_smtp_settings_section'
     );
 
@@ -69,7 +69,7 @@ function custom_smtp_settings_init() {
         'smtp_password',
         __('SMTP Password', 'snn'),
         'custom_smtp_smtp_password_render',
-        'smtp-settings',
+        'snn-smtp-settings',
         'custom_smtp_settings_section'
     );
 }
@@ -228,7 +228,7 @@ function custom_smtp_phpmailer_init($phpmailer) {
 
 add_action('admin_enqueue_scripts', 'custom_smtp_enqueue_scripts');
 function custom_smtp_enqueue_scripts($hook) {
-    if ($hook !== 'snn-settings_page_smtp-settings') {
+    if ($hook !== 'snn-settings_page_snn-smtp-settings') {
         return;
     }
     wp_enqueue_script('jquery');
@@ -357,7 +357,7 @@ function custom_smtp_settings_page() {
         <form action='options.php' method='post'>
             <?php
             settings_fields('custom_smtp_settings_group');
-            do_settings_sections('smtp-settings');
+            do_settings_sections('snn-smtp-settings');
             submit_button();
             ?>
         </form>
