@@ -12,22 +12,22 @@ if (!defined('ABSPATH')) {
 add_action('admin_menu', 'snn_add_image_optimization_menu');
 
 function snn_add_image_optimization_menu() {
-    add_submenu_page(
-        'upload.php',                           // Parent slug (Media menu)
-        __('Image Optimization', 'snn'),        // Page title
-        __('Image Optimization', 'snn'),        // Menu title
-        'upload_files',                         // Capability
-        'snn-image-optimization',               // Menu slug
-        'snn_image_optimization_page'           // Callback function
-    );
+  add_submenu_page(
+    'upload.php',                           // Parent slug (Media menu)
+    __( 'Image Optimization', 'snn' ),        // Page title
+    __( 'Image Optimization', 'snn' ),        // Menu title
+    'upload_files',                         // Capability
+    'snn-image-optimization',               // Menu slug
+    'snn_image_optimization_page'           // Callback function
+  );
 }
 
 // Render the image optimization page
 function snn_image_optimization_page() {
     ?>
     <div class="wrap">
-        <h1><?php _e('Image Optimization', 'snn'); ?></h1>
-        <p class="description"><?php _e('Optimize, convert, and resize images before adding them to your media library.', 'snn'); ?></p>
+  <h1><?php _e( 'Image Optimization', 'snn' ); ?></h1>
+  <p class="description"><?php _e( 'Optimize, convert, and resize images before adding them to your media library.', 'snn' ); ?></p>
         
         <?php snn_render_wp_admin_image_optimization_section(); ?>
     </div>

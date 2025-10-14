@@ -8,12 +8,12 @@ add_action( 'admin_menu', 'snn_add_taxonomy_submenu' );
 
 function snn_add_taxonomy_submenu() {
     add_submenu_page(
-        'snn-settings', 
-        'Register Taxonomies', 
-        'Taxonomies', 
-        'manage_options', 
-        'snn-taxonomies', 
-        'snn_render_taxonomies_page' 
+        'snn-settings',
+        esc_html__( 'Register Taxonomies', 'snn' ),
+        esc_html__( 'Taxonomies', 'snn' ),
+        'manage_options',
+        'snn-taxonomies',
+        'snn_render_taxonomies_page'
     );
 }
 
@@ -41,7 +41,7 @@ function snn_render_taxonomies_page() {
 
             update_option( 'snn_taxonomies', $taxonomies );
 
-            echo '<div class="updated"><p>Taxonomies saved successfully.</p></div>';
+            echo '<div class="updated"><p>' . esc_html__( 'Taxonomies saved successfully.', 'snn' ) . '</p></div>';
         }
     }
 
@@ -52,31 +52,31 @@ function snn_render_taxonomies_page() {
     $registered_post_types = get_post_types( array( 'public' => true ), 'objects' );
     ?>
     <div class="wrap">
-        <h1>Manage Taxonomies</h1>
+    <h1><?php esc_html_e( 'Manage Taxonomies', 'snn' ); ?></h1>
         <form method="post">
             <?php wp_nonce_field( 'snn_save_taxonomies', 'snn_taxonomies_nonce' ); ?>
             <div id="taxonomy-settings">
-                <p>Define custom taxonomies with name, slug, hierarchical setting, and associated post types:</p>
+                <p><?php esc_html_e( 'Define custom taxonomies with name, slug, hierarchical setting, and associated post types:', 'snn' ); ?></p>
                 <?php foreach ( $taxonomies as $index => $taxonomy ) : ?>
                     <div class="taxonomy-row" data-index="<?php echo esc_attr( $index ); ?>">
                         <div class="buttons">
-                            <button type="button" class="move-up" title="Move Up">▲</button>
-                            <button type="button" class="move-down" title="Move Down">▼</button>
-                            <button type="button" class="remove-taxonomy" title="Remove Taxonomy">Remove</button>
+                            <button type="button" class="move-up" title="<?php esc_attr_e( 'Move Up', 'snn' ); ?>">▲</button>
+                            <button type="button" class="move-down" title="<?php esc_attr_e( 'Move Down', 'snn' ); ?>">▼</button>
+                            <button type="button" class="remove-taxonomy" title="<?php esc_attr_e( 'Remove Taxonomy', 'snn' ); ?>"><?php esc_html_e( 'Remove', 'snn' ); ?></button>
                         </div>
                         <div class="field-group">
-                            <label>Taxonomy Name</label><br>
+                            <label><?php esc_html_e( 'Taxonomy Name', 'snn' ); ?></label><br>
                             <input type="text" name="taxonomies[<?php echo esc_attr( $index ); ?>][name]" placeholder="Taxonomy Name" value="<?php echo esc_attr( $taxonomy['name'] ); ?>" />
                         </div>
                         <div class="field-group">
-                            <label>Taxonomy Slug</label><br>
+                            <label><?php esc_html_e( 'Taxonomy Slug', 'snn' ); ?></label><br>
                             <input type="text" class="taxonomy-slug" name="taxonomies[<?php echo esc_attr( $index ); ?>][slug]" placeholder="taxonomy-slug" value="<?php echo esc_attr( $taxonomy['slug'] ); ?>" />
                         </div>
-                        <label>Hierarchical</label>
+                        <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
                         <div class="checkbox-container">
                             <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][hierarchical]" <?php checked( $taxonomy['hierarchical'], 1 ); ?> />
                         </div>
-                        <label>Link Post Types</label>
+                        <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label>
                         <select name="taxonomies[<?php echo esc_attr( $index ); ?>][post_types][]" multiple>
                             <?php foreach ( $registered_post_types as $post_type ) : ?>
                                 <option value="<?php echo esc_attr( $post_type->name ); ?>" <?php echo in_array( $post_type->name, $taxonomy['post_types'] ) ? 'selected' : ''; ?>>
@@ -85,15 +85,15 @@ function snn_render_taxonomies_page() {
                             <?php endforeach; ?>
                         </select>
                         <div class="field-group">
-                            <label>Show Columns</label><br>
+                            <label><?php esc_html_e( 'Show Columns', 'snn' ); ?></label><br>
                             <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][add_columns]" <?php checked( isset( $taxonomy['add_columns'] ) ? $taxonomy['add_columns'] : 0, 1 ); ?> />
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
-            <button type="button" id="add-taxonomy-row" class="button">Add New Taxonomy</button>
+            <button type="button" id="add-taxonomy-row" class="button"><?php esc_html_e( 'Add New Taxonomy', 'snn' ); ?></button>
             <br><br>
-            <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Taxonomies"></p>
+            <p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="<?php esc_attr_e( 'Save Taxonomies', 'snn' ); ?>"></p>
         </form>
 
         <script>
@@ -146,23 +146,23 @@ function snn_render_taxonomies_page() {
                 newRow.dataset.index = newIndex;
                 newRow.innerHTML = `
                     <div class="buttons">
-                        <button type="button" class="move-up" title="Move Up">▲</button>
-                        <button type="button" class="move-down" title="Move Down">▼</button>
-                        <button type="button" class="remove-taxonomy" title="Remove Taxonomy">Remove</button>
+                        <button type="button" class="move-up" title="<?php esc_attr_e( 'Move Up', 'snn' ); ?>">▲</button>
+                        <button type="button" class="move-down" title="<?php esc_attr_e( 'Move Down', 'snn' ); ?>">▼</button>
+                        <button type="button" class="remove-taxonomy" title="<?php esc_attr_e( 'Remove Taxonomy', 'snn' ); ?>"><?php esc_html_e( 'Remove', 'snn' ); ?></button>
                     </div>
                     <div class="field-group">
-                        <label>Taxonomy Name</label><br>
+                        <label><?php esc_html_e( 'Taxonomy Name', 'snn' ); ?></label><br>
                         <input type="text" name="taxonomies[${newIndex}][name]" placeholder="Taxonomy Name" />
                     </div>
                     <div class="field-group">
-                        <label>Taxonomy Slug</label><br>
+                        <label><?php esc_html_e( 'Taxonomy Slug', 'snn' ); ?></label><br>
                         <input type="text" class="taxonomy-slug" name="taxonomies[${newIndex}][slug]" placeholder="taxonomy-slug" />
                     </div>
-                    <label>Hierarchical</label>
+                    <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
                     <div class="checkbox-container">
                         <input type="checkbox" name="taxonomies[${newIndex}][hierarchical]" />
                     </div>
-                    <label>Associated Post Types</label>
+                    <label><?php esc_html_e( 'Associated Post Types', 'snn' ); ?></label>
                     <select name="taxonomies[${newIndex}][post_types][]" multiple>
                         <?php
                         // Fetch all public post types for the JavaScript template
@@ -173,7 +173,7 @@ function snn_render_taxonomies_page() {
                         <?php endforeach; ?>
                     </select>
                     <div class="field-group">
-                        <label>Add Columns</label><br>
+                        <label><?php esc_html_e( 'Add Columns', 'snn' ); ?></label><br>
                         <input type="checkbox" name="taxonomies[${newIndex}][add_columns]" />
                     </div>
                 `;
