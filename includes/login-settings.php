@@ -8,7 +8,7 @@ function ls_add_login_settings_submenu() {
         __('Login Settings', 'snn'),
         __('Login Settings', 'snn'),
         'manage_options',
-        'login-settings',
+        'snn-login-settings',
         'ls_render_login_settings'
     );
 }
@@ -32,21 +32,21 @@ function ls_register_login_settings() {
         'ls_login_settings_section',
         __('Login Page Customizations', 'snn'),
         'ls_login_settings_section_callback',
-        'login-settings'
+        'snn-login-settings'
     );
 
     add_settings_section(
         'ls_login_redirect_section',
         __('Redirect Setting', 'snn'),
         'ls_login_redirect_section_callback',
-        'login-settings'
+        'snn-login-settings'
     );
 
     add_settings_field(
         'ls_login_background_image_url',
         __('Background Image', 'snn'),
         'ls_login_background_image_url_callback',
-        'login-settings',
+        'snn-login-settings',
         'ls_login_settings_section'
     );
 
@@ -54,7 +54,7 @@ function ls_register_login_settings() {
         'ls_login_custom_text',
         __('Custom Text under Login Form', 'snn'),
         'ls_login_custom_text_callback',
-        'login-settings',
+        'snn-login-settings',
         'ls_login_settings_section'
     );
 
@@ -62,7 +62,7 @@ function ls_register_login_settings() {
         'ls_login_redirect_url',
         __('Redirect URL after Login', 'snn'),
         'ls_login_redirect_url_callback',
-        'login-settings',
+        'snn-login-settings',
         'ls_login_redirect_section'
     );
 }
@@ -156,7 +156,7 @@ function ls_render_login_settings() {
         <form method="post" action="options.php" style="max-width:800px">
             <?php
                 settings_fields('ls_login_settings_group');
-                do_settings_sections('login-settings');
+                do_settings_sections('snn-login-settings');
                 submit_button();
             ?>
         </form>
@@ -165,7 +165,7 @@ function ls_render_login_settings() {
 }
 
 add_action('admin_enqueue_scripts', function($hook) {
-    if (isset($_GET['page']) && $_GET['page'] === 'login-settings') {
+    if (isset($_GET['page']) && $_GET['page'] === 'snn-login-settings') {
         wp_enqueue_media();
     }
 });

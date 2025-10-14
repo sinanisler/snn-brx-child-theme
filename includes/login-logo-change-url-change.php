@@ -5,7 +5,7 @@ function snn_add_logo_settings() {
         'snn_login_logo_url',
         __('Login Logo Image URL', 'snn'),
         'snn_login_logo_url_callback',
-        'login-settings',
+        'snn-login-settings',
         'ls_login_settings_section'
     );
 
@@ -13,7 +13,7 @@ function snn_add_logo_settings() {
         'snn_custom_logo_url',
         __('Custom Logo Link Website URL', 'snn'),
         'snn_custom_logo_url_callback',
-        'login-settings',
+        'snn-login-settings',
         'ls_login_settings_section'
     );
 
@@ -103,7 +103,7 @@ add_filter('login_headerurl', 'snn_custom_login_logo_url');
 
 // Enqueue WordPress media scripts on settings page only
 function snn_admin_enqueue_media($hook) {
-    if (isset($_GET['page']) && $_GET['page'] === 'login-settings') {
+    if (isset($_GET['page']) && $_GET['page'] === 'snn-login-settings') {
         wp_enqueue_media();
     }
 }
