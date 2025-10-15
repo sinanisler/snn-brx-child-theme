@@ -57,7 +57,6 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'inline'      => true,
             'small'       => true,
             'default'     => false,
-            'description' => esc_html__( 'Animation will only start playing when it becomes visible in the viewport', 'snn' ),
         ];
 
         // Play on Hover
