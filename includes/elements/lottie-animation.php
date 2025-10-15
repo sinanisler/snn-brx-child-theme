@@ -49,6 +49,17 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'default' => true,
         ];
 
+        // Autoplay on Viewport Entry
+        $this->controls['autoplay_on_viewport'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Autoplay on Viewport Entry', 'snn' ),
+            'type'        => 'checkbox',
+            'inline'      => true,
+            'small'       => true,
+            'default'     => false,
+            'description' => esc_html__( 'Animation will only start playing when it becomes visible in the viewport', 'snn' ),
+        ];
+
         // Play on Hover
         $this->controls['play_on_hover'] = [
             'tab'         => 'content',
@@ -186,6 +197,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         $lottie_json      = isset($this->settings['lottie_json']['url']) ? esc_url($this->settings['lottie_json']['url']) : '';
         $loop             = ! empty($this->settings['loop']) ? 'true' : 'false';
         $autoplay         = ! empty($this->settings['autoplay']) ? 'true' : 'false';
+        $autoplay_on_viewport = ! empty($this->settings['autoplay_on_viewport']) ? 'true' : 'false';
 
         $play_on_hover    = ! empty($this->settings['play_on_hover']) ? 'true' : 'false';
         $reset_on_mouse_leave = ! empty($this->settings['reset_on_mouse_leave']) ? 'true' : 'false';
@@ -232,11 +244,14 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         <script>
         document.addEventListener('DOMContentLoaded', function() {
 
+            var autoplayOnViewport = '<?php echo esc_js($autoplay_on_viewport); ?>' === 'true';
+            var shouldAutoplay = '<?php echo esc_js($autoplay); ?>' === 'true';
+
             var lottieAnimation = lottie.loadAnimation({
                 container: document.getElementById('<?php echo esc_js($animation_id); ?>'),
                 renderer: 'svg',
                 loop: <?php echo esc_js($loop); ?>,
-                autoplay: <?php echo esc_js($autoplay); ?>,
+                autoplay: autoplayOnViewport ? false : shouldAutoplay,
                 path: '<?php echo esc_js($lottie_json); ?>',
                 rendererSettings: {
                     preserveAspectRatio: 'xMidYMid meet'
@@ -245,6 +260,31 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 
             // Set the initial speed
             lottieAnimation.setSpeed(<?php echo esc_js($animation_speed); ?>);
+
+            // Handle Autoplay on Viewport Entry
+            if (autoplayOnViewport && shouldAutoplay) {
+                var container = document.getElementById('<?php echo esc_js($animation_id); ?>');
+                var hasPlayed = false;
+
+                var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting && !hasPlayed) {
+                            lottieAnimation.play();
+                            hasPlayed = true;
+                            // If loop is disabled, we can observe again after animation completes
+                            if (<?php echo esc_js($loop); ?> === false) {
+                                lottieAnimation.addEventListener('complete', function() {
+                                    hasPlayed = false;
+                                });
+                            }
+                        }
+                    });
+                }, {
+                    threshold: 0.1 // Trigger when at least 10% of the element is visible
+                });
+
+                observer.observe(container);
+            }
 
             // If scroll trigger is enabled, attach the ScrollTrigger logic
             <?php if ( $scroll_trigger ): ?>
