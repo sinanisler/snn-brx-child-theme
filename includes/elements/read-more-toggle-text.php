@@ -36,13 +36,14 @@ class Prefix_Element_Toggle_Text extends Element {
 
         $this->controls['button_selector'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Native Button Selector (ID)', 'snn' ),
+            'label'       => esc_html__( 'Button Selector (ID or Class)', 'snn' ),
             'type'        => 'text',
             'default'     => '',
-            'placeholder' => '#my-button',
+            'placeholder' => '#my-button or .my-button',
             'description' => "
                 <p data-control='info'>
-                    Add a button and copy the ID here to make the toggle work.<br><br>
+                    Add a button and copy the selector (ID or Class) here to make the toggle work.<br>
+                    Each instance should have a unique button selector.<br><br>
                     Button icon animate CSS: <br>
                     %root%.active-toggle-text i{ <br>
                         rotate:180deg; <br>
@@ -90,7 +91,7 @@ class Prefix_Element_Toggle_Text extends Element {
         </div>
 
         <script>
-            document.addEventListener("DOMContentLoaded", function() {
+            (function() {
                 const container = document.querySelector(".<?php echo esc_js( $unique_class ); ?>");
                 if (!container) return;
 
@@ -99,14 +100,19 @@ class Prefix_Element_Toggle_Text extends Element {
 
                 <?php if ( ! empty( $button_selector ) ) : ?>
                     const button = document.querySelector(<?php echo json_encode( $button_selector ); ?>);
-                    if (!button) return;
+                    if (!button) {
+                        console.warn("Toggle button not found for selector: <?php echo esc_js( $button_selector ); ?>");
+                        return;
+                    }
 
                     const collapsedHeight = <?php echo json_encode( $text_height ); ?>;
                     content.style.maxHeight = collapsedHeight + "px";
 
                     let isExpanded = false;
 
-                    button.addEventListener("click", function() {
+                    button.addEventListener("click", function(e) {
+                        e.preventDefault();
+                        
                         if (isExpanded) {
                             content.style.maxHeight = collapsedHeight + "px";
                             button.classList.remove("active-toggle-text");
@@ -118,10 +124,13 @@ class Prefix_Element_Toggle_Text extends Element {
                         }
                         isExpanded = !isExpanded;
                     });
+
+                    // Set initial aria-expanded state
+                    button.setAttribute("aria-expanded", "false");
                 <?php else : ?>
-                    // console.warn("Button selector is not defined.");
+                    console.warn("Button selector is not defined for toggle text element.");
                 <?php endif; ?>
-            });
+            })();
         </script>
         <?php
     }
