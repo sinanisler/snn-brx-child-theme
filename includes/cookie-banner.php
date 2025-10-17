@@ -649,7 +649,7 @@ function snn_options_page() {
                         $('#snn-scan-page-btn').on('click', function(){
                             var pageUrl = $('#snn-page-url-input').val();
                             if (!pageUrl) {
-                                alert('<?php _e('Please select or enter a page URL', 'snn'); ?>');
+                                alert('<?php echo esc_js(__('Please select or enter a page URL', 'snn')); ?>');
                                 return;
                             }
                             
@@ -670,12 +670,12 @@ function snn_options_page() {
                                         displayScanResults(response.data);
                                         $('#snn-scan-results-row').show();
                                     } else {
-                                        alert('<?php _e('Error scanning page:', 'snn'); ?> ' + response.data);
+                                        alert('<?php echo esc_js(__('Error scanning page:', 'snn')); ?> ' + response.data);
                                     }
                                 },
                                 error: function(){
                                     $('#snn-scan-loading').hide();
-                                    alert('<?php _e('Failed to scan page. Please try again.', 'snn'); ?>');
+                                    alert('<?php echo esc_js(__('Failed to scan page. Please try again.', 'snn')); ?>');
                                 }
                             });
                         });
@@ -684,11 +684,11 @@ function snn_options_page() {
                             var html = '<div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; background: #f9f9f9;">';
                             
                             if (data.scripts.length === 0 && data.iframes.length === 0) {
-                                html += '<p>' + '<?php _e('No external scripts or iframes detected on this page.', 'snn'); ?>' + '</p>';
+                                html += '<p><?php echo esc_js(__('No external scripts or iframes detected on this page.', 'snn')); ?></p>';
                             } else {
                                 // Display scripts
                                 if (data.scripts.length > 0) {
-                                    html += '<h3>' + '<?php _e('Scripts Found:', 'snn'); ?>' + ' (' + data.scripts.length + ')</h3>';
+                                    html += '<h3><?php echo esc_js(__('Scripts Found:', 'snn')); ?> (' + data.scripts.length + ')</h3>';
                                     html += '<ul style="list-style: none; padding: 0;">';
                                     data.scripts.forEach(function(script){
                                         var isBlocked = data.blocked_scripts.indexOf(script) !== -1;
@@ -697,7 +697,7 @@ function snn_options_page() {
                                         html += '<input type="checkbox" class="snn-script-to-block" value="' + script + '" ' + (isBlocked ? 'checked disabled' : '') + '>';
                                         html += '<code style="flex: 1; word-break: break-all; font-size: 11px;">' + script + '</code>';
                                         if (isBlocked) {
-                                            html += '<span style="color: #d63638; font-weight: bold;">(' + '<?php _e('Already Blocked', 'snn'); ?>' + ')</span>';
+                                            html += '<span style="color: #d63638; font-weight: bold;">(<?php echo esc_js(__('Already Blocked', 'snn')); ?>)</span>';
                                         }
                                         html += '</label>';
                                         html += '</li>';
@@ -707,7 +707,7 @@ function snn_options_page() {
                                 
                                 // Display iframes
                                 if (data.iframes.length > 0) {
-                                    html += '<h3 style="margin-top: 20px;">' + '<?php _e('Iframes Found:', 'snn'); ?>' + ' (' + data.iframes.length + ')</h3>';
+                                    html += '<h3 style="margin-top: 20px;"><?php echo esc_js(__('Iframes Found:', 'snn')); ?> (' + data.iframes.length + ')</h3>';
                                     html += '<ul style="list-style: none; padding: 0;">';
                                     data.iframes.forEach(function(iframe){
                                         var isBlocked = data.blocked_scripts.indexOf(iframe) !== -1;
@@ -716,7 +716,7 @@ function snn_options_page() {
                                         html += '<input type="checkbox" class="snn-script-to-block" value="' + iframe + '" ' + (isBlocked ? 'checked disabled' : '') + '>';
                                         html += '<code style="flex: 1; word-break: break-all; font-size: 11px;">' + iframe + '</code>';
                                         if (isBlocked) {
-                                            html += '<span style="color: #d63638; font-weight: bold;">(' + '<?php _e('Already Blocked', 'snn'); ?>' + ')</span>';
+                                            html += '<span style="color: #d63638; font-weight: bold;">(<?php echo esc_js(__('Already Blocked', 'snn')); ?>)</span>';
                                         }
                                         html += '</label>';
                                         html += '</li>';
@@ -724,7 +724,7 @@ function snn_options_page() {
                                     html += '</ul>';
                                 }
                                 
-                                html += '<button type="button" id="snn-add-selected-scripts" class="button button-primary" style="margin-top: 15px;">' + '<?php _e('Block Selected Scripts', 'snn'); ?>' + '</button>';
+                                html += '<button type="button" id="snn-add-selected-scripts" class="button button-primary" style="margin-top: 15px;"><?php echo esc_js(__('Block Selected Scripts', 'snn')); ?></button>';
                             }
                             
                             html += '</div>';
@@ -739,7 +739,7 @@ function snn_options_page() {
                             });
                             
                             if (selectedScripts.length === 0) {
-                                alert('<?php _e('Please select at least one script to block', 'snn'); ?>');
+                                alert('<?php echo esc_js(__('Please select at least one script to block', 'snn')); ?>');
                                 return;
                             }
                             
@@ -760,13 +760,13 @@ function snn_options_page() {
                             selectedScripts.forEach(function(script){
                                 var li = '<li>' +
                                     '<code>' + script + '</code> ' +
-                                    '<button type="button" class="button button-small snn-remove-blocked-script">' + '<?php _e('Remove', 'snn'); ?>' + '</button>' +
+                                    '<button type="button" class="button button-small snn-remove-blocked-script"><?php echo esc_js(__('Remove', 'snn')); ?></button>' +
                                     '<input type="hidden" name="snn_cookie_settings_blocked_scripts[]" value="' + script + '">' +
                                     '</li>';
                                 $ul.append(li);
                             });
                             
-                            alert('<?php _e('Scripts added to blocked list. Don\'t forget to save settings!', 'snn'); ?>');
+                            alert('<?php echo esc_js(__('Scripts added to blocked list. Don\'t forget to save settings!', 'snn')); ?>');
                             
                             // Disable added checkboxes
                             selectedScripts.forEach(function(script){
