@@ -1246,12 +1246,17 @@ function snn_output_script_blocker() {
             // If denied, block everything
             if (accepted === 'false') return true;
             
-            // If accepted all, don't block
+            // If accepted all, don't block anything
             if (accepted === 'true') return false;
             
-            // If custom consent, check individual services
-            if (accepted === 'custom' && consentServices) {
-                return 'custom'; // Special flag to check individual scripts
+            // If custom consent exists, check individual services
+            if (accepted === 'custom') {
+                if (consentServices) {
+                    return 'custom'; // Special flag to check individual scripts
+                } else {
+                    // Custom accepted but no consent data - invalid state, block all
+                    return true;
+                }
             }
             
             return true; // Default to blocking
@@ -1269,6 +1274,8 @@ function snn_output_script_blocker() {
                 for (var i = 0; i < blockedScripts.length; i++) {
                     if (url.indexOf(blockedScripts[i]) !== -1 || blockedScripts[i].indexOf(url) !== -1) {
                         var blockedKey = 'blocked_' + i;
+                        // Return true only if explicitly set to true
+                        // If undefined or false, it should be blocked
                         return consent[blockedKey] === true;
                     }
                 }
@@ -1316,26 +1323,35 @@ function snn_output_script_blocker() {
         }
         
         // Block scripts on initial page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Block existing scripts
-            var scripts = document.querySelectorAll('script[src]');
-            scripts.forEach(function(script) {
-                if (isBlocked(script.src)) {
-                    script.type = 'text/plain';
-                    script.setAttribute('data-snn-blocked', 'true');
-                }
-            });
+        // This runs early to catch scripts before they execute
+        (function() {
+            // Check consent status immediately
+            var accepted = getCookie('snn_cookie_accepted');
             
-            // Block existing iframes
-            var iframes = document.querySelectorAll('iframe[src]');
-            iframes.forEach(function(iframe) {
-                if (isBlocked(iframe.src)) {
-                    iframe.setAttribute('data-snn-blocked-src', iframe.src);
-                    iframe.removeAttribute('src');
-                    iframe.setAttribute('data-snn-blocked', 'true');
-                }
-            });
-        });
+            // Only proceed with blocking if we need to
+            if (!accepted || accepted === 'false' || accepted === 'custom') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Block existing scripts that should be blocked
+                    var scripts = document.querySelectorAll('script[src]');
+                    scripts.forEach(function(script) {
+                        if (isBlocked(script.src)) {
+                            script.type = 'text/plain';
+                            script.setAttribute('data-snn-blocked', 'true');
+                        }
+                    });
+                    
+                    // Block existing iframes that should be blocked
+                    var iframes = document.querySelectorAll('iframe[src]');
+                    iframes.forEach(function(iframe) {
+                        if (isBlocked(iframe.src)) {
+                            iframe.setAttribute('data-snn-blocked-src', iframe.src);
+                            iframe.removeAttribute('src');
+                            iframe.setAttribute('data-snn-blocked', 'true');
+                        }
+                    });
+                });
+            }
+        })();
         
         // Use MutationObserver to block dynamically added scripts and iframes
         var observer = new MutationObserver(function(mutations) {
@@ -1548,28 +1564,40 @@ function snn_output_banner_js() {
             // If custom consent is provided, only unblock accepted scripts
             if(customConsent){
                 document.querySelectorAll('script[data-snn-blocked="true"]').forEach(function(script){
-                    if(script.type === 'text/plain' && shouldUnblockScript(script.src, customConsent)){
-                        var newScript = document.createElement('script');
-                        for(var i = 0; i < script.attributes.length; i++){
-                            var attr = script.attributes[i];
-                            if(attr.name !== 'type' && attr.name !== 'data-snn-blocked'){
-                                newScript.setAttribute(attr.name, attr.value);
+                    if(script.type === 'text/plain'){
+                        if(shouldUnblockScript(script.src, customConsent)){
+                            // Script is allowed, unblock it
+                            var newScript = document.createElement('script');
+                            for(var i = 0; i < script.attributes.length; i++){
+                                var attr = script.attributes[i];
+                                if(attr.name !== 'type' && attr.name !== 'data-snn-blocked'){
+                                    newScript.setAttribute(attr.name, attr.value);
+                                }
                             }
+                            newScript.type = 'text/javascript';
+                            script.parentNode.replaceChild(newScript, script);
                         }
-                        newScript.type = 'text/javascript';
-                        script.parentNode.replaceChild(newScript, script);
+                        // If not allowed, keep it blocked (do nothing)
                     }
                 });
                 
-                // Unblock iframes
+                // Unblock iframes based on consent
                 document.querySelectorAll('iframe[data-snn-blocked="true"]').forEach(function(iframe){
                     var src = iframe.getAttribute('data-snn-blocked-src');
-                    if(src && shouldUnblockScript(src, customConsent)){
-                        iframe.src = src;
-                        iframe.removeAttribute('data-snn-blocked');
-                        iframe.removeAttribute('data-snn-blocked-src');
+                    if(src){
+                        if(shouldUnblockScript(src, customConsent)){
+                            // Iframe is allowed, unblock it
+                            iframe.src = src;
+                            iframe.removeAttribute('data-snn-blocked');
+                            iframe.removeAttribute('data-snn-blocked-src');
+                        }
+                        // If not allowed, keep it blocked (do nothing)
                     }
                 });
+                
+                // IMPORTANT: Keep the mutation observer active to continue blocking scripts
+                // that are not allowed by custom consent
+                // The observer will check each dynamically added script against consent
             } else {
                 // Unblock all scripts
                 document.querySelectorAll('script[data-snn-blocked="true"]').forEach(function(script){
@@ -1595,11 +1623,11 @@ function snn_output_banner_js() {
                         iframe.removeAttribute('data-snn-blocked-src');
                     }
                 });
-            }
-            
-            // Stop the mutation observer to allow scripts to load
-            if(window.snnScriptObserver){
-                window.snnScriptObserver.disconnect();
+                
+                // Stop the mutation observer to allow all scripts to load
+                if(window.snnScriptObserver){
+                    window.snnScriptObserver.disconnect();
+                }
             }
         }
         
@@ -1683,21 +1711,22 @@ function snn_output_banner_js() {
         
         a&&a.addEventListener('click',function(){
             var t=document.querySelectorAll('.snn-service-toggle');
-            var prefsContent = document.querySelector('.snn-preferences-content');
-            
-            // If preferences are open, save custom settings and reload
-            if(prefsContent && (prefsContent.style.display === 'block' || t.length > 0)){
+            if(t.length>0){
                 var s={};
+                var hasAnyEnabled = false;
                 t.forEach(function(g){
-                    s[g.getAttribute('data-service-index')]=g.checked;
+                    var serviceIndex = g.getAttribute('data-service-index');
+                    var isChecked = g.checked;
+                    s[serviceIndex] = isChecked;
+                    if(isChecked) hasAnyEnabled = true;
                 });
                 setCookie('snn_cookie_services',JSON.stringify(s),365);
                 setCookie('snn_cookie_accepted','custom',365);
                 
                 // Important: Reload page to apply new preferences
+                // This ensures all scripts are properly blocked/unblocked
                 window.location.reload();
             }else{
-                // If preferences are not open, it's a simple "Accept All"
                 setCookie('snn_cookie_accepted','true',365);
                 eraseCookie('snn_cookie_services');
                 injectAllConsentScripts();
@@ -1776,14 +1805,23 @@ function snn_output_banner_js() {
             if(consentCookie){
                 try{
                     var consent = JSON.parse(consentCookie);
-                    // First block all scripts
+                    
+                    console.log('SNN Cookie Banner: Applying custom consent preferences', consent);
+                    
+                    // Step 1: Ensure ALL blocked scripts are blocked first
                     blockAllScripts();
-                    // Then inject only accepted custom scripts
+                    
+                    // Step 2: Inject only accepted service scripts (from Scripts & Services tab)
                     injectCustomConsentScripts();
-                    // Finally unblock only accepted blocked scripts
+                    
+                    // Step 3: Unblock only accepted blocked scripts (from Page Scanner tab)
+                    // This will check each blocked script against consent
+                    unblockScripts(consent);
+                    
+                    console.log('SNN Cookie Banner: Custom consent applied successfully');
+                    
                     updateGoogleAnalyticsConsent(true);
                     updateClarityConsent(true);
-                    unblockScripts(consent);
                     b&&(b.style.display='none');
                     o&&(o.style.display='none');
                 }catch(e){
