@@ -1515,40 +1515,13 @@ function snn_output_banner_js() {
             var t=document.querySelectorAll('.snn-service-toggle');
             if(t.length>0){
                 var s={};
-                var previousConsent = getCookie('snn_cookie_services');
-                var hasChanges = false;
-                
                 t.forEach(function(g){s[g.getAttribute('data-service-index')]=g.checked});
-                
-                // Check if consent has changed
-                if(previousConsent){
-                    try {
-                        var prevConsent = JSON.parse(previousConsent);
-                        for(var key in s){
-                            if(s.hasOwnProperty(key)){
-                                if(prevConsent[key] !== s[key]){
-                                    hasChanges = true;
-                                    break;
-                                }
-                            }
-                        }
-                    } catch(e) {
-                        hasChanges = true;
-                    }
-                } else {
-                    hasChanges = true; // First time setting consent
-                }
-                
                 setCookie('snn_cookie_services',JSON.stringify(s),365);
                 setCookie('snn_cookie_accepted','custom',365);
-                
-                // If consent changed, reload page to apply changes
-                if(hasChanges){
-                    window.location.reload();
-                } else {
-                    b&&(b.style.display='none');
-                    o&&(o.style.display='none');
-                }
+                injectCustomConsentScripts();
+                updateGoogleAnalyticsConsent(true);
+                updateClarityConsent(true);
+                unblockScripts(s);
             }else{
                 setCookie('snn_cookie_accepted','true',365);
                 eraseCookie('snn_cookie_services');
@@ -1556,9 +1529,9 @@ function snn_output_banner_js() {
                 updateGoogleAnalyticsConsent(true);
                 updateClarityConsent(true);
                 unblockScripts();
-                b&&(b.style.display='none');
-                o&&(o.style.display='none');
             }
+            b&&(b.style.display='none');
+            o&&(o.style.display='none');
         });
         y&&y.addEventListener('click',function(){
             setCookie('snn_cookie_accepted','false',365);
@@ -1568,34 +1541,7 @@ function snn_output_banner_js() {
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         });
-        r&&r.addEventListener('click',function(){
-            var t=document.querySelector('.snn-preferences-content');
-            if(t.style.display==='none'||t.style.display===''){
-                t.style.display='block';
-                // Restore toggle states when opening preferences
-                restoreToggleStates();
-            }else{
-                t.style.display='none';
-            }
-        });
-        
-        // Restore toggle states from saved consent
-        function restoreToggleStates() {
-            var consentCookie = getCookie('snn_cookie_services');
-            if (consentCookie) {
-                try {
-                    var consent = JSON.parse(consentCookie);
-                    document.querySelectorAll('.snn-service-toggle').forEach(function(toggle) {
-                        var serviceIndex = toggle.getAttribute('data-service-index');
-                        if (serviceIndex && consent.hasOwnProperty(serviceIndex)) {
-                            toggle.checked = consent[serviceIndex];
-                        }
-                    });
-                } catch (e) {
-                    console.error('Error restoring toggle states:', e);
-                }
-            }
-        }
+        r&&r.addEventListener('click',function(){var t=document.querySelector('.snn-preferences-content');t.style.display==='none'||t.style.display===''?t.style.display='block':t.style.display='none'});
         
         // Handle cookie preference change buttons (GDPR requirement)
         function setupCookieChangeButtons() {
@@ -1611,8 +1557,6 @@ function snn_output_banner_js() {
                         if (prefsContent) {
                             prefsContent.style.display = 'none';
                         }
-                        // Restore toggle states to show current consent
-                        restoreToggleStates();
                     }
                     if (o) {
                         o.style.display = 'block';
@@ -1657,8 +1601,6 @@ function snn_output_banner_js() {
                 unblockScripts(validatedConsent);
                 b&&(b.style.display='none');
                 o&&(o.style.display='none');
-                // Restore toggle states on page load for custom consent
-                restoreToggleStates();
             } else {
                 // Consent is invalid (services changed), show banner again
                 // Banner will be shown automatically since consent was cleared
