@@ -1577,7 +1577,26 @@ function snn_output_banner_js() {
         function injectScript(c,p){var d=document.createElement("div");d.innerHTML=c;d.querySelectorAll("script").forEach(function(s){var n=document.createElement("script");for(var i=0;i<s.attributes.length;i++){var a=s.attributes[i];n.setAttribute(a.name,a.value)}n.text=s.text||"";"head"===p?document.head.appendChild(n):"body_top"===p?document.body.firstChild?document.body.insertBefore(n,document.body.firstChild):document.body.appendChild(n):document.body.appendChild(n)})}
         function injectMandatoryScripts(){document.querySelectorAll('.snn-service-script[data-mandatory="yes"]').forEach(function(d){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)})}
         function injectAllConsentScripts(){document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}})}
-        function injectCustomConsentScripts(){var p=getCookie("snn_cookie_services");if(p){var s=JSON.parse(p);document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var i=d.getAttribute("id").split("-").pop();if(s[i]){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}}})}}
+        function injectCustomConsentScripts(){
+            var p=getCookie("snn_cookie_services");
+            if(p){
+                try{
+                    var s=JSON.parse(p);
+                    document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){
+                        if("yes"!==d.getAttribute("data-mandatory")){
+                            var i=d.getAttribute("id").split("-").pop();
+                            // Only inject if explicitly enabled (true)
+                            if(s[i] === true){
+                                var e=d.getAttribute("data-script"),pos=d.getAttribute("data-position")||"body_bottom";
+                                e&&injectScript(atob(e),pos);
+                            }
+                        }
+                    });
+                }catch(e){
+                    console.error('Error parsing consent:', e);
+                }
+            }
+        }
         injectMandatoryScripts();
         var a=document.querySelector('.snn-accept'),y=document.querySelector('.snn-deny'),r=document.querySelector('.snn-preferences'),b=document.getElementById('snn-cookie-banner'),o=document.getElementById('snn-cookie-overlay');
         
@@ -1596,18 +1615,16 @@ function snn_output_banner_js() {
             var t=document.querySelectorAll('.snn-service-toggle');
             if(t.length>0){
                 var s={};
-                t.forEach(function(g){s[g.getAttribute('data-service-index')]=g.checked});
+                var hasAnyEnabled = false;
+                t.forEach(function(g){
+                    s[g.getAttribute('data-service-index')]=g.checked;
+                    if(g.checked) hasAnyEnabled = true;
+                });
                 setCookie('snn_cookie_services',JSON.stringify(s),365);
                 setCookie('snn_cookie_accepted','custom',365);
                 
-                // Block all scripts first
-                blockAllScripts();
-                
-                // Then inject and unblock only accepted scripts
-                injectCustomConsentScripts();
-                updateGoogleAnalyticsConsent(true);
-                updateClarityConsent(true);
-                unblockScripts(s);
+                // Important: Reload page to apply new preferences
+                window.location.reload();
             }else{
                 setCookie('snn_cookie_accepted','true',365);
                 eraseCookie('snn_cookie_services');
@@ -1615,18 +1632,17 @@ function snn_output_banner_js() {
                 updateGoogleAnalyticsConsent(true);
                 updateClarityConsent(true);
                 unblockScripts();
+                b&&(b.style.display='none');
+                o&&(o.style.display='none');
             }
-            b&&(b.style.display='none');
-            o&&(o.style.display='none');
         });
         y&&y.addEventListener('click',function(){
             setCookie('snn_cookie_accepted','false',365);
             eraseCookie('snn_cookie_services');
             updateGoogleAnalyticsConsent(false);
             updateClarityConsent(false);
-            blockAllScripts(); // Block all scripts when denied
-            b&&(b.style.display='none');
-            o&&(o.style.display='none');
+            // Reload page to ensure all scripts are blocked
+            window.location.reload();
         });
         
         // Handle cookie preference change buttons (GDPR requirement)
@@ -1635,22 +1651,17 @@ function snn_output_banner_js() {
             changeButtons.forEach(function(button) {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
-                    // Clear existing cookies to force banner to show
-                    eraseCookie('snn_cookie_accepted');
-                    eraseCookie('snn_cookie_services');
                     
-                    // Show the cookie banner again
+                    // Show the cookie banner again (do NOT clear cookies here)
                     if (b) {
                         b.style.display = 'block';
-                        // Reset preferences dropdown to closed state
+                        // Open preferences panel and load current states
                         var prefsContent = document.querySelector('.snn-preferences-content');
                         if (prefsContent) {
-                            prefsContent.style.display = 'none';
+                            prefsContent.style.display = 'block';
                         }
-                        // Reset all toggles to checked (default state)
-                        document.querySelectorAll('.snn-service-toggle:not([disabled])').forEach(function(toggle){
-                            toggle.checked = true;
-                        });
+                        // Load current toggle states from cookie
+                        loadToggleStates();
                     }
                     if (o) {
                         o.style.display = 'block';
@@ -1673,6 +1684,7 @@ function snn_output_banner_js() {
         
         var s=getCookie('snn_cookie_accepted');
         if('true'===s){
+            // Accept all - inject all scripts and unblock all
             injectAllConsentScripts();
             updateGoogleAnalyticsConsent(true);
             updateClarityConsent(true);
@@ -1680,28 +1692,41 @@ function snn_output_banner_js() {
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         }else if('false'===s){
+            // Deny all - keep everything blocked
             updateGoogleAnalyticsConsent(false);
             updateClarityConsent(false);
-            blockAllScripts(); // Keep scripts blocked when denied
+            blockAllScripts();
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         }else if('custom'===s){
-            // Validate consent cookie against current services
-            var validatedConsent = validateConsentCookie();
-            if (validatedConsent) {
-                // Consent is valid, use it
-                blockAllScripts(); // First block all scripts
-                injectCustomConsentScripts();
-                updateGoogleAnalyticsConsent(true);
-                updateClarityConsent(true);
-                unblockScripts(validatedConsent); // Then unblock only accepted ones
-                b&&(b.style.display='none');
-                o&&(o.style.display='none');
-            } else {
-                // Consent is invalid (services changed), show banner again
-                // Banner will be shown automatically since consent was cleared
+            // Custom preferences - validate and apply
+            var consentCookie = getCookie('snn_cookie_services');
+            if(consentCookie){
+                try{
+                    var consent = JSON.parse(consentCookie);
+                    // First block all scripts
+                    blockAllScripts();
+                    // Then inject only accepted custom scripts
+                    injectCustomConsentScripts();
+                    // Finally unblock only accepted blocked scripts
+                    updateGoogleAnalyticsConsent(true);
+                    updateClarityConsent(true);
+                    unblockScripts(consent);
+                    b&&(b.style.display='none');
+                    o&&(o.style.display='none');
+                }catch(e){
+                    console.error('Invalid consent cookie, clearing:', e);
+                    eraseCookie('snn_cookie_accepted');
+                    eraseCookie('snn_cookie_services');
+                    // Banner will show since no valid consent
+                }
+            }else{
+                // No consent cookie but accepted is 'custom' - invalid state, clear it
+                eraseCookie('snn_cookie_accepted');
+                // Banner will show
             }
         }
+        // If no cookie (s is null/undefined), banner shows by default
     })();
 </script>
     <?php
