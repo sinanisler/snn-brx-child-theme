@@ -868,19 +868,14 @@ function snn_options_page() {
                             $('#snn-scan-results').html(html);
                         }
                         
-                        // Helper function to escape HTML
+                        // Helper function to escape HTML for display
                         function escapeHtml(text) {
-                            var map = {
-                                '&': '&amp;',
-                                '<': '&lt;',
-                                '>': '&gt;',
-                                '"': '&quot;',
-                                "'": '&#039;'
-                            };
-                            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+                            var div = document.createElement('div');
+                            div.textContent = text;
+                            return div.innerHTML;
                         }
                         
-                        // Add selected scripts to blocked list
+                        // Add selected scripts to blocked list using DOM manipulation
                         $(document).on('click', '#snn-add-selected-scripts', function(){
                             var selectedScripts = [];
                             $('.snn-script-to-block:checked:not(:disabled)').each(function(){
@@ -900,34 +895,80 @@ function snn_options_page() {
                                 $list.html('<div style="max-width: 800px;"></div>');
                             }
                             
-                            var $container = $list.find('div');
+                            var $container = $list.find('div').first();
                             if ($container.length === 0) {
                                 $list.html('<div style="max-width: 800px;"></div>');
-                                $container = $list.find('div');
+                                $container = $list.find('div').first();
                             }
                             
                             // Get current highest index
                             var currentIndex = $container.find('.snn-blocked-script-item').length;
                             
                             selectedScripts.forEach(function(script){
-                                var escapedScript = escapeHtml(script);
-                                var scriptItem = '<div class="snn-blocked-script-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; background: #f9f9f9; position: relative;">' +
-                                    '<button type="button" class="button button-small snn-remove-blocked-script" style="position: absolute; top: 10px; right: 10px;"><?php echo esc_js(__('Remove', 'snn')); ?></button>' +
-                                    '<div style="margin-bottom: 10px;">' +
-                                        '<label style="display: block; margin-bottom: 5px;"><strong><?php echo esc_js(__('Service Name:', 'snn')); ?></strong></label>' +
-                                        '<input type="text" name="snn_cookie_settings_blocked_scripts[' + currentIndex + '][name]" value="" class="regular-text" placeholder="<?php echo esc_js(__('e.g., Google Analytics', 'snn')); ?>">' +
-                                    '</div>' +
-                                    '<div style="margin-bottom: 10px;">' +
-                                        '<label style="display: block; margin-bottom: 5px;"><strong><?php echo esc_js(__('Service Description:', 'snn')); ?></strong></label>' +
-                                        '<input type="text" name="snn_cookie_settings_blocked_scripts[' + currentIndex + '][description]" value="" class="regular-text" placeholder="<?php echo esc_js(__('e.g., Analytics for tracking site usage', 'snn')); ?>">' +
-                                    '</div>' +
-                                    '<div>' +
-                                        '<label style="display: block; margin-bottom: 5px;"><strong><?php echo esc_js(__('Script URL:', 'snn')); ?></strong></label>' +
-                                        '<code style="display: block; background: #fff; padding: 8px; word-break: break-all; font-size: 11px; border: 1px solid #ddd;">' + escapedScript + '</code>' +
-                                        '<input type="hidden" name="snn_cookie_settings_blocked_scripts[' + currentIndex + '][url]" value="' + escapedScript + '">' +
-                                    '</div>' +
-                                '</div>';
-                                $container.append(scriptItem);
+                                // Create elements using DOM methods to avoid HTML parsing issues
+                                var $item = $('<div>', {
+                                    'class': 'snn-blocked-script-item',
+                                    'style': 'border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; background: #f9f9f9; position: relative;'
+                                });
+                                
+                                // Remove button
+                                var $removeBtn = $('<button>', {
+                                    'type': 'button',
+                                    'class': 'button button-small snn-remove-blocked-script',
+                                    'style': 'position: absolute; top: 10px; right: 10px;',
+                                    'text': '<?php echo esc_js(__('Remove', 'snn')); ?>'
+                                });
+                                $item.append($removeBtn);
+                                
+                                // Service Name section
+                                var $nameDiv = $('<div>', {'style': 'margin-bottom: 10px;'});
+                                $nameDiv.append($('<label>', {
+                                    'style': 'display: block; margin-bottom: 5px;',
+                                    'html': '<strong><?php echo esc_js(__('Service Name:', 'snn')); ?></strong>'
+                                }));
+                                $nameDiv.append($('<input>', {
+                                    'type': 'text',
+                                    'name': 'snn_cookie_settings_blocked_scripts[' + currentIndex + '][name]',
+                                    'value': '',
+                                    'class': 'regular-text',
+                                    'placeholder': '<?php echo esc_js(__('e.g., Google Analytics', 'snn')); ?>'
+                                }));
+                                $item.append($nameDiv);
+                                
+                                // Service Description section
+                                var $descDiv = $('<div>', {'style': 'margin-bottom: 10px;'});
+                                $descDiv.append($('<label>', {
+                                    'style': 'display: block; margin-bottom: 5px;',
+                                    'html': '<strong><?php echo esc_js(__('Service Description:', 'snn')); ?></strong>'
+                                }));
+                                $descDiv.append($('<input>', {
+                                    'type': 'text',
+                                    'name': 'snn_cookie_settings_blocked_scripts[' + currentIndex + '][description]',
+                                    'value': '',
+                                    'class': 'regular-text',
+                                    'placeholder': '<?php echo esc_js(__('e.g., Analytics for tracking site usage', 'snn')); ?>'
+                                }));
+                                $item.append($descDiv);
+                                
+                                // Script URL section
+                                var $urlDiv = $('<div>');
+                                $urlDiv.append($('<label>', {
+                                    'style': 'display: block; margin-bottom: 5px;',
+                                    'html': '<strong><?php echo esc_js(__('Script URL:', 'snn')); ?></strong>'
+                                }));
+                                $urlDiv.append($('<code>', {
+                                    'style': 'display: block; background: #fff; padding: 8px; word-break: break-all; font-size: 11px; border: 1px solid #ddd;',
+                                    'text': script  // Using .text() automatically escapes HTML
+                                }));
+                                $urlDiv.append($('<input>', {
+                                    'type': 'hidden',
+                                    'name': 'snn_cookie_settings_blocked_scripts[' + currentIndex + '][url]',
+                                    'value': script  // jQuery automatically escapes attribute values
+                                }));
+                                $item.append($urlDiv);
+                                
+                                // Append the complete item to container
+                                $container.append($item);
                                 currentIndex++;
                             });
                             
@@ -935,8 +976,9 @@ function snn_options_page() {
                             
                             // Disable added checkboxes
                             selectedScripts.forEach(function(script){
-                                var escapedForSelector = script.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
-                                $('.snn-script-to-block[value="' + escapedForSelector + '"]').prop('disabled', true);
+                                $('.snn-script-to-block').filter(function() {
+                                    return $(this).val() === script;
+                                }).prop('disabled', true).prop('checked', true);
                             });
                         });
                         
