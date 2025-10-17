@@ -1683,12 +1683,13 @@ function snn_output_banner_js() {
         
         a&&a.addEventListener('click',function(){
             var t=document.querySelectorAll('.snn-service-toggle');
-            if(t.length>0){
+            var prefsContent = document.querySelector('.snn-preferences-content');
+            
+            // If preferences are open, save custom settings and reload
+            if(prefsContent && (prefsContent.style.display === 'block' || t.length > 0)){
                 var s={};
-                var hasAnyEnabled = false;
                 t.forEach(function(g){
                     s[g.getAttribute('data-service-index')]=g.checked;
-                    if(g.checked) hasAnyEnabled = true;
                 });
                 setCookie('snn_cookie_services',JSON.stringify(s),365);
                 setCookie('snn_cookie_accepted','custom',365);
@@ -1696,6 +1697,7 @@ function snn_output_banner_js() {
                 // Important: Reload page to apply new preferences
                 window.location.reload();
             }else{
+                // If preferences are not open, it's a simple "Accept All"
                 setCookie('snn_cookie_accepted','true',365);
                 eraseCookie('snn_cookie_services');
                 injectAllConsentScripts();
