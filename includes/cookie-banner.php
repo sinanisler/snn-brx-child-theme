@@ -192,10 +192,10 @@ function snn_options_page() {
         
         $services = array();
         if ( isset($_POST['snn_cookie_settings_services']) && is_array($_POST['snn_cookie_settings_services']) ) {
-            // Sort by key to handle sparse arrays properly
-            ksort($_POST['snn_cookie_settings_services']);
+            // Use array_values to reindex and remove gaps - prevents index mismatch
+            $posted_services = array_values($_POST['snn_cookie_settings_services']);
             
-            foreach( $_POST['snn_cookie_settings_services'] as $index => $service ) {
+            foreach( $posted_services as $service ) {
                 // Only skip if ALL fields are completely empty (trim whitespace)
                 if ( empty( trim($service['name']) ) && 
                      empty( trim($service['description']) ) && 
@@ -499,7 +499,33 @@ function snn_options_page() {
                                             });
                                         });
                                         serviceIndex = $('#services-repeater .snn-service-item').length;
+                                        
+                                        // Show save reminder after reindexing
+                                        showSaveReminder();
                                     }
+                                    
+                                    // Show a subtle reminder to save after changes
+                                    function showSaveReminder() {
+                                        var $reminder = $('#save-reminder');
+                                        if ($reminder.length === 0) {
+                                            $reminder = $('<div id="save-reminder" style="background:#fff3cd;border-left:4px solid #ffc107;padding:12px;margin:10px 0;border-radius:4px;display:none;">' +
+                                                '<strong><?php _e('Reminder:', 'snn'); ?></strong> ' +
+                                                '<?php _e('Services have been reordered or removed. Please save your changes to prevent index mismatches.', 'snn'); ?>' +
+                                                '</div>');
+                                            $('#services-repeater').before($reminder);
+                                        }
+                                        $reminder.slideDown();
+                                        
+                                        // Auto-hide after 10 seconds
+                                        setTimeout(function() {
+                                            $reminder.slideUp();
+                                        }, 10000);
+                                    }
+                                    
+                                    // Hide reminder when save button is clicked
+                                    $('input[type="submit"]').on('click', function() {
+                                        $('#save-reminder').slideUp();
+                                    });
                                     
                                     $('#add-service').click(function(e){
                                         e.preventDefault();
@@ -1308,6 +1334,57 @@ function snn_output_banner_js() {
         var gaConsentEnabled=<?php echo $ga_consent_enabled; ?>;
         var clarityConsentEnabled=<?php echo $clarity_consent_enabled; ?>;
         
+        // Validate consent cookie against current services to prevent index mismatch
+        function validateConsentCookie() {
+            var consentCookie = getCookie('snn_cookie_services');
+            if (!consentCookie) return null;
+            
+            try {
+                var consent = JSON.parse(consentCookie);
+                var validIndices = {};
+                var hasInvalidIndices = false;
+                
+                // Get all current service indices from the DOM
+                var currentServiceIndices = [];
+                document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d) {
+                    if (d.getAttribute('data-mandatory') !== 'yes') {
+                        var serviceId = d.getAttribute('id');
+                        if (serviceId) {
+                            var index = serviceId.split('-').pop();
+                            currentServiceIndices.push(index);
+                        }
+                    }
+                });
+                
+                // Check each consent entry against current services
+                for (var key in consent) {
+                    if (consent.hasOwnProperty(key)) {
+                        // Check if this index still exists in current services
+                        if (currentServiceIndices.indexOf(key) !== -1) {
+                            validIndices[key] = consent[key];
+                        } else {
+                            hasInvalidIndices = true;
+                        }
+                    }
+                }
+                
+                // If we found invalid indices or missing services, clear consent
+                if (hasInvalidIndices || Object.keys(validIndices).length !== currentServiceIndices.length) {
+                    console.log('SNN Cookie Banner: Service configuration changed. Clearing old consent.');
+                    eraseCookie('snn_cookie_services');
+                    eraseCookie('snn_cookie_accepted');
+                    return null;
+                }
+                
+                return validIndices;
+            } catch (e) {
+                // Invalid JSON, clear cookie
+                eraseCookie('snn_cookie_services');
+                eraseCookie('snn_cookie_accepted');
+                return null;
+            }
+        }
+        
         function updateGoogleAnalyticsConsent(accepted){
             if(gaConsentEnabled && typeof gtag !== 'undefined'){
                 gtag('consent', 'update', {
@@ -1457,14 +1534,20 @@ function snn_output_banner_js() {
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         }else if('custom'===s){
-            var p=getCookie('snn_cookie_services');
-            var customConsent = p ? JSON.parse(p) : {};
-            injectCustomConsentScripts();
-            updateGoogleAnalyticsConsent(true);
-            updateClarityConsent(true);
-            unblockScripts(customConsent);
-            b&&(b.style.display='none');
-            o&&(o.style.display='none');
+            // Validate consent cookie against current services
+            var validatedConsent = validateConsentCookie();
+            if (validatedConsent) {
+                // Consent is valid, use it
+                injectCustomConsentScripts();
+                updateGoogleAnalyticsConsent(true);
+                updateClarityConsent(true);
+                unblockScripts(validatedConsent);
+                b&&(b.style.display='none');
+                o&&(o.style.display='none');
+            } else {
+                // Consent is invalid (services changed), show banner again
+                // Banner will be shown automatically since consent was cleared
+            }
         }
     })();
 </script>
