@@ -1232,6 +1232,53 @@ function snn_output_script_blocker() {
         // Blocked scripts list (URLs only)
         var blockedScripts = <?php echo json_encode($blocked_urls); ?>;
         
+        // Get cookie helper
+        function getCookie(n){for(var e=n+"=",t=document.cookie.split(";"),i=0;i<t.length;i++){for(var o=t[i];" "==o.charAt(0);)o=o.substring(1,o.length);if(0==o.indexOf(e))return o.substring(e.length,o.length)}return null}
+        
+        // Check if we should block scripts based on consent
+        function shouldBlockByConsent() {
+            var accepted = getCookie('snn_cookie_accepted');
+            var consentServices = getCookie('snn_cookie_services');
+            
+            // If no consent yet, block everything
+            if (!accepted) return true;
+            
+            // If denied, block everything
+            if (accepted === 'false') return true;
+            
+            // If accepted all, don't block
+            if (accepted === 'true') return false;
+            
+            // If custom consent, check individual services
+            if (accepted === 'custom' && consentServices) {
+                return 'custom'; // Special flag to check individual scripts
+            }
+            
+            return true; // Default to blocking
+        }
+        
+        // Check if a specific blocked script is allowed by consent
+        function isBlockedScriptAllowed(url) {
+            var consentServices = getCookie('snn_cookie_services');
+            if (!consentServices) return false;
+            
+            try {
+                var consent = JSON.parse(consentServices);
+                
+                // Find which blocked script index this URL belongs to
+                for (var i = 0; i < blockedScripts.length; i++) {
+                    if (url.indexOf(blockedScripts[i]) !== -1 || blockedScripts[i].indexOf(url) !== -1) {
+                        var blockedKey = 'blocked_' + i;
+                        return consent[blockedKey] === true;
+                    }
+                }
+            } catch(e) {
+                console.error('Error parsing consent:', e);
+            }
+            
+            return false;
+        }
+        
         // Function to check if a URL is blocked
         function isBlocked(url) {
             if (!url) return false;
@@ -1242,11 +1289,29 @@ function snn_output_script_blocker() {
                 normalizedUrl = 'https:' + url;
             }
             
+            // Check if this URL is in blocked scripts list
+            var isInBlockedList = false;
             for (var i = 0; i < blockedScripts.length; i++) {
                 if (normalizedUrl.indexOf(blockedScripts[i]) !== -1 || blockedScripts[i].indexOf(normalizedUrl) !== -1) {
-                    return true;
+                    isInBlockedList = true;
+                    break;
                 }
             }
+            
+            if (!isInBlockedList) return false; // Not in blocked list, don't block
+            
+            // Check consent
+            var blockStatus = shouldBlockByConsent();
+            
+            if (blockStatus === true) {
+                return true; // Block everything
+            } else if (blockStatus === false) {
+                return false; // Allow everything
+            } else if (blockStatus === 'custom') {
+                // Check if this specific script is allowed
+                return !isBlockedScriptAllowed(normalizedUrl);
+            }
+            
             return false;
         }
         
@@ -1321,6 +1386,7 @@ function snn_output_service_scripts() {
                 <div 
                     id="snn-service-script-<?php echo esc_attr($index); ?>" 
                     class="snn-service-script" 
+                    data-service-index="<?php echo esc_attr($index); ?>"
                     data-script="<?php echo esc_attr( base64_encode($service['script']) ); ?>" 
                     data-position="<?php echo esc_attr( isset($service['position']) ? $service['position'] : 'body_bottom' ); ?>"
                     data-mandatory="<?php echo (isset($service['mandatory']) && $service['mandatory'] === 'yes') ? 'yes' : 'no'; ?>"
@@ -1584,7 +1650,11 @@ function snn_output_banner_js() {
                     var s=JSON.parse(p);
                     document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){
                         if("yes"!==d.getAttribute("data-mandatory")){
-                            var i=d.getAttribute("id").split("-").pop();
+                            var i=d.getAttribute("data-service-index");
+                            if(!i){
+                                // Fallback to old method if data-service-index not available
+                                i=d.getAttribute("id").split("-").pop();
+                            }
                             // Only inject if explicitly enabled (true)
                             if(s[i] === true){
                                 var e=d.getAttribute("data-script"),pos=d.getAttribute("data-position")||"body_bottom";
