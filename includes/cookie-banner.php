@@ -179,8 +179,12 @@ function snn_options_page() {
         $blocked_scripts = array();
         if ( isset($_POST['snn_cookie_settings_blocked_scripts']) && is_array($_POST['snn_cookie_settings_blocked_scripts']) ) {
             foreach( $_POST['snn_cookie_settings_blocked_scripts'] as $blocked_script ) {
-                if ( !empty($blocked_script) ) {
-                    $blocked_scripts[] = sanitize_text_field( wp_unslash($blocked_script) );
+                if ( !empty($blocked_script['url']) ) {
+                    $script_data = array();
+                    $script_data['url'] = sanitize_text_field( wp_unslash($blocked_script['url']) );
+                    $script_data['name'] = isset($blocked_script['name']) ? sanitize_text_field( wp_unslash($blocked_script['name']) ) : '';
+                    $script_data['description'] = isset($blocked_script['description']) ? sanitize_text_field( wp_unslash($blocked_script['description']) ) : '';
+                    $blocked_scripts[] = $script_data;
                 }
             }
         }
@@ -624,15 +628,35 @@ function snn_options_page() {
                                 <?php 
                                 $blocked_scripts = isset($options['snn_cookie_settings_blocked_scripts']) ? $options['snn_cookie_settings_blocked_scripts'] : array();
                                 if (!empty($blocked_scripts)) {
-                                    echo '<ul style="list-style: disc; padding-left: 20px;">';
+                                    echo '<div style="max-width: 800px;">';
                                     foreach ($blocked_scripts as $index => $script) {
-                                        echo '<li>';
-                                        echo '<code>' . esc_html($script) . '</code> ';
-                                        echo '<button type="button" class="button button-small snn-remove-blocked-script" data-index="' . $index . '">' . __('Remove', 'snn') . '</button>';
-                                        echo '<input type="hidden" name="snn_cookie_settings_blocked_scripts[]" value="' . esc_attr($script) . '">';
-                                        echo '</li>';
+                                        // Support both old format (string) and new format (array with url, name, description)
+                                        $script_url = is_array($script) ? $script['url'] : $script;
+                                        $script_name = is_array($script) && !empty($script['name']) ? $script['name'] : '';
+                                        $script_description = is_array($script) && !empty($script['description']) ? $script['description'] : '';
+                                        
+                                        echo '<div class="snn-blocked-script-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; background: #f9f9f9; position: relative;">';
+                                        echo '<button type="button" class="button button-small snn-remove-blocked-script" style="position: absolute; top: 10px; right: 10px;">' . __('Remove', 'snn') . '</button>';
+                                        
+                                        echo '<div style="margin-bottom: 10px;">';
+                                        echo '<label style="display: block; margin-bottom: 5px;"><strong>' . __('Service Name:', 'snn') . '</strong></label>';
+                                        echo '<input type="text" name="snn_cookie_settings_blocked_scripts[' . $index . '][name]" value="' . esc_attr($script_name) . '" class="regular-text" placeholder="' . __('e.g., Google Analytics', 'snn') . '">';
+                                        echo '</div>';
+                                        
+                                        echo '<div style="margin-bottom: 10px;">';
+                                        echo '<label style="display: block; margin-bottom: 5px;"><strong>' . __('Service Description:', 'snn') . '</strong></label>';
+                                        echo '<input type="text" name="snn_cookie_settings_blocked_scripts[' . $index . '][description]" value="' . esc_attr($script_description) . '" class="regular-text" placeholder="' . __('e.g., Analytics for tracking site usage', 'snn') . '">';
+                                        echo '</div>';
+                                        
+                                        echo '<div>';
+                                        echo '<label style="display: block; margin-bottom: 5px;"><strong>' . __('Script URL:', 'snn') . '</strong></label>';
+                                        echo '<code style="display: block; background: #fff; padding: 8px; word-break: break-all; font-size: 11px; border: 1px solid #ddd;">' . esc_html($script_url) . '</code>';
+                                        echo '<input type="hidden" name="snn_cookie_settings_blocked_scripts[' . $index . '][url]" value="' . esc_attr($script_url) . '">';
+                                        echo '</div>';
+                                        
+                                        echo '</div>';
                                     }
-                                    echo '</ul>';
+                                    echo '</div>';
                                 } else {
                                     echo '<p class="description">' . __('No scripts are currently blocked.', 'snn') . '</p>';
                                 }
@@ -691,7 +715,14 @@ function snn_options_page() {
                                     html += '<h3><?php echo esc_js(__('Scripts Found:', 'snn')); ?> (' + data.scripts.length + ')</h3>';
                                     html += '<ul style="list-style: none; padding: 0;">';
                                     data.scripts.forEach(function(script){
-                                        var isBlocked = data.blocked_scripts.indexOf(script) !== -1;
+                                        // Check if script is already blocked (compare URL)
+                                        var isBlocked = false;
+                                        if (data.blocked_scripts && Array.isArray(data.blocked_scripts)) {
+                                            isBlocked = data.blocked_scripts.some(function(blocked) {
+                                                var blockedUrl = typeof blocked === 'string' ? blocked : blocked.url;
+                                                return blockedUrl === script;
+                                            });
+                                        }
                                         html += '<li style="margin-bottom: 10px; padding: 10px; background: white; border: 1px solid #ddd;">';
                                         html += '<label style="display: flex; align-items: center; gap: 10px;">';
                                         html += '<input type="checkbox" class="snn-script-to-block" value="' + script + '" ' + (isBlocked ? 'checked disabled' : '') + '>';
@@ -710,7 +741,14 @@ function snn_options_page() {
                                     html += '<h3 style="margin-top: 20px;"><?php echo esc_js(__('Iframes Found:', 'snn')); ?> (' + data.iframes.length + ')</h3>';
                                     html += '<ul style="list-style: none; padding: 0;">';
                                     data.iframes.forEach(function(iframe){
-                                        var isBlocked = data.blocked_scripts.indexOf(iframe) !== -1;
+                                        // Check if iframe is already blocked (compare URL)
+                                        var isBlocked = false;
+                                        if (data.blocked_scripts && Array.isArray(data.blocked_scripts)) {
+                                            isBlocked = data.blocked_scripts.some(function(blocked) {
+                                                var blockedUrl = typeof blocked === 'string' ? blocked : blocked.url;
+                                                return blockedUrl === iframe;
+                                            });
+                                        }
                                         html += '<li style="margin-bottom: 10px; padding: 10px; background: white; border: 1px solid #ddd;">';
                                         html += '<label style="display: flex; align-items: center; gap: 10px;">';
                                         html += '<input type="checkbox" class="snn-script-to-block" value="' + iframe + '" ' + (isBlocked ? 'checked disabled' : '') + '>';
@@ -748,25 +786,40 @@ function snn_options_page() {
                             
                             // Remove "no scripts" message if exists
                             if (currentHtml.indexOf('No scripts are currently blocked') !== -1) {
-                                $list.html('<ul style="list-style: disc; padding-left: 20px;"></ul>');
+                                $list.html('<div style="max-width: 800px;"></div>');
                             }
                             
-                            var $ul = $list.find('ul');
-                            if ($ul.length === 0) {
-                                $list.html('<ul style="list-style: disc; padding-left: 20px;"></ul>');
-                                $ul = $list.find('ul');
+                            var $container = $list.find('div');
+                            if ($container.length === 0) {
+                                $list.html('<div style="max-width: 800px;"></div>');
+                                $container = $list.find('div');
                             }
+                            
+                            // Get current highest index
+                            var currentIndex = $container.find('.snn-blocked-script-item').length;
                             
                             selectedScripts.forEach(function(script){
-                                var li = '<li>' +
-                                    '<code>' + script + '</code> ' +
-                                    '<button type="button" class="button button-small snn-remove-blocked-script"><?php echo esc_js(__('Remove', 'snn')); ?></button>' +
-                                    '<input type="hidden" name="snn_cookie_settings_blocked_scripts[]" value="' + script + '">' +
-                                    '</li>';
-                                $ul.append(li);
+                                var scriptItem = '<div class="snn-blocked-script-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; background: #f9f9f9; position: relative;">' +
+                                    '<button type="button" class="button button-small snn-remove-blocked-script" style="position: absolute; top: 10px; right: 10px;"><?php echo esc_js(__('Remove', 'snn')); ?></button>' +
+                                    '<div style="margin-bottom: 10px;">' +
+                                        '<label style="display: block; margin-bottom: 5px;"><strong><?php echo esc_js(__('Service Name:', 'snn')); ?></strong></label>' +
+                                        '<input type="text" name="snn_cookie_settings_blocked_scripts[' + currentIndex + '][name]" value="" class="regular-text" placeholder="<?php echo esc_js(__('e.g., Google Analytics', 'snn')); ?>">' +
+                                    '</div>' +
+                                    '<div style="margin-bottom: 10px;">' +
+                                        '<label style="display: block; margin-bottom: 5px;"><strong><?php echo esc_js(__('Service Description:', 'snn')); ?></strong></label>' +
+                                        '<input type="text" name="snn_cookie_settings_blocked_scripts[' + currentIndex + '][description]" value="" class="regular-text" placeholder="<?php echo esc_js(__('e.g., Analytics for tracking site usage', 'snn')); ?>">' +
+                                    '</div>' +
+                                    '<div>' +
+                                        '<label style="display: block; margin-bottom: 5px;"><strong><?php echo esc_js(__('Script URL:', 'snn')); ?></strong></label>' +
+                                        '<code style="display: block; background: #fff; padding: 8px; word-break: break-all; font-size: 11px; border: 1px solid #ddd;">' + script + '</code>' +
+                                        '<input type="hidden" name="snn_cookie_settings_blocked_scripts[' + currentIndex + '][url]" value="' + script + '">' +
+                                    '</div>' +
+                                '</div>';
+                                $container.append(scriptItem);
+                                currentIndex++;
                             });
                             
-                            alert('<?php echo esc_js(__('Scripts added to blocked list. Don\'t forget to save settings!', 'snn')); ?>');
+                            alert('<?php echo esc_js(__('Scripts added to blocked list. Please add Service Name and Description, then save settings!', 'snn')); ?>');
                             
                             // Disable added checkboxes
                             selectedScripts.forEach(function(script){
@@ -776,11 +829,11 @@ function snn_options_page() {
                         
                         // Remove blocked script
                         $(document).on('click', '.snn-remove-blocked-script', function(){
-                            $(this).closest('li').remove();
+                            $(this).closest('.snn-blocked-script-item').remove();
                             
                             // Check if list is empty
-                            var $ul = $('#snn-blocked-scripts-list ul');
-                            if ($ul.find('li').length === 0) {
+                            var $container = $('#snn-blocked-scripts-list div');
+                            if ($container.find('.snn-blocked-script-item').length === 0) {
                                 $('#snn-blocked-scripts-list').html('<p class="description">' + '<?php _e('No scripts are currently blocked.', 'snn'); ?>' + '</p>');
                             }
                         });
@@ -988,9 +1041,50 @@ function snn_output_cookie_banner() {
     <div id="snn-cookie-banner" class="snn-cookie-banner <?php echo esc_attr($position); ?>"<?php echo $banner_style; ?>>
     <div class="snn-preferences-title"><?php echo esc_html( isset($options['snn_cookie_settings_preferences_title']) ? $options['snn_cookie_settings_preferences_title'] : __('Cookie Preferences', 'snn') ); ?></div>
     <div class="snn-preferences-content">
-            <?php if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) { ?>
+            <?php 
+            // Combine services and blocked scripts for display
+            $all_services = array();
+            
+            // Add regular services
+            if ( ! empty($options['snn_cookie_settings_services']) && is_array($options['snn_cookie_settings_services']) ) {
+                foreach ( $options['snn_cookie_settings_services'] as $index => $service ) {
+                    $all_services[] = array(
+                        'type' => 'service',
+                        'index' => $index,
+                        'data' => $service
+                    );
+                }
+            }
+            
+            // Add blocked scripts as services
+            $blocked_scripts = isset($options['snn_cookie_settings_blocked_scripts']) ? $options['snn_cookie_settings_blocked_scripts'] : array();
+            if ( ! empty($blocked_scripts) && is_array($blocked_scripts) ) {
+                foreach ( $blocked_scripts as $index => $script ) {
+                    // Support both old format (string) and new format (array)
+                    if ( is_array($script) && !empty($script['url']) ) {
+                        $script_name = !empty($script['name']) ? $script['name'] : __('Blocked Script', 'snn') . ' ' . ($index + 1);
+                        $script_description = !empty($script['description']) ? $script['description'] : '';
+                        
+                        $all_services[] = array(
+                            'type' => 'blocked_script',
+                            'index' => 'blocked_' . $index,
+                            'data' => array(
+                                'name' => $script_name,
+                                'description' => $script_description,
+                                'url' => $script['url'],
+                                'mandatory' => 'no'
+                            )
+                        );
+                    }
+                }
+            }
+            
+            if ( ! empty($all_services) ) { ?>
                 <ul class="snn-services-list" style="list-style: none; padding: 0;">
-                <?php foreach ( $options['snn_cookie_settings_services'] as $index => $service ) { ?>
+                <?php foreach ( $all_services as $service_item ) { 
+                    $service = $service_item['data'];
+                    $service_index = $service_item['index'];
+                    ?>
                     <li class="snn-service-item" style="margin-bottom: 10px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;">
                         <div style="display: flex; justify-content: space-between; width: 100%;">
                             <span class="snn-service-name">
@@ -1002,7 +1096,7 @@ function snn_output_cookie_banner() {
                                 <?php } ?>
                             </span>
                             <label class="snn-switch">
-                                <input type="checkbox" data-service-index="<?php echo esc_attr($index); ?>" class="snn-service-toggle" <?php echo (isset($service['mandatory']) && $service['mandatory'] === 'yes') ? 'checked disabled' : 'checked'; ?>>
+                                <input type="checkbox" data-service-index="<?php echo esc_attr($service_index); ?>" class="snn-service-toggle" <?php echo (isset($service['mandatory']) && $service['mandatory'] === 'yes') ? 'checked disabled' : 'checked'; ?>>
                                 <span class="snn-slider"></span>
                             </label>
                         </div>
@@ -1074,11 +1168,21 @@ function snn_output_script_blocker() {
         return; // Don't block if already accepted
     }
     
+    // Extract URLs from blocked scripts (support both old and new format)
+    $blocked_urls = array();
+    foreach ($blocked_scripts as $script) {
+        if (is_array($script) && isset($script['url'])) {
+            $blocked_urls[] = $script['url'];
+        } elseif (is_string($script)) {
+            $blocked_urls[] = $script;
+        }
+    }
+    
     ?>
     <script id="snn-script-blocker">
     (function(){
-        // Blocked scripts list
-        var blockedScripts = <?php echo json_encode($blocked_scripts); ?>;
+        // Blocked scripts list (URLs only)
+        var blockedScripts = <?php echo json_encode($blocked_urls); ?>;
         
         // Function to check if a URL is blocked
         function isBlocked(url) {
@@ -1224,36 +1328,82 @@ function snn_output_banner_js() {
             }
         }
         
-        function unblockScripts(){
-            // Unblock scripts that were blocked by the script blocker
-            document.querySelectorAll('script[data-snn-blocked="true"]').forEach(function(script){
-                if(script.type === 'text/plain'){
-                    var newScript = document.createElement('script');
-                    for(var i = 0; i < script.attributes.length; i++){
-                        var attr = script.attributes[i];
-                        if(attr.name !== 'type' && attr.name !== 'data-snn-blocked'){
-                            newScript.setAttribute(attr.name, attr.value);
+        function unblockScripts(customConsent){
+            // If custom consent is provided, only unblock accepted scripts
+            if(customConsent){
+                document.querySelectorAll('script[data-snn-blocked="true"]').forEach(function(script){
+                    if(script.type === 'text/plain' && shouldUnblockScript(script.src, customConsent)){
+                        var newScript = document.createElement('script');
+                        for(var i = 0; i < script.attributes.length; i++){
+                            var attr = script.attributes[i];
+                            if(attr.name !== 'type' && attr.name !== 'data-snn-blocked'){
+                                newScript.setAttribute(attr.name, attr.value);
+                            }
                         }
+                        newScript.type = 'text/javascript';
+                        script.parentNode.replaceChild(newScript, script);
                     }
-                    newScript.type = 'text/javascript';
-                    script.parentNode.replaceChild(newScript, script);
-                }
-            });
-            
-            // Unblock iframes
-            document.querySelectorAll('iframe[data-snn-blocked="true"]').forEach(function(iframe){
-                var src = iframe.getAttribute('data-snn-blocked-src');
-                if(src){
-                    iframe.src = src;
-                    iframe.removeAttribute('data-snn-blocked');
-                    iframe.removeAttribute('data-snn-blocked-src');
-                }
-            });
+                });
+                
+                // Unblock iframes
+                document.querySelectorAll('iframe[data-snn-blocked="true"]').forEach(function(iframe){
+                    var src = iframe.getAttribute('data-snn-blocked-src');
+                    if(src && shouldUnblockScript(src, customConsent)){
+                        iframe.src = src;
+                        iframe.removeAttribute('data-snn-blocked');
+                        iframe.removeAttribute('data-snn-blocked-src');
+                    }
+                });
+            } else {
+                // Unblock all scripts
+                document.querySelectorAll('script[data-snn-blocked="true"]').forEach(function(script){
+                    if(script.type === 'text/plain'){
+                        var newScript = document.createElement('script');
+                        for(var i = 0; i < script.attributes.length; i++){
+                            var attr = script.attributes[i];
+                            if(attr.name !== 'type' && attr.name !== 'data-snn-blocked'){
+                                newScript.setAttribute(attr.name, attr.value);
+                            }
+                        }
+                        newScript.type = 'text/javascript';
+                        script.parentNode.replaceChild(newScript, script);
+                    }
+                });
+                
+                // Unblock all iframes
+                document.querySelectorAll('iframe[data-snn-blocked="true"]').forEach(function(iframe){
+                    var src = iframe.getAttribute('data-snn-blocked-src');
+                    if(src){
+                        iframe.src = src;
+                        iframe.removeAttribute('data-snn-blocked');
+                        iframe.removeAttribute('data-snn-blocked-src');
+                    }
+                });
+            }
             
             // Stop the mutation observer to allow scripts to load
             if(window.snnScriptObserver){
                 window.snnScriptObserver.disconnect();
             }
+        }
+        
+        function shouldUnblockScript(url, customConsent){
+            if(!url || !window.snnBlockedScripts) return true;
+            
+            // Find the blocked script index for this URL
+            var blockedIndex = -1;
+            for(var i = 0; i < window.snnBlockedScripts.length; i++){
+                if(url.indexOf(window.snnBlockedScripts[i]) !== -1 || window.snnBlockedScripts[i].indexOf(url) !== -1){
+                    blockedIndex = i;
+                    break;
+                }
+            }
+            
+            if(blockedIndex === -1) return true; // Not in blocked list, allow
+            
+            // Check if this blocked script was accepted in custom consent
+            var blockedKey = 'blocked_' + blockedIndex;
+            return customConsent[blockedKey] === true;
         }
         
         function injectScript(c,p){var d=document.createElement("div");d.innerHTML=c;d.querySelectorAll("script").forEach(function(s){var n=document.createElement("script");for(var i=0;i<s.attributes.length;i++){var a=s.attributes[i];n.setAttribute(a.name,a.value)}n.text=s.text||"";"head"===p?document.head.appendChild(n):"body_top"===p?document.body.firstChild?document.body.insertBefore(n,document.body.firstChild):document.body.appendChild(n):document.body.appendChild(n)})}
@@ -1272,14 +1422,15 @@ function snn_output_banner_js() {
                 injectCustomConsentScripts();
                 updateGoogleAnalyticsConsent(true);
                 updateClarityConsent(true);
+                unblockScripts(s);
             }else{
                 setCookie('snn_cookie_accepted','true',365);
                 eraseCookie('snn_cookie_services');
                 injectAllConsentScripts();
                 updateGoogleAnalyticsConsent(true);
                 updateClarityConsent(true);
+                unblockScripts();
             }
-            unblockScripts();
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         });
@@ -1306,10 +1457,12 @@ function snn_output_banner_js() {
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         }else if('custom'===s){
+            var p=getCookie('snn_cookie_services');
+            var customConsent = p ? JSON.parse(p) : {};
             injectCustomConsentScripts();
             updateGoogleAnalyticsConsent(true);
             updateClarityConsent(true);
-            unblockScripts();
+            unblockScripts(customConsent);
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         }
