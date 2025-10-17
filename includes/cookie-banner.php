@@ -397,7 +397,7 @@ function snn_options_page() {
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row"><?php _e('GDPR: Change Cookie Preferences', 'snn'); ?></th>
+                        <th scope="row"><?php _e('Change Cookie Preferences', 'snn'); ?></th>
                         <td>
                             <div style="background: #f0f8ff; border-left: 4px solid #2271b1; padding: 12px 15px; margin-top: 10px;">
                                 <p style="margin: 0 0 10px 0;">
@@ -409,9 +409,6 @@ function snn_options_page() {
                                 <p style="margin: 0 0 10px 0;"><strong><?php _e('Examples:', 'snn'); ?></strong></p>
                                 <code style="display: block; background: #fff; padding: 8px; border-radius: 3px; margin-bottom: 8px;">&lt;button class="snn-cookie-change"&gt;<?php _e('Change Cookie Settings', 'snn'); ?>&lt;/button&gt;</code>
                                 <code style="display: block; background: #fff; padding: 8px; border-radius: 3px; margin-bottom: 8px;">&lt;a href="#" class="snn-cookie-change"&gt;<?php _e('Cookie Preferences', 'snn'); ?>&lt;/a&gt;</code>
-                                <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
-                                    <?php _e('💡 This feature is optional and commonly added in website footers, privacy policy pages, or account settings for GDPR compliance in EU regions.', 'snn'); ?>
-                                </p>
                             </div>
                         </td>
                     </tr>
@@ -1060,7 +1057,7 @@ function snn_options_page() {
                                 <code>.snn-legal-text</code> - <?php _e('Bottom Rich Text', 'snn'); ?><br>
                                 <br>
                                 <strong><?php _e('GDPR Cookie Preference Change:', 'snn'); ?></strong><br>
-                                <code>.snn-cookie-change</code> - <?php _e('Add this class to any button or link to allow users to reopen the cookie banner and change their preferences (GDPR requirement)', 'snn'); ?>
+                                <code>.snn-cookie-change</code> - <?php _e('Add this class to any button or link to allow users to reopen the cookie banner and change their preferences.', 'snn'); ?>
                             </p>
                         </td>
                     </tr>
