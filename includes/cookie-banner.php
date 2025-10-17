@@ -1827,7 +1827,28 @@ function snn_output_banner_js() {
         
         // Load saved toggle states from cookie
         function loadToggleStates(){
+            var acceptedStatus = getCookie('snn_cookie_accepted');
             var consentCookie = getCookie('snn_cookie_services');
+            
+            // If denied, set all toggles to OFF (except mandatory)
+            if(acceptedStatus === 'false'){
+                document.querySelectorAll('.snn-service-toggle').forEach(function(toggle){
+                    if(!toggle.disabled){ // Don't change mandatory ones
+                        toggle.checked = false;
+                    }
+                });
+                return;
+            }
+            
+            // If accepted all, set all toggles to ON
+            if(acceptedStatus === 'true'){
+                document.querySelectorAll('.snn-service-toggle').forEach(function(toggle){
+                    toggle.checked = true;
+                });
+                return;
+            }
+            
+            // If custom consent exists, apply it
             if(consentCookie){
                 try{
                     var consent = JSON.parse(consentCookie);
@@ -1835,11 +1856,23 @@ function snn_output_banner_js() {
                         var index = toggle.getAttribute('data-service-index');
                         if(consent.hasOwnProperty(index)){
                             toggle.checked = consent[index];
+                        }else{
+                            // If not in consent cookie, default to false
+                            if(!toggle.disabled){ // Don't change mandatory ones
+                                toggle.checked = false;
+                            }
                         }
                     });
                 }catch(e){
                     console.error('Error parsing consent cookie:', e);
                 }
+            }else{
+                // No consent cookie, default all to checked (initial state)
+                document.querySelectorAll('.snn-service-toggle').forEach(function(toggle){
+                    if(!toggle.disabled){ // Don't change mandatory ones
+                        toggle.checked = true;
+                    }
+                });
             }
         }
         
@@ -1957,6 +1990,9 @@ function snn_output_banner_js() {
             childList: true,
             subtree: true
         });
+        
+        // Initialize toggle states on page load
+        loadToggleStates();
         
         var s=getCookie('snn_cookie_accepted');
         if('true'===s){
