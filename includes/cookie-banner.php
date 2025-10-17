@@ -1427,6 +1427,57 @@ function snn_output_banner_js() {
             }
         }
         
+        function blockAllScripts(){
+            // Block scripts
+            document.querySelectorAll('script[src]').forEach(function(script){
+                if(window.snnIsBlocked && window.snnIsBlocked(script.src)){
+                    if(script.type !== 'text/plain'){
+                        script.type = 'text/plain';
+                        script.setAttribute('data-snn-blocked', 'true');
+                    }
+                }
+            });
+            
+            // Block iframes
+            document.querySelectorAll('iframe[src]').forEach(function(iframe){
+                if(window.snnIsBlocked && window.snnIsBlocked(iframe.src)){
+                    if(!iframe.hasAttribute('data-snn-blocked')){
+                        iframe.setAttribute('data-snn-blocked-src', iframe.src);
+                        iframe.removeAttribute('src');
+                        iframe.setAttribute('data-snn-blocked', 'true');
+                    }
+                }
+            });
+            
+            // Restart mutation observer to catch new scripts
+            if(window.snnScriptObserver){
+                window.snnScriptObserver.disconnect();
+            }
+            
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.tagName === 'SCRIPT' && node.src && window.snnIsBlocked && window.snnIsBlocked(node.src)) {
+                            node.type = 'text/plain';
+                            node.setAttribute('data-snn-blocked', 'true');
+                        }
+                        if (node.tagName === 'IFRAME' && node.src && window.snnIsBlocked && window.snnIsBlocked(node.src)) {
+                            node.setAttribute('data-snn-blocked-src', node.src);
+                            node.removeAttribute('src');
+                            node.setAttribute('data-snn-blocked', 'true');
+                        }
+                    });
+                });
+            });
+            
+            observer.observe(document.documentElement, {
+                childList: true,
+                subtree: true
+            });
+            
+            window.snnScriptObserver = observer;
+        }
+        
         function unblockScripts(customConsent){
             // If custom consent is provided, only unblock accepted scripts
             if(customConsent){
@@ -1505,12 +1556,42 @@ function snn_output_banner_js() {
             return customConsent[blockedKey] === true;
         }
         
+        // Load saved toggle states from cookie
+        function loadToggleStates(){
+            var consentCookie = getCookie('snn_cookie_services');
+            if(consentCookie){
+                try{
+                    var consent = JSON.parse(consentCookie);
+                    document.querySelectorAll('.snn-service-toggle').forEach(function(toggle){
+                        var index = toggle.getAttribute('data-service-index');
+                        if(consent.hasOwnProperty(index)){
+                            toggle.checked = consent[index];
+                        }
+                    });
+                }catch(e){
+                    console.error('Error parsing consent cookie:', e);
+                }
+            }
+        }
+        
         function injectScript(c,p){var d=document.createElement("div");d.innerHTML=c;d.querySelectorAll("script").forEach(function(s){var n=document.createElement("script");for(var i=0;i<s.attributes.length;i++){var a=s.attributes[i];n.setAttribute(a.name,a.value)}n.text=s.text||"";"head"===p?document.head.appendChild(n):"body_top"===p?document.body.firstChild?document.body.insertBefore(n,document.body.firstChild):document.body.appendChild(n):document.body.appendChild(n)})}
         function injectMandatoryScripts(){document.querySelectorAll('.snn-service-script[data-mandatory="yes"]').forEach(function(d){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)})}
         function injectAllConsentScripts(){document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}})}
         function injectCustomConsentScripts(){var p=getCookie("snn_cookie_services");if(p){var s=JSON.parse(p);document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var i=d.getAttribute("id").split("-").pop();if(s[i]){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}}})}}
         injectMandatoryScripts();
         var a=document.querySelector('.snn-accept'),y=document.querySelector('.snn-deny'),r=document.querySelector('.snn-preferences'),b=document.getElementById('snn-cookie-banner'),o=document.getElementById('snn-cookie-overlay');
+        
+        // Load saved toggle states when preferences are opened
+        r&&r.addEventListener('click',function(){
+            var t=document.querySelector('.snn-preferences-content');
+            if(t.style.display==='none'||t.style.display===''){
+                t.style.display='block';
+                loadToggleStates(); // Load saved states when opening preferences
+            }else{
+                t.style.display='none';
+            }
+        });
+        
         a&&a.addEventListener('click',function(){
             var t=document.querySelectorAll('.snn-service-toggle');
             if(t.length>0){
@@ -1518,6 +1599,11 @@ function snn_output_banner_js() {
                 t.forEach(function(g){s[g.getAttribute('data-service-index')]=g.checked});
                 setCookie('snn_cookie_services',JSON.stringify(s),365);
                 setCookie('snn_cookie_accepted','custom',365);
+                
+                // Block all scripts first
+                blockAllScripts();
+                
+                // Then inject and unblock only accepted scripts
                 injectCustomConsentScripts();
                 updateGoogleAnalyticsConsent(true);
                 updateClarityConsent(true);
@@ -1538,10 +1624,10 @@ function snn_output_banner_js() {
             eraseCookie('snn_cookie_services');
             updateGoogleAnalyticsConsent(false);
             updateClarityConsent(false);
+            blockAllScripts(); // Block all scripts when denied
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         });
-        r&&r.addEventListener('click',function(){var t=document.querySelector('.snn-preferences-content');t.style.display==='none'||t.style.display===''?t.style.display='block':t.style.display='none'});
         
         // Handle cookie preference change buttons (GDPR requirement)
         function setupCookieChangeButtons() {
@@ -1549,6 +1635,10 @@ function snn_output_banner_js() {
             changeButtons.forEach(function(button) {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
+                    // Clear existing cookies to force banner to show
+                    eraseCookie('snn_cookie_accepted');
+                    eraseCookie('snn_cookie_services');
+                    
                     // Show the cookie banner again
                     if (b) {
                         b.style.display = 'block';
@@ -1557,6 +1647,10 @@ function snn_output_banner_js() {
                         if (prefsContent) {
                             prefsContent.style.display = 'none';
                         }
+                        // Reset all toggles to checked (default state)
+                        document.querySelectorAll('.snn-service-toggle:not([disabled])').forEach(function(toggle){
+                            toggle.checked = true;
+                        });
                     }
                     if (o) {
                         o.style.display = 'block';
@@ -1588,6 +1682,7 @@ function snn_output_banner_js() {
         }else if('false'===s){
             updateGoogleAnalyticsConsent(false);
             updateClarityConsent(false);
+            blockAllScripts(); // Keep scripts blocked when denied
             b&&(b.style.display='none');
             o&&(o.style.display='none');
         }else if('custom'===s){
@@ -1595,10 +1690,11 @@ function snn_output_banner_js() {
             var validatedConsent = validateConsentCookie();
             if (validatedConsent) {
                 // Consent is valid, use it
+                blockAllScripts(); // First block all scripts
                 injectCustomConsentScripts();
                 updateGoogleAnalyticsConsent(true);
                 updateClarityConsent(true);
-                unblockScripts(validatedConsent);
+                unblockScripts(validatedConsent); // Then unblock only accepted ones
                 b&&(b.style.display='none');
                 o&&(o.style.display='none');
             } else {
