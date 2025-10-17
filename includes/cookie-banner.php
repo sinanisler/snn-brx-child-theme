@@ -868,6 +868,18 @@ function snn_options_page() {
                             $('#snn-scan-results').html(html);
                         }
                         
+                        // Helper function to escape HTML
+                        function escapeHtml(text) {
+                            var map = {
+                                '&': '&amp;',
+                                '<': '&lt;',
+                                '>': '&gt;',
+                                '"': '&quot;',
+                                "'": '&#039;'
+                            };
+                            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+                        }
+                        
                         // Add selected scripts to blocked list
                         $(document).on('click', '#snn-add-selected-scripts', function(){
                             var selectedScripts = [];
@@ -898,6 +910,7 @@ function snn_options_page() {
                             var currentIndex = $container.find('.snn-blocked-script-item').length;
                             
                             selectedScripts.forEach(function(script){
+                                var escapedScript = escapeHtml(script);
                                 var scriptItem = '<div class="snn-blocked-script-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; background: #f9f9f9; position: relative;">' +
                                     '<button type="button" class="button button-small snn-remove-blocked-script" style="position: absolute; top: 10px; right: 10px;"><?php echo esc_js(__('Remove', 'snn')); ?></button>' +
                                     '<div style="margin-bottom: 10px;">' +
@@ -910,8 +923,8 @@ function snn_options_page() {
                                     '</div>' +
                                     '<div>' +
                                         '<label style="display: block; margin-bottom: 5px;"><strong><?php echo esc_js(__('Script URL:', 'snn')); ?></strong></label>' +
-                                        '<code style="display: block; background: #fff; padding: 8px; word-break: break-all; font-size: 11px; border: 1px solid #ddd;">' + script + '</code>' +
-                                        '<input type="hidden" name="snn_cookie_settings_blocked_scripts[' + currentIndex + '][url]" value="' + script + '">' +
+                                        '<code style="display: block; background: #fff; padding: 8px; word-break: break-all; font-size: 11px; border: 1px solid #ddd;">' + escapedScript + '</code>' +
+                                        '<input type="hidden" name="snn_cookie_settings_blocked_scripts[' + currentIndex + '][url]" value="' + escapedScript + '">' +
                                     '</div>' +
                                 '</div>';
                                 $container.append(scriptItem);
@@ -922,7 +935,8 @@ function snn_options_page() {
                             
                             // Disable added checkboxes
                             selectedScripts.forEach(function(script){
-                                $('.snn-script-to-block[value="' + script + '"]').prop('disabled', true);
+                                var escapedForSelector = script.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+                                $('.snn-script-to-block[value="' + escapedForSelector + '"]').prop('disabled', true);
                             });
                         });
                         
