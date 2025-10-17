@@ -1520,7 +1520,7 @@ function snn_output_script_blocker() {
     </script>
     <?php
 }
-add_action('wp_head', 'snn_output_script_blocker', 1);
+add_action('wp_head', 'snn_output_script_blocker', 2);
 
 
 function snn_output_service_scripts() {
