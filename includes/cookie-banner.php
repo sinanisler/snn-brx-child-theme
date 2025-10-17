@@ -1509,19 +1509,79 @@ function snn_output_banner_js() {
         function injectMandatoryScripts(){document.querySelectorAll('.snn-service-script[data-mandatory="yes"]').forEach(function(d){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)})}
         function injectAllConsentScripts(){document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}})}
         function injectCustomConsentScripts(){var p=getCookie("snn_cookie_services");if(p){var s=JSON.parse(p);document.querySelectorAll('.snn-service-script[data-script]').forEach(function(d){if("yes"!==d.getAttribute("data-mandatory")){var i=d.getAttribute("id").split("-").pop();if(s[i]){var e=d.getAttribute("data-script"),p=d.getAttribute("data-position")||"body_bottom";e&&injectScript(atob(e),p)}}})}}
+        
+        // Load saved toggle states from cookie
+        function loadSavedToggleStates() {
+            var consentCookie = getCookie('snn_cookie_services');
+            if (consentCookie) {
+                try {
+                    var savedConsent = JSON.parse(consentCookie);
+                    document.querySelectorAll('.snn-service-toggle').forEach(function(toggle) {
+                        var serviceIndex = toggle.getAttribute('data-service-index');
+                        if (savedConsent.hasOwnProperty(serviceIndex)) {
+                            toggle.checked = savedConsent[serviceIndex];
+                        }
+                    });
+                } catch(e) {
+                    console.error('Failed to load saved cookie preferences:', e);
+                }
+            }
+        }
+        
+        // Check if preferences changed (requires reload)
+        function hasPreferencesChanged() {
+            var currentCookie = getCookie('snn_cookie_services');
+            var t = document.querySelectorAll('.snn-service-toggle');
+            
+            if (t.length === 0) return false;
+            
+            var newPrefs = {};
+            t.forEach(function(g) {
+                newPrefs[g.getAttribute('data-service-index')] = g.checked;
+            });
+            
+            if (!currentCookie) return true; // First time setting preferences
+            
+            try {
+                var savedPrefs = JSON.parse(currentCookie);
+                // Compare saved vs new preferences
+                for (var key in newPrefs) {
+                    if (savedPrefs[key] !== newPrefs[key]) {
+                        return true; // Preferences changed
+                    }
+                }
+                return false;
+            } catch(e) {
+                return true;
+            }
+        }
+        
         injectMandatoryScripts();
         var a=document.querySelector('.snn-accept'),y=document.querySelector('.snn-deny'),r=document.querySelector('.snn-preferences'),b=document.getElementById('snn-cookie-banner'),o=document.getElementById('snn-cookie-overlay');
+        
         a&&a.addEventListener('click',function(){
             var t=document.querySelectorAll('.snn-service-toggle');
             if(t.length>0){
                 var s={};
                 t.forEach(function(g){s[g.getAttribute('data-service-index')]=g.checked});
+                
+                var needsReload = hasPreferencesChanged();
+                
                 setCookie('snn_cookie_services',JSON.stringify(s),365);
                 setCookie('snn_cookie_accepted','custom',365);
-                injectCustomConsentScripts();
-                updateGoogleAnalyticsConsent(true);
-                updateClarityConsent(true);
-                unblockScripts(s);
+                
+                if (needsReload) {
+                    // Preferences changed, reload page to apply new settings
+                    window.location.reload();
+                } else {
+                    // No change, just close banner
+                    injectCustomConsentScripts();
+                    updateGoogleAnalyticsConsent(true);
+                    updateClarityConsent(true);
+                    unblockScripts(s);
+                    b&&(b.style.display='none');
+                    o&&(o.style.display='none');
+                }
             }else{
                 setCookie('snn_cookie_accepted','true',365);
                 eraseCookie('snn_cookie_services');
@@ -1529,17 +1589,24 @@ function snn_output_banner_js() {
                 updateGoogleAnalyticsConsent(true);
                 updateClarityConsent(true);
                 unblockScripts();
+                b&&(b.style.display='none');
+                o&&(o.style.display='none');
             }
-            b&&(b.style.display='none');
-            o&&(o.style.display='none');
         });
         y&&y.addEventListener('click',function(){
+            var currentAccepted = getCookie('snn_cookie_accepted');
             setCookie('snn_cookie_accepted','false',365);
             eraseCookie('snn_cookie_services');
             updateGoogleAnalyticsConsent(false);
             updateClarityConsent(false);
-            b&&(b.style.display='none');
-            o&&(o.style.display='none');
+            
+            // If user previously accepted, reload to disable scripts
+            if (currentAccepted === 'true' || currentAccepted === 'custom') {
+                window.location.reload();
+            } else {
+                b&&(b.style.display='none');
+                o&&(o.style.display='none');
+            }
         });
         r&&r.addEventListener('click',function(){var t=document.querySelector('.snn-preferences-content');t.style.display==='none'||t.style.display===''?t.style.display='block':t.style.display='none'});
         
@@ -1557,6 +1624,8 @@ function snn_output_banner_js() {
                         if (prefsContent) {
                             prefsContent.style.display = 'none';
                         }
+                        // Load saved toggle states
+                        loadSavedToggleStates();
                     }
                     if (o) {
                         o.style.display = 'block';
@@ -1605,6 +1674,9 @@ function snn_output_banner_js() {
                 // Consent is invalid (services changed), show banner again
                 // Banner will be shown automatically since consent was cleared
             }
+        } else {
+            // No consent yet, banner is visible - load any existing toggle states
+            loadSavedToggleStates();
         }
     })();
 </script>
