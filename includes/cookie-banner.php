@@ -1475,6 +1475,7 @@ function snn_output_script_blocker() {
                     links.forEach(function(link) {
                         if (isBlocked(link.href)) {
                             link.setAttribute('data-snn-blocked-href', link.href);
+                            link.disabled = true;
                             link.removeAttribute('href');
                             link.setAttribute('data-snn-blocked', 'true');
                         }
@@ -1498,6 +1499,7 @@ function snn_output_script_blocker() {
                     }
                     if (node.tagName === 'LINK' && node.rel === 'stylesheet' && node.href && isBlocked(node.href)) {
                         node.setAttribute('data-snn-blocked-href', node.href);
+                        node.disabled = true;
                         node.removeAttribute('href');
                         node.setAttribute('data-snn-blocked', 'true');
                     }
@@ -1671,6 +1673,7 @@ function snn_output_banner_js() {
                 if(window.snnIsBlocked && window.snnIsBlocked(link.href)){
                     if(!link.hasAttribute('data-snn-blocked')){
                         link.setAttribute('data-snn-blocked-href', link.href);
+                        link.disabled = true;
                         link.removeAttribute('href');
                         link.setAttribute('data-snn-blocked', 'true');
                     }
@@ -1696,6 +1699,7 @@ function snn_output_banner_js() {
                         }
                         if (node.tagName === 'LINK' && node.rel === 'stylesheet' && node.href && window.snnIsBlocked && window.snnIsBlocked(node.href)) {
                             node.setAttribute('data-snn-blocked-href', node.href);
+                            node.disabled = true;
                             node.removeAttribute('href');
                             node.setAttribute('data-snn-blocked', 'true');
                         }
@@ -1753,6 +1757,7 @@ function snn_output_banner_js() {
                         if(shouldUnblockScript(href, customConsent)){
                             // Stylesheet is allowed, unblock it
                             link.href = href;
+                            link.disabled = false;
                             link.removeAttribute('data-snn-blocked');
                             link.removeAttribute('data-snn-blocked-href');
                         }
@@ -1794,6 +1799,7 @@ function snn_output_banner_js() {
                     var href = link.getAttribute('data-snn-blocked-href');
                     if(href){
                         link.href = href;
+                        link.disabled = false;
                         link.removeAttribute('data-snn-blocked');
                         link.removeAttribute('data-snn-blocked-href');
                     }
