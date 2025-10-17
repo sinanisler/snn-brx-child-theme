@@ -396,6 +396,25 @@ function snn_options_page() {
                             <input type="text" name="snn_cookie_settings_preferences_button" value="<?php echo isset($options['snn_cookie_settings_preferences_button']) ? esc_attr($options['snn_cookie_settings_preferences_button']) : ''; ?>" class="snn-input snn-preferences-button">
                         </td>
                     </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('GDPR: Change Cookie Preferences', 'snn'); ?></th>
+                        <td>
+                            <div style="background: #f0f8ff; border-left: 4px solid #2271b1; padding: 12px 15px; margin-top: 10px;">
+                                <p style="margin: 0 0 10px 0;">
+                                    <strong><?php _e('Allow users to change their cookie preferences anytime (GDPR requirement)', 'snn'); ?></strong>
+                                </p>
+                                <p style="margin: 0 0 10px 0;">
+                                    <?php _e('Add the CSS class', 'snn'); ?> <code style="background: #fff; padding: 2px 6px; border-radius: 3px;">.snn-cookie-change</code> <?php _e('to any button or link on your website. When clicked, it will reopen the cookie banner allowing users to modify their preferences.', 'snn'); ?>
+                                </p>
+                                <p style="margin: 0 0 10px 0;"><strong><?php _e('Examples:', 'snn'); ?></strong></p>
+                                <code style="display: block; background: #fff; padding: 8px; border-radius: 3px; margin-bottom: 8px;">&lt;button class="snn-cookie-change"&gt;<?php _e('Change Cookie Settings', 'snn'); ?>&lt;/button&gt;</code>
+                                <code style="display: block; background: #fff; padding: 8px; border-radius: 3px; margin-bottom: 8px;">&lt;a href="#" class="snn-cookie-change"&gt;<?php _e('Cookie Preferences', 'snn'); ?>&lt;/a&gt;</code>
+                                <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
+                                    <?php _e('💡 This feature is optional and commonly added in website footers, privacy policy pages, or account settings for GDPR compliance in EU regions.', 'snn'); ?>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
                 </table>
             </div>
             <div id="scripts" class="snn-tab-content">
@@ -982,7 +1001,10 @@ function snn_options_page() {
                                 <code>.snn-preferences-title</code> - <?php _e('The title in the preferences content', 'snn'); ?><br>
                                 <code>.snn-services-list</code> - <?php _e('The list of services', 'snn'); ?><br>
                                 <code>.snn-service-item</code> - <?php _e('Each individual service item', 'snn'); ?><br>
-                                <code>.snn-legal-text</code> - <?php _e('Bottom Rich Text', 'snn'); ?>
+                                <code>.snn-legal-text</code> - <?php _e('Bottom Rich Text', 'snn'); ?><br>
+                                <br>
+                                <strong><?php _e('GDPR Cookie Preference Change:', 'snn'); ?></strong><br>
+                                <code>.snn-cookie-change</code> - <?php _e('Add this class to any button or link to allow users to reopen the cookie banner and change their preferences (GDPR requirement)', 'snn'); ?>
                             </p>
                         </td>
                     </tr>
@@ -1520,6 +1542,41 @@ function snn_output_banner_js() {
             o&&(o.style.display='none');
         });
         r&&r.addEventListener('click',function(){var t=document.querySelector('.snn-preferences-content');t.style.display==='none'||t.style.display===''?t.style.display='block':t.style.display='none'});
+        
+        // Handle cookie preference change buttons (GDPR requirement)
+        function setupCookieChangeButtons() {
+            var changeButtons = document.querySelectorAll('.snn-cookie-change');
+            changeButtons.forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Show the cookie banner again
+                    if (b) {
+                        b.style.display = 'block';
+                        // Reset preferences dropdown to closed state
+                        var prefsContent = document.querySelector('.snn-preferences-content');
+                        if (prefsContent) {
+                            prefsContent.style.display = 'none';
+                        }
+                    }
+                    if (o) {
+                        o.style.display = 'block';
+                    }
+                });
+            });
+        }
+        
+        // Set up change buttons on page load
+        setupCookieChangeButtons();
+        
+        // Also set up change buttons when DOM changes (for dynamically added buttons)
+        var changeButtonObserver = new MutationObserver(function() {
+            setupCookieChangeButtons();
+        });
+        changeButtonObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
         var s=getCookie('snn_cookie_accepted');
         if('true'===s){
             injectAllConsentScripts();
