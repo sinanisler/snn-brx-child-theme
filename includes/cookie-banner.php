@@ -1104,7 +1104,8 @@ function snn_output_cookie_banner() {
                 }
             }
             
-            // Add blocked scripts as services
+            // Add blocked scripts as services (scripts from page scanner feature)
+            // These will appear in the preferences panel with toggles so users can enable/disable them
             $blocked_scripts = isset($options['snn_cookie_settings_blocked_scripts']) ? $options['snn_cookie_settings_blocked_scripts'] : array();
             if ( ! empty($blocked_scripts) && is_array($blocked_scripts) ) {
                 foreach ( $blocked_scripts as $index => $script ) {
@@ -1115,12 +1116,12 @@ function snn_output_cookie_banner() {
                         
                         $all_services[] = array(
                             'type' => 'blocked_script',
-                            'index' => 'blocked_' . $index,
+                            'index' => 'blocked_' . $index, // Using 'blocked_X' as index to differentiate from service indices
                             'data' => array(
                                 'name' => $script_name,
                                 'description' => $script_description,
                                 'url' => $script['url'],
-                                'mandatory' => 'no'
+                                'mandatory' => 'no' // Blocked scripts are never mandatory, users can always disable them
                             )
                         );
                     }
@@ -1628,15 +1629,37 @@ function snn_output_banner_js() {
             if(consentCookie){
                 try{
                     var consent = JSON.parse(consentCookie);
+                    console.log('SNN Cookie: Loading saved preferences:', consent);
+                    
+                    // Load states for ALL toggles (services AND blocked scripts)
                     document.querySelectorAll('.snn-service-toggle').forEach(function(toggle){
                         var index = toggle.getAttribute('data-service-index');
                         if(consent.hasOwnProperty(index)){
                             toggle.checked = consent[index];
+                            console.log('SNN Cookie: Setting toggle', index, 'to', consent[index]);
+                        } else {
+                            // If not in consent cookie, default based on type
+                            // Services default to checked, blocked scripts default to unchecked
+                            if(index && index.indexOf('blocked_') === 0) {
+                                toggle.checked = false;
+                            }
                         }
                     });
                 }catch(e){
                     console.error('Error parsing consent cookie:', e);
                 }
+            } else {
+                console.log('SNN Cookie: No saved preferences found, using defaults');
+                // No saved preferences - set defaults
+                document.querySelectorAll('.snn-service-toggle').forEach(function(toggle){
+                    var index = toggle.getAttribute('data-service-index');
+                    // Services default to checked, blocked scripts default to unchecked
+                    if(index && index.indexOf('blocked_') === 0) {
+                        toggle.checked = false;
+                    } else {
+                        toggle.checked = true;
+                    }
+                });
             }
         }
         
@@ -1686,10 +1709,23 @@ function snn_output_banner_js() {
             if(t.length>0){
                 var s={};
                 var hasAnyEnabled = false;
+                var hasAnyBlockedScripts = false;
+                
+                // Collect ALL toggles including services AND blocked scripts
                 t.forEach(function(g){
-                    s[g.getAttribute('data-service-index')]=g.checked;
-                    if(g.checked) hasAnyEnabled = true;
+                    var serviceIndex = g.getAttribute('data-service-index');
+                    var isChecked = g.checked;
+                    s[serviceIndex] = isChecked;
+                    
+                    if(isChecked) hasAnyEnabled = true;
+                    
+                    // Track if we have any blocked scripts
+                    if(serviceIndex && serviceIndex.indexOf('blocked_') === 0) {
+                        hasAnyBlockedScripts = true;
+                    }
                 });
+                
+                console.log('SNN Cookie: Saving preferences:', s);
                 setCookie('snn_cookie_services',JSON.stringify(s),365);
                 setCookie('snn_cookie_accepted','custom',365);
                 
@@ -1707,10 +1743,12 @@ function snn_output_banner_js() {
             }
         });
         y&&y.addEventListener('click',function(){
+            console.log('SNN Cookie: User denied all cookies and scripts');
             setCookie('snn_cookie_accepted','false',365);
             eraseCookie('snn_cookie_services');
             updateGoogleAnalyticsConsent(false);
             updateClarityConsent(false);
+            blockAllScripts(); // Ensure all scripts including scanned ones are blocked
             // Reload page to ensure all scripts are blocked
             window.location.reload();
         });
@@ -1722,6 +1760,8 @@ function snn_output_banner_js() {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
                     
+                    console.log('SNN Cookie: User clicked to change preferences');
+                    
                     // Show the cookie banner again (do NOT clear cookies here)
                     if (b) {
                         b.style.display = 'block';
@@ -1729,9 +1769,15 @@ function snn_output_banner_js() {
                         var prefsContent = document.querySelector('.snn-preferences-content');
                         if (prefsContent) {
                             prefsContent.style.display = 'block';
+                            console.log('SNN Cookie: Preferences panel opened');
                         }
-                        // Load current toggle states from cookie
+                        // Load current toggle states from cookie (includes both services AND blocked scripts)
                         loadToggleStates();
+                        
+                        // Log current toggle count for debugging
+                        var toggleCount = document.querySelectorAll('.snn-service-toggle').length;
+                        var blockedScriptToggles = document.querySelectorAll('.snn-service-toggle[data-service-index^="blocked_"]').length;
+                        console.log('SNN Cookie: Found', toggleCount, 'total toggles,', blockedScriptToggles, 'are blocked scripts');
                     }
                     if (o) {
                         o.style.display = 'block';
@@ -1774,14 +1820,20 @@ function snn_output_banner_js() {
             if(consentCookie){
                 try{
                     var consent = JSON.parse(consentCookie);
-                    // First block all scripts
+                    console.log('SNN Cookie: Applying custom preferences:', consent);
+                    
+                    // First block all scripts (both services and scanned scripts)
                     blockAllScripts();
-                    // Then inject only accepted custom scripts
+                    
+                    // Then inject only accepted custom scripts (services)
                     injectCustomConsentScripts();
-                    // Finally unblock only accepted blocked scripts
+                    
+                    // Finally unblock only accepted blocked scripts (scanned scripts)
+                    // Pass consent object so unblockScripts can check individual blocked_X permissions
+                    unblockScripts(consent);
+                    
                     updateGoogleAnalyticsConsent(true);
                     updateClarityConsent(true);
-                    unblockScripts(consent);
                     b&&(b.style.display='none');
                     o&&(o.style.display='none');
                 }catch(e){
@@ -1792,6 +1844,7 @@ function snn_output_banner_js() {
                 }
             }else{
                 // No consent cookie but accepted is 'custom' - invalid state, clear it
+                console.log('SNN Cookie: Invalid custom state without consent cookie, clearing');
                 eraseCookie('snn_cookie_accepted');
                 // Banner will show
             }
