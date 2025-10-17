@@ -53,10 +53,9 @@ function snn_scan_page_scripts_ajax() {
         wp_send_json_error(__('Page content is empty', 'snn'));
     }
     
-    // Parse HTML and extract scripts, iframes, and stylesheets
+    // Parse HTML and extract scripts and iframes
     $scripts = array();
     $iframes = array();
-    $stylesheets = array();
     
     // Use DOMDocument to parse HTML
     libxml_use_internal_errors(true);
@@ -109,31 +108,6 @@ function snn_scan_page_scripts_ajax() {
         }
     }
     
-    // Extract external stylesheets
-    $link_tags = $dom->getElementsByTagName('link');
-    foreach ($link_tags as $link) {
-        $rel = $link->getAttribute('rel');
-        $href = $link->getAttribute('href');
-        
-        // Only process stylesheet links
-        if ($rel === 'stylesheet' && !empty($href)) {
-            // Convert relative URLs to absolute
-            if (strpos($href, '//') === 0) {
-                $href = 'https:' . $href;
-            } elseif (strpos($href, '/') === 0) {
-                $parsed_url = parse_url($page_url);
-                $href = $parsed_url['scheme'] . '://' . $parsed_url['host'] . $href;
-            } elseif (strpos($href, 'http') !== 0) {
-                continue; // Skip relative paths that we can't resolve
-            }
-            
-            // Include all external stylesheets
-            if (!in_array($href, $stylesheets)) {
-                $stylesheets[] = $href;
-            }
-        }
-    }
-    
     // Get currently blocked scripts
     $options = get_option(SNN_OPTIONS);
     $blocked_scripts = isset($options['snn_cookie_settings_blocked_scripts']) ? $options['snn_cookie_settings_blocked_scripts'] : array();
@@ -141,7 +115,6 @@ function snn_scan_page_scripts_ajax() {
     wp_send_json_success(array(
         'scripts' => $scripts,
         'iframes' => $iframes,
-        'stylesheets' => $stylesheets,
         'blocked_scripts' => $blocked_scripts
     ));
 }
@@ -779,9 +752,8 @@ function snn_options_page() {
                         function displayScanResults(data) {
                             var html = '<div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; background: #f9f9f9;">';
                             
-                            var stylesheetsCount = data.stylesheets ? data.stylesheets.length : 0;
-                            if (data.scripts.length === 0 && data.iframes.length === 0 && stylesheetsCount === 0) {
-                                html += '<p><?php echo esc_js(__('No external scripts, iframes, or stylesheets detected on this page.', 'snn')); ?></p>';
+                            if (data.scripts.length === 0 && data.iframes.length === 0) {
+                                html += '<p><?php echo esc_js(__('No external scripts or iframes detected on this page.', 'snn')); ?></p>';
                             } else {
                                 // Display scripts
                                 if (data.scripts.length > 0) {
@@ -826,32 +798,6 @@ function snn_options_page() {
                                         html += '<label style="display: flex; align-items: center; gap: 10px;">';
                                         html += '<input type="checkbox" class="snn-script-to-block" value="' + iframe + '" ' + (isBlocked ? 'checked disabled' : '') + '>';
                                         html += '<code style="flex: 1; word-break: break-all; font-size: 11px;">' + iframe + '</code>';
-                                        if (isBlocked) {
-                                            html += '<span style="color: #d63638; font-weight: bold;">(<?php echo esc_js(__('Already Blocked', 'snn')); ?>)</span>';
-                                        }
-                                        html += '</label>';
-                                        html += '</li>';
-                                    });
-                                    html += '</ul>';
-                                }
-                                
-                                // Display stylesheets
-                                if (data.stylesheets && data.stylesheets.length > 0) {
-                                    html += '<h3 style="margin-top: 20px;"><?php echo esc_js(__('External Stylesheets Found:', 'snn')); ?> (' + data.stylesheets.length + ')</h3>';
-                                    html += '<ul style="list-style: none; padding: 0;">';
-                                    data.stylesheets.forEach(function(stylesheet){
-                                        // Check if stylesheet is already blocked (compare URL)
-                                        var isBlocked = false;
-                                        if (data.blocked_scripts && Array.isArray(data.blocked_scripts)) {
-                                            isBlocked = data.blocked_scripts.some(function(blocked) {
-                                                var blockedUrl = typeof blocked === 'string' ? blocked : blocked.url;
-                                                return blockedUrl === stylesheet;
-                                            });
-                                        }
-                                        html += '<li style="margin-bottom: 10px; padding: 10px; background: white; border: 1px solid #ddd;">';
-                                        html += '<label style="display: flex; align-items: center; gap: 10px;">';
-                                        html += '<input type="checkbox" class="snn-script-to-block" value="' + stylesheet + '" ' + (isBlocked ? 'checked disabled' : '') + '>';
-                                        html += '<code style="flex: 1; word-break: break-all; font-size: 11px;">' + stylesheet + '</code>';
                                         if (isBlocked) {
                                             html += '<span style="color: #d63638; font-weight: bold;">(<?php echo esc_js(__('Already Blocked', 'snn')); ?>)</span>';
                                         }
@@ -1469,22 +1415,11 @@ function snn_output_script_blocker() {
                             iframe.setAttribute('data-snn-blocked', 'true');
                         }
                     });
-                    
-                    // Block existing stylesheets that should be blocked
-                    var links = document.querySelectorAll('link[rel="stylesheet"][href]');
-                    links.forEach(function(link) {
-                        if (isBlocked(link.href)) {
-                            link.setAttribute('data-snn-blocked-href', link.href);
-                            link.disabled = true;
-                            link.removeAttribute('href');
-                            link.setAttribute('data-snn-blocked', 'true');
-                        }
-                    });
                 });
             }
         })();
         
-        // Use MutationObserver to block dynamically added scripts, iframes, and stylesheets
+        // Use MutationObserver to block dynamically added scripts and iframes
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 mutation.addedNodes.forEach(function(node) {
@@ -1495,12 +1430,6 @@ function snn_output_script_blocker() {
                     if (node.tagName === 'IFRAME' && node.src && isBlocked(node.src)) {
                         node.setAttribute('data-snn-blocked-src', node.src);
                         node.removeAttribute('src');
-                        node.setAttribute('data-snn-blocked', 'true');
-                    }
-                    if (node.tagName === 'LINK' && node.rel === 'stylesheet' && node.href && isBlocked(node.href)) {
-                        node.setAttribute('data-snn-blocked-href', node.href);
-                        node.disabled = true;
-                        node.removeAttribute('href');
                         node.setAttribute('data-snn-blocked', 'true');
                     }
                 });
@@ -1668,19 +1597,7 @@ function snn_output_banner_js() {
                 }
             });
             
-            // Block stylesheets
-            document.querySelectorAll('link[rel="stylesheet"][href]').forEach(function(link){
-                if(window.snnIsBlocked && window.snnIsBlocked(link.href)){
-                    if(!link.hasAttribute('data-snn-blocked')){
-                        link.setAttribute('data-snn-blocked-href', link.href);
-                        link.disabled = true;
-                        link.removeAttribute('href');
-                        link.setAttribute('data-snn-blocked', 'true');
-                    }
-                }
-            });
-            
-            // Restart mutation observer to catch new scripts, iframes, and stylesheets
+            // Restart mutation observer to catch new scripts and iframes
             if(window.snnScriptObserver){
                 window.snnScriptObserver.disconnect();
             }
@@ -1695,12 +1612,6 @@ function snn_output_banner_js() {
                         if (node.tagName === 'IFRAME' && node.src && window.snnIsBlocked && window.snnIsBlocked(node.src)) {
                             node.setAttribute('data-snn-blocked-src', node.src);
                             node.removeAttribute('src');
-                            node.setAttribute('data-snn-blocked', 'true');
-                        }
-                        if (node.tagName === 'LINK' && node.rel === 'stylesheet' && node.href && window.snnIsBlocked && window.snnIsBlocked(node.href)) {
-                            node.setAttribute('data-snn-blocked-href', node.href);
-                            node.disabled = true;
-                            node.removeAttribute('href');
                             node.setAttribute('data-snn-blocked', 'true');
                         }
                     });
@@ -1750,21 +1661,6 @@ function snn_output_banner_js() {
                     }
                 });
                 
-                // Unblock stylesheets based on consent
-                document.querySelectorAll('link[data-snn-blocked="true"]').forEach(function(link){
-                    var href = link.getAttribute('data-snn-blocked-href');
-                    if(href){
-                        if(shouldUnblockScript(href, customConsent)){
-                            // Stylesheet is allowed, unblock it
-                            link.href = href;
-                            link.disabled = false;
-                            link.removeAttribute('data-snn-blocked');
-                            link.removeAttribute('data-snn-blocked-href');
-                        }
-                        // If not allowed, keep it blocked (do nothing)
-                    }
-                });
-                
                 // IMPORTANT: Keep the mutation observer active to continue blocking scripts
                 // that are not allowed by custom consent
                 // The observer will check each dynamically added script against consent
@@ -1791,17 +1687,6 @@ function snn_output_banner_js() {
                         iframe.src = src;
                         iframe.removeAttribute('data-snn-blocked');
                         iframe.removeAttribute('data-snn-blocked-src');
-                    }
-                });
-                
-                // Unblock all stylesheets
-                document.querySelectorAll('link[data-snn-blocked="true"]').forEach(function(link){
-                    var href = link.getAttribute('data-snn-blocked-href');
-                    if(href){
-                        link.href = href;
-                        link.disabled = false;
-                        link.removeAttribute('data-snn-blocked');
-                        link.removeAttribute('data-snn-blocked-href');
                     }
                 });
                 
