@@ -274,10 +274,24 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 $icon_size = isset( $marker['icon_size'] ) ? intval( $marker['icon_size'] ) : 24;
 
                 // Determine the proper icon color value
+                $icon_color = '';
                 if ( is_array( $marker['icon_color'] ) ) {
-                    $icon_color = !empty( $marker['icon_color']['rgba'] )
-                        ? $marker['icon_color']['rgba']
-                        : ( !empty( $marker['icon_color']['hex'] ) ? $marker['icon_color']['hex'] : '' );
+                    // Check for CSS variable first
+                    if ( !empty( $marker['icon_color']['css'] ) ) {
+                        $icon_color = $marker['icon_color']['css'];
+                    }
+                    // Then check for rgba
+                    elseif ( !empty( $marker['icon_color']['rgba'] ) ) {
+                        $icon_color = $marker['icon_color']['rgba'];
+                    }
+                    // Then check for hex
+                    elseif ( !empty( $marker['icon_color']['hex'] ) ) {
+                        $icon_color = $marker['icon_color']['hex'];
+                    }
+                    // Fallback to raw if present
+                    elseif ( !empty( $marker['icon_color']['raw'] ) ) {
+                        $icon_color = $marker['icon_color']['raw'];
+                    }
                 } else {
                     $icon_color = $marker['icon_color'];
                 }
