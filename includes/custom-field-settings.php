@@ -60,7 +60,7 @@ function snn_custom_fields_page_callback() {
                     $choices_sanitized = wp_unslash(sanitize_textarea_field($choices_raw));
 
                     $field_type_for_repeater_check = isset($field_data['type']) ? $field_data['type'] : 'text';
-                    $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email']);
+                    $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map']);
 
                     $new_fields[] = [
                         'group_name'    => sanitize_text_field($field_data['group_name']),
@@ -100,7 +100,7 @@ function snn_custom_fields_page_callback() {
                     foreach ($custom_fields as $index => $field) {
                         $field_type = isset($field['type']) ? $field['type'] : 'text';
                         $show_choices = in_array($field_type, ['select','checkbox','radio']);
-                        $is_repeater_disabled_type = in_array($field_type, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email']);
+                        $is_repeater_disabled_type = in_array($field_type, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map']);
                         $repeater_title = $is_repeater_disabled_type ? __('This field type cannot be a repeater', 'snn') : __('Allow multiple values', 'snn');
                         ?>
                         <div class="custom-field-row" data-index="<?php echo $index; ?>">
@@ -153,6 +153,7 @@ function snn_custom_fields_page_callback() {
                                     <option value="true_false"<?php selected($field_type, 'true_false'); ?>><?php esc_html_e('True/False', 'snn'); ?></option>
                                     <option value="url"       <?php selected($field_type, 'url'); ?>><?php esc_html_e('URL', 'snn'); ?></option>
                                     <option value="email"     <?php selected($field_type, 'email'); ?>><?php esc_html_e('Email', 'snn'); ?></option>
+                                    <option value="map"       <?php selected($field_type, 'map'); ?>><?php esc_html_e('Map', 'snn'); ?></option>
                                 </select>
                             </div>
                             <div class="field-group field-group-choices" style="<?php echo $show_choices ? '' : 'display:none;'; ?>">
@@ -246,7 +247,7 @@ function snn_custom_fields_page_callback() {
                 const typeSelect = row.querySelector('.field-type-select');
                 const repeaterCheckbox = row.querySelector('.repeater-checkbox');
                 if (!typeSelect || !repeaterCheckbox) return;
-                const disable = ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email'].includes(typeSelect.value);
+                const disable = ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map'].includes(typeSelect.value);
                 repeaterCheckbox.disabled = disable;
                 repeaterCheckbox.title = disable ? '<?php echo esc_js(__('This field type cannot be a repeater', 'snn')); ?>' : '<?php echo esc_js(__('Allow multiple values', 'snn')); ?>';
                 if (disable) {
@@ -323,6 +324,7 @@ function snn_custom_fields_page_callback() {
                             <option value="true_false"><?php esc_html_e('True / False', 'snn'); ?></option>
                             <option value="url"><?php esc_html_e('URL', 'snn'); ?></option>
                             <option value="email"><?php esc_html_e('Email', 'snn'); ?></option>
+                            <option value="map"><?php esc_html_e('Map', 'snn'); ?></option>
                         </select>
                     </div>
                     <div class="field-group field-group-choices" style="display:none;">
@@ -551,9 +553,10 @@ function snn_custom_fields_page_callback() {
 function snn_register_dynamic_metaboxes() {
     $custom_fields = get_option('snn_custom_fields', []);
     $grouped_fields = [];
-    global $snn_repeater_fields_exist, $snn_media_fields_exist;
+    global $snn_repeater_fields_exist, $snn_media_fields_exist, $snn_map_fields_exist;
     $snn_repeater_fields_exist = false;
     $snn_media_fields_exist = false;
+    $snn_map_fields_exist = false;
 
     foreach ($custom_fields as $field) {
         $group_name = (!empty($field['group_name'])) ? $field['group_name'] : __('Custom Fields', 'snn');
@@ -567,12 +570,15 @@ function snn_register_dynamic_metaboxes() {
                 }
                 $grouped_fields[$pt][$group_name][] = $field;
 
-                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $snn_repeater_fields_exist = true;
                 }
                 if ($field['type'] === 'media') {
                     $snn_media_fields_exist = true;
+                }
+                if ($field['type'] === 'map') {
+                    $snn_map_fields_exist = true;
                 }
                 if ($field['type'] === 'date') {
                     wp_enqueue_script('jquery-ui-datepicker');
@@ -595,7 +601,7 @@ function snn_register_dynamic_metaboxes() {
         }
     }
 
-    if ($snn_media_fields_exist || $snn_repeater_fields_exist) {
+    if ($snn_media_fields_exist || $snn_repeater_fields_exist || $snn_map_fields_exist) {
         add_action('admin_enqueue_scripts', 'snn_enqueue_metabox_scripts');
         if (is_admin()) { 
              add_action('admin_footer', 'snn_output_dynamic_field_js');
@@ -612,13 +618,15 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         $post_type_has_media = false;
         $post_type_has_repeater = false;
         $post_type_has_basic_rich_text = false;
+        $post_type_has_map = false;
 
         $custom_fields = get_option('snn_custom_fields', []);
         foreach ($custom_fields as $field) {
             if (!empty($field['post_type']) && in_array($current_post_type, $field['post_type'])) {
                 if ($field['type'] === 'media') $post_type_has_media = true;
                 if ($field['type'] === 'basic_rich_text') $post_type_has_basic_rich_text = true;
-                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
+                if ($field['type'] === 'map') $post_type_has_map = true;
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $post_type_has_repeater = true;
                 }
@@ -632,17 +640,23 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         if ($post_type_has_basic_rich_text) {
              wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.1', true);
         }
+        if ($post_type_has_map) {
+            wp_enqueue_style('leaflet-css', get_stylesheet_directory_uri() . '/assets/css/leaflet.css', [], '1.9.4');
+            wp_enqueue_script('leaflet-js', get_stylesheet_directory_uri() . '/assets/js/leaflet.js', [], '1.9.4', true);
+        }
     }
     if (in_array($hook_suffix, ['profile.php','user-edit.php'])) {
         $custom_fields = get_option('snn_custom_fields', []);
         $has_author_media = false;
         $has_author_repeater = false;
         $has_author_basic_rich_text = false;
+        $has_author_map = false;
         foreach ($custom_fields as $field) {
             if (!empty($field['author'])) {
                 if ($field['type'] === 'media') $has_author_media = true;
                 if ($field['type'] === 'basic_rich_text') $has_author_basic_rich_text = true;
-                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
+                if ($field['type'] === 'map') $has_author_map = true;
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $has_author_repeater = true; 
                 }
@@ -652,7 +666,11 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         if ($has_author_basic_rich_text) {
              wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.1', true);
         }
-        if ($has_author_media || $has_author_repeater) {
+        if ($has_author_map) {
+            wp_enqueue_style('leaflet-css', get_stylesheet_directory_uri() . '/assets/css/leaflet.css', [], '1.9.4');
+            wp_enqueue_script('leaflet-js', get_stylesheet_directory_uri() . '/assets/js/leaflet.js', [], '1.9.4', true);
+        }
+        if ($has_author_media || $has_author_repeater || $has_author_map) {
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
     }
@@ -660,6 +678,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         $custom_fields = get_option('snn_custom_fields', []);
         $has_tax_media = false;
         $has_tax_basic_rich_text = false;
+        $has_tax_map = false;
         
         $current_taxonomy = isset($_GET['taxonomy']) ? sanitize_text_field($_GET['taxonomy']) : null;
         if(defined('DOING_AJAX') && DOING_AJAX && isset($_POST['taxonomy'])){ // Handle AJAX calls for terms screen (e.g. quick edit)
@@ -671,6 +690,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
                 if (!empty($field['taxonomies']) && in_array($current_taxonomy, $field['taxonomies'])) {
                     if ($field['type'] === 'media') $has_tax_media = true;
                     if ($field['type'] === 'basic_rich_text') $has_tax_basic_rich_text = true;
+                    if ($field['type'] === 'map') $has_tax_map = true;
                 }
             }
         }
@@ -679,7 +699,11 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         if ($has_tax_basic_rich_text) {
              wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.1', true);
         }
-        if ($has_tax_media) { 
+        if ($has_tax_map) {
+            wp_enqueue_style('leaflet-css', get_stylesheet_directory_uri() . '/assets/css/leaflet.css', [], '1.9.4');
+            wp_enqueue_script('leaflet-js', get_stylesheet_directory_uri() . '/assets/js/leaflet.js', [], '1.9.4', true);
+        }
+        if ($has_tax_media || $has_tax_map) { 
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
     }
@@ -1081,6 +1105,105 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                  . '" placeholder="name@example.com"' . $disabled_attr . ' />';
             break;
 
+        case 'map':
+            $latitude = '';
+            $longitude = '';
+            
+            // Get values based on context
+            if ($context === 'options_page') {
+                $latitude = get_option('snn_opt_' . $field_name . '_latitude', '');
+                $longitude = get_option('snn_opt_' . $field_name . '_longitude', '');
+            } else {
+                // For post meta, taxonomy, and author contexts - values are passed separately
+                // We'll use generic getter that works for all
+                global $pagenow;
+                if (in_array($pagenow, ['term.php', 'edit-tags.php'])) {
+                    // Taxonomy context
+                    $term_id = isset($_GET['tag_ID']) ? intval($_GET['tag_ID']) : 0;
+                    if ($term_id) {
+                        $latitude = get_term_meta($term_id, $field_name . '_latitude', true);
+                        $longitude = get_term_meta($term_id, $field_name . '_longitude', true);
+                    }
+                } elseif (in_array($pagenow, ['profile.php', 'user-edit.php'])) {
+                    // Author context
+                    $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : get_current_user_id();
+                    if ($user_id) {
+                        $latitude = get_user_meta($user_id, $field_name . '_latitude', true);
+                        $longitude = get_user_meta($user_id, $field_name . '_longitude', true);
+                    }
+                } else {
+                    // Post meta context
+                    $post_id = get_the_ID();
+                    if ($post_id) {
+                        $latitude = get_post_meta($post_id, $field_name . '_latitude', true);
+                        $longitude = get_post_meta($post_id, $field_name . '_longitude', true);
+                    }
+                }
+            }
+            
+            if (empty($latitude)) $latitude = '41.0082'; // Default Istanbul
+            if (empty($longitude)) $longitude = '28.9784';
+            
+            $map_id = 'map_' . $id_attribute_base;
+            
+            echo '<div class="snn-map-field-wrapper">';
+            echo '<div id="' . esc_attr($map_id) . '" class="snn-map-container" style="width:100%; height:400px; border:1px solid #ddd; margin-bottom:10px;"></div>';
+            echo '<input type="hidden" id="' . esc_attr($id_attribute_base . '_latitude') 
+                 . '" name="' . esc_attr($prefix . '[' . $base_field_part . '_latitude]') 
+                 . '" value="' . esc_attr($latitude) . '" class="snn-map-latitude"' . $disabled_attr . ' />';
+            echo '<input type="hidden" id="' . esc_attr($id_attribute_base . '_longitude') 
+                 . '" name="' . esc_attr($prefix . '[' . $base_field_part . '_longitude]') 
+                 . '" value="' . esc_attr($longitude) . '" class="snn-map-longitude"' . $disabled_attr . ' />';
+            echo '<div class="snn-map-coordinates">';
+            echo '<span><strong>' . esc_html__('Latitude:', 'snn') . '</strong> <span class="snn-map-lat-display">' . esc_html($latitude) . '</span></span> ';
+            echo '<span><strong>' . esc_html__('Longitude:', 'snn') . '</strong> <span class="snn-map-lng-display">' . esc_html($longitude) . '</span></span>';
+            echo '</div>';
+            echo '</div>';
+            echo '<br><small>Field Names: (locations_latitude , locations_longitude)</small>';
+            
+            if (!$is_template) {
+                echo '<script>
+                jQuery(document).ready(function($) {
+                    if (typeof L !== "undefined") {
+                        var mapId = "' . esc_js($map_id) . '";
+                        var lat = parseFloat("' . esc_js($latitude) . '") || 41.0082;
+                        var lng = parseFloat("' . esc_js($longitude) . '") || 28.9784;
+                        
+                        var map = L.map(mapId).setView([lat, lng], 13);
+                        
+                        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                            attribution: "&copy; OpenStreetMap contributors",
+                            maxZoom: 19
+                        }).addTo(map);
+                        
+                        var marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+                        
+                        function updateCoordinates(latlng) {
+                            var latInput = $("#' . esc_js($id_attribute_base . '_latitude') . '");
+                            var lngInput = $("#' . esc_js($id_attribute_base . '_longitude') . '");
+                            var latDisplay = latInput.closest(".snn-map-field-wrapper").find(".snn-map-lat-display");
+                            var lngDisplay = lngInput.closest(".snn-map-field-wrapper").find(".snn-map-lng-display");
+                            
+                            latInput.val(latlng.lat.toFixed(6));
+                            lngInput.val(latlng.lng.toFixed(6));
+                            latDisplay.text(latlng.lat.toFixed(6));
+                            lngDisplay.text(latlng.lng.toFixed(6));
+                        }
+                        
+                        marker.on("dragend", function(e) {
+                            updateCoordinates(e.target.getLatLng());
+                        });
+                        
+                        map.on("click", function(e) {
+                            marker.setLatLng(e.latlng);
+                            updateCoordinates(e.latlng);
+                        });
+                    }
+                });
+                </script>';
+            }
+            break;
+
         default: 
             echo '<input type="text" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '"' . $disabled_attr . ' />';
@@ -1113,6 +1236,30 @@ function snn_save_custom_fields_meta($post_id) {
         $current_post_type = get_post_type($post_id);
 
         if (empty($field['post_type']) || !in_array($current_post_type, $field['post_type'])) {
+            continue;
+        }
+
+        if ($field['type'] === 'map') {
+            $lat_field = $field_name . '_latitude';
+            $lng_field = $field_name . '_longitude';
+            
+            if (isset($posted_data[$lat_field])) {
+                $lat_value = sanitize_text_field($posted_data[$lat_field]);
+                if ($lat_value !== '') {
+                    update_post_meta($post_id, $lat_field, $lat_value);
+                } else {
+                    delete_post_meta($post_id, $lat_field);
+                }
+            }
+            
+            if (isset($posted_data[$lng_field])) {
+                $lng_value = sanitize_text_field($posted_data[$lng_field]);
+                if ($lng_value !== '') {
+                    update_post_meta($post_id, $lng_field, $lng_value);
+                } else {
+                    delete_post_meta($post_id, $lng_field);
+                }
+            }
             continue;
         }
 
@@ -1263,6 +1410,31 @@ function snn_save_taxonomy_field_data($term_id) {
         }
 
         $field_name = $field['name'];
+        
+        if ($field['type'] === 'map') {
+            $lat_field = $field_name . '_latitude';
+            $lng_field = $field_name . '_longitude';
+            
+            if (isset($posted_data[$lat_field])) {
+                $lat_value = sanitize_text_field($posted_data[$lat_field]);
+                if ($lat_value !== '') {
+                    update_term_meta($term_id, $lat_field, $lat_value);
+                } else {
+                    delete_term_meta($term_id, $lat_field);
+                }
+            }
+            
+            if (isset($posted_data[$lng_field])) {
+                $lng_value = sanitize_text_field($posted_data[$lng_field]);
+                if ($lng_value !== '') {
+                    update_term_meta($term_id, $lng_field, $lng_value);
+                } else {
+                    delete_term_meta($term_id, $lng_field);
+                }
+            }
+            continue;
+        }
+        
         if (isset($posted_data[$field_name])) {
             $raw_value = $posted_data[$field_name];
             if (is_array($raw_value)) { 
@@ -1413,6 +1585,31 @@ function snn_save_author_custom_fields($user_id) {
             continue;
         }
         $field_name = $field['name'];
+        
+        if ($field['type'] === 'map') {
+            $lat_field = $field_name . '_latitude';
+            $lng_field = $field_name . '_longitude';
+            
+            if (isset($posted_data[$lat_field])) {
+                $lat_value = sanitize_text_field($posted_data[$lat_field]);
+                if ($lat_value !== '') {
+                    update_user_meta($user_id, $lat_field, $lat_value);
+                } else {
+                    delete_user_meta($user_id, $lat_field);
+                }
+            }
+            
+            if (isset($posted_data[$lng_field])) {
+                $lng_value = sanitize_text_field($posted_data[$lng_field]);
+                if ($lng_value !== '') {
+                    update_user_meta($user_id, $lng_field, $lng_value);
+                } else {
+                    delete_user_meta($user_id, $lng_field);
+                }
+            }
+            continue;
+        }
+        
         if (isset($posted_data[$field_name])) {
             $raw_value = $posted_data[$field_name];
             if (is_array($raw_value)) { 
@@ -1871,6 +2068,30 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
             $field_name = $field_config['name'];
             $option_key = 'snn_opt_' . $field_name; 
 
+            if ($field_config['type'] === 'map') {
+                $lat_field = $field_name . '_latitude';
+                $lng_field = $field_name . '_longitude';
+                
+                if (isset($posted_options_data[$lat_field])) {
+                    $lat_value = sanitize_text_field($posted_options_data[$lat_field]);
+                    if ($lat_value !== '') {
+                        update_option('snn_opt_' . $lat_field, $lat_value);
+                    } else {
+                        delete_option('snn_opt_' . $lat_field);
+                    }
+                }
+                
+                if (isset($posted_options_data[$lng_field])) {
+                    $lng_value = sanitize_text_field($posted_options_data[$lng_field]);
+                    if ($lng_value !== '') {
+                        update_option('snn_opt_' . $lng_field, $lng_value);
+                    } else {
+                        delete_option('snn_opt_' . $lng_field);
+                    }
+                }
+                continue;
+            }
+
             if (isset($posted_options_data[$field_name])) {
                 $raw_value = $posted_options_data[$field_name];
                 if (is_array($raw_value)) { 
@@ -2059,13 +2280,15 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
     $needs_datepicker = false;
     $needs_basic_rich_text = false;
 
+    $needs_map = false;
     foreach ($all_custom_fields as $field_cfg) {
         if (!empty($field_cfg['options_page']) && !empty($field_cfg['group_name']) && sanitize_title($field_cfg['group_name']) === $group_name_sanitized) {
             if ($field_cfg['type'] === 'media') $needs_media = true;
             if ($field_cfg['type'] === 'date') $needs_datepicker = true;
             if ($field_cfg['type'] === 'basic_rich_text') $needs_basic_rich_text = true;
+            if ($field_cfg['type'] === 'map') $needs_map = true;
             
-            $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email'];
+            $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
             if (!in_array($field_cfg['type'], $disallowed_for_repeater) && !empty($field_cfg['repeater'])) {
                  $needs_repeater_js = true; 
             }
@@ -2082,8 +2305,12 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
     if ($needs_basic_rich_text) {
         wp_enqueue_script('snn-rich-text-editor', plugin_dir_url(__FILE__) . 'assets/js/snn-rich-text-editor.js', ['jquery'], '1.1', true);
     }
+    if ($needs_map) {
+        wp_enqueue_style('leaflet-css', get_stylesheet_directory_uri() . '/assets/css/leaflet.css', [], '1.9.4');
+        wp_enqueue_script('leaflet-js', get_stylesheet_directory_uri() . '/assets/js/leaflet.js', [], '1.9.4', true);
+    }
 
-    if ($needs_media || $needs_repeater_js || $needs_datepicker) { 
+    if ($needs_media || $needs_repeater_js || $needs_datepicker || $needs_map) { 
         add_action('admin_footer', 'snn_output_dynamic_field_js');
     }
 }
