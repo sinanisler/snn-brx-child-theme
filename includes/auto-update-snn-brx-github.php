@@ -127,3 +127,73 @@ function snn_brx_theme_info_from_proxy($result, $action, $args) {
 
     return $result;
 }
+
+/**
+ * Add JavaScript to admin footer to redirect version details link
+ */
+add_action('admin_footer', 'snn_brx_github_redirect_version_link');
+function snn_brx_github_redirect_version_link() {
+    ?>
+    <script type="text/javascript">
+        (function() {
+            const githubUrl = 'https://github.com/sinanisler/snn-brx-child-theme/releases';
+            
+            function modifyLink(link) {
+                if (link.getAttribute('aria-label') && link.getAttribute('aria-label').includes('SNN-BRX')) {
+                    // Replace the href completely
+                    link.href = githubUrl;
+                    
+                    // Remove thickbox classes
+                    link.classList.remove('thickbox', 'open-plugin-details-modal');
+                    
+                    // Set target to open in new tab
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    
+                    // Add click handler as extra safety
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.open(githubUrl, '_blank', 'noopener,noreferrer');
+                        return false;
+                    }, true);
+                }
+            }
+            
+            function processLinks() {
+                const links = document.querySelectorAll('a[aria-label*="SNN-BRX"]');
+                links.forEach(modifyLink);
+            }
+            
+            // Process on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', processLinks);
+            } else {
+                processLinks();
+            }
+            
+            // Also watch for dynamically added links
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) {
+                            if (node.matches && node.matches('a[aria-label*="SNN-BRX"]')) {
+                                modifyLink(node);
+                            }
+                            const links = node.querySelectorAll && node.querySelectorAll('a[aria-label*="SNN-BRX"]');
+                            if (links) {
+                                links.forEach(modifyLink);
+                            }
+                        }
+                    });
+                });
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        })();
+    </script>
+    <?php
+}
