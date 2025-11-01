@@ -1,0 +1,6852 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: SNN-BRX - Bricks Builder Child Theme\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-14 22:24+0000\n"
+"PO-Revision-Date: 2025-10-21 03:26+0000\n"
+"Last-Translator: \n"
+"Language-Team: 简体中文\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.0; wp-6.8.3; php-8.3.21\n"
+"X-Domain: snn"
+
+#: includes/custom-field-settings.php:1809
+msgid " Settings"
+msgstr "设置"
+
+#: includes/role-manager.php:461 includes/role-manager.php:496
+msgid "%d Capability"
+msgid_plural "%d Capabilities"
+msgstr[0] "%d 权限"
+
+#: includes/role-manager.php:519
+msgid "%d Post"
+msgid_plural "%d Posts"
+msgstr[0] "%d 文章"
+
+#: includes/301-redirect.php:183
+msgid "%d redirects imported successfully!"
+msgstr "%d 重定向成功导入！"
+
+#: includes/301-redirect.php:186
+msgid "%d redirects were skipped (invalid format or already exist)."
+msgstr "跳过了 %d 个重定向（格式无效或已存在）。"
+
+#: includes/custom-code-snippets.php:606
+#, php-format
+msgid "%d revision(s) for \"%s\" cleared successfully."
+msgstr "%d 的 \"%s\" 次修订已成功清除。"
+
+#: includes/cookie-banner.php:669
+msgid "*"
+msgstr "*"
+
+#: includes/global-classes.php:352
+msgid "- Change Category To -"
+msgstr "- 将类别更改为 -"
+
+#: includes/global-classes.php:382 includes/global-classes.php:492
+#: includes/global-classes.php:608
+msgid "- None -"
+msgstr "- 无 -"
+
+#: includes/other-settings.php:355
+msgid "--"
+msgstr "--"
+
+#: includes/elements/gsap-multi-element-register.php:608
+msgid "/ Custom data-animate"
+msgstr "/ 自定义 data-animate"
+
+#: includes/301-redirect.php:334 includes/301-redirect.php:339
+msgid "301 Redirect Rules"
+msgstr "301 重定向规则"
+
+#: includes/301-redirect.php:39 includes/301-redirect.php:40
+#: includes/settings-page.php:36
+msgid "301 Redirects"
+msgstr "301 重定向"
+
+#: includes/404-logging.php:180
+msgid "404 Error"
+msgstr "404 错误"
+
+#: includes/404-logging.php:14 includes/404-logging.php:15
+#: includes/404-logging.php:208 includes/settings-page.php:35
+msgid "404 Logs"
+msgstr "404 日志"
+
+#: includes/other-settings.php:164
+msgid "9999"
+msgstr "9999"
+
+#: includes/custom-code-snippets.php:577
+msgid ""
+"<strong>EXTREME DANGER:</strong> This code is executed directly. There are "
+"no safeguards.  Use this only if you are an expert and understand the risks "
+"of breaking your entire site. Revisions are NOT available for this snippet."
+"<br> This code runs directly like it runs in functions.php and with no "
+"sanitization regex safe."
+msgstr ""
+"<strong>极端危险：</strong>此代码会被直接执行。没有任何保护措施。  只有当您是专家并了解会破坏整个网站的风险时，才能使用此代码。<br>"
+"此代码直接运行，就像在 functions.php 中运行一样，没有任何安全校验 regex。"
+
+#: includes/elements/conditions.php:126
+msgid "= Condition value"
+msgstr "= 条件值"
+
+#: includes/301-redirect.php:214 includes/301-redirect.php:270
+msgid "A redirect for this path already exists!"
+msgstr "此路径的重定向已经存在！"
+
+#: includes/other-settings.php:149
+msgid "Ability to create GSAP animations with just data-animate attributes."
+msgstr "只需使用 data-animate 属性即可创建 GSAP 动画。"
+
+#: includes/cookie-banner.php:130 includes/cookie-banner.php:706
+msgid "Accept"
+msgstr "接受"
+
+#: includes/cookie-banner.php:267
+msgid "Accept Button Text"
+msgstr "接受按钮文本"
+
+#: includes/accessibility-settings.php:6 includes/accessibility-settings.php:7
+#: includes/accessibility-settings.php:41 includes/settings-page.php:41
+msgid "Accessibility Settings"
+msgstr "无障碍设置"
+
+#: includes/accessibility-settings.php:55
+msgid "Accessibility Widget Color"
+msgstr "无障碍小工具颜色"
+
+#: includes/activity-logs.php:645
+#: includes/elements/element-event-action-selector.php:104
+msgid "Action"
+msgstr "操作"
+
+#: includes/elements/text-action-social-share.php:56
+msgid "Action Link (use {text}, {url}, {image})"
+msgstr "操作链接（使用 {text}、{url}、{image}。"
+
+#: includes/ai/ai-settings.php:344 includes/ai/ai-settings.php:742
+msgid "Action Name"
+msgstr "操作名称"
+
+#: includes/ai/ai-settings.php:352 includes/ai/ai-settings.php:749
+msgid "Action Prompt"
+msgstr "操作提示"
+
+#: includes/ai/ai-settings.php:328
+msgid "Action Prompts"
+msgstr "操作提示"
+
+#: includes/301-redirect.php:425 includes/global-classes.php:303
+#: includes/global-classes.php:368 includes/global-variables.php:177
+#: includes/mail-logging.php:210 includes/role-manager.php:438
+#: includes/role-manager.php:466 includes/role-manager.php:530
+#: includes/role-manager.php:562
+#: includes/elements/element-event-action-selector.php:92
+#: includes/elements/text-action-social-share.php:39
+msgid "Actions"
+msgstr "操作"
+
+#: includes/activity-logs.php:556
+msgid "Activity log cleared."
+msgstr "活动日志已清除。"
+
+#: includes/activity-logs.php:31 includes/activity-logs.php:32
+#: includes/settings-page.php:46
+msgid "Activity Logs"
+msgstr "活动日志"
+
+#: includes/global-classes.php:328 includes/global-classes.php:407
+#: includes/global-variables.php:223
+msgid "Add"
+msgstr "添加"
+
+#: includes/elements/text-action-social-share.php:21
+msgid ""
+"Add action buttons for selected text. Use {text}, {url}, and {image} in link "
+"- they will be replaced with user selection, page URL, and featured image "
+"URL. Example: https://twitter.com/intent/tweet?text={text}%20{url}"
+msgstr ""
+"为选定文本添加操作按钮。在链接中使用 {text}、{url} 和 {image} - 它们将被替换为用户选择、页面 URL 和特色图片 URL。例如： "
+"https://twitter.com/intent/tweet?text={text}%20{url}"
+
+#: includes/global-variables.php:148 includes/media-settings.php:621
+msgid "Add Category"
+msgstr "添加类别"
+
+#: includes/editor-settings-panel-color-sync.php:630
+msgid "Add Color +"
+msgstr "添加颜色 +"
+
+#: includes/taxonomy-settings.php:176
+msgid "Add Columns"
+msgstr "添加列"
+
+#: includes/custom-field-settings.php:739
+#: includes/custom-field-settings.php:1957
+msgid "Add More +"
+msgstr "添加更多 +"
+
+#: includes/custom-field-settings.php:214
+msgid "Add New Field"
+msgstr "添加新字段"
+
+#: includes/media-settings.php:133
+msgid "Add New Media Category"
+msgstr "添加新媒体类别"
+
+#: includes/post-types-settings.php:145
+msgid "Add New Post Type"
+msgstr "添加新的文章类型"
+
+#: includes/role-manager.php:385 includes/role-manager.php:573
+#: includes/role-manager.php:627
+msgid "Add New Role"
+msgstr "添加新角色"
+
+#: includes/taxonomy-settings.php:94
+msgid "Add New Taxonomy"
+msgstr "添加新分类法"
+
+#: includes/ai/ai-settings.php:366
+msgid "Add Preset"
+msgstr "添加预设"
+
+#: includes/301-redirect.php:341 includes/301-redirect.php:399
+msgid "Add Redirect"
+msgstr "添加重定向"
+
+#: includes/custom-field-settings.php:1531
+msgid "Add Selected"
+msgstr "添加选定"
+
+#: includes/cookie-banner.php:369
+msgid "Add Service"
+msgstr "添加服务"
+
+#: includes/ai/ai-design.php:62
+msgid "Add To Canvas"
+msgstr "添加到画布"
+
+#: includes/ai/ai-settings.php:330
+msgid ""
+"Add, edit, remove, or drag-and-drop to reorder AI action prompts. These "
+"presets will be available as selectable buttons in the AI overlay."
+msgstr "添加、编辑、删除或拖放以重新排列人工智能操作提示。这些预设将作为可选按钮出现在人工智能叠加界面中。"
+
+#: includes/301-redirect.php:423
+msgid "Added Date"
+msgstr "添加日期"
+
+#: includes/custom-code-snippets.php:559
+msgid "Admin Head PHP/HTML"
+msgstr "管理 Head PHP/HTML"
+
+#: includes/role-manager.php:468
+msgid "Administrator role cannot be deleted."
+msgstr "管理员角色无法删除。"
+
+#: includes/role-manager.php:467
+msgid "Administrator role cannot be modified here."
+msgstr "此处不能修改管理员角色。"
+
+#: includes/custom-code-snippets.php:574
+msgid "Advance Code (functions.php)"
+msgstr "高级代码 (functions.php)"
+
+#: includes/elements/advanced-image.php:15
+msgid "Advanced Image"
+msgstr "高级图像"
+
+#: includes/custom-code-snippets.php:984
+msgid "Advanced Raw Code"
+msgstr "高级原始代码"
+
+#: includes/elements/animated-heading.php:44
+msgid "After"
+msgstr "之后"
+
+#: includes/custom-code-snippets.php:931
+msgid "ago"
+msgstr "之前"
+
+#: includes/ai/ai-overlay.php:284
+msgid "AI Content Assistant"
+msgstr "人工智能内容助理"
+
+#: includes/ai/ai-design.php:49
+msgid "AI Design Generator"
+msgstr "人工智能设计生成器"
+
+#: includes/settings-page.php:43 includes/ai/ai-settings.php:42
+#: includes/ai/ai-settings.php:43 includes/ai/ai-settings.php:110
+msgid "AI Settings"
+msgstr "人工智能设置"
+
+#: includes/custom-code-snippets.php:137
+msgid "AJAX error fetching revision."
+msgstr "获取修订版本时出现 AJAX 错误。"
+
+#: includes/custom-code-snippets.php:23
+msgid "All Code Snippets"
+msgstr "所有代码片段"
+
+#: includes/custom-code-snippets.php:589
+msgid "All error logs have been cleared."
+msgstr "已清除所有错误日志。"
+
+#: includes/activity-logs.php:592
+msgid "All Logging Options"
+msgstr "所有日志记录选项"
+
+#: includes/301-redirect.php:297
+msgid "All logs have been cleared!"
+msgstr "所有日志都已清除！"
+
+#: includes/media-settings.php:128
+msgid "All Media Categories"
+msgstr "所有媒体类别"
+
+#: includes/media-settings.php:581
+msgid "All Media Files"
+msgstr "所有媒体文件"
+
+#: includes/search-loggins.php:144
+msgid "All search logs have been cleared."
+msgstr "已清除所有搜索日志。"
+
+#. %s: The name of the constant, e.g., SNN_CODE_DISABLE
+#: includes/custom-code-snippets.php:754
+#, php-format
+msgid ""
+"All snippet execution is currently disabled by the %s constant. To re-enable "
+"execution, you must remove or set this constant to false."
+msgstr "当前 %s 常量禁用了所有片段的执行。要重新启用执行，必须删除该常量或将其设置为 false。"
+
+#: includes/custom-code-snippets.php:705
+msgid "All snippets and settings saved."
+msgstr "所有代码片段和设置已保存。"
+
+#: includes/custom-field-settings.php:104
+#: includes/custom-field-settings.php:251
+msgid "Allow multiple values"
+msgstr "允许多个值"
+
+#: includes/elements/frontend-post-form.php:94
+msgid "Allowed user roles"
+msgstr "允许的用户角色"
+
+#: includes/editor-settings-panel-color-sync.php:352
+msgid "An error occurred while saving settings."
+msgstr "保存设置时发生错误。"
+
+#: includes/role-manager.php:973
+msgid "An error occurred. Please try again."
+msgstr "发生错误。请重试。"
+
+#: includes/settings-page.php:67
+msgid "and"
+msgstr "和"
+
+#: includes/global-variables.php:154
+msgid "and click"
+msgstr "并点击"
+
+#: includes/elements/conditions.php:145
+msgid "Android"
+msgstr "安卓"
+
+#: includes/elements/animated-heading.php:17
+#: includes/elements/animated-heading.php:37
+msgid "Animated Headline"
+msgstr "动画标题"
+
+#: includes/elements/animated-vfx-text.php:27
+msgid "Animated Text"
+msgstr "动画文本"
+
+#: includes/elements/animated-vfx-text.php:16
+msgid "Animated VFX Text"
+msgstr "动画 VFX 文本"
+
+#: includes/elements/gsap-animations.php:69
+msgid "Animation"
+msgstr "动画"
+
+#: includes/elements/animated-vfx-text.php:35
+msgid "Animation Effect"
+msgstr "动画效果"
+
+#: includes/elements/lottie-animation.php:111
+msgid "Animation Height (px)"
+msgstr "动画高度（px）"
+
+#: includes/elements/lottie-animation.php:99
+msgid "Animation Speed"
+msgstr "动画速度"
+
+#: includes/elements/conditions.php:139
+msgid "Any"
+msgstr "任何"
+
+#: includes/elements/conditions.php:39
+msgid ""
+"Any valid DOM selector. If set, conditions apply to target(s) instead of "
+"this element."
+msgstr "任何有效的 DOM 选择器。如果设置，条件将应用于目标元素，而不是此元素。"
+
+#: includes/ai/ai-settings.php:130
+msgid "API Provider"
+msgstr "API 提供商"
+
+#: includes/elements/element-event-action-selector.php:139
+msgid "Append HTML"
+msgstr "附加 HTML"
+
+#: includes/activity-logs.php:120
+msgid "Application Password Events"
+msgstr "应用程序密码事件"
+
+#: includes/global-classes.php:357
+msgid "Apply"
+msgstr "应用"
+
+#: includes/ai/ai-overlay.php:333
+msgid "Apply Changes to Editor"
+msgstr "将更改应用到编辑器"
+
+#: includes/ai/ai-overlay.php:301
+msgid "Apply to Editor"
+msgstr "应用编辑"
+
+#: includes/elements/svg-text-path.php:38
+msgid "Arc"
+msgstr "弧形"
+
+#: includes/custom-code-snippets.php:140
+msgid ""
+"Are you absolutely sure you want to delete all error logs? This action "
+"cannot be undone."
+msgstr "您确定要删除所有错误日志吗？此操作无法撤销。"
+
+#: includes/custom-code-snippets.php:139
+msgid ""
+"Are you absolutely sure you want to delete all revisions for this snippet? "
+"This action cannot be undone."
+msgstr "您确定要删除此片段的所有修订版本吗？此操作无法撤销。"
+
+#: includes/role-manager.php:538
+#, php-format
+msgid ""
+"Are you absolutely sure you want to delete the role \"%s\"? This action "
+"cannot be undone. Users assigned to this role might lose permissions or be "
+"reassigned to the default role. Any post editing restrictions for this role "
+"will also be removed."
+msgstr ""
+"您确定要删除角色\"%s \"吗？此操作无法撤销。分配到此角色的用户可能会失去权限或被重新分配到默认角色。该角色的任何帖子编辑限制也将被删除。"
+
+#: includes/301-redirect.php:528
+msgid "Are you sure you want to clear all logs? This action cannot be undone."
+msgstr "您确定要清除所有日志吗？此操作无法撤销。"
+
+#: includes/media-settings.php:478
+msgid "Are you sure you want to delete this category?"
+msgstr "您确定要删除这个类别吗？"
+
+#: includes/301-redirect.php:453
+msgid "Are you sure you want to delete this redirect?"
+msgstr "您确定要删除此重定向吗？"
+
+#: includes/post-types-settings.php:273
+msgid "Are you sure you want to remove this post type?"
+msgstr "您确定要删除此帖子类型吗？"
+
+#: includes/ai/ai-settings.php:771
+msgid ""
+"Are you sure you want to reset all presets to their defaults? This cannot be "
+"undone."
+msgstr "您确定要将所有预置重置为默认值吗？这是无法撤销的。"
+
+#: includes/custom-code-snippets.php:138
+msgid ""
+"Are you sure you want to restore this revision and save? The current content "
+"in the editor will be overwritten, saved, and then executed. This could "
+"break your site if the revision contains errors."
+msgstr "您确定要恢复此修订并保存吗？编辑器中的当前内容将被覆盖、保存，然后执行。如果修订版包含错误，这可能会破坏您的网站。"
+
+#: includes/utils.php:173
+msgid "Assign Roles"
+msgstr "分配角色"
+
+#: includes/taxonomy-settings.php:165
+msgid "Associated Post Types"
+msgstr "相关文章类型"
+
+#: includes/custom-code-snippets.php:763
+msgid ""
+"ATTENTION PLEASE! These settings are not for normal users! If you don’t have "
+"at least some basic knowledge of HTML, CSS, and FTP login, DO NOT USE IT!"
+msgstr "请注意这些设置不适合普通用户！如果您不具备 HTML、CSS 和 FTP 登录的基本知识，请勿使用！"
+
+#: includes/elements/element-event-action-selector.php:119
+msgid "Attribute Name"
+msgstr "属性名称"
+
+#: includes/elements/element-event-action-selector.php:126
+msgid "Attribute Value"
+msgstr "属性值"
+
+#: includes/custom-field-settings.php:187
+#: includes/custom-field-settings.php:342 includes/post-types-settings.php:28
+#: includes/post-types-settings.php:159
+msgid "Author"
+msgstr "作者"
+
+#: includes/auto-update-bricks.php:20
+msgid "Auto Update Bricks Theme (Bricks Builder Only)"
+msgstr "自动更新Bricks Builder主题（仅限Bricks Builder）"
+
+#: includes/other-settings.php:64
+msgid "Auto Update Bricks Theme (Main Theme Only)"
+msgstr "自动更新砖块主题（仅限主主题）"
+
+#: includes/elements/lottie-animation.php:45
+msgid "Autoplay Animation"
+msgstr "自动播放动画"
+
+#: includes/elements/comment-list.php:22
+msgid "Avatar size"
+msgstr "头像大小"
+
+#: includes/elements/multi-step-form.php:89
+#: includes/elements/multi-step-form.php:90
+msgid "Back"
+msgstr "返回"
+
+#: includes/elements/multi-step-form.php:87
+msgid "Back Button Text"
+msgstr "返回按钮文本"
+
+#: includes/elements/matrix.php:38
+msgid "Background Color (fade trail)"
+msgstr "背景颜色（淡入淡出）"
+
+#: includes/login-settings.php:47
+msgid "Background Image"
+msgstr "背景图片"
+
+#: includes/elements/gsap-multi-element-register.php:370
+msgid "Background Position -100% to 0% (Left In)"
+msgstr "背景位置 -100% 至 0%（左进）"
+
+#: includes/elements/gsap-multi-element-register.php:380
+msgid "Background Position -100% to 0% (Top In)"
+msgstr "背景位置 -100% 至 0%（顶部进入）"
+
+#: includes/elements/gsap-multi-element-register.php:371
+msgid "Background Position 0% to -100% (Left Out)"
+msgstr "背景位置 0% 至 -100%（左侧退出）"
+
+#: includes/elements/gsap-multi-element-register.php:381
+msgid "Background Position 0% to -100% (Top Out)"
+msgstr "背景位置 0% 至 -100%（顶部退出）"
+
+#: includes/elements/gsap-multi-element-register.php:382
+msgid "Background Position 0% to 200% (Sweep Down)"
+msgstr "背景位置 0% 至 200%（向下扫描）"
+
+#: includes/elements/gsap-multi-element-register.php:372
+msgid "Background Position 0% to 200% (Sweep Right)"
+msgstr "背景位置 0% 至 200%（向右扫描）"
+
+#: includes/elements/gsap-multi-element-register.php:374
+msgid "Background Position 100% to 200%"
+msgstr "背景位置 100% 至 200%"
+
+#: includes/elements/gsap-multi-element-register.php:384
+msgid "Background Position 100% to 200% (Bottom Extend)"
+msgstr "背景位置 100% 至 200%（底部扩展）"
+
+#: includes/elements/gsap-multi-element-register.php:373
+msgid "Background Position 200% to 0% (Sweep Left In)"
+msgstr "背景位置 200% 至 0%（向左扫入）"
+
+#: includes/elements/gsap-multi-element-register.php:383
+msgid "Background Position 200% to 0% (Sweep Up In)"
+msgstr "背景位置 200% 至 0%（向上扫入）"
+
+#: includes/elements/gsap-multi-element-register.php:375
+#: includes/elements/gsap-multi-element-register.php:385
+msgid "Background Position 200% to 100%"
+msgstr "背景位置 200% 至 100%"
+
+#: includes/elements/gsap-multi-element-register.php:379
+msgid "Background Position Bottom to Top"
+msgstr "背景位置 自下而上"
+
+#: includes/elements/gsap-multi-element-register.php:368
+msgid "Background Position Left to Right"
+msgstr "背景位置 从左至右"
+
+#: includes/elements/gsap-multi-element-register.php:369
+msgid "Background Position Right to Left"
+msgstr "背景位置 从右向左"
+
+#: includes/elements/gsap-multi-element-register.php:378
+msgid "Background Position Top to Bottom"
+msgstr "背景位置 从上到下"
+
+#: includes/elements/gsap-multi-element-register.php:392
+msgid "Background Size 0% to 100%"
+msgstr "背景尺寸 0% 至 100%"
+
+#: includes/elements/gsap-multi-element-register.php:393
+msgid "Background Size 100% to 0%"
+msgstr "背景尺寸 100% 至 0%"
+
+#: includes/elements/gsap-multi-element-register.php:390
+msgid "Background Size 100% to 200%"
+msgstr "背景尺寸 100% 至 200%"
+
+#: includes/elements/gsap-multi-element-register.php:395
+msgid "Background Size 100% to 50%"
+msgstr "背景尺寸 100% 至 50%"
+
+#: includes/elements/gsap-multi-element-register.php:391
+msgid "Background Size 200% to 100%"
+msgstr "背景尺寸 200% 至 100%"
+
+#: includes/elements/gsap-multi-element-register.php:394
+msgid "Background Size 50% to 100%"
+msgstr "背景尺寸 50% 至 100%"
+
+#: includes/elements/gsap-multi-element-register.php:401
+msgid "Background Size Auto to Full Height"
+msgstr "背景尺寸自动调整为全高"
+
+#: includes/elements/gsap-multi-element-register.php:400
+msgid "Background Size Auto to Full Width"
+msgstr "背景尺寸自动调整为全宽"
+
+#: includes/elements/gsap-multi-element-register.php:399
+msgid "Background Size Normal to Tall"
+msgstr "背景尺寸 正常至高"
+
+#: includes/elements/gsap-multi-element-register.php:398
+msgid "Background Size Normal to Wide"
+msgstr "背景尺寸 正常至宽"
+
+#: includes/elements/gsap-multi-element-register.php:396
+msgid "Background Size Tall to Normal"
+msgstr "背景尺寸 高至正常"
+
+#: includes/elements/gsap-multi-element-register.php:397
+msgid "Background Size Wide to Normal"
+msgstr "背景尺寸 宽至正常"
+
+#: includes/elements/like-button.php:67
+msgid "Balloon Text (Like)"
+msgstr "气球文字（喜欢）"
+
+#: includes/elements/like-button.php:75
+msgid "Balloon Text (Unlike)"
+msgstr "气球文本（取消喜欢）"
+
+#: includes/cookie-banner.php:494
+msgid "Banner Border Radius"
+msgstr "横幅边框半径"
+
+#: includes/cookie-banner.php:550
+msgid "Banner Shadow Color"
+msgstr "横幅阴影颜色"
+
+#: includes/cookie-banner.php:556
+msgid "Banner Shadow Spread"
+msgstr "横幅阴影扩展半径"
+
+#: includes/cookie-banner.php:487
+msgid "Banner Width"
+msgstr "横幅宽度"
+
+#: includes/elements/gsap-multi-element-register.php:337
+msgid "Barrel Roll In"
+msgstr "桶滚入"
+
+#: includes/elements/gsap-multi-element-register.php:338
+msgid "Barrel Roll Out"
+msgstr "桶滚出"
+
+#: includes/custom-field-settings.php:145
+#: includes/custom-field-settings.php:315
+msgid "Basic Rich Text"
+msgstr "基本富文本"
+
+#: includes/elements/animated-heading.php:30
+msgid "Before"
+msgstr "前置"
+
+#: includes/elements/gsap-multi-element-register.php:199
+msgid "Blink"
+msgstr "眨眼"
+
+#: includes/elements/gsap-multi-element-register.php:142
+msgid "Blob Morph In (Legacy)"
+msgstr "Blob Morph In（旧版）"
+
+#: includes/elements/gsap-multi-element-register.php:143
+msgid "Blob Morph Out (Legacy)"
+msgstr "Blob Morph Out（旧版）"
+
+#: includes/block-editor-settings.php:9 includes/block-editor-settings.php:10
+#: includes/block-editor-settings.php:23 includes/block-editor-settings.php:46
+#: includes/settings-page.php:44
+msgid "Block Editor Settings"
+msgstr "区块编辑器设置"
+
+#: includes/elements/advanced-image.php:30
+msgid "Blur"
+msgstr "模糊"
+
+#: includes/elements/gsap-animations.php:133
+msgid "Blur End"
+msgstr "模糊末端"
+
+#: includes/elements/gsap-multi-element-register.php:133
+msgid "Blur In"
+msgstr "模糊入"
+
+#: includes/elements/gsap-multi-element-register.php:134
+msgid "Blur Out"
+msgstr "模糊出"
+
+#: includes/elements/gsap-animations.php:128
+msgid "Blur Start"
+msgstr "模糊启动"
+
+#: includes/cookie-banner.php:327 includes/cookie-banner.php:357
+#: includes/cookie-banner.php:412
+msgid "Body Bottom"
+msgstr "Body底部"
+
+#: includes/cookie-banner.php:326 includes/cookie-banner.php:356
+#: includes/cookie-banner.php:411
+msgid "Body Top"
+msgstr "Body 顶部"
+
+#: includes/cookie-banner.php:504
+msgid "Border radius of the buttons in pixels."
+msgstr "按钮的边框半径（像素）。"
+
+#: includes/cookie-banner.php:497
+msgid "Border radius of the cookie banner in pixels."
+msgstr "cookie 横幅的边框半径（像素）。"
+
+#: includes/404-logging.php:231
+msgid "Bot Logs Blocklist (one per line):"
+msgstr "机器人日志拦截列表（每行一个）："
+
+#: includes/cookie-banner.php:522 includes/elements/image-hotspot.php:87
+msgid "Bottom"
+msgstr "底部"
+
+#: includes/cookie-banner.php:575
+msgid "Bottom Rich Text"
+msgstr "底部富文本"
+
+#: includes/accessibility-settings.php:90
+msgid "Bottom Spacing (px)"
+msgstr "底部间距（px）"
+
+#: includes/elements/flip-box.php:59
+msgid "Bottom to Top (Flip)"
+msgstr "从下到上（翻转）"
+
+#: includes/elements/flip-box.php:65
+msgid "Bottom to Top Slide"
+msgstr "从下往上滑动"
+
+#: includes/elements/gsap-multi-element-register.php:186
+msgid "Bounce"
+msgstr "弹跳"
+
+#: includes/elements/gsap-multi-element-register.php:204
+msgid "Bounce In"
+msgstr "弹入"
+
+#: includes/elements/gsap-multi-element-register.php:206
+msgid "Bounce In Down"
+msgstr "向下弹入"
+
+#: includes/elements/gsap-multi-element-register.php:208
+msgid "Bounce In Left"
+msgstr "向左弹入"
+
+#: includes/elements/gsap-multi-element-register.php:210
+msgid "Bounce In Right"
+msgstr "向右弹入"
+
+#: includes/elements/gsap-multi-element-register.php:212
+msgid "Bounce In Up"
+msgstr "向上弹入"
+
+#: includes/elements/gsap-multi-element-register.php:205
+msgid "Bounce Out"
+msgstr "弹出"
+
+#: includes/elements/gsap-multi-element-register.php:207
+msgid "Bounce Out Down"
+msgstr "向下弹出"
+
+#: includes/elements/gsap-multi-element-register.php:209
+msgid "Bounce Out Left"
+msgstr "向左弹出"
+
+#: includes/elements/gsap-multi-element-register.php:211
+msgid "Bounce Out Right"
+msgstr "向右弹出"
+
+#: includes/elements/gsap-multi-element-register.php:213
+msgid "Bounce Out Up"
+msgstr "向上弹出"
+
+#: includes/settings-page.php:68
+msgid "Bricks Builder"
+msgstr "Bricks Builder"
+
+#: includes/settings-page.php:22
+msgid "Bricks Builder Child Theme Settings"
+msgstr "Bricks Builder 子主题设置"
+
+#: includes/settings-page.php:76
+msgid "Bricks Builder Docs ➤"
+msgstr "Bricks Builder文档 ➤"
+
+#: includes/editor-settings-bricks.php:19
+msgid "Bricks Builder Editor Settings"
+msgstr "Bricks Builder编辑器设置"
+
+#: includes/settings-page.php:79
+msgid "Bricks Builder Videos ➤"
+msgstr "Bricks Builder视频 ➤"
+
+#: includes/elements/advanced-image.php:38
+#: includes/elements/polkadot-effect.php:40
+msgid "Brightness"
+msgstr "亮度"
+
+#: includes/elements/gsap-multi-element-register.php:307
+msgid "Brightness In"
+msgstr "亮度入"
+
+#: includes/ai/ai-overlay.php:310
+msgid "Bulk AI Content Editor"
+msgstr "批量人工智能内容编辑器"
+
+#: includes/global-classes.php:336
+msgid "Bulk CSS"
+msgstr "批量 CSS"
+
+#: includes/global-variables.php:152
+msgid "Bulk Variables"
+msgstr "批量变量"
+
+#: includes/accessibility-settings.php:76
+msgid "Button Alignment"
+msgstr "按钮对齐"
+
+#: includes/elements/comment-form.php:84
+#: includes/elements/frontend-post-form.php:119
+msgid "Button background"
+msgstr "按钮背景"
+
+#: includes/cookie-banner.php:475 includes/elements/multi-step-form.php:35
+msgid "Button Background Color"
+msgstr "按钮背景颜色"
+
+#: includes/cookie-banner.php:501
+msgid "Button Border Radius"
+msgstr "按钮边框半径"
+
+#: includes/accessibility-settings.php:69
+msgid "Button Height (px)"
+msgstr "按钮高度（px）"
+
+#: includes/elements/like-button.php:35
+msgid "Button Icon"
+msgstr "按钮图标"
+
+#: includes/elements/comment-form.php:163
+#: includes/elements/frontend-post-form.php:132
+msgid "Button padding"
+msgstr "按钮内边距"
+
+#: includes/elements/print.php:29
+msgid "Button Selector"
+msgstr "按钮选择器"
+
+#: includes/cookie-banner.php:481
+msgid "Button Text Color"
+msgstr "按钮文本颜色"
+
+#: includes/elements/multi-step-form.php:48
+msgid "Button Typography"
+msgstr "按钮排版"
+
+#: includes/elements/comment-form.php:72
+#: includes/elements/frontend-post-form.php:107
+msgid "Button typography"
+msgstr "按钮排版"
+
+#: includes/accessibility-settings.php:62
+msgid "Button Width (px)"
+msgstr "按钮宽度（px）"
+
+#: includes/301-redirect.php:355 includes/301-redirect.php:400
+#: includes/301-redirect.php:488 includes/role-manager.php:745
+msgid "Cancel"
+msgstr "取消"
+
+#: includes/role-manager.php:116
+#, php-format
+msgid "Cannot create a role with the core ID \"%s\". Use a unique ID."
+msgstr "无法创建核心 ID 为\"%s \"的角色。请使用唯一 ID。"
+
+#: includes/role-manager.php:114
+msgid "Cannot create a role with the ID \"administrator\"."
+msgstr "无法创建 ID 为 \"administrator \"的角色。"
+
+#: includes/role-manager.php:436 includes/role-manager.php:460
+#: includes/role-manager.php:495 includes/role-manager.php:560
+#: includes/role-manager.php:589 includes/role-manager.php:689
+#: includes/role-manager.php:696
+msgid "Capabilities"
+msgstr "权限"
+
+#: includes/elements/gsap-multi-element-register.php:129
+#: includes/elements/gsap-multi-element-register.php:325
+msgid "Card Flip In"
+msgstr "卡片翻入"
+
+#: includes/elements/gsap-multi-element-register.php:130
+#: includes/elements/gsap-multi-element-register.php:326
+msgid "Card Flip Out"
+msgstr "卡片翻转"
+
+#: includes/global-classes.php:298 includes/global-variables.php:130
+msgid "Categories"
+msgstr "类别"
+
+#: includes/global-variables.php:176
+msgid "Category"
+msgstr "类别"
+
+#: includes/global-classes.php:366
+msgid "Category (Optional)"
+msgstr "类别（可选）"
+
+#: includes/global-variables.php:136 includes/global-variables.php:143
+#: includes/global-variables.php:291
+msgid "Category Name"
+msgstr "类别名称"
+
+#: includes/media-settings.php:665
+msgid "Category name cannot be empty"
+msgstr "类别名称不能为空"
+
+#: includes/activity-logs.php:123
+msgid "Category/Tag Creation"
+msgstr "创建类别/标记"
+
+#: includes/activity-logs.php:125
+msgid "Category/Tag Deletion"
+msgstr "删除类别/标记"
+
+#: includes/activity-logs.php:124
+msgid "Category/Tag Updates"
+msgstr "类别/标签更新"
+
+#: includes/elements/print.php:41
+msgid "Change the print button text in the popup."
+msgstr "更改弹出窗口中的打印按钮文本。"
+
+#: includes/block-editor-settings.php:55
+msgid "Check any of the following to change the default:"
+msgstr "选中以下任一选项可更改默认值："
+
+#: includes/disable-emojis.php:26
+msgid ""
+"Check this box to disable emoji support in WordPress both frontend and wp-"
+"admin."
+msgstr "选中此复选框可禁用 WordPress 前端和 wp-admin 中的表情符号支持。"
+
+#: includes/disable-gravatar.php:26
+msgid "Check this box to disable Gravatar support throughout the site."
+msgstr "选中此复选框可禁用整个网站的 Gravatar 支持。"
+
+#: includes/cookie-banner.php:198
+msgid "Check to disable the Cookie Banner for users who are logged in."
+msgstr "选中以禁用已登录用户的 Cookie 横幅。"
+
+#: includes/cookie-banner.php:205
+msgid "Check to disable the scripts loading for logged-in users."
+msgstr "选中以禁用已登录用户的脚本加载。"
+
+#: includes/cookie-banner.php:546
+msgid "Check to enable a full page overlay behind the cookie banner."
+msgstr "选中以启用 cookie 横幅后面的全页覆盖。"
+
+#: includes/cookie-banner.php:212
+msgid ""
+"Check to enable Google Analytics Consent Mode v2. This will automatically "
+"send consent status to Google Analytics when users accept/deny cookies."
+msgstr ""
+"选中以启用 Google Analytics 同意模式 v2。 当用户接受/拒绝 cookies 时，它会自动向 Google Analytics "
+"发送同意状态。"
+
+#: includes/cookie-banner.php:219
+msgid ""
+"Check to enable Microsoft Clarity Consent Mode v2. This will automatically "
+"send consent status to Clarity when users accept/deny cookies."
+msgstr ""
+"勾选启用 Microsoft Clarity Consent Mode v2。 当用户接受/拒绝 cookies 时，它会自动向 Clarity "
+"发送同意状态。"
+
+#: includes/cookie-banner.php:191
+msgid "Check to enable the Cookie Banner on your site."
+msgstr "选中以启用网站上的 Cookie 横幅。"
+
+#: includes/cookie-banner.php:263
+msgid "Check to enable the legal text/links in the cookie banner."
+msgstr "选中以启用 cookie 横幅中的合法文本/链接。"
+
+#: includes/custom-field-settings.php:151
+#: includes/custom-field-settings.php:321
+msgid "Checkbox"
+msgstr "复选框"
+
+#: includes/custom-field-settings.php:95
+msgid ""
+"Checking \"Options Page\" will make this field available on a new admin page "
+"named after its \"Group Name\"."
+msgstr "选中 \"选项页面 \"将使该字段在以其 \"组名 \"命名的新管理页面上可用。"
+
+#: includes/custom-field-settings.php:159
+#: includes/custom-field-settings.php:329
+msgid "Choices"
+msgstr "选项"
+
+#: includes/custom-field-settings.php:1530
+msgid "Choose Media"
+msgstr "选择媒体"
+
+#: includes/elements/animated-heading.php:165
+#: includes/elements/svg-text-path.php:39
+msgid "Circle"
+msgstr "圆圈"
+
+#: includes/editor-settings-panel-bricks.php:208
+msgid "Clamp Generator"
+msgstr "适配发生器"
+
+#: includes/elements/element-event-action-selector.php:112
+msgid "Class Name"
+msgstr "Class 名"
+
+#: includes/global-classes.php:346
+msgid "Classes"
+msgstr "Classes"
+
+#: includes/custom-code-snippets.php:858
+msgid "Clear All Error Logs"
+msgstr "清除所有错误日志"
+
+#: includes/301-redirect.php:527 includes/404-logging.php:238
+#: includes/activity-logs.php:627 includes/mail-logging.php:203
+#: includes/search-loggins.php:193
+msgid "Clear All Logs"
+msgstr "清除所有日志"
+
+#: includes/custom-code-snippets.php:959
+msgid "Clear All Revisions for this Snippet"
+msgstr "清除此片段的所有修订"
+
+#: includes/search-loggins.php:196
+msgid "Clear Top 100 Searches"
+msgstr "清除前 100 条搜索"
+
+#: includes/elements/like-button.php:102
+msgid "Click to Like"
+msgstr "点击赞"
+
+#: includes/elements/like-button.php:103
+msgid "Click to Unlike"
+msgstr "点击取消喜欢"
+
+#: includes/role-manager.php:461 includes/role-manager.php:496
+#: includes/role-manager.php:519
+msgid "click to view"
+msgstr "点击查看"
+
+#: includes/301-redirect.php:424
+msgid "Clicks"
+msgstr "点击次数"
+
+#: includes/elements/gsap-multi-element-register.php:243
+msgid "Clip Blob Morph In"
+msgstr "剪辑 Blob Morph In"
+
+#: includes/elements/gsap-multi-element-register.php:244
+msgid "Clip Blob Morph Out"
+msgstr "剪辑 Blob Morph Out"
+
+#: includes/elements/gsap-multi-element-register.php:275
+msgid "Clip Circle Center Out"
+msgstr "剪辑圆形中心向外"
+
+#: includes/elements/gsap-multi-element-register.php:278
+msgid "Clip Circle Out to Center"
+msgstr "剪辑圆形从外到中心"
+
+#: includes/elements/gsap-multi-element-register.php:293
+msgid "Clip Diamond Center Out"
+msgstr "剪辑菱形中心向外"
+
+#: includes/elements/gsap-multi-element-register.php:296
+msgid "Clip Diamond In to Center"
+msgstr "剪辑菱形从内到中心"
+
+#: includes/elements/gsap-multi-element-register.php:281
+msgid "Clip Ellipse Horizontal Reveal"
+msgstr "剪辑椭圆水平揭示"
+
+#: includes/elements/gsap-multi-element-register.php:284
+msgid "Clip Ellipse Vertical Reveal"
+msgstr "剪辑椭圆垂直揭示"
+
+#: includes/elements/gsap-multi-element-register.php:299
+msgid "Clip Hexagon Center Out"
+msgstr "剪辑六边形中心向外"
+
+#: includes/elements/gsap-multi-element-register.php:266
+msgid "Clip Hide Bottom to Top"
+msgstr "剪辑隐藏从底部到顶部"
+
+#: includes/elements/gsap-multi-element-register.php:272
+msgid "Clip Hide Diagonal Bottom Right"
+msgstr "剪辑隐藏右下角对角线"
+
+#: includes/elements/gsap-multi-element-register.php:260
+msgid "Clip Hide Right to Left"
+msgstr "剪辑隐藏从右到左"
+
+#: includes/elements/gsap-multi-element-register.php:248
+msgid "Clip Mask Reveal In"
+msgstr "剪辑蒙版揭示入"
+
+#: includes/elements/gsap-multi-element-register.php:249
+msgid "Clip Mask Reveal Out"
+msgstr "剪辑蒙版揭示出"
+
+#: includes/elements/gsap-multi-element-register.php:269
+msgid "Clip Reveal Diagonal Top Left"
+msgstr "剪辑揭示左上角对角线"
+
+#: includes/elements/gsap-multi-element-register.php:252
+msgid "Clip Reveal In"
+msgstr "剪辑揭示入"
+
+#: includes/elements/gsap-multi-element-register.php:257
+msgid "Clip Reveal Left to Right"
+msgstr "剪辑揭示从左到右"
+
+#: includes/elements/gsap-multi-element-register.php:253
+msgid "Clip Reveal Out"
+msgstr "剪辑揭示出"
+
+#: includes/elements/gsap-multi-element-register.php:263
+msgid "Clip Reveal Top to Bottom"
+msgstr "剪辑揭示从上到下"
+
+#: includes/elements/gsap-multi-element-register.php:287
+msgid "Clip Triangle Left Reveal"
+msgstr "剪辑三角形左侧揭示"
+
+#: includes/elements/gsap-multi-element-register.php:290
+msgid "Clip Triangle Right Reveal"
+msgstr "剪辑三角形右侧揭示"
+
+#: includes/301-redirect.php:368 includes/mail-logging.php:269
+msgid "Close"
+msgstr "关闭"
+
+#: includes/custom-code-snippets.php:906
+msgid ""
+"Code in this section runs like functions.php. Errors here can easily break "
+"your site. Test thoroughly!"
+msgstr "该部分的代码运行起来就像 functions.php。这里的错误很容易导致网站崩溃。彻底测试！"
+
+#. Parent slug
+#. Page title
+#: includes/custom-code-snippets.php:58 includes/custom-code-snippets.php:59
+#: includes/settings-page.php:47
+msgid "Code Snippets"
+msgstr "代码片段"
+
+#: includes/custom-field-settings.php:149
+#: includes/custom-field-settings.php:319
+msgid "Color"
+msgstr "颜色"
+
+#: includes/editor-settings-panel-bricks.php:209
+msgid "Color Sync"
+msgstr "色彩同步"
+
+#: includes/editor-settings-panel-color-sync.php:119
+msgid "color-"
+msgstr "颜色 -"
+
+#: includes/elements/matrix.php:71
+msgid "Column Density (baseline 20)"
+msgstr "列密度（基线 20）"
+
+#: includes/activity-logs.php:95
+msgid "Comment Approved"
+msgstr "评论已获批准"
+
+#: includes/activity-logs.php:99
+msgid "Comment Deleted"
+msgstr "删除评论"
+
+#: includes/elements/comment-form.php:19
+msgid "Comment Form"
+msgstr "评论表单"
+
+#: includes/elements/comment-list.php:17
+msgid "Comment List"
+msgstr "评论列表"
+
+#: includes/activity-logs.php:98
+msgid "Comment Marked as Spam"
+msgstr "标记为垃圾邮件的评论"
+
+#: includes/activity-logs.php:94
+msgid "Comment Posted"
+msgstr "发表评论"
+
+#: includes/activity-logs.php:97
+msgid "Comment Trashed"
+msgstr "评论已放入回收站"
+
+#: includes/elements/comment-list.php:46
+msgid "Comment typography"
+msgstr "评论排版"
+
+#: includes/activity-logs.php:96
+msgid "Comment Unapproved"
+msgstr "未经批准的评论"
+
+#: includes/post-types-settings.php:30 includes/post-types-settings.php:161
+msgid "Comments"
+msgstr "评论"
+
+#: includes/custom-code-snippets.php:943
+msgid "Compare"
+msgstr "比较"
+
+#: includes/elements/compare-image.php:17
+msgid "Compare Image"
+msgstr "对比图像"
+
+#: includes/elements/conditions.php:120
+msgid "Condition key ="
+msgstr "条件键 ="
+
+#: includes/elements/conditions.php:28
+msgid "Conditions (Nestable)"
+msgstr "条件（可嵌套）"
+
+#: includes/other-settings.php:139
+msgid "Configure additional settings for your site below."
+msgstr "在下面为您的网站配置其他设置。"
+
+#: includes/editor-settings-bricks.php:98
+msgid "Configure Bricks Builder editor-specific settings below.<br>"
+msgstr "在下面配置Bricks Builder编辑器特定设置。"
+
+#: includes/media-settings.php:75
+msgid "Configure media-related settings below."
+msgstr "在下面配置媒体相关设置。"
+
+#: includes/accessibility-settings.php:132
+msgid "Configure the accessibility options for your site below."
+msgstr "在下面配置网站的辅助功能选项。"
+
+#: includes/security-page.php:70
+msgid "Configure your security settings below:"
+msgstr "在下面配置您的安全设置："
+
+#: includes/elements/timeline.php:90
+msgid "Content"
+msgstr "内容"
+
+#: includes/elements/advanced-image.php:46
+#: includes/elements/polkadot-effect.php:53
+msgid "Contrast"
+msgstr "对比"
+
+#: includes/elements/gsap-multi-element-register.php:308
+msgid "Contrast In"
+msgstr "对比入"
+
+#: includes/elements/matrix.php:78
+msgid ""
+"Controls horizontal density. 20 = columns spaced by font size. Higher = "
+"denser. Lower = sparser."
+msgstr "控制水平密度。20 = 按字体大小间隔列数。较高 = 较密集。低 = 稀疏。"
+
+#: includes/elements/matrix.php:44
+msgid ""
+"Controls the trail/fade effect. Use semi-transparent for classic Matrix (e.g."
+", rgba(0,0,0,0.1)). Set fully transparent (alpha 0) for no overlay clearing "
+"(letters will stack)."
+msgstr ""
+"控制跟踪/渐变效果。使用半透明可获得经典的矩阵效果（如 rgba(0,0,0,0.1)）。设置全透明（alpha 0）则无叠加清除（字母将叠加）。"
+
+#: includes/cookie-banner.php:159
+msgid "Cookie Banner"
+msgstr "饼干横幅"
+
+#: includes/cookie-banner.php:463
+msgid "Cookie Banner Background Color"
+msgstr "Cookie 横幅背景颜色"
+
+#: includes/cookie-banner.php:230
+msgid "Cookie Banner Description"
+msgstr "Cookie 横幅说明"
+
+#: includes/cookie-banner.php:508
+msgid "Cookie Banner Position"
+msgstr "Cookie 横幅位置"
+
+#: includes/cookie-banner.php:469
+msgid "Cookie Banner Text Color"
+msgstr "Cookie 横幅文字颜色"
+
+#: includes/cookie-banner.php:519
+msgid "Cookie Banner Vertical Position"
+msgstr "Cookie 横幅垂直位置"
+
+#: includes/cookie-banner.php:126 includes/cookie-banner.php:658
+msgid "Cookie Preferences"
+msgstr "Cookie 偏好设置"
+
+#: includes/cookie-banner.php:18 includes/settings-page.php:40
+msgid "Cookie Settings"
+msgstr "Cookie 设置"
+
+#: includes/elements/conditions.php:80
+msgid "Cooldown (sec)"
+msgstr "冷却时间（秒）"
+
+#: includes/ai/ai-overlay.php:703
+msgid "Copied!"
+msgstr "已复制！"
+
+#: includes/ai/ai-overlay.php:716
+msgid "Copied! (fallback)"
+msgstr "已复制！后备"
+
+#: includes/ai/ai-overlay.php:300 includes/ai/ai-overlay.php:705
+#: includes/ai/ai-overlay.php:718
+msgid "Copy Text"
+msgstr "复制文本"
+
+#: includes/global-classes.php:418
+msgid "Copy the CSS for all classes below to back up your class list:"
+msgstr "复制下面所有类别的 CSS 以备份类别列表："
+
+#: includes/301-redirect.php:365
+msgid "Copy the JSON data below to back up or transfer your redirects."
+msgstr "复制下面的 JSON 数据，备份或传输您的重定向。"
+
+#: includes/ai/ai-settings.php:376
+msgid "Copy the text below to save your presets."
+msgstr "复制下面的文本保存预设。"
+
+#: includes/global-variables.php:233
+msgid "Copy the variable definitions below to back up your variables:"
+msgstr "复制下面的变量定义以备份变量："
+
+#: includes/elements/element-event-action-selector.php:189
+msgid "Copy This Text"
+msgstr "复制此文本"
+
+#: includes/role-manager.php:456 includes/role-manager.php:491
+msgid "Core Role"
+msgstr "核心作用"
+
+#: includes/role-manager.php:545
+msgid "Core roles cannot be deleted."
+msgstr "核心角色不可删除。"
+
+#: includes/role-manager.php:178
+msgid "Core WordPress roles cannot be deleted."
+msgstr "WordPress 核心角色无法删除。"
+
+#: includes/smtp-settings.php:306
+#, php-format
+msgid ""
+"Could not connect to %s on port %d. It may be blocked by your hosting "
+"environment."
+msgstr "无法连接端口 %s 上的 %d。您的主机环境可能阻止了该端口。"
+
+#: includes/search-loggins.php:285
+msgid "Count"
+msgstr "计数"
+
+#: includes/role-manager.php:574
+msgid ""
+"Create a new custom user role and assign initial capabilities and optional "
+"post editing restrictions."
+msgstr "创建新的自定义用户角色，并分配初始功能和可选的帖子编辑限制。"
+
+#: includes/custom-code-snippets.php:1219
+msgid "CRITICAL: Custom Code Snippets Disabled!"
+msgstr "关键：禁用自定义代码片段！"
+
+#: includes/global-classes.php:367
+msgid "CSS (Generated)"
+msgstr "CSS (生成)"
+
+#: includes/elements/gsap-multi-element-register.php:127
+#: includes/elements/gsap-multi-element-register.php:334
+msgid "Cube Rotate In"
+msgstr "立方体旋入"
+
+#: includes/elements/gsap-multi-element-register.php:128
+#: includes/elements/gsap-multi-element-register.php:335
+msgid "Cube Rotate Out"
+msgstr "立方体旋出"
+
+#: includes/elements/gsap-multi-element-register.php:626
+msgid "Custom animation string"
+msgstr "自定义动画字符串"
+
+#: includes/ai/ai-settings.php:299
+msgid "Custom API Endpoint"
+msgstr "自定义 API 端点"
+
+#: includes/ai/ai-settings.php:285
+msgid "Custom API Key"
+msgstr "自定义 API 密钥"
+
+#: includes/ai/ai-settings.php:281
+msgid "Custom API Settings"
+msgstr "自定义 API 设置"
+
+#: includes/custom-field-settings.php:1340
+msgid "Custom Author Information"
+msgstr "自定义作者信息"
+
+#: includes/elements/matrix.php:91
+msgid "Custom Characters (optional)"
+msgstr "自定义字符（可选）"
+
+#: includes/elements/conditions.php:184
+msgid ""
+"Custom code (CSS, JS, or HTML). Will be rendered if all conditions pass. "
+"Safe: JS is output in a <script> tag, CSS in <style>, HTML direct. Don’t "
+"include <script> or <style> tags in the code."
+msgstr ""
+"自定义代码（CSS、JS 或 HTML）。如果所有条件都通过，则会呈现。安全：JS 在 <script> 标记中输出，CSS 在 <style> "
+"中输出，HTML 直接输出。代码中不要包含 <script> 或 <style> 标记。"
+
+#: includes/elements/conditions.php:180
+msgid "Custom Code Action"
+msgstr "自定义代码操作"
+
+#: includes/cookie-banner.php:563
+msgid "Custom CSS for Cookie Banner"
+msgstr "Cookie 横幅的自定义 CSS"
+
+#: includes/elements/element-event-action-selector.php:165
+msgid "Custom Event Name"
+msgstr "自定义活动名称"
+
+#: includes/custom-field-settings.php:7 includes/custom-field-settings.php:559
+#: includes/post-types-settings.php:31 includes/post-types-settings.php:162
+#: includes/settings-page.php:32
+msgid "Custom Fields"
+msgstr "自定义字段"
+
+#: includes/custom-field-settings.php:84
+msgid "Custom fields saved successfully."
+msgstr "自定义字段已成功保存。"
+
+#: includes/elements/like-button.php:58
+msgid "Custom Identifier"
+msgstr "自定义标识符"
+
+#: includes/elements/element-event-action-selector.php:171
+msgid "Custom JS Function Body"
+msgstr "自定义 JS 函数主体"
+
+#: includes/login-logo-change-url-change.php:14
+msgid "Custom Logo Link Website URL"
+msgstr "自定义徽标链接网站 URL"
+
+#: includes/ai/ai-settings.php:313
+msgid "Custom Model"
+msgstr "定制模型"
+
+#: includes/post-types-settings.php:70 includes/post-types-settings.php:73
+msgid "Custom Post Types saved successfully."
+msgstr "自定义帖子类型已成功保存。"
+
+#: includes/elements/conditions.php:37
+msgid "Custom Selector (optional)"
+msgstr "自定义选择器（可选）"
+
+#: includes/elements/animated-heading.php:206
+#: includes/elements/svg-text-path.php:50
+msgid "Custom SVG"
+msgstr "自定义 SVG"
+
+#: includes/login-settings.php:55
+msgid "Custom Text under Login Form"
+msgstr "登录表单下的自定义文本"
+
+#: includes/login-settings.php:71
+msgid ""
+"Customize the login page with your own background image and custom text."
+msgstr "使用自己的背景图片和自定义文本定制登录页面。"
+
+#: includes/other-settings.php:104
+msgid "Dashboard Custom Metabox Content"
+msgstr "仪表板自定义元组内容"
+
+#: includes/post-types-settings.php:117 includes/post-types-settings.php:256
+msgid "Dashicon"
+msgstr "Dashicon"
+
+#: includes/post-types-settings.php:118 includes/post-types-settings.php:257
+msgid "dashicons-admin-page"
+msgstr "dashicons-admin-page"
+
+#: includes/activity-logs.php:112
+msgid "Data Exports"
+msgstr "数据导出"
+
+#: includes/ai/ai-settings.php:876
+msgid "Data is not a valid array."
+msgstr "数据不是有效数组。"
+
+#: includes/activity-logs.php:129
+msgid "Database Optimization"
+msgstr "数据库优化"
+
+#: includes/activity-logs.php:128
+msgid "Database Query Errors"
+msgstr "数据库查询错误"
+
+#: includes/301-redirect.php:535 includes/activity-logs.php:643
+#: includes/custom-field-settings.php:147
+#: includes/custom-field-settings.php:317 includes/search-loggins.php:222
+msgid "Date"
+msgstr "日期"
+
+#: includes/404-logging.php:257 includes/mail-logging.php:211
+msgid "Date & Time"
+msgstr "日期和时间"
+
+#: includes/custom-field-settings.php:93
+msgid ""
+"Define custom fields with group name, field name, field type, and assign to "
+"post type, taxonomy, author, or an options page:"
+msgstr "用组名称、字段名称、字段类型定义自定义字段，并分配给帖子类型、分类标准、作者或选项页面："
+
+#: includes/post-types-settings.php:100
+msgid ""
+"Define custom post types with name, slug (max 20 chars), visibility, "
+"dashicon, and supported features:"
+msgstr "用名称、标题（最多 20 个字符）、可见性、仪表盘图标和支持的功能定义自定义帖子类型："
+
+#: includes/taxonomy-settings.php:59
+msgid ""
+"Define custom taxonomies with name, slug, hierarchical setting, and "
+"associated post types:"
+msgstr "定义自定义分类法，包括名称、标题、分层设置和相关帖子类型："
+
+#: includes/elements/element-event-action-selector.php:222
+msgid "Define trigger selector, event and at least one action."
+msgstr "定义触发选择器、事件和至少一个操作。"
+
+#: includes/elements/gsap-animations.php:218
+msgid "Delay"
+msgstr "延迟"
+
+#: includes/elements/conditions.php:71
+msgid "Delay (sec)"
+msgstr "延迟（秒）"
+
+#: includes/elements/gsap-multi-element-register.php:524
+#: includes/elements/gsap-text-animations.php:229
+msgid "Delay 0.1"
+msgstr "延迟 0.1"
+
+#: includes/elements/gsap-multi-element-register.php:525
+msgid "Delay 0.2"
+msgstr "延迟 0.2"
+
+#: includes/elements/gsap-multi-element-register.php:526
+#: includes/elements/gsap-text-animations.php:230
+msgid "Delay 0.3"
+msgstr "延迟 0.3"
+
+#: includes/elements/gsap-multi-element-register.php:527
+msgid "Delay 0.4"
+msgstr "延迟 0.4"
+
+#: includes/elements/gsap-multi-element-register.php:528
+#: includes/elements/gsap-text-animations.php:231
+msgid "Delay 0.5"
+msgstr "延迟 0.5"
+
+#: includes/elements/gsap-multi-element-register.php:529
+msgid "Delay 0.6"
+msgstr "延迟 0.6"
+
+#: includes/elements/gsap-multi-element-register.php:530
+msgid "Delay 0.7"
+msgstr "延迟 0.7"
+
+#: includes/elements/gsap-multi-element-register.php:531
+msgid "Delay 0.8"
+msgstr "延迟 0.8"
+
+#: includes/elements/gsap-multi-element-register.php:532
+msgid "Delay 0.9"
+msgstr "延迟 0.9"
+
+#: includes/elements/gsap-multi-element-register.php:533
+#: includes/elements/gsap-text-animations.php:232
+msgid "Delay 1"
+msgstr "延迟 1"
+
+#: includes/elements/gsap-multi-element-register.php:542
+#: includes/elements/gsap-text-animations.php:238
+msgid "Delay 10"
+msgstr "延迟 10"
+
+#: includes/elements/gsap-multi-element-register.php:534
+#: includes/elements/gsap-text-animations.php:233
+msgid "Delay 2"
+msgstr "延迟 2"
+
+#: includes/elements/gsap-multi-element-register.php:543
+#: includes/elements/gsap-text-animations.php:239
+msgid "Delay 20"
+msgstr "延迟 20"
+
+#: includes/elements/gsap-multi-element-register.php:535
+#: includes/elements/gsap-text-animations.php:234
+msgid "Delay 3"
+msgstr "延迟 3"
+
+#: includes/elements/gsap-multi-element-register.php:536
+#: includes/elements/gsap-text-animations.php:235
+msgid "Delay 4"
+msgstr "延迟 4"
+
+#: includes/elements/gsap-multi-element-register.php:537
+#: includes/elements/gsap-text-animations.php:236
+msgid "Delay 5"
+msgstr "延迟 5"
+
+#: includes/elements/gsap-multi-element-register.php:538
+msgid "Delay 6"
+msgstr "延迟 6"
+
+#: includes/elements/gsap-multi-element-register.php:539
+msgid "Delay 7"
+msgstr "延迟 7"
+
+#: includes/elements/gsap-multi-element-register.php:540
+#: includes/elements/gsap-text-animations.php:237
+msgid "Delay 8"
+msgstr "延迟 8"
+
+#: includes/elements/gsap-multi-element-register.php:541
+msgid "Delay 9"
+msgstr "延迟 9"
+
+#: includes/301-redirect.php:453 includes/mail-logging.php:215
+#: includes/mail-logging.php:250 includes/role-manager.php:468
+#: includes/role-manager.php:542 includes/role-manager.php:545
+#: includes/role-manager.php:547
+msgid "Delete"
+msgstr "删除"
+
+#: includes/404-logging.php:249
+msgid "Delete Logs"
+msgstr "删除日志"
+
+#: includes/404-logging.php:242
+msgid "Delete Logs by IP or User Agent"
+msgstr "按 IP 或用户代理删除日志"
+
+#: includes/global-classes.php:350 includes/global-variables.php:167
+msgid "Delete Selected"
+msgstr "删除选定"
+
+#: includes/editor-settings-panel-color-sync.php:113
+msgid "denary-color"
+msgstr "变色"
+
+#: includes/cookie-banner.php:131 includes/cookie-banner.php:707
+msgid "Deny"
+msgstr "拒绝"
+
+#: includes/cookie-banner.php:273
+msgid "Deny Button Text"
+msgstr "拒绝按钮文本"
+
+#: includes/elements/gsap-multi-element-register.php:172
+msgid "Depth In"
+msgstr "深度"
+
+#: includes/elements/gsap-multi-element-register.php:173
+msgid "Depth Out"
+msgstr "深度输出"
+
+#: includes/elements/gsap-multi-element-register.php:309
+msgid "Desaturate In"
+msgstr "去饱和英寸"
+
+#: includes/ai/ai-design.php:56
+msgid "Describe the layout or design you want to generate."
+msgstr "描述您想要生成的布局或设计。"
+
+#: includes/activity-logs.php:599 includes/ai/ai-overlay.php:316
+msgid "Deselect All"
+msgstr "全部取消选择"
+
+#: includes/elements/conditions.php:140
+msgid "Desktop"
+msgstr "台式机"
+
+#: includes/elements/gsap-multi-element-register.php:600
+msgid "Desktop False"
+msgstr "桌面假"
+
+#: includes/activity-logs.php:646
+msgid "Details"
+msgstr "详细信息"
+
+#: includes/elements/conditions.php:134
+msgid "Device / OS"
+msgstr "设备/操作系统"
+
+#: includes/other-settings.php:187
+msgid "Disable all comments on the site"
+msgstr "禁用网站上的所有评论"
+
+#: includes/404-logging.php:227
+msgid ""
+"Disable Bots/Robots Logging (Don't enable this if the website is new; "
+"collect some URLs first for SEO)"
+msgstr "禁用机器人/机器人日志记录（如果是新网站，请勿启用此功能；先收集一些URL，以便进行搜索引擎优化）"
+
+#: includes/disable-bundled-theme-install.php:14
+msgid "Disable Bundled Theme Install"
+msgstr "禁用捆绑主题安装"
+
+#: includes/other-settings.php:80
+msgid "Disable Comments"
+msgstr "禁用评论"
+
+#: includes/block-editor-settings.php:116
+msgid "Disable Core Blocks"
+msgstr "禁用核心模块"
+
+#: includes/other-settings.php:96
+msgid "Disable Default Dashboard Widgets"
+msgstr "禁用默认仪表板小工具"
+
+#: includes/disable-emojis.php:13
+msgid "Disable Emoji Support"
+msgstr "禁用表情符号支持"
+
+#: includes/disable-file-editing.php:14
+msgid "Disable File Editing"
+msgstr "禁用文件编辑"
+
+#: includes/cookie-banner.php:195
+msgid "Disable for Logged-In Users"
+msgstr "已登录用户禁用"
+
+#: includes/block-editor-settings.php:59
+msgid "Disable Fullscreen Mode"
+msgstr "禁用全屏模式"
+
+#: includes/disable-gravatar.php:13
+msgid "Disable Gravatar Support"
+msgstr "禁用 Gravatar 支持"
+
+#: includes/disable-wp-json-if-not-logged-in.php:6
+msgid "Disable JSON API for Guests"
+msgstr "为访客禁用 JSON API"
+
+#: includes/remove-rss.php:21
+msgid "Disable Remove RSS"
+msgstr "禁用 移除 RSS"
+
+#: includes/cookie-banner.php:202
+msgid "Disable Scripts for Logged-In Users"
+msgstr "禁用已登录用户的脚本"
+
+#: includes/block-editor-settings.php:87
+msgid "Disable Spotlight Mode"
+msgstr "禁用聚光灯模式"
+
+#: includes/block-editor-settings.php:73
+msgid "Disable Welcome Guide Popup"
+msgstr "禁用欢迎指南弹出窗口"
+
+#: includes/disable-xmlrpc.php:15
+msgid "Disable XML-RPC"
+msgstr "禁用 XML-RPC"
+
+#: includes/custom-code-snippets.php:1243
+msgid "Dismiss This Notice"
+msgstr "驳回本通知"
+
+#: includes/role-manager.php:434 includes/role-manager.php:454
+#: includes/role-manager.php:489 includes/role-manager.php:558
+#: includes/role-manager.php:580
+msgid "Display Name"
+msgstr "显示名称"
+
+#: includes/elements/polkadot-effect.php:92
+msgid "Dither Type"
+msgstr "抖动类型"
+
+#: includes/elements/animated-heading.php:197
+#: includes/elements/animated-vfx-text.php:62
+#: includes/elements/gsap-text-animations.php:59
+msgid "Div"
+msgstr "分部"
+
+#: includes/elements/animated-vfx-text.php:53
+#: includes/elements/gsap-text-animations.php:50
+msgid "DOM Element Tag"
+msgstr "DOM 元素标签"
+
+#: includes/elements/matrix.php:20
+#: includes/elements/text-action-social-share.php:28
+msgid "DOM Selector"
+msgstr "DOM 选择器"
+
+#: includes/elements/scroll-line-vertical-indicator.php:20
+msgid "Dom Selector"
+msgstr "多姆选择器"
+
+#: includes/elements/element-event-action-selector.php:98
+msgid "DOM selector (action target)"
+msgstr "DOM 选择器（动作目标）"
+
+#: includes/elements/element-event-action-selector.php:73
+msgid "DOM selector (event trigger)"
+msgstr "DOM 选择器（事件触发器）"
+
+#: includes/elements/scroll-line-vertical-indicator.php:23
+msgid "DOMs selector \"comment\" or \".post\" or \".my-comment\""
+msgstr "DOMs 选择器 \"comment \"或\".post \"或\".my-comment\""
+
+#: includes/elements/gsap-multi-element-register.php:319
+msgid "Door Open In (Left)"
+msgstr "门开入（左）"
+
+#: includes/elements/gsap-multi-element-register.php:320
+msgid "Door Open In (Right)"
+msgstr "门向内打开（右）"
+
+#: includes/elements/scroll-line-vertical-indicator.php:91
+msgid "Dot Border Radius (px)"
+msgstr "点边框半径（px）"
+
+#: includes/elements/image-hotspot.php:46
+#: includes/elements/scroll-line-vertical-indicator.php:53
+msgid "Dot Color"
+msgstr "圆点颜色"
+
+#: includes/elements/scroll-line-vertical-indicator.php:61
+msgid "Dot Font Color"
+msgstr "圆点字体颜色"
+
+#: includes/elements/scroll-line-vertical-indicator.php:102
+msgid "Dot Font Size (px)"
+msgstr "点字体大小（px）"
+
+#: includes/elements/scroll-line-vertical-indicator.php:80
+msgid "Dot Height (px)"
+msgstr "网点高度（像素）"
+
+#: includes/elements/image-hotspot.php:37
+msgid "Dot Radius (%)"
+msgstr "点半径 (%)"
+
+#: includes/elements/image-hotspot.php:28
+msgid "Dot Size (px)"
+msgstr "点尺寸（像素）"
+
+#: includes/elements/scroll-line-vertical-indicator.php:69
+msgid "Dot Width (px)"
+msgstr "点宽（px）"
+
+#: includes/elements/animated-heading.php:166
+msgid "Double Line"
+msgstr "双线"
+
+#: includes/elements/element-event-action-selector.php:183
+msgid "Download File URL"
+msgstr "下载文件 URL"
+
+#: includes/elements/gsap-multi-element-register.php:158
+msgid "Drop In"
+msgstr "投宿"
+
+#: includes/elements/gsap-multi-element-register.php:159
+msgid "Drop Out"
+msgstr "辍学"
+
+#: includes/ai/ai-settings.php:906
+msgid "duplicates skipped."
+msgstr "跳过重复。"
+
+#: includes/elements/animated-heading.php:136
+#: includes/elements/gsap-animations.php:209
+msgid "Duration"
+msgstr "持续时间"
+
+#: includes/elements/gsap-multi-element-register.php:502
+#: includes/elements/gsap-text-animations.php:217
+msgid "Duration 0.01"
+msgstr "持续时间 0.01"
+
+#: includes/elements/gsap-multi-element-register.php:503
+msgid "Duration 0.02"
+msgstr "持续时间 0.02"
+
+#: includes/elements/gsap-multi-element-register.php:504
+msgid "Duration 0.03"
+msgstr "持续时间 0.03"
+
+#: includes/elements/gsap-multi-element-register.php:505
+msgid "Duration 0.04"
+msgstr "持续时间 0.04"
+
+#: includes/elements/gsap-multi-element-register.php:506
+#: includes/elements/gsap-text-animations.php:218
+msgid "Duration 0.05"
+msgstr "持续时间 0.05"
+
+#: includes/elements/gsap-multi-element-register.php:507
+#: includes/elements/gsap-text-animations.php:219
+msgid "Duration 0.1"
+msgstr "持续时间 0.1"
+
+#: includes/elements/gsap-multi-element-register.php:508
+#: includes/elements/gsap-text-animations.php:220
+msgid "Duration 0.2"
+msgstr "持续时间 0.2"
+
+#: includes/elements/gsap-multi-element-register.php:509
+msgid "Duration 0.3"
+msgstr "持续时间 0.3"
+
+#: includes/elements/gsap-multi-element-register.php:510
+msgid "Duration 0.4"
+msgstr "持续时间 0.4"
+
+#: includes/elements/gsap-multi-element-register.php:511
+msgid "Duration 0.5"
+msgstr "持续时间 0.5"
+
+#: includes/elements/gsap-multi-element-register.php:512
+msgid "Duration 0.6"
+msgstr "持续时间 0.6"
+
+#: includes/elements/gsap-multi-element-register.php:513
+msgid "Duration 0.7"
+msgstr "持续时间 0.7"
+
+#: includes/elements/gsap-multi-element-register.php:514
+msgid "Duration 0.8"
+msgstr "持续时间 0.8"
+
+#: includes/elements/gsap-multi-element-register.php:515
+msgid "Duration 0.9"
+msgstr "持续时间 0.9"
+
+#: includes/elements/gsap-multi-element-register.php:516
+#: includes/elements/gsap-text-animations.php:221
+msgid "Duration 1"
+msgstr "持续时间 1"
+
+#: includes/elements/gsap-multi-element-register.php:521
+#: includes/elements/gsap-text-animations.php:226
+msgid "Duration 10"
+msgstr "持续时间 10"
+
+#: includes/elements/gsap-multi-element-register.php:517
+#: includes/elements/gsap-text-animations.php:222
+msgid "Duration 2"
+msgstr "持续时间 2"
+
+#: includes/elements/gsap-multi-element-register.php:522
+#: includes/elements/gsap-text-animations.php:227
+msgid "Duration 20"
+msgstr "持续时间 20"
+
+#: includes/elements/gsap-multi-element-register.php:518
+#: includes/elements/gsap-text-animations.php:223
+msgid "Duration 3"
+msgstr "持续时间 3"
+
+#: includes/elements/gsap-multi-element-register.php:519
+#: includes/elements/gsap-text-animations.php:224
+msgid "Duration 4"
+msgstr "持续时间 4"
+
+#: includes/elements/gsap-multi-element-register.php:520
+#: includes/elements/gsap-text-animations.php:225
+msgid "Duration 5"
+msgstr "持续时间 5"
+
+#: includes/elements/text-action-social-share.php:31
+msgid "e.g. .selectable-comment-content-wrapper"
+msgstr "例如 .selectable-comment-content-wrapper"
+
+#: includes/cookie-banner.php:574
+msgid "Each individual service item"
+msgstr "每个服务项目"
+
+#: includes/elements/gsap-multi-element-register.php:584
+msgid "Easing: Back In"
+msgstr "放松：回归"
+
+#: includes/elements/gsap-multi-element-register.php:586
+msgid "Easing: Back InOut"
+msgstr "放松：后进后出"
+
+#: includes/elements/gsap-multi-element-register.php:585
+msgid "Easing: Back Out"
+msgstr "放松：后退"
+
+#: includes/elements/gsap-multi-element-register.php:594
+msgid "Easing: Bounce In"
+msgstr "宽松：反弹"
+
+#: includes/elements/gsap-multi-element-register.php:596
+msgid "Easing: Bounce InOut"
+msgstr "缓和：弹入弹出"
+
+#: includes/elements/gsap-multi-element-register.php:595
+msgid "Easing: Bounce Out"
+msgstr "宽松：弹出"
+
+#: includes/elements/gsap-multi-element-register.php:579
+msgid "Easing: Circ In"
+msgstr "放松：圈入"
+
+#: includes/elements/gsap-multi-element-register.php:581
+msgid "Easing: Circ InOut"
+msgstr "缓和：循环进出"
+
+#: includes/elements/gsap-multi-element-register.php:580
+msgid "Easing: Circ Out"
+msgstr "放松：圈出"
+
+#: includes/elements/gsap-multi-element-register.php:551
+msgid "Easing: Ease In (power1)"
+msgstr "缓和：缓和（功率1）"
+
+#: includes/elements/gsap-multi-element-register.php:552
+msgid "Easing: Ease In (power2)"
+msgstr "缓和：缓和（功率2）"
+
+#: includes/elements/gsap-multi-element-register.php:553
+msgid "Easing: Ease In (power3)"
+msgstr "缓和：缓和（功率3）"
+
+#: includes/elements/gsap-multi-element-register.php:554
+msgid "Easing: Ease In (power4)"
+msgstr "缓和：缓和 (power4)"
+
+#: includes/elements/gsap-multi-element-register.php:557
+msgid "Easing: Ease Out (power1)"
+msgstr "缓和：缓和（功率1）"
+
+#: includes/elements/gsap-multi-element-register.php:558
+msgid "Easing: Ease Out (power2)"
+msgstr "缓和：缓和（功率2）"
+
+#: includes/elements/gsap-multi-element-register.php:559
+msgid "Easing: Ease Out (power3)"
+msgstr "缓和：缓解（功率3）"
+
+#: includes/elements/gsap-multi-element-register.php:560
+msgid "Easing: Ease Out (power4)"
+msgstr "缓和：缓和（功率4）"
+
+#: includes/elements/gsap-multi-element-register.php:590
+msgid "Easing: Elastic In"
+msgstr "缓和：弹性输入"
+
+#: includes/elements/gsap-multi-element-register.php:591
+msgid "Easing: Elastic InOut"
+msgstr "缓和：弹性输入输出"
+
+#: includes/elements/gsap-multi-element-register.php:589
+msgid "Easing: Elastic Out"
+msgstr "放松：弹出"
+
+#: includes/elements/gsap-multi-element-register.php:574
+msgid "Easing: Expo In"
+msgstr "放松：世博会开幕"
+
+#: includes/elements/gsap-multi-element-register.php:576
+msgid "Easing: Expo InOut"
+msgstr "放松：世博进出"
+
+#: includes/elements/gsap-multi-element-register.php:575
+msgid "Easing: Expo Out"
+msgstr "放松：世博会结束"
+
+#: includes/elements/gsap-multi-element-register.php:563
+msgid "Easing: InOut (power1)"
+msgstr "缓和：输入输出（功率1）"
+
+#: includes/elements/gsap-multi-element-register.php:564
+msgid "Easing: InOut (power2)"
+msgstr "缓和：输入输出（功率2）"
+
+#: includes/elements/gsap-multi-element-register.php:565
+msgid "Easing: InOut (power3)"
+msgstr "缓和：输入输出（功率3）"
+
+#: includes/elements/gsap-multi-element-register.php:566
+msgid "Easing: InOut (power4)"
+msgstr "缓和：输入输出（功率4）"
+
+#: includes/elements/gsap-multi-element-register.php:548
+msgid "Easing: Linear"
+msgstr "缓和：线性"
+
+#: includes/elements/gsap-multi-element-register.php:569
+msgid "Easing: Sine In"
+msgstr "缓和：正弦输入"
+
+#: includes/elements/gsap-multi-element-register.php:571
+msgid "Easing: Sine InOut"
+msgstr "缓和：正弦输入输出"
+
+#: includes/elements/gsap-multi-element-register.php:570
+msgid "Easing: Sine Out"
+msgstr "缓和：正弦输出"
+
+#: includes/301-redirect.php:462 includes/role-manager.php:467
+#: includes/role-manager.php:532 includes/role-manager.php:534
+msgid "Edit"
+msgstr "编辑"
+
+#: includes/custom-code-snippets.php:24
+msgid "Edit Code Snippet"
+msgstr "编辑代码片段"
+
+#: includes/media-settings.php:131
+msgid "Edit Media Category"
+msgstr "编辑媒体类别"
+
+#: includes/role-manager.php:680
+#, php-format
+msgid "Edit Role: %s"
+msgstr "编辑角色： %s"
+
+#: includes/role-manager.php:393
+#, php-format
+msgid "Editing Role: %s"
+msgstr "编辑角色： %s"
+
+#: includes/post-types-settings.php:26 includes/post-types-settings.php:157
+msgid "Editor"
+msgstr "编辑"
+
+#: includes/elements/comment-form.php:137
+#: includes/elements/frontend-post-form.php:185
+msgid "Editor background"
+msgstr "编辑背景"
+
+#: includes/block-editor-settings.php:54
+msgid "Editor Behavior Settings"
+msgstr "编辑器行为设置"
+
+#: includes/editor-settings-bricks.php:7 includes/editor-settings-bricks.php:8
+#: includes/editor-settings-bricks.php:41 includes/settings-page.php:29
+msgid "Editor Settings"
+msgstr "编辑器设置"
+
+#: includes/elements/comment-form.php:150
+#: includes/elements/frontend-post-form.php:198
+msgid "Editor text color"
+msgstr "编辑器文本颜色"
+
+#: includes/elements/svg-text-path.php:40
+msgid "Elypse"
+msgstr "Elypse"
+
+#: includes/custom-field-settings.php:155
+#: includes/custom-field-settings.php:325
+#: includes/elements/comment-form.php:233
+msgid "Email"
+msgstr "电子邮件"
+
+#: includes/activity-logs.php:611
+msgid "Enable"
+msgstr "启用"
+
+#: includes/404-logging.php:215
+msgid "Enable 404 Logging"
+msgstr "启用 404 日志"
+
+#: includes/accessibility-settings.php:48
+msgid "Enable Accessibility Widget"
+msgstr "启用无障碍小工具"
+
+#: includes/activity-logs.php:570
+msgid "Enable Activity Log"
+msgstr "启用活动日志"
+
+#: includes/custom-code-snippets.php:989
+msgid "Enable Advance Raw Code"
+msgstr "启用高级原始码"
+
+#: includes/ai/ai-settings.php:116
+msgid "Enable AI Features"
+msgstr "启用人工智能功能"
+
+#: includes/cookie-banner.php:188
+msgid "Enable Cookie Banner"
+msgstr "启用 Cookie 横幅"
+
+#: includes/custom-code-snippets.php:785
+msgid "Enable execution of all custom PHP snippets"
+msgstr "启用执行所有自定义 PHP 代码段"
+
+#: includes/elements/frontend-post-form.php:77
+msgid "Enable featured image"
+msgstr "启用特色图片"
+
+#: includes/cookie-banner.php:209
+msgid "Enable Google Analytics Consent Mode"
+msgstr "启用 Google Analytics 同意模式"
+
+#: includes/other-settings.php:48
+msgid "Enable GSAP and Lottie Element"
+msgstr "启用 GSAP 和 Lottie 元素"
+
+#: includes/elements/comment-list.php:39
+msgid "Enable inline edit"
+msgstr "启用内联编辑"
+
+#: includes/cookie-banner.php:260
+msgid "Enable Legal Text/Links"
+msgstr "启用法律文本/链接"
+
+#: includes/mail-logging.php:188
+msgid "Enable Mail Logging"
+msgstr "启用邮件日志"
+
+#: includes/security-page.php:61
+msgid "Enable Math Captcha for Login"
+msgstr "启用登录数学验证码"
+
+#: includes/media-settings.php:59
+msgid "Enable Media Categories"
+msgstr "启用媒体类别"
+
+#: includes/media-settings.php:90
+msgid ""
+"Enable Media Categories with drag-and-drop functionality. (right click on "
+"grid view)"
+msgstr "使用拖放功能启用媒体分类。(右击网格视图）"
+
+#: includes/elements/comment-form.php:37
+msgid "Enable media upload"
+msgstr "启用媒体上传"
+
+#: includes/cookie-banner.php:216
+msgid "Enable Microsoft Clarity Consent Mode"
+msgstr "启用 Microsoft Clarity 同意模式"
+
+#: includes/cookie-banner.php:543
+msgid "Enable Overlay"
+msgstr "启用叠加"
+
+#: includes/elements/lottie-animation.php:121
+msgid "Enable Scroll Trigger"
+msgstr "启用滚动触发器"
+
+#: includes/elements/custom-maps.php:22
+msgid "Enable Scroll Zoom"
+msgstr "启用滚动缩放"
+
+#: includes/search-loggins.php:176
+msgid "Enable Search Logging"
+msgstr "启用搜索记录"
+
+#: includes/smtp-settings.php:30
+msgid "Enable SMTP"
+msgstr "启用 SMTP"
+
+#: includes/editor-settings-bricks.php:111
+msgid "Enable SNN-BRX Editor Panel"
+msgstr "启用 SNN-BRX 编辑面板"
+
+#: includes/editor-settings-bricks.php:72
+msgid ""
+"Enable SNN-BRX Panel. Image Optimizer, Clamp Generator and old Global Colors"
+msgstr "启用 SNN-BRX 面板。图像优化器、钳位发生器和旧全局颜色"
+
+#: includes/activity-logs.php:574
+msgid "Enable the activity logging feature."
+msgstr "启用活动记录功能。"
+
+#: includes/security-page.php:85
+msgid ""
+"Enable this setting to add a math captcha challenge on the login page to "
+"improve security."
+msgstr "启用此设置可在登录页面上添加数学验证码挑战，以提高安全性。"
+
+#: includes/other-settings.php:88
+msgid "Enable Thumbnail Column in Post Tables"
+msgstr "在帖子表中启用缩略图列"
+
+#: includes/block-editor-settings.php:101
+msgid "Enable Top Toolbar"
+msgstr "启用顶部工具栏"
+
+#: includes/other-settings.php:197
+msgid ""
+"Enabling this setting will add a \"Thumbnail\" column to your post tables in "
+"the admin dashboard."
+msgstr "启用此设置将在管理仪表板的帖子表格中添加 \"缩略图 \"列。"
+
+#: includes/auto-update-bricks.php:32
+msgid ""
+"Enabling this setting will automatically update the Bricks theme whenever a "
+"new version is available."
+msgstr "启用此设置后，每当有新版本出现时，Bricks 主题就会自动更新。"
+
+#: includes/disable-bundled-theme-install.php:26
+msgid ""
+"Enabling this setting will disable bundled theme install when upgrading "
+"WordPress."
+msgstr "启用此设置将在升级 WordPress 时禁用捆绑主题安装。"
+
+#: includes/disable-file-editing.php:26
+msgid ""
+"Enabling this setting will disable file editing from the WordPress dashboard."
+msgstr "启用此设置将禁用 WordPress 仪表板中的文件编辑功能。"
+
+#: includes/disable-wp-json-if-not-logged-in.php:18
+msgid ""
+"Enabling this setting will disable the JSON API (wp-json) for users who are "
+"not logged in."
+msgstr "启用此设置后，未登录的用户将无法使用 JSON API (wp-json)。"
+
+#: includes/disable-xmlrpc.php:27
+msgid ""
+"Enabling this setting will disable the XML-RPC functionality in WordPress."
+msgstr "启用此设置将禁用 WordPress 中的 XML-RPC 功能。"
+
+#: includes/other-settings.php:147
+msgid ""
+"Enabling this setting will enqueue the GSAP library and its associated "
+"scripts on your website."
+msgstr "启用此设置后，GSAP 库及其相关脚本将在网站上排队。"
+
+#: includes/other-settings.php:208
+msgid ""
+"Enabling this setting will remove several default dashboard widgets from the "
+"WordPress admin dashboard."
+msgstr "启用此设置后，WordPress 管理仪表板中的多个默认仪表板部件将被移除。"
+
+#: includes/remove-rss.php:36
+msgid ""
+"Enabling this setting will remove the RSS feed links from your website's "
+"HTML source code."
+msgstr "启用此设置将从网站的 HTML 源代码中移除 RSS 订阅链接。"
+
+#: includes/remove-wp-version.php:30
+msgid ""
+"Enabling this setting will remove the WordPress version number from your "
+"website's HTML source code."
+msgstr "启用此设置将删除网站 HTML 源代码中的 WordPress 版本号。"
+
+#: includes/smtp-settings.php:46
+msgid "Encryption"
+msgstr "加密"
+
+#: includes/elements/gsap-multi-element-register.php:450
+#: includes/elements/gsap-text-animations.php:174
+msgid "End 0%"
+msgstr "0% 结束"
+
+#: includes/elements/gsap-multi-element-register.php:464
+#: includes/elements/gsap-text-animations.php:188
+msgid "End 0%+=1000px"
+msgstr "结束 0%+=1000px"
+
+#: includes/elements/gsap-multi-element-register.php:465
+msgid "End 0%+=1500px"
+msgstr "结束 0%+=1500px"
+
+#: includes/elements/gsap-multi-element-register.php:466
+#: includes/elements/gsap-text-animations.php:189
+msgid "End 0%+=2000px"
+msgstr "结束 0%+=2000px"
+
+#: includes/elements/gsap-multi-element-register.php:467
+msgid "End 0%+=3000px"
+msgstr "结束 0%+=3000px"
+
+#: includes/elements/gsap-multi-element-register.php:468
+msgid "End 0%+=4000px"
+msgstr "结束 0%+=4000px"
+
+#: includes/elements/gsap-multi-element-register.php:451
+#: includes/elements/gsap-text-animations.php:175
+msgid "End 10%"
+msgstr "结束 10%"
+
+#: includes/elements/gsap-multi-element-register.php:460
+#: includes/elements/gsap-text-animations.php:184
+msgid "End 100%"
+msgstr "结束 100%"
+
+#: includes/elements/gsap-multi-element-register.php:452
+#: includes/elements/gsap-text-animations.php:176
+msgid "End 20%"
+msgstr "20% 结束"
+
+#: includes/elements/gsap-multi-element-register.php:461
+#: includes/elements/gsap-text-animations.php:185
+msgid "End 200%"
+msgstr "结束 200"
+
+#: includes/elements/gsap-multi-element-register.php:453
+#: includes/elements/gsap-text-animations.php:177
+msgid "End 30%"
+msgstr "30% 结束"
+
+#: includes/elements/gsap-multi-element-register.php:454
+#: includes/elements/gsap-text-animations.php:178
+msgid "End 40%"
+msgstr "结束 40"
+
+#: includes/elements/gsap-multi-element-register.php:455
+#: includes/elements/gsap-text-animations.php:179
+msgid "End 50%"
+msgstr "结束 50%"
+
+#: includes/elements/gsap-multi-element-register.php:456
+#: includes/elements/gsap-text-animations.php:180
+msgid "End 60%"
+msgstr "60% 结束"
+
+#: includes/elements/gsap-multi-element-register.php:457
+#: includes/elements/gsap-text-animations.php:181
+msgid "End 70%"
+msgstr "70% 结束"
+
+#: includes/elements/gsap-multi-element-register.php:458
+#: includes/elements/gsap-text-animations.php:182
+msgid "End 80%"
+msgstr "80% 结束"
+
+#: includes/elements/gsap-multi-element-register.php:459
+#: includes/elements/gsap-text-animations.php:183
+msgid "End 90%"
+msgstr "90% 结束"
+
+#: includes/elements/conditions.php:105
+msgid "End date"
+msgstr "结束日期"
+
+#: includes/settings-page.php:73
+msgid "Enjoy building your site."
+msgstr "祝您建设网站愉快"
+
+#: includes/404-logging.php:243
+msgid ""
+"Enter an IP address or a part of a user agent string (e.g. \"bingbot\") to "
+"remove all matching logs."
+msgstr "输入 IP 地址或用户代理字符串的一部分（如 \"bingbot\"），删除所有匹配的日志。"
+
+#: includes/editor-settings-panel-color-sync.php:153
+msgid "Enter CSS color"
+msgstr "输入 CSS 颜色"
+
+#: includes/elements/gsap-animations.php:163
+msgid "Enter custom CSS properties for end state (without selectors or braces)"
+msgstr "为结束状态输入自定义 CSS 属性（不带选择器或大括号）"
+
+#: includes/elements/gsap-animations.php:157
+msgid ""
+"Enter custom CSS properties for start state (without selectors or braces)"
+msgstr "输入开始状态的自定义 CSS 属性（不带选择器或大括号）"
+
+#: includes/ai/ai-overlay.php:326
+msgid "Enter prompt.."
+msgstr "输入提示"
+
+#: includes/301-redirect.php:391
+msgid ""
+"Enter the full URL or path (e.g., https://example.com/new-page or /new-page)."
+" Use /* at the end if you used /* in the \"Redirect From.\""
+msgstr ""
+"输入完整的 URL 或路径（如 https://example.com/new-page 或 /new-page）。如果在 \"重定向来自 \"中使用了 "
+"/*，请在末尾使用 /*。"
+
+#: includes/login-settings.php:139
+msgid ""
+"Enter the full URL where users should be redirected after logging in. Leave "
+"blank to disable custom redirect."
+msgstr "输入用户登录后应重定向的完整 URL。留空表示禁用自定义重定向。"
+
+#: includes/other-settings.php:226
+msgid "Enter the HTML content for the custom dashboard metabox."
+msgstr "输入自定义仪表盘元方框的 HTML 内容。"
+
+#: includes/301-redirect.php:382
+msgid ""
+"Enter the path (e.g., /old-page or /category/old-post). Use /* at the end to "
+"match everything after."
+msgstr "输入路径（如 /old-page 或 /category/old-post）。在末尾使用 /* 以匹配后面的所有内容。"
+
+#: includes/ai/ai-settings.php:156
+msgid "Enter the system prompt for AI interactions."
+msgstr "输入人工智能交互的系统提示。"
+
+#: includes/login-logo-change-url-change.php:74
+msgid "Enter the URL where the logo should link on the login page."
+msgstr "输入徽标应链接到登录页面的 URL。"
+
+#: includes/404-logging.php:247
+msgid "Enter value"
+msgstr "输入数值"
+
+#: includes/login-settings.php:130
+msgid "Enter your custom text here. HTML tags are allowed."
+msgstr "在此输入您的自定义文本。允许使用 HTML 标记。"
+
+#: includes/elements/gsap-animations-code.php:32
+msgid ""
+"Enter your GSAP data-animate string. It will be output as the data-animate "
+"attribute."
+msgstr "输入您的 GSAP data-animate 字符串。它将作为 data-animate 属性输出。"
+
+#: includes/ai/ai-settings.php:243
+msgid "Enter your OpenRouter API key."
+msgstr "输入您的 OpenRouter API 密钥。"
+
+#: includes/custom-code-snippets.php:913
+msgid "Enter your PHP code or HTML here..."
+msgstr "在此输入您的 PHP 代码或 HTML..."
+
+#: includes/custom-code-snippets.php:876
+msgid "Enter your raw, unsanitized PHP code here..."
+msgstr "请在此处输入您未经过消毒的原始 PHP 代码..."
+
+#: includes/elements/gsap-text-animations.php:44
+msgid "Enter your text content here"
+msgstr "在此输入文字内容"
+
+#: includes/custom-code-snippets.php:136
+#: includes/custom-field-settings.php:1856
+msgid "Error"
+msgstr "错误"
+
+#: includes/custom-code-snippets.php:1223
+msgid "Error Details:"
+msgstr "错误详情："
+
+#: includes/media-settings.php:675
+msgid "Error fetching new category."
+msgstr "获取新类别时出错。"
+
+#: includes/mail-logging.php:389 includes/mail-logging.php:397
+msgid "Error loading message"
+msgstr "加载错误信息"
+
+#: includes/ai/ai-settings.php:629 includes/ai/ai-settings.php:690
+msgid "Error loading models."
+msgstr "错误加载模型。"
+
+#: includes/custom-code-snippets.php:818
+msgid "Error Logs"
+msgstr "错误日志"
+
+#: includes/editor-settings-panel-color-sync.php:343
+msgid "Error saving settings:"
+msgstr "保存设置出错："
+
+#: includes/global-variables.php:517 includes/global-variables.php:521
+msgid "Error saving variables."
+msgstr "保存变量出错。"
+
+#: includes/media-settings.php:256
+msgid "Error:"
+msgstr "错误："
+
+#: includes/elements/element-event-action-selector.php:81
+msgid "Event"
+msgstr "活动"
+
+#: includes/elements/element-event-action-selector.php:16
+msgid "Event ⇄ Action"
+msgstr "事件 ⇄ 行动"
+
+#: includes/post-types-settings.php:29 includes/post-types-settings.php:160
+msgid "Excerpt"
+msgstr "摘录"
+
+#: includes/custom-code-snippets.php:750
+msgid "Execution Disabled by Constant:"
+msgstr "通过常数禁用执行："
+
+#: includes/custom-code-snippets.php:789
+msgid ""
+"Execution was automatically disabled due to a fatal error. Please check the "
+"Error Logs tab, resolve the issue, then re-check this box and save settings "
+"to re-enable."
+msgstr "由于致命错误，执行已自动禁用。请检查 \"错误日志 \"选项卡，解决问题，然后重新选中此框并保存设置以重新启用。"
+
+#: includes/ai/ai-overlay.php:293
+msgid ""
+"Existing content will appear here. Add your instructions or select a preset.."
+"."
+msgstr "此处将显示现有内容。添加您的说明或选择预设..."
+
+#: includes/role-manager.php:428
+msgid "Existing Roles"
+msgstr "现有角色"
+
+#: includes/global-classes.php:292 includes/global-variables.php:123
+msgid "EXPERIMENTAL"
+msgstr "实验"
+
+#: includes/elements/gsap-multi-element-register.php:160
+msgid "Explode In"
+msgstr "爆炸"
+
+#: includes/elements/gsap-multi-element-register.php:161
+msgid "Explode Out"
+msgstr "爆发"
+
+#: includes/301-redirect.php:343
+msgid "Export"
+msgstr "出口"
+
+#: includes/global-classes.php:417
+msgid "Export Classes"
+msgstr "导出类"
+
+#: includes/ai/ai-settings.php:371
+msgid "Export Presets"
+msgstr "导出预设"
+
+#: includes/301-redirect.php:364
+msgid "Export Redirects"
+msgstr "出口重定向"
+
+#: includes/global-variables.php:232
+msgid "Export Variables"
+msgstr "导出变量"
+
+#: includes/ai/ai-settings.php:375
+msgid "Exported Presets"
+msgstr "导出预置"
+
+#: includes/elements/flip-box.php:60
+msgid "Fade"
+msgstr "褪色"
+
+#: includes/elements/gsap-multi-element-register.php:21
+msgid "Fade In "
+msgstr "淡入"
+
+#: includes/elements/gsap-multi-element-register.php:36
+msgid "Fade In Bottom Left"
+msgstr "淡入左下角"
+
+#: includes/elements/gsap-multi-element-register.php:38
+msgid "Fade In Bottom Right"
+msgstr "淡入右下角"
+
+#: includes/elements/gsap-multi-element-register.php:24
+msgid "Fade In Down"
+msgstr "淡入淡出"
+
+#: includes/elements/gsap-multi-element-register.php:26
+msgid "Fade In Left"
+msgstr "淡入左侧"
+
+#: includes/elements/gsap-multi-element-register.php:28
+msgid "Fade In Right"
+msgstr "淡入右侧"
+
+#: includes/elements/gsap-multi-element-register.php:32
+msgid "Fade In Top Left"
+msgstr "淡入左上角"
+
+#: includes/elements/gsap-multi-element-register.php:34
+msgid "Fade In Top Right"
+msgstr "淡入右上方"
+
+#: includes/elements/gsap-multi-element-register.php:30
+#: includes/elements/gsap-multi-element-register.php:176
+msgid "Fade In Up"
+msgstr "淡入淡出"
+
+#: includes/elements/gsap-multi-element-register.php:22
+msgid "Fade Out "
+msgstr "淡出"
+
+#: includes/elements/gsap-multi-element-register.php:37
+msgid "Fade Out Bottom Left"
+msgstr "淡出左下角"
+
+#: includes/elements/gsap-multi-element-register.php:39
+msgid "Fade Out Bottom Right"
+msgstr "淡出右下角"
+
+#: includes/elements/gsap-multi-element-register.php:25
+#: includes/elements/gsap-multi-element-register.php:177
+msgid "Fade Out Down"
+msgstr "淡入淡出"
+
+#: includes/elements/gsap-multi-element-register.php:27
+msgid "Fade Out Left"
+msgstr "向左淡出"
+
+#: includes/elements/gsap-multi-element-register.php:29
+msgid "Fade Out Right"
+msgstr "淡出右侧"
+
+#: includes/elements/gsap-multi-element-register.php:33
+msgid "Fade Out Top Left"
+msgstr "淡出左上角"
+
+#: includes/elements/gsap-multi-element-register.php:35
+msgid "Fade Out Top Right"
+msgstr "淡出右上角"
+
+#: includes/elements/gsap-multi-element-register.php:31
+msgid "Fade Out Up"
+msgstr "淡出向上"
+
+#: includes/activity-logs.php:81
+msgid "Failed Login Attempts"
+msgstr "登录失败"
+
+#: includes/custom-code-snippets.php:610
+msgid "Failed to clear revisions. Invalid snippet or insufficient permissions."
+msgstr "清除修订失败。无效片段或权限不足。"
+
+#: includes/role-manager.php:133
+#, php-format
+msgid "Failed to create role \"%s\"."
+msgstr "创建角色\"%s \"失败。"
+
+#: includes/custom-code-snippets.php:680
+#, php-format
+msgid "Failed to create snippet: %s - %s"
+msgstr "创建片段失败：%s - %s"
+
+#: includes/role-manager.php:189
+#, php-format
+msgid "Failed to delete role \"%s\"."
+msgstr "删除角色\"%s \"失败。"
+
+#: includes/custom-code-snippets.php:635
+msgid "Failed to restore revision. Invalid ID or permissions."
+msgstr "恢复修订失败。无效 ID 或权限。"
+
+#: includes/smtp-settings.php:340
+msgid ""
+"Failed to send test email. Check your SMTP settings or logs for more "
+"information."
+msgstr "发送测试电子邮件失败。请查看 SMTP 设置或日志以了解更多信息。"
+
+#: includes/custom-code-snippets.php:674
+#, php-format
+msgid "Failed to update snippet: %s - %s"
+msgstr "更新片段失败：%s - %s"
+
+#: includes/elements/gsap-text-animations.php:260
+#: includes/elements/gsap-text-animations.php:273
+#: includes/elements/gsap-text-animations.php:286
+#: includes/elements/gsap-text-animations.php:299
+#: includes/elements/gsap-text-animations.php:312
+#: includes/elements/gsap-text-animations.php:343
+msgid "False"
+msgstr "假的"
+
+#: includes/custom-field-settings.php:119
+#: includes/custom-field-settings.php:304
+msgid "Field Label"
+msgstr "字段标签"
+
+#: includes/custom-field-settings.php:121
+msgid "Field Label Name"
+msgstr "字段标签名称"
+
+#: includes/custom-field-settings.php:304
+msgid "Field Name"
+msgstr "字段名称"
+
+#: includes/custom-field-settings.php:139
+#: includes/custom-field-settings.php:309
+msgid "Field Type"
+msgstr "字段类型"
+
+#: includes/custom-field-settings.php:127
+#: includes/custom-field-settings.php:305
+msgid "field_name"
+msgstr "字段名"
+
+#: includes/custom-code-snippets.php:838
+msgid "File"
+msgstr "文件"
+
+#: includes/file-size-column-media.php:4
+msgid "File Size"
+msgstr "文件大小"
+
+#: includes/activity-logs.php:636
+msgid "Filter logs..."
+msgstr "过滤日志..."
+
+#: includes/elements/gsap-multi-element-register.php:166
+msgid "Firework In"
+msgstr "烟花"
+
+#: includes/elements/gsap-multi-element-register.php:167
+msgid "Firework Out"
+msgstr "熄灭烟花"
+
+#: includes/elements/scroll-line-vertical-indicator.php:113
+msgid "Fixed Position"
+msgstr "固定位置"
+
+#: includes/elements/gsap-multi-element-register.php:187
+msgid "Flash"
+msgstr "闪光灯"
+
+#: includes/elements/gsap-multi-element-register.php:201
+msgid "Flicker"
+msgstr "闪烁"
+
+#: includes/elements/gsap-multi-element-register.php:125
+msgid "Flip In 3D"
+msgstr "翻转 3D"
+
+#: includes/elements/gsap-multi-element-register.php:328
+msgid "Flip In Diagonal"
+msgstr "对角线翻转"
+
+#: includes/elements/gsap-multi-element-register.php:180
+msgid "Flip In Fade"
+msgstr "翻转渐变"
+
+#: includes/elements/gsap-multi-element-register.php:121
+msgid "Flip In X"
+msgstr "翻入 X"
+
+#: includes/elements/gsap-multi-element-register.php:123
+msgid "Flip In Y"
+msgstr "翻转 Y"
+
+#: includes/elements/gsap-multi-element-register.php:126
+msgid "Flip Out 3D"
+msgstr "翻转 3D"
+
+#: includes/elements/gsap-multi-element-register.php:329
+msgid "Flip Out Diagonal"
+msgstr "对角线翻转"
+
+#: includes/elements/gsap-multi-element-register.php:181
+msgid "Flip Out Fade"
+msgstr "翻转渐变"
+
+#: includes/elements/gsap-multi-element-register.php:122
+msgid "Flip Out X"
+msgstr "翻转出 X"
+
+#: includes/elements/gsap-multi-element-register.php:124
+msgid "Flip Out Y"
+msgstr "翻转式 Y"
+
+#: includes/elements/flip-box.php:19
+msgid "Flipbox (Nestable)"
+msgstr "翻转箱（可嵌套）"
+
+#: includes/elements/flip-box.php:53
+msgid "Flipbox Animation"
+msgstr "翻转框动画"
+
+#: includes/elements/flip-box.php:27
+msgid "Flipbox Height"
+msgstr "翻转箱高度"
+
+#: includes/elements/flip-box.php:44
+msgid "Flipbox Perspective"
+msgstr "翻箱视角"
+
+#: includes/elements/polkadot-effect.php:96
+msgid "Floyd-Steinberg"
+msgstr "弗洛伊德-斯坦伯格"
+
+#: includes/elements/gsap-multi-element-register.php:342
+msgid "Fly In (Center)"
+msgstr "飞入（中心）"
+
+#: includes/elements/gsap-multi-element-register.php:343
+msgid "Fly Out (Center)"
+msgstr "飞出（中心）"
+
+#: includes/elements/gsap-multi-element-register.php:135
+msgid "Focus In"
+msgstr "聚焦"
+
+#: includes/elements/gsap-multi-element-register.php:136
+msgid "Focus Out"
+msgstr "突出重点"
+
+#: includes/elements/gsap-multi-element-register.php:322
+msgid "Fold In Down"
+msgstr "向下折叠"
+
+#: includes/elements/gsap-multi-element-register.php:323
+msgid "Fold In Up"
+msgstr "向上折叠"
+
+#: includes/elements/matrix.php:82
+msgid "Font Size (px)"
+msgstr "字体大小（px）"
+
+#: includes/ai/ai-settings.php:185
+#, php-format
+msgid ""
+"For more information, visit the <a href=\"%s\" target=\"_blank\" "
+"rel=\"noopener noreferrer\">OpenAI API Keys page</a>."
+msgstr ""
+"有关详细信息，请访问 <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\">"
+"OpenAI API 密钥页面</a>。"
+
+#: includes/elements/multi-step-form.php:22
+msgid "Form Selector"
+msgstr "表格选择器"
+
+#: includes/mail-logging.php:213
+msgid "From"
+msgstr "来自"
+
+#: includes/custom-code-snippets.php:553
+msgid "Frontend Footer PHP/HTML"
+msgstr "前台页脚 PHP/HTML"
+
+#: includes/custom-code-snippets.php:547
+msgid "Frontend Head PHP/HTML"
+msgstr "PHP/HTML 前端主管"
+
+#: includes/elements/frontend-post-form.php:14
+msgid "Frontend Post Form"
+msgstr "前台发布表格"
+
+#: includes/elements/polkadot-effect.php:66
+msgid "Gamma"
+msgstr "伽马"
+
+#: includes/settings-page.php:162
+msgid "General Setting"
+msgstr "一般设置"
+
+#: includes/settings-page.php:178
+msgid "General setting for the SNN menu page."
+msgstr "SNN 菜单页面的常规设置。"
+
+#: includes/cookie-banner.php:179
+msgid "General Settings"
+msgstr "常规设置"
+
+#: includes/ai/ai-design.php:58 includes/ai/ai-overlay.php:296
+msgid "Generate"
+msgstr "生成"
+
+#: includes/global-classes.php:341
+msgid "Generate Classes"
+msgstr "生成类"
+
+#: includes/editor-settings-panel-clamp.php:10
+msgid ""
+"Generate CSS clamp() values for responsive typography and spacing. (Do not "
+"forget to match your HTML font-size with clamp.  Go to: Theme Styles > "
+"Typography > HTML font-size)"
+msgstr ""
+"为响应式排版和间距生成 CSS clamp() 值。(不要忘记将 HTML 字体大小与 clamp 匹配。  转到主题样式 > 排版 > HTML "
+"字体大小）"
+
+#: includes/global-variables.php:154 includes/global-variables.php:159
+msgid "Generate Variables"
+msgstr "生成变量"
+
+#: includes/ai/ai-overlay.php:756
+msgid "Generate with AI"
+msgstr "用人工智能生成"
+
+#: includes/global-classes.php:391 includes/global-classes.php:507
+msgid "Generated CSS"
+msgstr "生成 CSS"
+
+#: includes/elements/animated-vfx-text.php:38
+msgid "Glitch"
+msgstr "缺陷"
+
+#: includes/global-classes.php:292
+msgid "Global Class Manager"
+msgstr "全球班级经理"
+
+#: includes/global-classes.php:7
+msgid "Global Classes"
+msgstr "全局类"
+
+#: includes/global-classes.php:6
+msgid "Global Classes Manager"
+msgstr "全球班级经理"
+
+#: includes/editor-settings-panel-color-sync.php:624
+msgid "Global Color Variables"
+msgstr "全局颜色变量"
+
+#: includes/custom-code-snippets.php:777 includes/custom-code-snippets.php:780
+msgid "Global Snippet Execution"
+msgstr "全局片段执行"
+
+#: includes/global-variables.php:7
+msgid "Global Variables"
+msgstr "全球变量"
+
+#: includes/global-variables.php:6 includes/global-variables.php:123
+msgid "Global Variables Manager"
+msgstr "全局变量管理器"
+
+#: includes/elements/gsap-multi-element-register.php:250
+msgid "Gradient Reveal In"
+msgstr "渐变显示"
+
+#: includes/elements/gsap-multi-element-register.php:251
+msgid "Gradient Reveal Out"
+msgstr "渐变揭幕"
+
+#: includes/elements/advanced-image.php:54
+msgid "Grayscale"
+msgstr "灰度"
+
+#: includes/elements/gsap-animations.php:146
+msgid "Grayscale End (%)"
+msgstr "灰度端 (%)"
+
+#: includes/elements/gsap-multi-element-register.php:304
+msgid "Grayscale In"
+msgstr "灰度输入"
+
+#: includes/elements/gsap-multi-element-register.php:305
+msgid "Grayscale Out"
+msgstr "灰度输出"
+
+#: includes/elements/gsap-animations.php:138
+msgid "Grayscale Start (%)"
+msgstr "灰度开始 (%)"
+
+#: includes/custom-field-settings.php:330
+msgid "Green"
+msgstr "绿色"
+
+#: includes/custom-field-settings.php:161
+msgid "Green Color"
+msgstr "绿色"
+
+#: includes/elements/polkadot-effect.php:27
+msgid "Grid Size"
+msgstr "网格大小"
+
+#: includes/custom-field-settings.php:114
+#: includes/custom-field-settings.php:115
+#: includes/custom-field-settings.php:303
+#: includes/custom-field-settings.php:303
+msgid "Group Name"
+msgstr "组名"
+
+#: includes/elements/gsap-animations.php:46
+msgid "GSAP Animations"
+msgstr "GSAP 动画"
+
+#: includes/elements/gsap-animations.php:18
+msgid "GSAP Animations (Nestable)"
+msgstr "GSAP 动画（可嵌套）"
+
+#: includes/elements/gsap-animations-code.php:18
+msgid "GSAP Animations CODE (Nestable)"
+msgstr "GSAP 动画 CODE（可嵌套）"
+
+#: includes/elements/gsap-animations-code.php:28
+msgid "GSAP data-animate CSS"
+msgstr "GSAP 数据动画 CSS"
+
+#: includes/other-settings.php:148
+msgid ""
+"GSAP is a powerful JavaScript animation library that allows you to create "
+"complex and interactive animations."
+msgstr "GSAP 是一个功能强大的 JavaScript 动画库，可让您创建复杂的交互式动画。"
+
+#: includes/elements/gsap-text-animations.php:17
+msgid "GSAP Text Animations"
+msgstr "GSAP 文本动画"
+
+#: includes/other-settings.php:152
+msgid ""
+"gsap-data-animate.php: A custom script that utilizes GSAP and ScrollTrigger "
+"for animating elements based on data attributes."
+msgstr "gsap-data-animate.php：自定义脚本，利用 GSAP 和 ScrollTrigger 根据数据属性为元素制作动画。"
+
+#: includes/other-settings.php:150
+msgid "gsap.min.php: The core GSAP library."
+msgstr "gsap.min.php：GSAP 核心库。"
+
+#: includes/elements/conditions.php:440
+msgid "Guest"
+msgstr "游客"
+
+#: includes/elements/frontend-post-form.php:85
+msgid "Guest warning text"
+msgstr "访客警告文本"
+
+#: includes/elements/animated-heading.php:191
+#: includes/elements/animated-vfx-text.php:56
+#: includes/elements/gsap-text-animations.php:53
+msgid "H1"
+msgstr "H1"
+
+#: includes/elements/animated-heading.php:192
+#: includes/elements/animated-vfx-text.php:57
+#: includes/elements/gsap-text-animations.php:54
+msgid "H2"
+msgstr "H2"
+
+#: includes/elements/animated-heading.php:193
+#: includes/elements/animated-vfx-text.php:58
+#: includes/elements/gsap-text-animations.php:55
+msgid "H3"
+msgstr "H3"
+
+#: includes/elements/animated-heading.php:194
+#: includes/elements/animated-vfx-text.php:59
+#: includes/elements/gsap-text-animations.php:56
+msgid "H4"
+msgstr "H4"
+
+#: includes/elements/polkadot-effect.php:129
+msgid "Halftone Image"
+msgstr "半色调图像"
+
+#: includes/cookie-banner.php:325 includes/cookie-banner.php:355
+#: includes/cookie-banner.php:410
+msgid "Head"
+msgstr "负责人"
+
+#: includes/elements/gsap-multi-element-register.php:193
+msgid "Head Shake"
+msgstr "摇头"
+
+#: includes/mail-logging.php:266
+msgid "Headers:"
+msgstr "页眉："
+
+#: includes/elements/animated-heading.php:176
+msgid "Headline Typography"
+msgstr "标题排版"
+
+#: includes/elements/gsap-multi-element-register.php:198
+msgid "Heart Beat"
+msgstr "心跳"
+
+#: includes/elements/gsap-multi-element-register.php:229
+msgid "Height 0% to 100%"
+msgstr "高度 0% 至 100%"
+
+#: includes/elements/gsap-multi-element-register.php:230
+msgid "Height 100% to 0%"
+msgstr "高度 100% 至 0"
+
+#: includes/block-editor-settings.php:153
+msgid "Hide Blocks"
+msgstr "隐藏块"
+
+#: includes/editor-settings-bricks.php:48
+#: includes/editor-settings-bricks.php:122
+msgid "Hide Elements Icons on Bricks Editor"
+msgstr "隐藏砖块编辑器上的元素图标"
+
+#: includes/elements/comment-form.php:53
+msgid "Hide “logged-in as” info"
+msgstr "隐藏 \"登录身份 \"信息"
+
+#: includes/taxonomy-settings.php:75 includes/taxonomy-settings.php:161
+msgid "Hierarchical"
+msgstr "分层"
+
+#: includes/elements/gsap-multi-element-register.php:156
+msgid "Hinge"
+msgstr "铰链"
+
+#: includes/elements/image-hotspot.php:54
+msgid "Hotspots"
+msgstr "热点"
+
+#: includes/elements/lottie-animation.php:174
+msgid "http://yoursite.com"
+msgstr "http://yoursite.com"
+
+#: includes/login-settings.php:138
+msgid "https://example.com/redirect-path"
+msgstr "https://example.com/redirect-path"
+
+#. URI of the theme
+#. Author URI of the theme
+msgid "https://sinanisler.com/"
+msgstr "https://sinanisler.com/"
+
+#: includes/elements/text-action-social-share.php:58
+msgid "https://twitter.com/intent/tweet?text={text} {url} {image}"
+msgstr "https://twitter.com/intent/tweet?text={text}{url}{图像｝"
+
+#: includes/login-logo-change-url-change.php:73
+msgid "https://yourwebsite.com"
+msgstr "https://yourwebsite.com"
+
+#: includes/elements/advanced-image.php:62
+#: includes/elements/gsap-multi-element-register.php:310
+msgid "Hue Rotate"
+msgstr "色调旋转"
+
+#: includes/elements/custom-maps.php:59
+#: includes/elements/text-action-social-share.php:48
+msgid "Icon"
+msgstr "图标"
+
+#: includes/elements/custom-maps.php:75
+msgid "Icon Color"
+msgstr "图标颜色"
+
+#: includes/elements/custom-maps.php:67
+msgid "Icon Size (px)"
+msgstr "图标大小（px）"
+
+#: includes/role-manager.php:515 includes/role-manager.php:672
+msgid "ID %d (Not Found)"
+msgstr "ID %d（未找到）"
+
+#: includes/cookie-banner.php:296
+msgid ""
+"If checked, this service will always be active and cannot be disabled by the "
+"user."
+msgstr "如果选中，该服务将始终处于活动状态，用户无法禁用。"
+
+#: includes/custom-code-snippets.php:764
+msgid ""
+"If needed use define( ‘SNN_CODE_DISABLE’, true ); in functions.php or wp-"
+"config.php file to disable the code snippets feature temporarly. "
+msgstr ""
+"如果需要，可在 functions.php 或 wp-config.php 文件中使用 define( 'SNN_CODE_DISABLE', true "
+"); 暂时禁用代码片段功能。"
+
+#: includes/elements/advanced-image.php:23
+#: includes/elements/image-hotspot.php:21
+#: includes/elements/polkadot-effect.php:22
+msgid "Image"
+msgstr "图片"
+
+#: includes/elements/image-hotspot.php:14
+msgid "Image Hotspots"
+msgstr "图像热点"
+
+#. Parent slug (Media menu)
+#. Page title
+#: includes/editor-settings-panel-bricks.php:207
+#: includes/wp-admin-image-opt.php:17 includes/wp-admin-image-opt.php:18
+#: includes/wp-admin-image-opt.php:29
+msgid "Image Optimization"
+msgstr "图像优化"
+
+#: includes/301-redirect.php:342 includes/301-redirect.php:354
+#: includes/ai/ai-settings.php:385
+msgid "Import"
+msgstr "进口"
+
+#: includes/ai/ai-settings.php:906
+msgid "Import complete!"
+msgstr "导入完成！"
+
+#: includes/ai/ai-settings.php:372 includes/ai/ai-settings.php:381
+msgid "Import Presets"
+msgstr "导入预设"
+
+#: includes/301-redirect.php:350
+msgid "Import Redirects"
+msgstr "导入重定向"
+
+#: includes/role-manager.php:582
+msgid "Initial Capabilities"
+msgstr "初始权限"
+
+#: includes/enqueue-scripts.php:39
+msgid "Initial value:"
+msgstr "初始值："
+
+#: includes/enqueue-scripts.php:70
+msgid "Input field value changed:"
+msgstr "输入字段值已更改："
+
+#: includes/editor-settings-panel-color-sync.php:428
+msgid "Invalid colors data"
+msgstr "颜色数据无效"
+
+#: includes/301-redirect.php:189 includes/ai/ai-settings.php:909
+msgid "Invalid JSON format."
+msgstr "JSON 格式无效。"
+
+#: includes/mail-logging.php:34
+msgid "Invalid log ID"
+msgstr "日志 ID 无效"
+
+#: includes/media-settings.php:717
+msgid "Invalid media ID or term ID"
+msgstr "无效媒体 ID 或术语 ID"
+
+#: includes/editor-settings-panel-color-sync.php:419
+msgid "Invalid nonce"
+msgstr "无效的 nonce"
+
+#: includes/301-redirect.php:199 includes/301-redirect.php:254
+msgid "Invalid redirect destination URL!"
+msgstr "无效重定向目标 URL！"
+
+#: includes/role-manager.php:635
+msgid ""
+"Invalid role specified, you do not have permission to edit it, or you "
+"attempted to edit the Administrator role."
+msgstr "指定的角色无效，您没有编辑权限，或者您试图编辑管理员角色。"
+
+#: includes/media-settings.php:694
+msgid "Invalid term ID"
+msgstr "无效的术语 ID"
+
+#: includes/elements/advanced-image.php:70
+msgid "Invert"
+msgstr "反转"
+
+#: includes/elements/conditions.php:144
+msgid "iOS"
+msgstr "iOS"
+
+#: includes/301-redirect.php:538 includes/404-logging.php:260
+#: includes/search-loggins.php:223
+msgid "IP Address"
+msgstr "IP 地址"
+
+#: includes/404-logging.php:246
+msgid "IP or User Agent:"
+msgstr "IP 或用户代理："
+
+#: includes/elements/gsap-multi-element-register.php:157
+msgid "Jack In The Box"
+msgstr "Jack In The Box"
+
+#: includes/elements/gsap-multi-element-register.php:197
+msgid "Jello"
+msgstr "蔗露"
+
+#: includes/elements/text-action-social-share.php:44
+msgid "Label"
+msgstr "标签"
+
+#: includes/auto-update-snn-brx-github.php:120
+msgid "Latest release information from GitHub."
+msgstr "来自 GitHub 的最新发布信息。"
+
+#: includes/elements/custom-maps.php:38
+msgid "Latitude"
+msgstr "纬度"
+
+#: includes/elements/custom-maps.php:150
+msgid "Leaflet Pane Filters"
+msgstr "传单窗格过滤器"
+
+#: includes/elements/comment-form.php:63 includes/elements/comment-form.php:64
+#: includes/elements/comment-form.php:180
+msgid "Leave a Reply"
+msgstr "发表回复"
+
+#: includes/elements/matrix.php:94
+msgid ""
+"Leave blank for random Japanese + ASCII. Enter your own for custom effect!"
+msgstr "留空表示随机日语 + ASCII。输入您的自定义效果！"
+
+#: includes/accessibility-settings.php:193 includes/cookie-banner.php:511
+#: includes/elements/image-hotspot.php:88
+msgid "Left"
+msgstr "左侧"
+
+#: includes/elements/compare-image.php:28
+msgid "Left Image"
+msgstr "左图"
+
+#: includes/elements/compare-image.php:42
+msgid "Left Label"
+msgstr "左标签"
+
+#: includes/accessibility-settings.php:83
+msgid "Left Spacing (px)"
+msgstr "左间距（px）"
+
+#: includes/elements/flip-box.php:56
+msgid "Left to Right (Flip)"
+msgstr "从左到右（翻转）"
+
+#: includes/elements/flip-box.php:62
+msgid "Left to Right Slide"
+msgstr "从左到右滑动"
+
+#: includes/cookie-banner.php:245
+msgid "Legal Text or Links"
+msgstr "法律文本或链接"
+
+#: includes/elements/gsap-multi-element-register.php:150
+msgid "Light Speed In Left"
+msgstr "左侧光速"
+
+#: includes/elements/gsap-multi-element-register.php:148
+msgid "Light Speed In Right"
+msgstr "右光速"
+
+#: includes/elements/gsap-multi-element-register.php:151
+msgid "Light Speed Out Left"
+msgstr "光速向左"
+
+#: includes/elements/gsap-multi-element-register.php:149
+msgid "Light Speed Out Right"
+msgstr "右光速"
+
+#: includes/elements/like-button.php:68 includes/elements/like-button.php:69
+msgid "Like"
+msgstr "喜欢"
+
+#: includes/elements/like-button.php:28
+msgid "Like Button (Logged User Only)"
+msgstr "赞按钮（仅限登录用户）"
+
+#: includes/elements/like-button.php:42
+msgid "Liked Icon"
+msgstr "喜欢的图标"
+
+#: includes/other-settings.php:56
+msgid "Limit Post Revisions (Per Post)"
+msgstr "帖子修改限制（每篇帖子）"
+
+#: includes/custom-code-snippets.php:839
+msgid "Line"
+msgstr "线路"
+
+#: includes/elements/scroll-line-vertical-indicator.php:45
+msgid "Line Color"
+msgstr "线条颜色"
+
+#: includes/elements/lottie-animation.php:171
+msgid "Link"
+msgstr "链接"
+
+#: includes/taxonomy-settings.php:79
+msgid "Link Post Types"
+msgstr "链接文章类型"
+
+#: includes/custom-code-snippets.php:949
+msgid "Load Revision & Save"
+msgstr "加载修订和保存"
+
+#: includes/accessibility-settings.php:141
+msgid "Load the Accessibility Widget script."
+msgstr "加载无障碍小工具脚本。"
+
+#: includes/ai/ai-settings.php:209 includes/ai/ai-settings.php:262
+#: includes/ai/ai-settings.php:591 includes/ai/ai-settings.php:645
+msgid "Loading models..."
+msgstr "正在加载模型..."
+
+#: includes/custom-code-snippets.php:134 includes/mail-logging.php:261
+#: includes/role-manager.php:976
+msgid "Loading..."
+msgstr "正在加载..."
+
+#: includes/activity-logs.php:579
+msgid "Log Limit"
+msgstr "日志限值"
+
+#: includes/login-logo-change-url-change.php:6
+msgid "Login Logo Image URL"
+msgstr "登录徽标图片 URL"
+
+#: includes/login-settings.php:33
+msgid "Login Page Customizations"
+msgstr "登录页面定制"
+
+#: includes/login-settings.php:8 includes/login-settings.php:9
+#: includes/login-settings.php:155 includes/settings-page.php:34
+msgid "Login Settings"
+msgstr "登录设置"
+
+#: includes/elements/custom-maps.php:46
+msgid "Longitude"
+msgstr "经度"
+
+#: includes/elements/gsap-text-animations.php:256
+msgid "Loop"
+msgstr "循环"
+
+#: includes/elements/gsap-animations.php:170
+msgid "Loop / yoyo"
+msgstr "循环/悠悠"
+
+#: includes/elements/animated-heading.php:128
+#: includes/elements/lottie-animation.php:35
+msgid "Loop Animation"
+msgstr "循环动画"
+
+#: includes/elements/gsap-multi-element-register.php:475
+#: includes/elements/gsap-text-animations.php:198
+msgid "Loop True"
+msgstr "循环 True"
+
+#: includes/elements/animated-vfx-text.php:29
+msgid "Lorem ipsum dolor sinan amet animated text"
+msgstr "Lorem ipsum dolor sinan amet animated text"
+
+#: includes/elements/smoke-text.php:33
+msgid "Lorem ipsum dolor sinan amet."
+msgstr "Lorem ipsum dolor sinan amet."
+
+#: includes/elements/read-more-toggle-text.php:25
+msgid "Lorem ipsum dolor sinan amet..."
+msgstr "Lorem ipsum dolor sinan amet..."
+
+#: includes/elements/lottie-animation.php:26
+msgid "Lottie JSON File"
+msgstr "洛蒂 JSON 文件"
+
+#: includes/other-settings.php:153
+msgid "lottie.min.php and Lottie Element"
+msgstr "lottie.min.php 和 Lottie 元素"
+
+#: includes/role-manager.php:579
+msgid "Lowercase letters, numbers, and underscores only."
+msgstr "仅限小写字母、数字和下划线。"
+
+#: includes/elements/conditions.php:143
+msgid "macOS"
+msgstr "MacOS"
+
+#: includes/mail-logging.php:141
+msgid "Mail Log"
+msgstr "邮件日志"
+
+#: includes/mail-logging.php:13 includes/mail-logging.php:14
+#: includes/mail-logging.php:182 includes/settings-page.php:38
+msgid "Mail Logs"
+msgstr "邮件日志"
+
+#: includes/settings-page.php:37 includes/smtp-settings.php:8
+#: includes/smtp-settings.php:9 includes/smtp-settings.php:356
+msgid "Mail SMTP Settings"
+msgstr "邮件 SMTP 设置"
+
+#: includes/security-page.php:54
+msgid "Main Settings"
+msgstr "主要设置"
+
+#: includes/editor-settings-bricks.php:133
+msgid "Make Elements Compact But Keep Icons"
+msgstr "压缩元素，保留图标"
+
+#: includes/editor-settings-bricks.php:56
+msgid "Make Elements Compact But Keep Icons on Bricks Editor"
+msgstr "让元素更紧凑，但保留砖块上的图标 编辑器"
+
+#: includes/editor-settings-bricks.php:64
+#: includes/editor-settings-bricks.php:144
+msgid "Make Elements Wide on Bricks Editor"
+msgstr "在砖块编辑器上加宽元素"
+
+#: includes/custom-code-snippets.php:745
+msgid "Manage Code Snippets"
+msgstr "管理代码片段"
+
+#: includes/custom-field-settings.php:88
+msgid "Manage Custom Fields"
+msgstr "管理自定义字段"
+
+#: includes/post-types-settings.php:96
+msgid "Manage Custom Post Types"
+msgstr "管理自定义帖子类型"
+
+#: includes/role-manager.php:380
+msgid "Manage Roles"
+msgstr "管理角色"
+
+#: includes/taxonomy-settings.php:55
+msgid "Manage Taxonomies"
+msgstr "管理分类标准"
+
+#: includes/role-manager.php:374
+msgid ""
+"Manage user roles and capabilities. Core roles cannot be deleted and the "
+"Administrator role cannot be modified. You can restrict editing access for "
+"roles to specific posts or pages."
+msgstr "管理用户角色和功能。核心角色不可删除，管理员角色不可修改。您可以限制角色对特定帖子或页面的编辑权限。"
+
+#: includes/cookie-banner.php:296 includes/cookie-banner.php:330
+#: includes/cookie-banner.php:360 includes/cookie-banner.php:414
+msgid "Mandatory Feature"
+msgstr "必备功能"
+
+#: includes/elements/custom-maps.php:88
+msgid "Map Center Latitude"
+msgstr "地图中心纬度"
+
+#: includes/elements/custom-maps.php:98
+msgid "Map Center Longitude"
+msgstr "地图中心经度"
+
+#: includes/elements/custom-maps.php:118
+msgid "Map Height (px)"
+msgstr "地图高度（px）"
+
+#: includes/elements/custom-maps.php:137
+msgid "Map Style"
+msgstr "地图风格"
+
+#: includes/elements/gsap-animations.php:243
+#: includes/elements/gsap-text-animations.php:339
+msgid "Markers"
+msgstr "标记"
+
+#: includes/elements/gsap-multi-element-register.php:473
+#: includes/elements/gsap-text-animations.php:196
+msgid "Markers True"
+msgstr "标记 真实"
+
+#: includes/elements/matrix.php:14
+msgid "Matrix Rain"
+msgstr "矩阵雨"
+
+#: includes/301-redirect.php:514
+msgid "Max days to keep logs"
+msgstr "保存日志的最长天数"
+
+#: includes/301-redirect.php:508
+msgid "Max number of logs to keep"
+msgstr "保留日志的最大数量"
+
+#: includes/elements/conditions.php:53
+msgid "Max views (global)"
+msgstr "最大浏览量（全球）"
+
+#: includes/activity-logs.php:582
+msgid ""
+"Maximum number of log entries to keep. Oldest entries will be deleted "
+"automatically."
+msgstr "保留日志条目的最大数量。最旧的条目将被自动删除。"
+
+#: includes/404-logging.php:220 includes/search-loggins.php:181
+msgid "Maximum number of logs to keep:"
+msgstr "保留日志的最大数量："
+
+#: includes/mail-logging.php:192
+msgid "Maximum number of logs to keep: "
+msgstr "保留日志的最大数量："
+
+#: includes/custom-field-settings.php:146
+#: includes/custom-field-settings.php:316
+msgid "Media"
+msgstr "媒体"
+
+#: includes/media-settings.php:135 includes/media-settings.php:576
+msgid "Media Categories"
+msgstr "媒体类别"
+
+#: includes/activity-logs.php:90
+msgid "Media Deletion"
+msgstr "媒体删除"
+
+#: includes/media-settings.php:82
+msgid "Media list view default."
+msgstr "媒体列表默认视图。"
+
+#: includes/media-settings.php:10 includes/media-settings.php:11
+#: includes/media-settings.php:23 includes/media-settings.php:44
+#: includes/settings-page.php:45
+msgid "Media Settings"
+msgstr "媒体设置"
+
+#: includes/activity-logs.php:91
+msgid "Media Updates"
+msgstr "媒体更新"
+
+#: includes/activity-logs.php:89
+msgid "Media Uploads"
+msgstr "媒体上传"
+
+#: includes/activity-logs.php:110
+msgid "Menu Updates"
+msgstr "菜单更新"
+
+#: includes/custom-code-snippets.php:837
+msgid "Message"
+msgstr "留言"
+
+#: includes/mail-logging.php:264
+msgid "Message:"
+msgstr "留言："
+
+#: includes/cookie-banner.php:512 includes/cookie-banner.php:523
+msgid "Middle"
+msgstr "中层"
+
+#: includes/elements/timeline.php:65
+msgid "Mini Line Color"
+msgstr "迷你线颜色"
+
+#: includes/custom-code-snippets.php:1078
+msgid "Missing revision ID."
+msgstr "缺少修订版 ID。"
+
+#: includes/elements/conditions.php:141
+msgid "Mobile"
+msgstr "移动电话"
+
+#: includes/elements/gsap-multi-element-register.php:602
+msgid "Mobile False"
+msgstr "移动假"
+
+#: includes/ai/ai-settings.php:213
+msgid "Model Info & Pricing"
+msgstr "机型信息和定价"
+
+#: includes/elements/comment-list.php:57
+msgid "Moderation notice text"
+msgstr "修改通知文本"
+
+#: includes/elements/compare-image.php:52
+msgid "Modified"
+msgstr "改装"
+
+#: includes/elements/gsap-multi-element-register.php:140
+msgid "Morph In"
+msgstr "变形"
+
+#: includes/elements/gsap-multi-element-register.php:141
+msgid "Morph Out"
+msgstr "变形"
+
+#: includes/other-settings.php:72
+msgid "Move Bricks Menu to End"
+msgstr "将砖块菜单移至末尾"
+
+#: includes/post-types-settings.php:105 includes/post-types-settings.php:244
+#: includes/taxonomy-settings.php:64 includes/taxonomy-settings.php:150
+msgid "Move Down"
+msgstr "向下移动"
+
+#: includes/post-types-settings.php:104 includes/post-types-settings.php:243
+#: includes/taxonomy-settings.php:63 includes/taxonomy-settings.php:149
+msgid "Move Up"
+msgstr "向上移动"
+
+#: includes/elements/multi-step-form.php:15
+msgid "Multi-Step Form"
+msgstr "多步骤表格"
+
+#: includes/role-manager.php:464 includes/role-manager.php:673
+msgid "N/A"
+msgstr "不适用"
+
+#: includes/global-classes.php:302 includes/global-classes.php:365
+#: includes/global-variables.php:174 includes/elements/comment-form.php:228
+msgid "Name"
+msgstr "名称"
+
+#: includes/elements/read-more-toggle-text.php:39
+msgid "Native Button Selector (ID)"
+msgstr "本地按钮选择器（ID）"
+
+#: includes/media-settings.php:620
+msgid "New Category Name"
+msgstr "新类别名称"
+
+#: includes/custom-code-snippets.php:25
+msgid "New Code Snippet"
+msgstr "新代码片段"
+
+#: includes/media-settings.php:134
+msgid "New Media Category Name"
+msgstr "新媒体类别名称"
+
+#: includes/elements/multi-step-form.php:99
+#: includes/elements/multi-step-form.php:100
+msgid "Next"
+msgstr "下一页"
+
+#: includes/elements/multi-step-form.php:97
+msgid "Next Button Text"
+msgstr "下一个按钮文本"
+
+#: includes/elements/gsap-animations.php:174
+#: includes/elements/gsap-animations.php:187
+#: includes/elements/gsap-animations.php:200
+#: includes/elements/gsap-animations.php:247
+msgid "No"
+msgstr "没有"
+
+#: includes/activity-logs.php:676
+msgid "No activity logged yet."
+msgstr "尚无活动记录。"
+
+#: includes/role-manager.php:604
+msgid "No capabilities found to assign."
+msgstr "未找到可分配的权限。"
+
+#: includes/role-manager.php:712
+msgid "No capabilities found."
+msgstr "未找到任何功能。"
+
+#: includes/global-classes.php:321
+msgid "No categories added yet. Click \"Add\" to create one."
+msgstr "尚未添加类别。点击 \"添加 \"创建一个。"
+
+#: includes/media-settings.php:226
+msgid "No categories found"
+msgstr "未找到类别"
+
+#: includes/custom-field-settings.php:1042
+#: includes/custom-field-settings.php:1061
+msgid "No choices defined."
+msgstr "没有明确的选择。"
+
+#: includes/global-classes.php:400 includes/global-classes.php:523
+#: includes/global-classes.php:657
+msgid "No classes added yet. Click \"Add\" to create a class."
+msgstr "尚未添加类。点击 \"添加 \"创建类。"
+
+#: includes/custom-code-snippets.php:28
+msgid "No code snippets found"
+msgstr "未找到代码片段"
+
+#: includes/custom-code-snippets.php:29
+msgid "No code snippets found in Trash"
+msgstr "垃圾桶中未发现代码片段"
+
+#: includes/editor-settings-panel-color-sync.php:423
+msgid "No colors data provided"
+msgstr "未提供颜色数据"
+
+#: includes/role-manager.php:553
+msgid ""
+"No editable roles found (excluding Administrator). If you expect to see core "
+"roles like Editor, check plugin conflicts or user permissions."
+msgstr "未找到可编辑角色（管理员除外）。如果您希望看到编辑器等核心角色，请检查插件冲突或用户权限。"
+
+#: includes/custom-code-snippets.php:862
+msgid "No errors logged yet."
+msgstr "尚未记录错误。"
+
+#: includes/custom-field-settings.php:1856
+msgid "No fields configured for this options page or group not found."
+msgstr "此选项页未配置字段或未找到组。"
+
+#: includes/elements/comment-form.php:542
+msgid "No file received."
+msgstr "未收到文件。"
+
+#: includes/elements/advanced-image.php:174
+#: includes/elements/polkadot-effect.php:131
+msgid "No image selected."
+msgstr "未选择图像。"
+
+#: includes/search-loggins.php:251
+msgid "No logs found."
+msgstr "未找到日志。"
+
+#: includes/activity-logs.php:680
+msgid "No matching logs found."
+msgstr "未找到匹配的日志。"
+
+#: includes/ai/ai-settings.php:624 includes/ai/ai-settings.php:685
+msgid "No models found."
+msgstr "未找到模型。"
+
+#: includes/editor-settings-panel-color-sync.php:625
+msgid ""
+"No need to use this global color variables with Bricks Builder 2.0+ you can "
+"start using the variables. Now they support adding color variables and then "
+"you can save it to your color palettes. Not one step but still native is "
+"always better."
+msgstr ""
+"使用 Bricks Builder 2.0+ "
+"版无需使用全局颜色变量，您可以开始使用这些变量。现在他们支持添加颜色变量，然后你可以将其保存到你的调色板中。虽然不是一步到位，但还是原生的好。"
+
+#: includes/custom-code-snippets.php:964
+msgid "No past revisions found. Save changes to create revisions."
+msgstr "未找到过去的修订。保存更改以创建修订。"
+
+#: includes/role-manager.php:972
+msgid "No posts found."
+msgstr "未找到帖子。"
+
+#: includes/role-manager.php:619 includes/role-manager.php:728
+#: includes/role-manager.php:975
+msgid "No posts selected."
+msgstr "未选择任何职位。"
+
+#: includes/301-redirect.php:577
+msgid "No recent logs found."
+msgstr "未找到最新日志。"
+
+#: includes/301-redirect.php:497
+msgid "No redirects found."
+msgstr "未找到重定向。"
+
+#: includes/custom-code-snippets.php:608
+#, php-format
+msgid "No revisions found to clear for \"%s\"."
+msgstr "未找到要为\"%s \"清除的修订。"
+
+#: includes/custom-code-snippets.php:607
+#, php-format
+msgid "No revisions were deleted for \"%s\"."
+msgstr "没有删除\"%s \"的修订。"
+
+#: includes/role-manager.php:176
+msgid "No role specified for deletion."
+msgstr "未指定删除角色。"
+
+#: includes/search-loggins.php:310
+msgid "No searches found."
+msgstr "没有搜索结果。"
+
+#: includes/ai/ai-overlay.php:924
+msgid "No text elements found on the page or all are empty."
+msgstr "页面上未找到文本元素或全部为空。"
+
+#: includes/search-loggins.php:162
+msgid "No top searches found to clear."
+msgstr "未找到需要清除的热门搜索。"
+
+#: includes/global-variables.php:216 includes/global-variables.php:375
+#: includes/global-variables.php:430
+msgid "No variables added yet. Click \"Add\" to create a variable."
+msgstr "尚未添加变量。点击 \"添加 \"创建变量。"
+
+#: includes/elements/polkadot-effect.php:98
+msgid "Noise"
+msgstr "噪音"
+
+#: includes/editor-settings-panel-color-sync.php:112
+msgid "nonary-color"
+msgstr "nonary-color"
+
+#: includes/custom-code-snippets.php:1069
+#: includes/custom-code-snippets.php:1099
+msgid "Nonce verification failed."
+msgstr "Nonce 验证失败。"
+
+#: includes/global-variables.php:194 includes/global-variables.php:330
+#: includes/role-manager.php:461 includes/role-manager.php:496
+#: includes/role-manager.php:522 includes/role-manager.php:526
+#: includes/smtp-settings.php:132 includes/elements/frontend-post-form.php:49
+#: includes/elements/polkadot-effect.php:95
+msgid "None"
+msgstr "无"
+
+#: includes/custom-field-settings.php:142
+#: includes/custom-field-settings.php:312
+msgid "Number"
+msgstr "数量"
+
+#: includes/editor-settings-panel-color-sync.php:111
+msgid "octonary-color"
+msgstr "八色"
+
+#: includes/elements/gsap-multi-element-register.php:605
+msgid "Once True"
+msgstr "曾经真实"
+
+#: includes/global-variables.php:155
+msgid "one per line"
+msgstr "每行一个"
+
+#: includes/elements/text-action-social-share.php:32
+msgid ""
+"Only allow text selection & actions inside these elements. Use any valid CSS "
+"selector (e.g. .my-comments, #post-content, .comment-body). Leave blank for "
+"whole page."
+msgstr ""
+"只允许在这些元素内选择文本和操作。使用任何有效的 CSS 选择器（如 .my-comments、#post-content、.comment-"
+"body）。整个页面留空。"
+
+#: includes/elements/advanced-image.php:78
+msgid "Opacity"
+msgstr "不透明度"
+
+#: includes/elements/gsap-multi-element-register.php:233
+#: includes/elements/gsap-text-animations.php:100
+msgid "Opacity 0 to 1"
+msgstr "不透明度 0 至 1"
+
+#: includes/elements/gsap-text-animations.php:78
+msgid "Opacity 0 to 1 Fade in"
+msgstr "不透明度 0 至 1 淡入"
+
+#: includes/elements/gsap-multi-element-register.php:234
+msgid "Opacity 0.1 to 1"
+msgstr "不透明度 0.1 至 1"
+
+#: includes/elements/gsap-multi-element-register.php:235
+#: includes/elements/gsap-text-animations.php:101
+msgid "Opacity 1 to 0"
+msgstr "不透明度 1 至 0"
+
+#: includes/elements/gsap-text-animations.php:79
+msgid "Opacity 1 to 0 Fade out"
+msgstr "不透明度 1 至 0 淡出"
+
+#: includes/elements/gsap-animations.php:120
+msgid "Opacity End"
+msgstr "不透明度结束"
+
+#: includes/elements/gsap-animations.php:112
+msgid "Opacity Start"
+msgstr "不透明度启动"
+
+#: includes/elements/text-action-social-share.php:61
+msgid "Open in new tab?"
+msgstr "在新标签页中打开？"
+
+#: includes/ai/ai-settings.php:170
+msgid "OpenAI API Key"
+msgstr "OpenAI API 密钥"
+
+#: includes/ai/ai-settings.php:166
+msgid "OpenAI API Settings"
+msgstr "OpenAI API 设置"
+
+#: includes/ai/ai-settings.php:642
+msgid "OpenAI key missing. Please add your key first."
+msgstr "缺少 OpenAI 密钥。请先添加密钥。"
+
+#: includes/ai/ai-settings.php:195
+msgid "OpenAI Model"
+msgstr "OpenAI 模型"
+
+#: includes/ai/ai-settings.php:232
+msgid "OpenRouter API Key"
+msgstr "OpenRouter API 密钥"
+
+#: includes/ai/ai-settings.php:228
+msgid "OpenRouter API Settings"
+msgstr "OpenRouter API 设置"
+
+#: includes/ai/ai-settings.php:588
+msgid "OpenRouter key missing. Please add your key first."
+msgstr "缺少 OpenRouter 密钥。请先添加密钥。"
+
+#: includes/ai/ai-settings.php:248
+msgid "OpenRouter Model"
+msgstr "OpenRouter 型号"
+
+#: includes/editor-settings-panel-image-opt.php:11
+msgid ""
+"Optimize or Convert or Resize gigantic images. Fast. It uses your cpu to "
+"optimize images. If img count is more than 5 it will create .zip download."
+msgstr "优化、转换或调整巨大图像的大小。速度快。它会使用你的 CPU 来优化图片。如果图片数量超过 5，它会创建 .zip 下载。"
+
+#: includes/wp-admin-image-opt.php:30
+msgid ""
+"Optimize, convert, and resize images before adding them to your media "
+"library."
+msgstr "在将图片添加到媒体库之前，对其进行优化、转换和调整大小。"
+
+#: includes/custom-field-settings.php:192
+#: includes/custom-field-settings.php:343
+msgid "Options Page"
+msgstr "选项页面"
+
+#: includes/elements/comment-list.php:31
+msgid "Order"
+msgstr "订购"
+
+#: includes/elements/polkadot-effect.php:97
+msgid "Ordered"
+msgstr "已订购"
+
+#: includes/elements/compare-image.php:44
+msgid "Original"
+msgstr "原创"
+
+#: includes/other-settings.php:7 includes/other-settings.php:8
+#: includes/other-settings.php:20 includes/other-settings.php:41
+msgid "Other Settings"
+msgstr "其他设置"
+
+#: includes/cookie-banner.php:530
+msgid "Overlay Color"
+msgstr "叠加颜色"
+
+#: includes/cookie-banner.php:536
+msgid "Overlay Opacity"
+msgstr "叠加不透明度"
+
+#: includes/elements/matrix.php:48
+msgid "Overlay Opacity (0-1)"
+msgstr "叠加不透明度（0-1）"
+
+#: includes/post-types-settings.php:33 includes/post-types-settings.php:164
+msgid "Page Attributes"
+msgstr "页面属性"
+
+#: includes/elements/animated-heading.php:195
+#: includes/elements/animated-vfx-text.php:60
+#: includes/elements/gsap-text-animations.php:57
+msgid "Paragraph"
+msgstr "段落"
+
+#: includes/elements/gsap-multi-element-register.php:170
+msgid "Parallax In"
+msgstr "视差"
+
+#: includes/elements/gsap-multi-element-register.php:171
+msgid "Parallax Out"
+msgstr "视差输出"
+
+#: includes/media-settings.php:129
+msgid "Parent Media Category"
+msgstr "母媒体类别"
+
+#: includes/media-settings.php:130
+msgid "Parent Media Category:"
+msgstr "母媒体类别："
+
+#: includes/activity-logs.php:80
+msgid "Password Reset Requests"
+msgstr "密码重置申请"
+
+#: includes/global-classes.php:337
+msgid ""
+"Paste multiple CSS class definitions here (e.g. <code>.my-class { color: red;"
+" }</code>) and click \"Generate Classes\".<br>\n"
+"                        Multiple selectors (comma separated) and both <code>"
+"@media</code> and <code>@keyframes</code> blocks are supported."
+msgstr ""
+"在此处粘贴多个 CSS 类定义（例如，<code>.my-class { color: red; }</code>），然后点击 \"生成类\"。\n"
+"                        支持多个选择器（逗号分隔）以及 <code>@media</code> 和 <code>"
+"@keyframes</code> 块。"
+
+#: includes/global-variables.php:154
+msgid "Paste multiple variable definitions here"
+msgstr "在此处粘贴多个变量定义"
+
+#: includes/301-redirect.php:351
+msgid ""
+"Paste your JSON data here. The format should be an array of objects, like: "
+"[{\"from\":\"/old-path\",\"to\":\"/new-path\"}, ...]"
+msgstr ""
+"在此处粘贴 JSON 数据。格式应为对象数组，如[{\"from\":\"/old-path\",\"to\":\"/new-path\"}, ...]"
+
+#: includes/ai/ai-settings.php:382
+msgid ""
+"Paste your previously exported presets into the text area below and click "
+"\"Import\". This will add the imported presets to your current list, "
+"skipping any duplicates."
+msgstr "将之前导出的预置粘贴到下面的文本区域，然后点击 \"导入\"。这将把导入的预置添加到当前列表中，跳过任何重复的预置。"
+
+#: includes/elements/svg-text-path.php:97
+msgid "Path Stroke Color"
+msgstr "路径描边颜色"
+
+#: includes/elements/svg-text-path.php:105
+msgid "Path Stroke Width"
+msgstr "路径描边宽度"
+
+#: includes/elements/lottie-animation.php:77
+msgid "Pause on Mouse Leave"
+msgstr "鼠标离开时暂停"
+
+#: includes/elements/gsap-multi-element-register.php:352
+msgid "Peek In Down"
+msgstr "向下窥视"
+
+#: includes/elements/gsap-multi-element-register.php:346
+msgid "Peek In Left"
+msgstr "左侧窥视"
+
+#: includes/elements/gsap-multi-element-register.php:348
+msgid "Peek In Right"
+msgstr "向右窥视"
+
+#: includes/elements/gsap-multi-element-register.php:354
+msgid "Peek In Up"
+msgstr "向上窥视"
+
+#: includes/elements/gsap-multi-element-register.php:353
+msgid "Peek Out Down"
+msgstr "向下窥视"
+
+#: includes/elements/gsap-multi-element-register.php:347
+msgid "Peek Out Left"
+msgstr "向左窥视"
+
+#: includes/elements/gsap-multi-element-register.php:349
+msgid "Peek Out Right"
+msgstr "向右窥视"
+
+#: includes/elements/gsap-multi-element-register.php:355
+msgid "Peek Out Up"
+msgstr "向上窥视"
+
+#: includes/custom-code-snippets.php:1087
+msgid "Permission denied for accessing this revision content."
+msgstr "访问此修订内容的权限已被拒绝。"
+
+#: includes/custom-code-snippets.php:1073
+msgid "Permission denied to manage options."
+msgstr "管理选项的权限被拒绝。"
+
+#: includes/custom-code-snippets.php:1103 includes/role-manager.php:755
+#: includes/elements/comment-form.php:539
+msgid "Permission denied."
+msgstr "拒绝许可。"
+
+#: includes/custom-code-snippets.php:565
+msgid "PHP (functions.php)"
+msgstr "PHP (functions.php)"
+
+#: includes/custom-code-snippets.php:556
+msgid ""
+"PHP code or HTML executed before the <code>&lt;/body&gt;</code> tag on the "
+"frontend. Use for late-loading dynamic content, analytics, etc. You can use "
+"<code>&lt;?php ?&gt;</code> tags for PHP code."
+msgstr ""
+"在前端 <code>&lt;/body&gt;</code> 标记前执行的 PHP 代码或 HTML。用于后期加载动态内容、分析等。您可以为 PHP "
+"代码使用 <code>&lt;?php ?&gt;</code> 标记。"
+
+#: includes/custom-code-snippets.php:562
+msgid ""
+"PHP code or HTML executed within the <code>&lt;head&gt;</code> of WordPress "
+"admin pages. Use for conditional admin CSS/JS, admin modifications, etc. You "
+"can use <code>&lt;?php ?&gt;</code> tags for PHP code."
+msgstr ""
+"在 WordPress 管理页面的 <code>&lt;head&gt;</code> 中执行的 PHP 代码或 HTML。用于有条件的管理 "
+"CSS/JS、管理修改等。您可以为 PHP 代码使用 <code>&lt;?php ?&gt;</code> 标记。"
+
+#: includes/custom-code-snippets.php:550
+msgid ""
+"PHP code or HTML executed within the <code>&lt;head&gt;</code> tags on the "
+"frontend. Use for dynamic meta tags, conditional CSS/JS links, etc. You can "
+"use <code>&lt;?php ?&gt;</code> tags for PHP code."
+msgstr ""
+"在前端 <code>&lt;head&gt;</code> 标记内执行的 PHP 代码或 HTML。用于动态元标记、条件 CSS/JS 链接等。您可以将 "
+"<code>&lt;?php ?&gt;</code> 标记用于 PHP 代码。"
+
+#: includes/custom-code-snippets.php:568
+msgid ""
+"PHP executed immediately when this code feature loads (no hook) – similar to "
+"putting code in <code>functions.php</code>. Use for hooks, filters, and "
+"functions. Avoid direct output here unless intended. Errors can break your "
+"site."
+msgstr ""
+"当加载该代码功能（无钩子）时，PHP 立即执行 - 类似于将代码放入 <code>functions.php</code> "
+"中。用于钩子、过滤器和函数。除非有意为之，否则避免在此直接输出。错误会导致网站崩溃。"
+
+#: includes/elements/gsap-animations.php:196
+#: includes/elements/gsap-text-animations.php:308
+msgid "Pin"
+msgstr "针脚"
+
+#: includes/elements/gsap-multi-element-register.php:476
+#: includes/elements/gsap-text-animations.php:199
+msgid "Pin True"
+msgstr "针脚正确"
+
+#: includes/elements/animated-vfx-text.php:43
+msgid "Pixelate Transition"
+msgstr "像素化过渡"
+
+#: includes/elements/lottie-animation.php:88
+msgid "Play on Click"
+msgstr "点击播放"
+
+#: includes/elements/lottie-animation.php:55
+msgid "Play on Hover"
+msgstr "悬停播放"
+
+#: includes/global-classes.php:533
+msgid "Please paste some CSS first."
+msgstr "请先粘贴一些 CSS。"
+
+#: includes/global-variables.php:384
+msgid "Please paste some variables first."
+msgstr "请先粘贴一些变量。"
+
+#: includes/custom-code-snippets.php:1238
+#, php-format
+msgid ""
+"Please review the <a href=\"%s\">Error Logs tab</a> for more details, "
+"identify and fix the problematic snippet. Once fixed, you can re-enable "
+"\"Global Snippet Execution\" on the custom code settings page and save."
+msgstr ""
+"请查看 <a href=\"%s\">Error Logs（错误日志）选项卡</a> "
+"了解更多详情，找出并修复有问题的片段。修复后，您可以在自定义代码设置页面上重新启用 \"全局片段执行 \"并保存。"
+
+#: includes/global-classes.php:665
+msgid "Please select a category."
+msgstr "请选择类别。"
+
+#: includes/ai/ai-overlay.php:1013
+msgid "Please select at least one field to regenerate."
+msgstr "请至少选择一个字段进行再生。"
+
+#: includes/elements/lottie-animation.php:210
+msgid "Please upload a Lottie JSON file."
+msgstr "请上传 Lottie JSON 文件。"
+
+#: includes/activity-logs.php:102
+msgid "Plugin Activation"
+msgstr "插件激活"
+
+#: includes/activity-logs.php:103
+msgid "Plugin Deactivation"
+msgstr "停用插件"
+
+#: includes/activity-logs.php:104
+msgid "Plugin Deletion"
+msgstr "插件删除"
+
+#: includes/elements/polkadot-effect.php:15
+msgid "Polkadot Halftone Image"
+msgstr "波尔卡圆点半色调图像"
+
+#: includes/elements/gsap-multi-element-register.php:331
+msgid "Pop In Z"
+msgstr "流行 Z"
+
+#: includes/elements/gsap-multi-element-register.php:332
+msgid "Pop Out Z"
+msgstr "跳出 Z"
+
+#: includes/elements/custom-maps.php:127
+msgid "Popup Font Size (px)"
+msgstr "弹出字体大小（px）"
+
+#: includes/elements/custom-maps.php:54
+msgid "Popup Text"
+msgstr "弹出文本"
+
+#: includes/elements/frontend-post-form.php:71
+msgid "Post"
+msgstr "职位"
+
+#: includes/elements/comment-form.php:30 includes/elements/comment-form.php:31
+#: includes/elements/comment-form.php:177
+msgid "Post Comment"
+msgstr "发表评论"
+
+#: includes/role-manager.php:437
+msgid "Post Edit Allowlist"
+msgstr "职位编辑允许列表"
+
+#: includes/role-manager.php:463 includes/role-manager.php:498
+#: includes/role-manager.php:561
+msgid "Post Edit Restrictions"
+msgstr "帖子编辑限制"
+
+#: includes/elements/frontend-post-form.php:56
+msgid "Post status"
+msgstr "职位状态"
+
+#: includes/activity-logs.php:88
+msgid "Post Status Changes"
+msgstr "职位状态更改"
+
+#: includes/elements/frontend-post-form.php:38
+msgid "Post type"
+msgstr "职位类型"
+
+#: includes/custom-code-snippets.php:21
+msgctxt "post type general name"
+msgid "Code Snippets"
+msgstr "代码片段"
+
+#: includes/post-types-settings.php:109 includes/post-types-settings.php:110
+#: includes/post-types-settings.php:248 includes/post-types-settings.php:249
+msgid "Post Type Name"
+msgstr "职位类型名称"
+
+#: includes/custom-code-snippets.php:22
+msgctxt "post type singular name"
+msgid "Code Snippet"
+msgstr "代码片段"
+
+#: includes/post-types-settings.php:113 includes/post-types-settings.php:252
+msgid "Post Type Slug (max 20 chars)"
+msgstr "帖子类型标题（最多 20 个字符）"
+
+#: includes/custom-field-settings.php:165
+#: includes/custom-field-settings.php:332 includes/post-types-settings.php:12
+#: includes/settings-page.php:31
+msgid "Post Types"
+msgstr "职位类型"
+
+#: includes/settings-page.php:69
+msgid ""
+"Post Types, Custom Fields, Taxonomies, SMTP Mail Setting, Custom Login "
+"Design,\n"
+"                Math Chaptcha for Login/Register, Security Features, 404 "
+"Logs, 301 Redirects and some Block Editor Features.\n"
+"                Everything is straightforward and ready to use."
+msgstr ""
+"帖子类型、自定义字段、分类法、SMTP 邮件设置、自定义登录设计、\n"
+"                用于登录/注册的数学 Chaptcha、安全功能、404 日志、301 重定向和一些区块编辑器功能。\n"
+"                一切都简单明了，随时可用。"
+
+#: includes/post-types-settings.php:114 includes/post-types-settings.php:253
+msgid "post-slug"
+msgstr "蛞蝓后"
+
+#: includes/activity-logs.php:84
+msgid "Post/Page Creation"
+msgstr "创建帖子/页面"
+
+#: includes/activity-logs.php:86
+msgid "Post/Page Deletion"
+msgstr "删除帖子/页面"
+
+#: includes/activity-logs.php:87
+msgid "Post/Page Trashed"
+msgstr "帖子/页面被删除"
+
+#: includes/activity-logs.php:85
+msgid "Post/Page Updates"
+msgstr "帖子/页面更新"
+
+#: includes/cookie-banner.php:132 includes/cookie-banner.php:708
+msgid "Preferences"
+msgstr "首选项"
+
+#: includes/cookie-banner.php:279
+msgid "Preferences Button Text"
+msgstr "首选项按钮文本"
+
+#: includes/cookie-banner.php:223
+msgid "Preferences Title"
+msgstr "首选项 标题"
+
+#: includes/cookie-banner.php:226
+msgid "Preferences title text in the cookie banner."
+msgstr "cookie 横幅中的首选项标题文本。"
+
+#: includes/elements/element-event-action-selector.php:145
+msgid "Prepend HTML"
+msgstr "预置 HTML"
+
+#: includes/ai/ai-settings.php:906
+msgid "presets added"
+msgstr "添加预设"
+
+#: includes/custom-field-settings.php:96
+msgid "Press CTRL/CMD to select multiple or remove selection."
+msgstr "按 CTRL/CMD 可选择多个或删除选择。"
+
+#: includes/custom-code-snippets.php:135 includes/custom-code-snippets.php:938
+msgid "Preview in Editor"
+msgstr "在编辑器中预览"
+
+#: includes/ai/ai-settings.php:266
+msgid "Prices"
+msgstr "价格"
+
+#: includes/editor-settings-panel-color-sync.php:104
+msgid "primary-color"
+msgstr "原色"
+
+#: includes/elements/print.php:37
+msgid "Print Button Text"
+msgstr "打印按钮文本"
+
+#: includes/elements/print.php:15
+msgid "Print Page/PDF"
+msgstr "打印页面/PDF"
+
+#: includes/elements/print.php:21
+msgid "Print Selector"
+msgstr "打印选择器"
+
+#: includes/activity-logs.php:119
+msgid "Privacy Data Erasure"
+msgstr "隐私数据删除"
+
+#: includes/activity-logs.php:118
+msgid "Privacy Data Requests"
+msgstr "隐私数据申请"
+
+#: includes/post-types-settings.php:138 includes/post-types-settings.php:227
+msgid "Private"
+msgstr "私人"
+
+#: includes/elements/multi-step-form.php:60
+msgid "Progress Bar Color"
+msgstr "进度条颜色"
+
+#: includes/elements/multi-step-form.php:73
+msgid "Progress Indicator Color"
+msgstr "进度指示器颜色"
+
+#: includes/elements/print.php:33
+msgid ""
+"Provide a CSS selector for the button you want to trigger the print action "
+"(#brxe-xxxx)."
+msgstr "为要触发打印操作的按钮提供 CSS 选择器（#brxe-xxxx）。"
+
+#: includes/elements/gsap-multi-element-register.php:162
+msgid "Puff In"
+msgstr "Puff In"
+
+#: includes/elements/gsap-multi-element-register.php:163
+msgid "Puff Out"
+msgstr "扑灭"
+
+#: includes/elements/gsap-multi-element-register.php:188
+msgid "Pulse"
+msgstr "脉冲"
+
+#: includes/editor-settings-panel-color-sync.php:107
+msgid "quaternary-color"
+msgstr "四原色"
+
+#: includes/editor-settings-panel-color-sync.php:108
+msgid "quinary-color"
+msgstr "二元色"
+
+#: includes/custom-field-settings.php:152
+#: includes/custom-field-settings.php:322
+msgid "Radio"
+msgstr "无线电"
+
+#: includes/elements/matrix.php:58
+msgid "Rain Speed"
+msgstr "雨速"
+
+#: includes/elements/animated-vfx-text.php:40
+msgid "Rainbow"
+msgstr "彩虹"
+
+#: includes/elements/gsap-text-animations.php:295
+msgid "Random"
+msgstr "随机"
+
+#: includes/elements/gsap-multi-element-register.php:405
+#: includes/elements/gsap-text-animations.php:242
+msgid "Random True"
+msgstr "随机真实"
+
+#: includes/elements/read-more-toggle-text.php:17
+msgid "Read More and Toggle Text"
+msgstr "阅读更多内容并切换文本"
+
+#: includes/activity-logs.php:633
+msgid "Recent Activity"
+msgstr "近期活动"
+
+#: includes/301-redirect.php:335 includes/301-redirect.php:502
+msgid "Recent Redirect Logs"
+msgstr "最近的重定向日志"
+
+#: includes/search-loggins.php:202
+msgid "Recent Search Logs"
+msgstr "最近的搜索日志"
+
+#: includes/smtp-settings.php:373
+msgid "Recipient Email"
+msgstr "收件人电子邮件"
+
+#: includes/custom-field-settings.php:330
+msgid "Red"
+msgstr "红色"
+
+#: includes/custom-field-settings.php:161
+msgid "Red Color"
+msgstr "红色"
+
+#: includes/301-redirect.php:231
+msgid "Redirect added successfully!"
+msgstr "重定向已成功添加！"
+
+#: includes/301-redirect.php:243
+msgid "Redirect deleted successfully!"
+msgstr "重定向已成功删除！"
+
+#: includes/301-redirect.php:381 includes/301-redirect.php:421
+#: includes/301-redirect.php:474
+msgid "Redirect From"
+msgstr "重定向从"
+
+#: includes/301-redirect.php:853
+#, php-format
+msgid "Redirect from %1$s to %2$s"
+msgstr "从 %1$s 重定向到 %2$s"
+
+#: includes/media-settings.php:51
+msgid "Redirect Media Library Grid View to List View"
+msgstr "将媒体库网格视图重定向到列表视图"
+
+#: includes/login-settings.php:40
+msgid "Redirect Setting"
+msgstr "重定向设置"
+
+#: includes/301-redirect.php:390 includes/301-redirect.php:422
+#: includes/301-redirect.php:480
+msgid "Redirect To"
+msgstr "重定向至"
+
+#: includes/301-redirect.php:280
+msgid "Redirect updated successfully!"
+msgstr "重定向更新成功！"
+
+#: includes/login-settings.php:63
+msgid "Redirect URL after Login"
+msgstr "登录后重定向 URL"
+
+#: includes/301-redirect.php:537
+msgid "Redirected URL"
+msgstr "重定向 URL"
+
+#: includes/301-redirect.php:540
+msgid "Referral"
+msgstr "转介"
+
+#: includes/404-logging.php:259
+msgid "Referrer"
+msgstr "推荐人"
+
+#: includes/elements/conditions.php:153
+msgid "Referrer contains (comma-separated)"
+msgstr "Referrer 包含（以逗号分隔）"
+
+#: includes/editor-settings-panel-bricks.php:238
+msgid "Refresh Editor After Save"
+msgstr "保存后刷新编辑器"
+
+#: includes/ai/ai-overlay.php:328
+msgid "Regenerate Selected"
+msgstr "再生选定"
+
+#: includes/custom-field-settings.php:6
+msgid "Register Custom Fields"
+msgstr "注册自定义字段"
+
+#: includes/post-types-settings.php:11
+msgid "Register Post Types"
+msgstr "注册帖子类型"
+
+#: includes/taxonomy-settings.php:12
+msgid "Register Taxonomies"
+msgstr "注册分类标准"
+
+#: includes/cookie-banner.php:332 includes/cookie-banner.php:362
+#: includes/cookie-banner.php:415 includes/custom-field-settings.php:110
+#: includes/custom-field-settings.php:300
+#: includes/custom-field-settings.php:727
+#: includes/custom-field-settings.php:736
+#: includes/custom-field-settings.php:1947
+#: includes/custom-field-settings.php:1955
+#: includes/editor-settings-panel-color-sync.php:176
+#: includes/global-classes.php:315 includes/global-classes.php:394
+#: includes/global-classes.php:481 includes/global-classes.php:510
+#: includes/global-classes.php:633 includes/global-variables.php:137
+#: includes/global-variables.php:144 includes/global-variables.php:210
+#: includes/global-variables.php:292 includes/global-variables.php:363
+#: includes/global-variables.php:415 includes/post-types-settings.php:106
+#: includes/post-types-settings.php:245 includes/role-manager.php:733
+#: includes/role-manager.php:974 includes/taxonomy-settings.php:65
+#: includes/taxonomy-settings.php:151 includes/ai/ai-settings.php:357
+#: includes/ai/ai-settings.php:753
+msgid "Remove"
+msgstr "移除"
+
+#: includes/post-types-settings.php:106 includes/post-types-settings.php:245
+msgid "Remove Post Type"
+msgstr "删除帖子类型"
+
+#: includes/taxonomy-settings.php:65 includes/taxonomy-settings.php:151
+msgid "Remove Taxonomy"
+msgstr "移除分类法"
+
+#: includes/remove-wp-version.php:17
+msgid "Remove/Hide WP Version"
+msgstr "删除/隐藏 WP 版本"
+
+#: includes/custom-field-settings.php:197
+#: includes/custom-field-settings.php:344
+msgid "Repeater"
+msgstr "中继器"
+
+#: includes/elements/element-event-action-selector.php:133
+msgid "Replace HTML"
+msgstr "替换 HTML"
+
+#: includes/elements/comment-form.php:61
+msgid "Reply title"
+msgstr "答复标题"
+
+#: includes/301-redirect.php:536
+msgid "Requested URL"
+msgstr "请求的 URL"
+
+#: includes/role-manager.php:600 includes/role-manager.php:708
+msgid "Required"
+msgstr "需要"
+
+#: includes/ai/ai-settings.php:367
+msgid "Reset Presets"
+msgstr "重置预置"
+
+#: includes/elements/lottie-animation.php:66
+msgid "Reset/Reverse State on Mouse Leave"
+msgstr "鼠标离开时重置/反转状态"
+
+#: includes/role-manager.php:612 includes/role-manager.php:720
+msgid "Restrict Post Editing (Optional)"
+msgstr "限制帖子编辑（可选）"
+
+#: includes/custom-field-settings.php:273
+#: includes/custom-field-settings.php:345
+msgid "Return Full URL"
+msgstr "返回完整 URL"
+
+#: includes/custom-field-settings.php:204
+msgid "Return URL"
+msgstr "返回 URL"
+
+#: includes/elements/matrix.php:98
+msgid "Reverse Direction (Upwards)?"
+msgstr "反方向（向上）？"
+
+#: includes/custom-code-snippets.php:633
+#, php-format
+msgid ""
+"Revision for \"%s\" has been loaded into the editor. Click \"Save All "
+"Snippets & Settings\" to make it live."
+msgstr "%s \"的修订版已载入编辑器。单击 \"保存所有片段和设置 \"使其生效。"
+
+#: includes/custom-code-snippets.php:1083
+msgid "Revision not found."
+msgstr "未找到修订版。"
+
+#: includes/custom-code-snippets.php:30 includes/post-types-settings.php:32
+#: includes/post-types-settings.php:163
+msgid "Revisions"
+msgstr "修订"
+
+#: includes/custom-code-snippets.php:919
+#, php-format
+msgid "Revisions for %s"
+msgstr "修订 %s"
+
+#: includes/elements/animated-vfx-text.php:39
+msgid "RGB Shift"
+msgstr "RGB 移位"
+
+#: includes/custom-field-settings.php:144
+#: includes/custom-field-settings.php:314
+msgid "Rich Text"
+msgstr "丰富文本"
+
+#: includes/accessibility-settings.php:194 includes/cookie-banner.php:513
+#: includes/elements/image-hotspot.php:86
+msgid "Right"
+msgstr "对"
+
+#: includes/elements/compare-image.php:35
+msgid "Right Image"
+msgstr "右图"
+
+#: includes/elements/compare-image.php:50
+msgid "Right Label"
+msgstr "右标签"
+
+#: includes/accessibility-settings.php:97
+msgid "Right Spacing (px)"
+msgstr "右间距（像素）"
+
+#: includes/elements/flip-box.php:57
+msgid "Right to Left (Flip)"
+msgstr "从右到左（翻转）"
+
+#: includes/elements/flip-box.php:63
+msgid "Right to Left Slide"
+msgstr "从右向左滑动"
+
+#: includes/role-manager.php:186
+#, php-format
+msgid "Role \"%s\" (%s) deleted successfully."
+msgstr "角色 \"%s\" (%s) 删除成功。"
+
+#: includes/role-manager.php:115
+#, php-format
+msgid "Role \"%s\" already exists."
+msgstr "角色\"%s \"已经存在。"
+
+#: includes/role-manager.php:130
+#, php-format
+msgid "Role \"%s\" created successfully."
+msgstr "角色\"%s \"创建成功。"
+
+#: includes/role-manager.php:145
+#, php-format
+msgid "Role \"%s\" not found for updating."
+msgstr "未找到用于更新的角色\"%s\"。"
+
+#: includes/role-manager.php:181
+#, php-format
+msgid "Role \"%s\" not found or already deleted."
+msgstr "角色\"%s \"未找到或已删除。"
+
+#: includes/role-manager.php:169
+#, php-format
+msgid "Role \"%s\" updated successfully."
+msgstr "角色\"%s \"更新成功。"
+
+#: includes/role-manager.php:435 includes/role-manager.php:459
+#: includes/role-manager.php:494 includes/role-manager.php:559
+#: includes/role-manager.php:579
+msgid "Role ID (Slug)"
+msgstr "角色 ID（鼻涕虫）"
+
+#: includes/role-manager.php:112
+msgid "Role ID and Display Name are required."
+msgstr "角色 ID 和显示名称为必填项。"
+
+#: includes/role-manager.php:113
+msgid "Role ID can only contain lowercase letters, numbers, and underscores."
+msgstr "角色 ID 只能包含小写字母、数字和下划线。"
+
+#: includes/role-manager.php:28 includes/role-manager.php:29
+msgid "Role Management"
+msgstr "角色管理"
+
+#: includes/settings-page.php:39
+msgid "Role Manager"
+msgstr "角色经理"
+
+#: includes/elements/gsap-multi-element-register.php:154
+msgid "Roll In"
+msgstr "滚入"
+
+#: includes/elements/gsap-multi-element-register.php:155
+msgid "Roll Out"
+msgstr "推出"
+
+#: includes/elements/gsap-multi-element-register.php:97
+#: includes/elements/gsap-text-animations.php:146
+msgid "Rotate -15"
+msgstr "旋转 -15"
+
+#: includes/elements/gsap-multi-element-register.php:100
+#: includes/elements/gsap-text-animations.php:149
+msgid "Rotate -180"
+msgstr "旋转 -180"
+
+#: includes/elements/gsap-multi-element-register.php:95
+#: includes/elements/gsap-text-animations.php:144
+msgid "Rotate -3"
+msgstr "旋转 -3"
+
+#: includes/elements/gsap-multi-element-register.php:101
+#: includes/elements/gsap-text-animations.php:150
+msgid "Rotate -360"
+msgstr "旋转 -360"
+
+#: includes/elements/gsap-multi-element-register.php:98
+#: includes/elements/gsap-text-animations.php:147
+msgid "Rotate -45"
+msgstr "旋转 -45"
+
+#: includes/elements/gsap-multi-element-register.php:96
+#: includes/elements/gsap-text-animations.php:145
+msgid "Rotate -5"
+msgstr "旋转 -5"
+
+#: includes/elements/gsap-multi-element-register.php:99
+#: includes/elements/gsap-text-animations.php:148
+msgid "Rotate -90"
+msgstr "旋转 -90"
+
+#: includes/elements/gsap-multi-element-register.php:238
+#: includes/elements/gsap-text-animations.php:104
+msgid "Rotate 0 to 180"
+msgstr "旋转 0 至 180"
+
+#: includes/elements/gsap-multi-element-register.php:87
+#: includes/elements/gsap-text-animations.php:136
+msgid "Rotate 15"
+msgstr "旋转 15"
+
+#: includes/elements/gsap-multi-element-register.php:90
+#: includes/elements/gsap-text-animations.php:139
+msgid "Rotate 180"
+msgstr "旋转 180"
+
+#: includes/elements/gsap-multi-element-register.php:239
+#: includes/elements/gsap-text-animations.php:105
+msgid "Rotate 180 to 0"
+msgstr "旋转 180 至 0"
+
+#: includes/elements/gsap-multi-element-register.php:85
+#: includes/elements/gsap-text-animations.php:134
+msgid "Rotate 3"
+msgstr "旋转 3"
+
+#: includes/elements/gsap-multi-element-register.php:91
+#: includes/elements/gsap-text-animations.php:140
+msgid "Rotate 360"
+msgstr "旋转 360"
+
+#: includes/elements/gsap-multi-element-register.php:88
+#: includes/elements/gsap-text-animations.php:137
+msgid "Rotate 45"
+msgstr "旋转 45"
+
+#: includes/elements/gsap-multi-element-register.php:86
+#: includes/elements/gsap-text-animations.php:135
+msgid "Rotate 5"
+msgstr "旋转 5"
+
+#: includes/elements/gsap-multi-element-register.php:89
+#: includes/elements/gsap-text-animations.php:138
+msgid "Rotate 90"
+msgstr "旋转 90"
+
+#: includes/elements/gsap-animations.php:107
+msgid "Rotate End"
+msgstr "旋转结束"
+
+#: includes/elements/gsap-multi-element-register.php:109
+msgid "Rotate In"
+msgstr "转入"
+
+#: includes/elements/gsap-multi-element-register.php:111
+msgid "Rotate In Down Left"
+msgstr "向左下方旋转"
+
+#: includes/elements/gsap-multi-element-register.php:113
+msgid "Rotate In Down Right"
+msgstr "向右下方旋转"
+
+#: includes/elements/gsap-multi-element-register.php:115
+msgid "Rotate In Up Left"
+msgstr "左上旋转"
+
+#: includes/elements/gsap-multi-element-register.php:117
+msgid "Rotate In Up Right"
+msgstr "向上向右旋转"
+
+#: includes/elements/gsap-multi-element-register.php:110
+msgid "Rotate Out"
+msgstr "旋出"
+
+#: includes/elements/gsap-multi-element-register.php:112
+msgid "Rotate Out Down Left"
+msgstr "向左下方旋转"
+
+#: includes/elements/gsap-multi-element-register.php:114
+msgid "Rotate Out Down Right"
+msgstr "向下向右旋转"
+
+#: includes/elements/gsap-multi-element-register.php:116
+msgid "Rotate Out Up Left"
+msgstr "向上向左旋转"
+
+#: includes/elements/gsap-multi-element-register.php:118
+msgid "Rotate Out Up Right"
+msgstr "向上向右旋转"
+
+#: includes/elements/gsap-animations.php:102
+msgid "Rotate Start"
+msgstr "旋转启动"
+
+#: includes/elements/svg-text-path.php:58
+msgid "Rotate Text"
+msgstr "旋转文本"
+
+#: includes/elements/animated-heading.php:144
+msgid "Rounded"
+msgstr "圆形"
+
+#: includes/elements/gsap-multi-element-register.php:189
+msgid "Rubber Band"
+msgstr "橡皮筋"
+
+#: includes/editor-settings-panel-bricks.php:34
+msgid "S"
+msgstr "S"
+
+#: includes/elements/advanced-image.php:86
+msgid "Saturate"
+msgstr "饱和"
+
+#: includes/301-redirect.php:487
+msgid "Save"
+msgstr "节省"
+
+#: includes/ai/ai-settings.php:426
+msgid "Save AI Settings"
+msgstr "保存 AI 设置"
+
+#: includes/global-classes.php:349 includes/global-variables.php:166
+#: includes/global-variables.php:229
+msgid "Save All"
+msgstr "保存所有"
+
+#: includes/custom-code-snippets.php:974
+msgid "Save All Snippets & Settings"
+msgstr "保存所有片段和设置"
+
+#: includes/404-logging.php:234 includes/mail-logging.php:196
+#: includes/search-loggins.php:188
+msgid "Save Changes"
+msgstr "保存更改"
+
+#: includes/custom-field-settings.php:216
+msgid "Save Custom Fields"
+msgstr "保存自定义字段"
+
+#: includes/post-types-settings.php:147
+msgid "Save Custom Post Types"
+msgstr "保存自定义帖子类型"
+
+#: includes/301-redirect.php:521 includes/editor-settings-panel-bricks.php:246
+msgid "Save Settings"
+msgstr "保存设置"
+
+#: includes/taxonomy-settings.php:96
+msgid "Save Taxonomies"
+msgstr "保存分类标准"
+
+#: includes/custom-code-snippets.php:966
+msgid "Save this snippet to start tracking revisions."
+msgstr "保存此代码段以开始跟踪修订。"
+
+#: includes/elements/gsap-multi-element-register.php:220
+#: includes/elements/gsap-text-animations.php:94
+msgid "Scale 0 to 1"
+msgstr "刻度 0 至 1"
+
+#: includes/elements/gsap-multi-element-register.php:222
+#: includes/elements/gsap-text-animations.php:96
+msgid "Scale 1 to 0"
+msgstr "刻度 1 至 0"
+
+#: includes/elements/gsap-multi-element-register.php:221
+#: includes/elements/gsap-text-animations.php:95
+msgid "Scale 10 to 1"
+msgstr "比例 10 比 1"
+
+#: includes/elements/gsap-animations.php:97
+msgid "Scale End"
+msgstr "刻度末端"
+
+#: includes/elements/gsap-animations.php:92
+msgid "Scale Start"
+msgstr "刻度启动"
+
+#: includes/activity-logs.php:113
+msgid "Scheduled Tasks (Cron)"
+msgstr "计划任务（Cron）"
+
+#: includes/cookie-banner.php:292
+msgid "Script Code"
+msgstr "脚本代码"
+
+#: includes/cookie-banner.php:294
+msgid "Script Position"
+msgstr "脚本位置"
+
+#: includes/cookie-banner.php:323 includes/cookie-banner.php:353
+#: includes/cookie-banner.php:408
+msgid "Script Position:"
+msgstr "脚本位置："
+
+#: includes/cookie-banner.php:180
+msgid "Scripts & Services"
+msgstr "脚本与服务"
+
+#: includes/elements/gsap-animations.php:183
+#: includes/elements/gsap-text-animations.php:269
+msgid "Scroll"
+msgstr "卷轴"
+
+#: includes/elements/element-event-action-selector.php:195
+msgid "Scroll Behavior"
+msgstr "滚动行为"
+
+#: includes/elements/gsap-animations.php:263
+msgid "Scroll End"
+msgstr "卷轴末端"
+
+#: includes/elements/gsap-text-animations.php:362
+msgid "Scroll End (%)"
+msgstr "卷轴末端 (%)"
+
+#: includes/elements/gsap-multi-element-register.php:474
+#: includes/elements/gsap-text-animations.php:197
+msgid "Scroll False"
+msgstr "滚动假"
+
+#: includes/elements/scroll-line-vertical-indicator.php:27
+msgid "Scroll Line Height"
+msgstr "滚动线高度"
+
+#: includes/elements/scroll-line-vertical-indicator.php:14
+msgid "Scroll Line Vertical Indicator"
+msgstr "滚动线垂直指示器"
+
+#: includes/elements/scroll-line-vertical-indicator.php:36
+msgid "Scroll Line Width"
+msgstr "滚动线宽度"
+
+#: includes/elements/gsap-animations.php:256
+msgid "Scroll Start"
+msgstr "滚动启动"
+
+#: includes/elements/gsap-text-animations.php:352
+msgid "Scroll Start (%)"
+msgstr "滚动开始 (%)"
+
+#: includes/elements/element-event-action-selector.php:202
+msgid "Scroll To Position"
+msgstr "滚动到位置"
+
+#: includes/elements/lottie-animation.php:143
+msgid "Scroll Trigger End"
+msgstr "滚动触发器末端"
+
+#: includes/elements/lottie-animation.php:132
+msgid "Scroll Trigger Start"
+msgstr "滚动触发器启动"
+
+#: includes/other-settings.php:151
+msgid ""
+"ScrollTrigger.min.php: A GSAP plugin that enables scroll-based animations."
+msgstr "ScrollTrigger.min.php：一个可实现滚动动画的 GSAP 插件。"
+
+#: includes/elements/gsap-animations.php:227
+#: includes/elements/gsap-text-animations.php:330
+msgid "Scrub"
+msgstr "擦洗"
+
+#: includes/elements/gsap-text-animations.php:202
+msgid "Scrub 2"
+msgstr "擦洗 2"
+
+#: includes/elements/gsap-text-animations.php:203
+msgid "Scrub 4"
+msgstr "擦洗 4"
+
+#: includes/elements/gsap-text-animations.php:204
+msgid "Scrub 8"
+msgstr "擦洗 8"
+
+#: includes/elements/gsap-multi-element-register.php:477
+msgid "Scrub False"
+msgstr "擦洗假"
+
+#: includes/elements/gsap-text-animations.php:200
+#: includes/elements/gsap-text-animations.php:201
+msgid "Scrub True"
+msgstr "擦洗真实"
+
+#: includes/role-manager.php:616 includes/role-manager.php:724
+msgid "Search by title..."
+msgstr "按标题搜索..."
+
+#: includes/role-manager.php:586 includes/role-manager.php:693
+msgid "Search Capabilities..."
+msgstr "搜索功能..."
+
+#: includes/role-manager.php:585 includes/role-manager.php:692
+msgid "Search Capabilities:"
+msgstr "搜索功能："
+
+#: includes/global-classes.php:358
+msgid "Search classes..."
+msgstr "搜索类..."
+
+#: includes/custom-code-snippets.php:27
+msgid "Search Code Snippets"
+msgstr "搜索代码片段"
+
+#: includes/role-manager.php:622 includes/role-manager.php:739
+msgid ""
+"Search for and select specific Posts, Pages, or other public post types that "
+"users with this role should be allowed to edit. Leave empty to allow editing "
+"of any post (requires the relevant \"edit\" capability above)."
+msgstr "搜索并选择具有此角色的用户应被允许编辑的特定帖子、页面或其他公共帖子类型。留空表示允许编辑任何帖子（需要上述相关的 \"编辑 \"功能）。"
+
+#: includes/ai/ai-settings.php:204 includes/ai/ai-settings.php:257
+msgid "Search for model..."
+msgstr "搜索型号..."
+
+#: includes/search-loggins.php:6 includes/search-loggins.php:7
+#: includes/search-loggins.php:170 includes/settings-page.php:42
+msgid "Search Logs"
+msgstr "搜索日志"
+
+#: includes/activity-logs.php:635
+msgid "Search Logs:"
+msgstr "搜索日志："
+
+#: includes/media-settings.php:127
+msgid "Search Media Categories"
+msgstr "搜索媒体类别"
+
+#: includes/role-manager.php:615 includes/role-manager.php:723
+msgid "Search Posts/Pages:"
+msgstr "搜索帖子/页面："
+
+#: includes/search-loggins.php:221 includes/search-loggins.php:284
+msgid "Search Query"
+msgstr "搜索查询"
+
+#: includes/global-variables.php:168
+msgid "Search variables..."
+msgstr "搜索变量..."
+
+#: includes/role-manager.php:376
+msgid "Secondary menu"
+msgstr "二级菜单"
+
+#: includes/editor-settings-panel-color-sync.php:105
+msgid "secondary-color"
+msgstr "副色"
+
+#: includes/smtp-settings.php:274
+msgid "Security check failed. Please refresh the page and try again."
+msgstr "安全检查失败。请刷新页面并重试。"
+
+#: includes/security-page.php:29 includes/settings-page.php:30
+msgid "Security Settings"
+msgstr "安全设置"
+
+#: includes/auto-update-snn-brx-github.php:121
+msgid "See GitHub release notes for details."
+msgstr "详情请查看 GitHub 发布说明。"
+
+#: includes/custom-field-settings.php:150
+#: includes/custom-field-settings.php:320
+#: includes/custom-field-settings.php:985
+#: includes/custom-field-settings.php:1016
+#: includes/custom-field-settings.php:1531
+#: includes/elements/gsap-animations.php:178
+#: includes/elements/gsap-animations.php:191
+#: includes/elements/gsap-animations.php:204
+#: includes/elements/gsap-animations.php:251
+#: includes/elements/gsap-text-animations.php:264
+#: includes/elements/gsap-text-animations.php:277
+#: includes/elements/gsap-text-animations.php:290
+#: includes/elements/gsap-text-animations.php:303
+#: includes/elements/gsap-text-animations.php:316
+#: includes/elements/gsap-text-animations.php:347
+msgid "Select"
+msgstr "选择"
+
+#: includes/login-settings.php:87
+msgid ""
+"Select a background image for the login page. Leave blank to disable the "
+"background image."
+msgstr "为登录页面选择背景图片。留空表示禁用背景图片。"
+
+#: includes/elements/element-event-action-selector.php:95
+msgid "Select Action"
+msgstr "选择操作"
+
+#: includes/activity-logs.php:598 includes/block-editor-settings.php:122
+#: includes/block-editor-settings.php:161 includes/ai/ai-overlay.php:315
+msgid "Select All"
+msgstr "全部选择"
+
+#: includes/elements/frontend-post-form.php:100
+msgid "Select allowed roles"
+msgstr "选择允许的角色"
+
+#: includes/login-settings.php:84
+msgid "Select an image or paste a URL"
+msgstr "选择图片或粘贴 URL"
+
+#: includes/elements/gsap-multi-element-register.php:13
+msgid "Select Animation"
+msgstr "选择动画"
+
+#: includes/elements/gsap-text-animations.php:69
+msgid "Select Animation Preset"
+msgstr "选择动画预设"
+
+#: includes/login-logo-change-url-change.php:44 includes/login-settings.php:85
+msgid "Select Image"
+msgstr "选择图像"
+
+#: includes/custom-field-settings.php:94
+msgid ""
+"Select one or more to register the same Custom Field to Post Types, "
+"Taxonomies, or Author."
+msgstr "选择一个或多个，将同一自定义字段注册到帖子类型、分类标准或作者。"
+
+#: includes/login-settings.php:100
+msgid "Select or Upload Image"
+msgstr "选择或上传图片"
+
+#: includes/login-logo-change-url-change.php:53
+msgid "Select or Upload Logo"
+msgstr "选择或上传徽标"
+
+#: includes/elements/gsap-text-animations.php:251
+msgid "Select Preset"
+msgstr "选择预置"
+
+#: includes/block-editor-settings.php:117
+msgid "Select the blocks you want to disable in the Gutenberg editor:"
+msgstr "在 Gutenberg 编辑器中选择要禁用的区块："
+
+#: includes/role-manager.php:590
+msgid ""
+"Select the capabilities this role should have. The \"read\" capability is "
+"essential and automatically assigned. To enable post/page editing and "
+"restrictions, ensure the relevant \"edit_posts\", \"edit_pages\", or custom "
+"post type edit capability is selected."
+msgstr ""
+"选择该角色应具备的能力。读取 \"功能是必不可少的，会自动分配。要启用帖子/页面编辑和限制功能，请确保选择了相关的 "
+"\"edit_posts\"（编辑帖子）、\"edit_pages\"（编辑页面）或自定义帖子类型编辑功能。"
+
+#: includes/role-manager.php:697
+msgid ""
+"Select the capabilities this role should have. The \"read\" capability is "
+"essential and cannot be removed. To enable post/page editing and "
+"restrictions, ensure the relevant \"edit\" capability is selected."
+msgstr "选择该角色应具备的功能。读取 \"功能是必不可少的，不能移除。要启用帖子/页面编辑和限制功能，请确保选择了相关的 \"编辑 \"功能。"
+
+#: includes/cookie-banner.php:515
+msgid "Select the horizontal position of the cookie banner on your website."
+msgstr "选择 cookie 横幅在网站上的水平位置。"
+
+#: includes/login-logo-change-url-change.php:46
+msgid "Select the logo image for the login page. (.png, .jpg)"
+msgstr "选择登录页面的徽标图像。（.png、.jpg）"
+
+#: includes/ai/ai-settings.php:212
+msgid "Select the OpenAI model to use. Start typing to search."
+msgstr "选择要使用的 OpenAI 模型。开始键入搜索。"
+
+#: includes/ai/ai-settings.php:265
+msgid "Select the OpenRouter model to use. Start typing to search."
+msgstr "选择要使用的 OpenRouter 型号。开始键入搜索。"
+
+#: includes/cookie-banner.php:526
+msgid "Select the vertical position of the cookie banner on your website."
+msgstr "选择 cookie 横幅在网站上的垂直位置。"
+
+#: includes/ai/ai-settings.php:216 includes/ai/ai-settings.php:269
+msgid "Selected Model Features:"
+msgstr "选定型号功能："
+
+#: includes/editor-settings-panel-color-sync.php:109
+msgid "senary-color"
+msgstr "全色"
+
+#: includes/smtp-settings.php:367 includes/smtp-settings.php:386
+msgid "Send Test Email"
+msgstr "发送测试电子邮件"
+
+#: includes/elements/advanced-image.php:94
+msgid "Sepia"
+msgstr "深褐色"
+
+#: includes/elements/gsap-multi-element-register.php:306
+msgid "Sepia In"
+msgstr "深褐色英寸"
+
+#: includes/editor-settings-panel-color-sync.php:110
+msgid "septenary-color"
+msgstr "色"
+
+#: includes/cookie-banner.php:317 includes/cookie-banner.php:347
+#: includes/cookie-banner.php:402
+msgid "Service Description:"
+msgstr "服务说明："
+
+#: includes/cookie-banner.php:290
+msgid "Service Name"
+msgstr "服务名称"
+
+#: includes/cookie-banner.php:314 includes/cookie-banner.php:344
+#: includes/cookie-banner.php:399
+msgid "Service Name:"
+msgstr "服务名称："
+
+#: includes/cookie-banner.php:320 includes/cookie-banner.php:350
+#: includes/cookie-banner.php:405
+msgid "Service Script Code (HTML allowed):"
+msgstr "服务脚本代码（允许使用 HTML）："
+
+#: includes/cookie-banner.php:301
+msgid "Services (Repeater)"
+msgstr "服务（中继器）"
+
+#: includes/cookie-banner.php:539
+msgid "Set the opacity of the overlay (0 = transparent, 1 = opaque)."
+msgstr "设置叠加的不透明度（0 = 透明，1 = 不透明）。"
+
+#: includes/cookie-banner.php:559
+msgid "Set the spread radius of the box shadow in pixels."
+msgstr "以像素为单位设置盒状阴影的扩散半径。"
+
+#: includes/settings-page.php:28
+msgid "Settings"
+msgstr "设置"
+
+#: includes/activity-logs.php:111
+msgid "Settings Changes"
+msgstr "设置更改"
+
+#: includes/global-classes.php:78 includes/login-settings.php:149
+msgid "Settings Saved"
+msgstr "保存的设置"
+
+#: includes/editor-settings-panel-color-sync.php:432
+msgid "Settings saved"
+msgstr "保存的设置"
+
+#: includes/cookie-banner.php:115 includes/custom-field-settings.php:1905
+#: includes/editor-settings-panel-color-sync.php:337
+msgid "Settings saved."
+msgstr "保存设置。"
+
+#: includes/301-redirect.php:316
+msgid "Settings updated successfully!"
+msgstr "设置更新成功！"
+
+#: includes/editor-settings-panel-color-sync.php:182
+#: includes/editor-settings-panel-color-sync.php:212
+#: includes/editor-settings-panel-color-sync.php:235
+msgid "Shade n"
+msgstr "阴影 n"
+
+#: includes/elements/gsap-multi-element-register.php:190
+msgid "Shake"
+msgstr "摇晃"
+
+#: includes/elements/gsap-multi-element-register.php:191
+msgid "Shake X"
+msgstr "摇晃 X"
+
+#: includes/elements/gsap-multi-element-register.php:192
+msgid "Shake Y"
+msgstr "摇一摇"
+
+#: includes/custom-code-snippets.php:980
+msgid "Show Advanced Settings"
+msgstr "显示高级设置"
+
+#: includes/block-editor-settings.php:119
+#: includes/block-editor-settings.php:153
+msgid "Show Blocks"
+msgstr "显示块"
+
+#: includes/taxonomy-settings.php:88
+msgid "Show Columns"
+msgstr "显示列"
+
+#: includes/post-types-settings.php:37 includes/post-types-settings.php:168
+msgid "Show in Menu"
+msgstr "在菜单中显示"
+
+#: includes/post-types-settings.php:39 includes/post-types-settings.php:170
+msgid "Show in Nav Menus"
+msgstr "在导航菜单中显示"
+
+#: includes/elements/like-button.php:49
+msgid "Show Like Count"
+msgstr "显示同类计数"
+
+#: includes/role-manager.php:457 includes/role-manager.php:492
+msgid "Show more details"
+msgstr "显示更多详情"
+
+#: includes/elements/conditions.php:46
+msgid "Show once"
+msgstr "显示一次"
+
+#: includes/elements/lottie-animation.php:158
+msgid "Show Scroll Trigger Markers"
+msgstr "显示滚动触发标记"
+
+#: includes/post-types-settings.php:38 includes/post-types-settings.php:169
+msgid "Show UI"
+msgstr "显示用户界面"
+
+#: includes/elements/comment-form.php:45
+msgid "Show Website input"
+msgstr "显示网站输入"
+
+#: includes/smtp-settings.php:108
+msgid ""
+"Simple SMTP Settings for bypassing PHP mailler or eliminating falling to "
+"spam issues."
+msgstr "简单的 SMTP 设置，可绕过 PHP mailler 或消除垃圾邮件问题。"
+
+#. Author of the theme
+msgid "sinanisler"
+msgstr "sinanisler"
+
+#: includes/elements/gsap-multi-element-register.php:313
+msgid "Skew In"
+msgstr "斜入"
+
+#: includes/elements/gsap-multi-element-register.php:314
+msgid "Skew Out"
+msgstr "偏出"
+
+#: includes/elements/gsap-multi-element-register.php:77
+msgid "Slide In Bottom 100px"
+msgstr "滑入底部 100px"
+
+#: includes/elements/gsap-multi-element-register.php:54
+#: includes/elements/gsap-text-animations.php:82
+#: includes/elements/gsap-text-animations.php:109
+msgid "Slide In Down "
+msgstr "向下滑入"
+
+#: includes/elements/gsap-multi-element-register.php:56
+#: includes/elements/gsap-text-animations.php:84
+#: includes/elements/gsap-text-animations.php:111
+msgid "Slide In Left "
+msgstr "滑入左侧"
+
+#: includes/elements/gsap-multi-element-register.php:64
+#: includes/elements/gsap-text-animations.php:119
+msgid "Slide In Left 100% "
+msgstr "滑入左侧 100%"
+
+#: includes/elements/gsap-multi-element-register.php:73
+msgid "Slide In Left 100px "
+msgstr "滑入左侧 100px"
+
+#: includes/elements/gsap-multi-element-register.php:67
+#: includes/elements/gsap-text-animations.php:122
+msgid "Slide In Left 150% "
+msgstr "滑入左侧 150"
+
+#: includes/elements/gsap-multi-element-register.php:70
+#: includes/elements/gsap-text-animations.php:125
+msgid "Slide In Left 3000px "
+msgstr "滑入左侧 3000px"
+
+#: includes/elements/gsap-multi-element-register.php:58
+#: includes/elements/gsap-text-animations.php:86
+#: includes/elements/gsap-text-animations.php:113
+msgid "Slide In Right "
+msgstr "向右滑入"
+
+#: includes/elements/gsap-multi-element-register.php:65
+#: includes/elements/gsap-text-animations.php:120
+msgid "Slide In Right 100%"
+msgstr "滑入右侧 100%"
+
+#: includes/elements/gsap-multi-element-register.php:74
+msgid "Slide In Right 100px"
+msgstr "向右滑入 100px"
+
+#: includes/elements/gsap-multi-element-register.php:68
+#: includes/elements/gsap-text-animations.php:123
+msgid "Slide In Right 150%"
+msgstr "向右滑入 150"
+
+#: includes/elements/gsap-multi-element-register.php:71
+#: includes/elements/gsap-text-animations.php:126
+msgid "Slide In Right 3000px"
+msgstr "向右滑入 3000px"
+
+#: includes/elements/gsap-multi-element-register.php:76
+msgid "Slide In Top 100px"
+msgstr "滑入顶部 100px"
+
+#: includes/elements/gsap-multi-element-register.php:60
+#: includes/elements/gsap-text-animations.php:88
+#: includes/elements/gsap-text-animations.php:115
+msgid "Slide In Up "
+msgstr "向上滑入"
+
+#: includes/elements/gsap-multi-element-register.php:55
+#: includes/elements/gsap-text-animations.php:83
+#: includes/elements/gsap-text-animations.php:110
+msgid "Slide Out Down "
+msgstr "向下滑动"
+
+#: includes/elements/gsap-multi-element-register.php:57
+#: includes/elements/gsap-text-animations.php:85
+#: includes/elements/gsap-text-animations.php:112
+msgid "Slide Out Left "
+msgstr "向左滑出"
+
+#: includes/elements/gsap-multi-element-register.php:59
+#: includes/elements/gsap-text-animations.php:87
+#: includes/elements/gsap-text-animations.php:114
+msgid "Slide Out Right "
+msgstr "向右滑出"
+
+#: includes/elements/gsap-multi-element-register.php:61
+#: includes/elements/gsap-text-animations.php:89
+#: includes/elements/gsap-text-animations.php:116
+msgid "Slide Out Up "
+msgstr "向上滑出"
+
+#: includes/elements/compare-image.php:86
+msgid "Slider Button Background Color"
+msgstr "滑块按钮背景颜色"
+
+#: includes/elements/compare-image.php:58
+msgid "Slider Icon"
+msgstr "滑块图标"
+
+#: includes/elements/compare-image.php:69
+msgid "Slider Icon Color"
+msgstr "滑块图标颜色"
+
+#: includes/elements/animated-vfx-text.php:42
+msgid "Slit Scan Transition"
+msgstr "狭缝扫描转换"
+
+#: includes/custom-field-settings.php:125
+#: includes/custom-field-settings.php:305
+msgid "Slug Name"
+msgstr "鼻涕虫名称"
+
+#: includes/elements/gsap-multi-element-register.php:164
+msgid "Smoke In"
+msgstr "吸烟"
+
+#: includes/elements/gsap-multi-element-register.php:165
+msgid "Smoke Out"
+msgstr "熄灭烟雾"
+
+#: includes/elements/smoke-text.php:17
+msgid "Smoke Text"
+msgstr "烟雾文本"
+
+#: includes/elements/polkadot-effect.php:79
+msgid "Smoothing"
+msgstr "平滑"
+
+#: includes/smtp-settings.php:38
+msgid "SMTP Host"
+msgstr "SMTP 主机"
+
+#: includes/smtp-settings.php:70
+msgid "SMTP Password"
+msgstr "SMTP 密码"
+
+#: includes/smtp-settings.php:54
+msgid "SMTP Port"
+msgstr "SMTP 端口"
+
+#: includes/smtp-settings.php:23
+msgid "SMTP Settings"
+msgstr "SMTP 设置"
+
+#: includes/smtp-settings.php:318
+msgid "SMTP Test Email"
+msgstr "SMTP 测试电子邮件"
+
+#: includes/smtp-settings.php:62
+msgid "SMTP Username"
+msgstr "SMTP 用户名"
+
+#: includes/custom-code-snippets.php:824
+msgid "Snippet Execution Error Logs"
+msgstr "片段执行错误日志"
+
+#: includes/custom-code-snippets.php:793
+msgid ""
+"Snippet execution is currently disabled. Check this box and save settings to "
+"enable."
+msgstr "当前禁用片段执行。选中此框并保存设置即可启用。"
+
+#: includes/custom-code-snippets.php:836
+msgid "Snippet Location"
+msgstr "片段位置"
+
+#: includes/301-redirect.php:14
+msgid "SNN 301 Redirects"
+msgstr "SNN 301 重定向"
+
+#: includes/cookie-banner.php:17
+msgid "SNN Cookie Settings"
+msgstr "SNN Cookie 设置"
+
+#: includes/301-redirect.php:29
+msgid "SNN Redirect Logs"
+msgstr "SNN 重定向日志"
+
+#: includes/settings-page.php:4 includes/settings-page.php:7
+#: includes/settings-page.php:19 includes/settings-page.php:182
+msgid "SNN Settings"
+msgstr "SNN 设置"
+
+#: includes/editor-settings-panel-bricks.php:32
+msgid "SNN-BRX"
+msgstr "SNN-BRX"
+
+#. Name of the theme
+msgid "SNN-BRX - Bricks Builder Child Theme"
+msgstr "SNN-BRX - Bricks Builder 儿童主题"
+
+#. Description of the theme
+msgid ""
+"SNN-BRX Child Theme is a purpose-built essential building suite for agencies "
+"and professionals, streamlining your Bricks Builder projects with one "
+"powerful child theme."
+msgstr "SNN-BRX 子主题是专为机构和专业人士打造的基本建筑套件，通过一个功能强大的子主题简化您的 Bricks Builder 项目。"
+
+#: includes/editor-settings-panel-color-sync.php:447
+#: includes/editor-settings-panel-color-sync.php:492
+msgid "snn-color-"
+msgstr "snn-color-"
+
+#: includes/custom-code-snippets.php:707
+msgid "Some snippets could not be saved. Please check messages above."
+msgstr "某些片段无法保存。请查看上面的信息。"
+
+#: includes/elements/animated-heading.php:196
+#: includes/elements/animated-vfx-text.php:61
+#: includes/elements/gsap-text-animations.php:58
+msgid "Span"
+msgstr "跨度"
+
+#: includes/elements/flip-box.php:61
+msgid "Spin Flip"
+msgstr "旋转翻转"
+
+#: includes/elements/svg-text-path.php:41
+msgid "Spiral"
+msgstr "螺旋式"
+
+#: includes/elements/gsap-text-animations.php:282
+msgid "Split Text"
+msgstr "分割文本"
+
+#: includes/elements/gsap-multi-element-register.php:409
+msgid "Splittext Line"
+msgstr "分隔线"
+
+#: includes/elements/gsap-multi-element-register.php:407
+#: includes/elements/gsap-text-animations.php:155
+msgid "Splittext True"
+msgstr "分文本 True"
+
+#: includes/elements/gsap-multi-element-register.php:408
+#: includes/elements/gsap-text-animations.php:156
+msgid "Splittext Words"
+msgstr "分词"
+
+#: includes/smtp-settings.php:133
+msgid "SSL"
+msgstr "SSL"
+
+#: includes/elements/gsap-animations.php:235
+#: includes/elements/gsap-text-animations.php:321
+msgid "Stagger"
+msgstr "错开"
+
+#: includes/elements/gsap-multi-element-register.php:479
+#: includes/elements/gsap-text-animations.php:207
+msgid "Stagger 0.01"
+msgstr "错开 0.01"
+
+#: includes/elements/gsap-multi-element-register.php:480
+msgid "Stagger 0.02"
+msgstr "错开 0.02"
+
+#: includes/elements/gsap-multi-element-register.php:481
+msgid "Stagger 0.03"
+msgstr "错开 0.03"
+
+#: includes/elements/gsap-multi-element-register.php:482
+msgid "Stagger 0.04"
+msgstr "错开 0.04"
+
+#: includes/elements/gsap-multi-element-register.php:483
+#: includes/elements/gsap-text-animations.php:208
+msgid "Stagger 0.05"
+msgstr "错开 0.05"
+
+#: includes/elements/gsap-multi-element-register.php:484
+msgid "Stagger 0.06"
+msgstr "错开 0.06"
+
+#: includes/elements/gsap-multi-element-register.php:485
+msgid "Stagger 0.07"
+msgstr "错开 0.07"
+
+#: includes/elements/gsap-multi-element-register.php:486
+msgid "Stagger 0.08"
+msgstr "错开 0.08"
+
+#: includes/elements/gsap-multi-element-register.php:487
+msgid "Stagger 0.09"
+msgstr "错开 0.09"
+
+#: includes/elements/gsap-multi-element-register.php:488
+#: includes/elements/gsap-text-animations.php:209
+msgid "Stagger 0.1"
+msgstr "错开 0.1"
+
+#: includes/elements/gsap-multi-element-register.php:489
+#: includes/elements/gsap-text-animations.php:210
+msgid "Stagger 0.5"
+msgstr "错开 0.5"
+
+#: includes/elements/gsap-multi-element-register.php:490
+#: includes/elements/gsap-text-animations.php:211
+msgid "Stagger 1"
+msgstr "错开 1"
+
+#: includes/elements/gsap-multi-element-register.php:499
+msgid "Stagger 10"
+msgstr "错开 10"
+
+#: includes/elements/gsap-multi-element-register.php:491
+#: includes/elements/gsap-text-animations.php:212
+msgid "Stagger 2"
+msgstr "错开 2"
+
+#: includes/elements/gsap-multi-element-register.php:492
+#: includes/elements/gsap-text-animations.php:213
+msgid "Stagger 3"
+msgstr "错开 3"
+
+#: includes/elements/gsap-multi-element-register.php:493
+msgid "Stagger 4"
+msgstr "错开 4"
+
+#: includes/elements/gsap-multi-element-register.php:494
+msgid "Stagger 5"
+msgstr "错开 5"
+
+#: includes/elements/gsap-multi-element-register.php:495
+#: includes/elements/gsap-text-animations.php:214
+msgid "Stagger 6"
+msgstr "错开 6"
+
+#: includes/elements/gsap-multi-element-register.php:496
+msgid "Stagger 7"
+msgstr "错开 7"
+
+#: includes/elements/gsap-multi-element-register.php:497
+msgid "Stagger 8"
+msgstr "错开 8"
+
+#: includes/elements/gsap-multi-element-register.php:498
+msgid "Stagger 9"
+msgstr "错开 9"
+
+#: includes/elements/gsap-multi-element-register.php:438
+#: includes/elements/gsap-text-animations.php:162
+msgid "Start 0%"
+msgstr "0% 开始"
+
+#: includes/elements/gsap-multi-element-register.php:439
+#: includes/elements/gsap-text-animations.php:163
+msgid "Start 10%"
+msgstr "开始 10%"
+
+#: includes/elements/gsap-multi-element-register.php:448
+#: includes/elements/gsap-text-animations.php:172
+msgid "Start 100%"
+msgstr "100% 启动"
+
+#: includes/elements/gsap-multi-element-register.php:440
+#: includes/elements/gsap-text-animations.php:164
+msgid "Start 20%"
+msgstr "开始 20"
+
+#: includes/elements/gsap-multi-element-register.php:441
+#: includes/elements/gsap-text-animations.php:165
+msgid "Start 30%"
+msgstr "开始 30"
+
+#: includes/elements/gsap-multi-element-register.php:442
+#: includes/elements/gsap-text-animations.php:166
+msgid "Start 40%"
+msgstr "开始 40"
+
+#: includes/elements/gsap-multi-element-register.php:443
+#: includes/elements/gsap-text-animations.php:167
+msgid "Start 50%"
+msgstr "开始 50%"
+
+#: includes/elements/gsap-multi-element-register.php:444
+#: includes/elements/gsap-text-animations.php:168
+msgid "Start 60%"
+msgstr "开始 60"
+
+#: includes/elements/gsap-multi-element-register.php:445
+#: includes/elements/gsap-text-animations.php:169
+msgid "Start 70%"
+msgstr "开始 70"
+
+#: includes/elements/gsap-multi-element-register.php:446
+#: includes/elements/gsap-text-animations.php:170
+msgid "Start 80%"
+msgstr "开始 80"
+
+#: includes/elements/gsap-multi-element-register.php:447
+#: includes/elements/gsap-text-animations.php:171
+msgid "Start 90%"
+msgstr "启动 90"
+
+#: includes/elements/conditions.php:89
+msgid "Start date"
+msgstr "开始日期"
+
+#: includes/ai/ai-settings.php:593 includes/ai/ai-settings.php:647
+msgid "Still loading models... (this is taking longer than usual)"
+msgstr "仍在加载模型......（加载时间比平时长）"
+
+#: includes/elements/animated-heading.php:167
+msgid "Strikethrough"
+msgstr "删除线"
+
+#: includes/elements/animated-heading.php:168
+msgid "Strikethrough X"
+msgstr "删除线 X"
+
+#: includes/elements/gsap-animations.php:160
+msgid "Style End (Custom CSS)"
+msgstr "风格端（自定义 CSS）"
+
+#: includes/elements/element-event-action-selector.php:151
+msgid "Style Property"
+msgstr "风格地产"
+
+#: includes/elements/gsap-animations.php:154
+msgid "Style Start (Custom CSS)"
+msgstr "风格启动（自定义 CSS）"
+
+#: includes/elements/element-event-action-selector.php:158
+msgid "Style Value"
+msgstr "风格价值"
+
+#: includes/cookie-banner.php:181
+msgid "Styles and Layout"
+msgstr "样式和布局"
+
+#: includes/mail-logging.php:212
+msgid "Subject"
+msgstr "主题"
+
+#: includes/elements/comment-form.php:28
+#: includes/elements/frontend-post-form.php:69
+msgid "Submit button label"
+msgstr "提交按钮标签"
+
+#: includes/elements/animated-heading.php:87
+msgid "SVG Bottom"
+msgstr "SVG 底部"
+
+#: includes/elements/animated-heading.php:107
+msgid "SVG Height"
+msgstr "SVG 高度"
+
+#: includes/elements/animated-heading.php:49
+msgid "SVG Stroke Color"
+msgstr "SVG 描边颜色"
+
+#: includes/elements/animated-heading.php:62
+msgid "SVG Stroke Width"
+msgstr "SVG 描边宽度"
+
+#: includes/elements/svg-text-path.php:17
+msgid "SVG Text Path"
+msgstr "SVG 文本路径"
+
+#: includes/elements/gsap-multi-element-register.php:194
+msgid "Swing"
+msgstr "摇摆"
+
+#: includes/ai/ai-settings.php:142 includes/ai/ai-settings.php:146
+msgid "System Prompt"
+msgstr "系统提示"
+
+#: includes/elements/gsap-multi-element-register.php:601
+msgid "Tablet False"
+msgstr "平板假"
+
+#: includes/elements/gsap-multi-element-register.php:195
+msgid "Tada"
+msgstr "多田"
+
+#: includes/custom-field-settings.php:176
+#: includes/custom-field-settings.php:337 includes/settings-page.php:33
+#: includes/taxonomy-settings.php:13
+msgid "Taxonomies"
+msgstr "分类法"
+
+#: includes/taxonomy-settings.php:44
+msgid "Taxonomies saved successfully."
+msgstr "分类标准保存成功。"
+
+#: includes/elements/frontend-post-form.php:47
+msgid "Taxonomy (Optional)"
+msgstr "分类（可选）"
+
+#: includes/media-settings.php:125
+msgctxt "taxonomy general name"
+msgid "Media Categories"
+msgstr "媒体类别"
+
+#: includes/taxonomy-settings.php:68 includes/taxonomy-settings.php:154
+msgid "Taxonomy Name"
+msgstr "分类名称"
+
+#: includes/media-settings.php:126
+msgctxt "taxonomy singular name"
+msgid "Media Category"
+msgstr "媒体类别"
+
+#: includes/taxonomy-settings.php:72 includes/taxonomy-settings.php:158
+msgid "Taxonomy Slug"
+msgstr "分类蛞蝓"
+
+#: includes/editor-settings-panel-color-sync.php:106
+msgid "tertiary-color"
+msgstr "三级色"
+
+#: includes/smtp-settings.php:330
+#, php-format
+msgid "Test email sent successfully to %s! Check the inbox."
+msgstr "测试电子邮件已成功发送至 %s！检查收件箱。"
+
+#: includes/custom-field-settings.php:141
+#: includes/custom-field-settings.php:311
+msgid "Text"
+msgstr "文本"
+
+#: includes/elements/matrix.php:29
+msgid "Text Color"
+msgstr "文字颜色"
+
+#: includes/elements/gsap-text-animations.php:42
+#: includes/elements/read-more-toggle-text.php:23
+#: includes/elements/smoke-text.php:28
+msgid "Text Content"
+msgstr "文本内容"
+
+#: includes/elements/read-more-toggle-text.php:31
+msgid "Text Height (px)"
+msgstr "文本高度（px）"
+
+#: includes/elements/animated-heading.php:152
+msgid "Text On Top"
+msgstr "顶部文字"
+
+#: includes/elements/text-action-social-share.php:14
+msgid "Text Select Action Social Share"
+msgstr "文本 选择 操作 社交分享"
+
+#: includes/elements/svg-text-path.php:73
+msgid "Text Start Offset"
+msgstr "文本起始偏移"
+
+#: includes/elements/read-more-toggle-text.php:56
+msgid "Text Typography"
+msgstr "文字排版"
+
+#: includes/elements/element-event-action-selector.php:177
+msgid "Text Value"
+msgstr "文本值"
+
+#: includes/custom-field-settings.php:143
+#: includes/custom-field-settings.php:313
+msgid "Textarea"
+msgstr "文本区域"
+
+#: includes/ai/ai-settings.php:870
+msgid "Textarea is empty."
+msgstr "文本区域为空。"
+
+#: includes/custom-code-snippets.php:1221
+msgid ""
+"The \"SNN Custom Codes\" feature automatically disabled all snippet "
+"executions due to a fatal PHP error. This is a safety measure to prevent "
+"your site from breaking further."
+msgstr "由于 PHP 出现致命错误，\"SNN 自定义代码 \"功能自动禁用了所有片段执行。这是防止网站进一步崩溃的安全措施。"
+
+#: includes/role-manager.php:177
+msgid "The Administrator role cannot be deleted."
+msgstr "管理员角色不可删除。"
+
+#: includes/role-manager.php:361
+msgid "The Administrator role cannot be managed here."
+msgstr "这里无法管理管理员角色。"
+
+#: includes/role-manager.php:143
+msgid "The Administrator role cannot be modified here."
+msgstr "此处不能修改管理员角色。"
+
+#: includes/cookie-banner.php:571
+msgid "The banner buttons (Accept, Deny, Preferences)"
+msgstr "横幅按钮（接受、拒绝、首选项）"
+
+#: includes/cookie-banner.php:570
+msgid "The banner text"
+msgstr "横幅文字"
+
+#: includes/cookie-banner.php:568
+msgid "The cookie banner container"
+msgstr "cookie 横幅容器"
+
+#: includes/cookie-banner.php:573
+msgid "The list of services"
+msgstr "服务清单"
+
+#: includes/301-redirect.php:306
+msgid "The maximum number of logs must be at least 1."
+msgstr "日志的最大数量必须至少为 1。"
+
+#: includes/role-manager.php:580
+msgid ""
+"The name displayed in the WordPress admin area (e.g., \"Event Manager\")."
+msgstr "WordPress 管理区中显示的名称（如 \"活动管理器\"）。"
+
+#: includes/cookie-banner.php:290
+msgid "The name of the service (e.g., Google Analytics)."
+msgstr "服务名称（如 Google Analytics）。"
+
+#: includes/301-redirect.php:310
+msgid "The number of days must be at least 1."
+msgstr "天数必须至少为 1 天。"
+
+#: includes/cookie-banner.php:569
+msgid "The preferences content container inside the banner"
+msgstr "横幅内的首选项内容容器"
+
+#: includes/cookie-banner.php:292
+msgid ""
+"The script or HTML code that will be executed when the user accepts cookies."
+msgstr "用户接受 cookie 时将执行的脚本或 HTML 代码。"
+
+#: includes/cookie-banner.php:572
+msgid "The title in the preferences content"
+msgstr "首选项内容中的标题"
+
+#: includes/activity-logs.php:107
+msgid "Theme Deletion"
+msgstr "主题删除"
+
+#: includes/activity-logs.php:105
+msgid "Theme Switch"
+msgstr "主题切换"
+
+#: includes/activity-logs.php:106
+msgid "Theme Updates"
+msgstr "主题更新"
+
+#: includes/activity-logs.php:116
+msgid "Theme/Plugin File Edits"
+msgstr "主题/插件文件编辑"
+
+#: includes/other-settings.php:198
+msgid ""
+"This allows you to see the featured image of each post directly in the list "
+"view."
+msgstr "这样，您就可以直接在列表视图中看到每个帖子的特色图片。"
+
+#: includes/custom-field-settings.php:104
+#: includes/custom-field-settings.php:251
+msgid "This field type cannot be a repeater"
+msgstr "该字段类型不能是中继器"
+
+#: includes/other-settings.php:209
+msgid ""
+"This helps in decluttering the dashboard and focusing on the essential "
+"information."
+msgstr "这有助于整理仪表盘，并将重点放在基本信息上。"
+
+#: includes/smtp-settings.php:319
+msgid "This is a test email sent via your SMTP settings."
+msgstr "这是通过 SMTP 设置发送的测试电子邮件。"
+
+#: includes/custom-code-snippets.php:825
+msgid ""
+"This log shows the last %d errors recorded from snippet executions. If a "
+"fatal error occurs, snippet execution will be globally disabled."
+msgstr "该日志显示最近 %d 次执行片段时记录的错误。如果发生致命错误，将全面禁用片段执行。"
+
+#: includes/settings-page.php:65
+msgid "This theme is designed to give you the tools and solutions for"
+msgstr "该主题旨在为您提供以下工具和解决方案"
+
+#: includes/cookie-banner.php:127
+msgid "This website uses cookies for analytics and functionality."
+msgstr "本网站使用 cookie 进行分析和实现功能。"
+
+#: includes/custom-code-snippets.php:961
+msgid ""
+"This will permanently delete all revisions for this snippet. Cannot be "
+"undone."
+msgstr "这将永久删除此片段的所有修订。无法撤销。"
+
+#: includes/other-settings.php:342 includes/post-types-settings.php:27
+#: includes/post-types-settings.php:158
+msgid "Thumbnail"
+msgstr "缩略图"
+
+#: includes/elements/gsap-multi-element-register.php:358
+msgid "Tilt In Diagonal"
+msgstr "倾斜对角线"
+
+#: includes/elements/gsap-multi-element-register.php:359
+msgid "Tilt Out Diagonal"
+msgstr "倾斜对角线"
+
+#: includes/custom-field-settings.php:148
+#: includes/custom-field-settings.php:318
+msgid "Time"
+msgstr "时间"
+
+#: includes/elements/timeline.php:37
+msgid "Timeline"
+msgstr "时间表"
+
+#: includes/elements/timeline.php:57
+msgid "Timeline Dot Border Color"
+msgstr "时间轴圆点边框颜色"
+
+#: includes/elements/timeline.php:49
+msgid "Timeline Line Color"
+msgstr "时间线线条颜色"
+
+#: includes/elements/timeline.php:73
+msgid "Timeline Line Width"
+msgstr "时间轴线宽"
+
+#: includes/elements/timeline.php:85
+msgid "Timeline Points"
+msgstr "时间轴要点"
+
+#: includes/custom-code-snippets.php:834
+msgid "Timestamp"
+msgstr "时间戳"
+
+#: includes/post-types-settings.php:25 includes/post-types-settings.php:156
+msgid "Title"
+msgstr "标题"
+
+#: includes/smtp-settings.php:134
+msgid "TLS"
+msgstr "TLS"
+
+#: includes/mail-logging.php:214
+msgid "To"
+msgstr "至"
+
+#: includes/elements/comment-form.php:97
+#: includes/elements/frontend-post-form.php:145
+msgid "Toolbar background"
+msgstr "工具栏背景"
+
+#: includes/elements/comment-form.php:123
+#: includes/elements/frontend-post-form.php:171
+msgid "Toolbar button background"
+msgstr "工具栏按钮背景"
+
+#: includes/elements/comment-form.php:110
+#: includes/elements/frontend-post-form.php:158
+msgid "Toolbar text color"
+msgstr "工具栏文本颜色"
+
+#: includes/elements/image-hotspot.php:93
+msgid "Tooltip Background"
+msgstr "工具提示背景"
+
+#: includes/elements/image-hotspot.php:111
+msgid "Tooltip Border Radius (px)"
+msgstr "工具提示边框半径（px）"
+
+#: includes/elements/image-hotspot.php:59
+msgid "Tooltip Content"
+msgstr "工具提示内容"
+
+#: includes/elements/image-hotspot.php:82
+msgid "Tooltip Position"
+msgstr "工具提示位置"
+
+#: includes/elements/image-hotspot.php:98
+msgid "Tooltip Text Color"
+msgstr "工具提示文本颜色"
+
+#: includes/elements/image-hotspot.php:103
+msgid "Tooltip Width (px)"
+msgstr "工具提示宽度（px）"
+
+#: includes/cookie-banner.php:524 includes/elements/image-hotspot.php:85
+msgid "Top"
+msgstr "返回顶部"
+
+#: includes/search-loggins.php:280
+msgid "Top 100 Searches"
+msgstr "百大搜索"
+
+#: includes/search-loggins.php:160
+msgid "Top 100 searches have been cleared."
+msgstr "前 100 条搜索已清除。"
+
+#: includes/elements/flip-box.php:58
+msgid "Top to Bottom (Flip)"
+msgstr "从上到下（翻转）"
+
+#: includes/elements/flip-box.php:64
+msgid "Top to Down Slide"
+msgstr "从上往下滑行"
+
+#: includes/elements/gsap-text-animations.php:259
+#: includes/elements/gsap-text-animations.php:272
+#: includes/elements/gsap-text-animations.php:285
+#: includes/elements/gsap-text-animations.php:298
+#: includes/elements/gsap-text-animations.php:311
+#: includes/elements/gsap-text-animations.php:342
+msgid "True"
+msgstr "正确"
+
+#: includes/custom-field-settings.php:323
+msgid "True / False"
+msgstr "真/假"
+
+#: includes/elements/gsap-text-animations.php:332
+msgid "true, 1, 2"
+msgstr "true, 1, 2"
+
+#: includes/custom-field-settings.php:153
+msgid "True/False"
+msgstr "真/假"
+
+#: includes/elements/gsap-multi-element-register.php:362
+msgid "Tunnel In"
+msgstr "隧道内"
+
+#: includes/elements/gsap-multi-element-register.php:363
+msgid "Tunnel Out"
+msgstr "隧道出口"
+
+#: includes/custom-code-snippets.php:835
+msgid "Type"
+msgstr "类型"
+
+#: includes/elements/animated-vfx-text.php:78
+#: includes/elements/gsap-text-animations.php:373
+#: includes/elements/smoke-text.php:40
+msgid "Typography"
+msgstr "排版"
+
+#: includes/editor-settings-panel-color-sync.php:415
+#: includes/mail-logging.php:27
+msgid "Unauthorized"
+msgstr "未经授权"
+
+#: includes/media-settings.php:660 includes/media-settings.php:689
+#: includes/media-settings.php:710
+msgid "Unauthorized user"
+msgstr "未经授权的用户"
+
+#: includes/elements/animated-heading.php:162
+msgid "Underline"
+msgstr "下划线"
+
+#: includes/elements/animated-heading.php:164
+msgid "Underline Wavey"
+msgstr "下划线波浪形"
+
+#: includes/elements/animated-heading.php:163
+msgid "Underline Zigzag"
+msgstr "下划线之字形"
+
+#: includes/ai/ai-overlay.php:1094
+msgid "Unexpected AI response format for bulk operation."
+msgstr "批量操作的 AI 响应格式意外。"
+
+#: includes/ai/ai-overlay.php:685
+msgid "Unexpected AI response format."
+msgstr "意外的 AI 响应格式。"
+
+#: includes/role-manager.php:579
+msgid ""
+"Unique identifier (slug) for the role. Use only lowercase letters, numbers, "
+"and underscores (e.g., \"event_manager\"). Cannot be changed later. Cannot "
+"be \"administrator\" or a core role ID."
+msgstr ""
+"角色的唯一标识符（slug）。只能使用小写字母、数字和下划线（如 \"event_manager\"）。以后不能更改。不能是 \"管理员 \"或核心角色 "
+"ID。"
+
+#: includes/custom-code-snippets.php:926
+msgid "Unknown Author"
+msgstr "作者不详"
+
+#: includes/elements/like-button.php:76 includes/elements/like-button.php:77
+msgid "Unlike"
+msgstr "不像"
+
+#: includes/block-editor-settings.php:161
+msgid "Unselect All"
+msgstr "全部取消选择"
+
+#: includes/media-settings.php:132
+msgid "Update Media Category"
+msgstr "更新媒体类别"
+
+#: includes/role-manager.php:744
+msgid "Update Role"
+msgstr "更新角色"
+
+#: includes/elements/animated-heading.php:207
+msgid ""
+"Upload your own SVG path. <br>Create 510px x 170px transparent rectangle and "
+"draw your path inside of that. Group it export it."
+msgstr "上传你自己的 SVG 路径。<br>创建 510px x 170px 透明矩形，并在其中绘制路径。分组后导出。"
+
+#: includes/elements/svg-text-path.php:51
+msgid ""
+"Upload your own SVG path. <br>Create a 510px x 170px transparent rectangle, "
+"draw your path inside it, group and export it."
+msgstr "上传你自己的 SVG 路径。<br>创建一个 510px x 170px 的透明矩形，在其中绘制路径，分组并导出。"
+
+#: includes/404-logging.php:258 includes/custom-field-settings.php:154
+#: includes/custom-field-settings.php:324
+msgid "URL"
+msgstr "网址"
+
+#: includes/elements/conditions.php:161
+msgid "URL contains (comma-separated)"
+msgstr "URL 包含（以逗号分隔）"
+
+#: includes/cookie-banner.php:567
+msgid "Use the following CSS selectors to style the banner:"
+msgstr "使用以下 CSS 选择器为横幅设计样式："
+
+#: includes/smtp-settings.php:368
+msgid ""
+"Use the form below to send a test email to any email address, using the "
+"configured SMTP settings."
+msgstr "使用下面的表格，使用配置的 SMTP 设置向任何电子邮件地址发送测试电子邮件。"
+
+#: includes/global-variables.php:155
+msgid "Use the format:"
+msgstr "使用格式"
+
+#: includes/login-logo-change-url-change.php:55 includes/login-settings.php:102
+msgid "Use this image"
+msgstr "使用此图片"
+
+#: includes/cookie-banner.php:288
+msgid ""
+"Use this tab to add or modify services to ensure they load according to user "
+"consent preferences."
+msgstr "使用此选项卡添加或修改服务，以确保根据用户同意偏好加载服务。"
+
+#: includes/activity-logs.php:644
+msgid "User"
+msgstr "用户"
+
+#: includes/301-redirect.php:539 includes/404-logging.php:261
+#: includes/search-loggins.php:224
+msgid "User Agent"
+msgstr "用户代理"
+
+#: includes/activity-logs.php:117
+msgid "User Capability Changes"
+msgstr "用户能力变更"
+
+#: includes/activity-logs.php:78
+msgid "User Deletion"
+msgstr "用户删除"
+
+#: includes/activity-logs.php:74
+msgid "User Login"
+msgstr "用户登录"
+
+#: includes/activity-logs.php:75
+msgid "User Logout"
+msgstr "用户注销"
+
+#: includes/activity-logs.php:77
+msgid "User Profile Updates"
+msgstr "用户资料更新"
+
+#: includes/activity-logs.php:76
+msgid "User Registration"
+msgstr "用户注册"
+
+#: includes/activity-logs.php:79
+msgid "User Role Changes"
+msgstr "用户角色变更"
+
+#: includes/elements/conditions.php:169
+msgid "User Roles"
+msgstr "用户角色"
+
+#: includes/utils.php:169
+msgid "User Roles (multiple allowed)"
+msgstr "用户角色（允许多个）"
+
+#: includes/global-variables.php:175
+msgid "Value"
+msgstr "价值"
+
+#: includes/custom-field-settings.php:159
+#: includes/custom-field-settings.php:329
+msgid "value:label"
+msgstr "value:label"
+
+#: includes/editor-settings-panel-color-sync.php:147
+msgid "Variable name"
+msgstr "变量名称"
+
+#: includes/global-variables.php:65
+msgid "Variables and Categories Saved"
+msgstr "保存的变量和类别"
+
+#: includes/custom-code-snippets.php:26
+msgid "View Code Snippet"
+msgstr "查看代码片段"
+
+#: includes/custom-code-snippets.php:942
+msgid "View full comparison in new tab"
+msgstr "在新标签页中查看完整比较"
+
+#: includes/mail-logging.php:238
+msgid "View Message"
+msgstr "查看留言"
+
+#: includes/role-manager.php:429
+msgid ""
+"View, edit, or delete user roles. Core roles cannot be deleted, and the "
+"Administrator role cannot be modified or deleted from this interface."
+msgstr "查看、编辑或删除用户角色。核心角色不能删除，管理员角色也不能从该界面修改或删除。"
+
+#: includes/elements/conditions.php:62
+msgid "Views per session"
+msgstr "每次浏览次数"
+
+#: includes/custom-code-snippets.php:906 includes/role-manager.php:681
+msgid "Warning:"
+msgstr "警告"
+
+#: includes/custom-code-snippets.php:991
+msgid ""
+"WARNING: Enabling this feature allows for direct, unsanitized code execution."
+" This is extremely dangerous and should only be used by expert developers."
+msgstr "警告：启用此功能可直接执行未加密的代码。这是极其危险的，只有专业开发人员才能使用。"
+
+#: includes/elements/animated-vfx-text.php:41
+msgid "Warp Transition"
+msgstr "翘曲过渡"
+
+#: includes/elements/svg-text-path.php:37
+msgid "Wave"
+msgstr "波浪"
+
+#: includes/elements/animated-vfx-text.php:45
+msgid "Wavevy Wave Shader"
+msgstr "Wavevy 波浪着色器"
+
+#: includes/elements/comment-form.php:240
+msgid "Website"
+msgstr "网站"
+
+#: includes/other-settings.php:386
+msgid "Welcome"
+msgstr "欢迎光临"
+
+#: includes/cookie-banner.php:294
+msgid ""
+"Where on the page the script should be inserted (Head, Body Top, or Body "
+"Bottom)."
+msgstr "脚本应插入页面的哪个位置（头部、正文顶部或正文底部）。"
+
+#: includes/elements/matrix.php:24
+msgid "Which element to overlay Matrix Rain on? CSS selector. Default is body."
+msgstr "在哪个元素上叠加 Matrix Rain？CSS 选择器。默认为正文。"
+
+#: includes/settings-page.php:169
+msgid "White Label Name"
+msgstr "白标名称"
+
+#: includes/activity-logs.php:109
+msgid "Widget Changes"
+msgstr "小工具更改"
+
+#: includes/custom-field-settings.php:132
+#: includes/custom-field-settings.php:307
+msgid "Width (%)"
+msgstr "宽度 (%)"
+
+#: includes/elements/gsap-multi-element-register.php:227
+msgid "Width 0% to 100%"
+msgstr "宽度 0% 至 100%"
+
+#: includes/elements/gsap-multi-element-register.php:228
+msgid "Width 100% to 0%"
+msgstr "宽度 100% 至 0"
+
+#: includes/cookie-banner.php:490
+msgid "Width of the cookie banner in pixels."
+msgstr "cookie 横幅的宽度（像素）。"
+
+#: includes/elements/gsap-multi-element-register.php:200
+msgid "Wiggle"
+msgstr "扭动"
+
+#: includes/elements/conditions.php:142
+msgid "Windows"
+msgstr "视窗"
+
+#: includes/elements/gsap-multi-element-register.php:196
+msgid "Wobble"
+msgstr "摇摆"
+
+#: includes/elements/svg-text-path.php:85
+msgid "Word Spacing"
+msgstr "字距"
+
+#: includes/settings-page.php:66
+msgid "WordPress"
+msgstr "WordPress"
+
+#: includes/activity-logs.php:108
+msgid "WordPress Core Updates"
+msgstr "WordPress 核心更新"
+
+#: includes/editor-settings-panel-bricks.php:202
+msgid "X"
+msgstr "X"
+
+#: includes/elements/image-hotspot.php:66
+msgid "X (%)"
+msgstr "X (%)"
+
+#: includes/elements/gsap-animations.php:77
+msgid "X End"
+msgstr "X 结束"
+
+#: includes/elements/gsap-animations.php:72
+msgid "X Start"
+msgstr "X 启动"
+
+#: includes/elements/image-hotspot.php:74
+msgid "Y (%)"
+msgstr "Y (%)"
+
+#: includes/elements/gsap-animations.php:87
+msgid "Y End"
+msgstr "Y 结束"
+
+#: includes/elements/gsap-animations.php:82
+msgid "Y Start"
+msgstr "Y 开始"
+
+#: includes/elements/gsap-animations.php:173
+#: includes/elements/gsap-animations.php:186
+#: includes/elements/gsap-animations.php:199
+#: includes/elements/gsap-animations.php:246
+msgid "Yes"
+msgstr "是"
+
+#: includes/role-manager.php:681
+msgid ""
+"You are editing a core WordPress role. Modifying core capabilities can lead "
+"to unexpected behavior or security issues. Proceed with caution."
+msgstr "您正在编辑 WordPress 的核心角色。修改核心功能可能会导致意外行为或安全问题。请谨慎操作。"
+
+#: includes/disable-wp-json-if-not-logged-in.php:26
+msgid "You are not logged in."
+msgstr "您尚未登录。"
+
+#: includes/other-settings.php:227
+msgid ""
+"You can include HTML tags for formatting, and now you can also paste "
+"shortcodes which will be executed."
+msgstr "您可以使用 HTML 标记来设置格式，现在还可以粘贴将被执行的简码。"
+
+#: includes/settings-page.php:184
+msgid "You can rename SNN Settings title."
+msgstr "您可以重命名 SNN 设置标题。"
+
+#: includes/login-settings.php:131
+msgid "You can use HTML tags in this text."
+msgstr "您可以在文本中使用 HTML 标记。"
+
+#: includes/role-manager.php:547
+msgid "You do not have permission to delete this role."
+msgstr "您没有删除此角色的权限。"
+
+#: includes/role-manager.php:179
+msgid "You do not have permission to delete this specific role."
+msgstr "您没有删除此特定角色的权限。"
+
+#: includes/role-manager.php:365
+msgid "You do not have permission to edit the specified role."
+msgstr "您没有编辑指定角色的权限。"
+
+#: includes/role-manager.php:534
+msgid "You do not have permission to edit this role."
+msgstr "您没有编辑此角色的权限。"
+
+#: includes/role-manager.php:146
+msgid "You do not have permission to edit this specific role."
+msgstr "您没有编辑此特定角色的权限。"
+
+#: includes/elements/frontend-post-form.php:87
+#: includes/elements/frontend-post-form.php:88
+#: includes/elements/frontend-post-form.php:228
+msgid "You do not have permission to post."
+msgstr "您没有张贴许可。"
+
+#: includes/cookie-banner.php:28 includes/custom-code-snippets.php:538
+#: includes/role-manager.php:351
+msgid "You do not have sufficient permissions to access this page."
+msgstr "您没有足够的权限访问此页面。"
+
+#: includes/role-manager.php:96
+msgid "You do not have sufficient permissions to manage roles."
+msgstr "您没有足够的权限管理角色。"
+
+#: includes/smtp-settings.php:379
+msgid "you@example.com"
+msgstr "you@example.com"
+
+#: includes/elements/comment-list.php:59 includes/elements/comment-list.php:60
+#: includes/elements/comment-list.php:79
+msgid "Your comment is saved and waiting for approval."
+msgstr "您的评论已保存，等待批准。"
+
+#: includes/elements/read-more-toggle-text.php:71
+msgid "Your content goes here..."
+msgstr "您的内容放在这里..."
+
+#: includes/elements/svg-text-path.php:29
+msgid "Your Text Here"
+msgstr "您的文本在此"
+
+#: includes/elements/gsap-multi-element-register.php:42
+msgid "Zoom In"
+msgstr "放大"
+
+#: includes/elements/gsap-multi-element-register.php:44
+msgid "Zoom In Down"
+msgstr "向下放大"
+
+#: includes/elements/gsap-multi-element-register.php:46
+msgid "Zoom In Left"
+msgstr "向左放大"
+
+#: includes/elements/gsap-multi-element-register.php:48
+msgid "Zoom In Right"
+msgstr "向右放大"
+
+#: includes/elements/gsap-multi-element-register.php:178
+msgid "Zoom In Rotate"
+msgstr "放大 旋转"
+
+#: includes/elements/gsap-multi-element-register.php:50
+msgid "Zoom In Up"
+msgstr "向上放大"
+
+#: includes/elements/custom-maps.php:108
+msgid "Zoom Level"
+msgstr "缩放级别"
+
+#: includes/elements/gsap-multi-element-register.php:43
+msgid "Zoom Out"
+msgstr "放大"
+
+#: includes/elements/gsap-multi-element-register.php:45
+msgid "Zoom Out Down"
+msgstr "放大 缩小"
+
+#: includes/elements/gsap-multi-element-register.php:47
+msgid "Zoom Out Left"
+msgstr "向左缩放"
+
+#: includes/elements/gsap-multi-element-register.php:49
+msgid "Zoom Out Right"
+msgstr "向右放大"
+
+#: includes/elements/gsap-multi-element-register.php:179
+msgid "Zoom Out Rotate"
+msgstr "缩小 旋转"
+
+#: includes/elements/gsap-multi-element-register.php:51
+msgid "Zoom Out Up"
+msgstr "放大 向上"
+
+#: includes/utils.php:186
+msgid ""
+"⚠ WARNING – You can assign multiple roles, but overlapping capabilities can "
+"clash. Grant the minimum required and test thoroughly."
+msgstr "⚠ 警告 - 您可以分配多个角色，但重叠的功能可能会发生冲突。请授予所需的最低权限并进行全面测试。"
