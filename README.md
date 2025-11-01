@@ -47,54 +47,6 @@ SNN-BRX aims to replace the need for numerous individual plugins by integrating 
 
 The primary goal behind SNN-BRX is to **achieve a more efficient and simplified website building process.** By consolidating the functionalities of over 25 plugins into one child theme, SNN-BRX significantly reduces plugin dependency, saving you valuable time, resources, and improving website performance. Its modular design ensures that you only use the features you need, preventing unnecessary server load.
 
-## Getting Started
-
-1.  **Installation:** Install SNN-BRX as a child theme to your Bricks Builder installation.
-2.  **Configuration:** Navigate to the "SNN Settings" panel in your WordPress dashboard to enable and configure the features you require.
-3.  **Explore Features:** Dive into the extensive features, from advanced animations and AI content generation to robust security and redirect management.
-
-
-### Custom Post Types, Fields, and Taxonomies
-
-SNN-BRX provides an intuitive admin interface to effortlessly create and manage:
-
-*   **Custom Post Types:** Define names, slugs, visibility, and supported features (title, editor, thumbnails).
-*   **Custom Fields:** Assign various field types (text, number, date, media) to post types or taxonomies, with support for repeater fields.
-*   **Custom Taxonomies:** Set up hierarchical or tag-based taxonomies and link them to your post types.
-
-### GSAP and Lottie Animations
-
-Bring your designs to life with powerful animations:
-
-*   **GSAP Integration:** Animate sections, containers, blocks, and text elements with ease. Supports Scroll Trigger, SplitText, Entrance Animations, and Loop Animations with customizable duration and delay.
-*   **Extensive Animation Library:** Access a vast array of pre-defined GSAP animations, including fades, slides, zooms, rotations, bounces, and more.
-*   **Responsive Animations:** Control animation visibility across different devices.
-*   **Lottie Support:** Embed Lottie animations seamlessly.
-
-### AI Ready Features
-
-Supercharge your content creation:
-
-*   **AI Text Generation:** Generate or refine text, rich text, headings, and CSS directly within the Bricks Builder editor using OpenAI or OpenRouter APIs.
-*   **Bulk AI Content Editor:** Edit and generate content for multiple elements simultaneously, fix grammar, and adjust writing style with AI assistance.
-*   **AI Design Generator (ALPHA):** Create random creative designs with AI inside Bricks Builder Editor.
-
-### SNN Color Sync Variables
-
-Experience a new level of color management:
-
-*   **Global Color Synchronization:** Ensures that global color variables created with SNN-BRX are consistently available and visually represented across all Bricks Builder color palettes.
-*   **Automatic Shade Generation:** Create automatic light and dark shades of your chosen colors by simply setting a shade count.
-*   **Flexible Color Units:** Supports hex colors and any valid CSS color units.
-
-### Security and Optimization
-
-Focus on building, not managing plugins:
-
-*   **Reduced Plugin Count:** Eliminates the need for 25+ individual plugins.
-*   **Enhanced Security:** Features like disabling file editing, obscuring WP version, and JSON endpoint control contribute to a more secure website.
-*   **Performance Optimization:** Modular design and features like WP Revision limiting help maintain optimal performance.
-
 ## Changelog
 
 Refer to the [Changelog](https://github.com/sinanisler/snn-brx-child-theme/releases) for the latest updates and improvements.
