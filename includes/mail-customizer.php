@@ -23,30 +23,14 @@ function snn_mail_get_defaults() {
         'header_text_color' => '#ffffff',
         'link_color' => '#3498db',
         
-        // Typography
-        'font_family' => 'Arial, Helvetica, sans-serif',
-        'font_size' => '14px',
-        
         // Branding
         'logo_url' => '',
         'logo_width' => '200',
-        'company_name' => get_bloginfo('name'),
-        'company_address' => '',
+        'site_name' => get_bloginfo('name'),
         
         // Custom Content (with TinyMCE)
         'header_content' => '',
         'footer_content' => '',
-        
-        // Social Links
-        'facebook_url' => '',
-        'twitter_url' => '',
-        'instagram_url' => '',
-        'linkedin_url' => '',
-        
-        // Layout
-        'email_width' => '600',
-        'content_padding' => '40',
-        'border_radius' => '8',
     ];
 }
 
@@ -87,10 +71,8 @@ function snn_mail_sanitize_settings($input) {
     $sanitized['enabled'] = isset($input['enabled']) ? true : false;
     
     // Text fields
-    $text_fields = ['sender_name', 'sender_email', 'company_name', 'company_address', 
-                   'logo_url', 'logo_width', 'font_family', 'font_size',
-                   'facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url',
-                   'email_width', 'content_padding', 'border_radius'];
+    $text_fields = ['sender_name', 'sender_email', 'site_name', 
+                   'logo_url', 'logo_width'];
     
     foreach ($text_fields as $field) {
         $sanitized[$field] = isset($input[$field]) ? sanitize_text_field($input[$field]) : '';
@@ -125,14 +107,10 @@ function snn_mail_enqueue_scripts($hook) {
         return;
     }
     
-    wp_enqueue_style('wp-color-picker');
-    wp_enqueue_script('wp-color-picker');
     wp_enqueue_media();
     
-    wp_add_inline_script('wp-color-picker', '
+    wp_add_inline_script('jquery', '
         jQuery(document).ready(function($){
-            $(".snn-color-picker").wpColorPicker();
-            
             // Media uploader for logo
             $(".snn-upload-button").click(function(e) {
                 e.preventDefault();
@@ -153,6 +131,17 @@ function snn_mail_enqueue_scripts($hook) {
                 });
                 
                 mediaUploader.open();
+            });
+            
+            // Sync color picker with text input
+            $(".snn-color-input").on("input", function() {
+                var val = $(this).val();
+                $(this).next(".snn-color-picker").val(val);
+            });
+            
+            $(".snn-color-picker").on("input", function() {
+                var val = $(this).val();
+                $(this).prev(".snn-color-input").val(val);
             });
         });
     ');
@@ -193,7 +182,9 @@ function snn_mail_render_page() {
                 .snn-form-table input[type="number"] { width: 100%; max-width: 500px; }
                 .snn-form-table input[type="number"] { max-width: 100px; }
                 .snn-upload-button { margin-left: 10px; }
-                .snn-color-picker { max-width: 100px; }
+                .snn-color-input { max-width: 120px; }
+                .snn-color-picker { width: 60px; height: 38px; margin-left: 10px; border: 1px solid #ddd; cursor: pointer; }
+                .snn-color-field { display: flex; align-items: center; }
                 .snn-description { color: #666; font-style: italic; margin-top: 5px; }
                 .snn-toggle { background: #f0f0f1; padding: 15px; border-left: 4px solid #2271b1; margin: 20px 0; }
                 .snn-available-tags { background: #f9f9f9; padding: 10px; border: 1px solid #ddd; margin-top: 10px; }
@@ -254,16 +245,9 @@ function snn_mail_render_page() {
                             </td>
                         </tr>
                         <tr>
-                            <th><label><?php _e('Company Name', 'snn'); ?></label></th>
+                            <th><label><?php _e('Site Name', 'snn'); ?></label></th>
                             <td>
-                                <input type="text" name="snn_mail_customizer_settings[company_name]" value="<?php echo esc_attr($settings['company_name']); ?>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Company Address', 'snn'); ?></label></th>
-                            <td>
-                                <input type="text" name="snn_mail_customizer_settings[company_address]" value="<?php echo esc_attr($settings['company_address']); ?>">
-                                <p class="snn-description"><?php _e('Will be displayed in the footer.', 'snn'); ?></p>
+                                <input type="text" name="snn_mail_customizer_settings[site_name]" value="<?php echo esc_attr($settings['site_name']); ?>">
                             </td>
                         </tr>
                     </table>
@@ -276,98 +260,55 @@ function snn_mail_render_page() {
                         <tr>
                             <th><label><?php _e('Header Background', 'snn'); ?></label></th>
                             <td>
-                                <input type="text" name="snn_mail_customizer_settings[header_bg_color]" value="<?php echo esc_attr($settings['header_bg_color']); ?>" class="snn-color-picker">
+                                <div class="snn-color-field">
+                                    <input type="text" name="snn_mail_customizer_settings[header_bg_color]" value="<?php echo esc_attr($settings['header_bg_color']); ?>" class="snn-color-input">
+                                    <input type="color" value="<?php echo esc_attr($settings['header_bg_color']); ?>" class="snn-color-picker">
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <th><label><?php _e('Header Text Color', 'snn'); ?></label></th>
                             <td>
-                                <input type="text" name="snn_mail_customizer_settings[header_text_color]" value="<?php echo esc_attr($settings['header_text_color']); ?>" class="snn-color-picker">
+                                <div class="snn-color-field">
+                                    <input type="text" name="snn_mail_customizer_settings[header_text_color]" value="<?php echo esc_attr($settings['header_text_color']); ?>" class="snn-color-input">
+                                    <input type="color" value="<?php echo esc_attr($settings['header_text_color']); ?>" class="snn-color-picker">
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <th><label><?php _e('Body Background', 'snn'); ?></label></th>
                             <td>
-                                <input type="text" name="snn_mail_customizer_settings[body_bg_color]" value="<?php echo esc_attr($settings['body_bg_color']); ?>" class="snn-color-picker">
+                                <div class="snn-color-field">
+                                    <input type="text" name="snn_mail_customizer_settings[body_bg_color]" value="<?php echo esc_attr($settings['body_bg_color']); ?>" class="snn-color-input">
+                                    <input type="color" value="<?php echo esc_attr($settings['body_bg_color']); ?>" class="snn-color-picker">
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <th><label><?php _e('Content Background', 'snn'); ?></label></th>
                             <td>
-                                <input type="text" name="snn_mail_customizer_settings[content_bg_color]" value="<?php echo esc_attr($settings['content_bg_color']); ?>" class="snn-color-picker">
+                                <div class="snn-color-field">
+                                    <input type="text" name="snn_mail_customizer_settings[content_bg_color]" value="<?php echo esc_attr($settings['content_bg_color']); ?>" class="snn-color-input">
+                                    <input type="color" value="<?php echo esc_attr($settings['content_bg_color']); ?>" class="snn-color-picker">
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <th><label><?php _e('Text Color', 'snn'); ?></label></th>
                             <td>
-                                <input type="text" name="snn_mail_customizer_settings[text_color]" value="<?php echo esc_attr($settings['text_color']); ?>" class="snn-color-picker">
+                                <div class="snn-color-field">
+                                    <input type="text" name="snn_mail_customizer_settings[text_color]" value="<?php echo esc_attr($settings['text_color']); ?>" class="snn-color-input">
+                                    <input type="color" value="<?php echo esc_attr($settings['text_color']); ?>" class="snn-color-picker">
+                                </div>
                             </td>
                         </tr>
                         <tr>
                             <th><label><?php _e('Link Color', 'snn'); ?></label></th>
                             <td>
-                                <input type="text" name="snn_mail_customizer_settings[link_color]" value="<?php echo esc_attr($settings['link_color']); ?>" class="snn-color-picker">
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <!-- Typography -->
-                <div class="snn-settings-section">
-                    <h2><?php _e('Typography', 'snn'); ?></h2>
-                    <table class="snn-form-table">
-                        <tr>
-                            <th><label><?php _e('Font Family', 'snn'); ?></label></th>
-                            <td>
-                                <select name="snn_mail_customizer_settings[font_family]" style="width: 300px;">
-                                    <option value="Arial, Helvetica, sans-serif" <?php selected($settings['font_family'], 'Arial, Helvetica, sans-serif'); ?>>Arial</option>
-                                    <option value="'Georgia', serif" <?php selected($settings['font_family'], "'Georgia', serif"); ?>>Georgia</option>
-                                    <option value="'Times New Roman', Times, serif" <?php selected($settings['font_family'], "'Times New Roman', Times, serif"); ?>>Times New Roman</option>
-                                    <option value="'Courier New', Courier, monospace" <?php selected($settings['font_family'], "'Courier New', Courier, monospace"); ?>>Courier New</option>
-                                    <option value="Verdana, Geneva, sans-serif" <?php selected($settings['font_family'], 'Verdana, Geneva, sans-serif'); ?>>Verdana</option>
-                                    <option value="'Trebuchet MS', sans-serif" <?php selected($settings['font_family'], "'Trebuchet MS', sans-serif"); ?>>Trebuchet MS</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Font Size', 'snn'); ?></label></th>
-                            <td>
-                                <select name="snn_mail_customizer_settings[font_size]" style="width: 150px;">
-                                    <option value="12px" <?php selected($settings['font_size'], '12px'); ?>>12px</option>
-                                    <option value="13px" <?php selected($settings['font_size'], '13px'); ?>>13px</option>
-                                    <option value="14px" <?php selected($settings['font_size'], '14px'); ?>>14px</option>
-                                    <option value="15px" <?php selected($settings['font_size'], '15px'); ?>>15px</option>
-                                    <option value="16px" <?php selected($settings['font_size'], '16px'); ?>>16px</option>
-                                    <option value="18px" <?php selected($settings['font_size'], '18px'); ?>>18px</option>
-                                </select>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <!-- Layout -->
-                <div class="snn-settings-section">
-                    <h2><?php _e('Layout', 'snn'); ?></h2>
-                    <table class="snn-form-table">
-                        <tr>
-                            <th><label><?php _e('Email Width (px)', 'snn'); ?></label></th>
-                            <td>
-                                <input type="number" name="snn_mail_customizer_settings[email_width]" value="<?php echo esc_attr($settings['email_width']); ?>" min="400" max="800">
-                                <p class="snn-description"><?php _e('Maximum width of the email container (recommended: 600px).', 'snn'); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Content Padding (px)', 'snn'); ?></label></th>
-                            <td>
-                                <input type="number" name="snn_mail_customizer_settings[content_padding]" value="<?php echo esc_attr($settings['content_padding']); ?>" min="10" max="80">
-                                <p class="snn-description"><?php _e('Inner padding for email content area.', 'snn'); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Border Radius (px)', 'snn'); ?></label></th>
-                            <td>
-                                <input type="number" name="snn_mail_customizer_settings[border_radius]" value="<?php echo esc_attr($settings['border_radius']); ?>" min="0" max="20">
-                                <p class="snn-description"><?php _e('Rounded corners for the email container.', 'snn'); ?></p>
+                                <div class="snn-color-field">
+                                    <input type="text" name="snn_mail_customizer_settings[link_color]" value="<?php echo esc_attr($settings['link_color']); ?>" class="snn-color-input">
+                                    <input type="color" value="<?php echo esc_attr($settings['link_color']); ?>" class="snn-color-picker">
+                                </div>
                             </td>
                         </tr>
                     </table>
@@ -394,8 +335,7 @@ function snn_mail_render_page() {
                     ?>
                     <div class="snn-available-tags">
                         <strong><?php _e('Available Tags:', 'snn'); ?></strong>
-                        <code>{company_name}</code>
-                        <code>{company_address}</code>
+                        <code>{site_name}</code>
                         <code>{site_url}</code>
                     </div>
                 </div>
@@ -421,42 +361,10 @@ function snn_mail_render_page() {
                     ?>
                     <div class="snn-available-tags">
                         <strong><?php _e('Available Tags:', 'snn'); ?></strong>
-                        <code>{company_name}</code>
-                        <code>{company_address}</code>
+                        <code>{site_name}</code>
                         <code>{site_url}</code>
                         <code>{current_year}</code>
                     </div>
-                </div>
-                
-                <!-- Social Links -->
-                <div class="snn-settings-section">
-                    <h2><?php _e('Social Media Links', 'snn'); ?></h2>
-                    <table class="snn-form-table">
-                        <tr>
-                            <th><label><?php _e('Facebook URL', 'snn'); ?></label></th>
-                            <td>
-                                <input type="text" name="snn_mail_customizer_settings[facebook_url]" value="<?php echo esc_attr($settings['facebook_url']); ?>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Twitter URL', 'snn'); ?></label></th>
-                            <td>
-                                <input type="text" name="snn_mail_customizer_settings[twitter_url]" value="<?php echo esc_attr($settings['twitter_url']); ?>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Instagram URL', 'snn'); ?></label></th>
-                            <td>
-                                <input type="text" name="snn_mail_customizer_settings[instagram_url]" value="<?php echo esc_attr($settings['instagram_url']); ?>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('LinkedIn URL', 'snn'); ?></label></th>
-                            <td>
-                                <input type="text" name="snn_mail_customizer_settings[linkedin_url]" value="<?php echo esc_attr($settings['linkedin_url']); ?>">
-                            </td>
-                        </tr>
-                    </table>
                 </div>
                 
             </div>
@@ -470,8 +378,7 @@ function snn_mail_render_page() {
 // Replace dynamic tags
 function snn_mail_replace_tags($content, $settings) {
     $tags = [
-        '{company_name}' => $settings['company_name'],
-        '{company_address}' => $settings['company_address'],
+        '{site_name}' => $settings['site_name'],
         '{site_url}' => home_url(),
         '{current_year}' => date('Y'),
     ];
@@ -523,44 +430,10 @@ function snn_mail_customize_template($args) {
     $header_content = snn_mail_replace_tags($settings['header_content'], $settings);
     $footer_content = snn_mail_replace_tags($settings['footer_content'], $settings);
     
-    // Build social links HTML
-    $social_html = '';
-    if (!empty($settings['facebook_url']) || !empty($settings['twitter_url']) || 
-        !empty($settings['instagram_url']) || !empty($settings['linkedin_url'])) {
-        
-        $social_html = '<div style="margin: 20px 0; text-align: center;">';
-        
-        if (!empty($settings['facebook_url'])) {
-            $social_html .= '<a href="' . esc_url($settings['facebook_url']) . '" style="display: inline-block; margin: 0 8px;">
-                <img src="https://img.icons8.com/color/48/facebook.png" alt="Facebook" style="width: 32px; height: 32px;">
-            </a>';
-        }
-        
-        if (!empty($settings['twitter_url'])) {
-            $social_html .= '<a href="' . esc_url($settings['twitter_url']) . '" style="display: inline-block; margin: 0 8px;">
-                <img src="https://img.icons8.com/color/48/twitter.png" alt="Twitter" style="width: 32px; height: 32px;">
-            </a>';
-        }
-        
-        if (!empty($settings['instagram_url'])) {
-            $social_html .= '<a href="' . esc_url($settings['instagram_url']) . '" style="display: inline-block; margin: 0 8px;">
-                <img src="https://img.icons8.com/color/48/instagram-new.png" alt="Instagram" style="width: 32px; height: 32px;">
-            </a>';
-        }
-        
-        if (!empty($settings['linkedin_url'])) {
-            $social_html .= '<a href="' . esc_url($settings['linkedin_url']) . '" style="display: inline-block; margin: 0 8px;">
-                <img src="https://img.icons8.com/color/48/linkedin.png" alt="LinkedIn" style="width: 32px; height: 32px;">
-            </a>';
-        }
-        
-        $social_html .= '</div>';
-    }
-    
     // Logo HTML
     $logo_html = '';
     if (!empty($settings['logo_url'])) {
-        $logo_html = '<img src="' . esc_url($settings['logo_url']) . '" alt="' . esc_attr($settings['company_name']) . '" style="max-width: ' . esc_attr($settings['logo_width']) . 'px; height: auto; display: block; margin: 0 auto 15px;">';
+        $logo_html = '<img src="' . esc_url($settings['logo_url']) . '" alt="' . esc_attr($settings['site_name']) . '" style="max-width: ' . esc_attr($settings['logo_width']) . 'px; height: auto; display: block; margin: 0 auto 15px;">';
     }
     
     // Build the complete email template
@@ -572,17 +445,17 @@ function snn_mail_customize_template($args) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Email</title>
     </head>
-    <body style="margin: 0; padding: 0; background-color: ' . esc_attr($settings['body_bg_color']) . '; font-family: ' . esc_attr($settings['font_family']) . '; font-size: ' . esc_attr($settings['font_size']) . ';">
+    <body style="margin: 0; padding: 0; background-color: ' . esc_attr($settings['body_bg_color']) . '; font-family: Arial, Helvetica, sans-serif; font-size: 14px;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: ' . esc_attr($settings['body_bg_color']) . ';">
             <tr>
                 <td align="center" style="padding: 30px 15px;">
                     
                     <!-- Main Container -->
-                    <table width="' . esc_attr($settings['email_width']) . '" cellpadding="0" cellspacing="0" border="0" style="max-width: ' . esc_attr($settings['email_width']) . 'px; background-color: ' . esc_attr($settings['content_bg_color']) . '; border-radius: ' . esc_attr($settings['border_radius']) . 'px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: ' . esc_attr($settings['content_bg_color']) . '; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                         
                         <!-- HEADER -->
                         <tr>
-                            <td style="background-color: ' . esc_attr($settings['header_bg_color']) . '; padding: 30px ' . esc_attr($settings['content_padding']) . 'px; text-align: center; color: ' . esc_attr($settings['header_text_color']) . ';">
+                            <td style="background-color: ' . esc_attr($settings['header_bg_color']) . '; padding: 30px 40px; text-align: center; color: ' . esc_attr($settings['header_text_color']) . ';">
                                 ' . $logo_html . '
                                 ' . $header_content . '
                             </td>
@@ -590,7 +463,7 @@ function snn_mail_customize_template($args) {
                         
                         <!-- CONTENT -->
                         <tr>
-                            <td style="padding: ' . esc_attr($settings['content_padding']) . 'px; color: ' . esc_attr($settings['text_color']) . '; line-height: 1.6;">
+                            <td style="padding: 40px; color: ' . esc_attr($settings['text_color']) . '; line-height: 1.6;">
                                 <div style="color: ' . esc_attr($settings['text_color']) . ';">
                                     ' . $original_message . '
                                 </div>
@@ -599,8 +472,7 @@ function snn_mail_customize_template($args) {
                         
                         <!-- FOOTER -->
                         <tr>
-                            <td style="background-color: #f9f9f9; padding: 30px ' . esc_attr($settings['content_padding']) . 'px; text-align: center; border-top: 1px solid #eeeeee;">
-                                ' . $social_html . '
+                            <td style="background-color: #f9f9f9; padding: 30px 40px; text-align: center; border-top: 1px solid #eeeeee;">
                                 ' . $footer_content . '
                             </td>
                         </tr>
