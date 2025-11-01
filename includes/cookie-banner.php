@@ -190,6 +190,9 @@ function snn_options_page() {
         }
         $options['snn_cookie_settings_blocked_scripts'] = $blocked_scripts;
         
+        // NEW: Iframe Blocking Text
+        $options['snn_cookie_settings_iframe_block_text'] = isset($_POST['snn_cookie_settings_iframe_block_text']) ? sanitize_text_field( wp_unslash($_POST['snn_cookie_settings_iframe_block_text']) ) : '';
+        
         $services = array();
         if ( isset($_POST['snn_cookie_settings_services']) && is_array($_POST['snn_cookie_settings_services']) ) {
             // Use array_values to reindex and remove gaps - prevents index mismatch
@@ -265,7 +268,8 @@ function snn_options_page() {
             'snn_cookie_settings_banner_width'         => '500',
             'snn_cookie_settings_banner_border_radius' => '0',
             'snn_cookie_settings_button_border_radius' => '0',
-            'snn_cookie_settings_blocked_scripts'      => array()
+            'snn_cookie_settings_blocked_scripts'      => array(),
+            'snn_cookie_settings_iframe_block_text'    => __('Please accept cookies to see the contents of this iframe.', 'snn')
         );
     }
     ?>
@@ -704,6 +708,13 @@ function snn_options_page() {
                                 }
                                 ?>
                             </div>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row"><?php _e('Iframe Blocking Text', 'snn'); ?></th>
+                        <td>
+                            <input type="text" name="snn_cookie_settings_iframe_block_text" value="<?php echo isset($options['snn_cookie_settings_iframe_block_text']) ? esc_attr($options['snn_cookie_settings_iframe_block_text']) : __('Please accept cookies to see the contents of this iframe.', 'snn'); ?>" class="regular-text">
+                            <p class="description"><?php _e('This text will be displayed inside blocked iframes until the user accepts cookies.', 'snn'); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -1290,8 +1301,45 @@ function snn_output_script_blocker() {
         // Blocked scripts list (URLs only)
         var blockedScripts = <?php echo json_encode($blocked_urls); ?>;
         
+        // Iframe blocking text
+        var iframeBlockText = <?php echo json_encode(isset($options['snn_cookie_settings_iframe_block_text']) ? $options['snn_cookie_settings_iframe_block_text'] : __('Please accept cookies to see the contents of this iframe.', 'snn')); ?>;
+        
         // Get cookie helper
         function getCookie(n){for(var e=n+"=",t=document.cookie.split(";"),i=0;i<t.length;i++){for(var o=t[i];" "==o.charAt(0);)o=o.substring(1,o.length);if(0==o.indexOf(e))return o.substring(e.length,o.length)}return null}
+        
+        // Function to add blocking text to iframe
+        function addIframeBlockingText(iframe) {
+            // Create a container div to hold the message
+            var container = document.createElement('div');
+            container.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f5f5f5; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; font-family: Arial, sans-serif; font-size: 14px; color: #666; z-index: 10; box-sizing: border-box; padding: 20px; text-align: center;';
+            container.innerHTML = iframeBlockText;
+            container.setAttribute('data-snn-iframe-blocker', 'true');
+            
+            // Make iframe container relative if it's not already positioned
+            var iframeParent = iframe.parentNode;
+            var computedStyle = window.getComputedStyle(iframeParent);
+            if (computedStyle.position === 'static') {
+                iframeParent.style.position = 'relative';
+                iframe.setAttribute('data-snn-parent-position-changed', 'true');
+            }
+            
+            // Insert the container after the iframe
+            iframe.parentNode.insertBefore(container, iframe.nextSibling);
+        }
+        
+        // Function to remove blocking text from iframe
+        function removeIframeBlockingText(iframe) {
+            var container = iframe.parentNode.querySelector('[data-snn-iframe-blocker="true"]');
+            if (container) {
+                container.remove();
+            }
+            
+            // Restore parent position if we changed it
+            if (iframe.getAttribute('data-snn-parent-position-changed')) {
+                iframe.parentNode.style.position = '';
+                iframe.removeAttribute('data-snn-parent-position-changed');
+            }
+        }
         
         // Check if we should block scripts based on consent
         function shouldBlockByConsent() {
@@ -1446,6 +1494,8 @@ function snn_output_script_blocker() {
                             iframe.setAttribute('data-snn-blocked-src', iframe.src);
                             iframe.removeAttribute('src');
                             iframe.setAttribute('data-snn-blocked', 'true');
+                            // Add blocking text
+                            addIframeBlockingText(iframe);
                         }
                     });
                 });
@@ -1464,6 +1514,8 @@ function snn_output_script_blocker() {
                         node.setAttribute('data-snn-blocked-src', node.src);
                         node.removeAttribute('src');
                         node.setAttribute('data-snn-blocked', 'true');
+                        // Add blocking text
+                        addIframeBlockingText(node);
                     }
                 });
             });
@@ -1478,6 +1530,8 @@ function snn_output_script_blocker() {
         window.snnScriptObserver = observer;
         window.snnBlockedScripts = blockedScripts;
         window.snnIsBlocked = isBlocked;
+        window.snnAddIframeBlockingText = addIframeBlockingText;
+        window.snnRemoveIframeBlockingText = removeIframeBlockingText;
     })();
     </script>
     <?php
@@ -1626,6 +1680,10 @@ function snn_output_banner_js() {
                         iframe.setAttribute('data-snn-blocked-src', iframe.src);
                         iframe.removeAttribute('src');
                         iframe.setAttribute('data-snn-blocked', 'true');
+                        // Add blocking text using the global function
+                        if(window.snnAddIframeBlockingText){
+                            window.snnAddIframeBlockingText(iframe);
+                        }
                     }
                 }
             });
@@ -1646,6 +1704,10 @@ function snn_output_banner_js() {
                             node.setAttribute('data-snn-blocked-src', node.src);
                             node.removeAttribute('src');
                             node.setAttribute('data-snn-blocked', 'true');
+                            // Add blocking text using the global function
+                            if(window.snnAddIframeBlockingText){
+                                window.snnAddIframeBlockingText(node);
+                            }
                         }
                     });
                 });
@@ -1689,6 +1751,10 @@ function snn_output_banner_js() {
                             iframe.src = src;
                             iframe.removeAttribute('data-snn-blocked');
                             iframe.removeAttribute('data-snn-blocked-src');
+                            // Remove blocking text
+                            if(window.snnRemoveIframeBlockingText){
+                                window.snnRemoveIframeBlockingText(iframe);
+                            }
                         }
                         // If not allowed, keep it blocked (do nothing)
                     }
@@ -1720,6 +1786,10 @@ function snn_output_banner_js() {
                         iframe.src = src;
                         iframe.removeAttribute('data-snn-blocked');
                         iframe.removeAttribute('data-snn-blocked-src');
+                        // Remove blocking text
+                        if(window.snnRemoveIframeBlockingText){
+                            window.snnRemoveIframeBlockingText(iframe);
+                        }
                     }
                 });
                 
