@@ -1359,10 +1359,46 @@ function snn_output_script_blocker() {
                 normalizedUrl = 'https:' + url;
             }
             
+            // Decode HTML entities for comparison
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = normalizedUrl;
+            var decodedUrl = tempDiv.textContent || tempDiv.innerText || normalizedUrl;
+            
+            // Extract domain and path for fallback matching
+            function extractDomainPath(urlStr) {
+                try {
+                    var tempUrl = new URL(urlStr);
+                    return tempUrl.hostname + tempUrl.pathname;
+                } catch (e) {
+                    // Fallback for older browsers or malformed URLs
+                    var match = urlStr.match(/^https?:\/\/([^\/\?]+)([^\?]*)/);
+                    return match ? match[1] + match[2] : urlStr;
+                }
+            }
+            
+            var normalizedDomainPath = extractDomainPath(normalizedUrl);
+            var decodedDomainPath = extractDomainPath(decodedUrl);
+            
             // Check if this URL is in blocked scripts list
             var isInBlockedList = false;
             for (var i = 0; i < blockedScripts.length; i++) {
-                if (normalizedUrl.indexOf(blockedScripts[i]) !== -1 || blockedScripts[i].indexOf(normalizedUrl) !== -1) {
+                var blockedScript = blockedScripts[i];
+                var blockedDomainPath = extractDomainPath(blockedScript);
+                
+                // First try exact URL matching (with both encoded/decoded versions)
+                if (normalizedUrl.indexOf(blockedScript) !== -1 || 
+                    blockedScript.indexOf(normalizedUrl) !== -1 ||
+                    decodedUrl.indexOf(blockedScript) !== -1 || 
+                    blockedScript.indexOf(decodedUrl) !== -1) {
+                    isInBlockedList = true;
+                    break;
+                }
+                
+                // Fallback: Domain + path matching (without query parameters)
+                if (normalizedDomainPath === blockedDomainPath || 
+                    decodedDomainPath === blockedDomainPath ||
+                    normalizedDomainPath.indexOf(blockedDomainPath) !== -1 ||
+                    decodedDomainPath.indexOf(blockedDomainPath) !== -1) {
                     isInBlockedList = true;
                     break;
                 }
@@ -1697,10 +1733,46 @@ function snn_output_banner_js() {
         function shouldUnblockScript(url, customConsent){
             if(!url || !window.snnBlockedScripts) return true;
             
+            // Decode HTML entities for comparison
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = url;
+            var decodedUrl = tempDiv.textContent || tempDiv.innerText || url;
+            
+            // Extract domain and path for fallback matching
+            function extractDomainPath(urlStr) {
+                try {
+                    var tempUrl = new URL(urlStr);
+                    return tempUrl.hostname + tempUrl.pathname;
+                } catch (e) {
+                    // Fallback for older browsers or malformed URLs
+                    var match = urlStr.match(/^https?:\/\/([^\/\?]+)([^\?]*)/);
+                    return match ? match[1] + match[2] : urlStr;
+                }
+            }
+            
+            var urlDomainPath = extractDomainPath(url);
+            var decodedDomainPath = extractDomainPath(decodedUrl);
+            
             // Find the blocked script index for this URL
             var blockedIndex = -1;
             for(var i = 0; i < window.snnBlockedScripts.length; i++){
-                if(url.indexOf(window.snnBlockedScripts[i]) !== -1 || window.snnBlockedScripts[i].indexOf(url) !== -1){
+                var blockedScript = window.snnBlockedScripts[i];
+                var blockedDomainPath = extractDomainPath(blockedScript);
+                
+                // First try exact URL matching (with both encoded/decoded versions)
+                if(url.indexOf(blockedScript) !== -1 || 
+                   blockedScript.indexOf(url) !== -1 ||
+                   decodedUrl.indexOf(blockedScript) !== -1 || 
+                   blockedScript.indexOf(decodedUrl) !== -1){
+                    blockedIndex = i;
+                    break;
+                }
+                
+                // Fallback: Domain + path matching (without query parameters)
+                if (urlDomainPath === blockedDomainPath || 
+                    decodedDomainPath === blockedDomainPath ||
+                    urlDomainPath.indexOf(blockedDomainPath) !== -1 ||
+                    decodedDomainPath.indexOf(blockedDomainPath) !== -1) {
                     blockedIndex = i;
                     break;
                 }
