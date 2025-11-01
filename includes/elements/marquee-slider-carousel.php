@@ -14,28 +14,28 @@ class Snn_Marquee_Slider_Carousel extends Element {
     public $nestable      = false;
 
     public function get_label() {
-        return esc_html__( 'Marquee Slider Carousel', 'bricks' );
+        return esc_html__( 'Marquee Slider Carousel', 'snn' );
     }
 
     public function set_controls() {
         // --- Repeater for Marquee Items ---
         $this->controls['items'] = [
             'tab'           => 'content',
-            'label'         => esc_html__( 'Marquee Items', 'bricks' ),
+            'label'         => esc_html__( 'Marquee Items', 'snn' ),
             'type'          => 'repeater',
             'titleProperty' => 'text', // Use the 'text' field for the repeater item title
-            'placeholder'   => esc_html__( 'Marquee Item', 'bricks' ),
+            'placeholder'   => esc_html__( 'Marquee Item', 'snn' ),
             'fields'        => [
                 'image' => [
-                    'label' => esc_html__( 'Image', 'bricks' ),
+                    'label' => esc_html__( 'Image', 'snn' ),
                     'type'  => 'image',
                 ],
                 'text' => [
-                    'label' => esc_html__( 'Text', 'bricks' ),
+                    'label' => esc_html__( 'Text', 'snn' ),
                     'type'  => 'text',
                 ],
                  'link' => [
-                    'label' => esc_html__( 'Link (Optional)', 'bricks' ),
+                    'label' => esc_html__( 'Link (Optional)', 'snn' ),
                     'type'  => 'link',
                 ],
             ],
@@ -44,13 +44,13 @@ class Snn_Marquee_Slider_Carousel extends Element {
         // --- Marquee Settings ---
         $this->controls['direction'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Direction', 'bricks' ),
+            'label'   => esc_html__( 'Direction', 'snn' ),
             'type'    => 'select',
             'options' => [
-                'left'  => esc_html__( 'Left', 'bricks' ),
-                'right' => esc_html__( 'Right', 'bricks' ),
-                'up'    => esc_html__( 'Up', 'bricks' ),
-                'down'  => esc_html__( 'Down', 'bricks' ),
+                'left'  => esc_html__( 'Left', 'snn' ),
+                'right' => esc_html__( 'Right', 'snn' ),
+                'up'    => esc_html__( 'Up', 'snn' ),
+                'down'  => esc_html__( 'Down', 'snn' ),
             ],
             'default' => 'left',
             'inline'  => true,
@@ -58,7 +58,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
 
         $this->controls['duration'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Duration (Speed)', 'bricks' ),
+            'label'   => esc_html__( 'Duration (Speed)', 'snn' ),
             'type'    => 'number',
             'unit'    => 's',
             'default' => 30,
@@ -67,7 +67,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
 
         $this->controls['gap'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Gap', 'bricks' ),
+            'label'   => esc_html__( 'Gap', 'snn' ),
             'type'    => 'number',
             'units'   => ['px', 'rem', 'em', '%'],
             'default' => '20px',
@@ -76,7 +76,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
 
         $this->controls['pauseOnHover'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Pause on Hover', 'bricks' ),
+            'label'   => esc_html__( 'Pause on Hover', 'snn' ),
             'type'    => 'checkbox',
             'default' => false,
             'inline'  => true,
@@ -84,7 +84,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
         
         $this->controls['enableFade'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Enable Edge Fade', 'bricks' ),
+            'label'   => esc_html__( 'Enable Edge Fade', 'snn' ),
             'type'    => 'checkbox',
             'default' => false,
             'inline'  => true,
@@ -93,7 +93,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
         // --- Item Style Settings ---
         $this->controls['itemWidth'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Item Max Width', 'bricks' ),
+            'label'   => esc_html__( 'Item Max Width', 'snn' ),
             'type'    => 'number',
             'units'   => ['px', 'rem', 'em', '%'],
             'default' => '',
@@ -108,7 +108,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
 
         $this->controls['imageHeight'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Image Height', 'bricks' ),
+            'label'   => esc_html__( 'Image Height', 'snn' ),
             'type'    => 'number',
             'units'   => ['px', 'rem', 'em'],
             'default' => '50px',
@@ -122,12 +122,12 @@ class Snn_Marquee_Slider_Carousel extends Element {
 
         $this->controls['imageEffect'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Image Effect on Hover', 'bricks' ),
+            'label'   => esc_html__( 'Image Effect on Hover', 'snn' ),
             'type'    => 'select',
             'options' => [
-                'none'      => esc_html__( 'None', 'bricks' ),
-                'grayscale' => esc_html__( 'Grayscale to Color', 'bricks' ),
-                'opacity'   => esc_html__( 'Fade In', 'bricks' ),
+                'none'      => esc_html__( 'None', 'snn' ),
+                'grayscale' => esc_html__( 'Grayscale to Color', 'snn' ),
+                'opacity'   => esc_html__( 'Fade In', 'snn' ),
             ],
             'default' => 'none',
             'inline'  => true,
@@ -135,7 +135,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
 
         $this->controls['textTypography'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Text Typography', 'bricks' ),
+            'label' => esc_html__( 'Text Typography', 'snn' ),
             'type'  => 'typography',
             'css'   => [
                 [

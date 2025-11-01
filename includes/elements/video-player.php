@@ -14,13 +14,13 @@ class SNN_Video_Player_Element extends Element {
     public $nestable     = false;
 
     public function get_label() {
-        return esc_html__( 'Video Player', 'bricks' );
+        return esc_html__( 'Video Player', 'snn' );
     }
 
     public function set_controls() {
         $this->controls['video_file'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Video File (Media Library)', 'bricks' ),
+            'label' => esc_html__( 'Video File (Media Library)', 'snn' ),
             'type'  => 'video',
             'default' => [
                 'url' => 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
@@ -29,49 +29,49 @@ class SNN_Video_Player_Element extends Element {
 
         $this->controls['video_url_manual'] = [
             'tab'           => 'content',
-            'label'         => esc_html__( 'Video URL (Manual)', 'bricks' ),
+            'label'         => esc_html__( 'Video URL (Manual)', 'snn' ),
             'type'          => 'text',
             'placeholder' => 'e.g., https://example.com/your-video.mp4',
-            'description' => esc_html__( 'Enter a direct URL to your video file. This will override the Media Library selection.', 'bricks' ),
+            'description' => esc_html__( 'Enter a direct URL to your video file. This will override the Media Library selection.', 'snn' ),
         ];
 
         $this->controls['poster_image'] = [
             'tab' => 'content',
-            'label' => esc_html__( 'Poster Image', 'bricks' ),
+            'label' => esc_html__( 'Poster Image', 'snn' ),
             'type'  => 'image',
         ];
 
         $this->controls['autoplay'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Autoplay', 'bricks' ),
+            'label' => esc_html__( 'Autoplay', 'snn' ),
             'type'  => 'checkbox',
             'default' => false,
         ];
 
         $this->controls['muted'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Muted', 'bricks' ),
+            'label' => esc_html__( 'Muted', 'snn' ),
             'type'  => 'checkbox',
             'default' => false,
         ];
 
         $this->controls['loop'] = [
             'tab' => 'content',
-            'label' => esc_html__( 'Loop', 'bricks' ),
+            'label' => esc_html__( 'Loop', 'snn' ),
             'type' => 'checkbox',
             'default' => false,
         ];
 
         $this->controls['disable_autohide'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Disable Auto Hide Controls', 'bricks' ),
+            'label' => esc_html__( 'Disable Auto Hide Controls', 'snn' ),
             'type'  => 'checkbox',
             'default' => false,
         ];
 
         $this->controls['chapters'] = [
             'tab'           => 'content',
-            'label'         => esc_html__( 'Video Chapters', 'bricks' ),
+            'label'         => esc_html__( 'Video Chapters', 'snn' ),
             'type'          => 'repeater',
             'titleProperty' => 'title',
             'default'       => [
@@ -80,14 +80,14 @@ class SNN_Video_Player_Element extends Element {
                 ['title' => 'Chapter 2', 'time'  => '04:00'],
             ],
             'fields'        => [
-                'title' => ['label' => esc_html__( 'Chapter Title', 'bricks' ), 'type'  => 'text'],
-                'time'  => ['label' => esc_html__( 'Start Time (e.g., 0:00, 1:45)', 'bricks' ), 'type' => 'text', 'placeholder' => 'm:ss'],
+                'title' => ['label' => esc_html__( 'Chapter Title', 'snn' ), 'type'  => 'text'],
+                'time'  => ['label' => esc_html__( 'Start Time (e.g., 0:00, 1:45)', 'snn' ), 'type' => 'text', 'placeholder' => 'm:ss'],
             ],
         ];
 
         $this->controls['player_height'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Player Height', 'bricks' ),
+            'label' => esc_html__( 'Player Height', 'snn' ),
             'type'  => 'number',
             'units' => ['px', 'vh'],
             'default' => '400px',
@@ -95,7 +95,7 @@ class SNN_Video_Player_Element extends Element {
 
         $this->controls['player_max_width'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Player Max Width', 'bricks' ),
+            'label' => esc_html__( 'Player Max Width', 'snn' ),
             'type'  => 'number',
             'units' => ['px', '%'],
             'default' => '100%',
@@ -103,48 +103,48 @@ class SNN_Video_Player_Element extends Element {
 
         $this->controls['primary_accent_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Primary Accent', 'bricks' ),
+            'label' => esc_html__( 'Primary Accent', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(0, 0, 0, 1)',
         ];
 
         $this->controls['text_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Text & Icons Color', 'bricks' ),
+            'label' => esc_html__( 'Text & Icons Color', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 1)',
         ];
 
         $this->controls['slider_track_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Slider Track', 'bricks' ),
+            'label' => esc_html__( 'Slider Track', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 0.3)',
         ];
 
         $this->controls['chapter_dot_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Chapter Dot', 'bricks' ),
+            'label' => esc_html__( 'Chapter Dot', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 1)',
         ];
 
         $this->controls['button_hover_background'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Button Hover BG', 'bricks' ),
+            'label' => esc_html__( 'Button Hover BG', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 0.2)',
         ];
 
         $this->controls['button_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Button Color', 'bricks' ),
+            'label' => esc_html__( 'Button Color', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 1)',
         ];
             $this->controls['tooltip_text_color'] = [
                 'tab'   => 'content',
-                'label' => esc_html__( 'Tooltip Text Color', 'bricks' ),
+                'label' => esc_html__( 'Tooltip Text Color', 'snn' ),
                 'type'  => 'color',
                 'default' => 'rgba(255, 255, 255, 1)',
             ];

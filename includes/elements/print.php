@@ -22,7 +22,7 @@ class Snn_Print_Page_Pdf extends Element {
             'type'        => 'text',
             'default'     => '',
             'placeholder' => '#brxe-xxxx',
-            'description' => esc_html__( 'If you want to print only a specific section, enter a CSS selector (#brxe-xxxx). Leave blank to print the full page.', 'bricks' ),
+            'description' => esc_html__( 'If you want to print only a specific section, enter a CSS selector (#brxe-xxxx). Leave blank to print the full page.', 'snn' ),
         ];
         $this->controls['button_selector'] = [
             'tab'         => 'content',

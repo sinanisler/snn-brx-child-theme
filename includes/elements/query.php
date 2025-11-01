@@ -13,26 +13,26 @@ class SNN_Query_Nestable extends Element {
     public $nestable     = true;
 
     public function get_label() {
-        return esc_html__( 'Query (Nestable)', 'bricks' );
+        return esc_html__( 'Query (Nestable)', 'snn' );
     }
 
     public function set_controls() {
 
         $this->controls['no_wrapper'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'No Wrapper', 'bricks' ),
+            'label'   => esc_html__( 'No Wrapper', 'snn' ),
             'type'    => 'checkbox',
             'default' => false,
         ];
 
         $this->controls['query_args'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Query', 'bricks' ),
+            'label'   => esc_html__( 'Query', 'snn' ),
             'type'    => 'query',
             'default' => [
                 'post_type' => 'post',
             ],
-            'description' => esc_html__( 'Choose what to loop. Any nested elements will be repeated for each post.', 'bricks' ),
+            'description' => esc_html__( 'Choose what to loop. Any nested elements will be repeated for each post.', 'snn' ),
         ];
         
     }
@@ -65,7 +65,7 @@ class SNN_Query_Nestable extends Element {
                 $this->set_attribute( '_root', 'id', $wrapper_id );
                 echo '<div ' . $this->render_attributes('_root') . '>';
             }
-            esc_html_e( 'No posts matched your criteria.', 'bricks' );
+            esc_html_e( 'No posts matched your criteria.', 'snn' );
             if ( ! $no_wrapper ) {
                 echo '</div>';
             }

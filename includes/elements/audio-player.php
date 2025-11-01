@@ -14,61 +14,61 @@ class SNN_Audio_Player_Element extends Element {
     public $nestable     = false;
 
     public function get_label() {
-        return esc_html__( 'Audio Player', 'bricks' );
+        return esc_html__( 'Audio Player', 'snn' );
     }
 
     public function set_controls() {
         $this->controls['audio_file'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Audio File (Media Library)', 'bricks' ),
+            'label' => esc_html__( 'Audio File (Media Library)', 'snn' ),
             'type'  => 'audio', // Allows selecting audio from the media library
         ];
 
         $this->controls['audio_url_manual'] = [
             'tab'         => 'content',
-            'label'       => esc_html__( 'Audio URL (Manual)', 'bricks' ),
+            'label'       => esc_html__( 'Audio URL (Manual)', 'snn' ),
             'type'        => 'text',
             'placeholder' => 'e.g., https://example.com/your-audio.mp3',
-            'description' => esc_html__( 'Enter a direct URL to your audio file. This will override the Media Library selection.', 'bricks' ),
+            'description' => esc_html__( 'Enter a direct URL to your audio file. This will override the Media Library selection.', 'snn' ),
         ];
         
         $this->controls['cover_image'] = [
             'tab' => 'content',
-            'label' => esc_html__( 'Cover Image', 'bricks' ),
+            'label' => esc_html__( 'Cover Image', 'snn' ),
             'type'  => 'image',
         ];
 
         $this->controls['autoplay'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Autoplay', 'bricks' ),
+            'label' => esc_html__( 'Autoplay', 'snn' ),
             'type'  => 'checkbox',
             'default' => false,
         ];
 
         $this->controls['muted'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Muted', 'bricks' ),
+            'label' => esc_html__( 'Muted', 'snn' ),
             'type'  => 'checkbox',
             'default' => false,
         ];
 
         $this->controls['chapters'] = [
             'tab'           => 'content',
-            'label'         => esc_html__( 'Audio Chapters', 'bricks' ),
+            'label'         => esc_html__( 'Audio Chapters', 'snn' ),
             'type'          => 'repeater',
             'titleProperty' => 'title',
             'default'       => [
                 ['title' => 'Be Brave', 'time'  => '0:05'],
             ],
             'fields'        => [
-                'title' => ['label' => esc_html__( 'Title', 'bricks' ), 'type'  => 'text'],
-                'time'  => ['label' => esc_html__( 'Time (e.g., 1:45)', 'bricks' ), 'type' => 'text', 'placeholder' => 'm:ss'],
+                'title' => ['label' => esc_html__( 'Title', 'snn' ), 'type'  => 'text'],
+                'time'  => ['label' => esc_html__( 'Time (e.g., 1:45)', 'snn' ), 'type' => 'text', 'placeholder' => 'm:ss'],
             ],
         ];
 
         $this->controls['player_height'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Player Height', 'bricks' ),
+            'label' => esc_html__( 'Player Height', 'snn' ),
             'type'  => 'number',
             'units' => ['px'],
             'default' => '200px',
@@ -76,7 +76,7 @@ class SNN_Audio_Player_Element extends Element {
 
         $this->controls['player_max_width'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Player Max Width', 'bricks' ),
+            'label' => esc_html__( 'Player Max Width', 'snn' ),
             'type'  => 'number',
             'units' => ['px', '%'],
             'default' => '100%',
@@ -85,21 +85,21 @@ class SNN_Audio_Player_Element extends Element {
         // Color controls
         $this->controls['player_background_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Player Background', 'bricks' ),
+            'label' => esc_html__( 'Player Background', 'snn' ),
             'type'  => 'color',
             'default' => '#111827', // Default dark background
         ];
 
         $this->controls['primary_accent_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Primary Accent', 'bricks' ),
+            'label' => esc_html__( 'Primary Accent', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(239, 68, 68, 1)', // Raw RGBA default (red-500)
         ];
 
         $this->controls['text_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Text & Icons Color', 'bricks' ),
+            'label' => esc_html__( 'Text & Icons Color', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 1)', // Raw RGBA default
         ];
@@ -107,28 +107,28 @@ class SNN_Audio_Player_Element extends Element {
         // New control for button background color
         $this->controls['button_background_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Button Background', 'bricks' ),
+            'label' => esc_html__( 'Button Background', 'snn' ),
             'type'  => 'color',
             'default' => 'transparent', // Default to transparent
         ];
 
         $this->controls['slider_track_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Slider Track', 'bricks' ),
+            'label' => esc_html__( 'Slider Track', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 0.3)',
         ];
 
         $this->controls['chapter_dot_color'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Chapter Dot', 'bricks' ),
+            'label' => esc_html__( 'Chapter Dot', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 1)',
         ];
 
         $this->controls['button_hover_background'] = [
             'tab'   => 'content',
-            'label' => esc_html__( 'Button Hover BG', 'bricks' ),
+            'label' => esc_html__( 'Button Hover BG', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 0.2)',
         ];
