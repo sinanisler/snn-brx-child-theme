@@ -30,6 +30,7 @@ require_once SNN_PATH . 'includes/search-loggins.php';
 require_once SNN_PATH . 'includes/301-redirect.php';
 require_once SNN_PATH . 'includes/smtp-settings.php';
 require_once SNN_PATH . 'includes/mail-logging.php';
+require_once SNN_PATH . 'includes/mail-customizer.php';
 require_once SNN_PATH . 'includes/media-settings.php';
 require_once SNN_PATH . 'includes/disable-emojis.php';
 require_once SNN_PATH . 'includes/disable-gravatar.php';
