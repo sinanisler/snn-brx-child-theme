@@ -22,107 +22,23 @@ add_action('admin_menu', 'snn_seo_add_submenu_page');
  * Register SEO settings
  */
 function snn_seo_register_settings() {
-    // Sanitization callback for arrays
-    $sanitize_array = function($input) {
-        return is_array($input) ? $input : [];
-    };
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_enabled', [
-        'type' => 'boolean',
-        'default' => false,
-        'sanitize_callback' => 'rest_sanitize_boolean'
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_post_types_enabled', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_taxonomies_enabled', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_authors_enabled', [
-        'type' => 'boolean',
-        'default' => true,
-        'sanitize_callback' => 'rest_sanitize_boolean'
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_post_type_titles', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_post_type_descriptions', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_archive_titles', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_archive_descriptions', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_taxonomy_titles', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_taxonomy_descriptions', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_author_title', [
-        'type' => 'string',
-        'default' => '{author_name} - {site_title}',
-        'sanitize_callback' => 'sanitize_text_field'
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_author_description', [
-        'type' => 'string',
-        'default' => 'Author archive for {author_name}',
-        'sanitize_callback' => 'sanitize_textarea_field'
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_enabled', [
-        'type' => 'boolean',
-        'default' => true,
-        'sanitize_callback' => 'rest_sanitize_boolean'
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_post_types', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_taxonomies', [
-        'type' => 'array',
-        'default' => [],
-        'sanitize_callback' => $sanitize_array
-    ]);
-    
-    register_setting('snn_seo_settings_group', 'snn_seo_opengraph_enabled', [
-        'type' => 'boolean',
-        'default' => true,
-        'sanitize_callback' => 'rest_sanitize_boolean'
-    ]);
-    
+    $sanitize_array = function($input) { return is_array($input) ? $input : []; };
+    register_setting('snn_seo_settings_group', 'snn_seo_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_post_types_enabled', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_taxonomies_enabled', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_authors_enabled', ['type' => 'boolean', 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_post_type_titles', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_post_type_descriptions', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_archive_titles', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_archive_descriptions', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_taxonomy_titles', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_taxonomy_descriptions', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_author_title', ['type' => 'string', 'default' => '{author_name} - {site_title}', 'sanitize_callback' => 'sanitize_text_field']);
+    register_setting('snn_seo_settings_group', 'snn_seo_author_description', ['type' => 'string', 'default' => 'Author archive for {author_name}', 'sanitize_callback' => 'sanitize_textarea_field']);
+    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_enabled', ['type' => 'boolean', 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_post_types', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_taxonomies', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_opengraph_enabled', ['type' => 'boolean', 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean']);
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_titles');
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_descriptions');
 }
