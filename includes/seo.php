@@ -910,7 +910,7 @@ function snn_seo_meta_box_callback($post) {
                style="width: 100%;"
                placeholder="<?php _e('Leave empty to use template', 'snn'); ?>">
         <p class="description">
-            <?php _e('Recommended length: 50-60 characters', 'snn'); ?> 
+            <?php _e('Recommended max length: 60 characters', 'snn'); ?> 
             (<span id="snn-title-count">0</span> <?php _e('characters', 'snn'); ?>)
         </p>
     </div>
@@ -925,7 +925,7 @@ function snn_seo_meta_box_callback($post) {
             echo esc_textarea($description); 
         ?></textarea>
         <p class="description">
-            <?php _e('Recommended length: 150-160 characters', 'snn'); ?> 
+            <?php _e('Recommended max length: 155 characters', 'snn'); ?> 
             (<span id="snn-desc-count">0</span> <?php _e('characters', 'snn'); ?>)
         </p>
     </div>
@@ -993,6 +993,64 @@ function snn_seo_save_meta_box($post_id) {
 add_action('save_post', 'snn_seo_save_meta_box', 10, 1);
 
 /**
+ * Get meta title for a post (for column preview)
+ */
+function snn_seo_get_meta_title($post_id) {
+    $post = get_post($post_id);
+    if (!$post) {
+        return '';
+    }
+    
+    $post_type = get_post_type($post);
+    $context = ['post_id' => $post->ID];
+    
+    // Check for custom meta first
+    $custom_title = get_post_meta($post->ID, '_snn_seo_title', true);
+    
+    if (!empty($custom_title)) {
+        return snn_seo_replace_tags($custom_title, $context);
+    }
+    
+    // Use template
+    $post_type_titles = get_option('snn_seo_post_type_titles', []);
+    $post_type_titles = is_array($post_type_titles) ? $post_type_titles : [];
+    $template = isset($post_type_titles[$post_type]) && !empty($post_type_titles[$post_type]) 
+        ? $post_type_titles[$post_type] 
+        : '{post_title} - {site_title}';
+    
+    return snn_seo_replace_tags($template, $context);
+}
+
+/**
+ * Get meta description for a post (for column preview)
+ */
+function snn_seo_get_meta_description($post_id) {
+    $post = get_post($post_id);
+    if (!$post) {
+        return '';
+    }
+    
+    $post_type = get_post_type($post);
+    $context = ['post_id' => $post->ID];
+    
+    // Check for custom meta first
+    $custom_desc = get_post_meta($post->ID, '_snn_seo_description', true);
+    
+    if (!empty($custom_desc)) {
+        return snn_seo_replace_tags($custom_desc, $context);
+    }
+    
+    // Use template
+    $post_type_descriptions = get_option('snn_seo_post_type_descriptions', []);
+    $post_type_descriptions = is_array($post_type_descriptions) ? $post_type_descriptions : [];
+    $template = isset($post_type_descriptions[$post_type]) && !empty($post_type_descriptions[$post_type]) 
+        ? $post_type_descriptions[$post_type] 
+        : '{post_excerpt}';
+    
+    return snn_seo_replace_tags($template, $context);
+}
+
+/**
  * Add SEO columns to post list
  */
 function snn_seo_add_columns($columns) {
@@ -1000,25 +1058,52 @@ function snn_seo_add_columns($columns) {
         return $columns;
     }
     
-    $new_columns = [];
-    foreach ($columns as $key => $value) {
-        $new_columns[$key] = $value;
-        if ($key === 'title') {
-            $new_columns['snn_seo_status'] = __('SEO', 'snn');
-        }
-    }
-    return $new_columns;
+    // Add SEO columns at the end
+    $columns['snn_seo_meta_title'] = __('Meta Title', 'snn');
+    $columns['snn_seo_meta_desc'] = __('Meta Description', 'snn');
+    
+    return $columns;
 }
 
 function snn_seo_column_content($column, $post_id) {
-    if ($column === 'snn_seo_status') {
-        $title = get_post_meta($post_id, '_snn_seo_title', true);
-        $description = get_post_meta($post_id, '_snn_seo_description', true);
+    if ($column === 'snn_seo_meta_title') {
+        $custom_title = get_post_meta($post_id, '_snn_seo_title', true);
         
-        if ($title || $description) {
-            echo '<span style="color: #00a32a; font-weight: 600;">✓ Custom</span>';
+        if ($custom_title) {
+            $title_length = mb_strlen($custom_title);
+            $color = $title_length > 60 ? '#dc3232' : ($title_length < 30 ? '#dba617' : '#00a32a');
+            echo '<div style="font-size: 12px;">';
+            echo '<strong style="color: ' . esc_attr($color) . ';">' . esc_html($custom_title) . '</strong>';
+            echo '<br><span style="color: #666; font-size: 11px;">' . sprintf(__('%d characters', 'snn'), $title_length) . '</span>';
+            echo '</div>';
         } else {
-            echo '<span style="color: #999;">Template</span>';
+            // Get template title
+            $post = get_post($post_id);
+            $template_title = snn_seo_get_meta_title($post_id);
+            echo '<div style="font-size: 12px; color: #999;">';
+            echo '<em>' . esc_html($template_title) . '</em>';
+            echo '</div>';
+        }
+    }
+    
+    if ($column === 'snn_seo_meta_desc') {
+        $custom_desc = get_post_meta($post_id, '_snn_seo_description', true);
+        
+        if ($custom_desc) {
+            $desc_length = mb_strlen($custom_desc);
+            $color = $desc_length > 160 ? '#dc3232' : ($desc_length < 120 ? '#dba617' : '#00a32a');
+            $preview = mb_strlen($custom_desc) > 100 ? mb_substr($custom_desc, 0, 100) . '...' : $custom_desc;
+            echo '<div style="font-size: 12px;">';
+            echo '<span style="color: ' . esc_attr($color) . ';">' . esc_html($preview) . '</span>';
+            echo '<br><span style="color: #666; font-size: 11px;">' . sprintf(__('%d characters', 'snn'), $desc_length) . '</span>';
+            echo '</div>';
+        } else {
+            // Get template description
+            $template_desc = snn_seo_get_meta_description($post_id);
+            $preview = mb_strlen($template_desc) > 100 ? mb_substr($template_desc, 0, 100) . '...' : $template_desc;
+            echo '<div style="font-size: 12px; color: #999;">';
+            echo '<em>' . esc_html($preview) . '</em>';
+            echo '</div>';
         }
     }
 }
