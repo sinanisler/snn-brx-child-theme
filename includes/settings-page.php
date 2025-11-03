@@ -28,7 +28,6 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-settings',               'label' => $dynamic_title.' '.__('Settings', 'snn'),      'dashicon' => 'dashicons-admin-home'),
                 array('slug' => 'editor-settings',            'label' => __('Editor Settings', 'snn'),                  'dashicon' => 'dashicons-edit'),
                 array('slug' => 'snn-security',               'label' => __('Security Settings', 'snn'),                'dashicon' => 'dashicons-shield'),
-                array('slug' => 'snn-seo-settings',           'label' => __('SEO Settings', 'snn'),                     'dashicon' => 'dashicons-editor-textcolor'),
                 array('slug' => 'snn-custom-post-types',      'label' => __('Post Types', 'snn'),                       'dashicon' => 'dashicons-admin-post'),
                 array('slug' => 'snn-custom-fields',          'label' => __('Custom Fields', 'snn'),                    'dashicon' => 'dashicons-admin-page'),
                 array('slug' => 'snn-taxonomies',             'label' => __('Taxonomies', 'snn'),                       'dashicon' => 'dashicons-category'),
@@ -46,6 +45,7 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-media-settings',         'label' => __('Media Settings', 'snn'),                   'dashicon' => 'dashicons-format-image'),
                 array('slug' => 'snn-activity-log',           'label' => __('Activity Logs', 'snn'),                    'dashicon' => 'dashicons-text'),
                 array('slug' => 'snn-custom-codes-snippets',  'label' => __('Code Snippets', 'snn'),                    'dashicon' => 'dashicons-editor-code'),
+                array('slug' => 'snn-seo-settings',           'label' => __('SEO Settings', 'snn'),                     'dashicon' => 'dashicons-editor-textcolor'),
             );
             
             foreach ($menu_items as $item) {
@@ -95,7 +95,7 @@ function snn_settings_page_callback() {
         .snn-dashboard-buttons {
             max-width:1000px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 10px;
             margin-bottom: 40px;
         }
