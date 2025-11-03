@@ -565,118 +565,24 @@ function snn_seo_settings_page_callback() {
 
     <style>
         .wrap h2 { margin-top: 10px; }
-        .wrap code { 
-            background: #f0f0f1; 
-            padding: 2px 6px; 
-            border-radius: 3px; 
-            font-size: 13px;
-            display: inline-block;
-            margin: 2px 0;
-        }
-        
-        .snn-seo-section {
-            background: #fff;
-            padding: 10px;
-            max-width: 900px;
-        }
-        
-        .snn-tags-hint {
-            font-size: 12px;
-            color: #666;
-            margin: 5px 0;
-            line-height: 1.6;
-        }
-        
-        .snn-tags-hint code {
-            font-size: 11px;
-            padding: 1px 4px;
-        }
-        
-        /* Accordion Styles */
-        .snn-accordion-header {
-            transition: background-color 0.2s;
-        }
-        
-        .snn-accordion-header:hover {
-            background: #f0f0f0 !important;
-        }
-        
-        .snn-accordion-icon {
-            transition: transform 0.3s;
-            font-size: 12px;
-        }
-        
-        .snn-accordion-item.active .snn-accordion-icon {
-            transform: rotate(-180deg);
-        }
-        
-        .snn-accordion-content {
-            transition: all 0.3s ease;
-        }
-        
-        /* Reset Section Styles */
-        .snn-reset-section details[open] summary {
-            margin-bottom: 15px;
-        }
-        
-        .snn-reset-section summary:hover {
-            color: #a82a2e;
-        }
-        
-        /* Open Graph Preview Cards */
-        .snn-og-preview {
-            background: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .snn-og-preview:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .snn-og-image {
-            height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        .snn-og-content {
-            padding: 12px;
-            background: #fafafa;
-        }
-        
-        .snn-og-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 5px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        .snn-og-desc {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 5px;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        .snn-og-url {
-            font-size: 10px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .wrap code { background: #f0f0f1; padding: 2px 6px; border-radius: 3px; font-size: 13px; display: inline-block; margin: 2px 0; }
+        .snn-seo-section { background: #fff; padding: 10px; max-width: 900px; }
+        .snn-tags-hint { font-size: 12px; color: #666; margin: 5px 0; line-height: 1.6; }
+        .snn-tags-hint code { font-size: 11px; padding: 1px 4px; }
+        .snn-accordion-header { transition: background-color 0.2s; }
+        .snn-accordion-header:hover { background: #f0f0f0 !important; }
+        .snn-accordion-icon { transition: transform 0.3s; font-size: 12px; }
+        .snn-accordion-item.active .snn-accordion-icon { transform: rotate(-180deg); }
+        .snn-accordion-content { transition: all 0.3s ease; }
+        .snn-reset-section details[open] summary { margin-bottom: 15px; }
+        .snn-reset-section summary:hover { color: #a82a2e; }
+        .snn-og-preview { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+        .snn-og-preview:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .snn-og-image { height: 140px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .snn-og-content { padding: 12px; background: #fafafa; }
+        .snn-og-title { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .snn-og-desc { font-size: 11px; color: #666; margin-bottom: 5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .snn-og-url { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
     
     <script>
@@ -974,7 +880,6 @@ function snn_seo_output_meta_tags() {
     // Output meta tags
     if (!empty($title)) {
         echo '<title>' . esc_html($title) . '</title>' . "\n";
-        echo '<meta name="title" content="' . esc_attr($title) . '">' . "\n";
     }
     
     if (!empty($description)) {
