@@ -28,6 +28,7 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-settings',               'label' => $dynamic_title.' '.__('Settings', 'snn'),            'dashicon' => 'dashicons-admin-home'),
                 array('slug' => 'editor-settings',            'label' => __('Editor Settings', 'snn'),                        'dashicon' => 'dashicons-edit'),
                 array('slug' => 'snn-security',               'label' => __('Security Settings', 'snn'),                      'dashicon' => 'dashicons-shield'),
+                array('slug' => 'snn-seo-settings',           'label' => __('SEO Settings', 'snn'),                             'dashicon' => 'dashicons-admin-post'),
                 array('slug' => 'snn-custom-post-types',      'label' => __('Post Types', 'snn'),                             'dashicon' => 'dashicons-admin-post'),
                 array('slug' => 'snn-custom-fields',          'label' => __('Custom Fields', 'snn'),                          'dashicon' => 'dashicons-admin-page'),
                 array('slug' => 'snn-taxonomies',             'label' => __('Taxonomies', 'snn'),                             'dashicon' => 'dashicons-category'),
@@ -60,7 +61,7 @@ function snn_settings_page_callback() {
         </div>
         <!-- End Dashboard Grid --> 
 
-        <div style="max-width:660px; margin-bottom:40px">
+        <div style="max-width:1000px; margin-bottom:40px">
             <p style="line-height:24px !important;">
                 <?php _e('This theme is designed to give you the tools and solutions for', 'snn'); ?>
                 <a href="https://wordpress.org/" target="_blank"><?php _e('WordPress', 'snn'); ?></a>
