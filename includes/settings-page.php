@@ -4,7 +4,7 @@ function snn_add_menu_page() {
     $dynamic_title = get_option('snn_menu_title', __('SNN Settings', 'snn'));
 
     add_menu_page(
-        __('SNN Settings', 'snn'),
+        $dynamic_title,
         $dynamic_title,
         'manage_options',
         'snn-settings',
