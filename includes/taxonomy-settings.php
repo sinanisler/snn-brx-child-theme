@@ -26,17 +26,39 @@ function snn_render_taxonomies_page() {
     if ( isset( $_POST['snn_taxonomies_nonce'] ) && wp_verify_nonce( $_POST['snn_taxonomies_nonce'], 'snn_save_taxonomies' ) ) {
         if ( isset( $_POST['taxonomies'] ) && is_array( $_POST['taxonomies'] ) ) {
             $taxonomies = array();
+            $slugs_seen = array();
 
-            foreach ( $_POST['taxonomies'] as $taxonomy ) {
-                if ( ! empty( $taxonomy['name'] ) && ! empty( $taxonomy['slug'] ) && ! empty( $taxonomy['post_types'] ) ) {
-                    $taxonomies[] = array(
-                        'name'         => sanitize_text_field( $taxonomy['name'] ),
-                        'slug'         => sanitize_title( $taxonomy['slug'] ),
-                        'hierarchical' => isset( $taxonomy['hierarchical'] ) ? 1 : 0,
-                        'post_types'   => array_map( 'sanitize_text_field', $taxonomy['post_types'] ),
-                        'add_columns'  => isset( $taxonomy['add_columns'] ) ? 1 : 0,
-                    );
+            // Ensure we iterate over ALL submitted taxonomies, regardless of index gaps
+            // array_values() re-indexes the array sequentially, fixing deletion/reordering issues
+            $submitted_taxonomies = array_values( $_POST['taxonomies'] );
+
+            foreach ( $submitted_taxonomies as $taxonomy ) {
+                // Validate required fields
+                if ( empty( $taxonomy['name'] ) || empty( $taxonomy['slug'] ) ) {
+                    continue; // Skip invalid entries
                 }
+
+                // Default to 'post' if no post types are selected (better UX - don't waste user's work)
+                if ( ! isset( $taxonomy['post_types'] ) || ! is_array( $taxonomy['post_types'] ) || empty( $taxonomy['post_types'] ) ) {
+                    $taxonomy['post_types'] = array( 'post' );
+                }
+
+                $sanitized_slug = sanitize_title( $taxonomy['slug'] );
+
+                // Check for duplicate slugs
+                if ( in_array( $sanitized_slug, $slugs_seen ) ) {
+                    continue; // Skip duplicate slugs
+                }
+
+                $slugs_seen[] = $sanitized_slug;
+
+                $taxonomies[] = array(
+                    'name'         => sanitize_text_field( $taxonomy['name'] ),
+                    'slug'         => $sanitized_slug,
+                    'hierarchical' => isset( $taxonomy['hierarchical'] ) ? 1 : 0,
+                    'post_types'   => array_map( 'sanitize_text_field', $taxonomy['post_types'] ),
+                    'add_columns'  => isset( $taxonomy['add_columns'] ) ? 1 : 0,
+                );
             }
 
             update_option( 'snn_taxonomies', $taxonomies );
@@ -126,6 +148,10 @@ function snn_render_taxonomies_page() {
                 value = value.replace(/[^a-z0-9\-]/g, "");
                 // Remove leading digits
                 value = value.replace(/^\d+/, "");
+                // Remove multiple consecutive dashes
+                value = value.replace(/-+/g, "-");
+                // Remove leading and trailing dashes
+                value = value.replace(/^-+|-+$/g, "");
                 return value;
             }
 
@@ -162,7 +188,7 @@ function snn_render_taxonomies_page() {
                     <div class="checkbox-container">
                         <input type="checkbox" name="taxonomies[${newIndex}][hierarchical]" />
                     </div>
-                    <label><?php esc_html_e( 'Associated Post Types', 'snn' ); ?></label>
+                    <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label>
                     <select name="taxonomies[${newIndex}][post_types][]" multiple>
                         <?php
                         // Fetch all public post types for the JavaScript template
@@ -173,11 +199,12 @@ function snn_render_taxonomies_page() {
                         <?php endforeach; ?>
                     </select>
                     <div class="field-group">
-                        <label><?php esc_html_e( 'Add Columns', 'snn' ); ?></label><br>
+                        <label><?php esc_html_e( 'Show Columns', 'snn' ); ?></label><br>
                         <input type="checkbox" name="taxonomies[${newIndex}][add_columns]" />
                     </div>
                 `;
                 fieldContainer.appendChild(newRow);
+                updateFieldIndexes(); // Ensure indexes are correct after adding
             });
 
             /**
@@ -185,8 +212,11 @@ function snn_render_taxonomies_page() {
              */
             fieldContainer.addEventListener('click', function(event) {
                 if (event.target.classList.contains('remove-taxonomy')) {
-                    event.target.closest('.taxonomy-row').remove();
-                    updateFieldIndexes();
+                    const row = event.target.closest('.taxonomy-row');
+                    if (row) {
+                        row.remove();
+                        updateFieldIndexes(); // Critical: reindex after removal
+                    }
                 }
 
                 if (event.target.classList.contains('move-up')) {
@@ -194,7 +224,7 @@ function snn_render_taxonomies_page() {
                     const prevRow = row.previousElementSibling;
                     if (prevRow) {
                         fieldContainer.insertBefore(row, prevRow);
-                        updateFieldIndexes();
+                        updateFieldIndexes(); // Reindex after reordering
                     }
                 }
 
@@ -203,10 +233,13 @@ function snn_render_taxonomies_page() {
                     const nextRow = row.nextElementSibling;
                     if (nextRow) {
                         fieldContainer.insertBefore(nextRow, row);
-                        updateFieldIndexes();
+                        updateFieldIndexes(); // Reindex after reordering
                     }
                 }
             });
+
+            // Initial index update on page load to ensure consistency
+            updateFieldIndexes();
         });
         </script>
 
