@@ -139,6 +139,44 @@ function snn_seo_register_settings() {
 add_action('admin_init', 'snn_seo_register_settings');
 
 /**
+ * Handle SEO settings reset
+ */
+function snn_seo_handle_reset() {
+    if (isset($_POST['snn_seo_reset_settings']) && check_admin_referer('snn_seo_reset', 'snn_seo_reset_nonce')) {
+        // Delete all SEO settings
+        delete_option('snn_seo_enabled');
+        delete_option('snn_seo_post_types_enabled');
+        delete_option('snn_seo_taxonomies_enabled');
+        delete_option('snn_seo_authors_enabled');
+        delete_option('snn_seo_post_type_titles');
+        delete_option('snn_seo_post_type_descriptions');
+        delete_option('snn_seo_archive_titles');
+        delete_option('snn_seo_archive_descriptions');
+        delete_option('snn_seo_taxonomy_titles');
+        delete_option('snn_seo_taxonomy_descriptions');
+        delete_option('snn_seo_author_title');
+        delete_option('snn_seo_author_description');
+        delete_option('snn_seo_sitemap_enabled');
+        delete_option('snn_seo_sitemap_post_types');
+        delete_option('snn_seo_sitemap_taxonomies');
+        delete_option('snn_seo_opengraph_enabled');
+        delete_option('snn_seo_post_meta_titles');
+        delete_option('snn_seo_post_meta_descriptions');
+        
+        // Flush rewrite rules
+        flush_rewrite_rules();
+        
+        add_settings_error(
+            'snn_seo_messages',
+            'snn_seo_reset',
+            __('SEO settings have been reset to defaults. All custom configurations have been cleared.', 'snn'),
+            'updated'
+        );
+    }
+}
+add_action('admin_init', 'snn_seo_handle_reset', 5);
+
+/**
  * SEO Settings Page Callback
  */
 function snn_seo_settings_page_callback() {
@@ -204,6 +242,8 @@ function snn_seo_settings_page_callback() {
     <div class="wrap">
         <h1><?php _e('SEO Settings', 'snn'); ?></h1>
         
+        <?php settings_errors('snn_seo_messages'); ?>
+        
         <form method="post" action="options.php">
             <?php settings_fields('snn_seo_settings_group'); ?>
             
@@ -268,59 +308,67 @@ function snn_seo_settings_page_callback() {
 
             <!-- Post Type Single Templates -->
             <div class="snn-seo-section">
-                <h2><?php _e('Post Type Single Page Templates', 'snn'); ?></h2>
+                <h2><?php _e('Post Type Templates', 'snn'); ?></h2>
                 <?php foreach ($post_types as $post_type): ?>
                     <?php if (!isset($post_types_enabled[$post_type->name]) || !$post_types_enabled[$post_type->name]) continue; ?>
-                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 4px;">
-                        <h3 style="margin-top: 0;"><?php echo esc_html($post_type->label); ?></h3>
-                        
-                        <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
-                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{post_author}</code> <code>{post_date}</code> <code>{post_excerpt}</code> <code>{post_cat}</code> <code>{post_tag}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
-                            <input type="text" 
-                                   name="snn_seo_post_type_titles[<?php echo esc_attr($post_type->name); ?>]" 
-                                   value="<?php echo esc_attr(isset($post_type_titles[$post_type->name]) ? $post_type_titles[$post_type->name] : '{post_title} - {site_title}'); ?>" 
-                                   style="width: 100%;">
-                        </label>
-                        
-                        <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
-                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_excerpt}</code> <code>{post_title}</code> <code>{post_author}</code> <code>{post_date}</code></div>
-                            <textarea name="snn_seo_post_type_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
-                                      style="width: 100%; height: 80px;"><?php 
-                                echo esc_textarea(isset($post_type_descriptions[$post_type->name]) ? $post_type_descriptions[$post_type->name] : '{post_excerpt}'); 
-                            ?></textarea>
-                        </label>
+                    <div class="snn-accordion-item" style="margin: 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+                        <button type="button" class="snn-accordion-header" style="width: 100%; padding: 12px 15px; background: #f9f9f9; border: none; text-align: left; cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
+                            <span><?php echo esc_html($post_type->label); ?></span>
+                            <span class="snn-accordion-icon">▼</span>
+                        </button>
+                        <div class="snn-accordion-content" style="display: none; padding: 15px; background: #fff;">
+                            <label style="display: block; margin: 10px 0;">
+                                <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
+                                <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{post_author}</code> <code>{post_date}</code> <code>{post_excerpt}</code> <code>{post_cat}</code> <code>{post_tag}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
+                                <input type="text" 
+                                       name="snn_seo_post_type_titles[<?php echo esc_attr($post_type->name); ?>]" 
+                                       value="<?php echo esc_attr(isset($post_type_titles[$post_type->name]) ? $post_type_titles[$post_type->name] : '{post_title} - {site_title}'); ?>" 
+                                       style="width: 100%;">
+                            </label>
+                            
+                            <label style="display: block; margin: 10px 0;">
+                                <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
+                                <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_excerpt}</code> <code>{post_title}</code> <code>{post_author}</code> <code>{post_date}</code></div>
+                                <textarea name="snn_seo_post_type_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
+                                          style="width: 100%; height: 80px;"><?php 
+                                    echo esc_textarea(isset($post_type_descriptions[$post_type->name]) ? $post_type_descriptions[$post_type->name] : '{post_excerpt}'); 
+                                ?></textarea>
+                            </label>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
 
             <!-- Post Type Archive Templates -->
             <div class="snn-seo-section">
-                <h2><?php _e('Post Type Archive Templates', 'snn'); ?></h2>
+                <h2><?php _e('Archive Templates', 'snn'); ?></h2>
                 <?php foreach ($post_types as $post_type): ?>
                     <?php if (!isset($post_types_enabled[$post_type->name]) || !$post_types_enabled[$post_type->name]) continue; ?>
                     <?php if (!$post_type->has_archive) continue; ?>
-                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 4px;">
-                        <h3 style="margin-top: 0;"><?php echo esc_html($post_type->label); ?> <?php _e('Archive', 'snn'); ?></h3>
-                        
-                        <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
-                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
-                            <input type="text" 
-                                   name="snn_seo_archive_titles[<?php echo esc_attr($post_type->name); ?>]" 
-                                   value="<?php echo esc_attr(isset($archive_titles[$post_type->name]) ? $archive_titles[$post_type->name] : '{post_title} ' . __('Archive', 'snn') . ' - {site_title}'); ?>" 
-                                   style="width: 100%;">
-                        </label>
-                        
-                        <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
-                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{site_title}</code></div>
-                            <textarea name="snn_seo_archive_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
-                                      style="width: 100%; height: 80px;"><?php 
-                                echo esc_textarea(isset($archive_descriptions[$post_type->name]) ? $archive_descriptions[$post_type->name] : __('Browse all', 'snn') . ' {post_title}'); 
-                            ?></textarea>
-                        </label>
+                    <div class="snn-accordion-item" style="margin: 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+                        <button type="button" class="snn-accordion-header" style="width: 100%; padding: 12px 15px; background: #f9f9f9; border: none; text-align: left; cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
+                            <span><?php echo esc_html($post_type->label); ?> <?php _e('Archive', 'snn'); ?></span>
+                            <span class="snn-accordion-icon">▼</span>
+                        </button>
+                        <div class="snn-accordion-content" style="display: none; padding: 15px; background: #fff;">
+                            <label style="display: block; margin: 10px 0;">
+                                <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
+                                <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
+                                <input type="text" 
+                                       name="snn_seo_archive_titles[<?php echo esc_attr($post_type->name); ?>]" 
+                                       value="<?php echo esc_attr(isset($archive_titles[$post_type->name]) ? $archive_titles[$post_type->name] : '{post_title} ' . __('Archive', 'snn') . ' - {site_title}'); ?>" 
+                                       style="width: 100%;">
+                            </label>
+                            
+                            <label style="display: block; margin: 10px 0;">
+                                <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
+                                <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{site_title}</code></div>
+                                <textarea name="snn_seo_archive_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
+                                          style="width: 100%; height: 80px;"><?php 
+                                    echo esc_textarea(isset($archive_descriptions[$post_type->name]) ? $archive_descriptions[$post_type->name] : __('Browse all', 'snn') . ' {post_title}'); 
+                                ?></textarea>
+                            </label>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -330,26 +378,30 @@ function snn_seo_settings_page_callback() {
                 <h2><?php _e('Taxonomy Archive Templates', 'snn'); ?></h2>
                 <?php foreach ($taxonomies as $taxonomy): ?>
                     <?php if (!isset($taxonomies_enabled[$taxonomy->name]) || !$taxonomies_enabled[$taxonomy->name]) continue; ?>
-                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 4px;">
-                        <h3 style="margin-top: 0;"><?php echo esc_html($taxonomy->label); ?></h3>
-                        
-                        <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
-                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{term_name}</code> <code>{term_desc}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
-                            <input type="text" 
-                                   name="snn_seo_taxonomy_titles[<?php echo esc_attr($taxonomy->name); ?>]" 
-                                   value="<?php echo esc_attr(isset($taxonomy_titles[$taxonomy->name]) ? $taxonomy_titles[$taxonomy->name] : '{term_name} - {site_title}'); ?>" 
-                                   style="width: 100%;">
-                        </label>
-                        
-                        <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
-                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{term_desc}</code> <code>{term_name}</code></div>
-                            <textarea name="snn_seo_taxonomy_descriptions[<?php echo esc_attr($taxonomy->name); ?>]" 
-                                      style="width: 100%; height: 80px;"><?php 
-                                echo esc_textarea(isset($taxonomy_descriptions[$taxonomy->name]) ? $taxonomy_descriptions[$taxonomy->name] : '{term_desc}'); 
-                            ?></textarea>
-                        </label>
+                    <div class="snn-accordion-item" style="margin: 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+                        <button type="button" class="snn-accordion-header" style="width: 100%; padding: 12px 15px; background: #f9f9f9; border: none; text-align: left; cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
+                            <span><?php echo esc_html($taxonomy->label); ?></span>
+                            <span class="snn-accordion-icon">▼</span>
+                        </button>
+                        <div class="snn-accordion-content" style="display: none; padding: 15px; background: #fff;">
+                            <label style="display: block; margin: 10px 0;">
+                                <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
+                                <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{term_name}</code> <code>{term_desc}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
+                                <input type="text" 
+                                       name="snn_seo_taxonomy_titles[<?php echo esc_attr($taxonomy->name); ?>]" 
+                                       value="<?php echo esc_attr(isset($taxonomy_titles[$taxonomy->name]) ? $taxonomy_titles[$taxonomy->name] : '{term_name} - {site_title}'); ?>" 
+                                       style="width: 100%;">
+                            </label>
+                            
+                            <label style="display: block; margin: 10px 0;">
+                                <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
+                                <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{term_desc}</code> <code>{term_name}</code></div>
+                                <textarea name="snn_seo_taxonomy_descriptions[<?php echo esc_attr($taxonomy->name); ?>]" 
+                                          style="width: 100%; height: 80px;"><?php 
+                                    echo esc_textarea(isset($taxonomy_descriptions[$taxonomy->name]) ? $taxonomy_descriptions[$taxonomy->name] : '{term_desc}'); 
+                                ?></textarea>
+                            </label>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -496,6 +548,30 @@ function snn_seo_settings_page_callback() {
 
             <?php submit_button(__('Save SEO Settings', 'snn')); ?>
         </form>
+        
+        <!-- Reset Settings Section (Hidden/Collapsed) -->
+        <div class="snn-reset-section" style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; max-width: 900px;">
+            <details style="background: #fff; padding: 15px; border-radius: 4px;">
+                <summary style="cursor: pointer; font-weight: 600; color: #d63638; user-select: none; outline: none;">
+                    ⚠️ <?php _e('Danger Zone - Reset All SEO Settings', 'snn'); ?>
+                </summary>
+                <div style="margin-top: 15px; padding: 15px; background: #fff8f8; border: 1px solid #d63638; border-radius: 4px;">
+                    <p style="margin: 0 0 15px 0; color: #444;">
+                        <strong><?php _e('Warning:', 'snn'); ?></strong> 
+                        <?php _e('This will permanently delete all SEO settings from the database. All your custom titles, descriptions, templates, and configurations will be lost. This action cannot be undone.', 'snn'); ?>
+                    </p>
+                    <form method="post" action="" onsubmit="return confirm('<?php esc_attr_e('Are you absolutely sure you want to reset ALL SEO settings? This cannot be undone!', 'snn'); ?>');">
+                        <?php wp_nonce_field('snn_seo_reset', 'snn_seo_reset_nonce'); ?>
+                        <button type="submit" 
+                                name="snn_seo_reset_settings" 
+                                class="button" 
+                                style="background: #d63638; color: white; border-color: #d63638; font-weight: 600; padding: 8px 20px;">
+                            <?php _e('Reset All SEO Settings to Default', 'snn'); ?>
+                        </button>
+                    </form>
+                </div>
+            </details>
+        </div>
     </div>
 
     <style>
@@ -512,7 +588,6 @@ function snn_seo_settings_page_callback() {
         .snn-seo-section {
             background: #fff;
             padding: 10px;
-            margin: 20px 0;
             max-width: 900px;
         }
         
@@ -526,6 +601,37 @@ function snn_seo_settings_page_callback() {
         .snn-tags-hint code {
             font-size: 11px;
             padding: 1px 4px;
+        }
+        
+        /* Accordion Styles */
+        .snn-accordion-header {
+            transition: background-color 0.2s;
+        }
+        
+        .snn-accordion-header:hover {
+            background: #f0f0f0 !important;
+        }
+        
+        .snn-accordion-icon {
+            transition: transform 0.3s;
+            font-size: 12px;
+        }
+        
+        .snn-accordion-item.active .snn-accordion-icon {
+            transform: rotate(-180deg);
+        }
+        
+        .snn-accordion-content {
+            transition: all 0.3s ease;
+        }
+        
+        /* Reset Section Styles */
+        .snn-reset-section details[open] summary {
+            margin-bottom: 15px;
+        }
+        
+        .snn-reset-section summary:hover {
+            color: #a82a2e;
         }
         
         /* Open Graph Preview Cards */
@@ -583,6 +689,23 @@ function snn_seo_settings_page_callback() {
             letter-spacing: 0.5px;
         }
     </style>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        // Accordion functionality
+        $('.snn-accordion-header').on('click', function(e) {
+            e.preventDefault();
+            var $item = $(this).closest('.snn-accordion-item');
+            var $content = $item.find('.snn-accordion-content');
+            
+            // Toggle active class
+            $item.toggleClass('active');
+            
+            // Slide toggle content
+            $content.slideToggle(300);
+        });
+    });
+    </script>
     <?php
 }
 
