@@ -142,14 +142,11 @@ add_action('admin_init', 'snn_seo_register_settings');
  * SEO Settings Page Callback
  */
 function snn_seo_settings_page_callback() {
-    // Get all public post types (excluding attachment and non-publicly-queryable)
-    $post_types = get_post_types(['public' => true, 'publicly_queryable' => true], 'objects');
-    $post_types = array_filter($post_types, function($pt) {
-        return !in_array($pt->name, ['attachment']);
-    });
+    // Get all public post types (including attachments)
+    $post_types = get_post_types(['public' => true], 'objects');
     
-    // Get all public taxonomies (only publicly queryable ones)
-    $taxonomies = get_taxonomies(['public' => true, 'publicly_queryable' => true], 'objects');
+    // Get all public taxonomies
+    $taxonomies = get_taxonomies(['public' => true], 'objects');
     
     // Get current settings with proper type checking
     $seo_enabled = get_option('snn_seo_enabled', false);
@@ -181,10 +178,10 @@ function snn_seo_settings_page_callback() {
     $sitemap_post_types = is_array($sitemap_post_types) ? $sitemap_post_types : [];
     $sitemap_taxonomies = is_array($sitemap_taxonomies) ? $sitemap_taxonomies : [];
     
-    // Set defaults if empty
+    // Set defaults if empty (attachments disabled by default)
     if (empty($post_types_enabled)) {
         foreach ($post_types as $pt) {
-            $post_types_enabled[$pt->name] = true;
+            $post_types_enabled[$pt->name] = ($pt->name !== 'attachment');
         }
     }
     if (empty($taxonomies_enabled)) {
@@ -194,7 +191,7 @@ function snn_seo_settings_page_callback() {
     }
     if (empty($sitemap_post_types)) {
         foreach ($post_types as $pt) {
-            $sitemap_post_types[$pt->name] = true;
+            $sitemap_post_types[$pt->name] = ($pt->name !== 'attachment');
         }
     }
     if (empty($sitemap_taxonomies)) {
