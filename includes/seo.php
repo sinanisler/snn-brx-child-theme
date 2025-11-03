@@ -702,7 +702,7 @@ function snn_seo_settings_page_callback() {
             $item.toggleClass('active');
             
             // Slide toggle content
-            $content.slideToggle(300);
+            $content.slideToggle(50);
         });
     });
     </script>
