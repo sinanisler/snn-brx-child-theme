@@ -32,22 +32,107 @@ add_action('admin_menu', 'snn_seo_add_submenu_page');
  * Register SEO settings
  */
 function snn_seo_register_settings() {
-    register_setting('snn_seo_settings_group', 'snn_seo_enabled');
-    register_setting('snn_seo_settings_group', 'snn_seo_post_types_enabled');
-    register_setting('snn_seo_settings_group', 'snn_seo_taxonomies_enabled');
-    register_setting('snn_seo_settings_group', 'snn_seo_authors_enabled');
-    register_setting('snn_seo_settings_group', 'snn_seo_post_type_titles');
-    register_setting('snn_seo_settings_group', 'snn_seo_post_type_descriptions');
-    register_setting('snn_seo_settings_group', 'snn_seo_archive_titles');
-    register_setting('snn_seo_settings_group', 'snn_seo_archive_descriptions');
-    register_setting('snn_seo_settings_group', 'snn_seo_taxonomy_titles');
-    register_setting('snn_seo_settings_group', 'snn_seo_taxonomy_descriptions');
-    register_setting('snn_seo_settings_group', 'snn_seo_author_title');
-    register_setting('snn_seo_settings_group', 'snn_seo_author_description');
-    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_enabled');
-    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_post_types');
-    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_taxonomies');
-    register_setting('snn_seo_settings_group', 'snn_seo_opengraph_enabled');
+    // Sanitization callback for arrays
+    $sanitize_array = function($input) {
+        return is_array($input) ? $input : [];
+    };
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_enabled', [
+        'type' => 'boolean',
+        'default' => false,
+        'sanitize_callback' => 'rest_sanitize_boolean'
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_post_types_enabled', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_taxonomies_enabled', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_authors_enabled', [
+        'type' => 'boolean',
+        'default' => true,
+        'sanitize_callback' => 'rest_sanitize_boolean'
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_post_type_titles', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_post_type_descriptions', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_archive_titles', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_archive_descriptions', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_taxonomy_titles', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_taxonomy_descriptions', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_author_title', [
+        'type' => 'string',
+        'default' => '{author_name} - {site_title}',
+        'sanitize_callback' => 'sanitize_text_field'
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_author_description', [
+        'type' => 'string',
+        'default' => 'Author archive for {author_name}',
+        'sanitize_callback' => 'sanitize_textarea_field'
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_enabled', [
+        'type' => 'boolean',
+        'default' => true,
+        'sanitize_callback' => 'rest_sanitize_boolean'
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_post_types', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_sitemap_taxonomies', [
+        'type' => 'array',
+        'default' => [],
+        'sanitize_callback' => $sanitize_array
+    ]);
+    
+    register_setting('snn_seo_settings_group', 'snn_seo_opengraph_enabled', [
+        'type' => 'boolean',
+        'default' => true,
+        'sanitize_callback' => 'rest_sanitize_boolean'
+    ]);
+    
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_titles');
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_descriptions');
 }
@@ -66,7 +151,7 @@ function snn_seo_settings_page_callback() {
     // Get all public taxonomies
     $taxonomies = get_taxonomies(['public' => true], 'objects');
     
-    // Get current settings
+    // Get current settings with proper type checking
     $seo_enabled = get_option('snn_seo_enabled', false);
     $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
     $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
@@ -83,6 +168,18 @@ function snn_seo_settings_page_callback() {
     $sitemap_post_types = get_option('snn_seo_sitemap_post_types', []);
     $sitemap_taxonomies = get_option('snn_seo_sitemap_taxonomies', []);
     $opengraph_enabled = get_option('snn_seo_opengraph_enabled', true);
+    
+    // Ensure arrays are actually arrays (fix for string/serialization issues)
+    $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
+    $taxonomies_enabled = is_array($taxonomies_enabled) ? $taxonomies_enabled : [];
+    $post_type_titles = is_array($post_type_titles) ? $post_type_titles : [];
+    $post_type_descriptions = is_array($post_type_descriptions) ? $post_type_descriptions : [];
+    $archive_titles = is_array($archive_titles) ? $archive_titles : [];
+    $archive_descriptions = is_array($archive_descriptions) ? $archive_descriptions : [];
+    $taxonomy_titles = is_array($taxonomy_titles) ? $taxonomy_titles : [];
+    $taxonomy_descriptions = is_array($taxonomy_descriptions) ? $taxonomy_descriptions : [];
+    $sitemap_post_types = is_array($sitemap_post_types) ? $sitemap_post_types : [];
+    $sitemap_taxonomies = is_array($sitemap_taxonomies) ? $sitemap_taxonomies : [];
     
     // Set defaults if empty
     if (empty($post_types_enabled)) {
@@ -214,7 +311,7 @@ function snn_seo_settings_page_callback() {
                             <strong><?php _e('Meta Title Template:', 'snn'); ?></strong><br>
                             <input type="text" 
                                    name="snn_seo_post_type_titles[<?php echo esc_attr($post_type->name); ?>]" 
-                                   value="<?php echo esc_attr($post_type_titles[$post_type->name] ?? '{post_title} - {site_title}'); ?>" 
+                                   value="<?php echo esc_attr(isset($post_type_titles[$post_type->name]) ? $post_type_titles[$post_type->name] : '{post_title} - {site_title}'); ?>" 
                                    style="width: 100%; max-width: 600px;">
                         </label>
                         
@@ -222,7 +319,7 @@ function snn_seo_settings_page_callback() {
                             <strong><?php _e('Meta Description Template:', 'snn'); ?></strong><br>
                             <textarea name="snn_seo_post_type_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
                                       style="width: 100%; max-width: 600px; height: 80px;"><?php 
-                                echo esc_textarea($post_type_descriptions[$post_type->name] ?? '{post_excerpt}'); 
+                                echo esc_textarea(isset($post_type_descriptions[$post_type->name]) ? $post_type_descriptions[$post_type->name] : '{post_excerpt}'); 
                             ?></textarea>
                         </label>
                     </div>
@@ -242,7 +339,7 @@ function snn_seo_settings_page_callback() {
                             <strong><?php _e('Meta Title Template:', 'snn'); ?></strong><br>
                             <input type="text" 
                                    name="snn_seo_archive_titles[<?php echo esc_attr($post_type->name); ?>]" 
-                                   value="<?php echo esc_attr($archive_titles[$post_type->name] ?? '{post_title} ' . __('Archive', 'snn') . ' - {site_title}'); ?>" 
+                                   value="<?php echo esc_attr(isset($archive_titles[$post_type->name]) ? $archive_titles[$post_type->name] : '{post_title} ' . __('Archive', 'snn') . ' - {site_title}'); ?>" 
                                    style="width: 100%; max-width: 600px;">
                         </label>
                         
@@ -250,7 +347,7 @@ function snn_seo_settings_page_callback() {
                             <strong><?php _e('Meta Description Template:', 'snn'); ?></strong><br>
                             <textarea name="snn_seo_archive_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
                                       style="width: 100%; max-width: 600px; height: 80px;"><?php 
-                                echo esc_textarea($archive_descriptions[$post_type->name] ?? __('Browse all', 'snn') . ' {post_title}'); 
+                                echo esc_textarea(isset($archive_descriptions[$post_type->name]) ? $archive_descriptions[$post_type->name] : __('Browse all', 'snn') . ' {post_title}'); 
                             ?></textarea>
                         </label>
                     </div>
@@ -269,7 +366,7 @@ function snn_seo_settings_page_callback() {
                             <strong><?php _e('Meta Title Template:', 'snn'); ?></strong><br>
                             <input type="text" 
                                    name="snn_seo_taxonomy_titles[<?php echo esc_attr($taxonomy->name); ?>]" 
-                                   value="<?php echo esc_attr($taxonomy_titles[$taxonomy->name] ?? '{term_name} - {site_title}'); ?>" 
+                                   value="<?php echo esc_attr(isset($taxonomy_titles[$taxonomy->name]) ? $taxonomy_titles[$taxonomy->name] : '{term_name} - {site_title}'); ?>" 
                                    style="width: 100%; max-width: 600px;">
                         </label>
                         
@@ -277,7 +374,7 @@ function snn_seo_settings_page_callback() {
                             <strong><?php _e('Meta Description Template:', 'snn'); ?></strong><br>
                             <textarea name="snn_seo_taxonomy_descriptions[<?php echo esc_attr($taxonomy->name); ?>]" 
                                       style="width: 100%; max-width: 600px; height: 80px;"><?php 
-                                echo esc_textarea($taxonomy_descriptions[$taxonomy->name] ?? '{term_desc}'); 
+                                echo esc_textarea(isset($taxonomy_descriptions[$taxonomy->name]) ? $taxonomy_descriptions[$taxonomy->name] : '{term_desc}'); 
                             ?></textarea>
                         </label>
                     </div>
@@ -385,6 +482,10 @@ function snn_seo_settings_page_callback() {
  * Replace dynamic tags with actual content
  */
 function snn_seo_replace_tags($template, $context = []) {
+    if (empty($template) || !is_string($template)) {
+        return '';
+    }
+    
     // Site tags
     $template = str_replace('{site_title}', get_bloginfo('name'), $template);
     $template = str_replace('{site_tagline}', get_bloginfo('description'), $template);
@@ -398,7 +499,9 @@ function snn_seo_replace_tags($template, $context = []) {
             $template = str_replace('{post_slug}', $post->post_name, $template);
             $template = str_replace('{post_date}', get_the_date('', $post), $template);
             $template = str_replace('{post_author}', get_the_author_meta('display_name', $post->post_author), $template);
-            $template = str_replace('{post_excerpt}', wp_trim_words(get_the_excerpt($post), 30), $template);
+            
+            $excerpt = get_the_excerpt($post);
+            $template = str_replace('{post_excerpt}', wp_trim_words($excerpt, 30), $template);
             
             // Categories
             $categories = get_the_category($post->ID);
@@ -427,6 +530,7 @@ function snn_seo_replace_tags($template, $context = []) {
             if (!empty($cf_matches[1])) {
                 foreach ($cf_matches[1] as $field_name) {
                     $field_value = get_post_meta($post->ID, $field_name, true);
+                    $field_value = is_string($field_value) ? $field_value : '';
                     $template = str_replace('{post_customfield_' . $field_name . '}', $field_value, $template);
                 }
             }
@@ -443,6 +547,7 @@ function snn_seo_replace_tags($template, $context = []) {
         if (!empty($author_cf_matches[1])) {
             foreach ($author_cf_matches[1] as $field_name) {
                 $field_value = get_user_meta($author_id, $field_name, true);
+                $field_value = is_string($field_value) ? $field_value : '';
                 $template = str_replace('{author_customfield_' . $field_name . '}', $field_value, $template);
             }
         }
@@ -460,6 +565,7 @@ function snn_seo_replace_tags($template, $context = []) {
             if (!empty($term_cf_matches[1])) {
                 foreach ($term_cf_matches[1] as $field_name) {
                     $field_value = get_term_meta($term->term_id, $field_name, true);
+                    $field_value = is_string($field_value) ? $field_value : '';
                     $template = str_replace('{term_customfield_' . $field_name . '}', $field_value, $template);
                 }
             }
@@ -482,8 +588,15 @@ function snn_seo_output_meta_tags() {
     // Single post
     if (is_singular()) {
         global $post;
+        if (!$post) return;
+        
         $post_type = get_post_type();
         $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
+        
+        // Ensure array
+        if (!is_array($post_types_enabled)) {
+            $post_types_enabled = [];
+        }
         
         if (isset($post_types_enabled[$post_type]) && $post_types_enabled[$post_type]) {
             // Check for custom meta first
@@ -496,7 +609,10 @@ function snn_seo_output_meta_tags() {
                 $title = snn_seo_replace_tags($custom_title, $context);
             } else {
                 $post_type_titles = get_option('snn_seo_post_type_titles', []);
-                $template = $post_type_titles[$post_type] ?? '{post_title} - {site_title}';
+                if (!is_array($post_type_titles)) {
+                    $post_type_titles = [];
+                }
+                $template = isset($post_type_titles[$post_type]) ? $post_type_titles[$post_type] : '{post_title} - {site_title}';
                 $title = snn_seo_replace_tags($template, $context);
             }
             
@@ -504,7 +620,10 @@ function snn_seo_output_meta_tags() {
                 $description = snn_seo_replace_tags($custom_desc, $context);
             } else {
                 $post_type_descriptions = get_option('snn_seo_post_type_descriptions', []);
-                $template = $post_type_descriptions[$post_type] ?? '{post_excerpt}';
+                if (!is_array($post_type_descriptions)) {
+                    $post_type_descriptions = [];
+                }
+                $template = isset($post_type_descriptions[$post_type]) ? $post_type_descriptions[$post_type] : '{post_excerpt}';
                 $description = snn_seo_replace_tags($template, $context);
             }
         }
@@ -514,12 +633,25 @@ function snn_seo_output_meta_tags() {
         $post_type = get_query_var('post_type');
         $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
         
+        // Ensure array
+        if (!is_array($post_types_enabled)) {
+            $post_types_enabled = [];
+        }
+        
         if (isset($post_types_enabled[$post_type]) && $post_types_enabled[$post_type]) {
             $archive_titles = get_option('snn_seo_archive_titles', []);
             $archive_descriptions = get_option('snn_seo_archive_descriptions', []);
             
-            $title_template = $archive_titles[$post_type] ?? '{post_title} ' . __('Archive', 'snn') . ' - {site_title}';
-            $desc_template = $archive_descriptions[$post_type] ?? __('Browse all', 'snn') . ' {post_title}';
+            // Ensure arrays
+            if (!is_array($archive_titles)) {
+                $archive_titles = [];
+            }
+            if (!is_array($archive_descriptions)) {
+                $archive_descriptions = [];
+            }
+            
+            $title_template = isset($archive_titles[$post_type]) ? $archive_titles[$post_type] : '{post_title} ' . __('Archive', 'snn') . ' - {site_title}';
+            $desc_template = isset($archive_descriptions[$post_type]) ? $archive_descriptions[$post_type] : __('Browse all', 'snn') . ' {post_title}';
             
             $title = snn_seo_replace_tags($title_template);
             $description = snn_seo_replace_tags($desc_template);
@@ -528,7 +660,14 @@ function snn_seo_output_meta_tags() {
     // Taxonomy archive
     elseif (is_tax() || is_category() || is_tag()) {
         $term = get_queried_object();
+        if (!$term) return;
+        
         $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
+        
+        // Ensure array
+        if (!is_array($taxonomies_enabled)) {
+            $taxonomies_enabled = [];
+        }
         
         if ($term && isset($taxonomies_enabled[$term->taxonomy]) && $taxonomies_enabled[$term->taxonomy]) {
             $context = ['term_id' => $term->term_id, 'taxonomy' => $term->taxonomy];
@@ -536,8 +675,16 @@ function snn_seo_output_meta_tags() {
             $taxonomy_titles = get_option('snn_seo_taxonomy_titles', []);
             $taxonomy_descriptions = get_option('snn_seo_taxonomy_descriptions', []);
             
-            $title_template = $taxonomy_titles[$term->taxonomy] ?? '{term_name} - {site_title}';
-            $desc_template = $taxonomy_descriptions[$term->taxonomy] ?? '{term_desc}';
+            // Ensure arrays
+            if (!is_array($taxonomy_titles)) {
+                $taxonomy_titles = [];
+            }
+            if (!is_array($taxonomy_descriptions)) {
+                $taxonomy_descriptions = [];
+            }
+            
+            $title_template = isset($taxonomy_titles[$term->taxonomy]) ? $taxonomy_titles[$term->taxonomy] : '{term_name} - {site_title}';
+            $desc_template = isset($taxonomy_descriptions[$term->taxonomy]) ? $taxonomy_descriptions[$term->taxonomy] : '{term_desc}';
             
             $title = snn_seo_replace_tags($title_template, $context);
             $description = snn_seo_replace_tags($desc_template, $context);
@@ -813,9 +960,17 @@ function snn_seo_sitemap_index() {
     $sitemap_post_types = get_option('snn_seo_sitemap_post_types', []);
     $sitemap_taxonomies = get_option('snn_seo_sitemap_taxonomies', []);
     
+    // Ensure arrays
+    if (!is_array($sitemap_post_types)) {
+        $sitemap_post_types = [];
+    }
+    if (!is_array($sitemap_taxonomies)) {
+        $sitemap_taxonomies = [];
+    }
+    
     // Post types
     foreach ($sitemap_post_types as $post_type => $enabled) {
-        if (!$enabled) continue;
+        if (!$enabled || !post_type_exists($post_type)) continue;
         
         $count = wp_count_posts($post_type);
         $total = isset($count->publish) ? $count->publish : 0;
@@ -823,7 +978,7 @@ function snn_seo_sitemap_index() {
         
         for ($i = 1; $i <= $pages; $i++) {
             echo '<sitemap>';
-            echo '<loc>' . home_url("/sitemap-{$post_type}-{$i}.xml") . '</loc>';
+            echo '<loc>' . esc_url(home_url("/sitemap-{$post_type}-{$i}.xml")) . '</loc>';
             echo '<lastmod>' . date('Y-m-d\TH:i:s+00:00') . '</lastmod>';
             echo '</sitemap>';
         }
@@ -831,15 +986,15 @@ function snn_seo_sitemap_index() {
     
     // Taxonomies
     foreach ($sitemap_taxonomies as $taxonomy => $enabled) {
-        if (!$enabled) continue;
+        if (!$enabled || !taxonomy_exists($taxonomy)) continue;
         
-        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
+        $terms = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false, 'fields' => 'ids']);
         $total = is_array($terms) ? count($terms) : 0;
         $pages = ceil($total / 100);
         
         for ($i = 1; $i <= $pages; $i++) {
             echo '<sitemap>';
-            echo '<loc>' . home_url("/sitemap-{$taxonomy}-{$i}.xml") . '</loc>';
+            echo '<loc>' . esc_url(home_url("/sitemap-{$taxonomy}-{$i}.xml")) . '</loc>';
             echo '<lastmod>' . date('Y-m-d\TH:i:s+00:00') . '</lastmod>';
             echo '</sitemap>';
         }
@@ -869,13 +1024,18 @@ function snn_seo_sitemap_generate($type, $page = 1) {
             'order' => 'DESC'
         ]);
         
-        foreach ($posts as $post) {
-            echo '<url>';
-            echo '<loc>' . get_permalink($post) . '</loc>';
-            echo '<lastmod>' . date('Y-m-d\TH:i:s+00:00', strtotime($post->post_modified)) . '</lastmod>';
-            echo '<changefreq>weekly</changefreq>';
-            echo '<priority>0.8</priority>';
-            echo '</url>';
+        if (!empty($posts) && is_array($posts)) {
+            foreach ($posts as $post) {
+                $permalink = get_permalink($post);
+                if ($permalink) {
+                    echo '<url>';
+                    echo '<loc>' . esc_url($permalink) . '</loc>';
+                    echo '<lastmod>' . date('Y-m-d\TH:i:s+00:00', strtotime($post->post_modified)) . '</lastmod>';
+                    echo '<changefreq>weekly</changefreq>';
+                    echo '<priority>0.8</priority>';
+                    echo '</url>';
+                }
+            }
         }
     }
     // Check if it's a taxonomy
@@ -887,14 +1047,17 @@ function snn_seo_sitemap_generate($type, $page = 1) {
             'offset' => $offset
         ]);
         
-        if (!is_wp_error($terms) && !empty($terms)) {
+        if (!is_wp_error($terms) && !empty($terms) && is_array($terms)) {
             foreach ($terms as $term) {
-                echo '<url>';
-                echo '<loc>' . get_term_link($term) . '</loc>';
-                echo '<lastmod>' . date('Y-m-d\TH:i:s+00:00') . '</lastmod>';
-                echo '<changefreq>weekly</changefreq>';
-                echo '<priority>0.6</priority>';
-                echo '</url>';
+                $term_link = get_term_link($term);
+                if (!is_wp_error($term_link)) {
+                    echo '<url>';
+                    echo '<loc>' . esc_url($term_link) . '</loc>';
+                    echo '<lastmod>' . date('Y-m-d\TH:i:s+00:00') . '</lastmod>';
+                    echo '<changefreq>weekly</changefreq>';
+                    echo '<priority>0.6</priority>';
+                    echo '</url>';
+                }
             }
         }
     }
