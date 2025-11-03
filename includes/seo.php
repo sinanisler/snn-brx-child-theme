@@ -142,14 +142,14 @@ add_action('admin_init', 'snn_seo_register_settings');
  * SEO Settings Page Callback
  */
 function snn_seo_settings_page_callback() {
-    // Get all public post types
-    $post_types = get_post_types(['public' => true], 'objects');
+    // Get all public post types (excluding attachment and non-publicly-queryable)
+    $post_types = get_post_types(['public' => true, 'publicly_queryable' => true], 'objects');
     $post_types = array_filter($post_types, function($pt) {
         return !in_array($pt->name, ['attachment']);
     });
     
-    // Get all public taxonomies
-    $taxonomies = get_taxonomies(['public' => true], 'objects');
+    // Get all public taxonomies (only publicly queryable ones)
+    $taxonomies = get_taxonomies(['public' => true, 'publicly_queryable' => true], 'objects');
     
     // Get current settings with proper type checking
     $seo_enabled = get_option('snn_seo_enabled', false);
@@ -211,8 +211,8 @@ function snn_seo_settings_page_callback() {
             <?php settings_fields('snn_seo_settings_group'); ?>
             
             <!-- Master Enable/Disable -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0; border-left: 4px solid #2271b1;">
-                <h2><?php _e('Enable SEO Features', 'snn'); ?></h2>
+            <div class="snn-seo-section" style="border-left: 4px solid #2271b1;">
+                <h2><?php _e('SEO Features', 'snn'); ?></h2>
                 <label>
                     <input type="checkbox" name="snn_seo_enabled" value="1" <?php checked($seo_enabled, 1); ?>>
                     <strong><?php _e('Enable all SEO features', 'snn'); ?></strong>
@@ -224,101 +224,73 @@ function snn_seo_settings_page_callback() {
 
             <?php if ($seo_enabled): ?>
             
-            <!-- Enable/Disable for Post Types -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
-                <h2><?php _e('Enable SEO for Post Types', 'snn'); ?></h2>
-                <p class="description"><?php _e('Select which post types should have SEO features enabled.', 'snn'); ?></p>
-                <?php foreach ($post_types as $post_type): ?>
-                    <label style="display: block; margin: 10px 0;">
-                        <input type="checkbox" 
-                               name="snn_seo_post_types_enabled[<?php echo esc_attr($post_type->name); ?>]" 
-                               value="1" 
-                               <?php checked(isset($post_types_enabled[$post_type->name]) && $post_types_enabled[$post_type->name], 1); ?>>
-                        <strong><?php echo esc_html($post_type->label); ?></strong> (<?php echo esc_html($post_type->name); ?>)
-                    </label>
-                <?php endforeach; ?>
-            </div>
-
-            <!-- Enable/Disable for Taxonomies -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
-                <h2><?php _e('Enable SEO for Taxonomies', 'snn'); ?></h2>
-                <p class="description"><?php _e('Select which taxonomies should have SEO features enabled.', 'snn'); ?></p>
-                <?php foreach ($taxonomies as $taxonomy): ?>
-                    <label style="display: block; margin: 10px 0;">
-                        <input type="checkbox" 
-                               name="snn_seo_taxonomies_enabled[<?php echo esc_attr($taxonomy->name); ?>]" 
-                               value="1" 
-                               <?php checked(isset($taxonomies_enabled[$taxonomy->name]) && $taxonomies_enabled[$taxonomy->name], 1); ?>>
-                        <strong><?php echo esc_html($taxonomy->label); ?></strong> (<?php echo esc_html($taxonomy->name); ?>)
-                    </label>
-                <?php endforeach; ?>
-            </div>
-
-            <!-- Enable/Disable for Authors -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
-                <h2><?php _e('Enable SEO for Authors', 'snn'); ?></h2>
-                <label>
-                    <input type="checkbox" name="snn_seo_authors_enabled" value="1" <?php checked($authors_enabled, 1); ?>>
-                    <strong><?php _e('Enable SEO for author archives', 'snn'); ?></strong>
-                </label>
-            </div>
-
-            <!-- Dynamic Tags Documentation -->
-            <div style="background: #fffbcc; padding: 20px; margin: 20px 0; border-left: 4px solid #ffb900;">
-                <h2><?php _e('Available Dynamic Tags', 'snn'); ?></h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <!-- Enable/Disable Grid for Post Types, Taxonomies, and Authors -->
+            <div class="snn-seo-section">
+                <h2><?php _e('Content Types', 'snn'); ?></h2>
+                <p class="description" style="margin-bottom: 15px;"><?php _e('Select which content types should have SEO features enabled.', 'snn'); ?></p>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <!-- Post Types -->
                     <div>
-                        <h3><?php _e('Site Tags:', 'snn'); ?></h3>
-                        <code>{site_title}</code> - <?php _e('Site title', 'snn'); ?><br>
-                        <code>{site_tagline}</code> - <?php _e('Site tagline', 'snn'); ?>
+                        <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;"><?php _e('Post Types', 'snn'); ?></h3>
+                        <?php foreach ($post_types as $post_type): ?>
+                            <label style="display: block; margin: 8px 0;">
+                                <input type="checkbox" 
+                                       name="snn_seo_post_types_enabled[<?php echo esc_attr($post_type->name); ?>]" 
+                                       value="1" 
+                                       <?php checked(isset($post_types_enabled[$post_type->name]) && $post_types_enabled[$post_type->name], 1); ?>>
+                                <?php echo esc_html($post_type->label); ?>
+                            </label>
+                        <?php endforeach; ?>
                     </div>
+
+                    <!-- Taxonomies -->
                     <div>
-                        <h3><?php _e('Post Type Tags:', 'snn'); ?></h3>
-                        <code>{post_title}</code> - <?php _e('Post title', 'snn'); ?><br>
-                        <code>{post_url}</code> - <?php _e('Post URL', 'snn'); ?><br>
-                        <code>{post_slug}</code> - <?php _e('Post slug', 'snn'); ?><br>
-                        <code>{post_date}</code> - <?php _e('Post date', 'snn'); ?><br>
-                        <code>{post_author}</code> - <?php _e('Post author', 'snn'); ?><br>
-                        <code>{post_excerpt}</code> - <?php _e('Post excerpt', 'snn'); ?><br>
-                        <code>{post_cat}</code> - <?php _e('First category', 'snn'); ?><br>
-                        <code>{post_tag}</code> - <?php _e('First tag', 'snn'); ?><br>
-                        <code>{post_taxonomyname}</code> - <?php _e('Replace with taxonomy name', 'snn'); ?><br>
-                        <code>{post_customfield_fieldname}</code> - <?php _e('Replace fieldname', 'snn'); ?>
+                        <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;"><?php _e('Taxonomies', 'snn'); ?></h3>
+                        <?php foreach ($taxonomies as $taxonomy): ?>
+                            <label style="display: block; margin: 8px 0;">
+                                <input type="checkbox" 
+                                       name="snn_seo_taxonomies_enabled[<?php echo esc_attr($taxonomy->name); ?>]" 
+                                       value="1" 
+                                       <?php checked(isset($taxonomies_enabled[$taxonomy->name]) && $taxonomies_enabled[$taxonomy->name], 1); ?>>
+                                <?php echo esc_html($taxonomy->label); ?>
+                            </label>
+                        <?php endforeach; ?>
                     </div>
+
+                    <!-- Authors -->
                     <div>
-                        <h3><?php _e('Author Tags:', 'snn'); ?></h3>
-                        <code>{author_name}</code> - <?php _e('Author name', 'snn'); ?><br>
-                        <code>{author_customfield_fieldname}</code> - <?php _e('Replace fieldname', 'snn'); ?>
-                    </div>
-                    <div>
-                        <h3><?php _e('Term Tags:', 'snn'); ?></h3>
-                        <code>{term_name}</code> - <?php _e('Term name', 'snn'); ?><br>
-                        <code>{term_desc}</code> - <?php _e('Term description', 'snn'); ?><br>
-                        <code>{term_customfield_fieldname}</code> - <?php _e('Replace fieldname', 'snn'); ?>
+                        <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;"><?php _e('Authors', 'snn'); ?></h3>
+                        <label style="display: block; margin: 8px 0;">
+                            <input type="checkbox" name="snn_seo_authors_enabled" value="1" <?php checked($authors_enabled, 1); ?>>
+                            <?php _e('Author Archives', 'snn'); ?>
+                        </label>
                     </div>
                 </div>
             </div>
 
             <!-- Post Type Single Templates -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
+            <div class="snn-seo-section">
                 <h2><?php _e('Post Type Single Page Templates', 'snn'); ?></h2>
                 <?php foreach ($post_types as $post_type): ?>
                     <?php if (!isset($post_types_enabled[$post_type->name]) || !$post_types_enabled[$post_type->name]) continue; ?>
-                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9;">
-                        <h3><?php echo esc_html($post_type->label); ?> (<?php echo esc_html($post_type->name); ?>)</h3>
+                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                        <h3 style="margin-top: 0;"><?php echo esc_html($post_type->label); ?></h3>
                         
                         <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong><br>
+                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
+                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{post_author}</code> <code>{post_date}</code> <code>{post_excerpt}</code> <code>{post_cat}</code> <code>{post_tag}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
                             <input type="text" 
                                    name="snn_seo_post_type_titles[<?php echo esc_attr($post_type->name); ?>]" 
                                    value="<?php echo esc_attr(isset($post_type_titles[$post_type->name]) ? $post_type_titles[$post_type->name] : '{post_title} - {site_title}'); ?>" 
-                                   style="width: 100%; max-width: 600px;">
+                                   style="width: 100%;">
                         </label>
                         
                         <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong><br>
+                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
+                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_excerpt}</code> <code>{post_title}</code> <code>{post_author}</code> <code>{post_date}</code></div>
                             <textarea name="snn_seo_post_type_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
-                                      style="width: 100%; max-width: 600px; height: 80px;"><?php 
+                                      style="width: 100%; height: 80px;"><?php 
                                 echo esc_textarea(isset($post_type_descriptions[$post_type->name]) ? $post_type_descriptions[$post_type->name] : '{post_excerpt}'); 
                             ?></textarea>
                         </label>
@@ -327,26 +299,28 @@ function snn_seo_settings_page_callback() {
             </div>
 
             <!-- Post Type Archive Templates -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
+            <div class="snn-seo-section">
                 <h2><?php _e('Post Type Archive Templates', 'snn'); ?></h2>
                 <?php foreach ($post_types as $post_type): ?>
                     <?php if (!isset($post_types_enabled[$post_type->name]) || !$post_types_enabled[$post_type->name]) continue; ?>
                     <?php if (!$post_type->has_archive) continue; ?>
-                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9;">
-                        <h3><?php echo esc_html($post_type->label); ?> <?php _e('Archive', 'snn'); ?></h3>
+                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                        <h3 style="margin-top: 0;"><?php echo esc_html($post_type->label); ?> <?php _e('Archive', 'snn'); ?></h3>
                         
                         <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong><br>
+                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
+                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
                             <input type="text" 
                                    name="snn_seo_archive_titles[<?php echo esc_attr($post_type->name); ?>]" 
                                    value="<?php echo esc_attr(isset($archive_titles[$post_type->name]) ? $archive_titles[$post_type->name] : '{post_title} ' . __('Archive', 'snn') . ' - {site_title}'); ?>" 
-                                   style="width: 100%; max-width: 600px;">
+                                   style="width: 100%;">
                         </label>
                         
                         <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong><br>
+                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
+                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_title}</code> <code>{site_title}</code></div>
                             <textarea name="snn_seo_archive_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
-                                      style="width: 100%; max-width: 600px; height: 80px;"><?php 
+                                      style="width: 100%; height: 80px;"><?php 
                                 echo esc_textarea(isset($archive_descriptions[$post_type->name]) ? $archive_descriptions[$post_type->name] : __('Browse all', 'snn') . ' {post_title}'); 
                             ?></textarea>
                         </label>
@@ -355,25 +329,27 @@ function snn_seo_settings_page_callback() {
             </div>
 
             <!-- Taxonomy Templates -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
+            <div class="snn-seo-section">
                 <h2><?php _e('Taxonomy Archive Templates', 'snn'); ?></h2>
                 <?php foreach ($taxonomies as $taxonomy): ?>
                     <?php if (!isset($taxonomies_enabled[$taxonomy->name]) || !$taxonomies_enabled[$taxonomy->name]) continue; ?>
-                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9;">
-                        <h3><?php echo esc_html($taxonomy->label); ?> (<?php echo esc_html($taxonomy->name); ?>)</h3>
+                    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                        <h3 style="margin-top: 0;"><?php echo esc_html($taxonomy->label); ?></h3>
                         
                         <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong><br>
+                            <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
+                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{term_name}</code> <code>{term_desc}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
                             <input type="text" 
                                    name="snn_seo_taxonomy_titles[<?php echo esc_attr($taxonomy->name); ?>]" 
                                    value="<?php echo esc_attr(isset($taxonomy_titles[$taxonomy->name]) ? $taxonomy_titles[$taxonomy->name] : '{term_name} - {site_title}'); ?>" 
-                                   style="width: 100%; max-width: 600px;">
+                                   style="width: 100%;">
                         </label>
                         
                         <label style="display: block; margin: 10px 0;">
-                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong><br>
+                            <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
+                            <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{term_desc}</code> <code>{term_name}</code></div>
                             <textarea name="snn_seo_taxonomy_descriptions[<?php echo esc_attr($taxonomy->name); ?>]" 
-                                      style="width: 100%; max-width: 600px; height: 80px;"><?php 
+                                      style="width: 100%; height: 80px;"><?php 
                                 echo esc_textarea(isset($taxonomy_descriptions[$taxonomy->name]) ? $taxonomy_descriptions[$taxonomy->name] : '{term_desc}'); 
                             ?></textarea>
                         </label>
@@ -383,30 +359,34 @@ function snn_seo_settings_page_callback() {
 
             <!-- Author Templates -->
             <?php if ($authors_enabled): ?>
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
+            <div class="snn-seo-section">
                 <h2><?php _e('Author Archive Templates', 'snn'); ?></h2>
                 
-                <label style="display: block; margin: 10px 0;">
-                    <strong><?php _e('Meta Title Template:', 'snn'); ?></strong><br>
-                    <input type="text" 
-                           name="snn_seo_author_title" 
-                           value="<?php echo esc_attr($author_title); ?>" 
-                           style="width: 100%; max-width: 600px;">
-                </label>
-                
-                <label style="display: block; margin: 10px 0;">
-                    <strong><?php _e('Meta Description Template:', 'snn'); ?></strong><br>
-                    <textarea name="snn_seo_author_description" 
-                              style="width: 100%; max-width: 600px; height: 80px;"><?php 
-                        echo esc_textarea($author_description); 
-                    ?></textarea>
-                </label>
+                <div style="padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                    <label style="display: block; margin: 10px 0;">
+                        <strong><?php _e('Meta Title Template:', 'snn'); ?></strong>
+                        <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{author_name}</code> <code>{site_title}</code> <code>{site_tagline}</code></div>
+                        <input type="text" 
+                               name="snn_seo_author_title" 
+                               value="<?php echo esc_attr($author_title); ?>" 
+                               style="width: 100%;">
+                    </label>
+                    
+                    <label style="display: block; margin: 10px 0;">
+                        <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
+                        <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{author_name}</code></div>
+                        <textarea name="snn_seo_author_description" 
+                                  style="width: 100%; height: 80px;"><?php 
+                            echo esc_textarea($author_description); 
+                        ?></textarea>
+                    </label>
+                </div>
             </div>
             <?php endif; ?>
 
             <!-- Sitemap Settings -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
-                <h2><?php _e('XML Sitemap Settings', 'snn'); ?></h2>
+            <div class="snn-seo-section">
+                <h2><?php _e('XML Sitemap', 'snn'); ?></h2>
                 
                 <label style="display: block; margin: 15px 0;">
                     <input type="checkbox" name="snn_seo_sitemap_enabled" value="1" <?php checked($sitemap_enabled, 1); ?>>
@@ -418,37 +398,39 @@ function snn_seo_settings_page_callback() {
                 </p>
 
                 <?php if ($sitemap_enabled): ?>
-                <div style="margin: 20px 0;">
-                    <h3><?php _e('Include Post Types in Sitemap:', 'snn'); ?></h3>
-                    <?php foreach ($post_types as $post_type): ?>
-                        <label style="display: block; margin: 10px 0;">
-                            <input type="checkbox" 
-                                   name="snn_seo_sitemap_post_types[<?php echo esc_attr($post_type->name); ?>]" 
-                                   value="1" 
-                                   <?php checked(isset($sitemap_post_types[$post_type->name]) && $sitemap_post_types[$post_type->name], 1); ?>>
-                            <?php echo esc_html($post_type->label); ?>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
+                    <div>
+                        <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;"><?php _e('Post Types', 'snn'); ?></h3>
+                        <?php foreach ($post_types as $post_type): ?>
+                            <label style="display: block; margin: 8px 0;">
+                                <input type="checkbox" 
+                                       name="snn_seo_sitemap_post_types[<?php echo esc_attr($post_type->name); ?>]" 
+                                       value="1" 
+                                       <?php checked(isset($sitemap_post_types[$post_type->name]) && $sitemap_post_types[$post_type->name], 1); ?>>
+                                <?php echo esc_html($post_type->label); ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
 
-                <div style="margin: 20px 0;">
-                    <h3><?php _e('Include Taxonomies in Sitemap:', 'snn'); ?></h3>
-                    <?php foreach ($taxonomies as $taxonomy): ?>
-                        <label style="display: block; margin: 10px 0;">
-                            <input type="checkbox" 
-                                   name="snn_seo_sitemap_taxonomies[<?php echo esc_attr($taxonomy->name); ?>]" 
-                                   value="1" 
-                                   <?php checked(isset($sitemap_taxonomies[$taxonomy->name]) && $sitemap_taxonomies[$taxonomy->name], 1); ?>>
-                            <?php echo esc_html($taxonomy->label); ?>
-                        </label>
-                    <?php endforeach; ?>
+                    <div>
+                        <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;"><?php _e('Taxonomies', 'snn'); ?></h3>
+                        <?php foreach ($taxonomies as $taxonomy): ?>
+                            <label style="display: block; margin: 8px 0;">
+                                <input type="checkbox" 
+                                       name="snn_seo_sitemap_taxonomies[<?php echo esc_attr($taxonomy->name); ?>]" 
+                                       value="1" 
+                                       <?php checked(isset($sitemap_taxonomies[$taxonomy->name]) && $sitemap_taxonomies[$taxonomy->name], 1); ?>>
+                                <?php echo esc_html($taxonomy->label); ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
                 <?php endif; ?>
             </div>
 
             <!-- Open Graph Settings -->
-            <div style="background: #fff; padding: 20px; margin: 20px 0;">
-                <h2><?php _e('Open Graph Settings', 'snn'); ?></h2>
+            <div class="snn-seo-section">
+                <h2><?php _e('Open Graph', 'snn'); ?></h2>
                 <label>
                     <input type="checkbox" name="snn_seo_opengraph_enabled" value="1" <?php checked($opengraph_enabled, 1); ?>>
                     <strong><?php _e('Enable Open Graph meta tags', 'snn'); ?></strong>
@@ -456,6 +438,61 @@ function snn_seo_settings_page_callback() {
                 <p class="description">
                     <?php _e('Adds Open Graph meta tags for better social media sharing (Facebook, Twitter, LinkedIn, etc.)', 'snn'); ?>
                 </p>
+                
+                <?php if ($opengraph_enabled): ?>
+                <div style="margin-top: 20px;">
+                    <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 15px;"><?php _e('Social Media Preview Examples', 'snn'); ?></h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                        <!-- Homepage Preview -->
+                        <div class="snn-og-preview">
+                            <div class="snn-og-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <svg style="width: 48px; height: 48px; opacity: 0.3;" fill="white" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                            </div>
+                            <div class="snn-og-content">
+                                <div class="snn-og-title"><?php echo esc_html(get_bloginfo('name')); ?></div>
+                                <div class="snn-og-desc"><?php echo esc_html(get_bloginfo('description')); ?></div>
+                                <div class="snn-og-url"><?php echo esc_html(parse_url(home_url(), PHP_URL_HOST)); ?></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Post Preview -->
+                        <div class="snn-og-preview">
+                            <div class="snn-og-image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <svg style="width: 48px; height: 48px; opacity: 0.3;" fill="white" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+                            </div>
+                            <div class="snn-og-content">
+                                <div class="snn-og-title"><?php _e('Example Post Title - Site Name', 'snn'); ?></div>
+                                <div class="snn-og-desc"><?php _e('This is an example of how your post will appear when shared on social media platforms...', 'snn'); ?></div>
+                                <div class="snn-og-url"><?php echo esc_html(parse_url(home_url(), PHP_URL_HOST)); ?></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Taxonomy Preview -->
+                        <div class="snn-og-preview">
+                            <div class="snn-og-image" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                <svg style="width: 48px; height: 48px; opacity: 0.3;" fill="white" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/></svg>
+                            </div>
+                            <div class="snn-og-content">
+                                <div class="snn-og-title"><?php _e('Category Name - Site Name', 'snn'); ?></div>
+                                <div class="snn-og-desc"><?php _e('Browse all posts in this category and discover related content...', 'snn'); ?></div>
+                                <div class="snn-og-url"><?php echo esc_html(parse_url(home_url(), PHP_URL_HOST)); ?></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Author Preview -->
+                        <div class="snn-og-preview">
+                            <div class="snn-og-image" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                <svg style="width: 48px; height: 48px; opacity: 0.3;" fill="white" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                            </div>
+                            <div class="snn-og-content">
+                                <div class="snn-og-title"><?php _e('Author Name - Site Name', 'snn'); ?></div>
+                                <div class="snn-og-desc"><?php _e('View all posts by this author and learn more about their work...', 'snn'); ?></div>
+                                <div class="snn-og-url"><?php echo esc_html(parse_url(home_url(), PHP_URL_HOST)); ?></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <?php endif; // End if SEO enabled ?>
@@ -473,6 +510,82 @@ function snn_seo_settings_page_callback() {
             font-size: 13px;
             display: inline-block;
             margin: 2px 0;
+        }
+        
+        .snn-seo-section {
+            background: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 900px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .snn-tags-hint {
+            font-size: 12px;
+            color: #666;
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+        
+        .snn-tags-hint code {
+            font-size: 11px;
+            padding: 1px 4px;
+        }
+        
+        /* Open Graph Preview Cards */
+        .snn-og-preview {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .snn-og-preview:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .snn-og-image {
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .snn-og-content {
+            padding: 12px;
+            background: #fafafa;
+        }
+        
+        .snn-og-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .snn-og-desc {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 5px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .snn-og-url {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
     </style>
     <?php
