@@ -216,25 +216,25 @@ function snn_seo_settings_page_callback() {
     $sitemap_post_types = is_array($sitemap_post_types) ? $sitemap_post_types : [];
     $sitemap_taxonomies = is_array($sitemap_taxonomies) ? $sitemap_taxonomies : [];
     
-    // Set defaults if empty (attachments disabled by default)
+    // Set defaults if empty (only post, page enabled; only category, post_tag enabled)
     if (empty($post_types_enabled)) {
         foreach ($post_types as $pt) {
-            $post_types_enabled[$pt->name] = ($pt->name !== 'attachment');
+            $post_types_enabled[$pt->name] = in_array($pt->name, ['post', 'page']);
         }
     }
     if (empty($taxonomies_enabled)) {
         foreach ($taxonomies as $tax) {
-            $taxonomies_enabled[$tax->name] = true;
+            $taxonomies_enabled[$tax->name] = in_array($tax->name, ['category', 'post_tag']);
         }
     }
     if (empty($sitemap_post_types)) {
         foreach ($post_types as $pt) {
-            $sitemap_post_types[$pt->name] = ($pt->name !== 'attachment');
+            $sitemap_post_types[$pt->name] = in_array($pt->name, ['post', 'page']);
         }
     }
     if (empty($sitemap_taxonomies)) {
         foreach ($taxonomies as $tax) {
-            $sitemap_taxonomies[$tax->name] = true;
+            $sitemap_taxonomies[$tax->name] = in_array($tax->name, ['category', 'post_tag']);
         }
     }
     
@@ -553,7 +553,7 @@ function snn_seo_settings_page_callback() {
         <div class="snn-reset-section" style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; max-width: 900px;">
             <details style="background: #fff; padding: 15px; border-radius: 4px;">
                 <summary style="cursor: pointer; font-weight: 600; color: #d63638; user-select: none; outline: none;">
-                    ⚠️ <?php _e('Danger Zone - Reset All SEO Settings', 'snn'); ?>
+                    ⚠️ <?php _e('Reset All SEO Settings', 'snn'); ?>
                 </summary>
                 <div style="margin-top: 15px; padding: 15px; background: #fff8f8; border: 1px solid #d63638; border-radius: 4px;">
                     <p style="margin: 0 0 15px 0; color: #444;">
