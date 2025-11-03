@@ -211,7 +211,7 @@ function snn_seo_settings_page_callback() {
             <?php settings_fields('snn_seo_settings_group'); ?>
             
             <!-- Master Enable/Disable -->
-            <div class="snn-seo-section" style="border-left: 4px solid #2271b1;">
+            <div class="snn-seo-section">
                 <h2><?php _e('SEO Features', 'snn'); ?></h2>
                 <label>
                     <input type="checkbox" name="snn_seo_enabled" value="1" <?php checked($seo_enabled, 1); ?>>
@@ -514,11 +514,9 @@ function snn_seo_settings_page_callback() {
         
         .snn-seo-section {
             background: #fff;
-            padding: 20px;
-            margin: 20px auto;
+            padding: 10px;
+            margin: 20px 0;
             max-width: 900px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
         .snn-tags-hint {
