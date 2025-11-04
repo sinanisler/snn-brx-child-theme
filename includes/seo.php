@@ -4,6 +4,58 @@
 if (!defined('ABSPATH')) exit;
 
 /**
+ * Extract text content from Bricks Builder serialized data
+ * @param int $post_id Post ID
+ * @return string Extracted text content
+ */
+function snn_seo_extract_bricks_content($post_id) {
+    $bricks_data = get_post_meta($post_id, '_bricks_page_content_2', true);
+    
+    if (empty($bricks_data)) {
+        return '';
+    }
+    
+    // Unserialize the data
+    $elements = maybe_unserialize($bricks_data);
+    
+    if (!is_array($elements)) {
+        return '';
+    }
+    
+    $text_content = [];
+    
+    // Loop through all elements and extract text
+    foreach ($elements as $element) {
+        if (!is_array($element) || !isset($element['settings'])) {
+            continue;
+        }
+        
+        $settings = $element['settings'];
+        
+        // Check for text content in various fields
+        if (isset($settings['text']) && !empty($settings['text'])) {
+            $text = $settings['text'];
+            
+            // Skip if it contains dynamic data tags like {all_custom_fields}
+            if (strpos($text, '{') !== false && strpos($text, '}') !== false) {
+                continue;
+            }
+            
+            // Strip HTML tags and add to collection
+            $clean_text = wp_strip_all_tags($text);
+            $clean_text = trim($clean_text);
+            
+            if (!empty($clean_text)) {
+                $text_content[] = $clean_text;
+            }
+        }
+    }
+    
+    // Join all text pieces with space
+    return implode(' ', $text_content);
+}
+
+/**
  * Add SEO Settings submenu page
  */
 function snn_seo_add_submenu_page() {
@@ -547,7 +599,15 @@ function snn_seo_replace_tags($template, $context = []) {
             if (!empty($post->post_excerpt)) {
                 $excerpt = $post->post_excerpt;
             } else {
-                $excerpt = wp_strip_all_tags(strip_shortcodes($post->post_content));
+                // Try to get content from Bricks builder first
+                $bricks_content = snn_seo_extract_bricks_content($post->ID);
+                
+                if (!empty($bricks_content)) {
+                    $excerpt = $bricks_content;
+                } else {
+                    // Fallback to post content
+                    $excerpt = wp_strip_all_tags(strip_shortcodes($post->post_content));
+                }
             }
             $excerpt = wp_trim_words($excerpt, 30, '...');
             $template = str_replace('{post_excerpt}', $excerpt, $template);

@@ -31,6 +31,7 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-custom-post-types',      'label' => __('Post Types', 'snn'),                       'dashicon' => 'dashicons-admin-post'),
                 array('slug' => 'snn-custom-fields',          'label' => __('Custom Fields', 'snn'),                    'dashicon' => 'dashicons-admin-page'),
                 array('slug' => 'snn-taxonomies',             'label' => __('Taxonomies', 'snn'),                       'dashicon' => 'dashicons-category'),
+                array('slug' => 'snn-seo-settings',           'label' => __('SEO Settings', 'snn'),                     'dashicon' => 'dashicons-editor-textcolor'),
                 array('slug' => 'snn-login-settings',         'label' => __('Login Settings', 'snn'),                   'dashicon' => 'dashicons-admin-users'),
                 array('slug' => 'snn-404-logs',               'label' => __('404 Logs', 'snn'),                         'dashicon' => 'dashicons-warning'),
                 array('slug' => 'snn-301-redirects',          'label' => __('301 Redirects', 'snn'),                    'dashicon' => 'dashicons-share'),
@@ -45,7 +46,6 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-media-settings',         'label' => __('Media Settings', 'snn'),                   'dashicon' => 'dashicons-format-image'),
                 array('slug' => 'snn-activity-log',           'label' => __('Activity Logs', 'snn'),                    'dashicon' => 'dashicons-text'),
                 array('slug' => 'snn-custom-codes-snippets',  'label' => __('Code Snippets', 'snn'),                    'dashicon' => 'dashicons-editor-code'),
-                array('slug' => 'snn-seo-settings',           'label' => __('SEO Settings', 'snn'),                     'dashicon' => 'dashicons-editor-textcolor'),
             );
             
             foreach ($menu_items as $item) {
