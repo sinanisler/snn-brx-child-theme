@@ -1145,9 +1145,13 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             if (empty($longitude)) $longitude = '28.9784';
             
             $map_id = 'map_' . $id_attribute_base;
+            $search_id = 'map_search_' . $id_attribute_base;
             
             echo '<div class="snn-map-field-wrapper">';
-            echo '<div id="' . esc_attr($map_id) . '" class="snn-map-container" style="width:100%; height:400px; border:1px solid #ddd; margin-bottom:10px;"></div>';
+            echo '<div style="margin-bottom: 8px;">';
+            echo '<input type="text" id="' . esc_attr($search_id) . '" placeholder="' . esc_attr__('Search for a place (city, country, address...)', 'snn') . '" style="width: 100%; padding: 6px 10px; font-size: 13px; border: 1px solid #ddd; border-radius: 3px;" />';
+            echo '</div>';
+            echo '<div id="' . esc_attr($map_id) . '" class="snn-map-container" style="width:100%; height:300px; border:1px solid #ddd; margin-bottom:10px;"></div>';
             echo '<input type="hidden" id="' . esc_attr($id_attribute_base . '_latitude') 
                  . '" name="' . esc_attr($prefix . '[' . $base_field_part . '_latitude]') 
                  . '" value="' . esc_attr($latitude) . '" class="snn-map-latitude"' . $disabled_attr . ' />';
@@ -1166,8 +1170,17 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                 jQuery(document).ready(function($) {
                     if (typeof L !== "undefined") {
                         var mapId = "' . esc_js($map_id) . '";
+                        var searchId = "' . esc_js($search_id) . '";
                         var lat = parseFloat("' . esc_js($latitude) . '") || 41.0082;
                         var lng = parseFloat("' . esc_js($longitude) . '") || 28.9784;
+                        
+                        // Custom "+" icon for the marker
+                        var plusIcon = L.divIcon({
+                            className: "custom-plus-marker",
+                            html: "<div style=\"font-size: 32px; font-weight: bold; color: #000000; text-align: center; line-height: 32px; text-shadow: 0 0 3px white, 0 0 3px white, 0 0 3px white;\">+</div>",
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                        });
                         
                         var map = L.map(mapId).setView([lat, lng], 13);
                         
@@ -1176,7 +1189,15 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                             maxZoom: 19
                         }).addTo(map);
                         
-                        var marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+                        var marker = L.marker([lat, lng], {
+                            draggable: true,
+                            icon: plusIcon
+                        }).addTo(map);
+                        
+                        // Fix map loading issue - invalidate size after container is ready
+                        setTimeout(function() {
+                            map.invalidateSize();
+                        }, 100);
                         
                         function updateCoordinates(latlng) {
                             var latInput = $("#' . esc_js($id_attribute_base . '_latitude') . '");
@@ -1198,6 +1219,46 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                             marker.setLatLng(e.latlng);
                             updateCoordinates(e.latlng);
                         });
+                        
+                        // Search functionality using Nominatim
+                        var searchTimeout;
+                        $("#" + searchId).on("keypress", function(e) {
+                            if (e.which === 13) { // Enter key
+                                e.preventDefault();
+                                var query = $(this).val().trim();
+                                if (query.length > 0) {
+                                    searchLocation(query);
+                                }
+                            }
+                        });
+                        
+                        function searchLocation(query) {
+                            $.ajax({
+                                url: "https://nominatim.openstreetmap.org/search",
+                                data: {
+                                    q: query,
+                                    format: "json",
+                                    limit: 1
+                                },
+                                dataType: "json",
+                                success: function(data) {
+                                    if (data && data.length > 0) {
+                                        var result = data[0];
+                                        var newLat = parseFloat(result.lat);
+                                        var newLng = parseFloat(result.lon);
+                                        
+                                        map.setView([newLat, newLng], 13);
+                                        marker.setLatLng([newLat, newLng]);
+                                        updateCoordinates({lat: newLat, lng: newLng});
+                                    } else {
+                                        alert("Location not found. Please try a different search term.");
+                                    }
+                                },
+                                error: function() {
+                                    alert("Error searching for location. Please try again.");
+                                }
+                            });
+                        }
                     }
                 });
                 </script>';
@@ -1552,7 +1613,7 @@ function snn_display_author_custom_fields($user) {
     .snn-field-wrap select,
     .snn-field-wrap textarea {
         width: 100%; 
-        max-width: 400px; 
+        max-width: 300px; 
         padding: 6px;
         box-sizing: border-box;
     }
