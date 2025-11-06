@@ -157,6 +157,35 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 ],
             ],
         ];
+
+        // Control: Enable Post Type Query
+        $this->controls['enable_post_type_query'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Use Post Type for Markers', 'snn' ),
+            'type'    => 'checkbox',
+            'inline'  => true,
+            'default' => false,
+            'description' => esc_html__( 'Enable to populate map markers from a custom post type. Uses custom fields: locations_latitude, locations_longitude', 'snn' ),
+        ];
+
+        // Control: Select Post Type
+        $post_types = get_post_types( [ 'public' => true ], 'objects' );
+        $post_type_options = [];
+        
+        foreach ( $post_types as $post_type ) {
+            $post_type_options[ $post_type->name ] = $post_type->label;
+        }
+
+        $this->controls['post_type_select'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Select Post Type', 'snn' ),
+            'type'        => 'select',
+            'options'     => $post_type_options,
+            'inline'      => true,
+            'placeholder' => esc_html__( 'Select post type', 'snn' ),
+            'default'     => 'post',
+            'required'    => [ 'enable_post_type_query', '=', true ],
+        ];
     }
 
     public function enqueue_scripts() {
@@ -165,14 +194,75 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
     }
 
     public function render() {
-        $enable_scroll_zoom = isset( $this->settings['enable_scroll_zoom'] ) ? (bool) $this->settings['enable_scroll_zoom'] : false;
-        $map_center_lat     = isset( $this->settings['map_center_lat'] ) ? floatval( $this->settings['map_center_lat'] ) : 51.5;
-        $map_center_lng     = isset( $this->settings['map_center_lng'] ) ? floatval( $this->settings['map_center_lng'] ) : -0.09;
-        $zoom_level         = isset( $this->settings['zoom_level'] ) ? intval( $this->settings['zoom_level'] ) : 13;
-        $markers            = isset( $this->settings['markers'] ) ? $this->settings['markers'] : [];
-        $map_height         = isset( $this->settings['map_height'] ) ? intval( $this->settings['map_height'] ) : 400;
-        $popup_font_size    = isset( $this->settings['popup_font_size'] ) ? intval( $this->settings['popup_font_size'] ) : 14;
-        $map_style          = isset( $this->settings['map_style'] ) ? $this->settings['map_style'] : 'default';
+        $enable_scroll_zoom     = isset( $this->settings['enable_scroll_zoom'] ) ? (bool) $this->settings['enable_scroll_zoom'] : false;
+        $enable_post_type_query = isset( $this->settings['enable_post_type_query'] ) ? (bool) $this->settings['enable_post_type_query'] : false;
+        $map_center_lat         = isset( $this->settings['map_center_lat'] ) ? floatval( $this->settings['map_center_lat'] ) : 51.5;
+        $map_center_lng         = isset( $this->settings['map_center_lng'] ) ? floatval( $this->settings['map_center_lng'] ) : -0.09;
+        $zoom_level             = isset( $this->settings['zoom_level'] ) ? intval( $this->settings['zoom_level'] ) : 13;
+        $markers                = isset( $this->settings['markers'] ) ? $this->settings['markers'] : [];
+        $map_height             = isset( $this->settings['map_height'] ) ? intval( $this->settings['map_height'] ) : 400;
+        $popup_font_size        = isset( $this->settings['popup_font_size'] ) ? intval( $this->settings['popup_font_size'] ) : 14;
+        $map_style              = isset( $this->settings['map_style'] ) ? $this->settings['map_style'] : 'default';
+
+        // If post type query is enabled, fetch markers from posts
+        if ( $enable_post_type_query ) {
+            $post_type = isset( $this->settings['post_type_select'] ) ? $this->settings['post_type_select'] : 'post';
+            
+            $query_args = [
+                'post_type'      => $post_type,
+                'posts_per_page' => -1,
+                'post_status'    => 'publish',
+                'meta_query'     => [
+                    'relation' => 'AND',
+                    [
+                        'key'     => 'locations_latitude',
+                        'compare' => 'EXISTS',
+                    ],
+                    [
+                        'key'     => 'locations_longitude',
+                        'compare' => 'EXISTS',
+                    ],
+                ],
+            ];
+
+            $posts_query = new \WP_Query( $query_args );
+            $markers = [];
+
+            if ( $posts_query->have_posts() ) {
+                while ( $posts_query->have_posts() ) {
+                    $posts_query->the_post();
+                    $post_id = get_the_ID();
+
+                    $lat = get_post_meta( $post_id, 'locations_latitude', true );
+                    $lng = get_post_meta( $post_id, 'locations_longitude', true );
+
+                    if ( ! empty( $lat ) && ! empty( $lng ) ) {
+                        $marker = [
+                            'lat'        => floatval( $lat ),
+                            'lng'        => floatval( $lng ),
+                            'popup'      => '<h3>' . get_the_title() . '</h3>' . get_the_content(),
+                            'icon_size'  => 32,
+                            'icon_color' => '#000000',
+                        ];
+
+                        // Check for featured image
+                        if ( has_post_thumbnail( $post_id ) ) {
+                            $thumbnail_url = get_the_post_thumbnail_url( $post_id, 'thumbnail' );
+                            $marker['featured_image'] = $thumbnail_url;
+                        } else {
+                            // Default icon if no featured image
+                            $marker['icon'] = [
+                                'library' => 'fontawesome',
+                                'icon'    => 'fa-map-marker-alt',
+                            ];
+                        }
+
+                        $markers[] = $marker;
+                    }
+                }
+                wp_reset_postdata();
+            }
+        }
 
         // Set up the root attributes using Bricks methods.
         // Here we add our wrapper class and inline style.
@@ -273,44 +363,70 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 // Icon size
                 $icon_size = isset( $marker['icon_size'] ) ? intval( $marker['icon_size'] ) : 24;
 
-                // Determine the proper icon color value
-                $icon_color = '';
-                if ( is_array( $marker['icon_color'] ) ) {
-                    // Check for CSS variable first
-                    if ( !empty( $marker['icon_color']['css'] ) ) {
-                        $icon_color = $marker['icon_color']['css'];
-                    }
-                    // Then check for rgba
-                    elseif ( !empty( $marker['icon_color']['rgba'] ) ) {
-                        $icon_color = $marker['icon_color']['rgba'];
-                    }
-                    // Then check for hex
-                    elseif ( !empty( $marker['icon_color']['hex'] ) ) {
-                        $icon_color = $marker['icon_color']['hex'];
-                    }
-                    // Fallback to raw if present
-                    elseif ( !empty( $marker['icon_color']['raw'] ) ) {
-                        $icon_color = $marker['icon_color']['raw'];
-                    }
-                } else {
-                    $icon_color = $marker['icon_color'];
-                }
+                // Check if this marker uses a featured image
+                $use_featured_image = isset( $marker['featured_image'] ) && ! empty( $marker['featured_image'] );
 
-                // Render the icon using $this->render_icon()
-                ob_start();
-                echo $this->render_icon( $marker['icon'] );
-                $icon_html = ob_get_clean();
+                if ( $use_featured_image ) {
+                    $featured_image_url = esc_url( $marker['featured_image'] );
+                    $icon_label = !empty( $popup ) ? wp_strip_all_tags( $popup ) : 'Map marker';
+                    $icon_label_escaped = str_replace( "'", "\\'", $icon_label );
+                    $popup_escaped = str_replace( "'", "\\'", $popup );
+                    ?>
 
-                // Escape icon HTML and popup for use in JS
-                $icon_html_escaped  = str_replace( "'", "\\'", $icon_html );
-                $popup_escaped      = str_replace( "'", "\\'", $popup );
+                    // Create marker with featured image
+                    var imageIcon<?php echo $index; ?> = L.icon({
+                        iconUrl: '<?php echo $featured_image_url; ?>',
+                        iconSize: [<?php echo $icon_size; ?>, <?php echo $icon_size; ?>],
+                        iconAnchor: [<?php echo $icon_size / 2; ?>, <?php echo $icon_size; ?>],
+                        popupAnchor: [0, -<?php echo $icon_size; ?>]
+                    });
 
-                // Set ARIA label for the icon (using the popup text if available)
-                $icon_label = !empty( $popup ) ? wp_strip_all_tags( $popup ) : 'Map marker';
-                $icon_label_escaped = str_replace( "'", "\\'", $icon_label );
-            ?>
+                    var marker<?php echo $index; ?> = L.marker(
+                        [<?php echo $lat; ?>, <?php echo $lng; ?>],
+                        { icon: imageIcon<?php echo $index; ?> }
+                    ).bindPopup(
+                        '<div class="custom-openstreetmap-popup"><?php echo str_replace(array("\r", "\n"), '', $popup_escaped); ?></div>'
+                    ).addTo(map);
 
-            // Create marker
+                <?php } else {
+                    // Determine the proper icon color value
+                    $icon_color = '';
+                    if ( is_array( $marker['icon_color'] ) ) {
+                        // Check for CSS variable first
+                        if ( !empty( $marker['icon_color']['css'] ) ) {
+                            $icon_color = $marker['icon_color']['css'];
+                        }
+                        // Then check for rgba
+                        elseif ( !empty( $marker['icon_color']['rgba'] ) ) {
+                            $icon_color = $marker['icon_color']['rgba'];
+                        }
+                        // Then check for hex
+                        elseif ( !empty( $marker['icon_color']['hex'] ) ) {
+                            $icon_color = $marker['icon_color']['hex'];
+                        }
+                        // Fallback to raw if present
+                        elseif ( !empty( $marker['icon_color']['raw'] ) ) {
+                            $icon_color = $marker['icon_color']['raw'];
+                        }
+                    } else {
+                        $icon_color = $marker['icon_color'];
+                    }
+
+                    // Render the icon using $this->render_icon()
+                    ob_start();
+                    echo $this->render_icon( $marker['icon'] );
+                    $icon_html = ob_get_clean();
+
+                    // Escape icon HTML and popup for use in JS
+                    $icon_html_escaped  = str_replace( "'", "\\'", $icon_html );
+                    $popup_escaped      = str_replace( "'", "\\'", $popup );
+
+                    // Set ARIA label for the icon (using the popup text if available)
+                    $icon_label = !empty( $popup ) ? wp_strip_all_tags( $popup ) : 'Map marker';
+                    $icon_label_escaped = str_replace( "'", "\\'", $icon_label );
+                ?>
+
+            // Create marker with custom icon
             var marker<?php echo $index; ?> = L.marker(
                 [<?php echo $lat; ?>, <?php echo $lng; ?>],
                 {
@@ -324,6 +440,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             ).bindPopup(
                 '<div class="custom-openstreetmap-popup"><?php echo str_replace(array("\r", "\n"), '', $popup_escaped); ?></div>'
             ).addTo(map);
+
+            <?php } ?>
 
             <?php endforeach; ?>
         });
