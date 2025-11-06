@@ -873,6 +873,16 @@ function snn_seo_output_meta_tags() {
         echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
     }
     
+    // Robots noindex meta tag (for singular posts/pages)
+    if (is_singular()) {
+        $post_id = get_queried_object_id();
+        $noindex = get_post_meta($post_id, '_snn_seo_noindex', true);
+        
+        if ($noindex === '1') {
+            echo '<meta name="robots" content="noindex, nofollow">' . "\n";
+        }
+    }
+    
     // Canonical URL
     if (!empty($canonical_url)) {
         echo '<link rel="canonical" href="' . esc_url($canonical_url) . '">' . "\n";
@@ -969,6 +979,7 @@ function snn_seo_meta_box_callback($post) {
     
     $title = get_post_meta($post->ID, '_snn_seo_title', true);
     $description = get_post_meta($post->ID, '_snn_seo_description', true);
+    $noindex = get_post_meta($post->ID, '_snn_seo_noindex', true);
     
     ?>
     <div style="margin: 15px 0;">
@@ -998,6 +1009,21 @@ function snn_seo_meta_box_callback($post) {
         <p class="description">
             <?php _e('Recommended max length: 155 characters', 'snn'); ?> 
             (<span id="snn-desc-count">0</span> <?php _e('characters', 'snn'); ?>)
+        </p>
+    </div>
+    
+    <div style="margin: 15px 0;">
+        <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" 
+                   name="snn_seo_noindex" 
+                   value="1"
+                   <?php checked($noindex, '1'); ?>>
+            <span style="font-weight: 600;">
+                <?php _e('No Index', 'snn'); ?>
+            </span>
+        </label>
+        <p class="description">
+            <?php _e('Check this to prevent search engines from indexing this page (adds noindex meta tag).', 'snn'); ?>
         </p>
     </div>
     
@@ -1059,6 +1085,13 @@ function snn_seo_save_meta_box($post_id) {
         update_post_meta($post_id, '_snn_seo_description', $description);
     } else {
         delete_post_meta($post_id, '_snn_seo_description');
+    }
+    
+    // Save noindex
+    if (isset($_POST['snn_seo_noindex']) && $_POST['snn_seo_noindex'] === '1') {
+        update_post_meta($post_id, '_snn_seo_noindex', '1');
+    } else {
+        delete_post_meta($post_id, '_snn_seo_noindex');
     }
 }
 add_action('save_post', 'snn_seo_save_meta_box', 10, 1);
