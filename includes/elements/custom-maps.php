@@ -206,12 +206,21 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         // If post type query is enabled, fetch markers from posts
         if ( $enable_post_type_query ) {
+            // Store current global post to restore it later (prevent any loop conflicts)
+            global $post;
+            $original_post = $post;
+            
             $post_type = isset( $this->settings['post_type_select'] ) ? $this->settings['post_type_select'] : 'post';
             
+            // Create completely isolated query args
             $query_args = [
                 'post_type'      => $post_type,
                 'posts_per_page' => -1,
                 'post_status'    => 'publish',
+                'fields'         => 'ids', // Get only IDs first for better performance
+                'no_found_rows'  => true,  // Skip pagination calculations
+                'ignore_sticky_posts' => true, // Don't let sticky posts interfere
+                'suppress_filters' => false, // Allow filters but ensure clean query
                 'meta_query'     => [
                     'relation' => 'AND',
                     [
@@ -219,48 +228,78 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                         'compare' => 'EXISTS',
                     ],
                     [
+                        'key'     => 'locations_latitude',
+                        'value'   => '',
+                        'compare' => '!=',
+                    ],
+                    [
                         'key'     => 'locations_longitude',
                         'compare' => 'EXISTS',
+                    ],
+                    [
+                        'key'     => 'locations_longitude',
+                        'value'   => '',
+                        'compare' => '!=',
                     ],
                 ],
             ];
 
+            // Create new isolated query
             $posts_query = new \WP_Query( $query_args );
-            $markers = [];
+            $markers = []; // Always reset markers array
 
-            if ( $posts_query->have_posts() ) {
-                while ( $posts_query->have_posts() ) {
-                    $posts_query->the_post();
-                    $post_id = get_the_ID();
-
+            // Process posts if found
+            if ( ! empty( $posts_query->posts ) ) {
+                foreach ( $posts_query->posts as $post_id ) {
+                    // Get meta directly without using template tags (no loop context needed)
                     $lat = get_post_meta( $post_id, 'locations_latitude', true );
                     $lng = get_post_meta( $post_id, 'locations_longitude', true );
 
-                    if ( ! empty( $lat ) && ! empty( $lng ) ) {
-                        $marker = [
-                            'lat'        => floatval( $lat ),
-                            'lng'        => floatval( $lng ),
-                            'popup'      => '<h3>' . get_the_title() . '</h3>' . get_the_content(),
-                            'icon_size'  => 32,
-                            'icon_color' => '#000000',
-                        ];
-
-                        // Check for featured image
-                        if ( has_post_thumbnail( $post_id ) ) {
-                            $thumbnail_url = get_the_post_thumbnail_url( $post_id, 'thumbnail' );
-                            $marker['featured_image'] = $thumbnail_url;
-                        } else {
-                            // Default icon if no featured image
-                            $marker['icon'] = [
-                                'library' => 'fontawesome',
-                                'icon'    => 'fa-map-marker-alt',
+                    // Validate coordinates are numeric and not empty
+                    if ( ! empty( $lat ) && ! empty( $lng ) && is_numeric( $lat ) && is_numeric( $lng ) ) {
+                        // Validate coordinate ranges
+                        $lat_float = floatval( $lat );
+                        $lng_float = floatval( $lng );
+                        
+                        if ( $lat_float >= -90 && $lat_float <= 90 && $lng_float >= -180 && $lng_float <= 180 ) {
+                            // Get post data without affecting global loop
+                            $post_title = get_the_title( $post_id );
+                            $post_obj = get_post( $post_id );
+                            $post_content = ! empty( $post_obj->post_content ) ? apply_filters( 'the_content', $post_obj->post_content ) : '';
+                            
+                            $marker = [
+                                'lat'        => $lat_float,
+                                'lng'        => $lng_float,
+                                'popup'      => '<h3>' . esc_html( $post_title ) . '</h3>' . $post_content,
+                                'icon_size'  => 32,
+                                'icon_color' => '#000000',
                             ];
-                        }
 
-                        $markers[] = $marker;
+                            // Check for featured image
+                            if ( has_post_thumbnail( $post_id ) ) {
+                                $thumbnail_url = get_the_post_thumbnail_url( $post_id, 'thumbnail' );
+                                $marker['featured_image'] = $thumbnail_url;
+                            } else {
+                                // Default icon if no featured image
+                                $marker['icon'] = [
+                                    'library' => 'fontawesome',
+                                    'icon'    => 'fa-map-marker-alt',
+                                ];
+                            }
+
+                            $markers[] = $marker;
+                        }
                     }
                 }
-                wp_reset_postdata();
+            }
+            
+            // Clean up query and restore original global post state
+            wp_reset_postdata();
+            $post = $original_post;
+            
+            // If global $wp_query exists, ensure it's not affected
+            if ( isset( $GLOBALS['wp_query'] ) ) {
+                $GLOBALS['wp_query']->reset_postdata();
             }
         }
 
