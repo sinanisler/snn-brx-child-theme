@@ -202,6 +202,17 @@ function snn_seo_settings_page_callback() {
         
         <?php settings_errors('snn_seo_messages'); ?>
         
+        <?php
+        // Show permalink flush reminder if sitemap settings changed
+        if (get_transient('snn_seo_flush_needed')): ?>
+            <div class="notice notice-info">
+                <p>
+                    <strong><?php _e('Reminder:', 'snn'); ?></strong>
+                    <?php _e('After changing sitemap settings, please go to Settings > Permalinks and click "Save Changes" to refresh your sitemap rules.', 'snn'); ?>
+                </p>
+            </div>
+        <?php endif; ?>
+        
         <form method="post" action="options.php">
             <?php settings_fields('snn_seo_settings_group'); ?>
             
@@ -1365,34 +1376,6 @@ function snn_seo_flush_rules() {
     flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'snn_seo_flush_rules');
-
-/**
- * Add admin notice to flush permalinks if needed
- */
-function snn_seo_admin_notice() {
-    if (!get_option('snn_seo_enabled')) {
-        return;
-    }
-    
-    if (!get_option('snn_seo_sitemap_enabled')) {
-        return;
-    }
-    
-    // Check if we need to flush
-    $flush_needed = get_transient('snn_seo_flush_needed');
-    
-    if ($flush_needed) {
-        ?>
-        <div class="notice notice-warning is-dismissible">
-            <p>
-                <strong><?php _e('SEO Settings:', 'snn'); ?></strong>
-                <?php _e('Please go to Settings > Permalinks and click "Save Changes" to refresh your sitemap rules.', 'snn'); ?>
-            </p>
-        </div>
-        <?php
-    }
-}
-add_action('admin_notices', 'snn_seo_admin_notice');
 
 /**
  * Set transient when sitemap settings change
