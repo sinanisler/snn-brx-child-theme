@@ -165,7 +165,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             'type'    => 'checkbox',
             'inline'  => true,
             'default' => false,
-            'description' => esc_html__( 'Enable to populate map markers from a custom post type. Uses custom fields: locations_latitude, locations_longitude', 'snn' ),
+            'description' => esc_html__( 'Enable to populate map markers from a custom post type. Uses custom fields: location_latitude, location_longitude', 'snn' ),
         ];
 
         // Control: Select Post Type
@@ -224,20 +224,20 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 'meta_query'     => [
                     'relation' => 'AND',
                     [
-                        'key'     => 'locations_latitude',
+                        'key'     => 'location_latitude',
                         'compare' => 'EXISTS',
                     ],
                     [
-                        'key'     => 'locations_latitude',
+                        'key'     => 'location_latitude',
                         'value'   => '',
                         'compare' => '!=',
                     ],
                     [
-                        'key'     => 'locations_longitude',
+                        'key'     => 'location_longitude',
                         'compare' => 'EXISTS',
                     ],
                     [
-                        'key'     => 'locations_longitude',
+                        'key'     => 'location_longitude',
                         'value'   => '',
                         'compare' => '!=',
                     ],
@@ -252,8 +252,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             if ( ! empty( $posts_query->posts ) ) {
                 foreach ( $posts_query->posts as $post_id ) {
                     // Get meta directly without using template tags (no loop context needed)
-                    $lat = get_post_meta( $post_id, 'locations_latitude', true );
-                    $lng = get_post_meta( $post_id, 'locations_longitude', true );
+                    $lat = get_post_meta( $post_id, 'location_latitude', true );
+                    $lng = get_post_meta( $post_id, 'location_longitude', true );
 
                     // Validate coordinates are numeric and not empty
                     if ( ! empty( $lat ) && ! empty( $lng ) && is_numeric( $lat ) && is_numeric( $lng ) ) {

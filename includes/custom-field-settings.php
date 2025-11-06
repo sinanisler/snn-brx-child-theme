@@ -1111,8 +1111,8 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             
             // Get values based on context
             if ($context === 'options_page') {
-                $latitude = get_option('snn_opt_' . $field_name . '_latitude', '');
-                $longitude = get_option('snn_opt_' . $field_name . '_longitude', '');
+                $latitude = get_option('snn_opt_location_latitude', '');
+                $longitude = get_option('snn_opt_location_longitude', '');
             } else {
                 // For post meta, taxonomy, and author contexts - values are passed separately
                 // We'll use generic getter that works for all
@@ -1121,22 +1121,22 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
                     // Taxonomy context
                     $term_id = isset($_GET['tag_ID']) ? intval($_GET['tag_ID']) : 0;
                     if ($term_id) {
-                        $latitude = get_term_meta($term_id, $field_name . '_latitude', true);
-                        $longitude = get_term_meta($term_id, $field_name . '_longitude', true);
+                        $latitude = get_term_meta($term_id, 'location_latitude', true);
+                        $longitude = get_term_meta($term_id, 'location_longitude', true);
                     }
                 } elseif (in_array($pagenow, ['profile.php', 'user-edit.php'])) {
                     // Author context
                     $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : get_current_user_id();
                     if ($user_id) {
-                        $latitude = get_user_meta($user_id, $field_name . '_latitude', true);
-                        $longitude = get_user_meta($user_id, $field_name . '_longitude', true);
+                        $latitude = get_user_meta($user_id, 'location_latitude', true);
+                        $longitude = get_user_meta($user_id, 'location_longitude', true);
                     }
                 } else {
                     // Post meta context
                     $post_id = get_the_ID();
                     if ($post_id) {
-                        $latitude = get_post_meta($post_id, $field_name . '_latitude', true);
-                        $longitude = get_post_meta($post_id, $field_name . '_longitude', true);
+                        $latitude = get_post_meta($post_id, 'location_latitude', true);
+                        $longitude = get_post_meta($post_id, 'location_longitude', true);
                     }
                 }
             }
@@ -1153,17 +1153,17 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             echo '</div>';
             echo '<div id="' . esc_attr($map_id) . '" class="snn-map-container" style="width:100%; height:300px; border:1px solid #ddd; margin-bottom:10px;"></div>';
             echo '<input type="hidden" id="' . esc_attr($id_attribute_base . '_latitude') 
-                 . '" name="' . esc_attr($prefix . '[' . $base_field_part . '_latitude]') 
+                 . '" name="' . esc_attr($prefix . '[location_latitude]') 
                  . '" value="' . esc_attr($latitude) . '" class="snn-map-latitude"' . $disabled_attr . ' />';
             echo '<input type="hidden" id="' . esc_attr($id_attribute_base . '_longitude') 
-                 . '" name="' . esc_attr($prefix . '[' . $base_field_part . '_longitude]') 
+                 . '" name="' . esc_attr($prefix . '[location_longitude]') 
                  . '" value="' . esc_attr($longitude) . '" class="snn-map-longitude"' . $disabled_attr . ' />';
             echo '<div class="snn-map-coordinates">';
             echo '<span><strong>' . esc_html__('Latitude:', 'snn') . '</strong> <span class="snn-map-lat-display">' . esc_html($latitude) . '</span></span> ';
             echo '<span><strong>' . esc_html__('Longitude:', 'snn') . '</strong> <span class="snn-map-lng-display">' . esc_html($longitude) . '</span></span>';
             echo '</div>';
             echo '</div>';
-            echo '<br><small>Field Names: (locations_latitude , locations_longitude)</small>';
+            echo '<br><small>Field Names: (location_latitude , location_longitude)</small>';
             
             if (!$is_template) {
                 echo '<script>
@@ -1301,8 +1301,8 @@ function snn_save_custom_fields_meta($post_id) {
         }
 
         if ($field['type'] === 'map') {
-            $lat_field = $field_name . '_latitude';
-            $lng_field = $field_name . '_longitude';
+            $lat_field = 'location_latitude';
+            $lng_field = 'location_longitude';
             
             if (isset($posted_data[$lat_field])) {
                 $lat_value = sanitize_text_field($posted_data[$lat_field]);
@@ -1473,8 +1473,8 @@ function snn_save_taxonomy_field_data($term_id) {
         $field_name = $field['name'];
         
         if ($field['type'] === 'map') {
-            $lat_field = $field_name . '_latitude';
-            $lng_field = $field_name . '_longitude';
+            $lat_field = 'location_latitude';
+            $lng_field = 'location_longitude';
             
             if (isset($posted_data[$lat_field])) {
                 $lat_value = sanitize_text_field($posted_data[$lat_field]);
@@ -1648,8 +1648,8 @@ function snn_save_author_custom_fields($user_id) {
         $field_name = $field['name'];
         
         if ($field['type'] === 'map') {
-            $lat_field = $field_name . '_latitude';
-            $lng_field = $field_name . '_longitude';
+            $lat_field = 'location_latitude';
+            $lng_field = 'location_longitude';
             
             if (isset($posted_data[$lat_field])) {
                 $lat_value = sanitize_text_field($posted_data[$lat_field]);
@@ -2130,24 +2130,24 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
             $option_key = 'snn_opt_' . $field_name; 
 
             if ($field_config['type'] === 'map') {
-                $lat_field = $field_name . '_latitude';
-                $lng_field = $field_name . '_longitude';
+                $lat_field = 'location_latitude';
+                $lng_field = 'location_longitude';
                 
                 if (isset($posted_options_data[$lat_field])) {
                     $lat_value = sanitize_text_field($posted_options_data[$lat_field]);
                     if ($lat_value !== '') {
-                        update_option('snn_opt_' . $lat_field, $lat_value);
+                        update_option('snn_opt_location_latitude', $lat_value);
                     } else {
-                        delete_option('snn_opt_' . $lat_field);
+                        delete_option('snn_opt_location_latitude');
                     }
                 }
                 
                 if (isset($posted_options_data[$lng_field])) {
                     $lng_value = sanitize_text_field($posted_options_data[$lng_field]);
                     if ($lng_value !== '') {
-                        update_option('snn_opt_' . $lng_field, $lng_value);
+                        update_option('snn_opt_location_longitude', $lng_value);
                     } else {
-                        delete_option('snn_opt_' . $lng_field);
+                        delete_option('snn_opt_location_longitude');
                     }
                 }
                 continue;
