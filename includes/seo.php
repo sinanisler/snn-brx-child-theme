@@ -981,6 +981,21 @@ function snn_seo_meta_box_callback($post) {
     $description = get_post_meta($post->ID, '_snn_seo_description', true);
     $noindex = get_post_meta($post->ID, '_snn_seo_noindex', true);
     
+    // Get template settings for this post type
+    $post_type = get_post_type($post);
+    $post_type_titles = get_option('snn_seo_post_type_titles', []);
+    $post_type_descriptions = get_option('snn_seo_post_type_descriptions', []);
+    $post_type_titles = is_array($post_type_titles) ? $post_type_titles : [];
+    $post_type_descriptions = is_array($post_type_descriptions) ? $post_type_descriptions : [];
+    
+    // Get the configured template or use default
+    $title_template = isset($post_type_titles[$post_type]) && !empty($post_type_titles[$post_type]) 
+        ? $post_type_titles[$post_type] 
+        : '{post_title} - {site_title}';
+    $description_template = isset($post_type_descriptions[$post_type]) && !empty($post_type_descriptions[$post_type]) 
+        ? $post_type_descriptions[$post_type] 
+        : '{post_excerpt}';
+    
     ?>
     <div style="margin: 15px 0;">
         <label style="display: block; margin-bottom: 5px; font-weight: 600;">
@@ -990,7 +1005,7 @@ function snn_seo_meta_box_callback($post) {
                name="snn_seo_title" 
                value="<?php echo esc_attr($title); ?>" 
                style="width: 100%;"
-               placeholder="<?php _e('Leave empty to use template', 'snn'); ?>">
+               placeholder="<?php echo esc_attr($title_template); ?>">
         <p class="description">
             <?php _e('Recommended max length: 60 characters', 'snn'); ?> 
             (<span id="snn-title-count">0</span> <?php _e('characters', 'snn'); ?>)
@@ -1003,7 +1018,7 @@ function snn_seo_meta_box_callback($post) {
         </label>
         <textarea name="snn_seo_description" 
                   style="width: 100%; height: 80px;"
-                  placeholder="<?php _e('Leave empty to use template', 'snn'); ?>"><?php 
+                  placeholder="<?php echo esc_attr($description_template); ?>"><?php 
             echo esc_textarea($description); 
         ?></textarea>
         <p class="description">
