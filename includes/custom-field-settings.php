@@ -140,6 +140,7 @@ function snn_custom_fields_page_callback() {
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
                                     <option value="text"    <?php selected($field_type, 'text'); ?>><?php esc_html_e('Text', 'snn'); ?></option>
                                     <option value="number"    <?php selected($field_type, 'number'); ?>><?php esc_html_e('Number', 'snn'); ?></option>
+                                    <option value="double_text"    <?php selected($field_type, 'double_text'); ?>><?php esc_html_e('Double Text', 'snn'); ?></option>
                                     <option value="textarea"  <?php selected($field_type, 'textarea'); ?>><?php esc_html_e('Textarea', 'snn'); ?></option>
                                     <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>><?php esc_html_e('Rich Text', 'snn'); ?></option>
                                     <option value="basic_rich_text" <?php selected($field_type, 'basic_rich_text'); ?>><?php esc_html_e('Basic Rich Text', 'snn'); ?></option>
@@ -311,6 +312,7 @@ function snn_custom_fields_page_callback() {
                         <select name="custom_fields[${newIndex}][type]" class="field-type-select" style="width:140px">
                             <option value="text"><?php esc_html_e('Text', 'snn'); ?></option>
                             <option value="number"><?php esc_html_e('Number', 'snn'); ?></option>
+                            <option value="double_text"><?php esc_html_e('Double Text', 'snn'); ?></option>
                             <option value="textarea"><?php esc_html_e('Textarea', 'snn'); ?></option>
                             <option value="rich_text"><?php esc_html_e('Rich Text', 'snn'); ?></option>
                             <option value="basic_rich_text"><?php esc_html_e('Basic Rich Text', 'snn'); ?></option>
@@ -804,6 +806,17 @@ function snn_render_metabox_content($post, $metabox) {
         margin-top: 5px; 
         width: auto;
     }
+    .snn-double-text-wrapper {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .snn-double-text-wrapper input {
+        flex: 1;
+        min-width: 120px;
+        max-width: 300px;
+    }
     .repeater-container {
         margin-top: 5px;
     }
@@ -821,6 +834,9 @@ function snn_render_metabox_content($post, $metabox) {
         flex-grow: 1;
     }
     .repeater-content input {
+        margin-bottom:0 !important;
+    }
+    .repeater-content .snn-double-text-wrapper input {
         margin-bottom:0 !important;
     }
     .remove-repeater-item {
@@ -941,6 +957,39 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
         case 'number':
             echo '<input type="number" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '" step="any"' . $disabled_attr . ' />';
+            break;
+
+        case 'double_text':
+            // Double text field: two text inputs side by side
+            // Value structure: array with two elements [input1, input2]
+            $value1 = '';
+            $value2 = '';
+            if (is_array($value) && count($value) >= 2) {
+                $value1 = $value[0];
+                $value2 = $value[1];
+            }
+            
+            // Create unique names for the two inputs
+            $name_attr_1 = '';
+            $name_attr_2 = '';
+            
+            if (!empty($field['repeater'])) {
+                $currentIndex = $is_template ? '__index__' : intval($index);
+                $name_attr_1 = $prefix . '[' . $base_field_part . '][' . $currentIndex . '][0]';
+                $name_attr_2 = $prefix . '[' . $base_field_part . '][' . $currentIndex . '][1]';
+            } else {
+                $name_attr_1 = $prefix . '[' . $base_field_part . '][0]';
+                $name_attr_2 = $prefix . '[' . $base_field_part . '][1]';
+            }
+            
+            echo '<div class="snn-double-text-wrapper" style="display:flex;gap:10px;flex-wrap:wrap;">';
+            echo '<input type="text" id="' . esc_attr($id_attribute_base . '_1')
+                 . '" name="' . esc_attr($name_attr_1) . '" value="' . esc_attr($value1) 
+                 . '" placeholder="' . esc_attr__('Input 1', 'snn') . '" style="flex:1;min-width:120px;"' . $disabled_attr . ' />';
+            echo '<input type="text" id="' . esc_attr($id_attribute_base . '_2')
+                 . '" name="' . esc_attr($name_attr_2) . '" value="' . esc_attr($value2) 
+                 . '" placeholder="' . esc_attr__('Input 2', 'snn') . '" style="flex:1;min-width:120px;"' . $disabled_attr . ' />';
+            echo '</div>';
             break;
 
         case 'textarea':
@@ -1326,25 +1375,68 @@ function snn_save_custom_fields_meta($post_id) {
 
         if (isset($posted_data[$field_name])) {
             $raw_value = $posted_data[$field_name];
-            if (is_array($raw_value)) { 
-                $sanitized_values = array_map(function($item) use ($field) {
-                    return snn_sanitize_value_by_type($field['type'], $item, $field);
-                }, $raw_value);
-                $sanitized_values = array_filter($sanitized_values, function($v) {
-                    return ($v !== null && $v !== ''); 
-                });
-                $sanitized_values = array_values($sanitized_values);
-                if (!empty($sanitized_values)) {
-                    update_post_meta($post_id, $field_name, $sanitized_values);
+            
+            // Special handling for double_text field
+            if ($field['type'] === 'double_text') {
+                if (is_array($raw_value)) {
+                    // Check if it's a repeater (nested arrays) or single double_text
+                    if (!empty($field['repeater'])) {
+                        // Repeater mode: array of pairs [[val1, val2], [val3, val4], ...]
+                        $sanitized_rows = [];
+                        foreach ($raw_value as $row_data) {
+                            if (is_array($row_data) && count($row_data) >= 2) {
+                                $val1 = sanitize_text_field($row_data[0]);
+                                $val2 = sanitize_text_field($row_data[1]);
+                                // Only save rows where at least one field has data
+                                if ($val1 !== '' || $val2 !== '') {
+                                    $sanitized_rows[] = [$val1, $val2];
+                                }
+                            }
+                        }
+                        if (!empty($sanitized_rows)) {
+                            update_post_meta($post_id, $field_name, $sanitized_rows);
+                        } else {
+                            delete_post_meta($post_id, $field_name);
+                        }
+                    } else {
+                        // Non-repeater mode: single pair [val1, val2]
+                        if (count($raw_value) >= 2) {
+                            $val1 = sanitize_text_field($raw_value[0]);
+                            $val2 = sanitize_text_field($raw_value[1]);
+                            if ($val1 !== '' || $val2 !== '') {
+                                update_post_meta($post_id, $field_name, [$val1, $val2]);
+                            } else {
+                                delete_post_meta($post_id, $field_name);
+                            }
+                        } else {
+                            delete_post_meta($post_id, $field_name);
+                        }
+                    }
                 } else {
                     delete_post_meta($post_id, $field_name);
                 }
-            } else { 
-                $sanitized_value = snn_sanitize_value_by_type($field['type'], $raw_value, $field);
-                if ($sanitized_value !== '' && $sanitized_value !== null) {
-                    update_post_meta($post_id, $field_name, $sanitized_value);
-                } else {
-                    delete_post_meta($post_id, $field_name);
+            } else {
+                // Original handling for all other field types
+                if (is_array($raw_value)) { 
+                    $sanitized_values = array_map(function($item) use ($field) {
+                        return snn_sanitize_value_by_type($field['type'], $item, $field);
+                    }, $raw_value);
+                    $sanitized_values = array_filter($sanitized_values, function($v) {
+                        return ($v !== null && $v !== ''); 
+                    });
+                    $sanitized_values = array_values($sanitized_values);
+                    if (!empty($sanitized_values)) {
+                        update_post_meta($post_id, $field_name, $sanitized_values);
+                    } else {
+                        delete_post_meta($post_id, $field_name);
+                    }
+                } else { 
+                    $sanitized_value = snn_sanitize_value_by_type($field['type'], $raw_value, $field);
+                    if ($sanitized_value !== '' && $sanitized_value !== null) {
+                        update_post_meta($post_id, $field_name, $sanitized_value);
+                    } else {
+                        delete_post_meta($post_id, $field_name);
+                    }
                 }
             }
         } else { 
@@ -1749,6 +1841,13 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
 
         case 'email':
             return sanitize_email($value);
+
+        case 'double_text':
+            // Double text returns an array of two text values
+            if (is_array($value) && count($value) >= 2) {
+                return [sanitize_text_field($value[0]), sanitize_text_field($value[1])];
+            }
+            return ['', ''];
 
         default: 
             return sanitize_text_field($value);
