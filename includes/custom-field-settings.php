@@ -139,7 +139,6 @@ function snn_custom_fields_page_callback() {
                                 <label><?php esc_html_e('Field Type', 'snn'); ?></label>
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
                                     <option value="text"    <?php selected($field_type, 'text'); ?>><?php esc_html_e('Text', 'snn'); ?></option>
-                                    <option value="double_text" <?php selected($field_type, 'double_text'); ?>><?php esc_html_e('Double Text', 'snn'); ?></option>
                                     <option value="number"    <?php selected($field_type, 'number'); ?>><?php esc_html_e('Number', 'snn'); ?></option>
                                     <option value="textarea"  <?php selected($field_type, 'textarea'); ?>><?php esc_html_e('Textarea', 'snn'); ?></option>
                                     <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>><?php esc_html_e('Rich Text', 'snn'); ?></option>
@@ -155,6 +154,7 @@ function snn_custom_fields_page_callback() {
                                     <option value="url"       <?php selected($field_type, 'url'); ?>><?php esc_html_e('URL', 'snn'); ?></option>
                                     <option value="email"     <?php selected($field_type, 'email'); ?>><?php esc_html_e('Email', 'snn'); ?></option>
                                     <option value="map"       <?php selected($field_type, 'map'); ?>><?php esc_html_e('Map', 'snn'); ?></option>
+                                    <option value="double_text" <?php selected($field_type, 'double_text'); ?>><?php esc_html_e('Double Text', 'snn'); ?></option>
                                 </select>
                             </div>
                             <div class="field-group field-group-choices" style="<?php echo $show_choices ? '' : 'display:none;'; ?>">
@@ -311,7 +311,6 @@ function snn_custom_fields_page_callback() {
                         <label><?php esc_html_e('Field Type', 'snn'); ?></label>
                         <select name="custom_fields[${newIndex}][type]" class="field-type-select" style="width:140px">
                             <option value="text"><?php esc_html_e('Text', 'snn'); ?></option>
-                            <option value="double_text"><?php esc_html_e('Double Text', 'snn'); ?></option>
                             <option value="number"><?php esc_html_e('Number', 'snn'); ?></option>
                             <option value="textarea"><?php esc_html_e('Textarea', 'snn'); ?></option>
                             <option value="rich_text"><?php esc_html_e('Rich Text', 'snn'); ?></option>
@@ -327,6 +326,7 @@ function snn_custom_fields_page_callback() {
                             <option value="url"><?php esc_html_e('URL', 'snn'); ?></option>
                             <option value="email"><?php esc_html_e('Email', 'snn'); ?></option>
                             <option value="map"><?php esc_html_e('Map', 'snn'); ?></option>
+                            <option value="double_text"><?php esc_html_e('Double Text', 'snn'); ?></option>
                         </select>
                     </div>
                     <div class="field-group field-group-choices" style="display:none;">
