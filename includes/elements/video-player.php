@@ -74,7 +74,7 @@ class SNN_Video_Player_Element extends Element {
             'label' => esc_html__( 'Enable Chapter Looping', 'snn' ),
             'type'  => 'checkbox',
             'default' => false,
-            'description' => esc_html__( 'When enabled, chapters will be automatically loaded from the current post custom fields (double text type: time + chapter title)', 'snn' ),
+            'description' => esc_html__( 'When enabled, chapters will be automatically loaded from the current post custom fields named "chapter" or "chapters". Use the Double Text custom field for this.', 'snn' ),
         ];
 
         $this->controls['chapters'] = [
@@ -186,32 +186,24 @@ class SNN_Video_Player_Element extends Element {
         $chapters = [];
         
         if ( $enable_chapter_looping ) {
-            // Load chapters from custom fields (double text type)
+            // Load chapters from custom fields named "chapter" or "chapters"
             $post_id = get_the_ID();
             if ( $post_id ) {
-                $custom_fields = get_option('snn_custom_fields', []);
-                if ( is_array( $custom_fields ) ) {
-                    foreach ( $custom_fields as $field ) {
-                        // Check if it's a double_text type field with repeater enabled
-                        if ( isset( $field['type'] ) && $field['type'] === 'double_text' && ! empty( $field['repeater'] ) ) {
-                            $field_name = $field['name'];
-                            $repeater_values = get_post_meta( $post_id, $field_name, true );
-                            
-                            if ( is_array( $repeater_values ) ) {
-                                foreach ( $repeater_values as $repeater_item ) {
-                                    if ( ! empty( $repeater_item ) ) {
-                                        $decoded = json_decode( $repeater_item, true );
-                                        if ( is_array( $decoded ) && count( $decoded ) >= 2 ) {
-                                            // First value is time, second is chapter title
-                                            $chapters[] = [
-                                                'time'  => $decoded[0],
-                                                'title' => $decoded[1],
-                                            ];
-                                        }
-                                    }
-                                }
-                            }
-                            break; // Use the first double_text repeater field found
+                // Try to get custom field data from "chapters" or "chapter"
+                $chapters_data = get_post_meta( $post_id, 'chapters', true );
+                if ( empty( $chapters_data ) ) {
+                    $chapters_data = get_post_meta( $post_id, 'chapter', true );
+                }
+                
+                // Process the chapters data if it's an array
+                if ( is_array( $chapters_data ) && ! empty( $chapters_data ) ) {
+                    foreach ( $chapters_data as $chapter_item ) {
+                        // Check if it's an array with at least 2 elements [time, text]
+                        if ( is_array( $chapter_item ) && count( $chapter_item ) >= 2 ) {
+                            $chapters[] = [
+                                'time'  => $chapter_item[0],
+                                'title' => $chapter_item[1],
+                            ];
                         }
                     }
                 }
