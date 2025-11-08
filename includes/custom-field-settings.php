@@ -187,13 +187,17 @@ function snn_custom_fields_page_callback() {
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Author', 'snn'); ?></label>
-                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][author]" value="1"  
-                                       <?php checked(!empty($field['author'])); ?> />
+                                <input type="checkbox" class="author-checkbox" name="custom_fields[<?php echo $index; ?>][author]" value="1"  
+                                       <?php checked(!empty($field['author'])); 
+                                       echo ($field_type === 'double_text') ? ' disabled' : ''; ?>
+                                       title="<?php echo ($field_type === 'double_text') ? esc_attr__('Double text field cannot be assigned to Author', 'snn') : ''; ?>" />
                             </div>
                              <div class="field-group">
                                 <label><?php esc_html_e('Options Page', 'snn'); ?></label>
-                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][options_page]" value="1"  
-                                       <?php checked(!empty($field['options_page'])); ?> />
+                                <input type="checkbox" class="options-page-checkbox" name="custom_fields[<?php echo $index; ?>][options_page]" value="1"  
+                                       <?php checked(!empty($field['options_page'])); 
+                                       echo ($field_type === 'double_text') ? ' disabled' : ''; ?>
+                                       title="<?php echo ($field_type === 'double_text') ? esc_attr__('Double text field cannot be assigned to Options Page', 'snn') : ''; ?>" />
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Repeater', 'snn'); ?></label>
@@ -253,6 +257,22 @@ function snn_custom_fields_page_callback() {
                 repeaterCheckbox.title = disable ? '<?php echo esc_js(__('This field type cannot be a repeater', 'snn')); ?>' : '<?php echo esc_js(__('Allow multiple values', 'snn')); ?>';
                 if (disable) {
                     repeaterCheckbox.checked = false;
+                }
+            }
+
+            function toggleAuthorAndOptionsCheckboxes(row) {
+                const typeSelect = row.querySelector('.field-type-select');
+                const authorCheckbox = row.querySelector('.author-checkbox');
+                const optionsCheckbox = row.querySelector('.options-page-checkbox');
+                if (!typeSelect || !authorCheckbox || !optionsCheckbox) return;
+                const disable = (typeSelect.value === 'double_text');
+                authorCheckbox.disabled = disable;
+                optionsCheckbox.disabled = disable;
+                authorCheckbox.title = disable ? '<?php echo esc_js(__('Double text field cannot be assigned to Author', 'snn')); ?>' : '';
+                optionsCheckbox.title = disable ? '<?php echo esc_js(__('Double text field cannot be assigned to Options Page', 'snn')); ?>' : '';
+                if (disable) {
+                    authorCheckbox.checked = false;
+                    optionsCheckbox.checked = false;
                 }
             }
 
@@ -352,6 +372,7 @@ function snn_custom_fields_page_callback() {
                 attachFieldNameSanitizer(newRow.querySelector('.sanitize-key'));
                 toggleChoicesField(newRow);
                 toggleRepeaterCheckbox(newRow);
+                toggleAuthorAndOptionsCheckboxes(newRow);
                 handleMediaReturnUrlForNewRow(newRow, newRow.querySelector('.field-type-select').value); 
                 updateFieldIndexes();
             });
@@ -384,6 +405,7 @@ function snn_custom_fields_page_callback() {
                     const row = e.target.closest('.custom-field-row');
                     toggleChoicesField(row);
                     toggleRepeaterCheckbox(row);
+                    toggleAuthorAndOptionsCheckboxes(row);
                     handleMediaReturnUrlForNewRow(row, e.target.value); 
                 }
             });
@@ -391,6 +413,7 @@ function snn_custom_fields_page_callback() {
             fieldContainer.querySelectorAll('.custom-field-row').forEach(function(row) {
                 toggleChoicesField(row);
                 toggleRepeaterCheckbox(row);
+                toggleAuthorAndOptionsCheckboxes(row);
                 toggleMediaReturnUrlField(row); 
                 attachFieldNameSanitizer(row.querySelector('.sanitize-key'));
             });
