@@ -59,11 +59,13 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/parent-link.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/post-term-count.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/user-author-fields.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/custom-field-repeater-first-item.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/raw-all-custom-fields.php';
 
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
 require_once SNN_PATH . 'includes/auto-update-snn-brx-github.php';
 require_once SNN_PATH . 'includes/query/snn-repeaters-and-queries.php';
+require_once SNN_PATH . 'includes/query/snn-double-repeaters-and-queries.php';
 
 // Register Custom Bricks Builder Elements
 add_action('init', function () {

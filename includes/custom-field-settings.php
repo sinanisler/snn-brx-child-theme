@@ -139,6 +139,7 @@ function snn_custom_fields_page_callback() {
                                 <label><?php esc_html_e('Field Type', 'snn'); ?></label>
                                 <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
                                     <option value="text"    <?php selected($field_type, 'text'); ?>><?php esc_html_e('Text', 'snn'); ?></option>
+                                    <option value="double_text" <?php selected($field_type, 'double_text'); ?>><?php esc_html_e('Double Text', 'snn'); ?></option>
                                     <option value="number"    <?php selected($field_type, 'number'); ?>><?php esc_html_e('Number', 'snn'); ?></option>
                                     <option value="textarea"  <?php selected($field_type, 'textarea'); ?>><?php esc_html_e('Textarea', 'snn'); ?></option>
                                     <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>><?php esc_html_e('Rich Text', 'snn'); ?></option>
@@ -310,6 +311,7 @@ function snn_custom_fields_page_callback() {
                         <label><?php esc_html_e('Field Type', 'snn'); ?></label>
                         <select name="custom_fields[${newIndex}][type]" class="field-type-select" style="width:140px">
                             <option value="text"><?php esc_html_e('Text', 'snn'); ?></option>
+                            <option value="double_text"><?php esc_html_e('Double Text', 'snn'); ?></option>
                             <option value="number"><?php esc_html_e('Number', 'snn'); ?></option>
                             <option value="textarea"><?php esc_html_e('Textarea', 'snn'); ?></option>
                             <option value="rich_text"><?php esc_html_e('Rich Text', 'snn'); ?></option>
@@ -936,6 +938,28 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
         case 'text':
             echo '<input type="text" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '"' . $disabled_attr . ' />';
+            break;
+
+        case 'double_text':
+            // Parse the value as a JSON array with two items
+            $text_values = ['', ''];
+            if (!empty($value)) {
+                $decoded = json_decode($value, true);
+                if (is_array($decoded) && count($decoded) >= 2) {
+                    $text_values = [$decoded[0], $decoded[1]];
+                }
+            }
+            
+            echo '<div class="double-text-wrapper" style="display:flex; gap:10px; flex-wrap:wrap;">';
+            echo '<input type="text" id="' . $id_attribute_base . '_1" class="double-text-input-1" '
+                 . 'placeholder="' . esc_attr__('Text 1', 'snn') . '" '
+                 . 'value="' . esc_attr($text_values[0]) . '"' . $disabled_attr . ' style="flex:1; min-width:150px;" />';
+            echo '<input type="text" id="' . $id_attribute_base . '_2" class="double-text-input-2" '
+                 . 'placeholder="' . esc_attr__('Text 2', 'snn') . '" '
+                 . 'value="' . esc_attr($text_values[1]) . '"' . $disabled_attr . ' style="flex:1; min-width:150px;" />';
+            echo '<input type="hidden" id="' . $id_attribute_base . '" class="double-text-combined" '
+                 . 'name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) . '"' . $disabled_attr . ' />';
+            echo '</div>';
             break;
 
         case 'number':
@@ -1704,6 +1728,19 @@ function snn_save_author_custom_fields($user_id) {
 
 function snn_sanitize_value_by_type($type, $value, $field = null) {
     switch ($type) {
+        case 'double_text':
+            // Sanitize the JSON array of two text values
+            if (empty($value)) return '';
+            $decoded = json_decode($value, true);
+            if (is_array($decoded) && count($decoded) >= 2) {
+                $sanitized = [
+                    sanitize_text_field($decoded[0]),
+                    sanitize_text_field($decoded[1])
+                ];
+                return json_encode($sanitized);
+            }
+            return '';
+            
         case 'rich_text':
         case 'basic_rich_text':
         case 'textarea':
@@ -1767,6 +1804,17 @@ function snn_output_dynamic_field_js() {
     ?>
     <script type="text/javascript">
     jQuery(document).ready(function($) {
+
+        // Handle Double Text field combining
+        $(document).on('input', '.double-text-input-1, .double-text-input-2', function() {
+            var $wrapper = $(this).closest('.double-text-wrapper');
+            var text1 = $wrapper.find('.double-text-input-1').val();
+            var text2 = $wrapper.find('.double-text-input-2').val();
+            var $hidden = $wrapper.find('.double-text-combined');
+            
+            var combined = JSON.stringify([text1, text2]);
+            $hidden.val(combined);
+        });
 
         $(document).off('click', '.media-upload-button').on('click', '.media-upload-button', function(e) {
             e.preventDefault();
