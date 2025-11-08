@@ -31,8 +31,8 @@ class SNN_Video_Player_Element extends Element {
             'tab'           => 'content',
             'label'         => esc_html__( 'Video URL (Manual)', 'snn' ),
             'type'          => 'text',
-            'placeholder' => 'e.g., https://example.com/your-video.mp4',
-            'description' => esc_html__( 'Enter a direct URL to your video file. This will override the Media Library selection.', 'snn' ),
+            'placeholder' => 'e.g., https://example.com/your-video.mp4 or use {dynamic_tags}',
+            'description' => esc_html__( 'Enter a direct URL to your video file. This will override the Media Library selection. Supports dynamic tags.', 'snn' ),
         ];
 
         $this->controls['poster_image'] = [
@@ -69,6 +69,14 @@ class SNN_Video_Player_Element extends Element {
             'default' => false,
         ];
 
+        $this->controls['enable_chapter_looping'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Enable Chapter Looping', 'snn' ),
+            'type'  => 'checkbox',
+            'default' => false,
+            'description' => esc_html__( 'When enabled, chapters will be automatically loaded from the current post custom fields (double text type: time + chapter title)', 'snn' ),
+        ];
+
         $this->controls['chapters'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'Video Chapters', 'snn' ),
@@ -83,6 +91,7 @@ class SNN_Video_Player_Element extends Element {
                 'title' => ['label' => esc_html__( 'Chapter Title', 'snn' ), 'type'  => 'text'],
                 'time'  => ['label' => esc_html__( 'Start Time (e.g., 0:00, 1:45)', 'snn' ), 'type' => 'text', 'placeholder' => 'm:ss'],
             ],
+            'required'      => ['enable_chapter_looping', '=', false],
         ];
 
         $this->controls['player_height'] = [
@@ -142,12 +151,13 @@ class SNN_Video_Player_Element extends Element {
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 1)',
         ];
-            $this->controls['tooltip_text_color'] = [
-                'tab'   => 'content',
-                'label' => esc_html__( 'Tooltip Text Color', 'snn' ),
-                'type'  => 'color',
-                'default' => 'rgba(255, 255, 255, 1)',
-            ];
+
+        $this->controls['tooltip_text_color'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Tooltip Text Color', 'snn' ),
+            'type'  => 'color',
+            'default' => 'rgba(255, 255, 255, 1)',
+        ];
     }
 
     public function render() {
@@ -163,11 +173,53 @@ class SNN_Video_Player_Element extends Element {
         $this->set_attribute( '_root', 'class', 'brxe-snn-video-player snn-player-wrapper' );
 
         $video_file_url = ! empty( $settings['video_file']['url'] ) ? $settings['video_file']['url'] : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-        $manual_video_url = ! empty( $settings['video_url_manual'] ) ? $settings['video_url_manual'] : '';
+        
+        // Render dynamic data for manual URL
+        $manual_video_url = ! empty( $settings['video_url_manual'] ) ? $this->render_dynamic_data( $settings['video_url_manual'] ) : '';
+        
         $video_url = ! empty( $manual_video_url ) ? $manual_video_url : $video_file_url;
 
         $poster_url = ! empty( $settings['poster_image']['id'] ) ? wp_get_attachment_image_url( $settings['poster_image']['id'], 'full' ) : '';
-        $chapters   = $settings['chapters'] ?? [];
+        
+        // Check if chapter looping is enabled
+        $enable_chapter_looping = ! empty( $settings['enable_chapter_looping'] );
+        $chapters = [];
+        
+        if ( $enable_chapter_looping ) {
+            // Load chapters from custom fields (double text type)
+            $post_id = get_the_ID();
+            if ( $post_id ) {
+                $custom_fields = get_option('snn_custom_fields', []);
+                if ( is_array( $custom_fields ) ) {
+                    foreach ( $custom_fields as $field ) {
+                        // Check if it's a double_text type field with repeater enabled
+                        if ( isset( $field['type'] ) && $field['type'] === 'double_text' && ! empty( $field['repeater'] ) ) {
+                            $field_name = $field['name'];
+                            $repeater_values = get_post_meta( $post_id, $field_name, true );
+                            
+                            if ( is_array( $repeater_values ) ) {
+                                foreach ( $repeater_values as $repeater_item ) {
+                                    if ( ! empty( $repeater_item ) ) {
+                                        $decoded = json_decode( $repeater_item, true );
+                                        if ( is_array( $decoded ) && count( $decoded ) >= 2 ) {
+                                            // First value is time, second is chapter title
+                                            $chapters[] = [
+                                                'time'  => $decoded[0],
+                                                'title' => $decoded[1],
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                            break; // Use the first double_text repeater field found
+                        }
+                    }
+                }
+            }
+        } else {
+            // Use manual chapters from the repeater control
+            $chapters = $settings['chapters'] ?? [];
+        }
 
         $autoplay           = ! empty( $settings['autoplay'] );
         $muted              = ! empty( $settings['muted'] );
