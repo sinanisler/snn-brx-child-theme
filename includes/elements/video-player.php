@@ -32,7 +32,7 @@ class SNN_Video_Player_Element extends Element {
             'label'         => esc_html__( 'Video URL (Manual)', 'snn' ),
             'type'          => 'text',
             'placeholder' => 'e.g., https://example.com/your-video.mp4 or use {dynamic_tags}',
-            'description' => esc_html__( 'Enter a direct URL to your video file. This will override the Media Library selection. Supports dynamic tags.', 'snn' ),
+            'description' => esc_html__( 'Enter a direct URL to your video file or dynamic tag.', 'snn' ),
         ];
 
         $this->controls['poster_url'] = [
@@ -40,7 +40,7 @@ class SNN_Video_Player_Element extends Element {
             'label'         => esc_html__( 'Poster Image URL', 'snn' ),
             'type'          => 'text',
             'placeholder' => 'e.g., https://example.com/poster.jpg or use {dynamic_tags}',
-            'description' => esc_html__( 'Enter a direct URL to your poster image or use dynamic tags like {featured_image}.', 'snn' ),
+            'description' => esc_html__( 'Enter a direct URL to your poster image.', 'snn' ),
         ];
 
         $this->controls['use_featured_image_as_poster'] = [
@@ -48,7 +48,7 @@ class SNN_Video_Player_Element extends Element {
             'label' => esc_html__( 'Use Featured Image as Poster', 'snn' ),
             'type'  => 'checkbox',
             'default' => false,
-            'description' => esc_html__( 'Enable this to automatically use the current post\'s featured image as the video poster. This will override the Poster Image URL field.', 'snn' ),
+            'description' => esc_html__( 'Enable this to automatically use the current post\'s featured image as the video poster.', 'snn' ),
         ];
 
         $this->controls['autoplay'] = [
@@ -125,6 +125,13 @@ class SNN_Video_Player_Element extends Element {
             'label' => esc_html__( 'Primary Accent', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(0, 0, 0, 1)',
+        ];
+
+        $this->controls['thumb_color'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Slider Thumb Color', 'snn' ),
+            'type'  => 'color',
+            'default' => 'rgba(255, 255, 255, 1)',
         ];
 
         $this->controls['text_color'] = [
@@ -259,6 +266,7 @@ class SNN_Video_Player_Element extends Element {
         $player_max_width = $settings['player_max_width'] ?? '896px';
 
         $accent_color        = $settings['primary_accent_color']['raw'] ?? $settings['primary_accent_color']['hex'] ?? '#ffd64f';
+        $thumb_color         = $settings['thumb_color']['raw'] ?? $settings['thumb_color']['hex'] ?? '#ffffff';
         $text_color          = $settings['text_color']['raw'] ?? $settings['text_color']['hex'] ?? '#ffffff';
         $slider_track        = $settings['slider_track_color']['raw'] ?? $settings['slider_track_color']['hex'] ?? 'rgba(255, 255, 255, 0.3)';
         $chapter_dot_color = $settings['chapter_dot_color']['raw'] ?? $settings['chapter_dot_color']['hex'] ?? '#ffffff';
@@ -269,8 +277,7 @@ class SNN_Video_Player_Element extends Element {
         echo "<div {$this->render_attributes('_root')}>";
 
         echo "<style>
-            #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
-            #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; --tooltip-text-color: {$tooltip_text_color}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
+            #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --thumb-color: {$thumb_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; --tooltip-text-color: {$tooltip_text_color}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
             #" . esc_attr($root_id) . " .snn-video-container { position: relative; background-color: #000; overflow: hidden; height: var(--player-height); }
             #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: cover; }
             #" . esc_attr($root_id) . " .snn-video-container:fullscreen { width: 100vw; height: 100vh; max-width: 100%; border-radius: 0; }
@@ -279,7 +286,6 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-controls-hidden .snn-controls-overlay { cursor: none; opacity: 0; pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; }
             #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; height: 5px; }
-            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--text-color); font-size: 12px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 260px; overflow: hidden; text-overflow: ellipsis; z-index: 10; }
             #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--tooltip-text-color); font-size: 12px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: normal; word-wrap: break-word; transform: translateX(-50%); max-width: 260px; z-index: 10; line-height: 1.4; }
             #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; }
             #" . esc_attr($root_id) . " .snn-chapter-sections-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; z-index: 3; pointer-events: all; }
@@ -296,14 +302,15 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-volume-container .snn-volume-slider { width: 0; transition: width 0.3s ease; opacity: 0; }
             #" . esc_attr($root_id) . " .snn-volume-container:hover .snn-volume-slider { width: 75px; opacity: 1; }
             #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; background: transparent; cursor: pointer; border-radius: 5px; position: absolute; top: 0; left: 0; z-index: 0; }
+            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 0; height: 0; opacity: 0; }
+            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider::-moz-range-thumb { width: 0; height: 0; opacity: 0; }
+            #" . esc_attr($root_id) . " .snn-progress-thumb { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: var(--thumb-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--primary-accent-color); transition: transform 0.2s ease; pointer-events: none; z-index: 10; }
+            #" . esc_attr($root_id) . " .snn-progress-thumb:hover { transform: translate(-50%, -50%) scale(1.1); }
             #" . esc_attr($root_id) . " .snn-volume-slider { -webkit-appearance: none; appearance: none; height: 5px; background: var(--slider-track-color); cursor: pointer; border-radius: 5px; transition: height 0.2s ease, width 0.3s ease, opacity 0.3s ease; margin-left: 7.5px; position: relative; }
-            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
-            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
-            #" . esc_attr($root_id) . " .snn-progress-bar.snn-video-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
             #" . esc_attr($root_id) . " .snn-volume-slider:hover { height: 8px; }
-            #" . esc_attr($root_id) . " .snn-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--thumb-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--primary-accent-color); transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-volume-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
-            #" . esc_attr($root_id) . " .snn-volume-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
+            #" . esc_attr($root_id) . " .snn-volume-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--thumb-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--primary-accent-color); }
             #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 5px; height: 6px; background: var(--chapter-dot-color); border-radius: 0px; cursor: pointer; transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-chapter-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
             #" . esc_attr($root_id) . " .snn-hidden { display: none !important; }
@@ -326,6 +333,7 @@ class SNN_Video_Player_Element extends Element {
                         <div class="snn-progress-tooltip">00:00</div>
                         <div class="snn-chapter-sections-container"></div>
                         <input type="range" class="snn-video-slider snn-progress-bar" min="0" max="100" step="0.1" value="0">
+                        <div class="snn-progress-thumb"></div>
                         <div class="snn-chapter-dots-container"></div>
                     </div>
 
@@ -386,17 +394,20 @@ class SNN_Video_Player_Element extends Element {
             const volumeSlider            = playerWrapper.querySelector('.snn-volume-slider');
             const fullscreenBtn           = playerWrapper.querySelector('.snn-fullscreen-btn');
             const progressBar             = playerWrapper.querySelector('.snn-progress-bar');
+            const progressThumb           = playerWrapper.querySelector('.snn-progress-thumb');
             const timeDisplay             = playerWrapper.querySelector('.snn-time-display');
             const chapterDotsContainer = playerWrapper.querySelector('.snn-chapter-dots-container');
             const chapterSectionsContainer = playerWrapper.querySelector('.snn-chapter-sections-container');
             const progressTooltip         = playerWrapper.querySelector('.snn-progress-tooltip');
             const fullscreenIcon          = playerWrapper.querySelector('.snn-fullscreen-icon');
             const fullscreenExitIcon      = playerWrapper.querySelector('.snn-fullscreen-exit-icon');
+            const progressContainer       = playerWrapper.querySelector('.snn-progress-container');
 
-            if (!video || !controlsOverlay || !playPauseBtn) return;
+            if (!video || !controlsOverlay || !playPauseBtn || !progressThumb) return;
 
             let isSeeking = false, inactivityTimer, lastVolume = video.volume, isPlayerInView = false;
             let chapterSections = [];
+            let isDraggingThumb = false;
 
             const timeToSeconds = (timeString) => {
                 if (!timeString || typeof timeString !== 'string') return 0;
@@ -416,6 +427,12 @@ class SNN_Video_Player_Element extends Element {
                 const accentColor = getComputedStyle(playerWrapper).getPropertyValue('--primary-accent-color').trim();
                 const trackColor = getComputedStyle(playerWrapper).getPropertyValue('--slider-track-color').trim();
                 bar.style.background = `linear-gradient(to right, ${accentColor} ${progress}%, ${trackColor} ${progress}%)`;
+            };
+
+            const updateProgressThumbPosition = () => {
+                if (!progressBar || !progressThumb || isNaN(video.duration)) return;
+                const percent = (video.currentTime / video.duration) * 100;
+                progressThumb.style.left = `${percent}%`;
             };
 
             const processChapterSections = () => {
@@ -497,9 +514,10 @@ class SNN_Video_Player_Element extends Element {
             };
 
             const updateProgress = () => {
-                if (isSeeking || isNaN(video.duration)) return;
+                if (isSeeking || isDraggingThumb || isNaN(video.duration)) return;
                 if (progressBar) progressBar.value = (video.currentTime / video.duration) * 100;
                 if (timeDisplay) timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration || 0)}`;
+                updateProgressThumbPosition();
                 updateChapterSectionsFill();
             };
 
@@ -637,6 +655,61 @@ class SNN_Video_Player_Element extends Element {
                 });
             };
 
+            const handleThumbDrag = (e) => {
+                if (!isDraggingThumb || !progressContainer || isNaN(video.duration)) return;
+                
+                const rect = progressContainer.getBoundingClientRect();
+                let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                let x = clientX - rect.left;
+                x = Math.max(0, Math.min(x, rect.width));
+                
+                const percent = (x / rect.width) * 100;
+                const scrubTime = (percent / 100) * video.duration;
+                
+                progressBar.value = percent;
+                progressThumb.style.left = `${percent}%`;
+                if(timeDisplay) timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
+                
+                chapterSections.forEach((section) => {
+                    const sectionFill = section.element.querySelector('.snn-chapter-section-fill');
+                    if (!sectionFill) return;
+                    
+                    if (scrubTime < section.startTime) {
+                        sectionFill.style.width = '0%';
+                    } else if (scrubTime >= section.endTime) {
+                        sectionFill.style.width = '100%';
+                    } else {
+                        const sectionProgress = ((scrubTime - section.startTime) / (section.endTime - section.startTime)) * 100;
+                        sectionFill.style.width = `${sectionProgress}%`;
+                    }
+                });
+            };
+
+            const stopThumbDrag = (e) => {
+                if (!isDraggingThumb) return;
+                isDraggingThumb = false;
+                
+                const percent = parseFloat(progressBar.value);
+                video.currentTime = (percent / 100) * video.duration;
+                
+                document.removeEventListener('mousemove', handleThumbDrag);
+                document.removeEventListener('mouseup', stopThumbDrag);
+                document.removeEventListener('touchmove', handleThumbDrag);
+                document.removeEventListener('touchend', stopThumbDrag);
+            };
+
+            progressThumb.addEventListener('mousedown', (e) => {
+                isDraggingThumb = true;
+                document.addEventListener('mousemove', handleThumbDrag);
+                document.addEventListener('mouseup', stopThumbDrag);
+            });
+
+            progressThumb.addEventListener('touchstart', (e) => {
+                isDraggingThumb = true;
+                document.addEventListener('touchmove', handleThumbDrag);
+                document.addEventListener('touchend', stopThumbDrag);
+            });
+
             const handleKeydown = (e) => {
                 if (!isPlayerInView) return;
 
@@ -700,6 +773,7 @@ class SNN_Video_Player_Element extends Element {
                 isSeeking = true;
                 const scrubTime = (e.target.value / 100) * video.duration;
                 if(timeDisplay) timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
+                updateProgressThumbPosition();
                 
                 const percent = e.target.value / 100;
                 chapterSections.forEach((section) => {
@@ -741,6 +815,7 @@ class SNN_Video_Player_Element extends Element {
             updatePlayPauseIcon();
             updateMuteIcon();
             updateProgressBarFill(volumeSlider);
+            updateProgressThumbPosition();
             if (CONFIG.DISABLE_AUTOHIDE) {
                 showControls();
                 videoContainer?.classList.remove('snn-controls-hidden');
