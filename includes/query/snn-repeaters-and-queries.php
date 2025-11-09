@@ -197,7 +197,7 @@ add_filter('bricks/dynamic_tags_list', function($tags) {
             $tags[] = [
                 'name'  => '{snn_cf_' . $field_name . '}',
                 'label' => $field_label . ' (Current Item)',
-                'group' => 'SNN Repeater Fields',
+                'group' => 'SNN',
             ];
         }
     }

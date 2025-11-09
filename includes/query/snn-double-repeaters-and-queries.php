@@ -138,14 +138,14 @@ add_filter('bricks/dynamic_tags_list', function($tags) {
             $tags[] = [
                 'name'  => '{snn_cf_' . $field_name . '_1}',
                 'label' => $field_label . ' - Text 1',
-                'group' => 'SNN Double Text Repeater Fields',
+                'group' => 'SNN',
             ];
             
             // Register tag for second text value
             $tags[] = [
                 'name'  => '{snn_cf_' . $field_name . '_2}',
                 'label' => $field_label . ' - Text 2',
-                'group' => 'SNN Double Text Repeater Fields',
+                'group' => 'SNN',
             ];
         }
     }
