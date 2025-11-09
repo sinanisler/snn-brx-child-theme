@@ -964,12 +964,12 @@ function snn_seo_add_meta_box() {
                 'snn_seo_meta_box_callback',
                 $post_type,
                 'normal',
-                'high'
+                'low'
             );
         }
     }
 }
-add_action('add_meta_boxes', 'snn_seo_add_meta_box');
+add_action('add_meta_boxes', 'snn_seo_add_meta_box', 100);
 
 /**
  * Meta box callback
