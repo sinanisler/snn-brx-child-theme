@@ -35,10 +35,20 @@ class SNN_Video_Player_Element extends Element {
             'description' => esc_html__( 'Enter a direct URL to your video file. This will override the Media Library selection. Supports dynamic tags.', 'snn' ),
         ];
 
-        $this->controls['poster_image'] = [
-            'tab' => 'content',
-            'label' => esc_html__( 'Poster Image', 'snn' ),
-            'type'  => 'image',
+        $this->controls['poster_url'] = [
+            'tab'           => 'content',
+            'label'         => esc_html__( 'Poster Image URL', 'snn' ),
+            'type'          => 'text',
+            'placeholder' => 'e.g., https://example.com/poster.jpg or use {dynamic_tags}',
+            'description' => esc_html__( 'Enter a direct URL to your poster image or use dynamic tags like {featured_image}.', 'snn' ),
+        ];
+
+        $this->controls['use_featured_image_as_poster'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Use Featured Image as Poster', 'snn' ),
+            'type'  => 'checkbox',
+            'default' => false,
+            'description' => esc_html__( 'Enable this to automatically use the current post\'s featured image as the video poster. This will override the Poster Image URL field.', 'snn' ),
         ];
 
         $this->controls['autoplay'] = [
@@ -177,9 +187,36 @@ class SNN_Video_Player_Element extends Element {
         // Render dynamic data for manual URL
         $manual_video_url = ! empty( $settings['video_url_manual'] ) ? $this->render_dynamic_data( $settings['video_url_manual'] ) : '';
         
-        $video_url = ! empty( $manual_video_url ) ? $manual_video_url : $video_file_url;
+        // Check if manual URL is an attachment ID (numeric) or a URL
+        if ( ! empty( $manual_video_url ) ) {
+            if ( is_numeric( $manual_video_url ) ) {
+                // It's an attachment ID, get the URL
+                $manual_video_url = wp_get_attachment_url( intval( $manual_video_url ) );
+            }
+            $video_url = $manual_video_url;
+        } else {
+            $video_url = $video_file_url;
+        }
 
-        $poster_url = ! empty( $settings['poster_image']['id'] ) ? wp_get_attachment_image_url( $settings['poster_image']['id'], 'full' ) : '';
+        // Check if featured image should be used as poster
+        $use_featured_image = ! empty( $settings['use_featured_image_as_poster'] );
+        $poster_url = '';
+        
+        if ( $use_featured_image && has_post_thumbnail() ) {
+            // Use featured image as poster
+            $poster_url = get_the_post_thumbnail_url( get_the_ID(), 'full' );
+        } else {
+            // Render dynamic data for poster URL
+            $poster_url = ! empty( $settings['poster_url'] ) ? $this->render_dynamic_data( $settings['poster_url'] ) : '';
+            
+            // Check if poster URL is an attachment ID (numeric) or a URL
+            if ( ! empty( $poster_url ) ) {
+                if ( is_numeric( $poster_url ) ) {
+                    // It's an attachment ID, get the URL
+                    $poster_url = wp_get_attachment_url( intval( $poster_url ) );
+                }
+            }
+        }
         
         // Check if chapter looping is enabled
         $enable_chapter_looping = ! empty( $settings['enable_chapter_looping'] );
@@ -242,8 +279,8 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-controls-hidden .snn-controls-overlay { cursor: none; opacity: 0; pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; }
             #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; height: 5px; }
-            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--text-color); font-size: 12px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 200px; overflow: hidden; text-overflow: ellipsis; z-index: 10; }
-            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--tooltip-text-color); font-size: 12px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 200px; overflow: hidden; text-overflow: ellipsis; z-index: 10; }
+            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--text-color); font-size: 12px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; transform: translateX(-50%); max-width: 260px; overflow: hidden; text-overflow: ellipsis; z-index: 10; }
+            #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--tooltip-text-color); font-size: 12px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: normal; word-wrap: break-word; transform: translateX(-50%); max-width: 260px; z-index: 10; line-height: 1.4; }
             #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; }
             #" . esc_attr($root_id) . " .snn-chapter-sections-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; z-index: 3; pointer-events: all; }
             #" . esc_attr($root_id) . " .snn-chapter-section { position: relative; height: 5px; background: transparent; transition: height 0.15s ease; cursor: pointer; display: flex; align-items: flex-end; }
@@ -267,7 +304,7 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-volume-slider:hover::-webkit-slider-thumb { transform: scale(1.1); }
             #" . esc_attr($root_id) . " .snn-volume-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary-accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--text-color); }
-            #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 4px; height: 5px; background: var(--chapter-dot-color); border-radius: 2px; cursor: pointer; transition: transform 0.2s ease; }
+            #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 5px; height: 6px; background: var(--chapter-dot-color); border-radius: 0px; cursor: pointer; transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-chapter-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
             #" . esc_attr($root_id) . " .snn-hidden { display: none !important; }
         </style>";
