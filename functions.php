@@ -56,6 +56,7 @@ require_once SNN_PATH . 'includes/wp-admin-image-opt.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/estimated-post-read-time.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/get-contextual-id.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/parent-link.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/parent-id.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/post-term-count.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/user-author-fields.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/custom-field-repeater-first-item.php';
