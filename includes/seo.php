@@ -90,6 +90,8 @@ function snn_seo_register_settings() {
     register_setting('snn_seo_settings_group', 'snn_seo_sitemap_enabled', ['type' => 'boolean', 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean']);
     register_setting('snn_seo_settings_group', 'snn_seo_sitemap_post_types', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
     register_setting('snn_seo_settings_group', 'snn_seo_sitemap_taxonomies', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
+    register_setting('snn_seo_settings_group', 'snn_seo_robots_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_robots_rules', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
     register_setting('snn_seo_settings_group', 'snn_seo_opengraph_enabled', ['type' => 'boolean', 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean']);
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_titles');
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_descriptions');
@@ -117,6 +119,8 @@ function snn_seo_handle_reset() {
         delete_option('snn_seo_sitemap_enabled');
         delete_option('snn_seo_sitemap_post_types');
         delete_option('snn_seo_sitemap_taxonomies');
+        delete_option('snn_seo_robots_enabled');
+        delete_option('snn_seo_robots_rules');
         delete_option('snn_seo_opengraph_enabled');
         delete_option('snn_seo_post_meta_titles');
         delete_option('snn_seo_post_meta_descriptions');
@@ -160,6 +164,8 @@ function snn_seo_settings_page_callback() {
     $sitemap_enabled = get_option('snn_seo_sitemap_enabled', true);
     $sitemap_post_types = get_option('snn_seo_sitemap_post_types', []);
     $sitemap_taxonomies = get_option('snn_seo_sitemap_taxonomies', []);
+    $robots_enabled = get_option('snn_seo_robots_enabled', false);
+    $robots_rules = get_option('snn_seo_robots_rules', []);
     $opengraph_enabled = get_option('snn_seo_opengraph_enabled', true);
     
     // Ensure arrays are actually arrays (fix for string/serialization issues)
@@ -173,6 +179,7 @@ function snn_seo_settings_page_callback() {
     $taxonomy_descriptions = is_array($taxonomy_descriptions) ? $taxonomy_descriptions : [];
     $sitemap_post_types = is_array($sitemap_post_types) ? $sitemap_post_types : [];
     $sitemap_taxonomies = is_array($sitemap_taxonomies) ? $sitemap_taxonomies : [];
+    $robots_rules = is_array($robots_rules) ? $robots_rules : [];
     
     // Set defaults if empty (only post, page enabled; only category, post_tag enabled)
     if (empty($post_types_enabled)) {
@@ -445,6 +452,86 @@ function snn_seo_settings_page_callback() {
                 <?php endif; ?>
             </div>
 
+            <!-- Robots.txt Settings -->
+            <div class="snn-seo-section">
+                <h2><?php _e('Robots.txt', 'snn'); ?></h2>
+                
+                <label style="display: block; margin: 15px 0;">
+                    <input type="checkbox" name="snn_seo_robots_enabled" value="1" <?php checked($robots_enabled, 1); ?>>
+                    <strong><?php _e('Enable Custom Robots.txt', 'snn'); ?></strong>
+                </label>
+                <p class="description">
+                    <?php _e('Robots.txt URL:', 'snn'); ?> <code><?php echo home_url('/robots.txt'); ?></code><br>
+                    <?php _e('Control search engine crawler access to your site. Add custom rules to allow or disallow specific URLs.', 'snn'); ?>
+                </p>
+
+                <?php if ($robots_enabled): ?>
+                <div style="margin-top: 20px;">
+                    <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 10px;"><?php _e('Robots Rules', 'snn'); ?></h3>
+                    <div id="snn-robots-rules-container">
+                        <?php if (!empty($robots_rules) && is_array($robots_rules)): ?>
+                            <?php foreach ($robots_rules as $index => $rule): ?>
+                                <div class="snn-robots-rule-item" style="margin-bottom: 10px; padding: 15px; background: #f9f9f9; border-radius: 4px; border-left: 3px solid #2271b1; position: relative;">
+                                    <button type="button" class="snn-remove-robots-rule" style="position: absolute; right: 10px; top: 10px; background: #dc3232; color: white; border: none; border-radius: 3px; padding: 5px 10px; cursor: pointer; font-size: 12px;">
+                                        <?php _e('Remove', 'snn'); ?>
+                                    </button>
+                                    
+                                    <div style="margin-bottom: 10px;">
+                                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                            <?php _e('User-Agent:', 'snn'); ?>
+                                        </label>
+                                        <input type="text" 
+                                               name="snn_seo_robots_rules[<?php echo $index; ?>][user_agent]" 
+                                               value="<?php echo esc_attr($rule['user_agent'] ?? '*'); ?>" 
+                                               placeholder="* (all bots)"
+                                               style="width: 100%; max-width: 300px;">
+                                        <p class="description" style="margin: 5px 0 0 0;"><?php _e('Use * for all bots, or specify: Googlebot, Bingbot, etc.', 'snn'); ?></p>
+                                    </div>
+                                    
+                                    <div style="margin-bottom: 10px;">
+                                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                            <?php _e('Rule Type:', 'snn'); ?>
+                                        </label>
+                                        <select name="snn_seo_robots_rules[<?php echo $index; ?>][rule_type]" style="width: 100%; max-width: 300px;">
+                                            <option value="disallow" <?php selected($rule['rule_type'] ?? 'disallow', 'disallow'); ?>><?php _e('Disallow (Block)', 'snn'); ?></option>
+                                            <option value="allow" <?php selected($rule['rule_type'] ?? 'disallow', 'allow'); ?>><?php _e('Allow', 'snn'); ?></option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                                            <?php _e('Path/URL:', 'snn'); ?>
+                                        </label>
+                                        <input type="text" 
+                                               name="snn_seo_robots_rules[<?php echo $index; ?>][path]" 
+                                               value="<?php echo esc_attr($rule['path'] ?? ''); ?>" 
+                                               placeholder="/wp-admin/"
+                                               style="width: 100%;">
+                                        <p class="description" style="margin: 5px 0 0 0;"><?php _e('Examples: /wp-admin/, /private/, /*.pdf, /uploads/documents/', 'snn'); ?></p>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <button type="button" id="snn-add-robots-rule" class="button button-secondary" style="margin-top: 10px;">
+                        <?php _e('+ Add New Rule', 'snn'); ?>
+                    </button>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #f0f6fc; border-left: 4px solid #2271b1; border-radius: 4px;">
+                        <h4 style="margin-top: 0; font-size: 13px;"><?php _e('📝 Common Examples:', 'snn'); ?></h4>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 13px; line-height: 1.8;">
+                            <li><code>Disallow: /wp-admin/</code> - <?php _e('Block WordPress admin', 'snn'); ?></li>
+                            <li><code>Disallow: /wp-includes/</code> - <?php _e('Block WordPress includes', 'snn'); ?></li>
+                            <li><code>Disallow: /*.pdf$</code> - <?php _e('Block all PDF files', 'snn'); ?></li>
+                            <li><code>Disallow: /private/</code> - <?php _e('Block private directory', 'snn'); ?></li>
+                            <li><code>Allow: /wp-admin/admin-ajax.php</code> - <?php _e('Allow specific admin file', 'snn'); ?></li>
+                        </ul>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+
             <!-- Open Graph Settings -->
             <div class="snn-seo-section">
                 <h2><?php _e('Open Graph', 'snn'); ?></h2>
@@ -577,6 +664,63 @@ function snn_seo_settings_page_callback() {
             
             // Slide toggle content
             $content.slideToggle(50);
+        });
+
+        // Robots.txt repeater functionality
+        var robotsRuleIndex = <?php echo !empty($robots_rules) ? max(array_keys($robots_rules)) + 1 : 0; ?>;
+        
+        $('#snn-add-robots-rule').on('click', function() {
+            var newRule = `
+                <div class="snn-robots-rule-item" style="margin-bottom: 10px; padding: 15px; background: #f9f9f9; border-radius: 4px; border-left: 3px solid #2271b1; position: relative;">
+                    <button type="button" class="snn-remove-robots-rule" style="position: absolute; right: 10px; top: 10px; background: #dc3232; color: white; border: none; border-radius: 3px; padding: 5px 10px; cursor: pointer; font-size: 12px;">
+                        <?php _e('Remove', 'snn'); ?>
+                    </button>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <?php _e('User-Agent:', 'snn'); ?>
+                        </label>
+                        <input type="text" 
+                               name="snn_seo_robots_rules[${robotsRuleIndex}][user_agent]" 
+                               value="*" 
+                               placeholder="* (all bots)"
+                               style="width: 100%; max-width: 300px;">
+                        <p class="description" style="margin: 5px 0 0 0;"><?php _e('Use * for all bots, or specify: Googlebot, Bingbot, etc.', 'snn'); ?></p>
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <?php _e('Rule Type:', 'snn'); ?>
+                        </label>
+                        <select name="snn_seo_robots_rules[${robotsRuleIndex}][rule_type]" style="width: 100%; max-width: 300px;">
+                            <option value="disallow" selected><?php _e('Disallow (Block)', 'snn'); ?></option>
+                            <option value="allow"><?php _e('Allow', 'snn'); ?></option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">
+                            <?php _e('Path/URL:', 'snn'); ?>
+                        </label>
+                        <input type="text" 
+                               name="snn_seo_robots_rules[${robotsRuleIndex}][path]" 
+                               value="" 
+                               placeholder="/wp-admin/"
+                               style="width: 100%;">
+                        <p class="description" style="margin: 5px 0 0 0;"><?php _e('Examples: /wp-admin/, /private/, /*.pdf, /uploads/documents/', 'snn'); ?></p>
+                    </div>
+                </div>
+            `;
+            
+            $('#snn-robots-rules-container').append(newRule);
+            robotsRuleIndex++;
+        });
+        
+        // Remove robots rule
+        $(document).on('click', '.snn-remove-robots-rule', function() {
+            $(this).closest('.snn-robots-rule-item').fadeOut(300, function() {
+                $(this).remove();
+            });
         });
     });
     </script>
@@ -1433,3 +1577,73 @@ function snn_seo_set_flush_transient() {
 }
 add_action('update_option_snn_seo_sitemap_enabled', 'snn_seo_set_flush_transient');
 add_action('update_option_snn_seo_enabled', 'snn_seo_set_flush_transient');
+
+/**
+ * Generate custom robots.txt content
+ */
+function snn_seo_generate_robots_txt($output, $public) {
+    // Only proceed if SEO is enabled and robots.txt is enabled
+    if (!get_option('snn_seo_enabled') || !get_option('snn_seo_robots_enabled')) {
+        return $output;
+    }
+    
+    $robots_rules = get_option('snn_seo_robots_rules', []);
+    
+    if (empty($robots_rules) || !is_array($robots_rules)) {
+        return $output;
+    }
+    
+    // Start with default WordPress robots.txt
+    $custom_output = $output;
+    
+    // Group rules by user-agent
+    $grouped_rules = [];
+    foreach ($robots_rules as $rule) {
+        if (empty($rule['path'])) {
+            continue;
+        }
+        
+        $user_agent = !empty($rule['user_agent']) ? $rule['user_agent'] : '*';
+        $rule_type = !empty($rule['rule_type']) ? $rule['rule_type'] : 'disallow';
+        $path = $rule['path'];
+        
+        if (!isset($grouped_rules[$user_agent])) {
+            $grouped_rules[$user_agent] = [
+                'allow' => [],
+                'disallow' => []
+            ];
+        }
+        
+        $grouped_rules[$user_agent][$rule_type][] = $path;
+    }
+    
+    // Generate robots.txt format
+    $custom_output .= "\n# Custom Rules\n";
+    
+    foreach ($grouped_rules as $user_agent => $rules) {
+        $custom_output .= "\nUser-agent: " . esc_attr($user_agent) . "\n";
+        
+        // Add Allow rules first
+        if (!empty($rules['allow'])) {
+            foreach ($rules['allow'] as $path) {
+                $custom_output .= "Allow: " . esc_attr($path) . "\n";
+            }
+        }
+        
+        // Add Disallow rules
+        if (!empty($rules['disallow'])) {
+            foreach ($rules['disallow'] as $path) {
+                $custom_output .= "Disallow: " . esc_attr($path) . "\n";
+            }
+        }
+    }
+    
+    // Add sitemap reference if sitemap is enabled
+    if (get_option('snn_seo_sitemap_enabled')) {
+        $custom_output .= "\n# Sitemap\n";
+        $custom_output .= "Sitemap: " . home_url('/sitemap.xml') . "\n";
+    }
+    
+    return $custom_output;
+}
+add_filter('robots_txt', 'snn_seo_generate_robots_txt', 10, 2);
