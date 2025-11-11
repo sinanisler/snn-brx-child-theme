@@ -81,21 +81,9 @@ function custom_smtp_settings_sanitize($input) {
     $sanitized['enable_smtp']       = isset($input['enable_smtp']) ? boolval($input['enable_smtp']) : false;
     $sanitized['smtp_host']         = sanitize_text_field($input['smtp_host'] ?? '');
     $sanitized['smtp_encryption']   = sanitize_text_field($input['smtp_encryption'] ?? '');
-
-    if (!empty($sanitized['smtp_encryption'])) {
-        switch (strtolower($sanitized['smtp_encryption'])) {
-            case 'ssl':
-                $sanitized['smtp_port'] = 465;
-                break;
-            case 'tls':
-                $sanitized['smtp_port'] = 587;
-                break;
-            default:
-                $sanitized['smtp_port'] = intval($input['smtp_port'] ?? 25);
-        }
-    } else {
-        $sanitized['smtp_port'] = intval($input['smtp_port'] ?? 25);
-    }
+    
+    // Always save the port value provided by the user
+    $sanitized['smtp_port'] = intval($input['smtp_port'] ?? 25);
 
     $sanitized['smtp_username'] = sanitize_text_field($input['smtp_username'] ?? '');
     $sanitized['smtp_password'] = sanitize_text_field($input['smtp_password'] ?? '');
@@ -137,15 +125,14 @@ function custom_smtp_smtp_encryption_render() {
         function updateSMTPPort() {
             var encryption = document.getElementById('smtp_encryption').value;
             var portField = document.getElementsByName('custom_smtp_settings[smtp_port]')[0];
-            if (encryption === 'ssl') {
-                portField.value = 465;
-                portField.readOnly = true;
-            } else if (encryption === 'tls') {
-                portField.value = 587;
-                portField.readOnly = true;
-            } else {
-                portField.value = '';
-                portField.readOnly = false;
+            
+            // Only update if field is empty
+            if (!portField.value) {
+                if (encryption === 'ssl') {
+                    portField.value = 465;
+                } else if (encryption === 'tls') {
+                    portField.value = 587;
+                }
             }
         }
         document.addEventListener('DOMContentLoaded', function() {
@@ -158,13 +145,11 @@ function custom_smtp_smtp_encryption_render() {
 
 function custom_smtp_smtp_port_render() {
     $options = get_option('custom_smtp_settings', array());
-    $encryption = strtolower($options['smtp_encryption'] ?? 'none');
-    $is_readonly = in_array($encryption, ['ssl', 'tls']) ? 'readonly' : '';
     ?>
     <input type='number' name='custom_smtp_settings[smtp_port]' 
         value='<?php echo esc_attr($options['smtp_port'] ?? ''); ?>' 
-        size='10' 
-        <?php echo $is_readonly; ?>>
+        size='10'>
+    <p class="description"><?php _e('Default: 465 for SSL, 587 for TLS, 25 for None', 'snn'); ?></p>
     <?php
 }
 
