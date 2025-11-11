@@ -1570,13 +1570,16 @@ function snn_seo_flush_rules() {
 register_activation_hook(__FILE__, 'snn_seo_flush_rules');
 
 /**
- * Set transient when sitemap settings change
+ * Flush rewrite rules when sitemap settings change
  */
-function snn_seo_set_flush_transient() {
-    set_transient('snn_seo_flush_needed', true, WEEK_IN_SECONDS);
+function snn_seo_flush_on_setting_change() {
+    snn_seo_sitemap_init();
+    flush_rewrite_rules();
 }
-add_action('update_option_snn_seo_sitemap_enabled', 'snn_seo_set_flush_transient');
-add_action('update_option_snn_seo_enabled', 'snn_seo_set_flush_transient');
+add_action('update_option_snn_seo_sitemap_enabled', 'snn_seo_flush_on_setting_change');
+add_action('update_option_snn_seo_enabled', 'snn_seo_flush_on_setting_change');
+add_action('update_option_snn_seo_sitemap_post_types', 'snn_seo_flush_on_setting_change');
+add_action('update_option_snn_seo_sitemap_taxonomies', 'snn_seo_flush_on_setting_change');
 
 /**
  * Generate custom robots.txt content
