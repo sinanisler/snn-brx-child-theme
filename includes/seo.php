@@ -872,7 +872,7 @@ function snn_seo_get_current_url() {
 }
 
 /**
- * Output SEO meta tags in <head> - IMPROVED VERSION
+ * Output SEO meta tags in <head> - IMPROVED VERSION WITH PROPER PRIORITY
  */
 function snn_seo_output_meta_tags() {
     if (!get_option('snn_seo_enabled')) {
@@ -884,8 +884,59 @@ function snn_seo_output_meta_tags() {
     $context = [];
     $canonical_url = snn_seo_get_current_url();
     
+    // Front page / Homepage
+    if (is_front_page() || is_home()) {
+        $page_id = get_option('page_on_front');
+        
+        // If there's a static front page set
+        if ($page_id && is_front_page()) {
+            $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
+            $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
+            
+            // Check if page post type is enabled
+            if (isset($post_types_enabled['page']) && $post_types_enabled['page']) {
+                $context = ['post_id' => $page_id];
+                
+                // PRIORITY 1: Check for custom meta from metabox (static/manual values)
+                $custom_title = trim(get_post_meta($page_id, '_snn_seo_title', true));
+                $custom_desc = trim(get_post_meta($page_id, '_snn_seo_description', true));
+                
+                // Title: Use custom if exists, otherwise use template
+                if ($custom_title !== '' && $custom_title !== false) {
+                    // Custom meta exists - use it directly (no template processing needed)
+                    $title = $custom_title;
+                } else {
+                    // PRIORITY 2: Use template with dynamic tags
+                    $post_type_titles = get_option('snn_seo_post_type_titles', []);
+                    $post_type_titles = is_array($post_type_titles) ? $post_type_titles : [];
+                    $template = isset($post_type_titles['page']) && !empty($post_type_titles['page']) 
+                        ? $post_type_titles['page'] 
+                        : '{post_title} - {site_title}';
+                    $title = snn_seo_replace_tags($template, $context);
+                }
+                
+                // Description: Use custom if exists, otherwise use template
+                if ($custom_desc !== '' && $custom_desc !== false) {
+                    // Custom meta exists - use it directly (no template processing needed)
+                    $description = $custom_desc;
+                } else {
+                    // PRIORITY 2: Use template with dynamic tags
+                    $post_type_descriptions = get_option('snn_seo_post_type_descriptions', []);
+                    $post_type_descriptions = is_array($post_type_descriptions) ? $post_type_descriptions : [];
+                    $template = isset($post_type_descriptions['page']) && !empty($post_type_descriptions['page']) 
+                        ? $post_type_descriptions['page'] 
+                        : '{post_excerpt}';
+                    $description = snn_seo_replace_tags($template, $context);
+                }
+            }
+        } else {
+            // Blog homepage (posts page) - use site defaults
+            $title = get_bloginfo('name') . ' - ' . get_bloginfo('description');
+            $description = get_bloginfo('description');
+        }
+    }
     // Single post/page/CPT
-    if (is_singular()) {
+    elseif (is_singular()) {
         global $post;
         if (!$post || is_wp_error($post)) {
             return;
@@ -898,13 +949,16 @@ function snn_seo_output_meta_tags() {
         if (isset($post_types_enabled[$post_type]) && $post_types_enabled[$post_type]) {
             $context = ['post_id' => $post->ID];
             
-            // Check for custom meta first
-            $custom_title = get_post_meta($post->ID, '_snn_seo_title', true);
-            $custom_desc = get_post_meta($post->ID, '_snn_seo_description', true);
+            // PRIORITY 1: Check for custom meta from metabox (static/manual values)
+            $custom_title = trim(get_post_meta($post->ID, '_snn_seo_title', true));
+            $custom_desc = trim(get_post_meta($post->ID, '_snn_seo_description', true));
             
-            if (!empty($custom_title)) {
-                $title = snn_seo_replace_tags($custom_title, $context);
+            // Title: Use custom if exists, otherwise use template
+            if ($custom_title !== '' && $custom_title !== false) {
+                // Custom meta exists - use it directly (no template processing needed)
+                $title = $custom_title;
             } else {
+                // PRIORITY 2: Use template with dynamic tags
                 $post_type_titles = get_option('snn_seo_post_type_titles', []);
                 $post_type_titles = is_array($post_type_titles) ? $post_type_titles : [];
                 $template = isset($post_type_titles[$post_type]) && !empty($post_type_titles[$post_type]) 
@@ -913,9 +967,12 @@ function snn_seo_output_meta_tags() {
                 $title = snn_seo_replace_tags($template, $context);
             }
             
-            if (!empty($custom_desc)) {
-                $description = snn_seo_replace_tags($custom_desc, $context);
+            // Description: Use custom if exists, otherwise use template
+            if ($custom_desc !== '' && $custom_desc !== false) {
+                // Custom meta exists - use it directly (no template processing needed)
+                $description = $custom_desc;
             } else {
+                // PRIORITY 2: Use template with dynamic tags
                 $post_type_descriptions = get_option('snn_seo_post_type_descriptions', []);
                 $post_type_descriptions = is_array($post_type_descriptions) ? $post_type_descriptions : [];
                 $template = isset($post_type_descriptions[$post_type]) && !empty($post_type_descriptions[$post_type]) 
@@ -1038,6 +1095,20 @@ function snn_seo_output_meta_tags() {
     }
 }
 add_action('wp_head', 'snn_seo_output_meta_tags', 1);
+
+/**
+ * Remove default WordPress title tag to prevent conflicts
+ */
+function snn_seo_remove_default_title() {
+    if (get_option('snn_seo_enabled')) {
+        // Remove theme support for title tag so WordPress doesn't output its own
+        remove_theme_support('title-tag');
+        
+        // Remove default title tag filters
+        remove_action('wp_head', '_wp_render_title_tag', 1);
+    }
+}
+add_action('after_setup_theme', 'snn_seo_remove_default_title', 100);
 
 /**
  * Output Open Graph meta tags - IMPROVED VERSION
