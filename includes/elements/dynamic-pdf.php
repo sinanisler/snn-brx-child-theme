@@ -20,9 +20,8 @@ class Snn_Dynamic_PDF extends Element {
         $this->controls['pdf_file'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'PDF File', 'snn' ),
-            'type'  => 'text',
-            'placeholder' => esc_html__( 'Enter PDF URL or ACF field name', 'snn' ),
-            'description' => esc_html__( 'Enter full PDF URL or ACF field name that returns PDF URL', 'snn' ),
+            'type'  => 'file',
+            'description' => esc_html__( 'Enter the full PDF URL', 'snn' ),
         ];
 
         $this->controls['cover_image'] = [
@@ -162,24 +161,7 @@ class Snn_Dynamic_PDF extends Element {
         ];
     }
 
-    private function resolve_pdf_value( $value ) {
-        if ( empty( $value ) ) {
-            return '';
-        }
 
-        // If it's a full URL or relative path, return it
-        if ( preg_match( '/^(https?:\/\/|\/)/', $value ) ) {
-            return esc_url( $value );
-        }
-
-        // Otherwise, treat it as an ACF field name
-        if ( function_exists( 'get_field' ) ) {
-            $acf_value = get_field( $value );
-            return $acf_value ? esc_url( $acf_value ) : '';
-        }
-
-        return '';
-    }
 
     private function parse_color( $color_setting, $default = '#000000' ) {
         if ( empty( $color_setting ) ) {
@@ -204,15 +186,12 @@ class Snn_Dynamic_PDF extends Element {
     public function render() {
         $settings = $this->settings;
 
-        $pdf_url = '';
-        if ( ! empty( $settings['pdf_file'] ) ) {
-            $pdf_url = $this->resolve_pdf_value( $settings['pdf_file'] );
-        }
+        $pdf_url = ! empty( $settings['pdf_file']['url'] ) ? $settings['pdf_file']['url'] : '';
 
         if ( empty( $pdf_url ) ) {
             echo '<div style="padding:20px;background:#f3f3f3;text-align:center;">';
             echo '<p><strong>' . esc_html__( 'No PDF URL provided.', 'snn' ) . '</strong></p>';
-            echo '<p>' . esc_html__( 'Please add a PDF URL or ACF field name in the element settings.', 'snn' ) . '</p>';
+            echo '<p>' . esc_html__( 'Please add a PDF URL in the element settings.', 'snn' ) . '</p>';
             echo '</div>';
             return;
         }
