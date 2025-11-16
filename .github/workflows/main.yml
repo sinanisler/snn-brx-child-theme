@@ -43,9 +43,9 @@ jobs:
           last_tag="v${current_version}"
           echo "Last tag: $last_tag"
           if git rev-parse "$last_tag" >/dev/null 2>&1; then
-            commits=$(git log "$last_tag"..HEAD --pretty=format:"- %s")
+            commits=$(git log "$last_tag"..HEAD --pretty=format:"- %s (%h)" --no-merges)
           else
-            commits=$(git log --pretty=format:"- %s")
+            commits=$(git log --pretty=format:"- %s (%h)" --no-merges)
           fi
           if [ -z "$commits" ]; then
             commits="No changes."
@@ -53,6 +53,7 @@ jobs:
           echo "commit_messages<<EOF" >> $GITHUB_ENV
           echo "$commits" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+          echo "previous_tag=$last_tag" >> $GITHUB_ENV
 
       # Handle PRERELEASE: does NOT bump version, just reuses current
       - name: Set current version for prerelease and unique prerelease tag
@@ -155,6 +156,9 @@ jobs:
 
             ## Changes
             ${{ env.commit_messages }}
+            
+            ---
+            **Full Changelog**: ${{ env.previous_tag != '' && format('https://github.com/sinanisler/snn-brx-child-theme/compare/{0}...v{1}', env.previous_tag, env.new_version) || format('https://github.com/sinanisler/snn-brx-child-theme/commits/v{0}', env.new_version) }}
 
       - name: Create GitHub prerelease
         if: env.commit_message_contains_alphatag == 'true'
@@ -169,6 +173,10 @@ jobs:
 
             ## Changes
             ${{ env.commit_messages }}
+            
+            ---
+            **Note**: This is a pre-release version for testing purposes.
+            **Full Changelog**: ${{ env.previous_tag != '' && format('https://github.com/sinanisler/snn-brx-child-theme/compare/{0}...{1}', env.previous_tag, env.prerelease_tag) || format('https://github.com/sinanisler/snn-brx-child-theme/commits/{0}', env.prerelease_tag) }}
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
