@@ -68,26 +68,25 @@ jobs:
           SPONSORS=$(echo "$SPONSORS_JSON" | jq -r '.data.user.sponsorshipsAsMaintainer.nodes[].sponsorEntity.login' 2>/dev/null | sed 's/^/@/' | tr '\n' ' ')
           
           if [ -z "$SPONSORS" ] || [ "$SPONSORS" = " " ]; then
-            SPONSORS_LIST=""
+            echo "sponsors_list=" >> $GITHUB_ENV
           else
-            SPONSORS_LIST="## 💖 This Month's Supporters
-
-Thank you to our amazing sponsors for their support this month:
-
-$SPONSORS
-
-Your support means the world! 🙏
-
-[![Sponsor me](https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46)](https://github.com/sponsors/sinanisler)
-
----
-
-"
+            {
+              echo "sponsors_list<<EOF"
+              echo "## 💖 This Month's Supporters"
+              echo ""
+              echo "Thank you to our amazing sponsors for their support this month:"
+              echo ""
+              echo "$SPONSORS"
+              echo ""
+              echo "Your support means the world! 🙏"
+              echo ""
+              echo "[![Sponsor me](https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46)](https://github.com/sponsors/sinanisler)"
+              echo ""
+              echo "---"
+              echo ""
+              echo "EOF"
+            } >> $GITHUB_ENV
           fi
-          
-          echo "sponsors_list<<EOF" >> $GITHUB_ENV
-          echo "$SPONSORS_LIST" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
 
       # Handle PRERELEASE: does NOT bump version, just reuses current
       - name: Set current version for prerelease and unique prerelease tag
