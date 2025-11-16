@@ -72,13 +72,10 @@ jobs:
           else
             {
               echo "sponsors_list<<EOF"
-              echo "## 💖 This Month's Supporters"
               echo ""
               echo "Thank you to our amazing sponsors for their support this month:"
               echo ""
               echo "$SPONSORS"
-              echo ""
-              echo "Your support means the world! 🙏"
               echo ""
               echo "[![Sponsor me](https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46)](https://github.com/sponsors/sinanisler)"
               echo ""
@@ -187,7 +184,7 @@ jobs:
           body: |
             ${{ env.sponsors_list }}Version ${{ env.new_version }} release of the project.
 
-            ## Changes
+            ## Changelog
             ${{ env.commit_messages }}
             
             ---
@@ -204,7 +201,7 @@ jobs:
           body: |
             ${{ env.sponsors_list }}Prerelease ${{ env.prerelease_tag }} of the project.
 
-            ## Changes
+            ## Changelog
             ${{ env.commit_messages }}
             
             ---
