@@ -55,6 +55,38 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
           echo "previous_tag=$last_tag" >> $GITHUB_ENV
 
+      - name: Get active GitHub Sponsors
+        id: get_sponsors
+        run: |
+          SPONSORS_JSON=$(curl -s -H "Authorization: bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d '{"query":"query { user(login: \"sinanisler\") { sponsorshipsAsMaintainer(first: 100, activeOnly: true) { nodes { sponsorEntity { ... on User { login } ... on Organization { login } } } } } }"}' \
+            https://api.github.com/graphql)
+          
+          # Extract sponsor logins and format as @mentions
+          SPONSORS=$(echo "$SPONSORS_JSON" | jq -r '.data.user.sponsorshipsAsMaintainer.nodes[].sponsorEntity.login' 2>/dev/null | sed 's/^/@/' | tr '\n' ' ')
+          
+          if [ -z "$SPONSORS" ] || [ "$SPONSORS" = " " ]; then
+            SPONSORS_LIST=""
+          else
+            SPONSORS_LIST="## 💖 This Month's Supporters
+
+Thank you to our amazing sponsors for their support this month:
+
+$SPONSORS
+
+Your support means the world! 🙏
+
+---
+
+"
+          fi
+          
+          echo "sponsors_list<<EOF" >> $GITHUB_ENV
+          echo "$SPONSORS_LIST" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       # Handle PRERELEASE: does NOT bump version, just reuses current
       - name: Set current version for prerelease and unique prerelease tag
         if: env.commit_message_contains_alphatag == 'true'
@@ -152,7 +184,7 @@ jobs:
           tag_name: "v${{ env.new_version }}"
           release_name: "Release v${{ env.new_version }}"
           body: |
-            Version ${{ env.new_version }} release of the project.
+            ${{ env.sponsors_list }}Version ${{ env.new_version }} release of the project.
 
             ## Changes
             ${{ env.commit_messages }}
@@ -169,7 +201,7 @@ jobs:
           tag_name: "${{ env.prerelease_tag }}"
           release_name: "Prerelease ${{ env.prerelease_tag }}"
           body: |
-            Prerelease ${{ env.prerelease_tag }} of the project.
+            ${{ env.sponsors_list }}Prerelease ${{ env.prerelease_tag }} of the project.
 
             ## Changes
             ${{ env.commit_messages }}
