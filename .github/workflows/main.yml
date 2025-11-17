@@ -73,7 +73,7 @@ jobs:
             {
               echo "sponsors_list<<EOF"
               echo ""
-              echo "Thank you to our amazing sponsors for their support this month:"
+              echo "Thank you to the amazing sponsors for their support this month:"
               echo ""
               echo "$SPONSORS"
               echo ""
