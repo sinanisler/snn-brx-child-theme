@@ -13,7 +13,7 @@ class Snn_Dynamic_PDF extends Element {
     public $scripts      = ['snnPdfViewer'];
 
     public function get_label() {
-        return esc_html__( 'Dynamic PDF', 'snn' );
+        return esc_html__( 'Dynamic PDF Embed', 'snn' );
     }
 
     public function set_controls() {
@@ -48,6 +48,35 @@ class Snn_Dynamic_PDF extends Element {
             'unit'    => 'px',
             'default' => 36,
             'inline'  => true,
+        ];
+
+        $this->controls['left_arrow_icon'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Left Arrow Icon', 'snn' ),
+            'type'    => 'icon',
+            'default' => [
+                'library' => 'themify',
+                'icon'    => 'ti-angle-left',
+            ],
+        ];
+
+        $this->controls['right_arrow_icon'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Right Arrow Icon', 'snn' ),
+            'type'    => 'icon',
+            'default' => [
+                'library' => 'themify',
+                'icon'    => 'ti-angle-right',
+            ],
+        ];
+
+        $this->controls['two_page_view'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Display Two Pages', 'snn' ),
+            'type'    => 'checkbox',
+            'inline'  => true,
+            'default' => false,
+            'description' => esc_html__( 'Show two PDF pages side by side.', 'snn' ),
         ];
 
         $this->controls['show_download'] = [
@@ -183,6 +212,23 @@ class Snn_Dynamic_PDF extends Element {
         return $color_setting;
     }
 
+    private function render_arrow_icon( $icon_settings, $fallback_char, $extra_classes = [] ) {
+        if ( ! empty( $icon_settings ) ) {
+            if ( class_exists( '\\Bricks\\Helpers' ) && method_exists( '\\Bricks\\Helpers', 'render_control_icon' ) ) {
+                \Bricks\Helpers::render_control_icon( $icon_settings, $extra_classes );
+                return;
+            }
+
+            if ( ! empty( $icon_settings['icon'] ) ) {
+                $classes = array_filter( array_merge( $extra_classes, [ $icon_settings['icon'] ] ) );
+                echo '<i class="' . esc_attr( implode( ' ', $classes ) ) . '"></i>';
+                return;
+            }
+        }
+
+        echo esc_html( $fallback_char );
+    }
+
     public function render() {
         $settings = $this->settings;
 
@@ -203,6 +249,9 @@ class Snn_Dynamic_PDF extends Element {
 
         $chevron_color = $this->parse_color( isset( $settings['chevron_color'] ) ? $settings['chevron_color'] : null, '#000000' );
         $chevron_size  = isset( $settings['chevron_size'] ) ? intval( $settings['chevron_size'] ) : 36;
+        $left_arrow_icon = isset( $settings['left_arrow_icon'] ) ? $settings['left_arrow_icon'] : null;
+        $right_arrow_icon = isset( $settings['right_arrow_icon'] ) ? $settings['right_arrow_icon'] : null;
+        $two_page_view = ! empty( $settings['two_page_view'] );
         $show_download = isset( $settings['show_download'] ) && $settings['show_download'];
         $download_text = isset( $settings['download_text'] ) ? esc_html( $settings['download_text'] ) : 'Download PDF';
 
@@ -303,6 +352,20 @@ class Snn_Dynamic_PDF extends Element {
                 .snn-pdf-viewer-wrapper canvas {
                     pointer-events: none;
                 }
+                #<?php echo $uid; ?>.snn-pdf-two-page {
+                    display: flex;
+                    gap: 20px;
+                    justify-content: center;
+                    align-items: stretch;
+                }
+                #<?php echo $uid; ?>.snn-pdf-two-page .snn-pdf-page {
+                    flex: 1 1 50%;
+                    width: auto;
+                }
+                #<?php echo $uid; ?>.snn-pdf-two-page .snn-pdf-page canvas {
+                    width: 100% !important;
+                    height: auto !important;
+                }
             </style>
 
             <div id="<?php echo $uid; ?>-container">
@@ -313,9 +376,13 @@ class Snn_Dynamic_PDF extends Element {
                     </div>
                     <?php endif; ?>
                     <div class="snn-pdf-viewer" id="<?php echo $uid; ?>-viewer">
-                        <div id="<?php echo $uid; ?>"></div>
-                        <span class="snn-pdf-arrow snn-pdf-prev" id="<?php echo $uid; ?>-prev">‹</span>
-                        <span class="snn-pdf-arrow snn-pdf-next" id="<?php echo $uid; ?>-next">›</span>
+                        <div id="<?php echo $uid; ?>" class="<?php echo $two_page_view ? 'snn-pdf-two-page' : ''; ?>"></div>
+                        <span class="snn-pdf-arrow snn-pdf-prev" id="<?php echo $uid; ?>-prev">
+                            <?php $this->render_arrow_icon( $left_arrow_icon, '‹', [ 'snn-pdf-arrow-icon' ] ); ?>
+                        </span>
+                        <span class="snn-pdf-arrow snn-pdf-next" id="<?php echo $uid; ?>-next">
+                            <?php $this->render_arrow_icon( $right_arrow_icon, '›', [ 'snn-pdf-arrow-icon' ] ); ?>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -340,6 +407,8 @@ class Snn_Dynamic_PDF extends Element {
                 const buttons = document.getElementById(uid + '-buttons');
                 const nextArrow = document.getElementById(uid + '-next');
                 const prevArrow = document.getElementById(uid + '-prev');
+                const twoPageView = <?php echo $two_page_view ? 'true' : 'false'; ?>;
+                const pageStep = twoPageView ? 2 : 1;
                 let currentPage = 1;
                 let isNavigating = false;
                 let pdfDoc = null;
@@ -397,41 +466,114 @@ class Snn_Dynamic_PDF extends Element {
                             });
                         }
 
+                        function renderPages(startPage) {
+                            const pageNumbers = twoPageView ? [startPage, startPage + 1] : [startPage];
+                            const validPages = pageNumbers.filter(function(pageNum) {
+                                return pageNum >= 1 && pageNum <= pdf.numPages;
+                            });
+
+                            if (!validPages.length) {
+                                return Promise.resolve([]);
+                            }
+
+                            return Promise.all(validPages.map(renderPage));
+                        }
+
+                        function getLastStartPage() {
+                            if (!twoPageView) {
+                                return pdf.numPages;
+                            }
+                            return pdf.numPages % 2 === 0 ? Math.max(1, pdf.numPages - 1) : pdf.numPages;
+                        }
+
+                        function updateIndicator() {
+                            if (!pageIndicator) {
+                                return;
+                            }
+
+                            if (!twoPageView) {
+                                pageIndicator.textContent = currentPage + ' / ' + pdf.numPages;
+                                return;
+                            }
+
+                            const secondPage = Math.min(currentPage + 1, pdf.numPages);
+                            if (secondPage > currentPage) {
+                                pageIndicator.textContent = currentPage + ' - ' + secondPage + ' / ' + pdf.numPages;
+                            } else {
+                                pageIndicator.textContent = currentPage + ' / ' + pdf.numPages;
+                            }
+                        }
+
                         function goToPage(i) {
-                            if (i < 1 || i > pdf.numPages || i === currentPage || isNavigating) return;
+                            if (isNavigating) {
+                                return;
+                            }
+
+                            let targetPage = i;
+
+                            if (twoPageView) {
+                                if (targetPage % 2 === 0) {
+                                    targetPage = Math.max(1, targetPage - 1);
+                                }
+                                const lastStart = getLastStartPage();
+                                if (targetPage > lastStart) {
+                                    targetPage = lastStart;
+                                }
+                            }
+
+                            if (targetPage < 1) {
+                                targetPage = 1;
+                            }
+
+                            if (targetPage > pdf.numPages) {
+                                targetPage = pdf.numPages;
+                            }
+
+                            if (targetPage === currentPage) {
+                                return;
+                            }
+
                             isNavigating = true;
-                            renderPage(i).then(function(newPage) {
+                            renderPages(targetPage).then(function(newPages) {
                                 const oldPages = flipbook.querySelectorAll('.snn-pdf-page');
                                 oldPages.forEach(function(p) { p.remove(); });
-                                flipbook.appendChild(newPage);
-                                currentPage = i;
+                                newPages.forEach(function(pageNode) { flipbook.appendChild(pageNode); });
+                                currentPage = targetPage;
                                 updateArrows();
-                                if (pageIndicator) pageIndicator.textContent = currentPage + ' / ' + pdf.numPages;
+                                updateIndicator();
                                 isNavigating = false;
                             });
                         }
 
                         function updateArrows() {
-                            if (prevArrow) prevArrow.style.display = currentPage > 1 ? 'block' : 'none';
-                            if (nextArrow) nextArrow.style.display = currentPage < pdf.numPages ? 'block' : 'none';
+                            if (prevArrow) {
+                                prevArrow.style.display = currentPage > 1 ? 'block' : 'none';
+                            }
+                            if (nextArrow) {
+                                if (!twoPageView) {
+                                    nextArrow.style.display = currentPage < pdf.numPages ? 'block' : 'none';
+                                } else {
+                                    nextArrow.style.display = currentPage < getLastStartPage() ? 'block' : 'none';
+                                }
+                            }
                         }
 
-                        renderPage(currentPage).then(function(page) {
-                            flipbook.appendChild(page);
+                        renderPages(currentPage).then(function(pages) {
+                            pages.forEach(function(page) { flipbook.appendChild(page); });
                             updateArrows();
-                            if (pageIndicator) pageIndicator.textContent = currentPage + ' / ' + pdf.numPages;
+                            updateIndicator();
                         });
 
                         if (nextArrow) {
-                            nextArrow.addEventListener('click', function() { goToPage(currentPage + 1); });
+                            nextArrow.addEventListener('click', function() { goToPage(currentPage + pageStep); });
                         }
                         if (prevArrow) {
-                            prevArrow.addEventListener('click', function() { goToPage(currentPage - 1); });
+                            prevArrow.addEventListener('click', function() { goToPage(currentPage - pageStep); });
                         }
 
                         document.addEventListener('keydown', function(e) {
-                            if (e.key === 'ArrowRight') goToPage(currentPage + 1);
-                            if (e.key === 'ArrowLeft') goToPage(currentPage - 1);
+                            if (e.key === 'ArrowRight') goToPage(currentPage + pageStep);
+                            if (e.key === 'ArrowLeft') goToPage(currentPage - pageStep);
                         });
                     });
                 }
