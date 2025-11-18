@@ -76,117 +76,6 @@ class Snn_Dynamic_PDF extends Element {
             'type'    => 'checkbox',
             'inline'  => true,
             'default' => false,
-            'description' => esc_html__( 'Show two PDF pages side by side.', 'snn' ),
-        ];
-
-        $this->controls['show_download'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Show Download Button', 'snn' ),
-            'type'    => 'checkbox',
-            'inline'  => true,
-            'default' => false,
-        ];
-
-        $this->controls['download_text'] = [
-            'tab'      => 'content',
-            'label'    => esc_html__( 'Download Text', 'snn' ),
-            'type'     => 'text',
-            'default'  => 'Download PDF',
-            'required' => ['show_download', '=', true],
-        ];
-
-        $this->controls['download_typography'] = [
-            'tab'      => 'style',
-            'label'    => esc_html__( 'Download Button Typography', 'snn' ),
-            'type'     => 'typography',
-            'css'      => [
-                [
-                    'property' => 'font',
-                    'selector' => '.snn-pdf-download-btn',
-                ],
-            ],
-            'required' => ['show_download', '=', true],
-        ];
-
-        $this->controls['download_bg'] = [
-            'tab'      => 'style',
-            'label'    => esc_html__( 'Download Background', 'snn' ),
-            'type'     => 'color',
-            'inline'   => true,
-            'css'      => [
-                [
-                    'property' => 'background-color',
-                    'selector' => '.snn-pdf-download-btn',
-                ],
-            ],
-            'default'  => [
-                'hex' => '#ff0050',
-            ],
-            'required' => ['show_download', '=', true],
-        ];
-
-        $this->controls['download_color'] = [
-            'tab'      => 'style',
-            'label'    => esc_html__( 'Download Text Color', 'snn' ),
-            'type'     => 'color',
-            'inline'   => true,
-            'css'      => [
-                [
-                    'property' => 'color',
-                    'selector' => '.snn-pdf-download-btn',
-                ],
-            ],
-            'default'  => [
-                'hex' => '#ffffff',
-            ],
-            'required' => ['show_download', '=', true],
-        ];
-
-        $this->controls['download_hover_bg'] = [
-            'tab'      => 'style',
-            'label'    => esc_html__( 'Download Hover Background', 'snn' ),
-            'type'     => 'color',
-            'inline'   => true,
-            'css'      => [
-                [
-                    'property' => 'background-color',
-                    'selector' => '.snn-pdf-download-btn:hover',
-                ],
-            ],
-            'default'  => [
-                'hex' => '#d40045',
-            ],
-            'required' => ['show_download', '=', true],
-        ];
-
-        $this->controls['download_hover_color'] = [
-            'tab'      => 'style',
-            'label'    => esc_html__( 'Download Hover Text Color', 'snn' ),
-            'type'     => 'color',
-            'inline'   => true,
-            'css'      => [
-                [
-                    'property' => 'color',
-                    'selector' => '.snn-pdf-download-btn:hover',
-                ],
-            ],
-            'default'  => [
-                'hex' => '#ffffff',
-            ],
-            'required' => ['show_download', '=', true],
-        ];
-
-        $this->controls['download_border'] = [
-            'tab'      => 'style',
-            'label'    => esc_html__( 'Download Button Border', 'snn' ),
-            'type'     => 'border',
-            'css'      => [
-                [
-                    'property' => 'border',
-                    'selector' => '.snn-pdf-download-btn',
-                ],
-            ],
-            'required' => ['show_download', '=', true],
         ];
     }
 
@@ -252,8 +141,6 @@ class Snn_Dynamic_PDF extends Element {
         $left_arrow_icon = isset( $settings['left_arrow_icon'] ) ? $settings['left_arrow_icon'] : null;
         $right_arrow_icon = isset( $settings['right_arrow_icon'] ) ? $settings['right_arrow_icon'] : null;
         $two_page_view = ! empty( $settings['two_page_view'] );
-        $show_download = isset( $settings['show_download'] ) && $settings['show_download'];
-        $download_text = isset( $settings['download_text'] ) ? esc_html( $settings['download_text'] ) : 'Download PDF';
 
         $uid = 'snn-pdf-' . uniqid();
 
@@ -322,23 +209,10 @@ class Snn_Dynamic_PDF extends Element {
                     user-select: none;
                 }
                 .snn-pdf-prev {
-                    left: 15px;
+                    left: -25px;
                 }
                 .snn-pdf-next {
-                    right: 15px;
-                }
-                .snn-pdf-buttons {
-                    margin-top: 10px;
-                    display: none;
-                    text-align: center;
-                }
-                .snn-pdf-download-btn {
-                    padding: 8px 16px;
-                    text-decoration: none;
-                    display: inline-block;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    transition: all 0.3s;
+                    right: -25px;
                 }
                 .snn-pdf-page-indicator {
                     margin-top: 10px;
@@ -389,13 +263,6 @@ class Snn_Dynamic_PDF extends Element {
                 </div>
             </div>
             <div class="snn-pdf-page-indicator" id="<?php echo $uid; ?>-page-indicator">1 / ?</div>
-            <?php if ( $show_download ) : ?>
-            <div class="snn-pdf-buttons" id="<?php echo $uid; ?>-buttons">
-                <a href="<?php echo $pdf_url; ?>" download type="application/pdf" target="_blank" class="snn-pdf-download-btn">
-                    <?php echo $download_text; ?>
-                </a>
-            </div>
-            <?php endif; ?>
 
             <script src="<?php echo esc_url( SNN_URL_ASSETS . 'js/pdf.min.js' ); ?>"></script>
             <script>
@@ -406,7 +273,6 @@ class Snn_Dynamic_PDF extends Element {
                 const wrapper = document.getElementById(uid + '-viewer');
                 const cover = document.getElementById(uid + '-cover');
                 const pageIndicator = document.getElementById(uid + '-page-indicator');
-                const buttons = document.getElementById(uid + '-buttons');
                 const nextArrow = document.getElementById(uid + '-next');
                 const prevArrow = document.getElementById(uid + '-prev');
                 const twoPageView = <?php echo $two_page_view ? 'true' : 'false'; ?>;
@@ -420,7 +286,6 @@ class Snn_Dynamic_PDF extends Element {
                     cover.addEventListener('click', function() {
                         wrapper.style.display = 'block';
                         cover.style.display = 'none';
-                        if (buttons) buttons.style.display = 'block';
                         if (pageIndicator) pageIndicator.style.display = 'block';
                         initPDF();
                     });
@@ -428,7 +293,6 @@ class Snn_Dynamic_PDF extends Element {
                 <?php else : ?>
                 setTimeout(function() {
                     wrapper.style.display = 'block';
-                    if (buttons) buttons.style.display = 'block';
                     if (pageIndicator) pageIndicator.style.display = 'block';
                     initPDF();
                 }, 50);
