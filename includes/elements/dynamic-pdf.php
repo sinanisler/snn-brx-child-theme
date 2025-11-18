@@ -300,12 +300,14 @@ class Snn_Dynamic_PDF extends Element {
                 .snn-pdf-page {
                     width: 100%;
                     height: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                 }
                 .snn-pdf-page canvas {
-                    width: 100% !important;
-                    height: 100% !important;
-                    object-fit: contain;
                     display: block;
+                    max-width: 100%;
+                    max-height: 100%;
                 }
                 .snn-pdf-arrow {
                     position: absolute;
@@ -363,8 +365,8 @@ class Snn_Dynamic_PDF extends Element {
                     width: auto;
                 }
                 #<?php echo $uid; ?>.snn-pdf-two-page .snn-pdf-page canvas {
-                    width: 100% !important;
-                    height: auto !important;
+                    max-width: 100%;
+                    height: auto;
                 }
             </style>
 
@@ -442,8 +444,8 @@ class Snn_Dynamic_PDF extends Element {
                                 const containerWidth = flipbook.offsetWidth;
                                 const containerHeight = flipbook.offsetHeight;
                                 const rawViewport = page.getViewport({scale: 1});
-                                const scale = Math.min(containerWidth / rawViewport.width, containerHeight / rawViewport.height);
-                                const outputScale = window.devicePixelRatio || 1;
+                                const pixelRatio = window.devicePixelRatio || 1;
+                                const scale = Math.min(containerWidth / rawViewport.width, containerHeight / rawViewport.height) * pixelRatio;
                                 const viewport = page.getViewport({scale});
                                 
                                 const pageDiv = document.createElement('div');
@@ -452,11 +454,10 @@ class Snn_Dynamic_PDF extends Element {
                                 
                                 const canvas = document.createElement('canvas');
                                 const context = canvas.getContext('2d');
-                                canvas.width = viewport.width * outputScale;
-                                canvas.height = viewport.height * outputScale;
-                                canvas.style.width = viewport.width + 'px';
-                                canvas.style.height = viewport.height + 'px';
-                                context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+                                canvas.width = viewport.width;
+                                canvas.height = viewport.height;
+                                canvas.style.width = Math.floor(viewport.width / pixelRatio) + 'px';
+                                canvas.style.height = Math.floor(viewport.height / pixelRatio) + 'px';
                                 
                                 pageDiv.appendChild(canvas);
                                 
