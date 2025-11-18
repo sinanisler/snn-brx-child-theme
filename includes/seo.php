@@ -305,7 +305,7 @@ function snn_seo_settings_page_callback() {
                                 <strong><?php _e('Meta Description Template:', 'snn'); ?></strong>
                                 <div class="snn-tags-hint"><?php _e('Available tags:', 'snn'); ?> <code>{post_excerpt}</code> <code>{post_title}</code> <code>{post_author}</code> <code>{post_date}</code></div>
                                 <textarea name="snn_seo_post_type_descriptions[<?php echo esc_attr($post_type->name); ?>]" 
-                                          style="width: 100%; height: 80px;"><?php 
+                                          style="width: 100%; height: 50px;"><?php 
                                     echo esc_textarea(isset($post_type_descriptions[$post_type->name]) ? $post_type_descriptions[$post_type->name] : '{post_excerpt}'); 
                                 ?></textarea>
                             </label>
