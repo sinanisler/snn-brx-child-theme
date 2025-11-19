@@ -35,6 +35,7 @@ require_once SNN_PATH . 'includes/disable-emojis.php';
 require_once SNN_PATH . 'includes/disable-gravatar.php';
 require_once SNN_PATH . 'includes/editor-settings-bricks.php'; 
 require_once SNN_PATH . 'includes/editor-settings-panel-bricks.php';
+require_once SNN_PATH . 'includes/editor-bem-class-generator.php';
 require_once SNN_PATH . 'includes/role-manager.php';
 require_once SNN_PATH . 'includes/custom-code-snippets.php';
 require_once SNN_PATH . 'includes/cookie-banner.php';
