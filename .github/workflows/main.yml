@@ -55,34 +55,19 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
           echo "previous_tag=$last_tag" >> $GITHUB_ENV
 
-      - name: Get active GitHub Sponsors
-        id: get_sponsors
+      - name: Set sponsor message
+        id: set_sponsors
         run: |
-          SPONSORS_JSON=$(curl -s -H "Authorization: bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -X POST \
-            -d '{"query":"query { user(login: \"sinanisler\") { sponsorshipsAsMaintainer(first: 100, activeOnly: true) { nodes { sponsorEntity { ... on User { login } ... on Organization { login } } } } } }"}' \
-            https://api.github.com/graphql)
-          
-          # Extract sponsor logins and format as @mentions
-          SPONSORS=$(echo "$SPONSORS_JSON" | jq -r '.data.user.sponsorshipsAsMaintainer.nodes[].sponsorEntity.login' 2>/dev/null | sed 's/^/@/' | tr '\n' ' ')
-          
-          if [ -z "$SPONSORS" ] || [ "$SPONSORS" = " " ]; then
-            echo "sponsors_list=" >> $GITHUB_ENV
-          else
-            {
-              echo "sponsors_list<<EOF"
-              echo ""
-              echo "Thank you to the amazing sponsors for their support this month:"
-              echo ""
-              echo "$SPONSORS"
-              echo ""
-              echo "[![Sponsor me](https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46)](https://github.com/sponsors/sinanisler)"
-              echo ""
-              echo ""
-              echo "EOF"
-            } >> $GITHUB_ENV
-          fi
+          {
+            echo "sponsors_list<<EOF"
+            echo ""
+            echo "Thank you to the amazing sponsors for their support this month ❤"
+            echo ""
+            echo "[![Sponsor me](https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46)](https://github.com/sponsors/sinanisler)"
+            echo ""
+            echo ""
+            echo "EOF"
+          } >> $GITHUB_ENV
 
       # Handle PRERELEASE: does NOT bump version, just reuses current
       - name: Set current version for prerelease and unique prerelease tag
