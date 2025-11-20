@@ -93,6 +93,7 @@ function snn_seo_register_settings() {
     register_setting('snn_seo_settings_group', 'snn_seo_robots_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
     register_setting('snn_seo_settings_group', 'snn_seo_robots_rules', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
     register_setting('snn_seo_settings_group', 'snn_seo_opengraph_enabled', ['type' => 'boolean', 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_remove_category_url', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_titles');
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_descriptions');
 }
@@ -122,6 +123,7 @@ function snn_seo_handle_reset() {
         delete_option('snn_seo_robots_enabled');
         delete_option('snn_seo_robots_rules');
         delete_option('snn_seo_opengraph_enabled');
+        delete_option('snn_seo_remove_category_url');
         delete_option('snn_seo_post_meta_titles');
         delete_option('snn_seo_post_meta_descriptions');
         
@@ -167,6 +169,7 @@ function snn_seo_settings_page_callback() {
     $robots_enabled = get_option('snn_seo_robots_enabled', false);
     $robots_rules = get_option('snn_seo_robots_rules', []);
     $opengraph_enabled = get_option('snn_seo_opengraph_enabled', true);
+    $remove_category_url = get_option('snn_seo_remove_category_url', false);
     
     // Ensure arrays are actually arrays (fix for string/serialization issues)
     $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
@@ -530,6 +533,18 @@ function snn_seo_settings_page_callback() {
                     </div>
                 </div>
                 <?php endif; ?>
+            </div>
+
+            <!-- Remove Category URL Setting -->
+            <div class="snn-seo-section">
+                <h2><?php _e('URL Settings', 'snn'); ?></h2>
+                <label>
+                    <input type="checkbox" name="snn_seo_remove_category_url" value="1" <?php checked($remove_category_url, 1); ?>>
+                    <strong><?php _e('Remove /category/ from category URLs', 'snn'); ?></strong>
+                </label>
+                <p class="description">
+                    <?php _e('Changes category URLs from /category/my-category/ to /my-category/. After enabling, go to Settings > Permalinks and click "Save Changes" to refresh rewrite rules.', 'snn'); ?>
+                </p>
             </div>
 
             <!-- Open Graph Settings -->
@@ -1651,6 +1666,7 @@ add_action('update_option_snn_seo_sitemap_enabled', 'snn_seo_flush_on_setting_ch
 add_action('update_option_snn_seo_enabled', 'snn_seo_flush_on_setting_change');
 add_action('update_option_snn_seo_sitemap_post_types', 'snn_seo_flush_on_setting_change');
 add_action('update_option_snn_seo_sitemap_taxonomies', 'snn_seo_flush_on_setting_change');
+add_action('update_option_snn_seo_remove_category_url', 'snn_seo_flush_on_setting_change');
 
 /**
  * Generate custom robots.txt content
@@ -1721,3 +1737,88 @@ function snn_seo_generate_robots_txt($output, $public) {
     return $custom_output;
 }
 add_filter('robots_txt', 'snn_seo_generate_robots_txt', 10, 2);
+
+/**
+ * Remove Category URL Functions
+ */
+
+/**
+ * Remove category base from permalink structure
+ */
+function snn_seo_remove_category_url_permastruct() {
+    if (!get_option('snn_seo_enabled') || !get_option('snn_seo_remove_category_url')) {
+        return;
+    }
+    
+    global $wp_rewrite;
+    $wp_rewrite->extra_permastructs['category']['struct'] = '%category%';
+}
+add_action('init', 'snn_seo_remove_category_url_permastruct');
+
+/**
+ * Add custom category rewrite rules
+ */
+function snn_seo_remove_category_url_rewrite_rules($category_rewrite) {
+    if (!get_option('snn_seo_enabled') || !get_option('snn_seo_remove_category_url')) {
+        return $category_rewrite;
+    }
+    
+    $category_rewrite = [];
+    
+    // Get all categories
+    $categories = get_categories(['hide_empty' => false]);
+    
+    foreach ($categories as $category) {
+        $category_nicename = $category->slug;
+        
+        if ($category->parent == $category->cat_ID) {
+            $category->parent = 0;
+        } elseif (0 != $category->parent) {
+            $category_nicename = get_category_parents($category->parent, false, '/', true) . $category_nicename;
+        }
+        
+        $category_rewrite['(' . $category_nicename . ')/(?:feed/)?(feed|rdf|rss|rss2|atom)/?$'] = 'index.php?category_name=$matches[1]&feed=$matches[2]';
+        $category_rewrite['(' . $category_nicename . ')/page/?([0-9]{1,})/?$'] = 'index.php?category_name=$matches[1]&paged=$matches[2]';
+        $category_rewrite['(' . $category_nicename . ')/?$'] = 'index.php?category_name=$matches[1]';
+    }
+    
+    // Redirect support from old category base
+    $old_category_base = get_option('category_base') ? get_option('category_base') : 'category';
+    $old_category_base = trim($old_category_base, '/');
+    $category_rewrite[$old_category_base . '/(.*)$'] = 'index.php?category_redirect=$matches[1]';
+    
+    return $category_rewrite;
+}
+add_filter('category_rewrite_rules', 'snn_seo_remove_category_url_rewrite_rules');
+
+/**
+ * Add category_redirect query variable
+ */
+function snn_seo_remove_category_url_query_vars($public_query_vars) {
+    if (!get_option('snn_seo_enabled') || !get_option('snn_seo_remove_category_url')) {
+        return $public_query_vars;
+    }
+    
+    $public_query_vars[] = 'category_redirect';
+    return $public_query_vars;
+}
+add_filter('query_vars', 'snn_seo_remove_category_url_query_vars');
+
+/**
+ * Handle category redirects from old URLs
+ */
+function snn_seo_remove_category_url_request($query_vars) {
+    if (!get_option('snn_seo_enabled') || !get_option('snn_seo_remove_category_url')) {
+        return $query_vars;
+    }
+    
+    if (isset($query_vars['category_redirect'])) {
+        $catlink = trailingslashit(get_option('home')) . user_trailingslashit($query_vars['category_redirect'], 'category');
+        status_header(301);
+        header("Location: $catlink");
+        exit;
+    }
+    
+    return $query_vars;
+}
+add_filter('request', 'snn_seo_remove_category_url_request');
