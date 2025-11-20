@@ -12,7 +12,7 @@ if (
 
 
 <script>
-// Enhanced BEM Class Generator wrapped in DOMContentLoaded listener
+// Enhanced Class Generator wrapped in DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', (event) => {
     'use strict';
     
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
         
         processElement(activeId);
-        // console.log('✓ BEM classes generated successfully!');
+        // console.log('✓ Classes generated successfully!');
     }
     
     // Context menu integration (Keep this logic the same)
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // Initial check if menu already exists 
     addContextMenuButton();
     
-    // console.log('✓ BEM Class Generator initialized');
+    // console.log('✓ Class Generator initialized');
 
 }); // Closes the DOMContentLoaded listener
 </script>
