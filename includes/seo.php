@@ -1822,3 +1822,16 @@ function snn_seo_remove_category_url_request($query_vars) {
     return $query_vars;
 }
 add_filter('request', 'snn_seo_remove_category_url_request');
+
+/**
+ * Refresh rewrite rules when categories are created, edited, or deleted
+ */
+function snn_seo_remove_category_url_refresh_rules() {
+    if (!get_option('snn_seo_enabled') || !get_option('snn_seo_remove_category_url')) {
+        return;
+    }
+    flush_rewrite_rules();
+}
+add_action('created_category', 'snn_seo_remove_category_url_refresh_rules');
+add_action('edited_category', 'snn_seo_remove_category_url_refresh_rules');
+add_action('delete_category', 'snn_seo_remove_category_url_refresh_rules');
