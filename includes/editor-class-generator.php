@@ -55,19 +55,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 };
                 
                 globalClasses.push(newClass);
-                console.log(`✓ Created global class "${bemClassName}" (${classId})`);
+                // console.log(`✓ Created global class "${bemClassName}" (${classId})`);
                 existingClass = newClass;
             }
             
-            if (!element.settings._cssGlobalClasses || Array.isArray(element.settings)) {
+            if (!element.settings._cssGlobalClasses || !Array.isArray(element.settings._cssGlobalClasses)) {
                 element.settings._cssGlobalClasses = [];
             }
             
             if (!element.settings._cssGlobalClasses.includes(existingClass.id)) {
                 element.settings._cssGlobalClasses.push(existingClass.id);
-                console.log(`✓ Added "${bemClassName}" to ${element.name} (${id})`);
+                // console.log(`✓ Added "${bemClassName}" to ${element.name} (${id})`);
             } else {
-                console.log(`⊘ "${bemClassName}" already on ${element.name} (${id})`);
+                // console.log(`⊘ "${bemClassName}" already on ${element.name} (${id})`);
             }
             
             if (element.children && element.children.length > 0) {
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         menuItem.addEventListener('click', (e) => {
             e.stopPropagation();
             
-            const blockName = prompt('Enter block name (e.g., hero):');
+            const blockName = prompt('Enter a name:');
             
             if (blockName && blockName.trim()) {
                 generateBEMClasses(blockName.trim());
