@@ -786,6 +786,16 @@ function snn_seo_get_current_url() {
 }
 
 /**
+ * Remove default WordPress title tag when SEO is enabled
+ */
+function snn_seo_remove_default_title() {
+    if (get_option('snn_seo_enabled')) {
+        remove_theme_support('title-tag');
+    }
+}
+add_action('after_setup_theme', 'snn_seo_remove_default_title', 100);
+
+/**
  * Output SEO meta tags in <head> - IMPROVED VERSION
  */
 function snn_seo_output_meta_tags() {
