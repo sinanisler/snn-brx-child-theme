@@ -823,8 +823,6 @@ function snn_seo_output_meta_tags() {
     $debug = false;
     
     // Single post/page/CPT
-    // IMPORTANT: This runs FIRST to handle edge case where a Page has the same slug as a post type archive
-    // WordPress will correctly show is_singular() = true for the Page, preventing archive logic from running
     if (is_singular()) {
         global $post;
         if (!$post || is_wp_error($post)) {
@@ -838,7 +836,7 @@ function snn_seo_output_meta_tags() {
         if (isset($post_types_enabled[$post_type]) && $post_types_enabled[$post_type]) {
             $context = ['post_id' => $post->ID];
             
-            // Check for custom meta first (PRIORITY: custom meta > template)
+            // Check for custom meta first
             $custom_title = get_post_meta($post->ID, '_snn_seo_title', true);
             $custom_desc = get_post_meta($post->ID, '_snn_seo_description', true);
             
@@ -866,9 +864,7 @@ function snn_seo_output_meta_tags() {
         }
     }
     // Post type archive
-    // Edge case protection: Don't run archive logic if we're actually viewing a singular page
-    // This handles cases where a Page has the same slug as a post type archive (e.g., /codex/ page vs codex archive)
-    elseif (is_post_type_archive() && !is_singular()) {
+    elseif (is_post_type_archive()) {
         // Try multiple methods to get the post type
         $post_type = get_query_var('post_type');
         
