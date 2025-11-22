@@ -639,20 +639,9 @@ function snn_seo_replace_tags($template, $context = []) {
         return '';
     }
     
-    // Ensure context is an array
-    if (!is_array($context)) {
-        $context = [];
-    }
-    
-    // Site tags - always replace these first
+    // Site tags
     $template = str_replace('{site_title}', get_bloginfo('name'), $template);
     $template = str_replace('{site_tagline}', get_bloginfo('description'), $template);
-    
-    // Archive tags (for post type archives) - process BEFORE post tags to avoid conflicts
-    if (isset($context['archive_title']) && !empty($context['archive_title'])) {
-        $archive_title = (string) $context['archive_title'];
-        $template = str_replace('{archive_title}', $archive_title, $template);
-    }
     
     // Post tags
     if (isset($context['post_id']) && !empty($context['post_id'])) {
@@ -716,6 +705,11 @@ function snn_seo_replace_tags($template, $context = []) {
         }
     }
     
+    // Archive tags (for post type archives)
+    if (isset($context['archive_title']) && !empty($context['archive_title'])) {
+        $template = str_replace('{archive_title}', $context['archive_title'], $template);
+    }
+    
     // Author tags
     if (isset($context['author_id']) && !empty($context['author_id'])) {
         $author_id = $context['author_id'];
@@ -764,11 +758,7 @@ function snn_seo_replace_tags($template, $context = []) {
     // Clean up any remaining unreplaced tags
     $template = preg_replace('/{[^}]+}/', '', $template);
     
-    // Clean up multiple spaces and trim
-    $template = preg_replace('/\s+/', ' ', $template);
-    $template = trim($template);
-    
-    return $template;
+    return trim($template);
 }
 
 /**
@@ -877,10 +867,6 @@ function snn_seo_output_meta_tags() {
         if (empty($post_type)) {
             global $wp_query;
             $post_type = $wp_query->get('post_type');
-            // Handle array case from WP_Query
-            if (is_array($post_type)) {
-                $post_type = reset($post_type);
-            }
         }
         
         // Last resort: try to get from queried object
@@ -891,26 +877,15 @@ function snn_seo_output_meta_tags() {
             }
         }
         
-        // Final validation and ensure it's a string
-        if (!empty($post_type)) {
-            // Convert to string if needed
-            $post_type = (string) $post_type;
-            
+        // Final validation
+        if (!empty($post_type) && is_string($post_type)) {
             $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
             $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
             
             // Check if this post type has SEO enabled
             if (isset($post_types_enabled[$post_type]) && $post_types_enabled[$post_type]) {
                 $post_type_obj = get_post_type_object($post_type);
-                
-                // Get proper archive name with multiple fallbacks
-                if ($post_type_obj && isset($post_type_obj->labels->name)) {
-                    $archive_name = $post_type_obj->labels->name;
-                } elseif ($post_type_obj && isset($post_type_obj->label)) {
-                    $archive_name = $post_type_obj->label;
-                } else {
-                    $archive_name = ucwords(str_replace(['_', '-'], ' ', $post_type));
-                }
+                $archive_name = $post_type_obj ? $post_type_obj->labels->name : ucfirst($post_type);
                 
                 $context = ['archive_title' => $archive_name];
                 
@@ -919,22 +894,15 @@ function snn_seo_output_meta_tags() {
                 $archive_titles = is_array($archive_titles) ? $archive_titles : [];
                 $archive_descriptions = is_array($archive_descriptions) ? $archive_descriptions : [];
                 
-                // Get templates with proper defaults
                 $title_template = isset($archive_titles[$post_type]) && !empty($archive_titles[$post_type]) 
                     ? $archive_titles[$post_type] 
                     : '{archive_title} - {site_title}';
                 $desc_template = isset($archive_descriptions[$post_type]) && !empty($archive_descriptions[$post_type]) 
                     ? $archive_descriptions[$post_type] 
-                    : 'Browse all {archive_title}';
+                    : __('Browse all', 'snn') . ' {archive_title}';
                 
-                // Replace tags and ensure we have content
                 $title = snn_seo_replace_tags($title_template, $context);
                 $description = snn_seo_replace_tags($desc_template, $context);
-                
-                // Fallback if replacement failed
-                if (empty($description)) {
-                    $description = 'Browse all ' . $archive_name;
-                }
             }
         }
     }
