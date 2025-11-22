@@ -97,6 +97,7 @@ add_action('admin_menu', 'snn_seo_add_submenu_page');
 function snn_seo_register_settings() {
     $sanitize_array = function($input) { return is_array($input) ? $input : []; };
     register_setting('snn_seo_settings_group', 'snn_seo_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_ai_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
     register_setting('snn_seo_settings_group', 'snn_seo_post_types_enabled', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
     register_setting('snn_seo_settings_group', 'snn_seo_taxonomies_enabled', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
     register_setting('snn_seo_settings_group', 'snn_seo_authors_enabled', ['type' => 'boolean', 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean']);
@@ -185,6 +186,7 @@ function snn_seo_settings_page_callback() {
     
     // Get current settings with proper type checking
     $seo_enabled = get_option('snn_seo_enabled', false);
+    $seo_ai_enabled = get_option('snn_seo_ai_enabled', false);
     $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
     $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
     $authors_enabled = get_option('snn_seo_authors_enabled', true);
@@ -263,6 +265,17 @@ function snn_seo_settings_page_callback() {
                 </label>
                 <p class="description">
                     <?php _e('When enabled, this will activate meta titles, descriptions, sitemap, and Open Graph features.', 'snn'); ?>
+                </p>
+            </div>
+
+            <!-- AI SEO Features -->
+            <div class="snn-seo-section">
+                <label>
+                    <input type="checkbox" name="snn_seo_ai_enabled" value="1" <?php checked($seo_ai_enabled, 1); ?>>
+                    <strong><?php _e('Enable AI SEO Features', 'snn'); ?></strong>
+                </label>
+                <p class="description">
+                    <?php _e('Enable AI-powered SEO generation. Adds AI generation buttons to post edit screens and bulk actions. Requires AI settings to be properly configured in AI Settings page.', 'snn'); ?>
                 </p>
             </div>
 
@@ -1190,11 +1203,18 @@ function snn_seo_meta_box_callback($post) {
         <label style="display: block; margin-bottom: 5px; font-weight: 600;">
             <?php _e('Meta Title', 'snn'); ?>
         </label>
-        <input type="text" 
-               name="snn_seo_title" 
-               value="<?php echo esc_attr($title); ?>" 
-               style="width: 100%;"
-               placeholder="<?php echo esc_attr($title_template); ?>">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" 
+                   name="snn_seo_meta_title" 
+                   value="<?php echo esc_attr($title); ?>" 
+                   style="flex: 1;"
+                   placeholder="<?php echo esc_attr($title_template); ?>">
+            <?php if (get_option('snn_seo_ai_enabled') && get_option('snn_ai_enabled') === 'yes'): ?>
+                <button type="button" class="button snn-seo-ai-button" id="snn-seo-ai-generate-title">
+                    <?php _e('Generate with AI', 'snn'); ?>
+                </button>
+            <?php endif; ?>
+        </div>
         <p class="description">
             <?php _e('Recommended max length: 60 characters', 'snn'); ?> 
             (<span id="snn-title-count">0</span> <?php _e('characters', 'snn'); ?>)
@@ -1205,16 +1225,28 @@ function snn_seo_meta_box_callback($post) {
         <label style="display: block; margin-bottom: 5px; font-weight: 600;">
             <?php _e('Meta Description', 'snn'); ?>
         </label>
-        <textarea name="snn_seo_description" 
-                  style="width: 100%; height: 80px;"
-                  placeholder="<?php echo esc_attr($description_template); ?>"><?php 
-            echo esc_textarea($description); 
-        ?></textarea>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <textarea name="snn_seo_meta_description" 
+                      style="width: 100%; height: 80px;"
+                      placeholder="<?php echo esc_attr($description_template); ?>"><?php 
+                echo esc_textarea($description); 
+            ?></textarea>
+            <?php if (get_option('snn_seo_ai_enabled') && get_option('snn_ai_enabled') === 'yes'): ?>
+                <button type="button" class="button snn-seo-ai-button" id="snn-seo-ai-generate-description" style="align-self: flex-start;">
+                    <?php _e('Generate with AI', 'snn'); ?>
+                </button>
+            <?php endif; ?>
+        </div>
         <p class="description">
             <?php _e('Recommended max length: 155 characters', 'snn'); ?> 
             (<span id="snn-desc-count">0</span> <?php _e('characters', 'snn'); ?>)
         </p>
     </div>
+    
+    <?php
+    // Allow extensions to add content (like AI buttons)
+    do_action('snn_seo_meta_box_after_fields', $post);
+    ?>
     
     <div style="margin: 15px 0;">
         <label style="display: flex; align-items: center; gap: 8px;">
@@ -1234,13 +1266,13 @@ function snn_seo_meta_box_callback($post) {
     <script>
     jQuery(document).ready(function($) {
         function updateCount() {
-            var titleCount = $('input[name="snn_seo_title"]').val().length;
-            var descCount = $('textarea[name="snn_seo_description"]').val().length;
+            var titleCount = $('input[name="snn_seo_meta_title"]').val().length;
+            var descCount = $('textarea[name="snn_seo_meta_description"]').val().length;
             $('#snn-title-count').text(titleCount);
             $('#snn-desc-count').text(descCount);
         }
         
-        $('input[name="snn_seo_title"], textarea[name="snn_seo_description"]').on('input', updateCount);
+        $('input[name="snn_seo_meta_title"], textarea[name="snn_seo_meta_description"]').on('input', updateCount);
         updateCount();
     });
     </script>
@@ -1275,17 +1307,19 @@ function snn_seo_save_meta_box($post_id) {
         return;
     }
     
-    // Save title
-    if (isset($_POST['snn_seo_title'])) {
-        $title = sanitize_text_field($_POST['snn_seo_title']);
+    // Save title (support both old and new field names)
+    $title_field = isset($_POST['snn_seo_meta_title']) ? 'snn_seo_meta_title' : 'snn_seo_title';
+    if (isset($_POST[$title_field])) {
+        $title = sanitize_text_field($_POST[$title_field]);
         update_post_meta($post_id, '_snn_seo_title', $title);
     } else {
         delete_post_meta($post_id, '_snn_seo_title');
     }
     
-    // Save description
-    if (isset($_POST['snn_seo_description'])) {
-        $description = sanitize_textarea_field($_POST['snn_seo_description']);
+    // Save description (support both old and new field names)
+    $desc_field = isset($_POST['snn_seo_meta_description']) ? 'snn_seo_meta_description' : 'snn_seo_description';
+    if (isset($_POST[$desc_field])) {
+        $description = sanitize_textarea_field($_POST[$desc_field]);
         update_post_meta($post_id, '_snn_seo_description', $description);
     } else {
         delete_post_meta($post_id, '_snn_seo_description');
