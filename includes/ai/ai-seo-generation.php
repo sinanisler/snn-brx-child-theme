@@ -146,11 +146,16 @@ function snn_seo_ai_render_overlay() {
                 <!-- Bulk Progress -->
                 <div class="snn-seo-ai-bulk-progress" style="display: none;">
                     <div class="snn-progress-text">
-                        <span id="snn-bulk-current">0</span> / <span id="snn-bulk-total">0</span> <?php _e('items processed', 'snn'); ?>
+                        <span id="snn-bulk-current">0</span> / <span id="snn-bulk-total">0</span> <?php _e('items generated', 'snn'); ?>
                     </div>
                     <div class="snn-progress-bar">
                         <div class="snn-progress-fill"></div>
                     </div>
+                </div>
+                
+                <!-- Bulk Results Preview -->
+                <div class="snn-seo-ai-bulk-results" style="display: none;">
+                    <div id="snn-bulk-results-container"></div>
                 </div>
             </div>
             
@@ -380,6 +385,98 @@ function snn_seo_ai_render_overlay() {
         transition: width 0.3s ease;
     }
     
+    .snn-seo-ai-bulk-results {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #2271b1;
+    }
+    
+    .snn-bulk-item {
+        background: #f0f6fc;
+        border: 2px solid #2271b1;
+        border-radius: 4px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .snn-bulk-item-header {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 12px;
+        color: #1d2327;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .snn-bulk-item-title {
+        flex: 1;
+    }
+    
+    .snn-bulk-item-regenerate {
+        padding: 4px 12px;
+        background: #2271b1;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.2s;
+    }
+    
+    .snn-bulk-item-regenerate:hover {
+        background: #135e96;
+    }
+    
+    .snn-bulk-item-regenerate:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .snn-bulk-field {
+        margin-bottom: 12px;
+    }
+    
+    .snn-bulk-field:last-child {
+        margin-bottom: 0;
+    }
+    
+    .snn-bulk-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #646970;
+    }
+    
+    .snn-bulk-field input,
+    .snn-bulk-field textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #8c8f94;
+        border-radius: 3px;
+        font-size: 13px;
+        background: #fff;
+    }
+    
+    .snn-bulk-field input:focus,
+    .snn-bulk-field textarea:focus {
+        border-color: #2271b1;
+        outline: none;
+        box-shadow: 0 0 0 1px #2271b1;
+    }
+    
+    .snn-bulk-field textarea {
+        resize: vertical;
+        min-height: 60px;
+    }
+    
+    .snn-bulk-field-count {
+        float: right;
+        font-size: 11px;
+        color: #646970;
+    }
+    
     .snn-seo-ai-overlay-footer {
         padding: 16px 24px;
         border-top: 1px solid #dcdcde;
@@ -433,10 +530,13 @@ function snn_seo_ai_render_overlay() {
         const $saveBtn = $('.snn-seo-save');
         const $cancelBtn = $('.snn-seo-cancel');
         const $bulkProgress = $('.snn-seo-ai-bulk-progress');
+        const $bulkResults = $('.snn-seo-ai-bulk-results');
+        const $bulkResultsContainer = $('#snn-bulk-results-container');
         
         let currentMode = 'single'; // 'single', 'bulk', 'term'
         let currentData = {};
         let selectedPresets = [];
+        let bulkGeneratedData = []; // Store generated results for bulk
         
         // Character counter
         function updateCharCount() {
@@ -466,12 +566,15 @@ function snn_seo_ai_render_overlay() {
             currentMode = mode;
             currentData = data;
             selectedPresets = [];
+            bulkGeneratedData = [];
             
             // Reset UI
             $presetButtons.removeClass('active');
             $customPrompt.val('');
             $results.hide();
             $bulkProgress.hide();
+            $bulkResults.hide();
+            $bulkResultsContainer.empty();
             $generateBtn.show().prop('disabled', false).text(config.strings.generate);
             $regenerateBtn.hide();
             $saveBtn.hide();
@@ -522,12 +625,35 @@ function snn_seo_ai_render_overlay() {
             }
         });
         
+        // Regenerate
+        $regenerateBtn.on('click', async function() {
+            if (selectedPresets.length === 0 && !$customPrompt.val().trim()) {
+                return;
+            }
+            
+            $regenerateBtn.prop('disabled', true).text(config.strings.regenerating);
+            
+            try {
+                if (currentMode === 'bulk') {
+                    await processBulk();
+                } else {
+                    await generateSingle();
+                }
+            } catch (error) {
+                console.error('Regeneration error:', error);
+                alert(config.strings.error + ': ' + error.message);
+                $regenerateBtn.prop('disabled', false).text(config.strings.regenerate);
+            }
+        });
+        
         // Save
         $saveBtn.on('click', async function() {
             $saveBtn.prop('disabled', true).text('Saving...');
             
             try {
-                if (currentMode === 'term') {
+                if (currentMode === 'bulk') {
+                    await saveBulk();
+                } else if (currentMode === 'term') {
                     await saveTerm();
                 } else {
                     await saveSingle();
@@ -551,58 +677,196 @@ function snn_seo_ai_render_overlay() {
             updateCharCount();
             
             $results.fadeIn();
-            $generateBtn.text(config.strings.regenerate).show().prop('disabled', false);
+            $generateBtn.hide();
+            $regenerateBtn.show().prop('disabled', false).text(config.strings.regenerate);
             $saveBtn.show();
         }
         
-        // Process bulk items
+        // Process bulk items - generate and preview
         async function processBulk() {
             $generateBtn.hide();
+            $regenerateBtn.hide();
             $bulkProgress.show();
+            $bulkResults.hide();
+            $bulkResultsContainer.empty();
             
             const items = currentData.items;
             const total = items.length;
             $('#snn-bulk-total').text(total);
+            
+            bulkGeneratedData = [];
             
             for (let i = 0; i < items.length; i++) {
                 const postId = items[i];
                 $('#snn-bulk-current').text(i + 1);
                 $('.snn-progress-fill').css('width', ((i + 1) / total * 100) + '%');
                 
-                // Fetch post data
-                const postData = await $.ajax({
-                    url: config.ajaxUrl,
-                    method: 'POST',
-                    data: {
-                        action: 'snn_seo_ai_get_post_data',
-                        post_id: postId,
-                        nonce: config.nonce
-                    }
-                });
-                
-                if (!postData.success) continue;
-                
-                // Generate SEO
-                const prompt = buildPromptForData(postData.data);
-                const result = await callAI(prompt);
-                
-                // Save immediately
-                await $.ajax({
-                    url: config.ajaxUrl,
-                    method: 'POST',
-                    data: {
-                        action: 'snn_seo_ai_save_post',
-                        post_id: postId,
+                try {
+                    // Fetch post data
+                    const postData = await $.ajax({
+                        url: config.ajaxUrl,
+                        method: 'POST',
+                        data: {
+                            action: 'snn_seo_ai_get_post_data',
+                            post_id: postId,
+                            nonce: config.nonce
+                        }
+                    });
+                    
+                    if (!postData.success) continue;
+                    
+                    // Generate SEO
+                    const prompt = buildPromptForData(postData.data);
+                    const result = await callAI(prompt);
+                    
+                    // Store generated data
+                    bulkGeneratedData.push({
+                        postId: postId,
+                        postTitle: postData.data.title,
                         title: result.title,
-                        description: result.description,
-                        nonce: config.nonce
-                    }
-                });
+                        description: result.description
+                    });
+                } catch (error) {
+                    console.error('Error processing post ' + postId, error);
+                }
             }
             
+            // Show results preview
             $bulkProgress.hide();
-            closeOverlay();
-            location.reload();
+            renderBulkResults();
+            $bulkResults.fadeIn();
+            $regenerateBtn.show().prop('disabled', false).text(config.strings.regenerate);
+            $saveBtn.show();
+        }
+        
+        // Render bulk results for preview/edit
+        function renderBulkResults() {
+            $bulkResultsContainer.empty();
+            
+            bulkGeneratedData.forEach((item, index) => {
+                const itemHtml = `
+                    <div class="snn-bulk-item" data-index="${index}">
+                        <div class="snn-bulk-item-header">
+                            <span class="snn-bulk-item-title">${escapeHtml(item.postTitle)}</span>
+                            <button type="button" class="snn-bulk-item-regenerate" data-index="${index}">
+                                ${config.strings.regenerate}
+                            </button>
+                        </div>
+                        <div class="snn-bulk-field">
+                            <label>
+                                ${config.strings.seoTitle}
+                                <span class="snn-bulk-field-count">
+                                    <span class="title-count">${item.title.length}</span>/60
+                                </span>
+                            </label>
+                            <input type="text" class="bulk-title-input" value="${escapeHtml(item.title)}" data-index="${index}" />
+                        </div>
+                        <div class="snn-bulk-field">
+                            <label>
+                                ${config.strings.seoDescription}
+                                <span class="snn-bulk-field-count">
+                                    <span class="desc-count">${item.description.length}</span>/160
+                                </span>
+                            </label>
+                            <textarea class="bulk-desc-input" data-index="${index}">${escapeHtml(item.description)}</textarea>
+                        </div>
+                    </div>
+                `;
+                $bulkResultsContainer.append(itemHtml);
+            });
+            
+            // Bind input events for character counting and data update
+            $('.bulk-title-input').on('input', function() {
+                const index = $(this).data('index');
+                const value = $(this).val();
+                bulkGeneratedData[index].title = value;
+                $(this).closest('.snn-bulk-field').find('.title-count').text(value.length);
+            });
+            
+            $('.bulk-desc-input').on('input', function() {
+                const index = $(this).data('index');
+                const value = $(this).val();
+                bulkGeneratedData[index].description = value;
+                $(this).closest('.snn-bulk-field').find('.desc-count').text(value.length);
+            });
+            
+            // Bind regenerate button for individual items
+            $('.snn-bulk-item-regenerate').on('click', async function() {
+                const index = $(this).data('index');
+                const $btn = $(this);
+                const $item = $(`.snn-bulk-item[data-index="${index}"]`);
+                
+                $btn.prop('disabled', true).text(config.strings.regenerating);
+                
+                try {
+                    const itemData = bulkGeneratedData[index];
+                    
+                    // Fetch fresh post data
+                    const postData = await $.ajax({
+                        url: config.ajaxUrl,
+                        method: 'POST',
+                        data: {
+                            action: 'snn_seo_ai_get_post_data',
+                            post_id: itemData.postId,
+                            nonce: config.nonce
+                        }
+                    });
+                    
+                    if (postData.success) {
+                        const prompt = buildPromptForData(postData.data);
+                        const result = await callAI(prompt);
+                        
+                        // Update stored data
+                        bulkGeneratedData[index].title = result.title;
+                        bulkGeneratedData[index].description = result.description;
+                        
+                        // Update UI
+                        $item.find('.bulk-title-input').val(result.title).trigger('input');
+                        $item.find('.bulk-desc-input').val(result.description).trigger('input');
+                    }
+                } catch (error) {
+                    console.error('Regenerate error:', error);
+                    alert(config.strings.error);
+                }
+                
+                $btn.prop('disabled', false).text(config.strings.regenerate);
+            });
+        }
+        
+        // Save bulk items
+        async function saveBulk() {
+            const total = bulkGeneratedData.length;
+            let saved = 0;
+            
+            for (const item of bulkGeneratedData) {
+                try {
+                    await $.ajax({
+                        url: config.ajaxUrl,
+                        method: 'POST',
+                        data: {
+                            action: 'snn_seo_ai_save_post',
+                            post_id: item.postId,
+                            title: item.title,
+                            description: item.description,
+                            nonce: config.nonce
+                        }
+                    });
+                    saved++;
+                } catch (error) {
+                    console.error('Error saving post ' + item.postId, error);
+                }
+            }
+            
+            if (saved < total) {
+                alert(`Saved ${saved} of ${total} items. Some items failed to save.`);
+            }
+        }
+        
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // Build prompt
