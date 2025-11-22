@@ -822,17 +822,9 @@ function snn_seo_output_meta_tags() {
     // $debug = true;
     $debug = false;
     
-    // EDGE CASE FIX: Check if current page is actually a Page (not archive) first
-    // This handles when someone creates a Page with the same slug as a post type archive
-    // For example: /codex/ as a Page when there's also a 'codex' custom post type
-    $queried_object = get_queried_object();
-    $is_actual_page = false;
-    
-    if ($queried_object && isset($queried_object->post_type) && $queried_object->post_type === 'page') {
-        $is_actual_page = true;
-    }
-    
-    // Single post/page/CPT - MUST be checked first to handle edge cases
+    // Single post/page/CPT
+    // IMPORTANT: This runs FIRST to handle edge case where a Page has the same slug as a post type archive
+    // WordPress will correctly show is_singular() = true for the Page, preventing archive logic from running
     if (is_singular()) {
         global $post;
         if (!$post || is_wp_error($post)) {
@@ -846,7 +838,7 @@ function snn_seo_output_meta_tags() {
         if (isset($post_types_enabled[$post_type]) && $post_types_enabled[$post_type]) {
             $context = ['post_id' => $post->ID];
             
-            // Check for custom meta first
+            // Check for custom meta first (PRIORITY: custom meta > template)
             $custom_title = get_post_meta($post->ID, '_snn_seo_title', true);
             $custom_desc = get_post_meta($post->ID, '_snn_seo_description', true);
             
@@ -873,9 +865,10 @@ function snn_seo_output_meta_tags() {
             }
         }
     }
-    // Post type archive - Check AFTER is_singular() and ensure it's not an actual Page
-    // This prevents archive meta from overriding Page meta in edge cases
-    elseif (is_post_type_archive() && !$is_actual_page) {
+    // Post type archive
+    // Edge case protection: Don't run archive logic if we're actually viewing a singular page
+    // This handles cases where a Page has the same slug as a post type archive (e.g., /codex/ page vs codex archive)
+    elseif (is_post_type_archive() && !is_singular()) {
         // Try multiple methods to get the post type
         $post_type = get_query_var('post_type');
         
