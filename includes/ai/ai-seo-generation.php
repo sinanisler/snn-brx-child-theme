@@ -6,14 +6,14 @@
  *
  * Purpose: This file handles AI-powered SEO title and description generation for posts, pages,
  * custom post types, and taxonomies. It integrates with the existing AI infrastructure
- * (ai-api.php) and provides both individual and bulk generation capabilities.
+ * (ai-api.php) and provides a unified overlay interface for preview and customization.
  *
  * Features:
- * - AI generation buttons in SEO meta box (post edit screens)
- * - Bulk AI generation for post list screens
- * - Taxonomy term AI generation
- * - Uses existing AI overlay infrastructure with action prompts
- * - Supports all configured post types and taxonomies
+ * - Unified AI overlay for single posts, bulk operations, and taxonomy terms
+ * - Preview before saving with regeneration capabilities
+ * - Action preset selection and custom prompt support
+ * - Context display (shows what AI is reading)
+ * - Modern WordPress-styled UI with smooth UX
  */
 
 if (!defined('ABSPATH')) exit;
@@ -66,16 +66,697 @@ function snn_seo_ai_enqueue_admin_scripts($hook) {
         'ajaxUrl' => admin_url('admin-ajax.php'),
         'strings' => array(
             'generating' => __('Generating...', 'snn'),
+            'regenerating' => __('Regenerating...', 'snn'),
             'error' => __('Error generating content', 'snn'),
-            'success' => __('Generated successfully', 'snn'),
-            'confirmBulk' => __('This will generate SEO data for selected items using AI. Continue?', 'snn'),
+            'success' => __('Saved successfully', 'snn'),
+            'preview' => __('Preview & Edit', 'snn'),
+            'save' => __('Save', 'snn'),
+            'cancel' => __('Cancel', 'snn'),
+            'generate' => __('Generate', 'snn'),
+            'regenerate' => __('Regenerate', 'snn'),
+            'selectPreset' => __('Select Action Preset', 'snn'),
+            'customPrompt' => __('Custom Prompt (Optional)', 'snn'),
+            'contextInfo' => __('AI is reading:', 'snn'),
+            'seoTitle' => __('SEO Title', 'snn'),
+            'seoDescription' => __('SEO Description', 'snn'),
+            'processing' => __('Processing item', 'snn'),
+            'of' => __('of', 'snn'),
         )
     ));
+    
+    // Inject the unified overlay HTML
+    add_action('admin_footer', 'snn_seo_ai_render_overlay');
 }
 add_action('admin_enqueue_scripts', 'snn_seo_ai_enqueue_admin_scripts');
 
 /**
- * Add AI generation buttons to SEO meta box
+ * Render the unified AI SEO overlay
+ */
+function snn_seo_ai_render_overlay() {
+    if (!snn_seo_ai_is_enabled()) {
+        return;
+    }
+    
+    $config = snn_get_ai_api_config();
+    $action_presets = $config['actionPresets'];
+    ?>
+    <div id="snn-seo-ai-overlay" style="display: none;">
+        <div class="snn-seo-ai-overlay-backdrop"></div>
+        <div class="snn-seo-ai-overlay-container">
+            <div class="snn-seo-ai-overlay-header">
+                <h2><?php _e('AI SEO Generation', 'snn'); ?></h2>
+                <button class="snn-seo-ai-close">&times;</button>
+            </div>
+            
+            <div class="snn-seo-ai-overlay-body">
+                <!-- Context Display -->
+                <div class="snn-seo-ai-context">
+                    <h3><?php _e('AI is reading:', 'snn'); ?></h3>
+                    <div class="snn-seo-ai-context-content"></div>
+                </div>
+                
+                <!-- Action Presets -->
+                <div class="snn-seo-ai-presets">
+                    <label><?php _e('Action Preset:', 'snn'); ?></label>
+                    <div class="snn-seo-ai-preset-buttons">
+                        <?php foreach ($action_presets as $preset): ?>
+                            <button type="button" class="snn-preset-btn" data-prompt="<?php echo esc_attr($preset['prompt']); ?>">
+                                <?php echo esc_html($preset['name']); ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                
+                <!-- Custom Prompt -->
+                <div class="snn-seo-ai-custom">
+                    <label for="snn-seo-custom-prompt"><?php _e('Custom Prompt (Optional):', 'snn'); ?></label>
+                    <textarea id="snn-seo-custom-prompt" rows="3" placeholder="<?php _e('Add additional instructions...', 'snn'); ?>"></textarea>
+                </div>
+                
+                <!-- Results -->
+                <div class="snn-seo-ai-results" style="display: none;">
+                    <div class="snn-seo-result-item">
+                        <label><?php _e('SEO Title:', 'snn'); ?></label>
+                        <input type="text" id="snn-seo-result-title" class="snn-result-input" />
+                        <span class="snn-char-count"><span id="snn-title-count">0</span>/60</span>
+                    </div>
+                    
+                    <div class="snn-seo-result-item">
+                        <label><?php _e('SEO Description:', 'snn'); ?></label>
+                        <textarea id="snn-seo-result-description" class="snn-result-input" rows="3"></textarea>
+                        <span class="snn-char-count"><span id="snn-desc-count">0</span>/160</span>
+                    </div>
+                </div>
+                
+                <!-- Bulk Progress -->
+                <div class="snn-seo-ai-bulk-progress" style="display: none;">
+                    <div class="snn-progress-text">
+                        <span id="snn-bulk-current">0</span> / <span id="snn-bulk-total">0</span> <?php _e('items processed', 'snn'); ?>
+                    </div>
+                    <div class="snn-progress-bar">
+                        <div class="snn-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="snn-seo-ai-overlay-footer">
+                <button type="button" class="button button-large snn-seo-cancel"><?php _e('Cancel', 'snn'); ?></button>
+                <button type="button" class="button button-primary button-large snn-seo-generate"><?php _e('Generate', 'snn'); ?></button>
+                <button type="button" class="button button-primary button-large snn-seo-regenerate" style="display: none;"><?php _e('Regenerate', 'snn'); ?></button>
+                <button type="button" class="button button-primary button-large snn-seo-save" style="display: none;"><?php _e('Save', 'snn'); ?></button>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+    #snn-seo-ai-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 160000;
+    }
+    
+    .snn-seo-ai-overlay-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        animation: snnFadeIn 0.2s ease;
+    }
+    
+    .snn-seo-ai-overlay-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff;
+        border-radius: 4px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        animation: snnSlideIn 0.3s ease;
+    }
+    
+    .snn-seo-ai-overlay-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #dcdcde;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .snn-seo-ai-overlay-header h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .snn-seo-ai-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+        color: #646970;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 3px;
+    }
+    
+    .snn-seo-ai-close:hover {
+        background: #f0f0f1;
+        color: #000;
+    }
+    
+    .snn-seo-ai-overlay-body {
+        padding: 24px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    
+    .snn-seo-ai-context {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f6f7f7;
+        border-radius: 4px;
+        border-left: 4px solid #2271b1;
+    }
+    
+    .snn-seo-ai-context h3 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1d2327;
+    }
+    
+    .snn-seo-ai-context-content {
+        font-size: 13px;
+        color: #50575e;
+        line-height: 1.6;
+    }
+    
+    .snn-seo-ai-context-content p {
+        margin: 5px 0;
+    }
+    
+    .snn-seo-ai-context-content strong {
+        color: #1d2327;
+    }
+    
+    .snn-seo-ai-presets {
+        margin-bottom: 20px;
+    }
+    
+    .snn-seo-ai-presets label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .snn-seo-ai-preset-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .snn-preset-btn {
+        padding: 8px 16px;
+        background: #fff;
+        border: 1px solid #2271b1;
+        color: #2271b1;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s;
+    }
+    
+    .snn-preset-btn:hover {
+        background: #f0f6fc;
+    }
+    
+    .snn-preset-btn.active {
+        background: #2271b1;
+        color: #fff;
+    }
+    
+    .snn-seo-ai-custom {
+        margin-bottom: 20px;
+    }
+    
+    .snn-seo-ai-custom label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    #snn-seo-custom-prompt {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #8c8f94;
+        border-radius: 3px;
+        font-size: 13px;
+        resize: vertical;
+    }
+    
+    #snn-seo-custom-prompt:focus {
+        border-color: #2271b1;
+        box-shadow: 0 0 0 1px #2271b1;
+        outline: none;
+    }
+    
+    .snn-seo-ai-results {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #2271b1;
+    }
+    
+    .snn-seo-result-item {
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .snn-seo-result-item label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .snn-result-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #2271b1;
+        border-radius: 3px;
+        font-size: 14px;
+        background: #f0f6fc;
+    }
+    
+    .snn-result-input:focus {
+        background: #fff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.3);
+    }
+    
+    .snn-char-count {
+        position: absolute;
+        right: 12px;
+        top: 38px;
+        font-size: 11px;
+        color: #646970;
+        background: #fff;
+        padding: 2px 6px;
+        border-radius: 2px;
+    }
+    
+    .snn-seo-result-item:last-child .snn-char-count {
+        top: auto;
+        bottom: 12px;
+    }
+    
+    .snn-seo-ai-bulk-progress {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f6f7f7;
+        border-radius: 4px;
+    }
+    
+    .snn-progress-text {
+        margin-bottom: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    .snn-progress-bar {
+        height: 24px;
+        background: #dcdcde;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .snn-progress-fill {
+        height: 100%;
+        background: #2271b1;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    
+    .snn-seo-ai-overlay-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #dcdcde;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .snn-seo-ai-overlay-footer .button {
+        min-width: 100px;
+    }
+    
+    .snn-seo-ai-overlay-footer .button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    @keyframes snnFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes snnSlideIn {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -45%);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+    }
+    </style>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        if (typeof snnSeoAiConfig === 'undefined') return;
+        
+        const config = snnSeoAiConfig;
+        const $overlay = $('#snn-seo-ai-overlay');
+        const $contextContent = $('.snn-seo-ai-context-content');
+        const $presetButtons = $('.snn-preset-btn');
+        const $customPrompt = $('#snn-seo-custom-prompt');
+        const $results = $('.snn-seo-ai-results');
+        const $resultTitle = $('#snn-seo-result-title');
+        const $resultDesc = $('#snn-seo-result-description');
+        const $titleCount = $('#snn-title-count');
+        const $descCount = $('#snn-desc-count');
+        const $generateBtn = $('.snn-seo-generate');
+        const $regenerateBtn = $('.snn-seo-regenerate');
+        const $saveBtn = $('.snn-seo-save');
+        const $cancelBtn = $('.snn-seo-cancel');
+        const $bulkProgress = $('.snn-seo-ai-bulk-progress');
+        
+        let currentMode = 'single'; // 'single', 'bulk', 'term'
+        let currentData = {};
+        let selectedPreset = '';
+        
+        // Character counter
+        function updateCharCount() {
+            $titleCount.text($resultTitle.val().length);
+            $descCount.text($resultDesc.val().length);
+        }
+        
+        $resultTitle.on('input', updateCharCount);
+        $resultDesc.on('input', updateCharCount);
+        
+        // Preset selection
+        $presetButtons.on('click', function() {
+            $presetButtons.removeClass('active');
+            $(this).addClass('active');
+            selectedPreset = $(this).data('prompt');
+        });
+        
+        // Open overlay
+        window.snnSeoAiOpenOverlay = function(mode, data) {
+            currentMode = mode;
+            currentData = data;
+            selectedPreset = '';
+            
+            // Reset UI
+            $presetButtons.removeClass('active');
+            $customPrompt.val('');
+            $results.hide();
+            $bulkProgress.hide();
+            $generateBtn.show().prop('disabled', false);
+            $regenerateBtn.hide();
+            $saveBtn.hide();
+            
+            // Set context
+            let contextHTML = '';
+            if (mode === 'single') {
+                contextHTML = `
+                    <p><strong>${config.strings.seoTitle}:</strong> ${data.title || 'N/A'}</p>
+                    <p><strong>Content:</strong> ${(data.content || '').substring(0, 200)}${data.content && data.content.length > 200 ? '...' : ''}</p>
+                `;
+            } else if (mode === 'bulk') {
+                contextHTML = `<p>${data.items.length} ${config.strings.of} items selected for bulk generation</p>`;
+            } else if (mode === 'term') {
+                contextHTML = `
+                    <p><strong>Term:</strong> ${data.name || 'N/A'}</p>
+                    <p><strong>Description:</strong> ${data.description || 'N/A'}</p>
+                `;
+            }
+            $contextContent.html(contextHTML);
+            
+            $overlay.fadeIn(200);
+        };
+        
+        // Close overlay
+        function closeOverlay() {
+            $overlay.fadeOut(200);
+        }
+        
+        $('.snn-seo-ai-close, .snn-seo-cancel').on('click', closeOverlay);
+        
+        $('.snn-seo-ai-overlay-backdrop').on('click', function(e) {
+            if (e.target === this) closeOverlay();
+        });
+        
+        // Generate
+        $generateBtn.on('click', async function() {
+            if (!selectedPreset && !$customPrompt.val().trim()) {
+                alert('Please select an action preset or enter a custom prompt.');
+                return;
+            }
+            
+            $generateBtn.prop('disabled', true).text(config.strings.generating);
+            
+            try {
+                if (currentMode === 'bulk') {
+                    await processBulk();
+                } else {
+                    await generateSingle();
+                }
+            } catch (error) {
+                console.error('Generation error:', error);
+                alert(config.strings.error + ': ' + error.message);
+                $generateBtn.prop('disabled', false).text(config.strings.generate);
+            }
+        });
+        
+        // Regenerate
+        $regenerateBtn.on('click', async function() {
+            $regenerateBtn.prop('disabled', true).text(config.strings.regenerating);
+            
+            try {
+                await generateSingle();
+            } catch (error) {
+                console.error('Regeneration error:', error);
+                alert(config.strings.error + ': ' + error.message);
+            }
+            
+            $regenerateBtn.prop('disabled', false).text(config.strings.regenerate);
+        });
+        
+        // Save
+        $saveBtn.on('click', async function() {
+            $saveBtn.prop('disabled', true);
+            
+            try {
+                if (currentMode === 'term') {
+                    await saveTerm();
+                } else {
+                    await saveSingle();
+                }
+                
+                alert(config.strings.success);
+                closeOverlay();
+                location.reload();
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Error saving: ' + error.message);
+                $saveBtn.prop('disabled', false);
+            }
+        });
+        
+        // Generate for single item or term
+        async function generateSingle() {
+            const prompt = buildPrompt();
+            const result = await callAI(prompt);
+            
+            $resultTitle.val(result.title);
+            $resultDesc.val(result.description);
+            updateCharCount();
+            
+            $results.fadeIn();
+            $generateBtn.hide();
+            $regenerateBtn.show();
+            $saveBtn.show();
+        }
+        
+        // Process bulk items
+        async function processBulk() {
+            $generateBtn.hide();
+            $bulkProgress.show();
+            
+            const items = currentData.items;
+            const total = items.length;
+            $('#snn-bulk-total').text(total);
+            
+            for (let i = 0; i < items.length; i++) {
+                const postId = items[i];
+                $('#snn-bulk-current').text(i + 1);
+                $('.snn-progress-fill').css('width', ((i + 1) / total * 100) + '%');
+                
+                // Fetch post data
+                const postData = await $.ajax({
+                    url: config.ajaxUrl,
+                    method: 'POST',
+                    data: {
+                        action: 'snn_seo_ai_get_post_data',
+                        post_id: postId,
+                        nonce: config.nonce
+                    }
+                });
+                
+                if (!postData.success) continue;
+                
+                // Generate SEO
+                const prompt = buildPromptForData(postData.data);
+                const result = await callAI(prompt);
+                
+                // Save immediately
+                await $.ajax({
+                    url: config.ajaxUrl,
+                    method: 'POST',
+                    data: {
+                        action: 'snn_seo_ai_save_post',
+                        post_id: postId,
+                        title: result.title,
+                        description: result.description,
+                        nonce: config.nonce
+                    }
+                });
+            }
+            
+            alert(`${config.strings.success}! ${total} items processed.`);
+            closeOverlay();
+            location.reload();
+        }
+        
+        // Build prompt
+        function buildPrompt() {
+            return buildPromptForData(currentData);
+        }
+        
+        function buildPromptForData(data) {
+            let basePrompt = selectedPreset || '';
+            const customPrompt = $customPrompt.val().trim();
+            
+            if (customPrompt) {
+                basePrompt += (basePrompt ? ' ' : '') + customPrompt;
+            }
+            
+            if (currentMode === 'term') {
+                return `${basePrompt}\n\nGenerate SEO title (max 60 chars) and description (max 160 chars) for this taxonomy term:\nTerm: ${data.name}\nDescription: ${data.description || 'N/A'}\n\nReturn JSON: {"title": "...", "description": "..."}`;
+            } else {
+                return `${basePrompt}\n\nGenerate SEO title (max 60 chars) and description (max 160 chars) for this content:\nTitle: ${data.title}\nContent: ${(data.content || '').substring(0, 2000)}\n\nReturn JSON: {"title": "...", "description": "..."}`;
+            }
+        }
+        
+        // Call AI API
+        async function callAI(prompt) {
+            const requestBody = {
+                model: config.model,
+                messages: [
+                    { role: 'system', content: config.systemPrompt },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 300
+            };
+            
+            if (config.responseFormat && config.responseFormat.type) {
+                requestBody.response_format = { type: 'json_object' };
+            }
+            
+            const response = await fetch(config.apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${config.apiKey}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            const content = data.choices[0].message.content;
+            
+            // Try to parse JSON
+            try {
+                return JSON.parse(content);
+            } catch (e) {
+                // Fallback: extract title and description
+                const lines = content.split('\n').filter(l => l.trim());
+                return {
+                    title: lines[0] || '',
+                    description: lines[1] || ''
+                };
+            }
+        }
+        
+        // Save single post
+        async function saveSingle() {
+            return $.ajax({
+                url: config.ajaxUrl,
+                method: 'POST',
+                data: {
+                    action: 'snn_seo_ai_save_post',
+                    post_id: currentData.postId,
+                    title: $resultTitle.val(),
+                    description: $resultDesc.val(),
+                    nonce: config.nonce
+                }
+            });
+        }
+        
+        // Save term
+        async function saveTerm() {
+            return $.ajax({
+                url: config.ajaxUrl,
+                method: 'POST',
+                data: {
+                    action: 'snn_seo_ai_save_term',
+                    term_id: currentData.termId,
+                    title: $resultTitle.val(),
+                    description: $resultDesc.val(),
+                    nonce: config.nonce
+                }
+            });
+        }
+    });
+    </script>
+    <?php
+}
+
+/**
+ * Add AI generation button to SEO meta box
  */
 function snn_seo_ai_meta_box_buttons($post) {
     if (!snn_seo_ai_is_enabled()) {
@@ -92,7 +773,6 @@ function snn_seo_ai_meta_box_buttons($post) {
     // Get post content for context
     $post_content = $post->post_content;
     $post_title = $post->post_title;
-    $post_excerpt = $post->post_excerpt;
     
     // Extract Bricks content if available
     if (function_exists('snn_seo_extract_bricks_content')) {
@@ -103,364 +783,108 @@ function snn_seo_ai_meta_box_buttons($post) {
     }
     
     ?>
-    <style>
-        .snn-seo-ai-button {
-            display: inline-block;
-            margin-left: 10px;
-            padding: 4px 12px;
-            background: #2271b1;
-            color: #fff;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-        .snn-seo-ai-button:hover {
-            background: #135e96;
-            color: #fff;
-        }
-        .snn-seo-ai-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .snn-seo-ai-loading {
-            opacity: 0.6;
-        }
-        .snn-seo-ai-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .snn-seo-ai-row label {
-            flex: 0 0 auto;
-            margin-right: 10px;
-        }
-        .snn-seo-ai-row input,
-        .snn-seo-ai-row textarea {
-            flex: 1;
-        }
-    </style>
-
+    <div style="margin-top: 15px;">
+        <button type="button" class="button button-primary button-large" id="snn-seo-ai-generate-btn" style="width: 100%;">
+            <?php _e('✨ Generate with AI', 'snn'); ?>
+        </button>
+    </div>
+    
     <script>
     jQuery(document).ready(function($) {
-        if (typeof snnSeoAiConfig === 'undefined') {
+        if (typeof snnSeoAiConfig === 'undefined' || typeof snnSeoAiOpenOverlay === 'undefined') {
             return;
         }
 
-        const config = snnSeoAiConfig;
         const postContent = <?php echo json_encode(wp_strip_all_tags(substr($post_content, 0, 3000))); ?>;
         const postTitle = <?php echo json_encode($post_title); ?>;
-        const postExcerpt = <?php echo json_encode($post_excerpt); ?>;
+        const postId = <?php echo $post->ID; ?>;
 
-        // Generate SEO title
-        $('#snn-seo-ai-generate-title').on('click', function(e) {
+        $('#snn-seo-ai-generate-btn').on('click', function(e) {
             e.preventDefault();
-            const $btn = $(this);
-            const $input = $('input[name="snn_seo_meta_title"]');
             
-            if ($btn.prop('disabled')) return;
-            
-            $btn.prop('disabled', true).text(config.strings.generating);
-            
-            generateSeoContent('title', postContent, postTitle, postExcerpt)
-                .then(result => {
-                    $input.val(result);
-                    $btn.text('✓ ' + config.strings.success);
-                    setTimeout(() => {
-                        $btn.prop('disabled', false).text('<?php _e('Generate with AI', 'snn'); ?>');
-                    }, 2000);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert(config.strings.error + ': ' + error.message);
-                    $btn.prop('disabled', false).text('<?php _e('Generate with AI', 'snn'); ?>');
-                });
-        });
-
-        // Generate SEO description
-        $('#snn-seo-ai-generate-description').on('click', function(e) {
-            e.preventDefault();
-            const $btn = $(this);
-            const $textarea = $('textarea[name="snn_seo_meta_description"]');
-            
-            if ($btn.prop('disabled')) return;
-            
-            $btn.prop('disabled', true).text(config.strings.generating);
-            
-            generateSeoContent('description', postContent, postTitle, postExcerpt)
-                .then(result => {
-                    $textarea.val(result);
-                    $btn.text('✓ ' + config.strings.success);
-                    setTimeout(() => {
-                        $btn.prop('disabled', false).text('<?php _e('Generate with AI', 'snn'); ?>');
-                    }, 2000);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert(config.strings.error + ': ' + error.message);
-                    $btn.prop('disabled', false).text('<?php _e('Generate with AI', 'snn'); ?>');
-                });
-        });
-
-        // AI Generation function
-        async function generateSeoContent(type, content, title, excerpt) {
-            const systemPrompt = config.systemPrompt || 'You are an SEO expert helping to generate optimized meta tags.';
-            
-            let userPrompt = '';
-            if (type === 'title') {
-                userPrompt = `Based on the following content, generate an SEO-optimized meta title (max 60 characters). Only return the title text, nothing else.
-
-Post Title: ${title}
-Content: ${content.substring(0, 1000)}
-
-Generate a compelling, keyword-rich meta title:`;
-            } else if (type === 'description') {
-                userPrompt = `Based on the following content, generate an SEO-optimized meta description (max 160 characters). Only return the description text, nothing else.
-
-Post Title: ${title}
-Excerpt: ${excerpt}
-Content: ${content.substring(0, 1500)}
-
-Generate a compelling meta description:`;
-            }
-
-            const requestBody = {
-                model: config.model,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 150
-            };
-
-            if (config.responseFormat && config.responseFormat.type) {
-                requestBody.response_format = config.responseFormat;
-            }
-
-            const response = await fetch(config.apiEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${config.apiKey}`
-                },
-                body: JSON.stringify(requestBody)
+            snnSeoAiOpenOverlay('single', {
+                postId: postId,
+                title: postTitle,
+                content: postContent
             });
-
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.choices && data.choices[0] && data.choices[0].message) {
-                return data.choices[0].message.content.trim();
-            }
-            
-            throw new Error('Invalid API response');
-        }
+        });
     });
     </script>
     <?php
 }
 
 /**
- * Add custom bulk actions for AI generation
+ * Add bulk AI generation button to post list screens
  */
-function snn_seo_ai_bulk_actions($bulk_actions) {
-    if (!snn_seo_ai_is_enabled()) {
-        return $bulk_actions;
-    }
-    
-    $bulk_actions['snn_generate_seo_ai'] = __('Generate SEO with AI', 'snn');
-    return $bulk_actions;
-}
-
-/**
- * Register bulk actions for enabled post types
- */
-function snn_seo_ai_register_bulk_actions() {
+function snn_seo_ai_add_bulk_button() {
     if (!snn_seo_ai_is_enabled()) {
         return;
     }
-
+    
+    $screen = get_current_screen();
+    if (!$screen || $screen->base !== 'edit') {
+        return;
+    }
+    
     $enabled_post_types = get_option('snn_seo_post_types_enabled', []);
-    
-    foreach ($enabled_post_types as $post_type => $enabled) {
-        if ($enabled) {
-            add_filter("bulk_actions-edit-{$post_type}", 'snn_seo_ai_bulk_actions');
-            add_filter("handle_bulk_actions-edit-{$post_type}", 'snn_seo_ai_handle_bulk_action', 10, 3);
-        }
-    }
-}
-add_action('admin_init', 'snn_seo_ai_register_bulk_actions');
-
-/**
- * Handle bulk action for AI SEO generation
- */
-function snn_seo_ai_handle_bulk_action($redirect_to, $action, $post_ids) {
-    if ($action !== 'snn_generate_seo_ai') {
-        return $redirect_to;
-    }
-
-    if (!snn_seo_ai_is_enabled()) {
-        return $redirect_to;
-    }
-
-    // Store post IDs in transient for AJAX processing
-    $transient_key = 'snn_seo_bulk_' . wp_generate_password(12, false);
-    set_transient($transient_key, $post_ids, 300); // 5 minutes
-
-    // Redirect to custom page with processing indicator
-    return add_query_arg(array(
-        'snn_seo_bulk_process' => $transient_key,
-        'post_count' => count($post_ids)
-    ), $redirect_to);
-}
-
-/**
- * Display bulk processing notice and interface
- */
-function snn_seo_ai_bulk_processing_notice() {
-    if (!isset($_GET['snn_seo_bulk_process'])) {
+    if (!isset($enabled_post_types[$screen->post_type]) || !$enabled_post_types[$screen->post_type]) {
         return;
     }
-
-    $transient_key = sanitize_text_field($_GET['snn_seo_bulk_process']);
-    $post_count = isset($_GET['post_count']) ? intval($_GET['post_count']) : 0;
     
-    $post_ids = get_transient($transient_key);
-    
-    if (!$post_ids || !is_array($post_ids)) {
-        echo '<div class="notice notice-error"><p>' . __('Bulk processing data expired or invalid.', 'snn') . '</p></div>';
-        return;
-    }
-
     ?>
-    <div class="notice notice-info" id="snn-seo-bulk-notice">
-        <p>
-            <strong><?php _e('AI SEO Generation in Progress...', 'snn'); ?></strong><br>
-            <span id="snn-seo-bulk-progress">0</span> / <?php echo $post_count; ?> <?php _e('items processed', 'snn'); ?>
-        </p>
-        <div style="background: #f0f0f0; height: 20px; border-radius: 10px; overflow: hidden;">
-            <div id="snn-seo-bulk-progress-bar" style="background: #2271b1; height: 100%; width: 0%; transition: width 0.3s;"></div>
-        </div>
-    </div>
-
     <script>
     jQuery(document).ready(function($) {
-        const postIds = <?php echo json_encode(array_values($post_ids)); ?>;
-        const config = window.snnSeoAiConfig || {};
-        let processed = 0;
-
-        async function processPost(postId) {
-            try {
-                const response = await $.ajax({
-                    url: config.ajaxUrl,
-                    method: 'POST',
-                    data: {
-                        action: 'snn_seo_ai_generate_bulk',
-                        post_id: postId,
-                        nonce: config.nonce
-                    }
-                });
-
-                return response.success;
-            } catch (error) {
-                console.error('Error processing post ' + postId, error);
-                return false;
-            }
-        }
-
-        async function processAll() {
-            for (const postId of postIds) {
-                await processPost(postId);
-                processed++;
-                
-                $('#snn-seo-bulk-progress').text(processed);
-                $('#snn-seo-bulk-progress-bar').css('width', (processed / postIds.length * 100) + '%');
-            }
-
-            $('#snn-seo-bulk-notice').removeClass('notice-info').addClass('notice-success');
-            $('#snn-seo-bulk-notice p').html('<strong><?php _e('AI SEO Generation Complete!', 'snn'); ?></strong><br>' + processed + ' <?php _e('items processed successfully', 'snn'); ?>');
+        if (typeof snnSeoAiOpenOverlay === 'undefined') return;
+        
+        // Add bulk button to actions bar
+        $('<button type="button" class="button button-primary" id="snn-seo-bulk-ai-btn" style="margin-left: 10px;"><?php _e('✨ Bulk AI SEO Generation', 'snn'); ?></button>')
+            .insertAfter('.tablenav.top .bulkactions');
+        
+        $('#snn-seo-bulk-ai-btn').on('click', function(e) {
+            e.preventDefault();
             
-            // Clean up transient
-            $.post(config.ajaxUrl, {
-                action: 'snn_seo_ai_cleanup_transient',
-                transient_key: '<?php echo esc_js($transient_key); ?>',
-                nonce: config.nonce
+            const checkedBoxes = $('tbody input[name="post[]"]:checked');
+            
+            if (checkedBoxes.length === 0) {
+                alert('<?php _e('Please select posts first.', 'snn'); ?>');
+                return;
+            }
+            
+            const postIds = checkedBoxes.map(function() {
+                return parseInt($(this).val());
+            }).get();
+            
+            snnSeoAiOpenOverlay('bulk', {
+                items: postIds
             });
-
-            setTimeout(() => {
-                window.location.href = window.location.href.split('?')[0] + '?post_type=' + new URLSearchParams(window.location.search).get('post_type');
-            }, 2000);
-        }
-
-        processAll();
+        });
     });
     </script>
     <?php
 }
-add_action('admin_notices', 'snn_seo_ai_bulk_processing_notice');
+add_action('admin_footer-edit.php', 'snn_seo_ai_add_bulk_button');
 
 /**
- * AJAX handler for bulk AI generation
+ * AJAX: Get post data for generation
  */
-function snn_seo_ai_generate_bulk_handler() {
+function snn_seo_ai_get_post_data_handler() {
     check_ajax_referer('snn_seo_ai_nonce', 'nonce');
-
+    
     if (!current_user_can('edit_posts')) {
         wp_send_json_error('Insufficient permissions');
     }
-
+    
     $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
     
     if (!$post_id) {
         wp_send_json_error('Invalid post ID');
     }
-
-    // Generate and save SEO data
-    $result = snn_seo_ai_generate_for_post($post_id);
     
-    if ($result) {
-        wp_send_json_success();
-    } else {
-        wp_send_json_error('Generation failed');
-    }
-}
-add_action('wp_ajax_snn_seo_ai_generate_bulk', 'snn_seo_ai_generate_bulk_handler');
-
-/**
- * AJAX handler for transient cleanup
- */
-function snn_seo_ai_cleanup_transient_handler() {
-    check_ajax_referer('snn_seo_ai_nonce', 'nonce');
-    
-    $transient_key = isset($_POST['transient_key']) ? sanitize_text_field($_POST['transient_key']) : '';
-    
-    if ($transient_key) {
-        delete_transient($transient_key);
-    }
-    
-    wp_send_json_success();
-}
-add_action('wp_ajax_snn_seo_ai_cleanup_transient', 'snn_seo_ai_cleanup_transient_handler');
-
-/**
- * Generate SEO data for a single post using AI
- */
-function snn_seo_ai_generate_for_post($post_id) {
-    if (!function_exists('snn_get_ai_api_config')) {
-        return false;
-    }
-
     $post = get_post($post_id);
     if (!$post) {
-        return false;
+        wp_send_json_error('Post not found');
     }
-
+    
     // Get post content
     $content = $post->post_content;
     
@@ -471,82 +895,77 @@ function snn_seo_ai_generate_for_post($post_id) {
             $content = $bricks_content;
         }
     }
-
-    $content = wp_strip_all_tags(substr($content, 0, 2000));
     
-    $config = snn_get_ai_api_config();
-    
-    if (empty($config['apiKey']) || empty($config['apiEndpoint'])) {
-        return false;
-    }
-
-    // Generate title
-    $title = snn_seo_ai_call_api(
-        $config,
-        "Generate an SEO-optimized meta title (max 60 characters) for this content. Only return the title text:\n\nTitle: {$post->post_title}\nContent: {$content}",
-        100
-    );
-
-    // Generate description
-    $description = snn_seo_ai_call_api(
-        $config,
-        "Generate an SEO-optimized meta description (max 160 characters) for this content. Only return the description text:\n\nTitle: {$post->post_title}\nContent: {$content}",
-        150
-    );
-
-    if ($title) {
-        update_post_meta($post_id, '_snn_seo_title', sanitize_text_field($title));
-    }
-
-    if ($description) {
-        update_post_meta($post_id, '_snn_seo_description', sanitize_textarea_field($description));
-    }
-
-    return true;
-}
-
-/**
- * Make AI API call
- */
-function snn_seo_ai_call_api($config, $prompt, $max_tokens = 150) {
-    $request_body = array(
-        'model' => $config['model'],
-        'messages' => array(
-            array('role' => 'system', 'content' => $config['systemPrompt']),
-            array('role' => 'user', 'content' => $prompt)
-        ),
-        'temperature' => 0.7,
-        'max_tokens' => $max_tokens
-    );
-
-    if (!empty($config['responseFormat']['type'])) {
-        $request_body['response_format'] = $config['responseFormat'];
-    }
-
-    $response = wp_remote_post($config['apiEndpoint'], array(
-        'headers' => array(
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . $config['apiKey']
-        ),
-        'body' => json_encode($request_body),
-        'timeout' => 30
+    wp_send_json_success(array(
+        'postId' => $post_id,
+        'title' => $post->post_title,
+        'content' => wp_strip_all_tags(substr($content, 0, 3000))
     ));
-
-    if (is_wp_error($response)) {
-        return false;
-    }
-
-    $body = json_decode(wp_remote_retrieve_body($response), true);
-    
-    if (isset($body['choices'][0]['message']['content'])) {
-        return trim($body['choices'][0]['message']['content']);
-    }
-
-    return false;
 }
+add_action('wp_ajax_snn_seo_ai_get_post_data', 'snn_seo_ai_get_post_data_handler');
 
 /**
- * Add AI buttons to taxonomy term edit screen
+ * AJAX: Save post SEO data
+ */
+function snn_seo_ai_save_post_handler() {
+    check_ajax_referer('snn_seo_ai_nonce', 'nonce');
+    
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error('Insufficient permissions');
+    }
+    
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+    $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
+    $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
+    
+    if (!$post_id) {
+        wp_send_json_error('Invalid post ID');
+    }
+    
+    if ($title) {
+        update_post_meta($post_id, '_snn_seo_title', $title);
+    }
+    
+    if ($description) {
+        update_post_meta($post_id, '_snn_seo_description', $description);
+    }
+    
+    wp_send_json_success();
+}
+add_action('wp_ajax_snn_seo_ai_save_post', 'snn_seo_ai_save_post_handler');
+
+/**
+ * AJAX: Save term SEO data
+ */
+function snn_seo_ai_save_term_handler() {
+    check_ajax_referer('snn_seo_ai_nonce', 'nonce');
+    
+    if (!current_user_can('manage_categories')) {
+        wp_send_json_error('Insufficient permissions');
+    }
+    
+    $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
+    $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
+    $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
+    
+    if (!$term_id) {
+        wp_send_json_error('Invalid term ID');
+    }
+    
+    if ($title) {
+        update_term_meta($term_id, '_snn_seo_title', $title);
+    }
+    
+    if ($description) {
+        update_term_meta($term_id, '_snn_seo_description', $description);
+    }
+    
+    wp_send_json_success();
+}
+add_action('wp_ajax_snn_seo_ai_save_term', 'snn_seo_ai_save_term_handler');
+
+/**
+ * Add AI button to taxonomy term edit screen
  */
 function snn_seo_ai_taxonomy_fields($term) {
     if (!snn_seo_ai_is_enabled()) {
@@ -566,100 +985,38 @@ function snn_seo_ai_taxonomy_fields($term) {
     ?>
     <tr class="form-field">
         <th scope="row">
-            <label><?php _e('SEO Title', 'snn'); ?></label>
+            <label><?php _e('SEO Meta', 'snn'); ?></label>
         </th>
         <td>
-            <input type="text" name="snn_seo_term_title" value="<?php echo esc_attr($term_title); ?>" class="regular-text" />
-            <button type="button" class="button snn-seo-ai-button" id="snn-seo-ai-generate-term-title">
-                <?php _e('Generate with AI', 'snn'); ?>
+            <button type="button" class="button button-primary button-large" id="snn-seo-ai-generate-term-btn" style="width: 100%;">
+                <?php _e('✨ Generate SEO with AI', 'snn'); ?>
             </button>
-        </td>
-    </tr>
-    <tr class="form-field">
-        <th scope="row">
-            <label><?php _e('SEO Description', 'snn'); ?></label>
-        </th>
-        <td>
-            <textarea name="snn_seo_term_description" rows="3" class="large-text"><?php echo esc_textarea($term_description); ?></textarea>
-            <button type="button" class="button snn-seo-ai-button" id="snn-seo-ai-generate-term-description">
-                <?php _e('Generate with AI', 'snn'); ?>
-            </button>
+            <p class="description"><?php _e('Generate SEO title and description using AI', 'snn'); ?></p>
+            
+            <input type="hidden" name="snn_seo_term_title" value="<?php echo esc_attr($term_title); ?>" />
+            <input type="hidden" name="snn_seo_term_description" value="<?php echo esc_attr($term_description); ?>" />
         </td>
     </tr>
 
     <script>
     jQuery(document).ready(function($) {
-        if (typeof snnSeoAiConfig === 'undefined') return;
+        if (typeof snnSeoAiConfig === 'undefined' || typeof snnSeoAiOpenOverlay === 'undefined') {
+            return;
+        }
 
-        const config = snnSeoAiConfig;
         const termName = <?php echo json_encode($term->name); ?>;
         const termDescription = <?php echo json_encode($term->description); ?>;
+        const termId = <?php echo $term->term_id; ?>;
 
-        $('#snn-seo-ai-generate-term-title').on('click', function(e) {
+        $('#snn-seo-ai-generate-term-btn').on('click', function(e) {
             e.preventDefault();
-            const $btn = $(this);
-            const $input = $('input[name="snn_seo_term_title"]');
             
-            $btn.prop('disabled', true).text(config.strings.generating);
-            
-            generateTermSeo('title', termName, termDescription)
-                .then(result => {
-                    $input.val(result);
-                    $btn.text('✓').prop('disabled', false);
-                    setTimeout(() => $btn.text('<?php _e('Generate with AI', 'snn'); ?>'), 2000);
-                })
-                .catch(error => {
-                    alert(config.strings.error);
-                    $btn.text('<?php _e('Generate with AI', 'snn'); ?>').prop('disabled', false);
-                });
-        });
-
-        $('#snn-seo-ai-generate-term-description').on('click', function(e) {
-            e.preventDefault();
-            const $btn = $(this);
-            const $textarea = $('textarea[name="snn_seo_term_description"]');
-            
-            $btn.prop('disabled', true).text(config.strings.generating);
-            
-            generateTermSeo('description', termName, termDescription)
-                .then(result => {
-                    $textarea.val(result);
-                    $btn.text('✓').prop('disabled', false);
-                    setTimeout(() => $btn.text('<?php _e('Generate with AI', 'snn'); ?>'), 2000);
-                })
-                .catch(error => {
-                    alert(config.strings.error);
-                    $btn.text('<?php _e('Generate with AI', 'snn'); ?>').prop('disabled', false);
-                });
-        });
-
-        async function generateTermSeo(type, name, description) {
-            const prompt = type === 'title' 
-                ? `Generate an SEO-optimized meta title (max 60 characters) for this taxonomy term:\n\nTerm: ${name}\nDescription: ${description}`
-                : `Generate an SEO-optimized meta description (max 160 characters) for this taxonomy term:\n\nTerm: ${name}\nDescription: ${description}`;
-
-            const response = await fetch(config.apiEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${config.apiKey}`
-                },
-                body: JSON.stringify({
-                    model: config.model,
-                    messages: [
-                        { role: 'system', content: config.systemPrompt },
-                        { role: 'user', content: prompt }
-                    ],
-                    temperature: 0.7,
-                    max_tokens: type === 'title' ? 100 : 150
-                })
+            snnSeoAiOpenOverlay('term', {
+                termId: termId,
+                name: termName,
+                description: termDescription
             });
-
-            if (!response.ok) throw new Error('API failed');
-            
-            const data = await response.json();
-            return data.choices[0].message.content.trim();
-        }
+        });
     });
     </script>
     <?php
