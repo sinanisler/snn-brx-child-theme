@@ -1345,9 +1345,9 @@ function snn_seo_save_meta_box($post_id) {
 add_action('save_post', 'snn_seo_save_meta_box', 10, 1);
 
 /**
- * Add SEO fields to taxonomy term edit page
+ * Add SEO fields to taxonomy term edit page (Edit Screen)
  */
-function snn_seo_add_taxonomy_fields($term) {
+function snn_seo_edit_taxonomy_fields($term) {
     if (!get_option('snn_seo_enabled')) {
         return;
     }
@@ -1380,6 +1380,15 @@ function snn_seo_add_taxonomy_fields($term) {
         ? $taxonomy_descriptions[$taxonomy] 
         : '{term_desc}';
     
+    // DEBUG OUTPUT
+    echo '<div style="background:#f0f0f1; padding:10px; margin-bottom:10px; border:1px solid #ccc;">';
+    echo '<strong>Debug - Current Values in DB:</strong><br>';
+    echo 'Title: ' . esc_html($title) . '<br>';
+    echo 'Desc: ' . esc_html($description) . '<br>';
+    echo 'Noindex: ' . esc_html($noindex) . '<br>';
+    echo 'Term ID: ' . $term->term_id;
+    echo '</div>';
+
     wp_nonce_field('snn_seo_term_meta_box', 'snn_seo_term_meta_box_nonce');
     ?>
     <tr class="form-field snn-seo-section">
@@ -1392,14 +1401,14 @@ function snn_seo_add_taxonomy_fields($term) {
     
     <tr class="form-field">
         <th scope="row">
-            <label for="snn_seo_term_title">
+            <label for="snn_seo_custom_title">
                 <?php _e('Meta Title', 'snn'); ?>
             </label>
         </th>
         <td>
             <input type="text" 
-                   id="snn_seo_term_title"
-                   name="snn_seo_term_title" 
+                   id="snn_seo_custom_title"
+                   name="snn_seo_custom_title" 
                    value="<?php echo esc_attr($title); ?>" 
                    class="large-text"
                    placeholder="<?php echo esc_attr($title_template); ?>">
@@ -1414,13 +1423,13 @@ function snn_seo_add_taxonomy_fields($term) {
     
     <tr class="form-field">
         <th scope="row">
-            <label for="snn_seo_term_description">
+            <label for="snn_seo_custom_description">
                 <?php _e('Meta Description', 'snn'); ?>
             </label>
         </th>
         <td>
-            <textarea id="snn_seo_term_description"
-                      name="snn_seo_term_description" 
+            <textarea id="snn_seo_custom_description"
+                      name="snn_seo_custom_description" 
                       rows="5"
                       class="large-text"
                       placeholder="<?php echo esc_attr($description_template); ?>"><?php 
@@ -1437,15 +1446,15 @@ function snn_seo_add_taxonomy_fields($term) {
     
     <tr class="form-field">
         <th scope="row">
-            <label for="snn_seo_term_noindex">
+            <label for="snn_seo_custom_noindex">
                 <?php _e('Search Engine Visibility', 'snn'); ?>
             </label>
         </th>
         <td>
-            <label for="snn_seo_term_noindex">
+            <label for="snn_seo_custom_noindex">
                 <input type="checkbox" 
-                       id="snn_seo_term_noindex"
-                       name="snn_seo_term_noindex" 
+                       id="snn_seo_custom_noindex"
+                       name="snn_seo_custom_noindex" 
                        value="1"
                        <?php checked($noindex, '1'); ?>>
                 <?php _e('No Index (prevent search engines from indexing this term archive)', 'snn'); ?>
@@ -1456,13 +1465,13 @@ function snn_seo_add_taxonomy_fields($term) {
     <script>
     jQuery(document).ready(function($) {
         function updateTermCount() {
-            var titleCount = $('#snn_seo_term_title').val().length;
-            var descCount = $('#snn_seo_term_description').val().length;
+            var titleCount = $('#snn_seo_custom_title').val().length;
+            var descCount = $('#snn_seo_custom_description').val().length;
             $('#snn-term-title-count').text(titleCount);
             $('#snn-term-desc-count').text(descCount);
         }
         
-        $('#snn_seo_term_title, #snn_seo_term_description').on('input', updateTermCount);
+        $('#snn_seo_custom_title, #snn_seo_custom_description').on('input', updateTermCount);
         updateTermCount();
     });
     </script>
@@ -1474,6 +1483,83 @@ function snn_seo_add_taxonomy_fields($term) {
             color: #1d2327;
         }
     </style>
+    <?php
+}
+
+/**
+ * Add SEO fields to taxonomy add new page (Add Screen)
+ */
+function snn_seo_add_taxonomy_fields($taxonomy) {
+    if (!get_option('snn_seo_enabled')) {
+        return;
+    }
+    
+    $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
+    $taxonomies_enabled = is_array($taxonomies_enabled) ? $taxonomies_enabled : [];
+    
+    // Check if this taxonomy has SEO enabled
+    if (!isset($taxonomies_enabled[$taxonomy]) || !$taxonomies_enabled[$taxonomy]) {
+        return;
+    }
+    
+    // Get template settings for this taxonomy
+    $taxonomy_titles = get_option('snn_seo_taxonomy_titles', []);
+    $taxonomy_descriptions = get_option('snn_seo_taxonomy_descriptions', []);
+    $taxonomy_titles = is_array($taxonomy_titles) ? $taxonomy_titles : [];
+    $taxonomy_descriptions = is_array($taxonomy_descriptions) ? $taxonomy_descriptions : [];
+    
+    // Get the configured template or use default
+    $title_template = isset($taxonomy_titles[$taxonomy]) && !empty($taxonomy_titles[$taxonomy]) 
+        ? $taxonomy_titles[$taxonomy] 
+        : '{term_name} - {site_title}';
+    $description_template = isset($taxonomy_descriptions[$taxonomy]) && !empty($taxonomy_descriptions[$taxonomy]) 
+        ? $taxonomy_descriptions[$taxonomy] 
+        : '{term_desc}';
+    
+    wp_nonce_field('snn_seo_term_meta_box', 'snn_seo_term_meta_box_nonce');
+    ?>
+    <div class="form-field snn-seo-section">
+        <h2 style="margin: 20px 0 10px 0; padding-top: 20px; border-top: 1px solid #ddd;">
+            <?php _e('SEO Settings', 'snn'); ?>
+        </h2>
+    </div>
+    
+    <div class="form-field">
+        <label for="snn_seo_custom_title"><?php _e('Meta Title', 'snn'); ?></label>
+        <input type="text" 
+               id="snn_seo_custom_title"
+               name="snn_seo_custom_title" 
+               value="" 
+               placeholder="<?php echo esc_attr($title_template); ?>">
+        <p class="description">
+            <?php _e('Recommended max length: 60 characters', 'snn'); ?> 
+            <br>
+            <?php _e('Leave empty to use the template default from SEO Settings.', 'snn'); ?>
+        </p>
+    </div>
+    
+    <div class="form-field">
+        <label for="snn_seo_custom_description"><?php _e('Meta Description', 'snn'); ?></label>
+        <textarea id="snn_seo_custom_description"
+                  name="snn_seo_custom_description" 
+                  rows="5"
+                  placeholder="<?php echo esc_attr($description_template); ?>"></textarea>
+        <p class="description">
+            <?php _e('Recommended max length: 155 characters', 'snn'); ?> 
+            <br>
+            <?php _e('Leave empty to use the template default or term description from SEO Settings.', 'snn'); ?>
+        </p>
+    </div>
+    
+    <div class="form-field">
+        <label for="snn_seo_custom_noindex">
+            <input type="checkbox" 
+                   id="snn_seo_custom_noindex"
+                   name="snn_seo_custom_noindex" 
+                   value="1">
+            <?php _e('No Index (prevent search engines from indexing this term archive)', 'snn'); ?>
+        </label>
+    </div>
     <?php
 }
 
@@ -1490,39 +1576,100 @@ function snn_seo_save_taxonomy_fields($term_id, $tt_id, $taxonomy) {
         return;
     }
     
+    // Check if taxonomy is enabled
+    $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
+    $taxonomies_enabled = is_array($taxonomies_enabled) ? $taxonomies_enabled : [];
+    
+    if (!isset($taxonomies_enabled[$taxonomy]) || !$taxonomies_enabled[$taxonomy]) {
+        return;
+    }
+    
     // Check permissions
     $tax_obj = get_taxonomy($taxonomy);
     if (!$tax_obj || !current_user_can($tax_obj->cap->edit_terms)) {
         return;
     }
     
+    // Capture save results for debug
+    $debug_save_results = [];
+
     // Save title
-    if (isset($_POST['snn_seo_term_title'])) {
-        $title = sanitize_text_field($_POST['snn_seo_term_title']);
+    if (isset($_POST['snn_seo_custom_title'])) {
+        $title = sanitize_text_field($_POST['snn_seo_custom_title']);
+        $debug_save_results['title_posted'] = $title;
         if (!empty($title)) {
-            update_term_meta($term_id, '_snn_seo_title', $title);
+            $res = update_term_meta($term_id, '_snn_seo_title', $title);
+            $debug_save_results['title_update_result'] = $res;
         } else {
-            delete_term_meta($term_id, '_snn_seo_title');
+            $res = delete_term_meta($term_id, '_snn_seo_title');
+            $debug_save_results['title_delete_result'] = $res;
         }
     }
     
     // Save description
-    if (isset($_POST['snn_seo_term_description'])) {
-        $description = sanitize_textarea_field($_POST['snn_seo_term_description']);
+    if (isset($_POST['snn_seo_custom_description'])) {
+        $description = sanitize_textarea_field($_POST['snn_seo_custom_description']);
+        $debug_save_results['desc_posted'] = $description;
         if (!empty($description)) {
-            update_term_meta($term_id, '_snn_seo_description', $description);
+            $res = update_term_meta($term_id, '_snn_seo_description', $description);
+            $debug_save_results['desc_update_result'] = $res;
         } else {
-            delete_term_meta($term_id, '_snn_seo_description');
+            $res = delete_term_meta($term_id, '_snn_seo_description');
+            $debug_save_results['desc_delete_result'] = $res;
         }
     }
     
     // Save noindex
-    if (isset($_POST['snn_seo_term_noindex']) && $_POST['snn_seo_term_noindex'] === '1') {
-        update_term_meta($term_id, '_snn_seo_noindex', '1');
+    if (isset($_POST['snn_seo_custom_noindex']) && $_POST['snn_seo_custom_noindex'] === '1') {
+        $res = update_term_meta($term_id, '_snn_seo_noindex', '1');
+        $debug_save_results['noindex_update_result'] = $res;
     } else {
-        delete_term_meta($term_id, '_snn_seo_noindex');
+        // Only delete if the checkbox was present in the form (meaning it was unchecked)
+        // But checkboxes are not sent if unchecked. So we check if nonce is present to know form was submitted.
+        // Since we check nonce at top, we can assume form submission.
+        // However, we should be careful not to delete if the field wasn't even in the form (e.g. different form).
+        // But here we are in a specific save hook.
+        
+        // Better check: if title or description is set, then we know our form was submitted.
+        if (isset($_POST['snn_seo_custom_title']) || isset($_POST['snn_seo_custom_description'])) {
+             $res = delete_term_meta($term_id, '_snn_seo_noindex');
+             $debug_save_results['noindex_delete_result'] = $res;
+        }
+    }
+
+    // DEBUG: Temporary debug output
+    if (isset($_POST['snn_seo_term_meta_box_nonce']) && current_user_can('manage_options')) {
+        $output = '<div style="background:#fff; padding:20px; border:2px solid red; margin:20px; font-family: monospace;">';
+        $output .= '<h3 style="color:red;">SEO SAVE DEBUG</h3>';
+        $output .= '<p><strong>Function called for Term ID:</strong> ' . $term_id . '</p>';
+        $output .= '<p><strong>Taxonomy:</strong> ' . $taxonomy . '</p>';
+        
+        $output .= '<p><strong>Taxonomies Enabled Option:</strong> <pre>' . print_r($taxonomies_enabled, true) . '</pre></p>';
+        $output .= '<p><strong>Is this taxonomy enabled?</strong> ' . ((isset($taxonomies_enabled[$taxonomy]) && $taxonomies_enabled[$taxonomy]) ? 'Yes' : 'No') . '</p>';
+
+        $output .= '<p><strong>Nonce verify:</strong> ' . (wp_verify_nonce($_POST['snn_seo_term_meta_box_nonce'], 'snn_seo_term_meta_box') ? 'Pass' : 'Fail') . '</p>';
+        
+        $output .= '<p><strong>User can edit terms:</strong> ' . (current_user_can($tax_obj->cap->edit_terms) ? 'Yes' : 'No') . '</p>';
+
+        $output .= '<hr>';
+        $output .= '<h4>Save Operation Results:</h4>';
+        $output .= '<pre>' . print_r($debug_save_results, true) . '</pre>';
+        
+        $output .= '<hr>';
+        $output .= '<h4>New DB Values (After Save):</h4>';
+        $output .= '<p>Title: ' . get_term_meta($term_id, '_snn_seo_title', true) . '</p>';
+        $output .= '<p>Description: ' . get_term_meta($term_id, '_snn_seo_description', true) . '</p>';
+        $output .= '<p>Noindex: ' . get_term_meta($term_id, '_snn_seo_noindex', true) . '</p>';
+
+        $output .= '<hr>';
+        $output .= '<p><strong>Full POST Data:</strong></p><pre>' . print_r($_POST, true) . '</pre>';
+        $output .= '</div>';
+        
+        // Stop execution to show debug info
+        wp_die($output, 'SEO Debug', ['response' => 200]);
     }
 }
+
 
 /**
  * Register taxonomy field hooks for all enabled taxonomies
@@ -1538,12 +1685,15 @@ function snn_seo_register_taxonomy_hooks() {
     foreach ($taxonomies_enabled as $taxonomy => $enabled) {
         if ($enabled && taxonomy_exists($taxonomy)) {
             // Add fields to edit page
-            add_action("{$taxonomy}_edit_form_fields", 'snn_seo_add_taxonomy_fields', 10, 1);
-            
-            // Save fields
-            add_action("edited_{$taxonomy}", 'snn_seo_save_taxonomy_fields', 10, 3);
+            add_action("{$taxonomy}_edit_form_fields", 'snn_seo_edit_taxonomy_fields', 10, 1);
+            // Add fields to add new term page
+            add_action("{$taxonomy}_add_form_fields", 'snn_seo_add_taxonomy_fields', 10, 1);
         }
     }
+    
+    // Save fields - use generic hooks to ensure taxonomy argument is passed correctly
+    add_action('edited_term', 'snn_seo_save_taxonomy_fields', 10, 3);
+    add_action('created_term', 'snn_seo_save_taxonomy_fields', 10, 3);
 }
 add_action('admin_init', 'snn_seo_register_taxonomy_hooks');
 
