@@ -1080,10 +1080,14 @@ function snn_seo_ai_render_overlay() {
             
             if ($generateTitle.is(':checked')) {
                 data.title = $resultTitle.val();
+                // Also update the visible form field
+                $('#snn_seo_term_title').val($resultTitle.val());
             }
             
             if ($generateDesc.is(':checked')) {
                 data.description = $resultDesc.val();
+                // Also update the visible form field
+                $('#snn_seo_term_description').val($resultDesc.val());
             }
             
             return $.ajax({

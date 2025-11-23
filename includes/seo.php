@@ -1345,6 +1345,18 @@ function snn_seo_save_meta_box($post_id) {
 add_action('save_post', 'snn_seo_save_meta_box', 10, 1);
 
 /**
+ * Clear debug log handler
+ */
+function snn_seo_clear_debug_handler() {
+    if (isset($_POST['snn_clear_debug_log']) && 
+        isset($_POST['snn_clear_debug_nonce']) && 
+        wp_verify_nonce($_POST['snn_clear_debug_nonce'], 'snn_clear_debug')) {
+        delete_option('snn_seo_debug_last_save');
+    }
+}
+add_action('admin_init', 'snn_seo_clear_debug_handler');
+
+/**
  * Add SEO fields to taxonomy term edit page
  */
 function snn_seo_add_taxonomy_fields($term) {
@@ -1381,6 +1393,27 @@ function snn_seo_add_taxonomy_fields($term) {
         : '{term_desc}';
     
     wp_nonce_field('snn_seo_term_meta_box', 'snn_seo_term_meta_box_nonce');
+    
+    // Display debug information if available
+    $debug_log = get_option('snn_seo_debug_last_save', '');
+    if (!empty($debug_log) && current_user_can('manage_options')) {
+        ?>
+        <tr class="form-field">
+            <th scope="row" colspan="2">
+                <details style="background: #f0f0f1; padding: 15px; border-radius: 4px; border: 1px solid #c3c4c7;">
+                    <summary style="cursor: pointer; font-weight: 600; color: #2271b1; margin-bottom: 10px;">
+                        🔍 Debug Information (Last Save Attempt)
+                    </summary>
+                    <pre style="background: white; padding: 15px; border-radius: 4px; overflow: auto; max-height: 400px; font-size: 11px; line-height: 1.5; font-family: 'Courier New', monospace; margin: 10px 0 0 0;"><?php echo esc_html($debug_log); ?></pre>
+                    <form method="post" style="margin-top: 10px;">
+                        <?php wp_nonce_field('snn_clear_debug', 'snn_clear_debug_nonce'); ?>
+                        <button type="submit" name="snn_clear_debug_log" class="button" style="font-size: 12px;">Clear Debug Log</button>
+                    </form>
+                </details>
+            </th>
+        </tr>
+        <?php
+    }
     ?>
     <tr class="form-field snn-seo-section">
         <th scope="row" colspan="2">
@@ -1453,6 +1486,67 @@ function snn_seo_add_taxonomy_fields($term) {
         </td>
     </tr>
     
+    <?php if (current_user_can('manage_options')): ?>
+    <tr class="form-field">
+        <th scope="row" colspan="2">
+            <details style="background: #e7f5fe; padding: 15px; border-radius: 4px; border: 1px solid #72aee6;">
+                <summary style="cursor: pointer; font-weight: 600; color: #0071a1; margin-bottom: 10px;">
+                    💾 Current Database Values (Real-time)
+                </summary>
+                <div style="background: white; padding: 15px; border-radius: 4px; margin-top: 10px;">
+                    <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 8px; font-weight: 600; width: 200px;">Meta Key</td>
+                            <td style="padding: 8px; font-weight: 600;">Value</td>
+                            <td style="padding: 8px; font-weight: 600; width: 80px;">Status</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f1;">
+                            <td style="padding: 8px;"><code>_snn_seo_title</code></td>
+                            <td style="padding: 8px; word-break: break-all;">
+                                <?php 
+                                $db_title = get_term_meta($term_id, '_snn_seo_title', true);
+                                echo !empty($db_title) ? esc_html($db_title) : '<em style="color: #999;">empty</em>'; 
+                                ?>
+                            </td>
+                            <td style="padding: 8px;">
+                                <?php echo !empty($db_title) ? '<span style="color: #00a32a;">✓ SET</span>' : '<span style="color: #999;">○ Empty</span>'; ?>
+                            </td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f0f0f1;">
+                            <td style="padding: 8px;"><code>_snn_seo_description</code></td>
+                            <td style="padding: 8px; word-break: break-all;">
+                                <?php 
+                                $db_desc = get_term_meta($term_id, '_snn_seo_description', true);
+                                echo !empty($db_desc) ? esc_html($db_desc) : '<em style="color: #999;">empty</em>'; 
+                                ?>
+                            </td>
+                            <td style="padding: 8px;">
+                                <?php echo !empty($db_desc) ? '<span style="color: #00a32a;">✓ SET</span>' : '<span style="color: #999;">○ Empty</span>'; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px;"><code>_snn_seo_noindex</code></td>
+                            <td style="padding: 8px; word-break: break-all;">
+                                <?php 
+                                $db_noindex = get_term_meta($term_id, '_snn_seo_noindex', true);
+                                echo !empty($db_noindex) ? esc_html($db_noindex) : '<em style="color: #999;">empty</em>'; 
+                                ?>
+                            </td>
+                            <td style="padding: 8px;">
+                                <?php echo !empty($db_noindex) ? '<span style="color: #00a32a;">✓ SET</span>' : '<span style="color: #999;">○ Empty</span>'; ?>
+                            </td>
+                        </tr>
+                    </table>
+                    <p style="margin: 15px 0 0 0; padding: 10px; background: #f0f0f1; border-radius: 4px; font-size: 11px; color: #666;">
+                        <strong>Note:</strong> These values are loaded from the database when this page loads. 
+                        After clicking "Update", refresh the page to see if changes were saved.
+                    </p>
+                </div>
+            </details>
+        </th>
+    </tr>
+    <?php endif; ?>
+    
     <script>
     jQuery(document).ready(function($) {
         function updateTermCount() {
@@ -1464,6 +1558,81 @@ function snn_seo_add_taxonomy_fields($term) {
         
         $('#snn_seo_term_title, #snn_seo_term_description').on('input', updateTermCount);
         updateTermCount();
+        
+        // CRITICAL FIX: Ensure visible field values take priority over any hidden duplicates
+        $('form#edittag').on('submit', function() {
+            // Get visible field values
+            var visibleTitle = $('#snn_seo_term_title').val();
+            var visibleDesc = $('#snn_seo_term_description').val();
+            
+            // Remove ALL fields with these names (including hidden ones)
+            $('input[name="snn_seo_term_title"]').not('#snn_seo_term_title').remove();
+            $('textarea[name="snn_seo_term_description"]').not('#snn_seo_term_description').remove();
+            $('input[type="hidden"][name="snn_seo_term_title"]').remove();
+            $('input[type="hidden"][name="snn_seo_term_description"]').remove();
+            
+            // Ensure visible fields have their values (in case they were cleared)
+            $('#snn_seo_term_title').val(visibleTitle);
+            $('#snn_seo_term_description').val(visibleDesc);
+            
+            console.log('✅ Cleaned duplicate SEO fields. Title:', visibleTitle, 'Desc:', visibleDesc);
+        });
+        
+        // DEBUG: Store form values to localStorage before submit (after cleanup)
+        $('form#edittag').on('submit', function() {
+            var titleVal = $('#snn_seo_term_title').val();
+            var descVal = $('#snn_seo_term_description').val();
+            var noindexVal = $('#snn_seo_term_noindex').is(':checked');
+            
+            var titleFields = $('input[name="snn_seo_term_title"]');
+            var descFields = $('textarea[name="snn_seo_term_description"]');
+            
+            var debugInfo = {
+                timestamp: new Date().toISOString(),
+                titleValue: titleVal,
+                descriptionValue: descVal,
+                noindexChecked: noindexVal,
+                titleFieldCount: titleFields.length,
+                descFieldCount: descFields.length,
+                allTitleValues: [],
+                allDescValues: []
+            };
+            
+            titleFields.each(function(i) {
+                debugInfo.allTitleValues.push({
+                    index: i,
+                    value: $(this).val(),
+                    type: $(this).attr('type') || 'text',
+                    visible: $(this).is(':visible')
+                });
+            });
+            
+            descFields.each(function(i) {
+                debugInfo.allDescValues.push({
+                    index: i,
+                    value: $(this).val(),
+                    visible: $(this).is(':visible')
+                });
+            });
+            
+            // Store in localStorage
+            localStorage.setItem('snn_seo_form_submit_debug', JSON.stringify(debugInfo, null, 2));
+        });
+        
+        // Display stored debug info after page load
+        var storedDebug = localStorage.getItem('snn_seo_form_submit_debug');
+        if (storedDebug) {
+            try {
+                var debugData = JSON.parse(storedDebug);
+                var $debugBox = $('<div style="background: #fff3cd; border: 2px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 8px; font-family: monospace; font-size: 12px;"></div>');
+                $debugBox.append('<h3 style="margin-top:0; color: #856404;">📋 Last Form Submit Data (from localStorage)</h3>');
+                $debugBox.append('<pre style="background: white; padding: 15px; border-radius: 4px; overflow: auto; max-height: 400px;">' + JSON.stringify(debugData, null, 2) + '</pre>');
+                $debugBox.append('<button type="button" class="button" onclick="localStorage.removeItem(\'snn_seo_form_submit_debug\'); location.reload();">Clear & Refresh</button>');
+                $('.wrap').prepend($debugBox);
+            } catch(e) {
+                console.error('Error parsing debug data:', e);
+            }
+        }
     });
     </script>
     
@@ -1479,49 +1648,236 @@ function snn_seo_add_taxonomy_fields($term) {
 
 /**
  * Save taxonomy term SEO fields
+ * Note: edited_{$taxonomy} hook passes ($term_id, $tt_id) - NOT ($term_id, $tt_id, $taxonomy)!
  */
-function snn_seo_save_taxonomy_fields($term_id, $tt_id, $taxonomy) {
-    // Check nonce
+function snn_seo_save_taxonomy_fields($term_id, $tt_id) {
+    // COMPREHENSIVE RAW DEBUG - OUTPUT EVERYTHING
+    $debug_log = [];
+    $debug_log[] = '=== SNN SEO TAXONOMY SAVE DEBUG START ===';
+    $debug_log[] = 'Timestamp: ' . date('Y-m-d H:i:s');
+    $debug_log[] = 'PHP Version: ' . PHP_VERSION;
+    $debug_log[] = 'WordPress Version: ' . get_bloginfo('version');
+    $debug_log[] = '';
+    
+    // RAW FUNCTION PARAMETERS
+    $debug_log[] = '--- RAW FUNCTION PARAMETERS ---';
+    $debug_log[] = '$term_id (raw): ' . var_export($term_id, true);
+    $debug_log[] = '$term_id type: ' . gettype($term_id);
+    $debug_log[] = '$tt_id (raw): ' . var_export($tt_id, true);
+    $debug_log[] = '';
+    
+    // Get taxonomy from term_id (since hook doesn't pass it)
+    $term = get_term($term_id);
+    $taxonomy = $term ? $term->taxonomy : null;
+    $debug_log[] = 'get_term(' . $term_id . ') result: ' . var_export($term, true);
+    $debug_log[] = 'Extracted taxonomy: ' . var_export($taxonomy, true);
+    $debug_log[] = '';
+    
+    // ENTIRE $_POST ARRAY RAW DUMP
+    $debug_log[] = '--- COMPLETE $_POST ARRAY (RAW DUMP) ---';
+    $debug_log[] = var_export($_POST, true);
+    $debug_log[] = '';
+    
+    // SPECIFIC POST FIELDS
+    $debug_log[] = '--- SPECIFIC POST FIELDS ---';
+    $debug_log[] = 'isset($_POST["snn_seo_term_meta_box_nonce"]): ' . var_export(isset($_POST['snn_seo_term_meta_box_nonce']), true);
+    $debug_log[] = '$_POST["snn_seo_term_meta_box_nonce"] value: ' . var_export(isset($_POST['snn_seo_term_meta_box_nonce']) ? $_POST['snn_seo_term_meta_box_nonce'] : null, true);
+    $debug_log[] = '';
+    $debug_log[] = 'isset($_POST["snn_seo_term_title"]): ' . var_export(isset($_POST['snn_seo_term_title']), true);
+    $debug_log[] = '$_POST["snn_seo_term_title"] value: ' . var_export(isset($_POST['snn_seo_term_title']) ? $_POST['snn_seo_term_title'] : null, true);
+    $debug_log[] = '';
+    $debug_log[] = 'isset($_POST["snn_seo_term_description"]): ' . var_export(isset($_POST['snn_seo_term_description']), true);
+    $debug_log[] = '$_POST["snn_seo_term_description"] value: ' . var_export(isset($_POST['snn_seo_term_description']) ? $_POST['snn_seo_term_description'] : null, true);
+    $debug_log[] = '';
+    $debug_log[] = 'isset($_POST["snn_seo_term_noindex"]): ' . var_export(isset($_POST['snn_seo_term_noindex']), true);
+    $debug_log[] = '$_POST["snn_seo_term_noindex"] value: ' . var_export(isset($_POST['snn_seo_term_noindex']) ? $_POST['snn_seo_term_noindex'] : null, true);
+    $debug_log[] = '';
+    
+    // CURRENT USER INFO
+    $debug_log[] = '--- CURRENT USER INFO ---';
+    $current_user = wp_get_current_user();
+    $debug_log[] = 'User ID: ' . $current_user->ID;
+    $debug_log[] = 'User Login: ' . $current_user->user_login;
+    $debug_log[] = 'User Roles: ' . implode(', ', $current_user->roles);
+    $debug_log[] = 'User Capabilities (raw): ' . var_export($current_user->allcaps, true);
+    $debug_log[] = '';
+    
+    // NONCE CHECK
+    $debug_log[] = '--- NONCE VERIFICATION ---';
     if (!isset($_POST['snn_seo_term_meta_box_nonce'])) {
+        $debug_log[] = 'NONCE NOT SET IN POST DATA';
+        $debug_log[] = 'FUNCTION WILL EXIT HERE';
+        $debug_log[] = '=== DEBUG END (EARLY EXIT) ===';
+        update_option('snn_seo_debug_last_save', implode("\n", $debug_log));
         return;
     }
     
-    if (!wp_verify_nonce($_POST['snn_seo_term_meta_box_nonce'], 'snn_seo_term_meta_box')) {
+    $nonce_value = $_POST['snn_seo_term_meta_box_nonce'];
+    $nonce_valid = wp_verify_nonce($nonce_value, 'snn_seo_term_meta_box');
+    $debug_log[] = 'Nonce value: ' . $nonce_value;
+    $debug_log[] = 'wp_verify_nonce result (raw): ' . var_export($nonce_valid, true);
+    $debug_log[] = 'Nonce is valid: ' . ($nonce_valid ? 'YES' : 'NO');
+    
+    if (!$nonce_valid) {
+        $debug_log[] = 'NONCE VERIFICATION FAILED';
+        $debug_log[] = 'FUNCTION WILL EXIT HERE';
+        $debug_log[] = '=== DEBUG END (EARLY EXIT) ===';
+        update_option('snn_seo_debug_last_save', implode("\n", $debug_log));
         return;
     }
+    $debug_log[] = '';
     
-    // Check permissions
+    // TAXONOMY OBJECT & PERMISSIONS
+    $debug_log[] = '--- TAXONOMY OBJECT & PERMISSIONS ---';
     $tax_obj = get_taxonomy($taxonomy);
-    if (!$tax_obj || !current_user_can($tax_obj->cap->edit_terms)) {
+    $debug_log[] = 'get_taxonomy() result (raw): ' . var_export($tax_obj, true);
+    
+    if (!$tax_obj) {
+        $debug_log[] = 'TAXONOMY OBJECT IS NULL/FALSE';
+        $debug_log[] = 'FUNCTION WILL EXIT HERE';
+        $debug_log[] = '=== DEBUG END (EARLY EXIT) ===';
+        update_option('snn_seo_debug_last_save', implode("\n", $debug_log));
         return;
     }
     
-    // Save title
+    $required_cap = $tax_obj->cap->edit_terms;
+    $can_edit = current_user_can($required_cap);
+    $debug_log[] = 'Required capability: ' . $required_cap;
+    $debug_log[] = 'current_user_can() result: ' . var_export($can_edit, true);
+    
+    if (!$can_edit) {
+        $debug_log[] = 'USER DOES NOT HAVE PERMISSION';
+        $debug_log[] = 'FUNCTION WILL EXIT HERE';
+        $debug_log[] = '=== DEBUG END (EARLY EXIT) ===';
+        update_option('snn_seo_debug_last_save', implode("\n", $debug_log));
+        return;
+    }
+    $debug_log[] = '';
+    
+    // EXISTING META VALUES (BEFORE SAVE)
+    $debug_log[] = '--- EXISTING META VALUES (BEFORE SAVE) ---';
+    $existing_title = get_term_meta($term_id, '_snn_seo_title', true);
+    $existing_desc = get_term_meta($term_id, '_snn_seo_description', true);
+    $existing_noindex = get_term_meta($term_id, '_snn_seo_noindex', true);
+    $debug_log[] = 'get_term_meta(' . $term_id . ', "_snn_seo_title", true) result: ' . var_export($existing_title, true);
+    $debug_log[] = 'get_term_meta(' . $term_id . ', "_snn_seo_description", true) result: ' . var_export($existing_desc, true);
+    $debug_log[] = 'get_term_meta(' . $term_id . ', "_snn_seo_noindex", true) result: ' . var_export($existing_noindex, true);
+    $debug_log[] = '';
+    
+    // ALL TERM META (RAW DUMP)
+    $debug_log[] = '--- ALL TERM META (RAW DUMP) ---';
+    $all_meta = get_term_meta($term_id);
+    $debug_log[] = var_export($all_meta, true);
+    $debug_log[] = '';
+    
+    // SAVE TITLE
+    $debug_log[] = '--- PROCESSING TITLE ---';
     if (isset($_POST['snn_seo_term_title'])) {
-        $title = sanitize_text_field($_POST['snn_seo_term_title']);
-        if (!empty($title)) {
-            update_term_meta($term_id, '_snn_seo_title', $title);
+        $raw_title = $_POST['snn_seo_term_title'];
+        $sanitized_title = trim(sanitize_text_field($raw_title));
+        $debug_log[] = 'Raw title from POST: ' . var_export($raw_title, true);
+        $debug_log[] = 'Sanitized title: ' . var_export($sanitized_title, true);
+        $debug_log[] = 'Title length: ' . strlen($sanitized_title);
+        $debug_log[] = 'empty($sanitized_title): ' . var_export(empty($sanitized_title), true);
+        
+        // ALWAYS save or delete - never leave in undefined state
+        if (!empty($sanitized_title)) {
+            $debug_log[] = 'CALLING: update_term_meta(' . $term_id . ', "_snn_seo_title", ' . var_export($sanitized_title, true) . ')';
+            $result = update_term_meta($term_id, '_snn_seo_title', $sanitized_title);
+            $debug_log[] = 'update_term_meta() returned: ' . var_export($result, true);
+            $debug_log[] = 'Result type: ' . gettype($result);
         } else {
-            delete_term_meta($term_id, '_snn_seo_title');
+            // Delete empty value completely
+            $debug_log[] = 'CALLING: delete_term_meta(' . $term_id . ', "_snn_seo_title")';
+            $result = delete_term_meta($term_id, '_snn_seo_title');
+            $debug_log[] = 'delete_term_meta() returned: ' . var_export($result, true);
+            $debug_log[] = 'Result type: ' . gettype($result);
         }
-    }
-    
-    // Save description
-    if (isset($_POST['snn_seo_term_description'])) {
-        $description = sanitize_textarea_field($_POST['snn_seo_term_description']);
-        if (!empty($description)) {
-            update_term_meta($term_id, '_snn_seo_description', $description);
-        } else {
-            delete_term_meta($term_id, '_snn_seo_description');
-        }
-    }
-    
-    // Save noindex
-    if (isset($_POST['snn_seo_term_noindex']) && $_POST['snn_seo_term_noindex'] === '1') {
-        update_term_meta($term_id, '_snn_seo_noindex', '1');
     } else {
-        delete_term_meta($term_id, '_snn_seo_noindex');
+        $debug_log[] = 'snn_seo_term_title NOT IN $_POST';
     }
+    $debug_log[] = '';
+    
+    // SAVE DESCRIPTION
+    $debug_log[] = '--- PROCESSING DESCRIPTION ---';
+    if (isset($_POST['snn_seo_term_description'])) {
+        $raw_desc = $_POST['snn_seo_term_description'];
+        $sanitized_desc = trim(sanitize_textarea_field($raw_desc));
+        $debug_log[] = 'Raw description from POST: ' . var_export($raw_desc, true);
+        $debug_log[] = 'Sanitized description: ' . var_export($sanitized_desc, true);
+        $debug_log[] = 'Description length: ' . strlen($sanitized_desc);
+        $debug_log[] = 'empty($sanitized_desc): ' . var_export(empty($sanitized_desc), true);
+        
+        // ALWAYS save or delete - never leave in undefined state
+        if (!empty($sanitized_desc)) {
+            $debug_log[] = 'CALLING: update_term_meta(' . $term_id . ', "_snn_seo_description", ' . var_export(substr($sanitized_desc, 0, 50), true) . '...)';
+            $result = update_term_meta($term_id, '_snn_seo_description', $sanitized_desc);
+            $debug_log[] = 'update_term_meta() returned: ' . var_export($result, true);
+            $debug_log[] = 'Result type: ' . gettype($result);
+        } else {
+            // Delete empty value completely
+            $debug_log[] = 'CALLING: delete_term_meta(' . $term_id . ', "_snn_seo_description")';
+            $result = delete_term_meta($term_id, '_snn_seo_description');
+            $debug_log[] = 'delete_term_meta() returned: ' . var_export($result, true);
+            $debug_log[] = 'Result type: ' . gettype($result);
+        }
+    } else {
+        $debug_log[] = 'snn_seo_term_description NOT IN $_POST';
+    }
+    $debug_log[] = '';
+    
+    // SAVE NOINDEX
+    $debug_log[] = '--- PROCESSING NOINDEX ---';
+    $debug_log[] = 'isset($_POST["snn_seo_term_noindex"]): ' . var_export(isset($_POST['snn_seo_term_noindex']), true);
+    if (isset($_POST['snn_seo_term_noindex'])) {
+        $debug_log[] = '$_POST["snn_seo_term_noindex"] value: ' . var_export($_POST['snn_seo_term_noindex'], true);
+        $debug_log[] = 'Strict comparison === "1": ' . var_export($_POST['snn_seo_term_noindex'] === '1', true);
+    }
+    
+    if (isset($_POST['snn_seo_term_noindex']) && $_POST['snn_seo_term_noindex'] === '1') {
+        $debug_log[] = 'CALLING: update_term_meta(' . $term_id . ', "_snn_seo_noindex", "1")';
+        $result = update_term_meta($term_id, '_snn_seo_noindex', '1');
+        $debug_log[] = 'update_term_meta() returned: ' . var_export($result, true);
+    } else {
+        $debug_log[] = 'CALLING: delete_term_meta(' . $term_id . ', "_snn_seo_noindex")';
+        $result = delete_term_meta($term_id, '_snn_seo_noindex');
+        $debug_log[] = 'delete_term_meta() returned: ' . var_export($result, true);
+    }
+    $debug_log[] = '';
+    
+    // META VALUES AFTER SAVE (VERIFICATION)
+    $debug_log[] = '--- META VALUES AFTER SAVE (VERIFICATION) ---';
+    $new_title = get_term_meta($term_id, '_snn_seo_title', true);
+    $new_desc = get_term_meta($term_id, '_snn_seo_description', true);
+    $new_noindex = get_term_meta($term_id, '_snn_seo_noindex', true);
+    $debug_log[] = 'get_term_meta(' . $term_id . ', "_snn_seo_title", true) result: ' . var_export($new_title, true);
+    $debug_log[] = 'get_term_meta(' . $term_id . ', "_snn_seo_description", true) result: ' . var_export($new_desc, true);
+    $debug_log[] = 'get_term_meta(' . $term_id . ', "_snn_seo_noindex", true) result: ' . var_export($new_noindex, true);
+    $debug_log[] = '';
+    
+    // ALL TERM META AFTER SAVE (RAW DUMP)
+    $debug_log[] = '--- ALL TERM META AFTER SAVE (RAW DUMP) ---';
+    $all_meta_after = get_term_meta($term_id);
+    $debug_log[] = var_export($all_meta_after, true);
+    $debug_log[] = '';
+    
+    // CHECK FOR OTHER HOOKS ON THIS ACTION
+    $debug_log[] = '--- CHECKING FOR CONFLICTING HOOKS ---';
+    global $wp_filter;
+    if (isset($wp_filter['edited_codex-topic'])) {
+        $debug_log[] = 'Hooks registered on "edited_codex-topic":';
+        foreach ($wp_filter['edited_codex-topic']->callbacks as $priority => $callbacks) {
+            foreach ($callbacks as $callback) {
+                $debug_log[] = '  Priority ' . $priority . ': ' . var_export($callback['function'], true);
+            }
+        }
+    }
+    $debug_log[] = '';
+    
+    $debug_log[] = '=== SNN SEO TAXONOMY SAVE DEBUG END ===';
+    
+    // Store debug log
+    update_option('snn_seo_debug_last_save', implode("\n", $debug_log));
 }
 
 /**
@@ -1540,8 +1896,8 @@ function snn_seo_register_taxonomy_hooks() {
             // Add fields to edit page
             add_action("{$taxonomy}_edit_form_fields", 'snn_seo_add_taxonomy_fields', 10, 1);
             
-            // Save fields
-            add_action("edited_{$taxonomy}", 'snn_seo_save_taxonomy_fields', 10, 3);
+            // Save fields - use priority 999 to run AFTER other hooks that might interfere
+            add_action("edited_{$taxonomy}", 'snn_seo_save_taxonomy_fields', 999, 2);
         }
     }
 }
