@@ -122,6 +122,21 @@ function snn_seo_ai_render_overlay() {
                     </div>
                 </div>
                 
+                <!-- Generate Options -->
+                <div class="snn-seo-ai-options">
+                    <label><?php _e('Generate:', 'snn'); ?></label>
+                    <div class="snn-seo-ai-checkboxes">
+                        <label class="snn-checkbox-label">
+                            <input type="checkbox" id="snn-generate-title" checked />
+                            <?php _e('SEO Title', 'snn'); ?>
+                        </label>
+                        <label class="snn-checkbox-label">
+                            <input type="checkbox" id="snn-generate-description" checked />
+                            <?php _e('SEO Description', 'snn'); ?>
+                        </label>
+                    </div>
+                </div>
+                
                 <!-- Custom Prompt -->
                 <div class="snn-seo-ai-custom">
                     <label for="snn-seo-custom-prompt"><?php _e('Custom Prompt (Optional):', 'snn'); ?></label>
@@ -256,14 +271,52 @@ function snn_seo_ai_render_overlay() {
         font-size: 14px;
     }
     
+    .snn-seo-ai-options {
+        margin-bottom: 20px;
+    }
+    
+    .snn-seo-ai-options > label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .snn-seo-ai-checkboxes {
+        display: flex;
+        gap: 6px;
+    }
+    
+    .snn-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    
+    .snn-checkbox-label:hover {
+        background: #e5f2ff;
+    }
+    
+    .snn-checkbox-label input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        margin: 0;
+    }
+    
     .snn-seo-ai-preset-buttons {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 6px;
     }
     
     .snn-preset-btn {
-        padding: 8px 16px;
+        padding: 4px 6px;
         background: #fff;
         border: 1px solid #2271b1;
         color: #2271b1;
@@ -520,6 +573,8 @@ function snn_seo_ai_render_overlay() {
         const $itemCount = $('#snn-seo-item-count');
         const $presetButtons = $('.snn-preset-btn');
         const $customPrompt = $('#snn-seo-custom-prompt');
+        const $generateTitle = $('#snn-generate-title');
+        const $generateDesc = $('#snn-generate-description');
         const $results = $('.snn-seo-ai-results');
         const $resultTitle = $('#snn-seo-result-title');
         const $resultDesc = $('#snn-seo-result-description');
@@ -610,6 +665,11 @@ function snn_seo_ai_render_overlay() {
                 return;
             }
             
+            if (!$generateTitle.is(':checked') && !$generateDesc.is(':checked')) {
+                alert('Please select at least one option to generate (Title or Description).');
+                return;
+            }
+            
             $generateBtn.prop('disabled', true).text(config.strings.generating);
             
             try {
@@ -628,6 +688,11 @@ function snn_seo_ai_render_overlay() {
         // Regenerate
         $regenerateBtn.on('click', async function() {
             if (selectedPresets.length === 0 && !$customPrompt.val().trim()) {
+                return;
+            }
+            
+            if (!$generateTitle.is(':checked') && !$generateDesc.is(':checked')) {
+                alert('Please select at least one option to generate (Title or Description).');
                 return;
             }
             
@@ -672,8 +737,18 @@ function snn_seo_ai_render_overlay() {
             const prompt = buildPrompt();
             const result = await callAI(prompt);
             
-            $resultTitle.val(result.title);
-            $resultDesc.val(result.description);
+            if ($generateTitle.is(':checked')) {
+                $resultTitle.val(result.title || '').closest('.snn-seo-result-item').show();
+            } else {
+                $resultTitle.closest('.snn-seo-result-item').hide();
+            }
+            
+            if ($generateDesc.is(':checked')) {
+                $resultDesc.val(result.description || '').closest('.snn-seo-result-item').show();
+            } else {
+                $resultDesc.closest('.snn-seo-result-item').hide();
+            }
+            
             updateCharCount();
             
             $results.fadeIn();
@@ -743,15 +818,15 @@ function snn_seo_ai_render_overlay() {
         function renderBulkResults() {
             $bulkResultsContainer.empty();
             
+            const showTitle = $generateTitle.is(':checked');
+            const showDesc = $generateDesc.is(':checked');
+            
             bulkGeneratedData.forEach((item, index) => {
-                const itemHtml = `
-                    <div class="snn-bulk-item" data-index="${index}">
-                        <div class="snn-bulk-item-header">
-                            <span class="snn-bulk-item-title">${escapeHtml(item.postTitle)}</span>
-                            <button type="button" class="snn-bulk-item-regenerate" data-index="${index}">
-                                ${config.strings.regenerate}
-                            </button>
-                        </div>
+                let titleField = '';
+                let descField = '';
+                
+                if (showTitle) {
+                    titleField = `
                         <div class="snn-bulk-field">
                             <label>
                                 ${config.strings.seoTitle}
@@ -761,6 +836,11 @@ function snn_seo_ai_render_overlay() {
                             </label>
                             <input type="text" class="bulk-title-input" value="${escapeHtml(item.title)}" data-index="${index}" />
                         </div>
+                    `;
+                }
+                
+                if (showDesc) {
+                    descField = `
                         <div class="snn-bulk-field">
                             <label>
                                 ${config.strings.seoDescription}
@@ -770,6 +850,19 @@ function snn_seo_ai_render_overlay() {
                             </label>
                             <textarea class="bulk-desc-input" data-index="${index}">${escapeHtml(item.description)}</textarea>
                         </div>
+                    `;
+                }
+                
+                const itemHtml = `
+                    <div class="snn-bulk-item" data-index="${index}">
+                        <div class="snn-bulk-item-header">
+                            <span class="snn-bulk-item-title">${escapeHtml(item.postTitle)}</span>
+                            <button type="button" class="snn-bulk-item-regenerate" data-index="${index}">
+                                ${config.strings.regenerate}
+                            </button>
+                        </div>
+                        ${titleField}
+                        ${descField}
                     </div>
                 `;
                 $bulkResultsContainer.append(itemHtml);
@@ -840,16 +933,24 @@ function snn_seo_ai_render_overlay() {
             
             for (const item of bulkGeneratedData) {
                 try {
+                    const data = {
+                        action: 'snn_seo_ai_save_post',
+                        post_id: item.postId,
+                        nonce: config.nonce
+                    };
+                    
+                    if ($generateTitle.is(':checked')) {
+                        data.title = item.title;
+                    }
+                    
+                    if ($generateDesc.is(':checked')) {
+                        data.description = item.description;
+                    }
+                    
                     await $.ajax({
                         url: config.ajaxUrl,
                         method: 'POST',
-                        data: {
-                            action: 'snn_seo_ai_save_post',
-                            post_id: item.postId,
-                            title: item.title,
-                            description: item.description,
-                            nonce: config.nonce
-                        }
+                        data: data
                     });
                     saved++;
                 } catch (error) {
@@ -882,10 +983,22 @@ function snn_seo_ai_render_overlay() {
                 basePrompt += (basePrompt ? ' ' : '') + customPrompt;
             }
             
+            const generateTitle = $generateTitle.is(':checked');
+            const generateDesc = $generateDesc.is(':checked');
+            
+            let whatToGenerate = '';
+            if (generateTitle && generateDesc) {
+                whatToGenerate = 'Generate SEO title (max 60 chars) and description (max 160 chars)';
+            } else if (generateTitle) {
+                whatToGenerate = 'Generate SEO title (max 60 chars)';
+            } else if (generateDesc) {
+                whatToGenerate = 'Generate SEO description (max 160 chars)';
+            }
+            
             if (currentMode === 'term') {
-                return `${basePrompt}\n\nGenerate SEO title (max 60 chars) and description (max 160 chars) for this taxonomy term:\nTerm: ${data.name}\nDescription: ${data.description || 'N/A'}\n\nReturn JSON: {"title": "...", "description": "..."}`;
+                return `${basePrompt}\n\n${whatToGenerate} for this taxonomy term:\nTerm: ${data.name}\nDescription: ${data.description || 'N/A'}\n\nReturn JSON: {"title": "...", "description": "..."}`;
             } else {
-                return `${basePrompt}\n\nGenerate SEO title (max 60 chars) and description (max 160 chars) for this content:\nTitle: ${data.title}\nContent: ${(data.content || '').substring(0, 2000)}\n\nReturn JSON: {"title": "...", "description": "..."}`;
+                return `${basePrompt}\n\n${whatToGenerate} for this content:\nTitle: ${data.title}\nContent: ${(data.content || '').substring(0, 2000)}\n\nReturn JSON: {"title": "...", "description": "..."}`;
             }
         }
         
@@ -936,31 +1049,47 @@ function snn_seo_ai_render_overlay() {
         
         // Save single post
         async function saveSingle() {
+            const data = {
+                action: 'snn_seo_ai_save_post',
+                post_id: currentData.postId,
+                nonce: config.nonce
+            };
+            
+            if ($generateTitle.is(':checked')) {
+                data.title = $resultTitle.val();
+            }
+            
+            if ($generateDesc.is(':checked')) {
+                data.description = $resultDesc.val();
+            }
+            
             return $.ajax({
                 url: config.ajaxUrl,
                 method: 'POST',
-                data: {
-                    action: 'snn_seo_ai_save_post',
-                    post_id: currentData.postId,
-                    title: $resultTitle.val(),
-                    description: $resultDesc.val(),
-                    nonce: config.nonce
-                }
+                data: data
             });
         }
         
         // Save term
         async function saveTerm() {
+            const data = {
+                action: 'snn_seo_ai_save_term',
+                term_id: currentData.termId,
+                nonce: config.nonce
+            };
+            
+            if ($generateTitle.is(':checked')) {
+                data.title = $resultTitle.val();
+            }
+            
+            if ($generateDesc.is(':checked')) {
+                data.description = $resultDesc.val();
+            }
+            
             return $.ajax({
                 url: config.ajaxUrl,
                 method: 'POST',
-                data: {
-                    action: 'snn_seo_ai_save_term',
-                    term_id: currentData.termId,
-                    title: $resultTitle.val(),
-                    description: $resultDesc.val(),
-                    nonce: config.nonce
-                }
+                data: data
             });
         }
     });
