@@ -1319,6 +1319,8 @@ add_action('wp_ajax_snn_seo_ai_save_term', 'snn_seo_ai_save_term_handler');
 
 /**
  * Add AI button to taxonomy term edit screen
+ * Note: This only adds the AI generation button. The actual SEO fields are managed by seo.php
+ * The AI overlay saves directly via AJAX (snn_seo_ai_save_term_handler)
  */
 function snn_seo_ai_taxonomy_fields($term) {
     if (!snn_seo_ai_is_enabled()) {
@@ -1332,22 +1334,16 @@ function snn_seo_ai_taxonomy_fields($term) {
         return;
     }
 
-    $term_title = get_term_meta($term->term_id, '_snn_seo_title', true);
-    $term_description = get_term_meta($term->term_id, '_snn_seo_description', true);
-
     ?>
     <tr class="form-field">
         <th scope="row">
-            <label><?php _e('SEO Meta', 'snn'); ?></label>
+            <label><?php _e('AI SEO Generation', 'snn'); ?></label>
         </th>
         <td>
             <button type="button" class="button button-large" id="snn-seo-ai-generate-term-btn" style="width: 100%;">
                 <?php _e('✨ Generate SEO with AI', 'snn'); ?>
             </button>
             <p class="description"><?php _e('Generate SEO title and description using AI', 'snn'); ?></p>
-            
-            <input type="hidden" name="snn_seo_term_title" value="<?php echo esc_attr($term_title); ?>" />
-            <input type="hidden" name="snn_seo_term_description" value="<?php echo esc_attr($term_description); ?>" />
         </td>
     </tr>
 
@@ -1374,20 +1370,9 @@ function snn_seo_ai_taxonomy_fields($term) {
 }
 
 /**
- * Save taxonomy term SEO fields
- */
-function snn_seo_ai_save_taxonomy_fields($term_id) {
-    if (isset($_POST['snn_seo_term_title'])) {
-        update_term_meta($term_id, '_snn_seo_title', sanitize_text_field($_POST['snn_seo_term_title']));
-    }
-    
-    if (isset($_POST['snn_seo_term_description'])) {
-        update_term_meta($term_id, '_snn_seo_description', sanitize_textarea_field($_POST['snn_seo_term_description']));
-    }
-}
-
-/**
  * Register taxonomy field hooks for enabled taxonomies
+ * Note: We only add the AI button field, not save hooks
+ * The AI overlay saves directly via AJAX, and the main SEO fields are handled by seo.php
  */
 function snn_seo_ai_register_taxonomy_hooks() {
     if (!snn_seo_ai_is_enabled()) {
@@ -1398,8 +1383,9 @@ function snn_seo_ai_register_taxonomy_hooks() {
     
     foreach ($enabled_taxonomies as $taxonomy => $enabled) {
         if ($enabled) {
+            // Only add the AI button field to the taxonomy edit page
+            // Do NOT hook into save - that's handled by seo.php
             add_action("{$taxonomy}_edit_form_fields", 'snn_seo_ai_taxonomy_fields', 10, 1);
-            add_action("edited_{$taxonomy}", 'snn_seo_ai_save_taxonomy_fields', 10, 1);
         }
     }
 }
