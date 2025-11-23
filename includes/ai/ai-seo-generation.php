@@ -161,9 +161,9 @@ function snn_seo_ai_render_overlay() {
             
             <div class="snn-seo-ai-overlay-footer">
                 <button type="button" class="button button-large snn-seo-cancel"><?php _e('Cancel', 'snn'); ?></button>
-                <button type="button" class="button button-primary button-large snn-seo-generate"><?php _e('Generate', 'snn'); ?></button>
-                <button type="button" class="button button-primary button-large snn-seo-regenerate" style="display: none;"><?php _e('Regenerate', 'snn'); ?></button>
-                <button type="button" class="button button-primary button-large snn-seo-save" style="display: none;"><?php _e('Save', 'snn'); ?></button>
+                <button type="button" class="button button-large snn-seo-generate"><?php _e('Generate', 'snn'); ?></button>
+                <button type="button" class="button button-large snn-seo-regenerate" style="display: none;"><?php _e('Regenerate', 'snn'); ?></button>
+                <button type="button" class="button button-large snn-seo-save" style="display: none;"><?php _e('Save', 'snn'); ?></button>
             </div>
         </div>
     </div>
@@ -997,7 +997,7 @@ function snn_seo_ai_meta_box_buttons($post) {
     
     ?>
     <div style="margin-top: 15px;">
-        <button type="button" class="button button-primary button-large" id="snn-seo-ai-generate-btn" style="width: 100%;">
+        <button type="button" class="button button-large" id="snn-seo-ai-generate-btn" style="width: 100%;">
             <?php _e('Generate with AI ✨', 'snn'); ?>
         </button>
     </div>
@@ -1048,7 +1048,7 @@ function snn_seo_ai_add_bulk_button() {
         if (typeof snnSeoAiOpenOverlay === 'undefined') return;
         
         // Add bulk button container to actions bar
-        $('<div id="snn-seo-bulk-container" style="display: inline-block; margin-left: 10px; vertical-align: top;"><button type="button" class="button button-primary" id="snn-seo-bulk-ai-btn"><?php _e('Bulk AI SEO Generation ✨', 'snn'); ?></button></div>')
+        $('<div id="snn-seo-bulk-container" style="display: inline-block; margin-left: 10px; vertical-align: top;"><button type="button" class="button" id="snn-seo-bulk-ai-btn"><?php _e('Bulk AI SEO Generation ✨', 'snn'); ?></button></div>')
             .insertAfter('.tablenav.top .bulkactions');
         
         $('#snn-seo-bulk-ai-btn').on('click', function(e) {
@@ -1212,7 +1212,7 @@ function snn_seo_ai_taxonomy_fields($term) {
             <label><?php _e('SEO Meta', 'snn'); ?></label>
         </th>
         <td>
-            <button type="button" class="button button-primary button-large" id="snn-seo-ai-generate-term-btn" style="width: 100%;">
+            <button type="button" class="button button-large" id="snn-seo-ai-generate-term-btn" style="width: 100%;">
                 <?php _e('✨ Generate SEO with AI', 'snn'); ?>
             </button>
             <p class="description"><?php _e('Generate SEO title and description using AI', 'snn'); ?></p>
