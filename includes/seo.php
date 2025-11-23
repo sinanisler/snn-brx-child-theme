@@ -938,20 +938,31 @@ function snn_seo_output_meta_tags() {
                 'taxonomy' => $term->taxonomy
             ];
             
-            $taxonomy_titles = get_option('snn_seo_taxonomy_titles', []);
-            $taxonomy_descriptions = get_option('snn_seo_taxonomy_descriptions', []);
-            $taxonomy_titles = is_array($taxonomy_titles) ? $taxonomy_titles : [];
-            $taxonomy_descriptions = is_array($taxonomy_descriptions) ? $taxonomy_descriptions : [];
+            // Check for custom term meta first
+            $custom_title = get_term_meta($term->term_id, '_snn_seo_title', true);
+            $custom_desc = get_term_meta($term->term_id, '_snn_seo_description', true);
             
-            $title_template = isset($taxonomy_titles[$term->taxonomy]) && !empty($taxonomy_titles[$term->taxonomy]) 
-                ? $taxonomy_titles[$term->taxonomy] 
-                : '{term_name} - {site_title}';
-            $desc_template = isset($taxonomy_descriptions[$term->taxonomy]) && !empty($taxonomy_descriptions[$term->taxonomy]) 
-                ? $taxonomy_descriptions[$term->taxonomy] 
-                : '{term_desc}';
+            if (!empty($custom_title)) {
+                $title = snn_seo_replace_tags($custom_title, $context);
+            } else {
+                $taxonomy_titles = get_option('snn_seo_taxonomy_titles', []);
+                $taxonomy_titles = is_array($taxonomy_titles) ? $taxonomy_titles : [];
+                $title_template = isset($taxonomy_titles[$term->taxonomy]) && !empty($taxonomy_titles[$term->taxonomy]) 
+                    ? $taxonomy_titles[$term->taxonomy] 
+                    : '{term_name} - {site_title}';
+                $title = snn_seo_replace_tags($title_template, $context);
+            }
             
-            $title = snn_seo_replace_tags($title_template, $context);
-            $description = snn_seo_replace_tags($desc_template, $context);
+            if (!empty($custom_desc)) {
+                $description = snn_seo_replace_tags($custom_desc, $context);
+            } else {
+                $taxonomy_descriptions = get_option('snn_seo_taxonomy_descriptions', []);
+                $taxonomy_descriptions = is_array($taxonomy_descriptions) ? $taxonomy_descriptions : [];
+                $desc_template = isset($taxonomy_descriptions[$term->taxonomy]) && !empty($taxonomy_descriptions[$term->taxonomy]) 
+                    ? $taxonomy_descriptions[$term->taxonomy] 
+                    : '{term_desc}';
+                $description = snn_seo_replace_tags($desc_template, $context);
+            }
         }
     }
     // Author archive
@@ -1043,13 +1054,22 @@ function snn_seo_output_meta_tags() {
         echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
     }
     
-    // Robots noindex meta tag (for singular posts/pages)
+    // Robots noindex meta tag (for singular posts/pages and taxonomy terms)
     if (is_singular()) {
         $post_id = get_queried_object_id();
         $noindex = get_post_meta($post_id, '_snn_seo_noindex', true);
         
         if ($noindex === '1') {
             echo '<meta name="robots" content="noindex, nofollow">' . "\n";
+        }
+    } elseif (is_tax() || is_category() || is_tag()) {
+        $term = get_queried_object();
+        if ($term && !is_wp_error($term)) {
+            $noindex = get_term_meta($term->term_id, '_snn_seo_noindex', true);
+            
+            if ($noindex === '1') {
+                echo '<meta name="robots" content="noindex, nofollow">' . "\n";
+            }
         }
     }
     
@@ -1333,6 +1353,209 @@ function snn_seo_save_meta_box($post_id) {
     }
 }
 add_action('save_post', 'snn_seo_save_meta_box', 10, 1);
+
+/**
+ * Add SEO fields to taxonomy term edit page
+ */
+function snn_seo_add_taxonomy_fields($term) {
+    if (!get_option('snn_seo_enabled')) {
+        return;
+    }
+    
+    $taxonomy = $term->taxonomy;
+    $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
+    $taxonomies_enabled = is_array($taxonomies_enabled) ? $taxonomies_enabled : [];
+    
+    // Check if this taxonomy has SEO enabled
+    if (!isset($taxonomies_enabled[$taxonomy]) || !$taxonomies_enabled[$taxonomy]) {
+        return;
+    }
+    
+    $term_id = $term->term_id;
+    $title = get_term_meta($term_id, '_snn_seo_title', true);
+    $description = get_term_meta($term_id, '_snn_seo_description', true);
+    $noindex = get_term_meta($term_id, '_snn_seo_noindex', true);
+    
+    // Get template settings for this taxonomy
+    $taxonomy_titles = get_option('snn_seo_taxonomy_titles', []);
+    $taxonomy_descriptions = get_option('snn_seo_taxonomy_descriptions', []);
+    $taxonomy_titles = is_array($taxonomy_titles) ? $taxonomy_titles : [];
+    $taxonomy_descriptions = is_array($taxonomy_descriptions) ? $taxonomy_descriptions : [];
+    
+    // Get the configured template or use default
+    $title_template = isset($taxonomy_titles[$taxonomy]) && !empty($taxonomy_titles[$taxonomy]) 
+        ? $taxonomy_titles[$taxonomy] 
+        : '{term_name} - {site_title}';
+    $description_template = isset($taxonomy_descriptions[$taxonomy]) && !empty($taxonomy_descriptions[$taxonomy]) 
+        ? $taxonomy_descriptions[$taxonomy] 
+        : '{term_desc}';
+    
+    wp_nonce_field('snn_seo_term_meta_box', 'snn_seo_term_meta_box_nonce');
+    ?>
+    <tr class="form-field snn-seo-section">
+        <th scope="row" colspan="2">
+            <h2 style="margin: 20px 0 10px 0; padding-top: 20px; border-top: 1px solid #ddd;">
+                <?php _e('SEO Settings', 'snn'); ?>
+            </h2>
+        </th>
+    </tr>
+    
+    <tr class="form-field">
+        <th scope="row">
+            <label for="snn_seo_term_title">
+                <?php _e('Meta Title', 'snn'); ?>
+            </label>
+        </th>
+        <td>
+            <input type="text" 
+                   id="snn_seo_term_title"
+                   name="snn_seo_term_title" 
+                   value="<?php echo esc_attr($title); ?>" 
+                   class="large-text"
+                   placeholder="<?php echo esc_attr($title_template); ?>">
+            <p class="description">
+                <?php _e('Recommended max length: 60 characters', 'snn'); ?> 
+                (<span id="snn-term-title-count">0</span> <?php _e('characters', 'snn'); ?>)
+                <br>
+                <?php _e('Leave empty to use the template default from SEO Settings.', 'snn'); ?>
+            </p>
+        </td>
+    </tr>
+    
+    <tr class="form-field">
+        <th scope="row">
+            <label for="snn_seo_term_description">
+                <?php _e('Meta Description', 'snn'); ?>
+            </label>
+        </th>
+        <td>
+            <textarea id="snn_seo_term_description"
+                      name="snn_seo_term_description" 
+                      rows="5"
+                      class="large-text"
+                      placeholder="<?php echo esc_attr($description_template); ?>"><?php 
+                echo esc_textarea($description); 
+            ?></textarea>
+            <p class="description">
+                <?php _e('Recommended max length: 155 characters', 'snn'); ?> 
+                (<span id="snn-term-desc-count">0</span> <?php _e('characters', 'snn'); ?>)
+                <br>
+                <?php _e('Leave empty to use the template default or term description from SEO Settings.', 'snn'); ?>
+            </p>
+        </td>
+    </tr>
+    
+    <tr class="form-field">
+        <th scope="row">
+            <label for="snn_seo_term_noindex">
+                <?php _e('Search Engine Visibility', 'snn'); ?>
+            </label>
+        </th>
+        <td>
+            <label for="snn_seo_term_noindex">
+                <input type="checkbox" 
+                       id="snn_seo_term_noindex"
+                       name="snn_seo_term_noindex" 
+                       value="1"
+                       <?php checked($noindex, '1'); ?>>
+                <?php _e('No Index (prevent search engines from indexing this term archive)', 'snn'); ?>
+            </label>
+        </td>
+    </tr>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        function updateTermCount() {
+            var titleCount = $('#snn_seo_term_title').val().length;
+            var descCount = $('#snn_seo_term_description').val().length;
+            $('#snn-term-title-count').text(titleCount);
+            $('#snn-term-desc-count').text(descCount);
+        }
+        
+        $('#snn_seo_term_title, #snn_seo_term_description').on('input', updateTermCount);
+        updateTermCount();
+    });
+    </script>
+    
+    <style>
+        .snn-seo-section h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1d2327;
+        }
+    </style>
+    <?php
+}
+
+/**
+ * Save taxonomy term SEO fields
+ */
+function snn_seo_save_taxonomy_fields($term_id, $tt_id, $taxonomy) {
+    // Check nonce
+    if (!isset($_POST['snn_seo_term_meta_box_nonce'])) {
+        return;
+    }
+    
+    if (!wp_verify_nonce($_POST['snn_seo_term_meta_box_nonce'], 'snn_seo_term_meta_box')) {
+        return;
+    }
+    
+    // Check permissions
+    $tax_obj = get_taxonomy($taxonomy);
+    if (!$tax_obj || !current_user_can($tax_obj->cap->edit_terms)) {
+        return;
+    }
+    
+    // Save title
+    if (isset($_POST['snn_seo_term_title'])) {
+        $title = sanitize_text_field($_POST['snn_seo_term_title']);
+        if (!empty($title)) {
+            update_term_meta($term_id, '_snn_seo_title', $title);
+        } else {
+            delete_term_meta($term_id, '_snn_seo_title');
+        }
+    }
+    
+    // Save description
+    if (isset($_POST['snn_seo_term_description'])) {
+        $description = sanitize_textarea_field($_POST['snn_seo_term_description']);
+        if (!empty($description)) {
+            update_term_meta($term_id, '_snn_seo_description', $description);
+        } else {
+            delete_term_meta($term_id, '_snn_seo_description');
+        }
+    }
+    
+    // Save noindex
+    if (isset($_POST['snn_seo_term_noindex']) && $_POST['snn_seo_term_noindex'] === '1') {
+        update_term_meta($term_id, '_snn_seo_noindex', '1');
+    } else {
+        delete_term_meta($term_id, '_snn_seo_noindex');
+    }
+}
+
+/**
+ * Register taxonomy field hooks for all enabled taxonomies
+ */
+function snn_seo_register_taxonomy_hooks() {
+    if (!get_option('snn_seo_enabled')) {
+        return;
+    }
+    
+    $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
+    $taxonomies_enabled = is_array($taxonomies_enabled) ? $taxonomies_enabled : [];
+    
+    foreach ($taxonomies_enabled as $taxonomy => $enabled) {
+        if ($enabled && taxonomy_exists($taxonomy)) {
+            // Add fields to edit page
+            add_action("{$taxonomy}_edit_form_fields", 'snn_seo_add_taxonomy_fields', 10, 1);
+            
+            // Save fields
+            add_action("edited_{$taxonomy}", 'snn_seo_save_taxonomy_fields', 10, 3);
+        }
+    }
+}
+add_action('admin_init', 'snn_seo_register_taxonomy_hooks');
 
 /**
  * Get meta title for a post (for column preview)
