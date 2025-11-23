@@ -1229,11 +1229,6 @@ function snn_seo_meta_box_callback($post) {
                    value="<?php echo esc_attr($title); ?>" 
                    style="flex: 1;"
                    placeholder="<?php echo esc_attr($title_template); ?>">
-            <?php if (get_option('snn_seo_ai_enabled') && get_option('snn_ai_enabled') === 'yes'): ?>
-                <button type="button" class="button snn-seo-ai-button" id="snn-seo-ai-generate-title">
-                    <?php _e('Generate with AI', 'snn'); ?>
-                </button>
-            <?php endif; ?>
         </div>
         <p class="description">
             <?php _e('Recommended max length: 60 characters', 'snn'); ?> 
@@ -1251,11 +1246,6 @@ function snn_seo_meta_box_callback($post) {
                       placeholder="<?php echo esc_attr($description_template); ?>"><?php 
                 echo esc_textarea($description); 
             ?></textarea>
-            <?php if (get_option('snn_seo_ai_enabled') && get_option('snn_ai_enabled') === 'yes'): ?>
-                <button type="button" class="button snn-seo-ai-button" id="snn-seo-ai-generate-description" style="align-self: flex-start;">
-                    <?php _e('Generate with AI', 'snn'); ?>
-                </button>
-            <?php endif; ?>
         </div>
         <p class="description">
             <?php _e('Recommended max length: 155 characters', 'snn'); ?> 
