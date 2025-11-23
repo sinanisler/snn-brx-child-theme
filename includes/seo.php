@@ -1400,53 +1400,56 @@ function snn_seo_add_columns($columns) {
         return $columns;
     }
     
-    // Add SEO columns at the end
-    $columns['snn_seo_meta_title'] = __('Meta Title', 'snn');
-    $columns['snn_seo_meta_desc'] = __('Meta Description', 'snn');
+    // Add combined SEO column at the end
+    $columns['snn_seo_meta_combined'] = __('Meta Title & Desc', 'snn');
     
     return $columns;
 }
 
 function snn_seo_column_content($column, $post_id) {
-    if ($column === 'snn_seo_meta_title') {
+    if ($column === 'snn_seo_meta_combined') {
         $custom_title = get_post_meta($post_id, '_snn_seo_title', true);
+        $custom_desc = get_post_meta($post_id, '_snn_seo_description', true);
         
+        echo '<div style="font-size: 12px; line-height: 1.5;">';
+        
+        // Title section
         if ($custom_title) {
             $title_length = mb_strlen($custom_title);
-            $color = $title_length > 60 ? '#dc3232' : ($title_length < 30 ? '#dba617' : '#00a32a');
-            echo '<div style="font-size: 12px;">';
-            echo '<strong style="color: ' . esc_attr($color) . ';">' . esc_html($custom_title) . '</strong>';
-            echo '<br><span style="color: #666; font-size: 11px;">' . sprintf(__('%d characters', 'snn'), $title_length) . '</span>';
+            // Green if in range (30-60), yellow if over 60
+            $title_color = $title_length > 60 ? '#dba617' : '#00a32a';
+            echo '<div style="margin-bottom: 8px;">';
+            echo '<strong style="color: #000;">' . esc_html($custom_title) . '</strong>';
+            echo '<br><span style="color: ' . esc_attr($title_color) . '; font-size: 11px;">' . sprintf(__('Title: %d chars', 'snn'), $title_length) . '</span>';
             echo '</div>';
         } else {
             // Get template title
-            $post = get_post($post_id);
             $template_title = snn_seo_get_meta_title($post_id);
-            echo '<div style="font-size: 12px; color: #999;">';
-            echo '<em>' . esc_html($template_title) . '</em>';
+            echo '<div style="margin-bottom: 8px;">';
+            echo '<em style="color: #999;">' . esc_html($template_title) . '</em>';
             echo '</div>';
         }
-    }
-    
-    if ($column === 'snn_seo_meta_desc') {
-        $custom_desc = get_post_meta($post_id, '_snn_seo_description', true);
         
+        // Description section
         if ($custom_desc) {
             $desc_length = mb_strlen($custom_desc);
-            $color = $desc_length > 160 ? '#dc3232' : ($desc_length < 120 ? '#dba617' : '#00a32a');
-            $preview = mb_strlen($custom_desc) > 100 ? mb_substr($custom_desc, 0, 100) . '...' : $custom_desc;
-            echo '<div style="font-size: 12px;">';
-            echo '<span style="color: ' . esc_attr($color) . ';">' . esc_html($preview) . '</span>';
-            echo '<br><span style="color: #666; font-size: 11px;">' . sprintf(__('%d characters', 'snn'), $desc_length) . '</span>';
+            // Green if in range (120-160), yellow if over 160
+            $desc_color = $desc_length > 160 ? '#dba617' : '#00a32a';
+            $preview = mb_strlen($custom_desc) > 80 ? mb_substr($custom_desc, 0, 80) . '...' : $custom_desc;
+            echo '<div>';
+            echo '<span style="color: #666;">' . esc_html($preview) . '</span>';
+            echo '<br><span style="color: ' . esc_attr($desc_color) . '; font-size: 11px;">' . sprintf(__('Desc: %d chars', 'snn'), $desc_length) . '</span>';
             echo '</div>';
         } else {
             // Get template description
             $template_desc = snn_seo_get_meta_description($post_id);
-            $preview = mb_strlen($template_desc) > 100 ? mb_substr($template_desc, 0, 100) . '...' : $template_desc;
-            echo '<div style="font-size: 12px; color: #999;">';
-            echo '<em>' . esc_html($preview) . '</em>';
+            $preview = mb_strlen($template_desc) > 80 ? mb_substr($template_desc, 0, 80) . '...' : $template_desc;
+            echo '<div>';
+            echo '<em style="color: #999;">' . esc_html($preview) . '</em>';
             echo '</div>';
         }
+        
+        echo '</div>';
     }
 }
 
