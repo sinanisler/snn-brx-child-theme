@@ -139,7 +139,14 @@ function snn_brx_github_redirect_version_link() {
             const githubUrl = 'https://github.com/sinanisler/snn-brx-child-theme/releases';
             
             function modifyLink(link) {
-                if (link.getAttribute('aria-label') && link.getAttribute('aria-label').includes('SNN-BRX')) {
+                // Target only the FIRST link in the notice
+                const notice = link.closest('.notice');
+                if (!notice) return;
+                
+                const firstLink = notice.querySelector('a[aria-label*="SNN-BRX"]');
+                
+                // Only modify if this is the first link
+                if (link === firstLink) {
                     // Replace the href completely
                     link.href = githubUrl;
                     
@@ -161,8 +168,14 @@ function snn_brx_github_redirect_version_link() {
             }
             
             function processLinks() {
-                const links = document.querySelectorAll('a[aria-label*="SNN-BRX"]');
-                links.forEach(modifyLink);
+                // Target only the first link in each notice
+                const notices = document.querySelectorAll('.notice');
+                notices.forEach(function(notice) {
+                    const firstLink = notice.querySelector('strong a[aria-label*="SNN-BRX"]:first-of-type');
+                    if (firstLink) {
+                        modifyLink(firstLink);
+                    }
+                });
             }
             
             // Process on DOM ready
@@ -177,12 +190,20 @@ function snn_brx_github_redirect_version_link() {
                 mutations.forEach(function(mutation) {
                     mutation.addedNodes.forEach(function(node) {
                         if (node.nodeType === 1) {
-                            if (node.matches && node.matches('a[aria-label*="SNN-BRX"]')) {
-                                modifyLink(node);
+                            if (node.classList && node.classList.contains('notice')) {
+                                const firstLink = node.querySelector('strong a[aria-label*="SNN-BRX"]:first-of-type');
+                                if (firstLink) {
+                                    modifyLink(firstLink);
+                                }
                             }
-                            const links = node.querySelectorAll && node.querySelectorAll('a[aria-label*="SNN-BRX"]');
-                            if (links) {
-                                links.forEach(modifyLink);
+                            const notices = node.querySelectorAll && node.querySelectorAll('.notice');
+                            if (notices) {
+                                notices.forEach(function(notice) {
+                                    const firstLink = notice.querySelector('strong a[aria-label*="SNN-BRX"]:first-of-type');
+                                    if (firstLink) {
+                                        modifyLink(firstLink);
+                                    }
+                                });
                             }
                         }
                     });
