@@ -1,7 +1,7 @@
 <?php 
 /*
 
-    When SEO Setting is enabled this code should 
+    When SEO Setting is enabled this code should  
     disable the Bricks Builder Settings Options;
 
     wp_options
