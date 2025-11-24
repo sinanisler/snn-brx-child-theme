@@ -7,10 +7,6 @@ if (
     current_user_can('manage_options')
 ) {
 ?>
-
-
-
-
 <script>
 // Enhanced Class Generator wrapped in DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', (event) => {
@@ -139,12 +135,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 }); // Closes the DOMContentLoaded listener
 </script>
-
-
-
-
-
-
 <?php 
 }
 ?>
