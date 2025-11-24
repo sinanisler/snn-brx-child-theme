@@ -1,16 +1,11 @@
-<?php 
-
-
+<?php
 if (
     isset($_GET['bricks']) &&
     $_GET['bricks'] === 'run' &&
     current_user_can('manage_options')
 ) {
+    add_action('wp_footer', function() {
 ?>
-
-
-
-
 <script>
 // Enhanced Class Generator wrapped in DOMContentLoaded listener
 document.addEventListener('DOMContentLoaded', (event) => {
@@ -139,12 +134,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 }); // Closes the DOMContentLoaded listener
 </script>
-
-
-
-
-
-
-<?php 
+<?php
+    }, 999);
 }
-?>
