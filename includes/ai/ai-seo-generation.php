@@ -1032,7 +1032,10 @@ function snn_seo_ai_render_overlay() {
             }
             
             const data = await response.json();
-            const content = data.choices[0].message.content;
+            let content = data.choices[0].message.content;
+            
+            // Strip markdown code blocks if present (e.g., ```json ... ```)
+            content = content.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
             
             // Try to parse JSON
             try {
