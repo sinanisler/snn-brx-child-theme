@@ -42,6 +42,7 @@ require_once SNN_PATH . 'includes/cookie-banner.php';
 require_once SNN_PATH . 'includes/accessibility-settings.php';
 require_once SNN_PATH . 'includes/activity-logs.php';
 require_once SNN_PATH . 'includes/seo.php';
+require_once SNN_PATH . 'includes/seo-bricks-setting.php';
 
 // require_once SNN_PATH . 'includes/ai.php';
 require_once SNN_PATH . 'includes/ai/ai-settings.php';

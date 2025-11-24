@@ -18,7 +18,8 @@
 function snn_seo_is_enabled() {
     $seo_enabled = get_option('snn_seo_enabled', false);
     
-    return $seo_enabled === 'yes';
+    // The option is stored as boolean (true/false or 1/0)
+    return (bool) $seo_enabled;
 }
 
 /**
@@ -55,15 +56,29 @@ function snn_disable_bricks_seo_settings() {
 add_action('init', 'snn_disable_bricks_seo_settings');
 
 /**
- * Re-enable check when SEO feature is toggled
- * This allows re-running the disable function if SEO is re-enabled later
+ * Reset flag and immediately disable Bricks SEO when SEO setting is updated
+ * This runs right when the option changes, before init hook
  */
-function snn_reset_bricks_seo_flag() {
-    if (!snn_seo_is_enabled()) {
+function snn_handle_seo_enabled_change($old_value, $new_value) {
+    // If SEO is being enabled
+    if ($new_value) {
+        // Reset the flag so the disable function can run again
+        delete_option('snn_bricks_seo_disabled');
+        
+        // Immediately disable Bricks SEO settings
+        $bricks_settings = get_option('bricks_global_settings', array());
+        if (!empty($bricks_settings)) {
+            $bricks_settings['disableOpenGraph'] = true;
+            $bricks_settings['disableSeo'] = true;
+            update_option('bricks_global_settings', $bricks_settings);
+            update_option('snn_bricks_seo_disabled', 'yes');
+        }
+    } else {
+        // If SEO is being disabled, just reset the flag
         delete_option('snn_bricks_seo_disabled');
     }
 }
-add_action('update_option_snn_seo_enabled', 'snn_reset_bricks_seo_flag');
+add_action('update_option_snn_seo_enabled', 'snn_handle_seo_enabled_change', 10, 2);
 
 
 
