@@ -1,7 +1,7 @@
 <?php 
 /*
 
-    When SEO Setting is enabled this code should  
+    When SEO Setting is enabled this code should 
     disable the Bricks Builder Settings Options;
 
     wp_options
@@ -15,46 +15,55 @@
 */
 
 
-function snn_seo_settigns_is_enabled() {
+function snn_seo_is_enabled() {
     $seo_enabled = get_option('snn_seo_enabled', false);
     
     return $seo_enabled === 'yes';
 }
 
 /**
- * Disable Bricks Builder SEO settings when SNN SEO is enabled
+ * Disable Bricks SEO and Open Graph settings when custom SEO is enabled
  * Runs only once to optimize performance
  */
 function snn_disable_bricks_seo_settings() {
-    // Check if SEO feature is enabled
-    if (!snn_seo_settigns_is_enabled()) {
+    // Check if our SEO feature is enabled
+    if (!snn_seo_is_enabled()) {
         return;
     }
     
-    // Check if we've already run this function
+    // Check if we've already run this action
     $already_disabled = get_option('snn_bricks_seo_disabled', false);
     if ($already_disabled) {
         return;
     }
     
-    // Get current Bricks settings
-    $bricks_settings = get_option('bricks_settings', array());
+    // Get current Bricks global settings
+    $bricks_settings = get_option('bricks_global_settings', array());
     
-    // Disable Bricks Open Graph meta tags
-    $bricks_settings['disableOpenGraph'] = true;
-    
-    // Disable Bricks SEO meta tags
-    $bricks_settings['disableSeo'] = true;
-    
-    // Update the settings
-    update_option('bricks_settings', $bricks_settings);
-    
-    // Mark as already disabled to prevent running again
-    update_option('snn_bricks_seo_disabled', true);
+    // If settings exist, update them
+    if (!empty($bricks_settings)) {
+        $bricks_settings['disableOpenGraph'] = true;
+        $bricks_settings['disableSeo'] = true;
+        
+        // Update the option
+        update_option('bricks_global_settings', $bricks_settings);
+        
+        // Set flag to prevent running again
+        update_option('snn_bricks_seo_disabled', 'yes');
+    }
 }
+add_action('init', 'snn_disable_bricks_seo_settings');
 
-// Hook into WordPress init to run once
-add_action('init', 'snn_disable_bricks_seo_settings', 1);
+/**
+ * Re-enable check when SEO feature is toggled
+ * This allows re-running the disable function if SEO is re-enabled later
+ */
+function snn_reset_bricks_seo_flag() {
+    if (!snn_seo_is_enabled()) {
+        delete_option('snn_bricks_seo_disabled');
+    }
+}
+add_action('update_option_snn_seo_enabled', 'snn_reset_bricks_seo_flag');
 
 
 
