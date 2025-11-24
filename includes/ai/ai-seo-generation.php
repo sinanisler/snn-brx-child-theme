@@ -1035,7 +1035,7 @@ function snn_seo_ai_render_overlay() {
             let content = data.choices[0].message.content;
             
             // Strip markdown code blocks if present (e.g., ```json ... ```)
-            content = content.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+            content = content.replace(/```json\s*/g, '').replace(/```/g, '').trim();
             
             // Try to parse JSON
             try {
