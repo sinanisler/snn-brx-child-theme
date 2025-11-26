@@ -75,6 +75,7 @@ function snn_custom_fields_page_callback() {
                         'options_page'  => !empty($field_data['options_page']) ? 1 : 0,
                         'column_width'  => isset($field_data['column_width']) && is_numeric($field_data['column_width']) ? intval($field_data['column_width']) : '',
                         'return_full_url'=> ($field_data['type'] === 'media' && !empty($field_data['return_full_url'])) ? 1 : 0,
+                        'date_format'   => ($field_data['type'] === 'date' && !empty($field_data['date_format'])) ? sanitize_text_field($field_data['date_format']) : 'YYYY-MM-DD',
                     ];
                 }
             }
@@ -211,6 +212,17 @@ function snn_custom_fields_page_callback() {
                                 <input type="checkbox" name="custom_fields[<?php echo $index; ?>][return_full_url]" value="1" <?php checked(!empty($field['return_full_url'])); ?> />
                             </div>
                             <?php endif; ?>
+                            <?php if ($field_type === 'date') : ?>
+                            <div class="field-group date-format-group">
+                                <label><?php esc_html_e('Date Format', 'snn'); ?></label>
+                                <select name="custom_fields[<?php echo $index; ?>][date_format]" style="width:140px">
+                                    <option value="YYYY-MM-DD" <?php selected(!empty($field['date_format']) ? $field['date_format'] : 'YYYY-MM-DD', 'YYYY-MM-DD'); ?>>YYYY-MM-DD</option>
+                                    <option value="DD-MM-YYYY" <?php selected(!empty($field['date_format']) ? $field['date_format'] : '', 'DD-MM-YYYY'); ?>>DD-MM-YYYY</option>
+                                    <option value="DD.MM.YYYY" <?php selected(!empty($field['date_format']) ? $field['date_format'] : '', 'DD.MM.YYYY'); ?>>DD.MM.YYYY</option>
+                                    <option value="MM.DD.YYYY" <?php selected(!empty($field['date_format']) ? $field['date_format'] : '', 'MM.DD.YYYY'); ?>>MM.DD.YYYY</option>
+                                </select>
+                            </div>
+                            <?php endif; ?>
                         </div>
                         <?php
                     }
@@ -279,9 +291,17 @@ function snn_custom_fields_page_callback() {
             function toggleMediaReturnUrlField(row) {
                 const typeSelect = row.querySelector('.field-type-select');
                 const mediaReturnGroup = row.querySelector('.media-return-url-group');
-                if (mediaReturnGroup) { 
+                if (mediaReturnGroup) {
                     mediaReturnGroup.style.display = (typeSelect && typeSelect.value === 'media') ? '' : 'none';
                 } else if (typeSelect && typeSelect.value === 'media') {
+                }
+            }
+
+            function toggleDateFormatField(row) {
+                const typeSelect = row.querySelector('.field-type-select');
+                const dateFormatGroup = row.querySelector('.date-format-group');
+                if (dateFormatGroup) {
+                    dateFormatGroup.style.display = (typeSelect && typeSelect.value === 'date') ? '' : 'none';
                 }
             }
             
@@ -289,7 +309,7 @@ function snn_custom_fields_page_callback() {
                 let mediaReturnGroup = row.querySelector('.media-return-url-group');
                 if (fieldType === 'media') {
                     if (!mediaReturnGroup) {
-                        const newIndex = row.dataset.index; 
+                        const newIndex = row.dataset.index;
                         const div = document.createElement('div');
                         div.classList.add('field-group', 'media-return-url-group');
                         div.innerHTML = `<label><?php esc_html_e('Return Full URL', 'snn'); ?></label><br><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1">`;
@@ -297,7 +317,7 @@ function snn_custom_fields_page_callback() {
                         if (repeaterDiv && repeaterDiv.closest('.field-group')) {
                             repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
                         } else {
-                            row.appendChild(div); 
+                            row.appendChild(div);
                         }
                         mediaReturnGroup = div;
                     }
@@ -305,6 +325,30 @@ function snn_custom_fields_page_callback() {
                 } else {
                     if (mediaReturnGroup) {
                         mediaReturnGroup.style.display = 'none';
+                    }
+                }
+            }
+
+            function handleDateFormatForNewRow(row, fieldType) {
+                let dateFormatGroup = row.querySelector('.date-format-group');
+                if (fieldType === 'date') {
+                    if (!dateFormatGroup) {
+                        const newIndex = row.dataset.index;
+                        const div = document.createElement('div');
+                        div.classList.add('field-group', 'date-format-group');
+                        div.innerHTML = `<label><?php esc_html_e('Date Format', 'snn'); ?></label><select name="custom_fields[${newIndex}][date_format]" style="width:140px"><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select>`;
+                        const repeaterDiv = row.querySelector('input[name*="[repeater]"]');
+                        if (repeaterDiv && repeaterDiv.closest('.field-group')) {
+                            repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
+                        } else {
+                            row.appendChild(div);
+                        }
+                        dateFormatGroup = div;
+                    }
+                    dateFormatGroup.style.display = '';
+                } else {
+                    if (dateFormatGroup) {
+                        dateFormatGroup.style.display = 'none';
                     }
                 }
             }
@@ -367,13 +411,15 @@ function snn_custom_fields_page_callback() {
                     <div class="field-group"><label><?php esc_html_e('Options Page', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][options_page]" value="1"></div>
                     <div class="field-group"><label><?php esc_html_e('Repeater', 'snn'); ?></label><input type="checkbox" class="repeater-checkbox" name="custom_fields[${newIndex}][repeater]" value="1"></div>
                     <div class="field-group media-return-url-group" style="display:none;"><label><?php esc_html_e('Return Full URL', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1"></div>
+                    <div class="field-group date-format-group" style="display:none;"><label><?php esc_html_e('Date Format', 'snn'); ?></label><select name="custom_fields[${newIndex}][date_format]" style="width:140px"><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select></div>
                 `;
                 fieldContainer.appendChild(newRow);
                 attachFieldNameSanitizer(newRow.querySelector('.sanitize-key'));
                 toggleChoicesField(newRow);
                 toggleRepeaterCheckbox(newRow);
                 toggleAuthorAndOptionsCheckboxes(newRow);
-                handleMediaReturnUrlForNewRow(newRow, newRow.querySelector('.field-type-select').value); 
+                handleMediaReturnUrlForNewRow(newRow, newRow.querySelector('.field-type-select').value);
+                handleDateFormatForNewRow(newRow, newRow.querySelector('.field-type-select').value); 
                 updateFieldIndexes();
             });
 
@@ -406,7 +452,8 @@ function snn_custom_fields_page_callback() {
                     toggleChoicesField(row);
                     toggleRepeaterCheckbox(row);
                     toggleAuthorAndOptionsCheckboxes(row);
-                    handleMediaReturnUrlForNewRow(row, e.target.value); 
+                    handleMediaReturnUrlForNewRow(row, e.target.value);
+                    handleDateFormatForNewRow(row, e.target.value);
                 }
             });
 
@@ -414,7 +461,8 @@ function snn_custom_fields_page_callback() {
                 toggleChoicesField(row);
                 toggleRepeaterCheckbox(row);
                 toggleAuthorAndOptionsCheckboxes(row);
-                toggleMediaReturnUrlField(row); 
+                toggleMediaReturnUrlField(row);
+                toggleDateFormatField(row);
                 attachFieldNameSanitizer(row.querySelector('.sanitize-key'));
             });
 
@@ -1087,8 +1135,29 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             break;
 
         case 'date':
+            // Convert various date formats to YYYY-MM-DD for HTML5 date input
+            $display_value = $value;
+            $date_format = !empty($field['date_format']) ? $field['date_format'] : 'YYYY-MM-DD';
+
+            if (!empty($value) && $value !== '0000-00-00') {
+                if (preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $value)) {
+                    // Dot-separated format (DD.MM.YYYY or MM.DD.YYYY)
+                    $parts = explode('.', $value);
+                    if ($date_format === 'MM.DD.YYYY') {
+                        // MM.DD.YYYY -> YYYY-MM-DD
+                        $display_value = $parts[2] . '-' . $parts[0] . '-' . $parts[1];
+                    } else {
+                        // DD.MM.YYYY -> YYYY-MM-DD
+                        $display_value = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+                    }
+                } elseif (preg_match('/^\d{2}-\d{2}-\d{4}$/', $value)) {
+                    // DD-MM-YYYY -> YYYY-MM-DD
+                    $parts = explode('-', $value);
+                    $display_value = $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+                }
+            }
             echo '<input type="date" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
+                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($display_value)
                  . '" placeholder="YYYY-MM-DD" class="snn-datepicker"' . $disabled_attr . ' />';
             break;
 
@@ -1839,11 +1908,33 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
         case 'number':
             return ($value === '' || $value === null) ? '' : (is_numeric($value) ? floatval($value) : '');
 
-        case 'date': 
+        case 'date':
+            // Get the desired date format from field config
+            $date_format = ($field && !empty($field['date_format'])) ? $field['date_format'] : 'YYYY-MM-DD';
+
             if (preg_match("/^\d{4}-\d{2}-\d{2}$/", $value)) {
-                 return sanitize_text_field($value);
+                // Value comes from HTML5 date input as YYYY-MM-DD
+                $parts = explode('-', $value);
+                $year = $parts[0];
+                $month = $parts[1];
+                $day = $parts[2];
+
+                switch ($date_format) {
+                    case 'DD-MM-YYYY':
+                        return sanitize_text_field($day . '-' . $month . '-' . $year);
+                    case 'DD.MM.YYYY':
+                        return sanitize_text_field($day . '.' . $month . '.' . $year);
+                    case 'MM.DD.YYYY':
+                        return sanitize_text_field($month . '.' . $day . '.' . $year);
+                    case 'YYYY-MM-DD':
+                    default:
+                        return sanitize_text_field($value);
+                }
+            } elseif (preg_match("/^\d{2}[-\.]\d{2}[-\.]\d{4}$/", $value)) {
+                // Value is already in custom format (e.g., from previous save)
+                return sanitize_text_field($value);
             }
-             return '';
+            return '';
         case 'color': 
             return sanitize_hex_color($value); 
         case 'select': 
