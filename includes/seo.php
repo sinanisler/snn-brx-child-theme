@@ -331,6 +331,7 @@ function snn_seo_settings_page_callback() {
                 <h2><?php _e('Post Type Templates', 'snn'); ?></h2>
                 <?php foreach ($post_types as $post_type): ?>
                     <?php if (!isset($post_types_enabled[$post_type->name]) || !$post_types_enabled[$post_type->name]) continue; ?>
+                    <?php $noindex = isset($post_types_enabled[$post_type->name . '_noindex']) ? $post_types_enabled[$post_type->name . '_noindex'] : false; ?>
                     <div class="snn-accordion-item" style="margin: 15px 0; border: 1px solid #ddd; border-radius: 4px;">
                         <button type="button" class="snn-accordion-header" style="width: 100%; padding: 12px 15px; background: #f9f9f9; border: none; text-align: left; cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
                             <span><?php echo esc_html($post_type->label); ?></span>
@@ -353,6 +354,10 @@ function snn_seo_settings_page_callback() {
                                           style="width: 100%; height: 80px;"><?php 
                                     echo esc_textarea(isset($post_type_descriptions[$post_type->name]) ? $post_type_descriptions[$post_type->name] : '{post_excerpt}'); 
                                 ?></textarea>
+                            </label>
+                            <label style="display: block; margin: 10px 0;">
+                                <input type="checkbox" name="snn_seo_post_types_enabled[<?php echo esc_attr($post_type->name); ?>_noindex]" value="1" <?php checked($noindex, 1); ?>>
+                                <?php _e('Noindex (prevent search engines from indexing this post type)', 'snn'); ?>
                             </label>
                         </div>
                     </div>
@@ -407,6 +412,7 @@ function snn_seo_settings_page_callback() {
                 <h2><?php _e('Taxonomy Archive Templates', 'snn'); ?></h2>
                 <?php foreach ($taxonomies as $taxonomy): ?>
                     <?php if (!isset($taxonomies_enabled[$taxonomy->name]) || !$taxonomies_enabled[$taxonomy->name]) continue; ?>
+                    <?php $noindex = isset($taxonomies_enabled[$taxonomy->name . '_noindex']) ? $taxonomies_enabled[$taxonomy->name . '_noindex'] : false; ?>
                     <div class="snn-accordion-item" style="margin: 15px 0; border: 1px solid #ddd; border-radius: 4px;">
                         <button type="button" class="snn-accordion-header" style="width: 100%; padding: 12px 15px; background: #f9f9f9; border: none; text-align: left; cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
                             <span><?php echo esc_html($taxonomy->label); ?></span>
@@ -429,6 +435,10 @@ function snn_seo_settings_page_callback() {
                                           style="width: 100%; height: 80px;"><?php 
                                     echo esc_textarea(isset($taxonomy_descriptions[$taxonomy->name]) ? $taxonomy_descriptions[$taxonomy->name] : '{term_desc}'); 
                                 ?></textarea>
+                            </label>
+                            <label style="display: block; margin: 10px 0;">
+                                <input type="checkbox" name="snn_seo_taxonomies_enabled[<?php echo esc_attr($taxonomy->name); ?>_noindex]" value="1" <?php checked($noindex, 1); ?>>
+                                <?php _e('Noindex (prevent search engines from indexing this taxonomy)', 'snn'); ?>
                             </label>
                         </div>
                     </div>
@@ -1168,18 +1178,20 @@ function snn_seo_output_meta_tags() {
     
     // Robots noindex meta tag (for singular posts/pages and taxonomy terms)
     if (is_singular()) {
-        $post_id = get_queried_object_id();
-        $noindex = get_post_meta($post_id, '_snn_seo_noindex', true);
-        
-        if ($noindex === '1') {
+        $post_type = get_post_type();
+        $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
+        $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
+        $noindex = isset($post_types_enabled[$post_type . '_noindex']) ? $post_types_enabled[$post_type . '_noindex'] : false;
+        if ($noindex) {
             echo '<meta name="robots" content="noindex, nofollow">' . "\n";
         }
     } elseif (is_tax() || is_category() || is_tag()) {
         $term = get_queried_object();
         if ($term && !is_wp_error($term)) {
-            $noindex = get_term_meta($term->term_id, '_snn_seo_noindex', true);
-            
-            if ($noindex === '1') {
+            $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
+            $taxonomies_enabled = is_array($taxonomies_enabled) ? $taxonomies_enabled : [];
+            $noindex = isset($taxonomies_enabled[$term->taxonomy . '_noindex']) ? $taxonomies_enabled[$term->taxonomy . '_noindex'] : false;
+            if ($noindex) {
                 echo '<meta name="robots" content="noindex, nofollow">' . "\n";
             }
         }
