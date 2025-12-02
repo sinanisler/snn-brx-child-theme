@@ -24,6 +24,7 @@ function snn_render_custom_post_types_page() {
     $available_supports = array(
         'title'           => __( 'Title', 'snn' ),
         'editor'          => __( 'Editor', 'snn' ),
+        'notes'           => __( 'Notes', 'snn' ),
         'thumbnail'       => __( 'Thumbnail', 'snn' ),
         'author'          => __( 'Author', 'snn' ),
         'excerpt'         => __( 'Excerpt', 'snn' ),
@@ -155,6 +156,7 @@ function snn_render_custom_post_types_page() {
             const availableSupports = {
                 'title': '<?php echo esc_js( __( 'Title', 'snn' ) ); ?>',
                 'editor': '<?php echo esc_js( __( 'Editor', 'snn' ) ); ?>',
+                'notes': '<?php echo esc_js( __( 'Notes', 'snn' ) ); ?>',
                 'thumbnail': '<?php echo esc_js( __( 'Thumbnail', 'snn' ) ); ?>',
                 'author': '<?php echo esc_js( __( 'Author', 'snn' ) ); ?>',
                 'excerpt': '<?php echo esc_js( __( 'Excerpt', 'snn' ) ); ?>',
@@ -370,6 +372,7 @@ function snn_register_custom_post_types() {
         $allowed_supports = array(
             'title',
             'editor',
+            'notes',
             'thumbnail',
             'author',
             'excerpt',
@@ -379,6 +382,9 @@ function snn_register_custom_post_types() {
             'page-attributes'
         );
         $supports = array_intersect( $supports, $allowed_supports );
+
+        $enable_notes = in_array( 'notes', $supports, true );
+        $supports = array_diff( $supports, array( 'notes' ) );
 
         $args = array(
             'label'             => $post_type['name'],
@@ -394,6 +400,11 @@ function snn_register_custom_post_types() {
             'show_in_nav_menus' => ( isset($post_type['show_in_nav_menus']) && $post_type['show_in_nav_menus'] !== '' ) ? (bool)$post_type['show_in_nav_menus'] : true,
         );
 
-        register_post_type( substr( $post_type['slug'], 0, 20 ), $args );
+        $post_type_slug = substr( $post_type['slug'], 0, 20 );
+        register_post_type( $post_type_slug, $args );
+
+        if ( $enable_notes ) {
+            add_post_type_support( $post_type_slug, 'editor', array( 'notes' => true ) );
+        }
     }
 }
