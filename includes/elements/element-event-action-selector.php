@@ -31,7 +31,15 @@ class Snn_Event_Action_Selector extends Element {
             "play","pause","ended","volumechange","timeupdate","seeking","seeked",
             "animationstart","animationend","animationiteration",
             "transitionend","wheel","pointerdown","pointerup","pointermove",
-            "pointerenter","pointerleave"
+            "pointerenter","pointerleave",
+            "bricks/form/submit","bricks/form/success","bricks/form/error",
+            "bricks/tabs/changed",
+            "bricks/accordion/open","bricks/accordion/close",
+            "bricks/popup/open","bricks/popup/close",
+            "bricks/ajax/popup/start","bricks/ajax/popup/end","bricks/ajax/popup/loaded",
+            "bricks/ajax/start","bricks/ajax/end",
+            "bricks/ajax/pagination/completed","bricks/ajax/load_page/completed",
+            "bricks/ajax/query_result/completed","bricks/ajax/query_result/displayed"
         ];
 
         $actions = [
@@ -388,25 +396,46 @@ class Snn_Event_Action_Selector extends Element {
                     });
                 }
 
-                const triggers = document.querySelectorAll(triggerSel);
-                if(!triggers.length) {
-                    console.warn('[Event⇄Action] No elements match trigger selector: "' + triggerSel + '"');
-                    return;
-                }
+                // Check if this is a Bricks custom event
+                const isBricksEvent = evType.startsWith('bricks/');
 
-                triggers.forEach(tr => {
-                    tr.addEventListener(evType, function(e) {
+                if (isBricksEvent) {
+                    // Handle Bricks custom events with document.addEventListener
+                    document.addEventListener(evType, function(e) {
                         actions.forEach(actionConfig => {
                             const targetSel = actionConfig.target_selector;
-                            const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+                            const targets = targetSel ? document.querySelectorAll(targetSel) : [];
                             if(targets.length) {
                                 performAction(actionConfig, Array.from(targets), e);
+                            } else if (!targetSel) {
+                                console.warn('[Event⇄Action] Target selector required for Bricks events');
                             } else {
                                 console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
                             }
                         });
                     });
-                });
+                } else {
+                    // Handle regular DOM events
+                    const triggers = document.querySelectorAll(triggerSel);
+                    if(!triggers.length) {
+                        console.warn('[Event⇄Action] No elements match trigger selector: "' + triggerSel + '"');
+                        return;
+                    }
+
+                    triggers.forEach(tr => {
+                        tr.addEventListener(evType, function(e) {
+                            actions.forEach(actionConfig => {
+                                const targetSel = actionConfig.target_selector;
+                                const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+                                if(targets.length) {
+                                    performAction(actionConfig, Array.from(targets), e);
+                                } else {
+                                    console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
+                                }
+                            });
+                        });
+                    });
+                }
             });
         })();
         </script>
