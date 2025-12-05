@@ -172,7 +172,6 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 --marquee-direction: forwards;
                 display: flex;
                 overflow: hidden;
-                user-select: none;
                 width: 100%;
                 position: relative;
             }
