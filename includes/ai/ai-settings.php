@@ -51,7 +51,7 @@ add_action('admin_menu', 'snn_add_ai_settings_submenu');
 function snn_register_ai_settings() {
     register_setting('snn_ai_settings_group', 'snn_ai_enabled');
     register_setting('snn_ai_settings_group', 'snn_ai_provider', [
-        'default' => 'openai',
+        'default' => 'openrouter',
     ]);
     register_setting('snn_ai_settings_group', 'snn_openai_api_key');
     register_setting('snn_ai_settings_group', 'snn_openai_model');
@@ -72,7 +72,7 @@ add_action('admin_init', 'snn_register_ai_settings');
 
 function snn_render_ai_settings() {
     $ai_enabled           = get_option('snn_ai_enabled', 'no');
-    $ai_provider          = get_option('snn_ai_provider', 'openai');
+    $ai_provider          = get_option('snn_ai_provider', 'openrouter');
     $openai_api_key       = get_option('snn_openai_api_key', '');
     $openai_model         = get_option('snn_openai_model', 'gpt-4o-mini'); // Updated model name
     $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
@@ -131,8 +131,8 @@ function snn_render_ai_settings() {
                     </th>
                     <td>
                         <select name="snn_ai_provider" id="snn_ai_provider">
-                            <option value="openai" <?php selected($ai_provider, 'openai'); ?>>OpenAI</option>
                             <option value="openrouter" <?php selected($ai_provider, 'openrouter'); ?>>OpenRouter</option>
+                            <option value="openai" <?php selected($ai_provider, 'openai'); ?>>OpenAI</option>
                             <option value="custom" <?php selected($ai_provider, 'custom'); ?>>Custom</option>
                         </select>
                     </td>
