@@ -9,7 +9,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
     public $category      = 'snn'; // Using 'snn' category as per your examples
     public $name          = 'snn-marquee-slider';
     public $icon          = 'ti-layout-slider-alt'; // A suitable icon for a marquee/slider
-    public $css_selector  = '.snn-marquee-wrapper';
+    public $css_selector  = ''; // Empty = styles apply to root element (backwards compatible with Bricks)
     public $scripts       = []; // Scripts will be enqueued inline
     public $nestable      = false;
 
@@ -150,13 +150,15 @@ class Snn_Marquee_Slider_Carousel extends Element {
         $settings  = $this->settings;
         $unique_id = 'snn-marquee-' . $this->id;
 
-        // Set root attributes
+        // Set root element attributes (MUST be done before render_attributes)
+        // This adds to Bricks' native classes without overriding them
         $this->set_attribute( '_root', 'class', ['snn-marquee-wrapper', $unique_id] );
         $this->set_attribute( '_root', 'data-direction', $settings['direction'] ?? 'left' );
         $this->set_attribute( '_root', 'data-duration', ($settings['duration'] ?? 30) . 's' );
 
         // --- Start Output ---
-        echo '<div ' . $this->render_attributes( '_root' ) . '>';
+        // render_attributes('_root') now includes: Bricks ID, Bricks classes, our classes, and data attributes
+        echo "<div {$this->render_attributes( '_root' )}>";
 
         // --- Dynamic CSS Generation ---
         $gap            = $settings['gap'] ?? '1.5rem';
