@@ -1091,7 +1091,7 @@ function snn_render_optimize_existing_media_tab() {
                     <label for="snn_existing_quality" style="display: block; font-weight: 500; margin-bottom: 5px;">
                         <?php _e('Quality (0-100):', 'snn'); ?>
                     </label>
-                    <input type="number" id="snn_existing_quality" min="0" max="100" step="1" value="82" style="width: 100%;">
+                    <input type="number" id="snn_existing_quality" min="0" max="100" step="1" value="80" style="width: 100%;">
                     <p class="description" style="margin-top: 4px;"><?php _e('75-85 for photos, 85-95 for graphics.', 'snn'); ?></p>
                 </div>
                 
@@ -1100,8 +1100,8 @@ function snn_render_optimize_existing_media_tab() {
                     <label for="snn_max_width" style="display: block; font-weight: 500; margin-bottom: 5px;">
                         <?php _e('Max Width (px):', 'snn'); ?>
                     </label>
-                    <input type="number" id="snn_max_width" min="0" step="1" value="2560" style="width: 100%;">
-                    <p class="description" style="margin-top: 4px;"><?php _e('0 = no resize. Recommended: 1920-2560.', 'snn'); ?></p>
+                    <input type="number" id="snn_max_width" min="0" step="1" value="0" style="width: 100%;">
+                    <p class="description" style="margin-top: 4px;"><?php _e('0 = no resize. 2000 recommended.', 'snn'); ?></p>
                 </div>
                 
                 <!-- Compression Method -->
@@ -1165,12 +1165,15 @@ function snn_render_optimize_existing_media_tab() {
                 </label>
             </div>
             
-            <div class="button-group" style="margin-top: 20px;">
+            <div class="button-group" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
                 <button type="button" id="snn_scan_images" class="button button-primary">
                     <?php _e('Scan for Unoptimized Images', 'snn'); ?>
                 </button>
-                <button type="button" id="snn_optimize_selected" class="button button-secondary" style="display: none; margin-left: 10px; border:solid 1px">
-                    <?php _e('Optimize Selected Images', 'snn'); ?>
+                <button type="button" id="snn_optimize_all" class="button button-secondary" style="display: none; border: solid 1px #2271b1; color: #2271b1;">
+                    <?php _e('Optimize All Unoptimized', 'snn'); ?>
+                </button>
+                <button type="button" id="snn_optimize_selected" class="button button-secondary" style="display: none; border: solid 1px">
+                    <?php _e('Optimize Only Selected Images', 'snn'); ?>
                 </button>
             </div>
             
@@ -1183,19 +1186,30 @@ function snn_render_optimize_existing_media_tab() {
         </div>
         
         <div id="snn_images_list_container" style="display: none;">
-            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <label style="display: flex; align-items: center; gap: 5px;">
-                    <input type="checkbox" id="snn_select_all_images">
-                    <?php _e('Select All', 'snn'); ?>
-                </label>
-                <span id="snn_selected_count" style="color: #646970;"></span>
-                <span id="snn_total_size_info" style="color: #00a32a; font-weight: 500;"></span>
+            <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="snn_select_all_images">
+                        <?php _e('Select All on This Page', 'snn'); ?>
+                    </label>
+                    <span id="snn_selected_count" style="color: #646970;"></span>
+                    <span id="snn_total_size_info" style="color: #00a32a; font-weight: 500;"></span>
+                </div>
+                
+                <!-- Pagination Controls -->
+                <div id="snn_pagination_top" style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" id="snn_first_page" class="button button-small">«</button>
+                    <button type="button" id="snn_prev_page" class="button button-small">‹</button>
+                    <span id="snn_page_info" style="color: #646970; font-size: 13px; min-width: 100px; text-align: center;"></span>
+                    <button type="button" id="snn_next_page" class="button button-small">›</button>
+                    <button type="button" id="snn_last_page" class="button button-small">»</button>
+                </div>
             </div>
             
             <table class="wp-list-table widefat fixed striped" id="snn_images_table">
                 <thead>
                     <tr>
-                        <th style="width: 40px;"><input type="checkbox" id="snn_select_all_header"></th>
+                        <th style="width: 40px;"> </th>
                         <th style="width: 60px;"><?php _e('Thumb', 'snn'); ?></th>
                         <th><?php _e('File Name', 'snn'); ?></th>
                         <th style="width: 90px;"><?php _e('Dimensions', 'snn'); ?></th>
@@ -1222,6 +1236,9 @@ function snn_render_optimize_existing_media_tab() {
     
     const $ = jQuery;
     let scannedImages = [];
+    let currentPage = 1;
+    const perPage = 50;
+    let selectedImageIds = new Set(); // Persist selections across pages
     
     // Show/hide near-lossless level
     $('#snn_lossless').on('change', function() {
@@ -1248,15 +1265,16 @@ function snn_render_optimize_existing_media_tab() {
     }
     
     function updateSelectedCount() {
-        const count = $('.snn-image-checkbox:checked').length;
+        const totalSelected = selectedImageIds.size;
         const total = scannedImages.length;
-        $('#snn_selected_count').text(`${count} / ${total} <?php _e('selected', 'snn'); ?>`);
-        $('#snn_optimize_selected').toggle(count > 0);
+        $('#snn_selected_count').text(`${totalSelected} / ${total} <?php _e('selected', 'snn'); ?>`);
+        $('#snn_optimize_selected').toggle(totalSelected > 0);
         
         let totalSize = 0;
-        $('.snn-image-checkbox:checked').each(function() {
-            const img = scannedImages.find(i => i.id == $(this).val());
-            if (img) totalSize += img.size_bytes || 0;
+        scannedImages.forEach(img => {
+            if (selectedImageIds.has(img.id)) {
+                totalSize += img.size_bytes || 0;
+            }
         });
         
         if (totalSize > 0) {
@@ -1266,43 +1284,128 @@ function snn_render_optimize_existing_media_tab() {
         }
     }
     
-    // Scan for images
-    $('#snn_scan_images').on('click', function() {
-        const $btn = $(this);
-        const includeOptimized = $('#snn_include_optimized').is(':checked');
-        $btn.prop('disabled', true).text('<?php _e('Scanning...', 'snn'); ?>');
-        $('#snn_message_area').empty();
+    function updatePagination() {
+        const totalPages = Math.ceil(scannedImages.length / perPage);
         
-        $.ajax({
+        $('#snn_page_info').text(`Page ${currentPage} of ${totalPages}`);
+        
+        $('#snn_first_page').prop('disabled', currentPage === 1);
+        $('#snn_prev_page').prop('disabled', currentPage === 1);
+        $('#snn_next_page').prop('disabled', currentPage === totalPages || totalPages === 0);
+        $('#snn_last_page').prop('disabled', currentPage === totalPages || totalPages === 0);
+    }
+    
+    function goToPage(page) {
+        const totalPages = Math.ceil(scannedImages.length / perPage);
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        
+        currentPage = page;
+        renderImagesTable(getCurrentPageImages());
+        updatePagination();
+    }
+    
+    function getCurrentPageImages() {
+        const start = (currentPage - 1) * perPage;
+        const end = start + perPage;
+        return scannedImages.slice(start, end);
+    }
+    
+    // Pagination button handlers
+    $('#snn_first_page').on('click', () => goToPage(1));
+    $('#snn_prev_page').on('click', () => goToPage(currentPage - 1));
+    $('#snn_next_page').on('click', () => goToPage(currentPage + 1));
+    $('#snn_last_page').on('click', () => goToPage(Math.ceil(scannedImages.length / perPage)));
+    
+    
+    // Load a specific page of images from server
+    function loadPage(page) {
+        const includeOptimized = $('#snn_include_optimized').is(':checked');
+        
+        return $.ajax({
             url: ajaxurl,
             type: 'POST',
             data: {
                 action: 'snn_scan_unoptimized_images',
                 include_optimized: includeOptimized ? 'true' : 'false',
+                page: page,
+                per_page: perPage,
                 nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
-            },
-            success: function(response) {
-                $btn.prop('disabled', false).text('<?php _e('Scan for Unoptimized Images', 'snn'); ?>');
-                
-                if (response.success && response.data.images.length > 0) {
-                    scannedImages = response.data.images;
-                    renderImagesTable(scannedImages);
-                    $('#snn_images_list_container').show();
-                    
-                    let totalSize = scannedImages.reduce((sum, img) => sum + (img.size_bytes || 0), 0);
-                    showMessage(`<?php _e('Found', 'snn'); ?> ${scannedImages.length} <?php _e('images', 'snn'); ?> (${formatBytes(totalSize)}).`, 'success');
-                } else if (response.success) {
-                    $('#snn_images_list_container').hide();
-                    showMessage('<?php _e('No unoptimized JPG or PNG images found.', 'snn'); ?>', 'info');
-                } else {
-                    showMessage(response.data || '<?php _e('Error scanning images.', 'snn'); ?>', 'error');
-                }
-            },
-            error: function() {
-                $btn.prop('disabled', false).text('<?php _e('Scan for Unoptimized Images', 'snn'); ?>');
-                showMessage('<?php _e('Error scanning images.', 'snn'); ?>', 'error');
             }
         });
+    }
+    
+    // Load all pages to get all image data
+    async function loadAllImages(includeOptimized) {
+        try {
+            // First request to get total count
+            const firstResponse = await loadPage(1);
+            
+            if (!firstResponse.success || !firstResponse.data) {
+                return { success: false, data: 'Error loading images' };
+            }
+            
+            const totalPages = firstResponse.data.total_pages || 1;
+            let allImages = [...firstResponse.data.images];
+            
+            // Load remaining pages in parallel (if more than 1 page)
+            if (totalPages > 1) {
+                const pagePromises = [];
+                for (let p = 2; p <= totalPages; p++) {
+                    pagePromises.push(loadPage(p));
+                }
+                
+                const responses = await Promise.all(pagePromises);
+                responses.forEach(response => {
+                    if (response.success && response.data && response.data.images) {
+                        allImages = allImages.concat(response.data.images);
+                    }
+                });
+            }
+            
+            return {
+                success: true,
+                data: {
+                    images: allImages,
+                    total: firstResponse.data.total
+                }
+            };
+        } catch (error) {
+            console.error('Error loading images:', error);
+            return { success: false, data: 'Network error loading images' };
+        }
+    }
+    
+    // Scan for images
+    $('#snn_scan_images').on('click', async function() {
+        const $btn = $(this);
+        const includeOptimized = $('#snn_include_optimized').is(':checked');
+        $btn.prop('disabled', true).text('<?php _e('Scanning...', 'snn'); ?>');
+        $('#snn_message_area').empty();
+        
+        const response = await loadAllImages(includeOptimized);
+        
+        $btn.prop('disabled', false).text('<?php _e('Scan for Unoptimized Images', 'snn'); ?>');
+        
+        if (response.success && response.data.images.length > 0) {
+            scannedImages = response.data.images;
+            selectedImageIds.clear();
+            currentPage = 1;
+            renderImagesTable(getCurrentPageImages());
+            updatePagination();
+            $('#snn_images_list_container').show();
+            $('#snn_optimize_all').show(); // Show the "Optimize All" button
+            
+            let totalSize = scannedImages.reduce((sum, img) => sum + (img.size_bytes || 0), 0);
+            showMessage(`<?php _e('Found', 'snn'); ?> ${scannedImages.length} <?php _e('images', 'snn'); ?> (${formatBytes(totalSize)}).`, 'success');
+        } else if (response.success) {
+            $('#snn_images_list_container').hide();
+            $('#snn_optimize_all').hide();
+            showMessage('<?php _e('No unoptimized JPG or PNG images found.', 'snn'); ?>', 'info');
+        } else {
+            $('#snn_optimize_all').hide();
+            showMessage(response.data || '<?php _e('Error scanning images.', 'snn'); ?>', 'error');
+        }
     });
     
     function renderImagesTable(images) {
@@ -1318,9 +1421,10 @@ function snn_render_optimize_existing_media_tab() {
             const willResize = maxWidth > 0 && img.width > maxWidth;
             const resizeNote = willResize ? `<br><small style="color:#dba617;">→${maxWidth}px</small>` : '';
             const shortName = img.filename.length > 25 ? img.filename.substring(0,22) + '...' : img.filename;
+            const isChecked = selectedImageIds.has(img.id) ? 'checked' : '';
             
             const row = `<tr data-id="${img.id}" data-url="${img.full_url}" data-mime="${img.mime_type}" data-size="${img.size_bytes}" data-filename="${img.filename}">
-                <td><input type="checkbox" class="snn-image-checkbox" value="${img.id}"></td>
+                <td><input type="checkbox" class="snn-image-checkbox" value="${img.id}" ${isChecked}></td>
                 <td><img src="${img.thumbnail}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 3px;"></td>
                 <td title="${img.filename}">${shortName}</td>
                 <td>${dims}${resizeNote}</td>
@@ -1333,13 +1437,43 @@ function snn_render_optimize_existing_media_tab() {
             $tbody.append(row);
         });
         
+        // Update "select all on page" checkbox state
+        updateSelectAllCheckbox();
         updateSelectedCount();
+    }
+    
+    function updateSelectAllCheckbox() {
+        const visibleCheckboxes = $('.snn-image-checkbox');
+        const checkedCount = visibleCheckboxes.filter(':checked').length;
+        const totalCount = visibleCheckboxes.length;
+        
+        $('#snn_select_all_images, #snn_select_all_header').prop('checked', totalCount > 0 && checkedCount === totalCount);
     }
     
     $(document).on('change', '.snn-image-checkbox, #snn_select_all_images, #snn_select_all_header', function() {
         if ($(this).is('#snn_select_all_images, #snn_select_all_header')) {
-            $('.snn-image-checkbox').prop('checked', $(this).prop('checked'));
-            $('#snn_select_all_images, #snn_select_all_header').prop('checked', $(this).prop('checked'));
+            // Select/deselect all on current page
+            const isChecked = $(this).prop('checked');
+            $('.snn-image-checkbox').each(function() {
+                const id = parseInt($(this).val());
+                if (isChecked) {
+                    selectedImageIds.add(id);
+                } else {
+                    selectedImageIds.delete(id);
+                }
+                $(this).prop('checked', isChecked);
+            });
+            // Sync both "select all" checkboxes
+            $('#snn_select_all_images, #snn_select_all_header').prop('checked', isChecked);
+        } else {
+            // Individual checkbox changed
+            const id = parseInt($(this).val());
+            if ($(this).prop('checked')) {
+                selectedImageIds.add(id);
+            } else {
+                selectedImageIds.delete(id);
+            }
+            updateSelectAllCheckbox();
         }
         updateSelectedCount();
     });
@@ -1481,16 +1615,18 @@ function snn_render_optimize_existing_media_tab() {
     // Main optimization
     $('#snn_optimize_selected').on('click', async function() {
         const selectedRows = [];
-        $('.snn-image-checkbox:checked').each(function() {
-            const $row = $(this).closest('tr');
-            selectedRows.push({
-                id: $row.data('id'),
-                url: $row.data('url'),
-                mime: $row.data('mime'),
-                size: $row.data('size'),
-                filename: $row.data('filename'),
-                $row: $row
-            });
+        
+        // Get selected images from all pages using selectedImageIds
+        scannedImages.forEach(img => {
+            if (selectedImageIds.has(img.id)) {
+                selectedRows.push({
+                    id: img.id,
+                    url: img.full_url,
+                    mime: img.mime_type,
+                    size: img.size_bytes,
+                    filename: img.filename
+                });
+            }
         });
         
         if (selectedRows.length === 0) {
@@ -1521,7 +1657,11 @@ function snn_render_optimize_existing_media_tab() {
                 `<small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
             );
             
-            item.$row.find('.snn-status').text('<?php _e('Processing...', 'snn'); ?>').css('color', '#2271b1');
+            // Find the row in DOM if exists
+            const $row = $(`tr[data-id="${item.id}"]`);
+            if ($row.length) {
+                $row.find('.snn-status').text('<?php _e('Processing...', 'snn'); ?>').css('color', '#2271b1');
+            }
             
             try {
                 const result = await processImage(item.url, item.mime, item.size, settings);
@@ -1530,9 +1670,11 @@ function snn_render_optimize_existing_media_tab() {
                 
                 if (result.skipped) {
                     skippedCount++;
-                    item.$row.find('.snn-status').text('<?php _e('Skipped', 'snn'); ?>').css('color', '#dba617');
-                    item.$row.find('.new-size').text('-');
-                    item.$row.find('.savings').text('0%').css('color', '#646970');
+                    if ($row.length) {
+                        $row.find('.snn-status').text('<?php _e('Skipped', 'snn'); ?>').css('color', '#dba617');
+                        $row.find('.new-size').text('-');
+                        $row.find('.savings').text('0%').css('color', '#646970');
+                    }
                     continue;
                 }
                 
@@ -1544,18 +1686,116 @@ function snn_render_optimize_existing_media_tab() {
                 totalSaved += result.savings;
                 
                 const pct = Math.round((result.savings / result.originalSize) * 100);
-                item.$row.find('.snn-status').text('<?php _e('Done', 'snn'); ?>').css('color', '#00a32a');
-                item.$row.find('.new-size').text(formatBytes(result.newSize));
-                item.$row.find('.savings').text(`-${pct}%`).css('color', '#00a32a');
+                if ($row.length) {
+                    $row.find('.snn-status').text('<?php _e('Done', 'snn'); ?>').css('color', '#00a32a');
+                    $row.find('.new-size').text(formatBytes(result.newSize));
+                    $row.find('.savings').text(`-${pct}%`).css('color', '#00a32a');
+                }
                 
             } catch (error) {
                 errorCount++;
-                item.$row.find('.snn-status').text('<?php _e('Error', 'snn'); ?>').css('color', '#d63638');
+                if ($row.length) {
+                    $row.find('.snn-status').text('<?php _e('Error', 'snn'); ?>').css('color', '#d63638');
+                }
                 console.error(`Error: ${item.url}`, error);
             }
         }
         
         $btn.prop('disabled', false);
+        $('#snn_scan_images').prop('disabled', false);
+        
+        $('#snn_opt_progress_text').html(
+            `<?php _e('Complete!', 'snn'); ?><br><small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
+        );
+        
+        setTimeout(() => $('#snn_optimization_progress').hide(), 5000);
+        
+        const msgType = successCount > 0 ? 'success' : (skippedCount > 0 ? 'warning' : 'error');
+        showMessage(
+            `<?php _e('Complete:', 'snn'); ?> ${successCount} <?php _e('optimized', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?>. <?php _e('Saved:', 'snn'); ?> ${formatBytes(totalSaved)}`,
+            msgType
+        );
+    });
+    
+    // Optimize All button handler
+    $('#snn_optimize_all').on('click', async function() {
+        if (scannedImages.length === 0) {
+            showMessage('<?php _e('No images to optimize. Please scan first.', 'snn'); ?>', 'error');
+            return;
+        }
+        
+        const settings = getSettings();
+        
+        if (!confirm(`<?php _e('Optimize ALL', 'snn'); ?> ${scannedImages.length} <?php _e('unoptimized image(s) using your browser? This may take a while.', 'snn'); ?>`)) {
+            return;
+        }
+        
+        const $btn = $(this);
+        const $optimizeSelected = $('#snn_optimize_selected');
+        $btn.prop('disabled', true);
+        $optimizeSelected.prop('disabled', true);
+        $('#snn_scan_images').prop('disabled', true);
+        $('#snn_optimization_progress').show();
+        
+        let successCount = 0, skippedCount = 0, errorCount = 0, totalSaved = 0;
+        
+        // Process all images
+        for (let i = 0; i < scannedImages.length; i++) {
+            const item = scannedImages[i];
+            const progress = ((i + 1) / scannedImages.length) * 100;
+            
+            $('#snn_opt_progress_bar').css('width', progress + '%');
+            $('#snn_opt_progress_text').html(
+                `<?php _e('Processing', 'snn'); ?> ${i + 1}/${scannedImages.length}...<br>` +
+                `<small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
+            );
+            
+            // Find the row in DOM if exists
+            const $row = $(`tr[data-id="${item.id}"]`);
+            if ($row.length) {
+                $row.find('.snn-status').text('<?php _e('Processing...', 'snn'); ?>').css('color', '#2271b1');
+            }
+            
+            try {
+                const result = await processImage(item.full_url, item.mime_type, item.size_bytes, settings);
+                
+                if (!result.success) throw new Error(result.error);
+                
+                if (result.skipped) {
+                    skippedCount++;
+                    if ($row.length) {
+                        $row.find('.snn-status').text('<?php _e('Skipped', 'snn'); ?>').css('color', '#dba617');
+                        $row.find('.new-size').text('-');
+                        $row.find('.savings').text('0%').css('color', '#646970');
+                    }
+                    continue;
+                }
+                
+                const uploadResult = await uploadOptimizedImage(item.id, result.blob, item.filename);
+                
+                if (!uploadResult.success) throw new Error(uploadResult.error || 'Upload failed');
+                
+                successCount++;
+                totalSaved += result.savings;
+                
+                const pct = Math.round((result.savings / result.originalSize) * 100);
+                if ($row.length) {
+                    $row.find('.snn-status').text('<?php _e('Done', 'snn'); ?>').css('color', '#00a32a');
+                    $row.find('.new-size').text(formatBytes(result.newSize));
+                    $row.find('.savings').text(`-${pct}%`).css('color', '#00a32a');
+                }
+                
+            } catch (error) {
+                errorCount++;
+                if ($row.length) {
+                    $row.find('.snn-status').text('<?php _e('Error', 'snn'); ?>').css('color', '#d63638');
+                }
+                console.error(`Error: ${item.full_url}`, error);
+            }
+        }
+        
+        $btn.prop('disabled', false);
+        $optimizeSelected.prop('disabled', false);
         $('#snn_scan_images').prop('disabled', false);
         
         $('#snn_opt_progress_text').html(
@@ -1611,13 +1851,24 @@ function snn_render_optimization_settings_tab() {
         </div>
         
         <div class="history-list" style="margin-top: 20px;">
-            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                <label style="display: flex; align-items: center; gap: 5px;">
-                    <input type="checkbox" id="snn_select_all_history">
-                    <?php _e('Select All', 'snn'); ?>
-                </label>
-                <span id="snn_history_selected_count" style="color: #646970;"></span>
-                <button type="button" id="snn_refresh_history" class="button button-small"><?php _e('Refresh List', 'snn'); ?></button>
+            <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" id="snn_select_all_history">
+                        <?php _e('Select All on This Page', 'snn'); ?>
+                    </label>
+                    <span id="snn_history_selected_count" style="color: #646970;"></span>
+                    <button type="button" id="snn_refresh_history" class="button button-small"><?php _e('Refresh List', 'snn'); ?></button>
+                </div>
+                
+                <!-- Pagination Controls for History -->
+                <div id="snn_history_pagination" style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" id="snn_history_first_page" class="button button-small">«</button>
+                    <button type="button" id="snn_history_prev_page" class="button button-small">‹</button>
+                    <span id="snn_history_page_info" style="color: #646970; font-size: 13px; min-width: 100px; text-align: center;"></span>
+                    <button type="button" id="snn_history_next_page" class="button button-small">›</button>
+                    <button type="button" id="snn_history_last_page" class="button button-small">»</button>
+                </div>
             </div>
             
             <table class="wp-list-table widefat fixed striped" id="snn_history_table">
@@ -1694,6 +1945,9 @@ function snn_render_optimization_settings_tab() {
     <script>
     jQuery(document).ready(function($) {
         let historyItems = [];
+        let historyCurrentPage = 1;
+        const historyPerPage = 50;
+        let selectedHistoryIds = new Set(); // Persist selections across pages
         
         function showHistoryMessage(message, type) {
             const colors = {
@@ -1706,35 +1960,116 @@ function snn_render_optimization_settings_tab() {
         }
         
         function updateHistorySelectedCount() {
-            const count = $('.snn-history-checkbox:checked').length;
+            const totalSelected = selectedHistoryIds.size;
             const total = historyItems.length;
-            $('#snn_history_selected_count').text(count + ' / ' + total + ' <?php _e('selected', 'snn'); ?>');
+            $('#snn_history_selected_count').text(totalSelected + ' / ' + total + ' <?php _e('selected', 'snn'); ?>');
         }
         
-        function loadHistory() {
-            $.ajax({
+        function updateHistoryPagination() {
+            const totalPages = Math.ceil(historyItems.length / historyPerPage);
+            
+            $('#snn_history_page_info').text(`Page ${historyCurrentPage} of ${totalPages}`);
+            
+            $('#snn_history_first_page').prop('disabled', historyCurrentPage === 1);
+            $('#snn_history_prev_page').prop('disabled', historyCurrentPage === 1);
+            $('#snn_history_next_page').prop('disabled', historyCurrentPage === totalPages || totalPages === 0);
+            $('#snn_history_last_page').prop('disabled', historyCurrentPage === totalPages || totalPages === 0);
+        }
+        
+        function goToHistoryPage(page) {
+            const totalPages = Math.ceil(historyItems.length / historyPerPage);
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            
+            historyCurrentPage = page;
+            renderHistoryTable(getCurrentHistoryPageItems());
+            updateHistoryPagination();
+        }
+        
+        function getCurrentHistoryPageItems() {
+            const start = (historyCurrentPage - 1) * historyPerPage;
+            const end = start + historyPerPage;
+            return historyItems.slice(start, end);
+        }
+        
+        // Pagination button handlers
+        $('#snn_history_first_page').on('click', () => goToHistoryPage(1));
+        $('#snn_history_prev_page').on('click', () => goToHistoryPage(historyCurrentPage - 1));
+        $('#snn_history_next_page').on('click', () => goToHistoryPage(historyCurrentPage + 1));
+        $('#snn_history_last_page').on('click', () => goToHistoryPage(Math.ceil(historyItems.length / historyPerPage)));
+        
+        // Load a specific page of history from server
+        function loadHistoryPage(page) {
+            return $.ajax({
                 url: ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'snn_get_optimization_history',
+                    page: page,
+                    per_page: historyPerPage,
                     nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
-                },
-                success: function(response) {
-                    if (response.success && response.data.length > 0) {
-                        historyItems = response.data;
-                        renderHistoryTable(historyItems);
-                        $('#snn_history_table').show();
-                        $('#snn_no_history').hide();
-                    } else {
-                        historyItems = [];
-                        $('#snn_history_table').hide();
-                        $('#snn_no_history').show();
-                    }
-                },
-                error: function() {
-                    showHistoryMessage('<?php _e('Error loading history.', 'snn'); ?>', 'error');
                 }
             });
+        }
+        
+        // Load all history pages
+        async function loadAllHistory() {
+            try {
+                // First request to get total count
+                const firstResponse = await loadHistoryPage(1);
+                
+                if (!firstResponse.success || !firstResponse.data) {
+                    return { success: false, data: [] };
+                }
+                
+                const totalPages = firstResponse.data.total_pages || 1;
+                let allHistory = [...firstResponse.data.data]; // Note: response.data.data contains the array
+                
+                // Load remaining pages in parallel (if more than 1 page)
+                if (totalPages > 1) {
+                    const pagePromises = [];
+                    for (let p = 2; p <= totalPages; p++) {
+                        pagePromises.push(loadHistoryPage(p));
+                    }
+                    
+                    const responses = await Promise.all(pagePromises);
+                    responses.forEach(response => {
+                        if (response.success && response.data && response.data.data) {
+                            allHistory = allHistory.concat(response.data.data);
+                        }
+                    });
+                }
+                
+                return {
+                    success: true,
+                    data: allHistory
+                };
+            } catch (error) {
+                console.error('Error loading history:', error);
+                return { success: false, data: [] };
+            }
+        }
+        
+        async function loadHistory() {
+            const response = await loadAllHistory();
+            
+            if (response.success && response.data.length > 0) {
+                historyItems = response.data;
+                selectedHistoryIds.clear();
+                historyCurrentPage = 1;
+                renderHistoryTable(getCurrentHistoryPageItems());
+                updateHistoryPagination();
+                $('#snn_history_table').show();
+                $('#snn_no_history').hide();
+            } else {
+                historyItems = [];
+                $('#snn_history_table').hide();
+                $('#snn_no_history').show();
+            }
+            
+            if (!response.success && response.data.length === 0 && historyItems.length === 0) {
+                showHistoryMessage('<?php _e('Error loading history.', 'snn'); ?>', 'error');
+            }
         }
         
         function renderHistoryTable(items) {
@@ -1742,8 +2077,10 @@ function snn_render_optimization_settings_tab() {
             $tbody.empty();
             
             items.forEach(function(item) {
+                const isChecked = selectedHistoryIds.has(item.id) ? 'checked' : '';
+                
                 const row = `<tr data-id="${item.id}">
-                    <td><input type="checkbox" class="snn-history-checkbox" value="${item.id}"></td>
+                    <td><input type="checkbox" class="snn-history-checkbox" value="${item.id}" ${isChecked}></td>
                     <td><img src="${item.thumbnail}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 3px;"></td>
                     <td>${item.filename}</td>
                     <td><a href="${item.original_url}" target="_blank" style="font-size: 11px; word-break: break-all;">${item.original_url}</a></td>
@@ -1757,7 +2094,16 @@ function snn_render_optimization_settings_tab() {
                 $tbody.append(row);
             });
             
+            updateHistorySelectAllCheckbox();
             updateHistorySelectedCount();
+        }
+        
+        function updateHistorySelectAllCheckbox() {
+            const visibleCheckboxes = $('.snn-history-checkbox');
+            const checkedCount = visibleCheckboxes.filter(':checked').length;
+            const totalCount = visibleCheckboxes.length;
+            
+            $('#snn_select_all_history, #snn_select_all_history_header').prop('checked', totalCount > 0 && checkedCount === totalCount);
         }
         
         // Load history on page load
@@ -1767,8 +2113,28 @@ function snn_render_optimization_settings_tab() {
         
         $(document).on('change', '.snn-history-checkbox, #snn_select_all_history, #snn_select_all_history_header', function() {
             if ($(this).is('#snn_select_all_history, #snn_select_all_history_header')) {
-                $('.snn-history-checkbox').prop('checked', $(this).prop('checked'));
-                $('#snn_select_all_history, #snn_select_all_history_header').prop('checked', $(this).prop('checked'));
+                // Select/deselect all on current page
+                const isChecked = $(this).prop('checked');
+                $('.snn-history-checkbox').each(function() {
+                    const id = parseInt($(this).val());
+                    if (isChecked) {
+                        selectedHistoryIds.add(id);
+                    } else {
+                        selectedHistoryIds.delete(id);
+                    }
+                    $(this).prop('checked', isChecked);
+                });
+                // Sync both "select all" checkboxes
+                $('#snn_select_all_history, #snn_select_all_history_header').prop('checked', isChecked);
+            } else {
+                // Individual checkbox changed
+                const id = parseInt($(this).val());
+                if ($(this).prop('checked')) {
+                    selectedHistoryIds.add(id);
+                } else {
+                    selectedHistoryIds.delete(id);
+                }
+                updateHistorySelectAllCheckbox();
             }
             updateHistorySelectedCount();
         });
@@ -1818,9 +2184,7 @@ function snn_render_optimization_settings_tab() {
         
         // Restore selected
         $('#snn_restore_selected').on('click', async function() {
-            const selectedIds = $('.snn-history-checkbox:checked').map(function() {
-                return $(this).val();
-            }).get();
+            const selectedIds = Array.from(selectedHistoryIds);
             
             if (selectedIds.length === 0) {
                 showHistoryMessage('<?php _e('Please select at least one image to restore.', 'snn'); ?>', 'error');
@@ -2181,11 +2545,19 @@ function snn_scan_unoptimized_images() {
     }
     
     $include_optimized = isset($_POST['include_optimized']) && $_POST['include_optimized'] === 'true';
+    $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+    $per_page = isset($_POST['per_page']) ? intval($_POST['per_page']) : 50;
+    
+    // Ensure valid values
+    if ($page < 1) $page = 1;
+    if ($per_page < 1) $per_page = 50;
+    if ($per_page > 100) $per_page = 100; // Max 100 per page for safety
     
     $base_args = array(
         'post_type' => 'attachment',
         'post_mime_type' => array('image/jpeg', 'image/png'),
-        'posts_per_page' => -1,
+        'posts_per_page' => $per_page,
+        'paged' => $page,
         'post_status' => 'inherit'
     );
     
@@ -2204,7 +2576,10 @@ function snn_scan_unoptimized_images() {
         );
     }
     
-    $attachments = get_posts($base_args);
+    $query = new WP_Query($base_args);
+    $attachments = $query->posts;
+    $total_items = $query->found_posts;
+    
     $images = array();
     
     foreach ($attachments as $attachment) {
@@ -2238,7 +2613,13 @@ function snn_scan_unoptimized_images() {
         );
     }
     
-    wp_send_json_success(array('images' => $images));
+    wp_send_json_success(array(
+        'images' => $images,
+        'total' => $total_items,
+        'page' => $page,
+        'per_page' => $per_page,
+        'total_pages' => ceil($total_items / $per_page)
+    ));
 }
 
 // Handle upload of client-side optimized image (for Optimize Existing tab)
@@ -2333,9 +2714,18 @@ function snn_get_optimization_history() {
         wp_send_json_error(__('Permission denied.', 'snn'));
     }
     
+    $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+    $per_page = isset($_POST['per_page']) ? intval($_POST['per_page']) : 50;
+    
+    // Ensure valid values
+    if ($page < 1) $page = 1;
+    if ($per_page < 1) $per_page = 50;
+    if ($per_page > 100) $per_page = 100; // Max 100 per page for safety
+    
     $args = array(
         'post_type' => 'attachment',
-        'posts_per_page' => -1,
+        'posts_per_page' => $per_page,
+        'paged' => $page,
         'post_status' => 'inherit',
         'meta_query' => array(
             array(
@@ -2346,7 +2736,10 @@ function snn_get_optimization_history() {
         )
     );
     
-    $attachments = get_posts($args);
+    $query = new WP_Query($args);
+    $attachments = $query->posts;
+    $total_items = $query->found_posts;
+    
     $history = array();
     
     foreach ($attachments as $attachment) {
@@ -2367,7 +2760,13 @@ function snn_get_optimization_history() {
         }
     }
     
-    wp_send_json_success($history);
+    wp_send_json_success(array(
+        'data' => $history,
+        'total' => $total_items,
+        'page' => $page,
+        'per_page' => $per_page,
+        'total_pages' => ceil($total_items / $per_page)
+    ));
 }
 
 // Delete original file (for space saving)
