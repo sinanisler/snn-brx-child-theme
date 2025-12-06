@@ -1070,7 +1070,7 @@ function snn_image_optimization_admin_styles() {
 }
 
 // ============================================
-// OPTIMIZE EXISTING MEDIA TAB
+// OPTIMIZE EXISTING MEDIA TAB (IMPROVED - Client-Side @jsquash/webp)
 // ============================================
 
 function snn_render_optimize_existing_media_tab() {
@@ -1078,34 +1078,98 @@ function snn_render_optimize_existing_media_tab() {
     <div class="snn-existing-media-optimizer">
         <p class="description"><?php _e('Convert existing JPG and PNG images in your media library to WebP format. Original images are preserved and can be restored anytime.', 'snn'); ?></p>
         
-        <div class="notice notice-warning inline" style="margin: 15px 0;">
-            <p><strong>⚠️ <?php _e('Important:', 'snn'); ?></strong> <?php _e('Keep this tab open during bulk optimization. The process uses batched requests for optimal performance with large image libraries (1,000+ images supported). Originals are safely backed up before conversion.', 'snn'); ?></p>
+        <div class="notice notice-info inline" style="margin: 15px 0;">
+            <p><strong>⚡ <?php _e('Fast Client-Side Processing:', 'snn'); ?></strong> <?php _e('Images are downloaded and optimized directly in your browser using WebAssembly (libwebp). This gives you access to all advanced compression options and is much faster than server-side processing!', 'snn'); ?></p>
         </div>
         
         <div class="optimization-controls" style="margin: 20px 0; padding: 20px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px;">
             <h3 style="margin-top: 0;"><?php _e('Optimization Settings', 'snn'); ?></h3>
             
-            <div class="form-field" style="margin-bottom: 15px;">
-                <label for="snn_existing_quality" style="display: block; font-weight: 500; margin-bottom: 5px;">
-                    <?php _e('WebP Quality (0-1):', 'snn'); ?>
-                </label>
-                <input type="number" id="snn_existing_quality" min="0" max="1" step="0.01" value="0.85" style="width: 100px;">
-                <p class="description"><?php _e('Lower values = smaller files, higher values = better quality.', 'snn'); ?></p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <!-- Quality Setting -->
+                <div class="form-field">
+                    <label for="snn_existing_quality" style="display: block; font-weight: 500; margin-bottom: 5px;">
+                        <?php _e('Quality (0-100):', 'snn'); ?>
+                    </label>
+                    <input type="number" id="snn_existing_quality" min="0" max="100" step="1" value="82" style="width: 100%;">
+                    <p class="description" style="margin-top: 4px;"><?php _e('75-85 for photos, 85-95 for graphics.', 'snn'); ?></p>
+                </div>
+                
+                <!-- Maximum Width Setting -->
+                <div class="form-field">
+                    <label for="snn_max_width" style="display: block; font-weight: 500; margin-bottom: 5px;">
+                        <?php _e('Max Width (px):', 'snn'); ?>
+                    </label>
+                    <input type="number" id="snn_max_width" min="0" step="1" value="2560" style="width: 100%;">
+                    <p class="description" style="margin-top: 4px;"><?php _e('0 = no resize. Recommended: 1920-2560.', 'snn'); ?></p>
+                </div>
+                
+                <!-- Compression Method -->
+                <div class="form-field">
+                    <label for="snn_method" style="display: block; font-weight: 500; margin-bottom: 5px;">
+                        <?php _e('Method (0-6):', 'snn'); ?>
+                    </label>
+                    <select id="snn_method" style="width: 100%;">
+                        <option value="0"><?php _e('0 - Fastest', 'snn'); ?></option>
+                        <option value="2"><?php _e('2 - Fast', 'snn'); ?></option>
+                        <option value="4" selected><?php _e('4 - Balanced', 'snn'); ?></option>
+                        <option value="6"><?php _e('6 - Best compression', 'snn'); ?></option>
+                    </select>
+                    <p class="description" style="margin-top: 4px;"><?php _e('Higher = smaller files, slower.', 'snn'); ?></p>
+                </div>
+                
+                <!-- Compression Type -->
+                <div class="form-field">
+                    <label for="snn_lossless" style="display: block; font-weight: 500; margin-bottom: 5px;">
+                        <?php _e('Compression Type:', 'snn'); ?>
+                    </label>
+                    <select id="snn_lossless" style="width: 100%;">
+                        <option value="auto"><?php _e('Auto (smart)', 'snn'); ?></option>
+                        <option value="lossy"><?php _e('Lossy (photos)', 'snn'); ?></option>
+                        <option value="lossless"><?php _e('Lossless (perfect)', 'snn'); ?></option>
+                        <option value="near_lossless"><?php _e('Near-Lossless', 'snn'); ?></option>
+                    </select>
+                    <p class="description" style="margin-top: 4px;"><?php _e('Auto: lossy for JPG, lossless for PNG.', 'snn'); ?></p>
+                </div>
+                
+                <!-- Near-Lossless Level -->
+                <div class="form-field" id="snn_near_lossless_container" style="display: none;">
+                    <label for="snn_near_lossless_level" style="display: block; font-weight: 500; margin-bottom: 5px;">
+                        <?php _e('Near-Lossless (0-100):', 'snn'); ?>
+                    </label>
+                    <input type="number" id="snn_near_lossless_level" min="0" max="100" step="1" value="60" style="width: 100%;">
+                    <p class="description" style="margin-top: 4px;"><?php _e('60 typical. 0=max, 100=none.', 'snn'); ?></p>
+                </div>
+                
+                <!-- Alpha Quality -->
+                <div class="form-field">
+                    <label for="snn_alpha_quality" style="display: block; font-weight: 500; margin-bottom: 5px;">
+                        <?php _e('Alpha Quality (0-100):', 'snn'); ?>
+                    </label>
+                    <input type="number" id="snn_alpha_quality" min="0" max="100" step="1" value="100" style="width: 100%;">
+                    <p class="description" style="margin-top: 4px;"><?php _e('For PNG transparency. 100=lossless.', 'snn'); ?></p>
+                </div>
             </div>
             
-            <div class="form-field" style="margin-bottom: 15px;">
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <!-- Skip if Bigger -->
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="snn_skip_if_bigger" checked>
+                    <span><?php _e('Skip if WebP would be larger than original', 'snn'); ?></span>
+                </label>
+                
+                <!-- Include already optimized -->
                 <label style="display: flex; align-items: center; gap: 8px;">
                     <input type="checkbox" id="snn_include_optimized">
                     <span><?php _e('Include already optimized images (for re-optimization)', 'snn'); ?></span>
                 </label>
-                <p class="description"><?php _e('Check this to scan and re-optimize images that have already been optimized.', 'snn'); ?></p>
             </div>
             
             <div class="button-group" style="margin-top: 20px;">
                 <button type="button" id="snn_scan_images" class="button button-primary">
                     <?php _e('Scan for Unoptimized Images', 'snn'); ?>
                 </button>
-                <button type="button" id="snn_optimize_selected" class="button button-secondary" style="display: none;">
+                <button type="button" id="snn_optimize_selected" class="button button-secondary" style="display: none; margin-left: 10px;">
                     <?php _e('Optimize Selected Images', 'snn'); ?>
                 </button>
             </div>
@@ -1119,24 +1183,27 @@ function snn_render_optimize_existing_media_tab() {
         </div>
         
         <div id="snn_images_list_container" style="display: none;">
-            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <label style="display: flex; align-items: center; gap: 5px;">
                     <input type="checkbox" id="snn_select_all_images">
                     <?php _e('Select All', 'snn'); ?>
                 </label>
                 <span id="snn_selected_count" style="color: #646970;"></span>
+                <span id="snn_total_size_info" style="color: #00a32a; font-weight: 500;"></span>
             </div>
             
             <table class="wp-list-table widefat fixed striped" id="snn_images_table">
                 <thead>
                     <tr>
                         <th style="width: 40px;"><input type="checkbox" id="snn_select_all_header"></th>
-                        <th style="width: 80px;"><?php _e('Thumbnail', 'snn'); ?></th>
+                        <th style="width: 60px;"><?php _e('Thumb', 'snn'); ?></th>
                         <th><?php _e('File Name', 'snn'); ?></th>
-                        <th style="width: 100px;"><?php _e('Type', 'snn'); ?></th>
-                        <th style="width: 100px;"><?php _e('Current Size', 'snn'); ?></th>
-                        <th style="width: 100px;"><?php _e('Optimized Size', 'snn'); ?></th>
-                        <th style="width: 120px;"><?php _e('Status', 'snn'); ?></th>
+                        <th style="width: 90px;"><?php _e('Dimensions', 'snn'); ?></th>
+                        <th style="width: 60px;"><?php _e('Type', 'snn'); ?></th>
+                        <th style="width: 80px;"><?php _e('Size', 'snn'); ?></th>
+                        <th style="width: 80px;"><?php _e('New Size', 'snn'); ?></th>
+                        <th style="width: 70px;"><?php _e('Saved', 'snn'); ?></th>
+                        <th style="width: 90px;"><?php _e('Status', 'snn'); ?></th>
                     </tr>
                 </thead>
                 <tbody id="snn_images_tbody">
@@ -1147,187 +1214,361 @@ function snn_render_optimize_existing_media_tab() {
         <div id="snn_message_area"></div>
     </div>
     
-    <script>
-    jQuery(document).ready(function($) {
-        let scannedImages = [];
+    <script type="module">
+    // Import @jsquash libraries from ESM (WebAssembly libwebp)
+    import { decode as decodeJpeg } from "https://esm.sh/@jsquash/jpeg@1.4.0";
+    import { decode as decodePng } from "https://esm.sh/@jsquash/png@3.0.1";
+    import { encode as encodeWebp } from "https://esm.sh/@jsquash/webp@1.4.0";
+    
+    const $ = jQuery;
+    let scannedImages = [];
+    
+    // Show/hide near-lossless level
+    $('#snn_lossless').on('change', function() {
+        $('#snn_near_lossless_container').toggle($(this).val() === 'near_lossless');
+    });
+    
+    function showMessage(message, type) {
+        const colors = {
+            success: { bg: '#f0f6fc', border: '#00a32a', text: '#00a32a' },
+            error: { bg: '#fcf0f1', border: '#d63638', text: '#d63638' },
+            info: { bg: '#f0f6fc', border: '#2271b1', text: '#2271b1' },
+            warning: { bg: '#fcf9e8', border: '#dba617', text: '#996800' }
+        };
+        const c = colors[type] || colors.info;
+        $('#snn_message_area').html(`<div style="padding: 12px 16px; border-radius: 3px; margin-top: 16px; border-left: 4px solid ${c.border}; background: ${c.bg}; color: ${c.text}; font-weight: 500;">${message}</div>`);
+    }
+    
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
+    }
+    
+    function updateSelectedCount() {
+        const count = $('.snn-image-checkbox:checked').length;
+        const total = scannedImages.length;
+        $('#snn_selected_count').text(`${count} / ${total} <?php _e('selected', 'snn'); ?>`);
+        $('#snn_optimize_selected').toggle(count > 0);
         
-        function showMessage(message, type) {
-            const colors = {
-                success: { bg: '#f0f6fc', border: '#00a32a', text: '#00a32a' },
-                error: { bg: '#fcf0f1', border: '#d63638', text: '#d63638' },
-                info: { bg: '#f0f6fc', border: '#2271b1', text: '#2271b1' }
-            };
-            const c = colors[type] || colors.info;
-            $('#snn_message_area').html(`<div style="padding: 12px 16px; border-radius: 3px; margin-top: 16px; border-left: 4px solid ${c.border}; background: ${c.bg}; color: ${c.text}; font-weight: 500;">${message}</div>`);
+        let totalSize = 0;
+        $('.snn-image-checkbox:checked').each(function() {
+            const img = scannedImages.find(i => i.id == $(this).val());
+            if (img) totalSize += img.size_bytes || 0;
+        });
+        
+        if (totalSize > 0) {
+            $('#snn_total_size_info').text(`(${formatBytes(totalSize)} <?php _e('total', 'snn'); ?>)`);
+        } else {
+            $('#snn_total_size_info').text('');
         }
+    }
+    
+    // Scan for images
+    $('#snn_scan_images').on('click', function() {
+        const $btn = $(this);
+        const includeOptimized = $('#snn_include_optimized').is(':checked');
+        $btn.prop('disabled', true).text('<?php _e('Scanning...', 'snn'); ?>');
+        $('#snn_message_area').empty();
         
-        function updateSelectedCount() {
-            const count = $('.snn-image-checkbox:checked').length;
-            const total = scannedImages.length;
-            $('#snn_selected_count').text(count + ' / ' + total + ' <?php _e('selected', 'snn'); ?>');
-            $('#snn_optimize_selected').toggle(count > 0);
-        }
-        
-        $('#snn_scan_images').on('click', function() {
-            const $btn = $(this);
-            const includeOptimized = $('#snn_include_optimized').is(':checked');
-            $btn.prop('disabled', true).text('<?php _e('Scanning...', 'snn'); ?>');
-            $('#snn_message_area').empty();
-            
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'snn_scan_unoptimized_images',
-                    include_optimized: includeOptimized ? 'true' : 'false',
-                    nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
-                },
-                success: function(response) {
-                    $btn.prop('disabled', false).text('<?php _e('Scan for Unoptimized Images', 'snn'); ?>');
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'snn_scan_unoptimized_images',
+                include_optimized: includeOptimized ? 'true' : 'false',
+                nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
+            },
+            success: function(response) {
+                $btn.prop('disabled', false).text('<?php _e('Scan for Unoptimized Images', 'snn'); ?>');
+                
+                if (response.success && response.data.images.length > 0) {
+                    scannedImages = response.data.images;
+                    renderImagesTable(scannedImages);
+                    $('#snn_images_list_container').show();
                     
-                    if (response.success && response.data.images.length > 0) {
-                        scannedImages = response.data.images;
-                        renderImagesTable(scannedImages);
-                        $('#snn_images_list_container').show();
-                        showMessage('<?php _e('Found', 'snn'); ?> ' + scannedImages.length + ' <?php _e('images to optimize.', 'snn'); ?>', 'success');
-                    } else if (response.success) {
-                        $('#snn_images_list_container').hide();
-                        showMessage('<?php _e('No unoptimized JPG or PNG images found.', 'snn'); ?>', 'info');
-                    } else {
-                        showMessage(response.data || '<?php _e('Error scanning images.', 'snn'); ?>', 'error');
-                    }
-                },
-                error: function() {
-                    $btn.prop('disabled', false).text('<?php _e('Scan for Unoptimized Images', 'snn'); ?>');
-                    showMessage('<?php _e('Error scanning images.', 'snn'); ?>', 'error');
+                    let totalSize = scannedImages.reduce((sum, img) => sum + (img.size_bytes || 0), 0);
+                    showMessage(`<?php _e('Found', 'snn'); ?> ${scannedImages.length} <?php _e('images', 'snn'); ?> (${formatBytes(totalSize)}).`, 'success');
+                } else if (response.success) {
+                    $('#snn_images_list_container').hide();
+                    showMessage('<?php _e('No unoptimized JPG or PNG images found.', 'snn'); ?>', 'info');
+                } else {
+                    showMessage(response.data || '<?php _e('Error scanning images.', 'snn'); ?>', 'error');
                 }
+            },
+            error: function() {
+                $btn.prop('disabled', false).text('<?php _e('Scan for Unoptimized Images', 'snn'); ?>');
+                showMessage('<?php _e('Error scanning images.', 'snn'); ?>', 'error');
+            }
+        });
+    });
+    
+    function renderImagesTable(images) {
+        const $tbody = $('#snn_images_tbody');
+        $tbody.empty();
+        
+        const maxWidth = parseInt($('#snn_max_width').val()) || 0;
+        
+        images.forEach(function(img) {
+            const statusText = img.optimized ? '<?php _e('Optimized', 'snn'); ?>' : '<?php _e('Pending', 'snn'); ?>';
+            const statusColor = img.optimized ? '#00a32a' : '#646970';
+            const dims = img.width && img.height ? `${img.width}×${img.height}` : '-';
+            const willResize = maxWidth > 0 && img.width > maxWidth;
+            const resizeNote = willResize ? `<br><small style="color:#dba617;">→${maxWidth}px</small>` : '';
+            const shortName = img.filename.length > 25 ? img.filename.substring(0,22) + '...' : img.filename;
+            
+            const row = `<tr data-id="${img.id}" data-url="${img.full_url}" data-mime="${img.mime_type}" data-size="${img.size_bytes}" data-filename="${img.filename}">
+                <td><input type="checkbox" class="snn-image-checkbox" value="${img.id}"></td>
+                <td><img src="${img.thumbnail}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 3px;"></td>
+                <td title="${img.filename}">${shortName}</td>
+                <td>${dims}${resizeNote}</td>
+                <td>${img.mime_type.replace('image/', '').toUpperCase()}</td>
+                <td>${img.size}</td>
+                <td class="new-size">-</td>
+                <td class="savings">-</td>
+                <td><span class="snn-status" style="color: ${statusColor}; font-weight: 500;">${statusText}</span></td>
+            </tr>`;
+            $tbody.append(row);
+        });
+        
+        updateSelectedCount();
+    }
+    
+    $(document).on('change', '.snn-image-checkbox, #snn_select_all_images, #snn_select_all_header', function() {
+        if ($(this).is('#snn_select_all_images, #snn_select_all_header')) {
+            $('.snn-image-checkbox').prop('checked', $(this).prop('checked'));
+            $('#snn_select_all_images, #snn_select_all_header').prop('checked', $(this).prop('checked'));
+        }
+        updateSelectedCount();
+    });
+    
+    // Get settings
+    function getSettings() {
+        return {
+            quality: parseInt($('#snn_existing_quality').val()) || 82,
+            maxWidth: parseInt($('#snn_max_width').val()) || 0,
+            method: parseInt($('#snn_method').val()) || 4,
+            losslessMode: $('#snn_lossless').val() || 'auto',
+            nearLosslessLevel: parseInt($('#snn_near_lossless_level').val()) || 60,
+            alphaQuality: parseInt($('#snn_alpha_quality').val()) || 100,
+            skipIfBigger: $('#snn_skip_if_bigger').is(':checked')
+        };
+    }
+    
+    // Resize ImageData using canvas
+    function resizeImageData(imageData, maxWidth) {
+        if (maxWidth <= 0 || imageData.width <= maxWidth) {
+            return imageData;
+        }
+        
+        const scale = maxWidth / imageData.width;
+        const newWidth = maxWidth;
+        const newHeight = Math.round(imageData.height * scale);
+        
+        const srcCanvas = document.createElement('canvas');
+        srcCanvas.width = imageData.width;
+        srcCanvas.height = imageData.height;
+        const srcCtx = srcCanvas.getContext('2d');
+        srcCtx.putImageData(imageData, 0, 0);
+        
+        const dstCanvas = document.createElement('canvas');
+        dstCanvas.width = newWidth;
+        dstCanvas.height = newHeight;
+        const dstCtx = dstCanvas.getContext('2d');
+        dstCtx.imageSmoothingEnabled = true;
+        dstCtx.imageSmoothingQuality = 'high';
+        dstCtx.drawImage(srcCanvas, 0, 0, newWidth, newHeight);
+        
+        return dstCtx.getImageData(0, 0, newWidth, newHeight);
+    }
+    
+    // Decode image based on type
+    async function decodeImage(arrayBuffer, mimeType) {
+        if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+            return await decodeJpeg(arrayBuffer);
+        } else if (mimeType === 'image/png') {
+            return await decodePng(arrayBuffer);
+        }
+        throw new Error(`Unsupported: ${mimeType}`);
+    }
+    
+    // Build WebP encode options
+    function buildEncodeOptions(settings, mimeType) {
+        const options = {
+            quality: settings.quality,
+            method: settings.method,
+            alpha_quality: settings.alphaQuality,
+        };
+        
+        if (settings.losslessMode === 'lossless') {
+            options.lossless = 1;
+        } else if (settings.losslessMode === 'near_lossless') {
+            options.lossless = 1;
+            options.near_lossless = settings.nearLosslessLevel;
+        } else if (settings.losslessMode === 'auto') {
+            options.lossless = (mimeType === 'image/png') ? 1 : 0;
+        } else {
+            options.lossless = 0;
+        }
+        
+        return options;
+    }
+    
+    // Process single image client-side
+    async function processImage(imageUrl, mimeType, originalSize, settings) {
+        try {
+            // Download
+            const response = await fetch(imageUrl);
+            if (!response.ok) throw new Error('Download failed');
+            const arrayBuffer = await response.arrayBuffer();
+            
+            // Decode
+            let imageData = await decodeImage(arrayBuffer, mimeType);
+            
+            // Resize if needed
+            if (settings.maxWidth > 0 && imageData.width > settings.maxWidth) {
+                imageData = resizeImageData(imageData, settings.maxWidth);
+            }
+            
+            // Encode to WebP
+            let encodeOptions = buildEncodeOptions(settings, mimeType);
+            let webpBuffer = await encodeWebp(imageData, encodeOptions);
+            let webpSize = webpBuffer.byteLength;
+            
+            // If auto mode PNG and lossless is bigger, try lossy
+            if (settings.losslessMode === 'auto' && mimeType === 'image/png' && webpSize >= originalSize) {
+                encodeOptions.lossless = 0;
+                webpBuffer = await encodeWebp(imageData, encodeOptions);
+                webpSize = webpBuffer.byteLength;
+            }
+            
+            // Skip if bigger
+            if (settings.skipIfBigger && webpSize >= originalSize) {
+                return { success: true, skipped: true, originalSize, wouldBeSize: webpSize };
+            }
+            
+            return {
+                success: true,
+                skipped: false,
+                blob: new Blob([webpBuffer], { type: 'image/webp' }),
+                originalSize,
+                newSize: webpSize,
+                savings: originalSize - webpSize
+            };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+    
+    // Upload optimized image to server
+    async function uploadOptimizedImage(attachmentId, blob, filename) {
+        return new Promise((resolve) => {
+            const formData = new FormData();
+            formData.append('action', 'snn_save_optimized_existing_image');
+            formData.append('attachment_id', attachmentId);
+            formData.append('image', blob, filename.replace(/\.(jpg|jpeg|png)$/i, '.webp'));
+            formData.append('nonce', '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>');
+            
+            fetch(ajaxurl, { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => resolve(data))
+                .catch(e => resolve({ success: false, error: e.message }));
+        });
+    }
+    
+    // Main optimization
+    $('#snn_optimize_selected').on('click', async function() {
+        const selectedRows = [];
+        $('.snn-image-checkbox:checked').each(function() {
+            const $row = $(this).closest('tr');
+            selectedRows.push({
+                id: $row.data('id'),
+                url: $row.data('url'),
+                mime: $row.data('mime'),
+                size: $row.data('size'),
+                filename: $row.data('filename'),
+                $row: $row
             });
         });
         
-        function renderImagesTable(images) {
-            const $tbody = $('#snn_images_tbody');
-            $tbody.empty();
-            
-            images.forEach(function(img) {
-                const statusText = img.optimized ? '<?php _e('Optimized', 'snn'); ?>' : '<?php _e('Not optimized', 'snn'); ?>';
-                const statusColor = img.optimized ? '#00a32a' : '#646970';
-                const row = `<tr data-id="${img.id}">
-                    <td><input type="checkbox" class="snn-image-checkbox" value="${img.id}"></td>
-                    <td><img src="${img.thumbnail}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 3px;"></td>
-                    <td><a href="${img.url}" target="_blank">${img.filename}</a></td>
-                    <td>${img.mime_type}</td>
-                    <td>${img.size}</td>
-                    <td>${img.optimized_size}</td>
-                    <td><span class="snn-status" style="color: ${statusColor}; font-weight: 500;">${statusText}</span></td>
-                </tr>`;
-                $tbody.append(row);
-            });
-            
-            updateSelectedCount();
+        if (selectedRows.length === 0) {
+            showMessage('<?php _e('Please select at least one image.', 'snn'); ?>', 'error');
+            return;
         }
         
-        $(document).on('change', '.snn-image-checkbox, #snn_select_all_images, #snn_select_all_header', function() {
-            if ($(this).is('#snn_select_all_images, #snn_select_all_header')) {
-                $('.snn-image-checkbox').prop('checked', $(this).prop('checked'));
-                $('#snn_select_all_images, #snn_select_all_header').prop('checked', $(this).prop('checked'));
-            }
-            updateSelectedCount();
-        });
+        const settings = getSettings();
         
-        $('#snn_optimize_selected').on('click', async function() {
-            const selectedIds = $('.snn-image-checkbox:checked').map(function() {
-                return $(this).val();
-            }).get();
-            
-            if (selectedIds.length === 0) {
-                showMessage('<?php _e('Please select at least one image.', 'snn'); ?>', 'error');
-                return;
-            }
-            
-            if (!confirm('<?php _e('You are about to optimize', 'snn'); ?> ' + selectedIds.length + ' <?php _e('image(s). This may take a while. Continue?', 'snn'); ?>')) {
-                return;
-            }
-            
-            const quality = parseFloat($('#snn_existing_quality').val()) || 0.85;
-            const $btn = $(this);
-            $btn.prop('disabled', true);
-            $('#snn_scan_images').prop('disabled', true);
-            $('#snn_optimization_progress').show();
-            
-            let successCount = 0;
-            let errorCount = 0;
-            
-            // Batch processing for better performance with large image counts
-            const BATCH_SIZE = 3; // Process 3 images simultaneously
-            const batches = [];
-            
-            for (let i = 0; i < selectedIds.length; i += BATCH_SIZE) {
-                batches.push(selectedIds.slice(i, i + BATCH_SIZE));
-            }
-            
-            let processedCount = 0;
-            
-            for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-                const batch = batches[batchIndex];
-                
-                // Process batch in parallel
-                const batchPromises = batch.map(id => {
-                    return $.ajax({
-                        url: ajaxurl,
-                        type: 'POST',
-                        data: {
-                            action: 'snn_optimize_single_image',
-                            attachment_id: id,
-                            quality: quality,
-                            nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
-                        }
-                    }).then(function(response) {
-                        if (response.success) {
-                            successCount++;
-                            $('tr[data-id="' + id + '"] .snn-status').text('<?php _e('Optimized', 'snn'); ?>').css('color', '#00a32a').css('font-weight', '500');
-                            // Update optimized size if available
-                            if (response.data && response.data.optimized_size) {
-                                const optimizedSizeFormatted = formatBytes(response.data.optimized_size);
-                                $('tr[data-id="' + id + '"] td:eq(5)').text(optimizedSizeFormatted);
-                            }
-                        } else {
-                            errorCount++;
-                        }
-                    }).catch(function() {
-                        errorCount++;
-                    });
-                });
-                
-                await Promise.all(batchPromises);
-                processedCount += batch.length;
-                
-                const progress = (processedCount / selectedIds.length) * 100;
-                $('#snn_opt_progress_bar').css('width', progress + '%');
-                $('#snn_opt_progress_text').html(
-                    '<?php _e('Optimizing', 'snn'); ?> ' + processedCount + ' / ' + selectedIds.length + '...<br>'
-                    + '<small style="opacity: 0.8;">' + successCount + ' <?php _e('succeeded', 'snn'); ?>'
-                    + (errorCount > 0 ? ', ' + errorCount + ' <?php _e('failed', 'snn'); ?>' : '') + '</small>'
-                );
-            }
-            
-            $btn.prop('disabled', false);
-            $('#snn_scan_images').prop('disabled', false);
-            $('#snn_opt_progress_text').html('<?php _e('Complete!', 'snn'); ?><br><small>' + successCount + ' <?php _e('succeeded', 'snn'); ?>' + (errorCount > 0 ? ', ' + errorCount + ' <?php _e('failed', 'snn'); ?>' : '') + '</small>');
-            
-            setTimeout(function() {
-                $('#snn_optimization_progress').hide();
-            }, 3000);
-            
-            showMessage('<?php _e('Optimization complete:', 'snn'); ?> ' + successCount + ' <?php _e('succeeded', 'snn'); ?>' + (errorCount > 0 ? ', ' + errorCount + ' <?php _e('failed', 'snn'); ?>' : ''), successCount > 0 ? 'success' : 'error');
-        });
-        
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+        if (!confirm(`<?php _e('Optimize', 'snn'); ?> ${selectedRows.length} <?php _e('image(s) using your browser?', 'snn'); ?>`)) {
+            return;
         }
+        
+        const $btn = $(this);
+        $btn.prop('disabled', true);
+        $('#snn_scan_images').prop('disabled', true);
+        $('#snn_optimization_progress').show();
+        
+        let successCount = 0, skippedCount = 0, errorCount = 0, totalSaved = 0;
+        
+        for (let i = 0; i < selectedRows.length; i++) {
+            const item = selectedRows[i];
+            const progress = ((i + 1) / selectedRows.length) * 100;
+            
+            $('#snn_opt_progress_bar').css('width', progress + '%');
+            $('#snn_opt_progress_text').html(
+                `<?php _e('Processing', 'snn'); ?> ${i + 1}/${selectedRows.length}...<br>` +
+                `<small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
+            );
+            
+            item.$row.find('.snn-status').text('<?php _e('Processing...', 'snn'); ?>').css('color', '#2271b1');
+            
+            try {
+                const result = await processImage(item.url, item.mime, item.size, settings);
+                
+                if (!result.success) throw new Error(result.error);
+                
+                if (result.skipped) {
+                    skippedCount++;
+                    item.$row.find('.snn-status').text('<?php _e('Skipped', 'snn'); ?>').css('color', '#dba617');
+                    item.$row.find('.new-size').text('-');
+                    item.$row.find('.savings').text('0%').css('color', '#646970');
+                    continue;
+                }
+                
+                const uploadResult = await uploadOptimizedImage(item.id, result.blob, item.filename);
+                
+                if (!uploadResult.success) throw new Error(uploadResult.error || 'Upload failed');
+                
+                successCount++;
+                totalSaved += result.savings;
+                
+                const pct = Math.round((result.savings / result.originalSize) * 100);
+                item.$row.find('.snn-status').text('<?php _e('Done', 'snn'); ?>').css('color', '#00a32a');
+                item.$row.find('.new-size').text(formatBytes(result.newSize));
+                item.$row.find('.savings').text(`-${pct}%`).css('color', '#00a32a');
+                
+            } catch (error) {
+                errorCount++;
+                item.$row.find('.snn-status').text('<?php _e('Error', 'snn'); ?>').css('color', '#d63638');
+                console.error(`Error: ${item.url}`, error);
+            }
+        }
+        
+        $btn.prop('disabled', false);
+        $('#snn_scan_images').prop('disabled', false);
+        
+        $('#snn_opt_progress_text').html(
+            `<?php _e('Complete!', 'snn'); ?><br><small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
+        );
+        
+        setTimeout(() => $('#snn_optimization_progress').hide(), 5000);
+        
+        const msgType = successCount > 0 ? 'success' : (skippedCount > 0 ? 'warning' : 'error');
+        showMessage(
+            `<?php _e('Complete:', 'snn'); ?> ${successCount} <?php _e('optimized', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?>. <?php _e('Saved:', 'snn'); ?> ${formatBytes(totalSaved)}`,
+            msgType
+        );
     });
     </script>
     <?php
@@ -1674,14 +1915,7 @@ function snn_image_optimization_metabox_callback($post) {
             echo '<p><strong>' . __('Current Size:', 'snn') . '</strong> ' . size_format($current_size) . '</p>';
         }
         
-        if (in_array($mime_type, ['image/jpeg', 'image/png', 'image/webp'])) {
-            echo '<div class="snn-optimize-controls">';
-            echo '<label for="snn_quality_' . $post->ID . '">' . __('Quality (0-1):', 'snn') . '</label><br>';
-            echo '<input type="number" id="snn_quality_' . $post->ID . '" min="0" max="1" step="0.01" value="0.85" style="width: 100%; margin-bottom: 10px;">';
-            echo '<button type="button" class="button button-primary snn-optimize-single-btn" data-id="' . $post->ID . '"'
-                . ' style="width: 100%;">' . __('Optimize to WebP', 'snn') . '</button>';
-            echo '</div>';
-        }
+        echo '<p><a href="' . admin_url('upload.php?page=snn-image-optimization&tab=existing') . '" class="button button-primary" style="width: 100%;">' . __('Go to Bulk Optimizer', 'snn') . '</a></p>';
     }
     
     echo '<div id="snn-metabox-message-' . $post->ID . '" style="margin-top: 10px;"></div>';
@@ -1705,40 +1939,6 @@ function snn_image_optimization_metabox_callback($post) {
                 + message + '</div>'
             ).fadeIn();
         }
-        
-        // Optimize button
-        $('.snn-optimize-single-btn[data-id="' + attachmentId + '"]').on('click', function() {
-            var $btn = $(this);
-            var quality = $('#snn_quality_' + attachmentId).val() || 0.85;
-            
-            $btn.prop('disabled', true).text('<?php _e('Optimizing...', 'snn'); ?>');
-            
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'snn_optimize_single_image',
-                    attachment_id: attachmentId,
-                    quality: quality,
-                    nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        showMetaboxMessage('<?php _e('Image optimized! Refreshing page...', 'snn'); ?>', 'success');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        $btn.prop('disabled', false).text('<?php _e('Optimize to WebP', 'snn'); ?>');
-                        showMetaboxMessage(response.data || '<?php _e('Optimization failed.', 'snn'); ?>', 'error');
-                    }
-                },
-                error: function() {
-                    $btn.prop('disabled', false).text('<?php _e('Optimize to WebP', 'snn'); ?>');
-                    showMetaboxMessage('<?php _e('Error during optimization.', 'snn'); ?>', 'error');
-                }
-            });
-        });
         
         // Restore button
         $('.snn-restore-single-btn[data-id="' + attachmentId + '"]').on('click', function() {
@@ -1778,44 +1978,7 @@ function snn_image_optimization_metabox_callback($post) {
         
         // Re-optimize button
         $('.snn-reoptimize-btn[data-id="' + attachmentId + '"]').on('click', function() {
-            var $btn = $(this);
-            var quality = prompt('<?php _e('Enter quality (0-1):', 'snn'); ?>', '0.85');
-            
-            if (quality === null) return;
-            
-            quality = parseFloat(quality);
-            if (isNaN(quality) || quality < 0 || quality > 1) {
-                showMetaboxMessage('<?php _e('Invalid quality value.', 'snn'); ?>', 'error');
-                return;
-            }
-            
-            $btn.prop('disabled', true).text('<?php _e('Re-optimizing...', 'snn'); ?>');
-            
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'snn_reoptimize_image',
-                    attachment_id: attachmentId,
-                    quality: quality,
-                    nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        showMetaboxMessage('<?php _e('Image re-optimized! Refreshing page...', 'snn'); ?>', 'success');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        $btn.prop('disabled', false).text('<?php _e('Re-optimize', 'snn'); ?>');
-                        showMetaboxMessage(response.data || '<?php _e('Re-optimization failed.', 'snn'); ?>', 'error');
-                    }
-                },
-                error: function() {
-                    $btn.prop('disabled', false).text('<?php _e('Re-optimize', 'snn'); ?>');
-                    showMetaboxMessage('<?php _e('Error during re-optimization.', 'snn'); ?>', 'error');
-                }
-            });
+            showMetaboxMessage('<?php _e('Please use the Bulk Optimizer page for re-optimization.', 'snn'); ?>', 'info');
         });
     });
     </script>
@@ -1825,6 +1988,56 @@ function snn_image_optimization_metabox_callback($post) {
 // ============================================
 // AJAX HANDLERS
 // ============================================
+
+// AJAX handler for saving images from Upload tab
+add_action('wp_ajax_snn_save_optimized_image', 'snn_save_optimized_image');
+
+function snn_save_optimized_image() {
+    check_ajax_referer('snn_save_image_nonce', 'nonce');
+    
+    if (!current_user_can('upload_files')) {
+        wp_send_json_error(__('Permission denied.', 'snn'));
+    }
+    
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        wp_send_json_error(__('No image uploaded or upload error.', 'snn'));
+    }
+    
+    $file = $_FILES['image'];
+    $filename = isset($_POST['filename']) ? sanitize_file_name($_POST['filename']) : $file['name'];
+    
+    // Upload to media library
+    $upload = wp_handle_upload($file, array('test_form' => false));
+    
+    if (isset($upload['error'])) {
+        wp_send_json_error($upload['error']);
+    }
+    
+    // Create attachment
+    $attachment = array(
+        'post_mime_type' => $upload['type'],
+        'post_title'     => preg_replace('/\.[^.]+$/', '', $filename),
+        'post_content'   => '',
+        'post_status'    => 'inherit'
+    );
+    
+    $attach_id = wp_insert_attachment($attachment, $upload['file']);
+    
+    if (is_wp_error($attach_id)) {
+        wp_send_json_error($attach_id->get_error_message());
+    }
+    
+    // Generate metadata
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
+    $attach_data = wp_generate_attachment_metadata($attach_id, $upload['file']);
+    wp_update_attachment_metadata($attach_id, $attach_data);
+    
+    wp_send_json_success(array(
+        'id' => $attach_id,
+        'url' => $upload['url'],
+        'filename' => $filename
+    ));
+}
 
 // Scan for unoptimized images
 add_action('wp_ajax_snn_scan_unoptimized_images', 'snn_scan_unoptimized_images');
@@ -1868,6 +2081,12 @@ function snn_scan_unoptimized_images() {
         $file_size_bytes = file_exists($file_path) ? filesize($file_path) : 0;
         $file_size = size_format($file_size_bytes);
         $thumbnail = wp_get_attachment_image_src($attachment->ID, 'thumbnail');
+        $full_url = wp_get_attachment_url($attachment->ID);
+        
+        // Get dimensions
+        $metadata = wp_get_attachment_metadata($attachment->ID);
+        $width = isset($metadata['width']) ? $metadata['width'] : 0;
+        $height = isset($metadata['height']) ? $metadata['height'] : 0;
         
         $is_optimized = get_post_meta($attachment->ID, '_snn_optimized', true) == '1';
         $optimized_size = get_post_meta($attachment->ID, '_snn_optimized_size', true);
@@ -1875,11 +2094,14 @@ function snn_scan_unoptimized_images() {
         $images[] = array(
             'id' => $attachment->ID,
             'filename' => basename($file_path),
-            'url' => wp_get_attachment_url($attachment->ID),
+            'url' => $full_url,
+            'full_url' => $full_url,
             'thumbnail' => $thumbnail ? $thumbnail[0] : '',
             'mime_type' => $attachment->post_mime_type,
             'size' => $file_size,
             'size_bytes' => $file_size_bytes,
+            'width' => $width,
+            'height' => $height,
             'optimized_size' => $optimized_size ? size_format($optimized_size) : '-',
             'optimized' => $is_optimized
         );
@@ -1888,10 +2110,10 @@ function snn_scan_unoptimized_images() {
     wp_send_json_success(array('images' => $images));
 }
 
-// Optimize single image
-add_action('wp_ajax_snn_optimize_single_image', 'snn_optimize_single_image');
+// Handle upload of client-side optimized image (for Optimize Existing tab)
+add_action('wp_ajax_snn_save_optimized_existing_image', 'snn_save_optimized_existing_image');
 
-function snn_optimize_single_image() {
+function snn_save_optimized_existing_image() {
     check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
     
     if (!current_user_can('upload_files')) {
@@ -1899,185 +2121,73 @@ function snn_optimize_single_image() {
     }
     
     $attachment_id = intval($_POST['attachment_id']);
-    $quality = isset($_POST['quality']) ? floatval($_POST['quality']) : 0.85;
     
-    if ($quality < 0 || $quality > 1) {
-        $quality = 0.85;
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        wp_send_json_error(__('No image uploaded or upload error.', 'snn'));
     }
     
-    $file_path = get_attached_file($attachment_id);
+    $uploaded_file = $_FILES['image']['tmp_name'];
+    $new_filename = sanitize_file_name($_FILES['image']['name']);
     
-    if (!file_exists($file_path)) {
-        wp_send_json_error(__('File not found.', 'snn'));
+    // Get original file info
+    $original_file = get_attached_file($attachment_id);
+    $original_url = wp_get_attachment_url($attachment_id);
+    $original_size = file_exists($original_file) ? filesize($original_file) : 0;
+    
+    if (!$original_file || !file_exists($original_file)) {
+        wp_send_json_error(__('Original file not found.', 'snn'));
     }
     
-    // Store original file size
-    $original_size = filesize($file_path);
-    
-    $mime_type = get_post_mime_type($attachment_id);
-    
-    if (!in_array($mime_type, array('image/jpeg', 'image/png', 'image/webp'))) {
-        wp_send_json_error(__('Invalid file type.', 'snn'));
-    }
-    
-    // Store original URL before any changes (only if not already optimized)
+    // Store original info (only if not already optimized)
     $is_already_optimized = get_post_meta($attachment_id, '_snn_optimized', true);
     if (!$is_already_optimized) {
-        $original_url = wp_get_attachment_url($attachment_id);
         update_post_meta($attachment_id, '_snn_original_url', $original_url);
-        update_post_meta($attachment_id, '_snn_original_file', $file_path);
+        update_post_meta($attachment_id, '_snn_original_file', $original_file);
         update_post_meta($attachment_id, '_snn_original_size', $original_size);
     }
     
-    // Create WebP version
-    $path_info = pathinfo($file_path);
+    // Determine new file path
+    $path_info = pathinfo($original_file);
     $webp_path = $path_info['dirname'] . '/' . $path_info['filename'] . '.webp';
     
-    // Load image based on type
-    if ($mime_type === 'image/jpeg') {
-        $image = @imagecreatefromjpeg($file_path);
-    } elseif ($mime_type === 'image/png') {
-        $image = @imagecreatefrompng($file_path);
-    } else {
-        $image = @imagecreatefromwebp($file_path);
+    // Move uploaded file
+    if (!move_uploaded_file($uploaded_file, $webp_path)) {
+        wp_send_json_error(__('Failed to save WebP file.', 'snn'));
     }
     
-    if (!$image) {
-        wp_send_json_error(__('Could not load image.', 'snn'));
-    }
-    
-    // Handle transparency for PNG
-    if ($mime_type === 'image/png') {
-        imagepalettetotruecolor($image);
-        imagealphablending($image, true);
-        imagesavealpha($image, true);
-    }
-    
-    // Convert to WebP
-    $webp_quality = intval($quality * 100);
-    $success = @imagewebp($image, $webp_path, $webp_quality);
-    imagedestroy($image);
-    
-    if (!$success || !file_exists($webp_path)) {
-        wp_send_json_error(__('Failed to create WebP image.', 'snn'));
-    }
-    
-    // Get optimized file size
     $optimized_size = filesize($webp_path);
     
-    // Update attachment to use WebP
+    // Update WordPress attachment
     $upload_dir = wp_upload_dir();
     $webp_url = str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $webp_path);
     
-    // Update the attached file path
     update_attached_file($attachment_id, $webp_path);
     
-    // Update attachment post
     wp_update_post(array(
         'ID' => $attachment_id,
         'post_mime_type' => 'image/webp',
         'guid' => $webp_url
     ));
     
-    // Update attachment metadata
+    // Regenerate thumbnails
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
     $metadata = wp_generate_attachment_metadata($attachment_id, $webp_path);
     wp_update_attachment_metadata($attachment_id, $metadata);
     
-    // Mark as optimized and store sizes
+    // Mark as optimized
     update_post_meta($attachment_id, '_snn_optimized', '1');
     update_post_meta($attachment_id, '_snn_optimized_date', current_time('mysql'));
     update_post_meta($attachment_id, '_snn_optimized_size', $optimized_size);
-    update_post_meta($attachment_id, '_snn_optimization_quality', $quality);
     
-    // Delete old file if different from webp
-    if ($file_path !== $webp_path && file_exists($file_path) && !$is_already_optimized) {
-        $original_backup = get_post_meta($attachment_id, '_snn_original_file', true);
-        if ($file_path !== $original_backup) {
-            @unlink($file_path);
-        }
+    // Delete old file if different from WebP path
+    if ($original_file !== $webp_path && file_exists($original_file) && !$is_already_optimized) {
+        @unlink($original_file);
     }
     
     wp_send_json_success(array(
         'message' => __('Image optimized successfully.', 'snn'),
         'new_url' => $webp_url,
         'original_size' => $original_size,
-        'optimized_size' => $optimized_size,
-        'savings' => $original_size - $optimized_size
-    ));
-}
-
-// Re-optimize image with new quality
-add_action('wp_ajax_snn_reoptimize_image', 'snn_reoptimize_image');
-
-function snn_reoptimize_image() {
-    check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
-    
-    if (!current_user_can('upload_files')) {
-        wp_send_json_error(__('Permission denied.', 'snn'));
-    }
-    
-    $attachment_id = intval($_POST['attachment_id']);
-    $quality = isset($_POST['quality']) ? floatval($_POST['quality']) : 0.85;
-    
-    // Get the original file to re-optimize from
-    $original_file = get_post_meta($attachment_id, '_snn_original_file', true);
-    
-    if (!$original_file || !file_exists($original_file)) {
-        wp_send_json_error(__('Original file not found. Cannot re-optimize.', 'snn'));
-    }
-    
-    // Load the original image
-    $extension = strtolower(pathinfo($original_file, PATHINFO_EXTENSION));
-    if ($extension === 'png') {
-        $image = @imagecreatefrompng($original_file);
-    } else {
-        $image = @imagecreatefromjpeg($original_file);
-    }
-    
-    if (!$image) {
-        wp_send_json_error(__('Could not load original image.', 'snn'));
-    }
-    
-    // Handle transparency for PNG
-    if ($extension === 'png') {
-        imagepalettetotruecolor($image);
-        imagealphablending($image, true);
-        imagesavealpha($image, true);
-    }
-    
-    // Get current WebP path
-    $current_file = get_attached_file($attachment_id);
-    $path_info = pathinfo($original_file);
-    $webp_path = $path_info['dirname'] . '/' . $path_info['filename'] . '.webp';
-    
-    // Delete current optimized file if it exists
-    if (file_exists($webp_path)) {
-        @unlink($webp_path);
-    }
-    
-    // Create new WebP with new quality
-    $webp_quality = intval($quality * 100);
-    $success = @imagewebp($image, $webp_path, $webp_quality);
-    imagedestroy($image);
-    
-    if (!$success || !file_exists($webp_path)) {
-        wp_send_json_error(__('Failed to re-optimize image.', 'snn'));
-    }
-    
-    // Update file size
-    $optimized_size = filesize($webp_path);
-    update_post_meta($attachment_id, '_snn_optimized_size', $optimized_size);
-    update_post_meta($attachment_id, '_snn_optimization_quality', $quality);
-    update_post_meta($attachment_id, '_snn_optimized_date', current_time('mysql'));
-    
-    // Update attachment metadata
-    $metadata = wp_generate_attachment_metadata($attachment_id, $webp_path);
-    wp_update_attachment_metadata($attachment_id, $metadata);
-    
-    $original_size = get_post_meta($attachment_id, '_snn_original_size', true);
-    
-    wp_send_json_success(array(
-        'message' => __('Image re-optimized successfully.', 'snn'),
         'optimized_size' => $optimized_size,
         'savings' => $original_size - $optimized_size
     ));
