@@ -1588,12 +1588,17 @@ function snn_render_optimization_settings_tab() {
             <h3 style="margin-top: 0; color: #d63638;"><?php _e('Bulk Restore', 'snn'); ?></h3>
             <p class="description"><?php _e('Restore selected or all images back to their original state.', 'snn'); ?></p>
             
-            <div class="button-group" style="margin-top: 15px; display: flex; gap: 10px;">
+            <div class="button-group" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                 <button type="button" id="snn_restore_selected" class="button button-secondary">
                     <?php _e('Restore Selected', 'snn'); ?>
                 </button>
                 <button type="button" id="snn_restore_all" class="button" style="color: #d63638; border-color: #d63638;">
                     <?php _e('Restore All Originals', 'snn'); ?>
+                </button>
+                <button type="button" id="snn_delete_originals" class="button" 
+                    style="background-color: #d63638; color: #fff; border-color: #d63638;" 
+                    title="⚠️ WARNING: This will permanently delete all original image files and cannot be reversed! You will not be able to restore images to their original state after this action.">
+                    <?php _e('Save Space Delete Optimized Image Originals', 'snn'); ?>
                 </button>
             </div>
         </div>
@@ -1637,6 +1642,54 @@ function snn_render_optimization_settings_tab() {
         
         <div id="snn_history_message_area"></div>
     </div>
+    
+    <style>
+        #snn_delete_originals {
+            position: relative;
+        }
+        #snn_delete_originals:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            padding: 12px 16px;
+            background-color: #d63638;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            max-width: 400px;
+            white-space: normal;
+            width: max-content;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            line-height: 1.4;
+        }
+        #snn_delete_originals:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #d63638;
+            z-index: 1001;
+        }
+        @media (max-width: 782px) {
+            #snn_delete_originals:hover::after {
+                left: 0;
+                transform: none;
+                max-width: 280px;
+            }
+            #snn_delete_originals:hover::before {
+                left: 20px;
+                transform: none;
+            }
+        }
+    </style>
     
     <script>
     jQuery(document).ready(function($) {
@@ -1795,6 +1848,84 @@ function snn_render_optimization_settings_tab() {
             const allIds = historyItems.map(item => item.id);
             await restoreImages(allIds);
         });
+        
+        // Delete all original files
+        $('#snn_delete_originals').on('click', async function() {
+            if (historyItems.length === 0) {
+                showHistoryMessage('<?php _e('No optimized images found.', 'snn'); ?>', 'info');
+                return;
+            }
+            
+            const warningMessage = '⚠️ CRITICAL WARNING ⚠️\n' +
+                'You are about to PERMANENTLY DELETE all ' + historyItems.length + ' original image files!\n' +
+                '❌ This action CANNOT be reversed!\n' +
+                '❌ Original files will be PERMANENTLY lost and cant be restored!\n' +
+                'Type "DELETE" (in uppercase) to confirm:';
+            
+            const userInput = prompt(warningMessage);
+            
+            if (userInput !== 'DELETE') {
+                showHistoryMessage('<?php _e('Action cancelled. Original files were not deleted.', 'snn'); ?>', 'info');
+                return;
+            }
+            
+            // Second confirmation
+            if (!confirm('<?php _e('FINAL CONFIRMATION: Are you absolutely certain you want to delete all original files? This cannot be undone!', 'snn'); ?>')) {
+                showHistoryMessage('<?php _e('Action cancelled. Original files were not deleted.', 'snn'); ?>', 'info');
+                return;
+            }
+            
+            const allIds = historyItems.map(item => item.id);
+            await deleteOriginalFiles(allIds);
+        });
+        
+        async function deleteOriginalFiles(ids) {
+            $('#snn_restore_selected, #snn_restore_all, #snn_delete_originals').prop('disabled', true);
+            $('#snn_restore_progress').show();
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const progress = ((i + 1) / ids.length) * 100;
+                $('#snn_restore_progress_bar').css('width', progress + '%').css('background-color', '#d63638');
+                $('#snn_restore_progress_text').text('<?php _e('Deleting original', 'snn'); ?> ' + (i + 1) + ' / ' + ids.length + '...').css('color', '#d63638');
+                
+                try {
+                    const response = await $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'snn_delete_original_file',
+                            attachment_id: id,
+                            nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
+                        }
+                    });
+                    
+                    if (response.success) {
+                        successCount++;
+                        // Update the row to show original is deleted
+                        $('tr[data-id="' + id + '"]').find('td').eq(3).html('<span style="color: #d63638;">Deleted</span>');
+                    } else {
+                        errorCount++;
+                    }
+                } catch (e) {
+                    errorCount++;
+                }
+            }
+            
+            $('#snn_restore_selected, #snn_restore_all, #snn_delete_originals').prop('disabled', false);
+            $('#snn_restore_progress_text').text('<?php _e('Complete!', 'snn'); ?>');
+            
+            setTimeout(function() {
+                $('#snn_restore_progress').hide();
+                $('#snn_restore_progress_bar').css('background-color', '#d63638');
+                loadHistory();
+            }, 2000);
+            
+            showHistoryMessage('<?php _e('Deletion complete:', 'snn'); ?> ' + successCount + ' <?php _e('originals deleted', 'snn'); ?>' + (errorCount > 0 ? ', ' + errorCount + ' <?php _e('failed', 'snn'); ?>' : '') + '. <?php _e('These images can no longer be restored.', 'snn'); ?>', successCount > 0 ? 'success' : 'error');
+        }
         
         async function restoreImages(ids) {
             $('#snn_restore_selected, #snn_restore_all').prop('disabled', true);
@@ -2237,6 +2368,54 @@ function snn_get_optimization_history() {
     }
     
     wp_send_json_success($history);
+}
+
+// Delete original file (for space saving)
+add_action('wp_ajax_snn_delete_original_file', 'snn_delete_original_file');
+
+function snn_delete_original_file() {
+    check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
+    
+    if (!current_user_can('upload_files')) {
+        wp_send_json_error(__('Permission denied.', 'snn'));
+    }
+    
+    $attachment_id = intval($_POST['attachment_id']);
+    
+    $original_file = get_post_meta($attachment_id, '_snn_original_file', true);
+    
+    if (!$original_file) {
+        wp_send_json_error(__('Original file path not found in metadata.', 'snn'));
+    }
+    
+    // Check if file exists
+    if (!file_exists($original_file)) {
+        // File doesn't exist, just remove the meta data
+        delete_post_meta($attachment_id, '_snn_original_url');
+        delete_post_meta($attachment_id, '_snn_original_file');
+        delete_post_meta($attachment_id, '_snn_original_size');
+        
+        wp_send_json_success(array(
+            'message' => __('Original file was already deleted or missing. Metadata cleaned up.', 'snn')
+        ));
+    }
+    
+    // Delete the original file
+    $delete_result = @unlink($original_file);
+    
+    if ($delete_result) {
+        // Remove original file metadata, but keep optimization info
+        delete_post_meta($attachment_id, '_snn_original_url');
+        delete_post_meta($attachment_id, '_snn_original_file');
+        delete_post_meta($attachment_id, '_snn_original_size');
+        
+        wp_send_json_success(array(
+            'message' => __('Original file deleted successfully. This image can no longer be restored.', 'snn'),
+            'deleted_file' => basename($original_file)
+        ));
+    } else {
+        wp_send_json_error(__('Failed to delete original file. Check file permissions.', 'snn'));
+    }
 }
 
 // Restore original image
