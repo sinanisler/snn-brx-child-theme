@@ -1169,7 +1169,7 @@ function snn_render_optimize_existing_media_tab() {
                 <button type="button" id="snn_scan_images" class="button button-primary">
                     <?php _e('Scan for Unoptimized Images', 'snn'); ?>
                 </button>
-                <button type="button" id="snn_optimize_selected" class="button button-secondary" style="display: none; margin-left: 10px;">
+                <button type="button" id="snn_optimize_selected" class="button button-secondary" style="display: none; margin-left: 10px; border:solid 1px">
                     <?php _e('Optimize Selected Images', 'snn'); ?>
                 </button>
             </div>
@@ -2179,10 +2179,9 @@ function snn_save_optimized_existing_image() {
     update_post_meta($attachment_id, '_snn_optimized_date', current_time('mysql'));
     update_post_meta($attachment_id, '_snn_optimized_size', $optimized_size);
     
-    // Delete old file if different from WebP path
-    if ($original_file !== $webp_path && file_exists($original_file) && !$is_already_optimized) {
-        @unlink($original_file);
-    }
+    // Keep the original file for restoration purposes
+    // Do NOT delete the original file - we need it for the restore functionality
+    // The original file path is stored in _snn_original_file meta
     
     wp_send_json_success(array(
         'message' => __('Image optimized successfully.', 'snn'),
@@ -2259,9 +2258,46 @@ function snn_restore_original_image() {
         wp_send_json_error(__('Original file path not found in metadata.', 'snn'));
     }
     
-    if (!file_exists($original_file)) {
-        wp_send_json_error(__('Original file does not exist: ', 'snn') . basename($original_file));
+    // Try to locate the original file using multiple methods
+    $file_exists = false;
+    $correct_original_file = $original_file;
+    
+    // Method 1: Check the stored path directly
+    if (file_exists($original_file)) {
+        $file_exists = true;
     }
+    // Method 2: Try to reconstruct path from URL
+    else if ($original_url) {
+        $upload_dir = wp_upload_dir();
+        $relative_path = str_replace($upload_dir['baseurl'], '', $original_url);
+        $possible_file = $upload_dir['basedir'] . $relative_path;
+        
+        if (file_exists($possible_file)) {
+            $correct_original_file = $possible_file;
+            $file_exists = true;
+        }
+    }
+    // Method 3: Check if file exists in the same directory as current file with original extension
+    if (!$file_exists) {
+        $current_file = get_attached_file($attachment_id);
+        if ($current_file) {
+            $current_dir = dirname($current_file);
+            $original_basename = basename($original_file);
+            $possible_file = $current_dir . '/' . $original_basename;
+            
+            if (file_exists($possible_file)) {
+                $correct_original_file = $possible_file;
+                $file_exists = true;
+            }
+        }
+    }
+    
+    if (!$file_exists) {
+        wp_send_json_error(__('Original file does not exist: ', 'snn') . basename($original_file) . '. ' . __('It may have been deleted or moved.', 'snn'));
+    }
+    
+    // Update to use the correct path
+    $original_file = $correct_original_file;
     
     // Get current WebP file path to delete later
     $current_file = get_attached_file($attachment_id);
