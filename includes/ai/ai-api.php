@@ -91,7 +91,6 @@ function snn_get_ai_api_config() {
 
     // Check if the selected model supports vision/multimodal
     $supports_vision = snn_model_supports_vision($model);
-    $model_capabilities = snn_get_model_capabilities($model);
 
     return [
         'apiKey'          => $apiKey,
@@ -101,7 +100,6 @@ function snn_get_ai_api_config() {
         'actionPresets'   => array_values($action_presets),
         'responseFormat'  => $responseFormat,
         'supportsVision'  => $supports_vision,
-        'capabilities'    => $model_capabilities,
         'maxImageSize'    => 20 * 1024 * 1024, // 20MB limit for OpenRouter
         'supportedTypes'  => ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'],
     ];
@@ -146,13 +144,19 @@ function snn_model_supports_vision($model) {
         }
     }
 
-    // Check input_modalities for image support
-    if (!empty($metadata['input_modalities'])) {
-        $modalities = is_array($metadata['input_modalities']) 
+    // Check input_modalities for image/file support (nested in architecture)
+    $input_modalities = [];
+    if (!empty($metadata['architecture']['input_modalities'])) {
+        $input_modalities = $metadata['architecture']['input_modalities'];
+    } elseif (!empty($metadata['input_modalities'])) {
+        // Fallback to root level
+        $input_modalities = is_array($metadata['input_modalities']) 
             ? $metadata['input_modalities'] 
             : explode(',', $metadata['input_modalities']);
-        
-        foreach ($modalities as $modality) {
+    }
+    
+    if (!empty($input_modalities)) {
+        foreach ($input_modalities as $modality) {
             $mod = trim($modality);
             if (in_array($mod, ['image', 'file', 'video'], true)) {
                 return true;
@@ -163,131 +167,3 @@ function snn_model_supports_vision($model) {
     return false;
 }
 
-/**
- * Get detailed capabilities of a model based on its identifier.
- * 
- * @param string $model The model identifier.
- * @return array Array of capability labels.
- */
-function snn_get_model_capabilities($model) {
-    if (empty($model)) {
-        return ['Text Generation'];
-    }
-
-    $capabilities = [];
-    
-    // Get the provider to determine which metadata to check
-    $ai_provider = get_option('snn_ai_provider', 'openai');
-    $metadata = [];
-
-    if ($ai_provider === 'openrouter') {
-        $stored_model = get_option('snn_openrouter_model', '');
-        if ($stored_model === $model) {
-            $metadata_json = get_option('snn_openrouter_model_metadata', '');
-            if (!empty($metadata_json)) {
-                $metadata = json_decode($metadata_json, true);
-                if (!is_array($metadata)) {
-                    $metadata = [];
-                }
-            }
-        }
-    } elseif ($ai_provider === 'openai') {
-        $stored_model = get_option('snn_openai_model', '');
-        if ($stored_model === $model) {
-            $metadata_json = get_option('snn_openai_model_metadata', '');
-            if (!empty($metadata_json)) {
-                $metadata = json_decode($metadata_json, true);
-                if (!is_array($metadata)) {
-                    $metadata = [];
-                }
-            }
-        }
-    }
-
-    // Parse input_modalities
-    if (!empty($metadata['input_modalities'])) {
-        $modalities = is_array($metadata['input_modalities']) 
-            ? $metadata['input_modalities'] 
-            : explode(',', $metadata['input_modalities']);
-        
-        $modalities = array_map('trim', $modalities);
-        
-        // Text is always available
-        if (in_array('text', $modalities, true)) {
-            $capabilities[] = 'Text Generation';
-        }
-        
-        if (in_array('image', $modalities, true)) {
-            $capabilities[] = 'Image Analysis';
-        }
-        
-        if (in_array('file', $modalities, true)) {
-            $capabilities[] = 'File Processing';
-        }
-        
-        if (in_array('audio', $modalities, true)) {
-            $capabilities[] = 'Audio Processing';
-        }
-        
-        if (in_array('video', $modalities, true)) {
-            $capabilities[] = 'Video Analysis';
-        }
-    } else {
-        // Fallback if no metadata
-        $capabilities[] = 'Text Generation';
-    }
-
-    // Check supported_parameters for additional capabilities
-    if (!empty($metadata['supported_parameters'])) {
-        $params = is_array($metadata['supported_parameters']) 
-            ? $metadata['supported_parameters'] 
-            : explode(',', $metadata['supported_parameters']);
-        
-        $params = array_map('trim', $params);
-        
-        if (in_array('tools', $params, true) || in_array('tool_choice', $params, true)) {
-            $capabilities[] = 'Function Calling';
-        }
-        
-        if (in_array('response_format', $params, true) || in_array('structured_outputs', $params, true)) {
-            $capabilities[] = 'Structured Output';
-        }
-        
-        if (in_array('reasoning', $params, true)) {
-            $capabilities[] = 'Advanced Reasoning';
-        }
-    }
-
-    // Context length
-    if (!empty($metadata['context_length'])) {
-        $context = intval($metadata['context_length']);
-        if ($context >= 1000000) {
-            $capabilities[] = 'Extended Context (' . number_format($context / 1000000, 1) . 'M tokens)';
-        } elseif ($context >= 100000) {
-            $capabilities[] = 'Long Context (' . number_format($context / 1000, 0) . 'K tokens)';
-        }
-    }
-
-    return !empty($capabilities) ? $capabilities : ['Text Generation'];
-}
-
-/**
- * AJAX handler to get model capabilities for the settings page.
- */
-function snn_ajax_get_model_capabilities() {
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized');
-        return;
-    }
-
-    $model = isset($_POST['model']) ? sanitize_text_field($_POST['model']) : '';
-    
-    if (empty($model)) {
-        wp_send_json_error('No model specified');
-        return;
-    }
-
-    $capabilities = snn_get_model_capabilities($model);
-    wp_send_json_success($capabilities);
-}
-add_action('wp_ajax_snn_get_model_capabilities', 'snn_ajax_get_model_capabilities');

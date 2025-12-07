@@ -452,18 +452,24 @@ function snn_render_ai_settings() {
                 background-color: #f9f9f9;
                 display: none;
                 max-width: 410px;
-                max-height:140px;
-                overflow-y:auto;
-                border-radius:4px;
+                max-height: 400px;
+                overflow-y: auto;
+                border-radius: 4px;
             }
             .selected-model-features ul {
                 padding-left: 20px;
                 margin-top: 5px;
                 list-style-type: disc;
                 margin-left: 20px;
+                font-size: 12px;
             }
             .selected-model-features li {
                 margin-bottom: 3px;
+                line-height: 1.4;
+            }
+            .selected-model-features ul ul {
+                font-size: 11px;
+                margin-top: 3px;
             }
             .snn-capability-badges {
                 display: flex;
@@ -474,19 +480,25 @@ function snn_render_ai_settings() {
             .snn-capability-badge {
                 display: inline-block;
                 padding: 4px 8px;
-                background: #0073aa;
+                background: #999;
                 color: white;
                 border-radius: 3px;
                 font-size: 11px;
                 font-weight: 500;
             }
-            .snn-capability-badge.vision {
-                background: #46b450;
+            .snn-capability-badge.cap-modality {
+                background: #9c27b0;
             }
-            .snn-capability-badge.json {
-                background: #f18500;
+            .snn-capability-badge.cap-input {
+                background: #2196f3;
             }
-            .snn-capability-badge.context {
+            .snn-capability-badge.cap-output {
+                background: #4caf50;
+            }
+            .snn-capability-badge.cap-parameter {
+                background: #ff9800;
+            }
+            .snn-capability-badge.cap-context {
                 background: #826eb4;
             }
             .snn-ai-drag-handle {
@@ -673,68 +685,155 @@ function snn_render_ai_settings() {
              * Display model capabilities as user-friendly badges.
              * @param {string} modelId The model identifier.
              * @param {HTMLElement} containerDiv The container div.
+             * @param {Object} modelData The full model object from API.
              */
-            function displayModelCapabilities(modelId, containerDiv) {
+            function displayModelCapabilities(modelId, containerDiv, modelData) {
                 if (!containerDiv) return;
                 containerDiv.classList.remove('active');
                 containerDiv.innerHTML = '';
 
-                if (!modelId) return;
+                if (!modelId || !modelData) return;
 
-                // Use PHP function to get capabilities
-                const formData = new FormData();
-                formData.append('action', 'snn_get_model_capabilities');
-                formData.append('model', modelId);
+                const capabilities = [];
 
-                fetch(ajaxurl, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.data && data.data.length > 0) {
-                        containerDiv.classList.add('active');
-                        
-                        const title = document.createElement('strong');
-                        title.textContent = '<?php esc_html_e('Model Capabilities:', 'snn'); ?>';
-                        containerDiv.appendChild(title);
+                // Parse modality (e.g., "text+image->text")
+                if (modelData.architecture && modelData.architecture.modality) {
+                    capabilities.push({
+                        type: 'modality',
+                        value: modelData.architecture.modality
+                    });
+                }
 
-                        const badgesDiv = document.createElement('div');
-                        badgesDiv.className = 'snn-capability-badges';
+                // Parse input modalities
+                let inputModalities = [];
+                if (modelData.architecture && modelData.architecture.input_modalities) {
+                    inputModalities = modelData.architecture.input_modalities;
+                } else if (modelData.input_modalities) {
+                    inputModalities = modelData.input_modalities;
+                }
+                
+                if (Array.isArray(inputModalities)) {
+                    inputModalities.forEach(mod => {
+                        if (mod) {
+                            capabilities.push({
+                                type: 'input',
+                                value: mod.charAt(0).toUpperCase() + mod.slice(1)
+                            });
+                        }
+                    });
+                }
 
-                        data.data.forEach(capability => {
-                            const badge = document.createElement('span');
-                            badge.className = 'snn-capability-badge';
-                            badge.textContent = capability;
+                // Parse output modalities
+                let outputModalities = [];
+                if (modelData.architecture && modelData.architecture.output_modalities) {
+                    outputModalities = modelData.architecture.output_modalities;
+                } else if (modelData.output_modalities) {
+                    outputModalities = modelData.output_modalities;
+                }
+                
+                if (Array.isArray(outputModalities)) {
+                    outputModalities.forEach(mod => {
+                        if (mod) {
+                            capabilities.push({
+                                type: 'output',
+                                value: mod.charAt(0).toUpperCase() + mod.slice(1)
+                            });
+                        }
+                    });
+                }
 
-                            // Add specific classes for styling
-                            if (capability.includes('Image') || capability.includes('PDF') || capability.includes('Vision')) {
-                                badge.classList.add('vision');
-                            } else if (capability.includes('JSON')) {
-                                badge.classList.add('json');
-                            } else if (capability.includes('Context')) {
-                                badge.classList.add('context');
-                            }
+                // Parse supported parameters
+                if (modelData.supported_parameters && Array.isArray(modelData.supported_parameters)) {
+                    modelData.supported_parameters.forEach(param => {
+                        if (param) {
+                            const formatted = param.split('_').map(word => 
+                                word.charAt(0).toUpperCase() + word.slice(1)
+                            ).join(' ');
+                            capabilities.push({
+                                type: 'parameter',
+                                value: formatted
+                            });
+                        }
+                    });
+                }
 
-                            badgesDiv.appendChild(badge);
-                        });
-
-                        containerDiv.appendChild(badgesDiv);
+                // Parse context length
+                if (modelData.context_length) {
+                    const context = parseInt(modelData.context_length);
+                    let formatted;
+                    if (context >= 1000000) {
+                        formatted = (context / 1000000).toFixed(1) + 'M tokens';
+                    } else if (context >= 1000) {
+                        formatted = Math.round(context / 1000) + 'K tokens';
+                    } else {
+                        formatted = context + ' tokens';
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching model capabilities:', error);
-                });
+                    capabilities.push({
+                        type: 'context',
+                        value: formatted
+                    });
+                }
+
+                // Display capabilities
+                if (capabilities.length > 0) {
+                    containerDiv.classList.add('active');
+                    
+                    const title = document.createElement('strong');
+                    title.textContent = '<?php esc_html_e('Model Capabilities:', 'snn'); ?>';
+                    containerDiv.appendChild(title);
+
+                    const badgesDiv = document.createElement('div');
+                    badgesDiv.className = 'snn-capability-badges';
+
+                    capabilities.forEach(cap => {
+                        const badge = document.createElement('span');
+                        badge.className = 'snn-capability-badge cap-' + cap.type;
+                        badge.textContent = cap.value;
+                        badge.title = cap.type.charAt(0).toUpperCase() + cap.type.slice(1);
+                        badgesDiv.appendChild(badge);
+                    });
+
+                    containerDiv.appendChild(badgesDiv);
+                    
+                    // Add raw JSON display below badges
+                    if (modelData) {
+                        const rawDataTitle = document.createElement('strong');
+                        rawDataTitle.textContent = '<?php esc_html_e('Raw Model Data:', 'snn'); ?>';
+                        rawDataTitle.style.display = 'block';
+                        rawDataTitle.style.marginTop = '10px';
+                        rawDataTitle.style.marginBottom = '5px';
+                        containerDiv.appendChild(rawDataTitle);
+                        
+                        const rawDataUl = document.createElement('ul');
+                        displayFeatures(rawDataUl, modelData);
+                        containerDiv.appendChild(rawDataUl);
+                    }
+                } else {
+                    // Fallback
+                    containerDiv.classList.add('active');
+                    const title = document.createElement('strong');
+                    title.textContent = '<?php esc_html_e('Model Capabilities:', 'snn'); ?>';
+                    containerDiv.appendChild(title);
+                    const badgesDiv = document.createElement('div');
+                    badgesDiv.className = 'snn-capability-badges';
+                    const badge = document.createElement('span');
+                    badge.className = 'snn-capability-badge';
+                    badge.textContent = 'Text Generation';
+                    badgesDiv.appendChild(badge);
+                    containerDiv.appendChild(badgesDiv);
+                }
             }
 
             function displayOpenAiModelFeatures(modelId) {
                 if (!openaiFeaturesDiv) return;
-                displayModelCapabilities(modelId, openaiFeaturesDiv);
+                const selectedModel = allOpenAiModels.find(m => m.id === modelId);
+                displayModelCapabilities(modelId, openaiFeaturesDiv, selectedModel);
             }
 
             function displayOpenRouterModelFeatures(modelId) {
                 if (!openrouterFeaturesDiv) return;
-                displayModelCapabilities(modelId, openrouterFeaturesDiv);
+                const selectedModel = allOpenRouterModels.find(m => m.id === modelId);
+                displayModelCapabilities(modelId, openrouterFeaturesDiv, selectedModel);
             }
 
             function fetchOpenRouterModels() {
