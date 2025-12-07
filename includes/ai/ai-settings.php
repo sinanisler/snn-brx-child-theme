@@ -48,6 +48,27 @@ function snn_add_ai_settings_submenu() {
 }
 add_action('admin_menu', 'snn_add_ai_settings_submenu');
 
+function snn_sanitize_model_metadata($value) {
+    if (empty($value)) {
+        return '';
+    }
+    
+    // If it's already a string (JSON), validate it
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $value; // Valid JSON
+        }
+    }
+    
+    // If it's an array, encode it
+    if (is_array($value)) {
+        return json_encode($value);
+    }
+    
+    return '';
+}
+
 function snn_register_ai_settings() {
     register_setting('snn_ai_settings_group', 'snn_ai_enabled');
     register_setting('snn_ai_settings_group', 'snn_ai_provider', [
@@ -55,8 +76,18 @@ function snn_register_ai_settings() {
     ]);
     register_setting('snn_ai_settings_group', 'snn_openai_api_key');
     register_setting('snn_ai_settings_group', 'snn_openai_model');
+    register_setting('snn_ai_settings_group', 'snn_openai_model_metadata', [
+        'type' => 'string',
+        'sanitize_callback' => 'snn_sanitize_model_metadata',
+        'default' => ''
+    ]);
     register_setting('snn_ai_settings_group', 'snn_openrouter_api_key');
     register_setting('snn_ai_settings_group', 'snn_openrouter_model');
+    register_setting('snn_ai_settings_group', 'snn_openrouter_model_metadata', [
+        'type' => 'string',
+        'sanitize_callback' => 'snn_sanitize_model_metadata',
+        'default' => ''
+    ]);
     register_setting('snn_ai_settings_group', 'snn_system_prompt');
     register_setting('snn_ai_settings_group', 'snn_ai_action_presets', [
         'type' => 'array',
@@ -202,6 +233,7 @@ function snn_render_ai_settings() {
                                 list="openai-models"
                                 autocomplete="off"
                             >
+                            <input type="hidden" name="snn_openai_model_metadata" id="snn_openai_model_metadata" value="">
                             <datalist id="openai-models">
                                 <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
                             </datalist>
@@ -252,6 +284,7 @@ function snn_render_ai_settings() {
                                 list="openrouter-models"
                                 autocomplete="off"
                             >
+                            <input type="hidden" name="snn_openrouter_model_metadata" id="snn_openrouter_model_metadata" value="">
                             <datalist id="openrouter-models">
                                 <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
                             </datalist>
@@ -431,6 +464,30 @@ function snn_render_ai_settings() {
             }
             .selected-model-features li {
                 margin-bottom: 3px;
+            }
+            .snn-capability-badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-top: 8px;
+            }
+            .snn-capability-badge {
+                display: inline-block;
+                padding: 4px 8px;
+                background: #0073aa;
+                color: white;
+                border-radius: 3px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+            .snn-capability-badge.vision {
+                background: #46b450;
+            }
+            .snn-capability-badge.json {
+                background: #f18500;
+            }
+            .snn-capability-badge.context {
+                background: #826eb4;
             }
             .snn-ai-drag-handle {
                 padding: 0;
@@ -612,28 +669,72 @@ function snn_render_ai_settings() {
                 }
             }
 
+            /**
+             * Display model capabilities as user-friendly badges.
+             * @param {string} modelId The model identifier.
+             * @param {HTMLElement} containerDiv The container div.
+             */
+            function displayModelCapabilities(modelId, containerDiv) {
+                if (!containerDiv) return;
+                containerDiv.classList.remove('active');
+                containerDiv.innerHTML = '';
+
+                if (!modelId) return;
+
+                // Use PHP function to get capabilities
+                const formData = new FormData();
+                formData.append('action', 'snn_get_model_capabilities');
+                formData.append('model', modelId);
+
+                fetch(ajaxurl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data && data.data.length > 0) {
+                        containerDiv.classList.add('active');
+                        
+                        const title = document.createElement('strong');
+                        title.textContent = '<?php esc_html_e('Model Capabilities:', 'snn'); ?>';
+                        containerDiv.appendChild(title);
+
+                        const badgesDiv = document.createElement('div');
+                        badgesDiv.className = 'snn-capability-badges';
+
+                        data.data.forEach(capability => {
+                            const badge = document.createElement('span');
+                            badge.className = 'snn-capability-badge';
+                            badge.textContent = capability;
+
+                            // Add specific classes for styling
+                            if (capability.includes('Image') || capability.includes('PDF') || capability.includes('Vision')) {
+                                badge.classList.add('vision');
+                            } else if (capability.includes('JSON')) {
+                                badge.classList.add('json');
+                            } else if (capability.includes('Context')) {
+                                badge.classList.add('context');
+                            }
+
+                            badgesDiv.appendChild(badge);
+                        });
+
+                        containerDiv.appendChild(badgesDiv);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching model capabilities:', error);
+                });
+            }
+
             function displayOpenAiModelFeatures(modelId) {
-                if (!openaiFeaturesList) return;
-                openaiFeaturesDiv.classList.remove('active');
-
-                const selectedModel = allOpenAiModels.find(model => model.id === modelId);
-
-                if (selectedModel) {
-                    openaiFeaturesDiv.classList.add('active');
-                    displayFeatures(openaiFeaturesList, selectedModel);
-                }
+                if (!openaiFeaturesDiv) return;
+                displayModelCapabilities(modelId, openaiFeaturesDiv);
             }
 
             function displayOpenRouterModelFeatures(modelId) {
-                if (!openrouterFeaturesList) return;
-                openrouterFeaturesDiv.classList.remove('active');
-
-                const selectedModel = allOpenRouterModels.find(model => model.id === modelId);
-
-                if (selectedModel) {
-                    openrouterFeaturesDiv.classList.add('active');
-                    displayFeatures(openrouterFeaturesList, selectedModel);
-                }
+                if (!openrouterFeaturesDiv) return;
+                displayModelCapabilities(modelId, openrouterFeaturesDiv);
             }
 
             function fetchOpenRouterModels() {
@@ -761,11 +862,29 @@ function snn_render_ai_settings() {
             if (openaiModelInput) {
                 openaiModelInput.addEventListener('input', (e) => {
                     displayOpenAiModelFeatures(e.target.value);
+                    
+                    // Store metadata for the selected model
+                    const selectedModel = allOpenAiModels.find(m => m.id === e.target.value);
+                    if (selectedModel) {
+                        const metadataField = document.getElementById('snn_openai_model_metadata');
+                        if (metadataField) {
+                            metadataField.value = JSON.stringify(selectedModel);
+                        }
+                    }
                 });
             }
             if (openrouterModelInput) {
                 openrouterModelInput.addEventListener('input', (e) => {
                     displayOpenRouterModelFeatures(e.target.value);
+                    
+                    // Store metadata for the selected model
+                    const selectedModel = allOpenRouterModels.find(m => m.id === e.target.value);
+                    if (selectedModel) {
+                        const metadataField = document.getElementById('snn_openrouter_model_metadata');
+                        if (metadataField) {
+                            metadataField.value = JSON.stringify(selectedModel);
+                        }
+                    }
                 });
             }
 
