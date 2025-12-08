@@ -54,35 +54,41 @@ function snn_seo_ai_enqueue_admin_scripts($hook) {
         return;
     }
 
-    // Pass config to JavaScript
-    wp_localize_script('jquery', 'snnSeoAiConfig', array(
-        'apiKey' => $config['apiKey'],
-        'model' => $config['model'],
-        'apiEndpoint' => $config['apiEndpoint'],
-        'systemPrompt' => $config['systemPrompt'],
-        'actionPresets' => $config['actionPresets'],
-        'responseFormat' => $config['responseFormat'],
-        'nonce' => wp_create_nonce('snn_seo_ai_nonce'),
-        'ajaxUrl' => admin_url('admin-ajax.php'),
-        'strings' => array(
-            'generating' => __('Generating...', 'snn'),
-            'regenerating' => __('Regenerating...', 'snn'),
-            'error' => __('Error generating content', 'snn'),
-            'success' => __('Saved successfully', 'snn'),
-            'preview' => __('Preview & Edit', 'snn'),
-            'save' => __('Save', 'snn'),
-            'cancel' => __('Cancel', 'snn'),
-            'generate' => __('Generate', 'snn'),
-            'regenerate' => __('Regenerate', 'snn'),
-            'selectPreset' => __('Select Action Preset', 'snn'),
-            'customPrompt' => __('Custom Prompt (Optional)', 'snn'),
-            'contextInfo' => __('AI is reading:', 'snn'),
-            'seoTitle' => __('SEO Title', 'snn'),
-            'seoDescription' => __('SEO Description', 'snn'),
-            'processing' => __('Processing item', 'snn'),
-            'of' => __('of', 'snn'),
-        )
-    ));
+    // Pass config to JavaScript (inject directly into page)
+    add_action('admin_footer', function() use ($config) {
+        ?>
+        <script>
+        window.snnSeoAiConfig = <?php echo json_encode(array(
+            'apiKey' => $config['apiKey'],
+            'model' => $config['model'],
+            'apiEndpoint' => $config['apiEndpoint'],
+            'systemPrompt' => $config['systemPrompt'],
+            'actionPresets' => $config['actionPresets'],
+            'responseFormat' => $config['responseFormat'],
+            'nonce' => wp_create_nonce('snn_seo_ai_nonce'),
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'strings' => array(
+                'generating' => __('Generating...', 'snn'),
+                'regenerating' => __('Regenerating...', 'snn'),
+                'error' => __('Error generating content', 'snn'),
+                'success' => __('Saved successfully', 'snn'),
+                'preview' => __('Preview & Edit', 'snn'),
+                'save' => __('Save', 'snn'),
+                'cancel' => __('Cancel', 'snn'),
+                'generate' => __('Generate', 'snn'),
+                'regenerate' => __('Regenerate', 'snn'),
+                'selectPreset' => __('Select Action Preset', 'snn'),
+                'customPrompt' => __('Custom Prompt (Optional)', 'snn'),
+                'contextInfo' => __('AI is reading:', 'snn'),
+                'seoTitle' => __('SEO Title', 'snn'),
+                'seoDescription' => __('SEO Description', 'snn'),
+                'processing' => __('Processing item', 'snn'),
+                'of' => __('of', 'snn'),
+            )
+        ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+        </script>
+        <?php
+    }, 5);
     
     // Inject the unified overlay HTML
     add_action('admin_footer', 'snn_seo_ai_render_overlay');
@@ -565,75 +571,121 @@ function snn_seo_ai_render_overlay() {
     </style>
     
     <script>
-    jQuery(document).ready(function($) {
+    document.addEventListener('DOMContentLoaded', function() {
         if (typeof snnSeoAiConfig === 'undefined') return;
-        
+
         const config = snnSeoAiConfig;
-        const $overlay = $('#snn-seo-ai-overlay');
-        const $itemCount = $('#snn-seo-item-count');
-        const $presetButtons = $('.snn-preset-btn');
-        const $customPrompt = $('#snn-seo-custom-prompt');
-        const $generateTitle = $('#snn-generate-title');
-        const $generateDesc = $('#snn-generate-description');
-        const $results = $('.snn-seo-ai-results');
-        const $resultTitle = $('#snn-seo-result-title');
-        const $resultDesc = $('#snn-seo-result-description');
-        const $titleCount = $('#snn-title-count');
-        const $descCount = $('#snn-desc-count');
-        const $generateBtn = $('.snn-seo-generate');
-        const $regenerateBtn = $('.snn-seo-regenerate');
-        const $saveBtn = $('.snn-seo-save');
-        const $cancelBtn = $('.snn-seo-cancel');
-        const $bulkProgress = $('.snn-seo-ai-bulk-progress');
-        const $bulkResults = $('.snn-seo-ai-bulk-results');
-        const $bulkResultsContainer = $('#snn-bulk-results-container');
-        
+        const overlay = document.getElementById('snn-seo-ai-overlay');
+        const itemCount = document.getElementById('snn-seo-item-count');
+        const presetButtons = document.querySelectorAll('.snn-preset-btn');
+        const customPrompt = document.getElementById('snn-seo-custom-prompt');
+        const generateTitle = document.getElementById('snn-generate-title');
+        const generateDesc = document.getElementById('snn-generate-description');
+        const results = document.querySelector('.snn-seo-ai-results');
+        const resultTitle = document.getElementById('snn-seo-result-title');
+        const resultDesc = document.getElementById('snn-seo-result-description');
+        const titleCountEl = document.getElementById('snn-title-count');
+        const descCountEl = document.getElementById('snn-desc-count');
+        const generateBtn = document.querySelector('.snn-seo-generate');
+        const regenerateBtn = document.querySelector('.snn-seo-regenerate');
+        const saveBtn = document.querySelector('.snn-seo-save');
+        const cancelBtn = document.querySelector('.snn-seo-cancel');
+        const bulkProgress = document.querySelector('.snn-seo-ai-bulk-progress');
+        const bulkResults = document.querySelector('.snn-seo-ai-bulk-results');
+        const bulkResultsContainer = document.getElementById('snn-bulk-results-container');
+
         let currentMode = 'single'; // 'single', 'bulk', 'term'
         let currentData = {};
         let selectedPresets = [];
         let bulkGeneratedData = []; // Store generated results for bulk
-        
+
+        // Helper functions for show/hide
+        function showElement(el) {
+            if (el) el.style.display = '';
+        }
+
+        function hideElement(el) {
+            if (el) el.style.display = 'none';
+        }
+
+        function fadeIn(el, duration = 200) {
+            if (!el) return;
+            el.style.display = '';
+            el.style.opacity = '0';
+            let start = null;
+
+            function animate(timestamp) {
+                if (!start) start = timestamp;
+                const progress = (timestamp - start) / duration;
+                el.style.opacity = Math.min(progress, 1);
+                if (progress < 1) requestAnimationFrame(animate);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function fadeOut(el, duration = 200) {
+            if (!el) return;
+            el.style.opacity = '1';
+            let start = null;
+
+            function animate(timestamp) {
+                if (!start) start = timestamp;
+                const progress = (timestamp - start) / duration;
+                el.style.opacity = Math.max(1 - progress, 0);
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    el.style.display = 'none';
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
         // Character counter
         function updateCharCount() {
-            $titleCount.text($resultTitle.val().length);
-            $descCount.text($resultDesc.val().length);
+            titleCountEl.textContent = resultTitle.value.length;
+            descCountEl.textContent = resultDesc.value.length;
         }
-        
-        $resultTitle.on('input', updateCharCount);
-        $resultDesc.on('input', updateCharCount);
-        
+
+        resultTitle.addEventListener('input', updateCharCount);
+        resultDesc.addEventListener('input', updateCharCount);
+
         // Preset selection (allow multiple)
-        $presetButtons.on('click', function() {
-            $(this).toggleClass('active');
-            const prompt = $(this).data('prompt');
-            
-            if ($(this).hasClass('active')) {
-                if (!selectedPresets.includes(prompt)) {
-                    selectedPresets.push(prompt);
+        presetButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const prompt = this.dataset.prompt;
+
+                if (this.classList.contains('active')) {
+                    if (!selectedPresets.includes(prompt)) {
+                        selectedPresets.push(prompt);
+                    }
+                } else {
+                    selectedPresets = selectedPresets.filter(p => p !== prompt);
                 }
-            } else {
-                selectedPresets = selectedPresets.filter(p => p !== prompt);
-            }
+            });
         });
-        
+
         // Open overlay
         window.snnSeoAiOpenOverlay = function(mode, data) {
             currentMode = mode;
             currentData = data;
             selectedPresets = [];
             bulkGeneratedData = [];
-            
+
             // Reset UI
-            $presetButtons.removeClass('active');
-            $customPrompt.val('');
-            $results.hide();
-            $bulkProgress.hide();
-            $bulkResults.hide();
-            $bulkResultsContainer.empty();
-            $generateBtn.show().prop('disabled', false).text(config.strings.generate);
-            $regenerateBtn.hide();
-            $saveBtn.hide();
-            
+            presetButtons.forEach(btn => btn.classList.remove('active'));
+            customPrompt.value = '';
+            hideElement(results);
+            hideElement(bulkProgress);
+            hideElement(bulkResults);
+            bulkResultsContainer.innerHTML = '';
+            showElement(generateBtn);
+            generateBtn.disabled = false;
+            generateBtn.textContent = config.strings.generate;
+            hideElement(regenerateBtn);
+            hideElement(saveBtn);
+
             // Set item count in header
             let countText = '';
             if (mode === 'single') {
@@ -643,35 +695,42 @@ function snn_seo_ai_render_overlay() {
             } else if (mode === 'term') {
                 countText = `(${data.name})`;
             }
-            $itemCount.text(countText);
-            
-            $overlay.fadeIn(200);
+            itemCount.textContent = countText;
+
+            fadeIn(overlay, 200);
         };
-        
+
         // Close overlay
         function closeOverlay() {
-            $overlay.fadeOut(200);
+            fadeOut(overlay, 200);
         }
-        
-        $('.snn-seo-ai-close, .snn-seo-cancel').on('click', closeOverlay);
-        
-        $('.snn-seo-ai-overlay-backdrop').on('click', function(e) {
-            if (e.target === this) closeOverlay();
+
+        const closeButtons = document.querySelectorAll('.snn-seo-ai-close, .snn-seo-cancel');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', closeOverlay);
         });
-        
+
+        const backdrop = document.querySelector('.snn-seo-ai-overlay-backdrop');
+        if (backdrop) {
+            backdrop.addEventListener('click', function(e) {
+                if (e.target === this) closeOverlay();
+            });
+        }
+
         // Generate
-        $generateBtn.on('click', async function() {
-            if (selectedPresets.length === 0 && !$customPrompt.val().trim()) {
+        generateBtn.addEventListener('click', async function() {
+            if (selectedPresets.length === 0 && !customPrompt.value.trim()) {
                 return;
             }
-            
-            if (!$generateTitle.is(':checked') && !$generateDesc.is(':checked')) {
+
+            if (!generateTitle.checked && !generateDesc.checked) {
                 alert('Please select at least one option to generate (Title or Description).');
                 return;
             }
-            
-            $generateBtn.prop('disabled', true).text(config.strings.generating);
-            
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = config.strings.generating;
+
             try {
                 if (currentMode === 'bulk') {
                     await processBulk();
@@ -681,23 +740,25 @@ function snn_seo_ai_render_overlay() {
             } catch (error) {
                 console.error('Generation error:', error);
                 alert(config.strings.error + ': ' + error.message);
-                $generateBtn.prop('disabled', false).text(config.strings.generate);
+                generateBtn.disabled = false;
+                generateBtn.textContent = config.strings.generate;
             }
         });
-        
+
         // Regenerate
-        $regenerateBtn.on('click', async function() {
-            if (selectedPresets.length === 0 && !$customPrompt.val().trim()) {
+        regenerateBtn.addEventListener('click', async function() {
+            if (selectedPresets.length === 0 && !customPrompt.value.trim()) {
                 return;
             }
-            
-            if (!$generateTitle.is(':checked') && !$generateDesc.is(':checked')) {
+
+            if (!generateTitle.checked && !generateDesc.checked) {
                 alert('Please select at least one option to generate (Title or Description).');
                 return;
             }
-            
-            $regenerateBtn.prop('disabled', true).text(config.strings.regenerating);
-            
+
+            regenerateBtn.disabled = true;
+            regenerateBtn.textContent = config.strings.regenerating;
+
             try {
                 if (currentMode === 'bulk') {
                     await processBulk();
@@ -707,14 +768,16 @@ function snn_seo_ai_render_overlay() {
             } catch (error) {
                 console.error('Regeneration error:', error);
                 alert(config.strings.error + ': ' + error.message);
-                $regenerateBtn.prop('disabled', false).text(config.strings.regenerate);
+                regenerateBtn.disabled = false;
+                regenerateBtn.textContent = config.strings.regenerate;
             }
         });
-        
+
         // Save
-        $saveBtn.on('click', async function() {
-            $saveBtn.prop('disabled', true).text('Saving...');
-            
+        saveBtn.addEventListener('click', async function() {
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
             try {
                 if (currentMode === 'bulk') {
                     await saveBulk();
@@ -723,77 +786,90 @@ function snn_seo_ai_render_overlay() {
                 } else {
                     await saveSingle();
                 }
-                
+
                 closeOverlay();
                 location.reload();
             } catch (error) {
                 console.error('Save error:', error);
-                $saveBtn.prop('disabled', false).text(config.strings.save);
+                saveBtn.disabled = false;
+                saveBtn.textContent = config.strings.save;
             }
         });
-        
+
         // Generate for single item or term
         async function generateSingle() {
             const prompt = buildPrompt();
             const result = await callAI(prompt);
-            
-            if ($generateTitle.is(':checked')) {
-                $resultTitle.val(result.title || '').closest('.snn-seo-result-item').show();
+
+            const titleItem = resultTitle.closest('.snn-seo-result-item');
+            const descItem = resultDesc.closest('.snn-seo-result-item');
+
+            if (generateTitle.checked) {
+                resultTitle.value = result.title || '';
+                showElement(titleItem);
             } else {
-                $resultTitle.closest('.snn-seo-result-item').hide();
+                hideElement(titleItem);
             }
-            
-            if ($generateDesc.is(':checked')) {
-                $resultDesc.val(result.description || '').closest('.snn-seo-result-item').show();
+
+            if (generateDesc.checked) {
+                resultDesc.value = result.description || '';
+                showElement(descItem);
             } else {
-                $resultDesc.closest('.snn-seo-result-item').hide();
+                hideElement(descItem);
             }
-            
+
             updateCharCount();
-            
-            $results.fadeIn();
-            $generateBtn.hide();
-            $regenerateBtn.show().prop('disabled', false).text(config.strings.regenerate);
-            $saveBtn.show();
+
+            fadeIn(results);
+            hideElement(generateBtn);
+            showElement(regenerateBtn);
+            regenerateBtn.disabled = false;
+            regenerateBtn.textContent = config.strings.regenerate;
+            showElement(saveBtn);
         }
-        
+
         // Process bulk items - generate and preview
         async function processBulk() {
-            $generateBtn.hide();
-            $regenerateBtn.hide();
-            $bulkProgress.show();
-            $bulkResults.hide();
-            $bulkResultsContainer.empty();
-            
+            hideElement(generateBtn);
+            hideElement(regenerateBtn);
+            showElement(bulkProgress);
+            hideElement(bulkResults);
+            bulkResultsContainer.innerHTML = '';
+
             const items = currentData.items;
             const total = items.length;
-            $('#snn-bulk-total').text(total);
-            
+            document.getElementById('snn-bulk-total').textContent = total;
+
             bulkGeneratedData = [];
-            
+
             for (let i = 0; i < items.length; i++) {
                 const postId = items[i];
-                $('#snn-bulk-current').text(i + 1);
-                $('.snn-progress-fill').css('width', ((i + 1) / total * 100) + '%');
-                
+                document.getElementById('snn-bulk-current').textContent = i + 1;
+                const progressFill = document.querySelector('.snn-progress-fill');
+                if (progressFill) {
+                    progressFill.style.width = ((i + 1) / total * 100) + '%';
+                }
+
                 try {
-                    // Fetch post data
-                    const postData = await $.ajax({
-                        url: config.ajaxUrl,
+                    // Fetch post data using fetch API
+                    const formData = new FormData();
+                    formData.append('action', 'snn_seo_ai_get_post_data');
+                    formData.append('post_id', postId);
+                    formData.append('nonce', config.nonce);
+
+                    const response = await fetch(config.ajaxUrl, {
                         method: 'POST',
-                        data: {
-                            action: 'snn_seo_ai_get_post_data',
-                            post_id: postId,
-                            nonce: config.nonce
-                        }
+                        body: formData
                     });
-                    
+
+                    const postData = await response.json();
+
                     if (!postData.success) continue;
-                    
+
                     // Generate SEO
                     const prompt = buildPromptForData(postData.data);
                     const result = await callAI(prompt);
-                    
+
                     // Store generated data
                     bulkGeneratedData.push({
                         postId: postId,
@@ -805,26 +881,28 @@ function snn_seo_ai_render_overlay() {
                     console.error('Error processing post ' + postId, error);
                 }
             }
-            
+
             // Show results preview
-            $bulkProgress.hide();
+            hideElement(bulkProgress);
             renderBulkResults();
-            $bulkResults.fadeIn();
-            $regenerateBtn.show().prop('disabled', false).text(config.strings.regenerate);
-            $saveBtn.show();
+            fadeIn(bulkResults);
+            showElement(regenerateBtn);
+            regenerateBtn.disabled = false;
+            regenerateBtn.textContent = config.strings.regenerate;
+            showElement(saveBtn);
         }
-        
+
         // Render bulk results for preview/edit
         function renderBulkResults() {
-            $bulkResultsContainer.empty();
-            
-            const showTitle = $generateTitle.is(':checked');
-            const showDesc = $generateDesc.is(':checked');
-            
+            bulkResultsContainer.innerHTML = '';
+
+            const showTitle = generateTitle.checked;
+            const showDesc = generateDesc.checked;
+
             bulkGeneratedData.forEach((item, index) => {
                 let titleField = '';
                 let descField = '';
-                
+
                 if (showTitle) {
                     titleField = `
                         <div class="snn-bulk-field">
@@ -838,7 +916,7 @@ function snn_seo_ai_render_overlay() {
                         </div>
                     `;
                 }
-                
+
                 if (showDesc) {
                     descField = `
                         <div class="snn-bulk-field">
@@ -852,7 +930,7 @@ function snn_seo_ai_render_overlay() {
                         </div>
                     `;
                 }
-                
+
                 const itemHtml = `
                     <div class="snn-bulk-item" data-index="${index}">
                         <div class="snn-bulk-item-header">
@@ -865,136 +943,158 @@ function snn_seo_ai_render_overlay() {
                         ${descField}
                     </div>
                 `;
-                $bulkResultsContainer.append(itemHtml);
+                bulkResultsContainer.insertAdjacentHTML('beforeend', itemHtml);
             });
-            
+
             // Bind input events for character counting and data update
-            $('.bulk-title-input').on('input', function() {
-                const index = $(this).data('index');
-                const value = $(this).val();
-                bulkGeneratedData[index].title = value;
-                $(this).closest('.snn-bulk-field').find('.title-count').text(value.length);
+            const titleInputs = document.querySelectorAll('.bulk-title-input');
+            titleInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = parseInt(this.dataset.index);
+                    const value = this.value;
+                    bulkGeneratedData[index].title = value;
+                    const countEl = this.closest('.snn-bulk-field').querySelector('.title-count');
+                    if (countEl) countEl.textContent = value.length;
+                });
             });
-            
-            $('.bulk-desc-input').on('input', function() {
-                const index = $(this).data('index');
-                const value = $(this).val();
-                bulkGeneratedData[index].description = value;
-                $(this).closest('.snn-bulk-field').find('.desc-count').text(value.length);
+
+            const descInputs = document.querySelectorAll('.bulk-desc-input');
+            descInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = parseInt(this.dataset.index);
+                    const value = this.value;
+                    bulkGeneratedData[index].description = value;
+                    const countEl = this.closest('.snn-bulk-field').querySelector('.desc-count');
+                    if (countEl) countEl.textContent = value.length;
+                });
             });
-            
+
             // Bind regenerate button for individual items
-            $('.snn-bulk-item-regenerate').on('click', async function() {
-                const index = $(this).data('index');
-                const $btn = $(this);
-                const $item = $(`.snn-bulk-item[data-index="${index}"]`);
-                
-                $btn.prop('disabled', true).text(config.strings.regenerating);
-                
-                try {
-                    const itemData = bulkGeneratedData[index];
-                    
-                    // Fetch fresh post data
-                    const postData = await $.ajax({
-                        url: config.ajaxUrl,
-                        method: 'POST',
-                        data: {
-                            action: 'snn_seo_ai_get_post_data',
-                            post_id: itemData.postId,
-                            nonce: config.nonce
+            const regenButtons = document.querySelectorAll('.snn-bulk-item-regenerate');
+            regenButtons.forEach(button => {
+                button.addEventListener('click', async function() {
+                    const index = parseInt(this.dataset.index);
+                    const btn = this;
+                    const item = document.querySelector(`.snn-bulk-item[data-index="${index}"]`);
+
+                    btn.disabled = true;
+                    btn.textContent = config.strings.regenerating;
+
+                    try {
+                        const itemData = bulkGeneratedData[index];
+
+                        // Fetch fresh post data
+                        const formData = new FormData();
+                        formData.append('action', 'snn_seo_ai_get_post_data');
+                        formData.append('post_id', itemData.postId);
+                        formData.append('nonce', config.nonce);
+
+                        const response = await fetch(config.ajaxUrl, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const postData = await response.json();
+
+                        if (postData.success) {
+                            const prompt = buildPromptForData(postData.data);
+                            const result = await callAI(prompt);
+
+                            // Update stored data
+                            bulkGeneratedData[index].title = result.title;
+                            bulkGeneratedData[index].description = result.description;
+
+                            // Update UI
+                            const titleInput = item.querySelector('.bulk-title-input');
+                            if (titleInput) {
+                                titleInput.value = result.title;
+                                titleInput.dispatchEvent(new Event('input'));
+                            }
+
+                            const descInput = item.querySelector('.bulk-desc-input');
+                            if (descInput) {
+                                descInput.value = result.description;
+                                descInput.dispatchEvent(new Event('input'));
+                            }
                         }
-                    });
-                    
-                    if (postData.success) {
-                        const prompt = buildPromptForData(postData.data);
-                        const result = await callAI(prompt);
-                        
-                        // Update stored data
-                        bulkGeneratedData[index].title = result.title;
-                        bulkGeneratedData[index].description = result.description;
-                        
-                        // Update UI
-                        $item.find('.bulk-title-input').val(result.title).trigger('input');
-                        $item.find('.bulk-desc-input').val(result.description).trigger('input');
+                    } catch (error) {
+                        console.error('Regenerate error:', error);
+                        alert(config.strings.error);
                     }
-                } catch (error) {
-                    console.error('Regenerate error:', error);
-                    alert(config.strings.error);
-                }
-                
-                $btn.prop('disabled', false).text(config.strings.regenerate);
+
+                    btn.disabled = false;
+                    btn.textContent = config.strings.regenerate;
+                });
             });
         }
-        
+
         // Save bulk items
         async function saveBulk() {
             const total = bulkGeneratedData.length;
             let saved = 0;
-            
+
             for (const item of bulkGeneratedData) {
                 try {
-                    const data = {
-                        action: 'snn_seo_ai_save_post',
-                        post_id: item.postId,
-                        nonce: config.nonce
-                    };
-                    
-                    if ($generateTitle.is(':checked')) {
-                        data.title = item.title;
+                    const formData = new FormData();
+                    formData.append('action', 'snn_seo_ai_save_post');
+                    formData.append('post_id', item.postId);
+                    formData.append('nonce', config.nonce);
+
+                    if (generateTitle.checked) {
+                        formData.append('title', item.title);
                     }
-                    
-                    if ($generateDesc.is(':checked')) {
-                        data.description = item.description;
+
+                    if (generateDesc.checked) {
+                        formData.append('description', item.description);
                     }
-                    
-                    await $.ajax({
-                        url: config.ajaxUrl,
+
+                    await fetch(config.ajaxUrl, {
                         method: 'POST',
-                        data: data
+                        body: formData
                     });
                     saved++;
                 } catch (error) {
                     console.error('Error saving post ' + item.postId, error);
                 }
             }
-            
+
             if (saved < total) {
                 alert(`Saved ${saved} of ${total} items. Some items failed to save.`);
             }
         }
-        
+
         // Helper function to escape HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         // Build prompt
         function buildPrompt() {
             return buildPromptForData(currentData);
         }
-        
+
         function buildPromptForData(data) {
             let basePrompt = selectedPresets.join(' ') || '';
-            const customPrompt = $customPrompt.val().trim();
-            
-            if (customPrompt) {
-                basePrompt += (basePrompt ? ' ' : '') + customPrompt;
+            const customPromptValue = customPrompt.value.trim();
+
+            if (customPromptValue) {
+                basePrompt += (basePrompt ? ' ' : '') + customPromptValue;
             }
-            
-            const generateTitle = $generateTitle.is(':checked');
-            const generateDesc = $generateDesc.is(':checked');
-            
+
+            const genTitle = generateTitle.checked;
+            const genDesc = generateDesc.checked;
+
             let whatToGenerate = '';
-            if (generateTitle && generateDesc) {
+            if (genTitle && genDesc) {
                 whatToGenerate = 'Generate SEO title (max 60 chars) and description (max 160 chars)';
-            } else if (generateTitle) {
+            } else if (genTitle) {
                 whatToGenerate = 'Generate SEO title (max 60 chars)';
-            } else if (generateDesc) {
+            } else if (genDesc) {
                 whatToGenerate = 'Generate SEO description (max 160 chars)';
             }
-            
+
             if (currentMode === 'term') {
                 return `${basePrompt}\n\n${whatToGenerate} for this taxonomy term:\nTerm: ${data.name}\nDescription: ${data.description || 'N/A'}\n\nReturn JSON: {"title": "...", "description": "..."}`;
             } else {
@@ -1049,54 +1149,52 @@ function snn_seo_ai_render_overlay() {
                 };
             }
         }
-        
+
         // Save single post
         async function saveSingle() {
-            const data = {
-                action: 'snn_seo_ai_save_post',
-                post_id: currentData.postId,
-                nonce: config.nonce
-            };
-            
-            if ($generateTitle.is(':checked')) {
-                data.title = $resultTitle.val();
+            const formData = new FormData();
+            formData.append('action', 'snn_seo_ai_save_post');
+            formData.append('post_id', currentData.postId);
+            formData.append('nonce', config.nonce);
+
+            if (generateTitle.checked) {
+                formData.append('title', resultTitle.value);
             }
-            
-            if ($generateDesc.is(':checked')) {
-                data.description = $resultDesc.val();
+
+            if (generateDesc.checked) {
+                formData.append('description', resultDesc.value);
             }
-            
-            return $.ajax({
-                url: config.ajaxUrl,
+
+            return fetch(config.ajaxUrl, {
                 method: 'POST',
-                data: data
+                body: formData
             });
         }
-        
+
         // Save term
         async function saveTerm() {
-            const data = {
-                action: 'snn_seo_ai_save_term',
-                term_id: currentData.termId,
-                nonce: config.nonce
-            };
-            
-            if ($generateTitle.is(':checked')) {
-                data.title = $resultTitle.val();
+            const formData = new FormData();
+            formData.append('action', 'snn_seo_ai_save_term');
+            formData.append('term_id', currentData.termId);
+            formData.append('nonce', config.nonce);
+
+            if (generateTitle.checked) {
+                formData.append('title', resultTitle.value);
                 // Also update the visible form field
-                $('#snn_seo_term_title').val($resultTitle.val());
+                const termTitleField = document.getElementById('snn_seo_term_title');
+                if (termTitleField) termTitleField.value = resultTitle.value;
             }
-            
-            if ($generateDesc.is(':checked')) {
-                data.description = $resultDesc.val();
+
+            if (generateDesc.checked) {
+                formData.append('description', resultDesc.value);
                 // Also update the visible form field
-                $('#snn_seo_term_description').val($resultDesc.val());
+                const termDescField = document.getElementById('snn_seo_term_description');
+                if (termDescField) termDescField.value = resultDesc.value;
             }
-            
-            return $.ajax({
-                url: config.ajaxUrl,
+
+            return fetch(config.ajaxUrl, {
                 method: 'POST',
-                data: data
+                body: formData
             });
         }
     });
@@ -1139,22 +1237,25 @@ function snn_seo_ai_meta_box_buttons($post) {
     </div>
     
     <script>
-    jQuery(document).ready(function($) {
+    document.addEventListener('DOMContentLoaded', function() {
         const postContent = <?php echo json_encode(wp_strip_all_tags(substr($post_content, 0, 3000))); ?>;
         const postTitle = <?php echo json_encode($post_title); ?>;
         const postId = <?php echo $post->ID; ?>;
 
-        $('#snn-seo-ai-generate-btn').on('click', function(e) {
-            e.preventDefault();
-            
-            if (typeof window.snnSeoAiOpenOverlay === 'function') {
-                window.snnSeoAiOpenOverlay('single', {
-                    postId: postId,
-                    title: postTitle,
-                    content: postContent
-                });
-            }
-        });
+        const generateBtn = document.getElementById('snn-seo-ai-generate-btn');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                if (typeof window.snnSeoAiOpenOverlay === 'function') {
+                    window.snnSeoAiOpenOverlay('single', {
+                        postId: postId,
+                        title: postTitle,
+                        content: postContent
+                    });
+                }
+            });
+        }
     });
     </script>
     <?php
@@ -1180,44 +1281,69 @@ function snn_seo_ai_add_bulk_button() {
     
     ?>
     <script>
-    jQuery(document).ready(function($) {
+    document.addEventListener('DOMContentLoaded', function() {
         if (typeof snnSeoAiOpenOverlay === 'undefined') return;
-        
+
         // Add bulk button container to actions bar
-        $('<div id="snn-seo-bulk-container" style="display: inline-block; margin-left: 10px; vertical-align: top;"><button type="button" class="button" id="snn-seo-bulk-ai-btn"><?php _e('Bulk AI SEO Generation ✨', 'snn'); ?></button></div>')
-            .insertAfter('.tablenav.top .bulkactions');
-        
-        $('#snn-seo-bulk-ai-btn').on('click', function(e) {
-            e.preventDefault();
-            
-            const checkedBoxes = $('tbody input[name="post[]"]:checked');
-            
-            if (checkedBoxes.length === 0) {
-                // Remove any existing warning
-                $('#snn-bulk-warning').remove();
-                
-                // Add warning text below button
-                $('#snn-seo-bulk-container').append('<div id="snn-bulk-warning" style="color: #d63638; font-size: 12px; margin-top: 5px;"><?php _e('Please select posts first.', 'snn'); ?></div>');
-                
-                // Remove warning after 3 seconds
-                setTimeout(function() {
-                    $('#snn-bulk-warning').fadeOut(300, function() { $(this).remove(); });
-                }, 3000);
-                
-                return;
+        const bulkActions = document.querySelector('.tablenav.top .bulkactions');
+        if (bulkActions) {
+            const container = document.createElement('div');
+            container.id = 'snn-seo-bulk-container';
+            container.style.cssText = 'display: inline-block; margin-left: 10px; vertical-align: top;';
+            container.innerHTML = '<button type="button" class="button" id="snn-seo-bulk-ai-btn"><?php _e('Bulk AI SEO Generation ✨', 'snn'); ?></button>';
+            bulkActions.insertAdjacentElement('afterend', container);
+
+            const bulkBtn = document.getElementById('snn-seo-bulk-ai-btn');
+            if (bulkBtn) {
+                bulkBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const checkedBoxes = document.querySelectorAll('tbody input[name="post[]"]:checked');
+
+                    if (checkedBoxes.length === 0) {
+                        // Remove any existing warning
+                        const existingWarning = document.getElementById('snn-bulk-warning');
+                        if (existingWarning) existingWarning.remove();
+
+                        // Add warning text below button
+                        const warning = document.createElement('div');
+                        warning.id = 'snn-bulk-warning';
+                        warning.style.cssText = 'color: #d63638; font-size: 12px; margin-top: 5px;';
+                        warning.textContent = '<?php _e('Please select posts first.', 'snn'); ?>';
+                        container.appendChild(warning);
+
+                        // Remove warning after 3 seconds
+                        setTimeout(function() {
+                            warning.style.opacity = '1';
+                            let start = null;
+                            function fadeOut(timestamp) {
+                                if (!start) start = timestamp;
+                                const progress = (timestamp - start) / 300;
+                                warning.style.opacity = Math.max(1 - progress, 0);
+                                if (progress < 1) {
+                                    requestAnimationFrame(fadeOut);
+                                } else {
+                                    warning.remove();
+                                }
+                            }
+                            requestAnimationFrame(fadeOut);
+                        }, 3000);
+
+                        return;
+                    }
+
+                    // Remove any existing warning
+                    const existingWarning = document.getElementById('snn-bulk-warning');
+                    if (existingWarning) existingWarning.remove();
+
+                    const postIds = Array.from(checkedBoxes).map(checkbox => parseInt(checkbox.value));
+
+                    snnSeoAiOpenOverlay('bulk', {
+                        items: postIds
+                    });
+                });
             }
-            
-            // Remove any existing warning
-            $('#snn-bulk-warning').remove();
-            
-            const postIds = checkedBoxes.map(function() {
-                return parseInt($(this).val());
-            }).get();
-            
-            snnSeoAiOpenOverlay('bulk', {
-                items: postIds
-            });
-        });
+        }
     });
     </script>
     <?php
@@ -1355,22 +1481,25 @@ function snn_seo_ai_taxonomy_fields($term) {
     </tr>
 
     <script>
-    jQuery(document).ready(function($) {
+    document.addEventListener('DOMContentLoaded', function() {
         const termName = <?php echo json_encode($term->name); ?>;
         const termDescription = <?php echo json_encode($term->description); ?>;
         const termId = <?php echo $term->term_id; ?>;
 
-        $('#snn-seo-ai-generate-term-btn').on('click', function(e) {
-            e.preventDefault();
-            
-            if (typeof window.snnSeoAiOpenOverlay === 'function') {
-                window.snnSeoAiOpenOverlay('term', {
-                    termId: termId,
-                    name: termName,
-                    description: termDescription
-                });
-            }
-        });
+        const generateTermBtn = document.getElementById('snn-seo-ai-generate-term-btn');
+        if (generateTermBtn) {
+            generateTermBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                if (typeof window.snnSeoAiOpenOverlay === 'function') {
+                    window.snnSeoAiOpenOverlay('term', {
+                        termId: termId,
+                        name: termName,
+                        description: termDescription
+                    });
+                }
+            });
+        }
     });
     </script>
     <?php
