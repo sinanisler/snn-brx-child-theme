@@ -265,7 +265,7 @@ function snn_render_ai_settings() {
                                 <?php esc_html_e('Select the OpenRouter model to use. Start typing to search.', 'snn'); ?>
                                 <a href="https://openrouter.ai/models" target="_blank"><?php esc_html_e('Prices', 'snn'); ?></a>
                             </p>
-                            <div id="openrouter-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none;">
+                            <div id="openrouter-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none; max-width: 410px; height: 120px; overflow: auto;">
                                 <strong><?php esc_html_e('Selected Model Features:', 'snn'); ?></strong>
                                 <ul style="list-style-type: disc; margin-left: 20px;"></ul>
                             </div>
