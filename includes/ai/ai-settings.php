@@ -48,46 +48,15 @@ function snn_add_ai_settings_submenu() {
 }
 add_action('admin_menu', 'snn_add_ai_settings_submenu');
 
-function snn_sanitize_model_metadata($value) {
-    if (empty($value)) {
-        return '';
-    }
-    
-    // If it's already a string (JSON), validate it
-    if (is_string($value)) {
-        $decoded = json_decode($value, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return $value; // Valid JSON
-        }
-    }
-    
-    // If it's an array, encode it
-    if (is_array($value)) {
-        return json_encode($value);
-    }
-    
-    return '';
-}
-
 function snn_register_ai_settings() {
     register_setting('snn_ai_settings_group', 'snn_ai_enabled');
     register_setting('snn_ai_settings_group', 'snn_ai_provider', [
-        'default' => 'openrouter',
+        'default' => 'openai',
     ]);
     register_setting('snn_ai_settings_group', 'snn_openai_api_key');
     register_setting('snn_ai_settings_group', 'snn_openai_model');
-    register_setting('snn_ai_settings_group', 'snn_openai_model_metadata', [
-        'type' => 'string',
-        'sanitize_callback' => 'snn_sanitize_model_metadata',
-        'default' => ''
-    ]);
     register_setting('snn_ai_settings_group', 'snn_openrouter_api_key');
     register_setting('snn_ai_settings_group', 'snn_openrouter_model');
-    register_setting('snn_ai_settings_group', 'snn_openrouter_model_metadata', [
-        'type' => 'string',
-        'sanitize_callback' => 'snn_sanitize_model_metadata',
-        'default' => ''
-    ]);
     register_setting('snn_ai_settings_group', 'snn_system_prompt');
     register_setting('snn_ai_settings_group', 'snn_ai_action_presets', [
         'type' => 'array',
@@ -103,7 +72,7 @@ add_action('admin_init', 'snn_register_ai_settings');
 
 function snn_render_ai_settings() {
     $ai_enabled           = get_option('snn_ai_enabled', 'no');
-    $ai_provider          = get_option('snn_ai_provider', 'openrouter');
+    $ai_provider          = get_option('snn_ai_provider', 'openai');
     $openai_api_key       = get_option('snn_openai_api_key', '');
     $openai_model         = get_option('snn_openai_model', 'gpt-4o-mini'); // Updated model name
     $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
@@ -162,8 +131,8 @@ function snn_render_ai_settings() {
                     </th>
                     <td>
                         <select name="snn_ai_provider" id="snn_ai_provider">
-                            <option value="openrouter" <?php selected($ai_provider, 'openrouter'); ?>>OpenRouter</option>
                             <option value="openai" <?php selected($ai_provider, 'openai'); ?>>OpenAI</option>
+                            <option value="openrouter" <?php selected($ai_provider, 'openrouter'); ?>>OpenRouter</option>
                             <option value="custom" <?php selected($ai_provider, 'custom'); ?>>Custom</option>
                         </select>
                     </td>
@@ -190,7 +159,10 @@ function snn_render_ai_settings() {
                 </tr>
             </table>
 
-            <div id="openai-settings">
+            <div
+                id="openai-settings"
+                style="display: <?php echo ($ai_provider === 'openai' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
+            >
                 <h2><?php esc_html_e('OpenAI API Settings', 'snn'); ?></h2>
                 <table class="form-table">
                     <tr>
@@ -233,7 +205,6 @@ function snn_render_ai_settings() {
                                 list="openai-models"
                                 autocomplete="off"
                             >
-                            <input type="hidden" name="snn_openai_model_metadata" id="snn_openai_model_metadata" value="">
                             <datalist id="openai-models">
                                 <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
                             </datalist>
@@ -241,16 +212,19 @@ function snn_render_ai_settings() {
                                 <?php esc_html_e('Select the OpenAI model to use. Start typing to search.', 'snn'); ?><br>
                                 <a href="https://platform.openai.com/docs/models" target="_blank"><?php esc_html_e('Model Info & Pricing', 'snn'); ?></a>
                             </p>
-                            <div id="openai-selected-model-features" class="selected-model-features">
+                            <div id="openai-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none;">
                                 <strong><?php esc_html_e('Selected Model Features:', 'snn'); ?></strong>
-                                <ul></ul>
+                                <ul style="list-style-type: disc; margin-left: 20px;"></ul>
                             </div>
                         </td>
                     </tr>
                 </table>
             </div>
 
-            <div id="openrouter-settings">
+            <div
+                id="openrouter-settings"
+                style="display: <?php echo ($ai_provider === 'openrouter' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
+            >
                 <h2><?php esc_html_e('OpenRouter API Settings', 'snn'); ?></h2>
                 <table class="form-table">
                     <tr>
@@ -284,7 +258,6 @@ function snn_render_ai_settings() {
                                 list="openrouter-models"
                                 autocomplete="off"
                             >
-                            <input type="hidden" name="snn_openrouter_model_metadata" id="snn_openrouter_model_metadata" value="">
                             <datalist id="openrouter-models">
                                 <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
                             </datalist>
@@ -292,16 +265,19 @@ function snn_render_ai_settings() {
                                 <?php esc_html_e('Select the OpenRouter model to use. Start typing to search.', 'snn'); ?>
                                 <a href="https://openrouter.ai/models" target="_blank"><?php esc_html_e('Prices', 'snn'); ?></a>
                             </p>
-                            <div id="openrouter-selected-model-features" class="selected-model-features">
+                            <div id="openrouter-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none;">
                                 <strong><?php esc_html_e('Selected Model Features:', 'snn'); ?></strong>
-                                <ul></ul>
+                                <ul style="list-style-type: disc; margin-left: 20px;"></ul>
                             </div>
                         </td>
                     </tr>
                 </table>
             </div>
 
-            <div id="custom-settings">
+            <div
+                id="custom-settings"
+                style="display: <?php echo ($ai_provider === 'custom' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
+            >
                 <h2><?php esc_html_e('Custom API Settings', 'snn'); ?></h2>
                 <table class="form-table">
                     <tr>
@@ -359,8 +335,8 @@ function snn_render_ai_settings() {
                 <?php if (!empty($action_presets)) : ?>
                     <?php foreach ($action_presets as $index => $preset) : ?>
                         <tr class="snn-ai-action-preset-row" draggable="true">
-                            <td class="snn-ai-drag-handle">⬍</td>
-                            <td class="preset-td">
+                            <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor:move; font-size:30px">⬍</td>
+                            <td style="padding:2px">
                                 <input
                                     type="text"
                                     name="snn_ai_action_presets[<?php echo $index; ?>][name]"
@@ -369,7 +345,7 @@ function snn_render_ai_settings() {
                                     class="regular-text preset-name-input"
                                 />
                             </td>
-                            <td class="preset-td">
+                            <td style="padding:2px">
                                 <textarea
                                     name="snn_ai_action_presets[<?php echo $index; ?>][prompt]"
                                     rows="2"
@@ -377,7 +353,7 @@ function snn_render_ai_settings() {
                                     class="regular-text preset-prompt-input"
                                 ><?php echo esc_textarea($preset['prompt']); ?></textarea>
                             </td>
-                            <td class="preset-td">
+                            <td style="padding:2px">
                                 <button type="button" class="button snn-ai-remove-preset"><?php esc_html_e('Remove', 'snn'); ?></button>
                             </td>
                         </tr>
@@ -388,36 +364,31 @@ function snn_render_ai_settings() {
 
             <p>
                 <button type="button" class="button" id="snn-ai-add-preset"><?php esc_html_e('Add Preset', 'snn'); ?></button>
-                <button type="button" class="button" id="snn-ai-reset-presets"><?php esc_html_e('Reset Presets', 'snn'); ?></button>
+                <button type="button" class="button" id="snn-ai-reset-presets" style="margin-left: 10px;"><?php esc_html_e('Reset Presets', 'snn'); ?></button>
             </p>
 
-            <div id="snn-ai-import-export-container">
+            <div id="snn-ai-import-export-container" style="margin-top: 20px;">
                 <button type="button" class="button" id="snn-ai-export-button"><?php esc_html_e('Export Presets', 'snn'); ?></button>
-                <button type="button" class="button" id="snn-ai-import-button"><?php esc_html_e('Import Presets', 'snn'); ?></button>
+                <button type="button" class="button" id="snn-ai-import-button" style="margin-left: 10px;"><?php esc_html_e('Import Presets', 'snn'); ?></button>
 
-                <div id="snn-ai-export-area">
+                <div id="snn-ai-export-area" style="display: none; margin-top: 10px;">
                     <h3><?php esc_html_e('Exported Presets', 'snn'); ?></h3>
                     <p><?php esc_html_e('Copy the text below to save your presets.', 'snn'); ?></p>
-                    <textarea id="snn-ai-export-textarea" rows="8" readonly></textarea>
+                    <textarea id="snn-ai-export-textarea" rows="8" style="width: 100%; max-width: 660px;" readonly></textarea>
                 </div>
 
-                <div id="snn-ai-import-area">
+                <div id="snn-ai-import-area" style="display: none; margin-top: 10px;">
                     <h3><?php esc_html_e('Import Presets', 'snn'); ?></h3>
                     <p><?php esc_html_e('Paste your previously exported presets into the text area below and click "Import". This will add the imported presets to your current list, skipping any duplicates.', 'snn'); ?></p>
-                    <textarea id="snn-ai-import-textarea" rows="8"></textarea>
+                    <textarea id="snn-ai-import-textarea" rows="8" style="width: 100%; max-width: 660px;"></textarea>
                     <p>
                         <button type="button" class="button button-primary" id="snn-ai-import-apply-button"><?php esc_html_e('Import', 'snn'); ?></button>
-                        <span id="snn-ai-import-status"></span>
+                        <span id="snn-ai-import-status" style="margin-left: 10px; font-style: italic;"></span>
                     </p>
                 </div>
             </div>
 
             <style>
-            #openai-settings,
-            #openrouter-settings,
-            #custom-settings {
-                display: none;
-            }
             #snn-ai-action-presets-table {
                 max-width: 660px;
             }
@@ -442,110 +413,13 @@ function snn_render_ai_settings() {
             .snn-drag-over-row {
                 outline: 2px dashed #0073aa;
             }
-            [name="snn_system_prompt"] {
-                width: 430px;
-            }
-            .selected-model-features {
-                margin-top: 10px;
-                padding: 10px;
-                border: 1px solid #9e9e9eff;
-                background-color: #f9f9f9;
-                display: none;
-                max-width: 410px;
-                max-height: 400px;
-                overflow-y: auto;
-                border-radius: 4px;
-            }
+            [name="snn_system_prompt"]{width:430px}
             .selected-model-features ul {
                 padding-left: 20px;
                 margin-top: 5px;
-                list-style-type: disc;
-                margin-left: 20px;
-                font-size: 12px;
             }
             .selected-model-features li {
                 margin-bottom: 3px;
-                line-height: 1.4;
-            }
-            .selected-model-features ul ul {
-                font-size: 11px;
-                margin-top: 3px;
-            }
-            .snn-capability-badges {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                margin-top: 8px;
-            }
-            .snn-capability-badge {
-                display: inline-block;
-                padding: 4px 8px;
-                background: #999;
-                color: white;
-                border-radius: 3px;
-                font-size: 11px;
-                font-weight: 500;
-            }
-            .snn-capability-badge.cap-modality {
-                background: #9c27b0;
-            }
-            .snn-capability-badge.cap-input {
-                background: #2196f3;
-            }
-            .snn-capability-badge.cap-output {
-                background: #4caf50;
-            }
-            .snn-capability-badge.cap-parameter {
-                background: #ff9800;
-            }
-            .snn-capability-badge.cap-context {
-                background: #826eb4;
-            }
-            .snn-ai-drag-handle {
-                padding: 0;
-                width: 30px;
-                text-align: center;
-                cursor: move;
-                font-size: 30px;
-            }
-            .preset-td {
-                padding: 2px;
-            }
-            #snn-ai-reset-presets,
-            #snn-ai-import-button {
-                margin-left: 10px;
-            }
-            #snn-ai-import-export-container {
-                margin-top: 20px;
-            }
-            #snn-ai-export-area,
-            #snn-ai-import-area {
-                display: none;
-                margin-top: 10px;
-            }
-            #snn-ai-export-textarea,
-            #snn-ai-import-textarea {
-                width: 100%;
-                max-width: 660px;
-            }
-            #snn-ai-import-status {
-                margin-left: 10px;
-                font-style: italic;
-            }
-            #openai-settings.active,
-            #openrouter-settings.active,
-            #custom-settings.active,
-            .selected-model-features.active,
-            #snn-ai-export-area.active,
-            #snn-ai-import-area.active {
-                display: block;
-            }
-            .form-table td {
-                padding: 2px;
-            }
-            .snn-ai-drag-handle {
-               font-size: 32px !important;
-               padding: 2px;
             }
             </style>
 
@@ -574,23 +448,23 @@ function snn_render_ai_settings() {
 
             function toggleSettingsVisibility() {
                 const isEnabled = enableCheckbox.checked;
-                openaiSettingsDiv.classList.remove('active');
-                openrouterSettingsDiv.classList.remove('active');
-                customSettingsDiv.classList.remove('active');
+                openaiSettingsDiv.style.display = 'none';
+                openrouterSettingsDiv.style.display = 'none';
+                customSettingsDiv.style.display = 'none';
 
                 // Hide feature divs when provider changes or AI is disabled
-                if (openaiFeaturesDiv) openaiFeaturesDiv.classList.remove('active');
-                if (openrouterFeaturesDiv) openrouterFeaturesDiv.classList.remove('active');
+                if (openaiFeaturesDiv) openaiFeaturesDiv.style.display = 'none';
+                if (openrouterFeaturesDiv) openrouterFeaturesDiv.style.display = 'none';
 
                 if (isEnabled) {
                     if (providerSelect.value === 'openai') {
-                        openaiSettingsDiv.classList.add('active');
+                        openaiSettingsDiv.style.display = 'block';
                         fetchOpenAiModels();
                     } else if (providerSelect.value === 'openrouter') {
-                        openrouterSettingsDiv.classList.add('active');
+                        openrouterSettingsDiv.style.display = 'block';
                         fetchOpenRouterModels();
                     } else if (providerSelect.value === 'custom') {
-                        customSettingsDiv.classList.add('active');
+                        customSettingsDiv.style.display = 'block';
                     }
                 }
             }
@@ -681,159 +555,28 @@ function snn_render_ai_settings() {
                 }
             }
 
-            /**
-             * Display model capabilities as user-friendly badges.
-             * @param {string} modelId The model identifier.
-             * @param {HTMLElement} containerDiv The container div.
-             * @param {Object} modelData The full model object from API.
-             */
-            function displayModelCapabilities(modelId, containerDiv, modelData) {
-                if (!containerDiv) return;
-                containerDiv.classList.remove('active');
-                containerDiv.innerHTML = '';
-
-                if (!modelId || !modelData) return;
-
-                const capabilities = [];
-
-                // Parse modality (e.g., "text+image->text")
-                if (modelData.architecture && modelData.architecture.modality) {
-                    capabilities.push({
-                        type: 'modality',
-                        value: modelData.architecture.modality
-                    });
-                }
-
-                // Parse input modalities
-                let inputModalities = [];
-                if (modelData.architecture && modelData.architecture.input_modalities) {
-                    inputModalities = modelData.architecture.input_modalities;
-                } else if (modelData.input_modalities) {
-                    inputModalities = modelData.input_modalities;
-                }
-                
-                if (Array.isArray(inputModalities)) {
-                    inputModalities.forEach(mod => {
-                        if (mod) {
-                            capabilities.push({
-                                type: 'input',
-                                value: mod.charAt(0).toUpperCase() + mod.slice(1)
-                            });
-                        }
-                    });
-                }
-
-                // Parse output modalities
-                let outputModalities = [];
-                if (modelData.architecture && modelData.architecture.output_modalities) {
-                    outputModalities = modelData.architecture.output_modalities;
-                } else if (modelData.output_modalities) {
-                    outputModalities = modelData.output_modalities;
-                }
-                
-                if (Array.isArray(outputModalities)) {
-                    outputModalities.forEach(mod => {
-                        if (mod) {
-                            capabilities.push({
-                                type: 'output',
-                                value: mod.charAt(0).toUpperCase() + mod.slice(1)
-                            });
-                        }
-                    });
-                }
-
-                // Parse supported parameters
-                if (modelData.supported_parameters && Array.isArray(modelData.supported_parameters)) {
-                    modelData.supported_parameters.forEach(param => {
-                        if (param) {
-                            const formatted = param.split('_').map(word => 
-                                word.charAt(0).toUpperCase() + word.slice(1)
-                            ).join(' ');
-                            capabilities.push({
-                                type: 'parameter',
-                                value: formatted
-                            });
-                        }
-                    });
-                }
-
-                // Parse context length
-                if (modelData.context_length) {
-                    const context = parseInt(modelData.context_length);
-                    let formatted;
-                    if (context >= 1000000) {
-                        formatted = (context / 1000000).toFixed(1) + 'M tokens';
-                    } else if (context >= 1000) {
-                        formatted = Math.round(context / 1000) + 'K tokens';
-                    } else {
-                        formatted = context + ' tokens';
-                    }
-                    capabilities.push({
-                        type: 'context',
-                        value: formatted
-                    });
-                }
-
-                // Display capabilities
-                if (capabilities.length > 0) {
-                    containerDiv.classList.add('active');
-                    
-                    const title = document.createElement('strong');
-                    title.textContent = '<?php esc_html_e('Model Capabilities:', 'snn'); ?>';
-                    containerDiv.appendChild(title);
-
-                    const badgesDiv = document.createElement('div');
-                    badgesDiv.className = 'snn-capability-badges';
-
-                    capabilities.forEach(cap => {
-                        const badge = document.createElement('span');
-                        badge.className = 'snn-capability-badge cap-' + cap.type;
-                        badge.textContent = cap.value;
-                        badge.title = cap.type.charAt(0).toUpperCase() + cap.type.slice(1);
-                        badgesDiv.appendChild(badge);
-                    });
-
-                    containerDiv.appendChild(badgesDiv);
-                    
-                    // Add raw JSON display below badges
-                    if (modelData) {
-                        const rawDataTitle = document.createElement('strong');
-                        rawDataTitle.textContent = '<?php esc_html_e('Raw Model Data:', 'snn'); ?>';
-                        rawDataTitle.style.display = 'block';
-                        rawDataTitle.style.marginTop = '10px';
-                        rawDataTitle.style.marginBottom = '5px';
-                        containerDiv.appendChild(rawDataTitle);
-                        
-                        const rawDataUl = document.createElement('ul');
-                        displayFeatures(rawDataUl, modelData);
-                        containerDiv.appendChild(rawDataUl);
-                    }
-                } else {
-                    // Fallback
-                    containerDiv.classList.add('active');
-                    const title = document.createElement('strong');
-                    title.textContent = '<?php esc_html_e('Model Capabilities:', 'snn'); ?>';
-                    containerDiv.appendChild(title);
-                    const badgesDiv = document.createElement('div');
-                    badgesDiv.className = 'snn-capability-badges';
-                    const badge = document.createElement('span');
-                    badge.className = 'snn-capability-badge';
-                    badge.textContent = 'Text Generation';
-                    badgesDiv.appendChild(badge);
-                    containerDiv.appendChild(badgesDiv);
-                }
-            }
-
             function displayOpenAiModelFeatures(modelId) {
-                if (!openaiFeaturesDiv) return;
-                const selectedModel = allOpenAiModels.find(m => m.id === modelId);
-                displayModelCapabilities(modelId, openaiFeaturesDiv, selectedModel);
+                if (!openaiFeaturesList) return;
+                openaiFeaturesDiv.style.display = 'none';
+
+                const selectedModel = allOpenAiModels.find(model => model.id === modelId);
+
+                if (selectedModel) {
+                    openaiFeaturesDiv.style.display = 'block';
+                    displayFeatures(openaiFeaturesList, selectedModel);
+                }
             }
 
             function displayOpenRouterModelFeatures(modelId) {
-                if (!openrouterFeaturesDiv) return;
-                const selectedModel = allOpenRouterModels.find(m => m.id === modelId);
-                displayModelCapabilities(modelId, openrouterFeaturesDiv, selectedModel);
+                if (!openrouterFeaturesList) return;
+                openrouterFeaturesDiv.style.display = 'none';
+
+                const selectedModel = allOpenRouterModels.find(model => model.id === modelId);
+
+                if (selectedModel) {
+                    openrouterFeaturesDiv.style.display = 'block';
+                    displayFeatures(openrouterFeaturesList, selectedModel);
+                }
             }
 
             function fetchOpenRouterModels() {
@@ -961,29 +704,11 @@ function snn_render_ai_settings() {
             if (openaiModelInput) {
                 openaiModelInput.addEventListener('input', (e) => {
                     displayOpenAiModelFeatures(e.target.value);
-                    
-                    // Store metadata for the selected model
-                    const selectedModel = allOpenAiModels.find(m => m.id === e.target.value);
-                    if (selectedModel) {
-                        const metadataField = document.getElementById('snn_openai_model_metadata');
-                        if (metadataField) {
-                            metadataField.value = JSON.stringify(selectedModel);
-                        }
-                    }
                 });
             }
             if (openrouterModelInput) {
                 openrouterModelInput.addEventListener('input', (e) => {
                     displayOpenRouterModelFeatures(e.target.value);
-                    
-                    // Store metadata for the selected model
-                    const selectedModel = allOpenRouterModels.find(m => m.id === e.target.value);
-                    if (selectedModel) {
-                        const metadataField = document.getElementById('snn_openrouter_model_metadata');
-                        if (metadataField) {
-                            metadataField.value = JSON.stringify(selectedModel);
-                        }
-                    }
                 });
             }
 
@@ -1008,8 +733,8 @@ function snn_render_ai_settings() {
                 row.className = 'snn-ai-action-preset-row';
                 row.setAttribute('draggable', 'true');
                 row.innerHTML = `
-                    <td class="snn-ai-drag-handle">⬍</td>
-                    <td class="preset-td">
+                    <td class="snn-ai-drag-handle" style="padding:0; width:30px; text-align:center; cursor:move; font-size:30px">⬍</td>
+                    <td style="padding:2px">
                         <input
                             type="text"
                             name="snn_ai_action_presets[${index}][name]"
@@ -1017,14 +742,14 @@ function snn_render_ai_settings() {
                             placeholder="<?php echo esc_js(__('Action Name', 'snn')); ?>"
                             class="regular-text preset-name-input" />
                     </td>
-                    <td class="preset-td">
+                    <td style="padding:2px">
                         <textarea
                             name="snn_ai_action_presets[${index}][prompt]"
                             rows="2"
                             placeholder="<?php echo esc_js(__('Action Prompt', 'snn')); ?>"
                             class="regular-text preset-prompt-input">${preset.prompt}</textarea>
                     </td>
-                    <td class="preset-td">
+                    <td style="padding:2px">
                         <button type="button" class="button snn-ai-remove-preset"><?php echo esc_js(__('Remove', 'snn')); ?></button>
                     </td>
                 `;
@@ -1123,16 +848,16 @@ function snn_render_ai_settings() {
                         }
                     });
                     exportTextarea.value = JSON.stringify(presets, null, 2);
-                    exportArea.classList.add('active');
-                    importArea.classList.remove('active');
+                    exportArea.style.display = 'block';
+                    importArea.style.display = 'none';
                     exportTextarea.select();
                 });
             }
 
             if (importButton) {
                 importButton.addEventListener('click', () => {
-                    importArea.classList.add('active');
-                    exportArea.classList.remove('active');
+                    importArea.style.display = 'block';
+                    exportArea.style.display = 'none';
                     importStatus.textContent = '';
                     importTextarea.value = '';
                 });
