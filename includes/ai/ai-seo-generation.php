@@ -102,10 +102,18 @@ function snn_seo_ai_render_overlay() {
     if (!snn_seo_ai_is_enabled()) {
         return;
     }
-    
+
     $config = snn_get_ai_api_config();
     $action_presets = $config['actionPresets'];
+
+    // Always output bulk button container - JS will handle showing it on the right screen
     ?>
+
+    <!-- Bulk AI SEO Generation Button (shown on edit.php via JS) -->
+    <div id="snn-seo-bulk-button-container" style="display: none;">
+        <button type="button" class="button" id="snn-seo-bulk-ai-btn"><?php _e('Bulk AI SEO Generation ✨', 'snn'); ?></button>
+    </div>
+
     <div id="snn-seo-ai-overlay" style="display: none;">
         <div class="snn-seo-ai-overlay-backdrop"></div>
         <div class="snn-seo-ai-overlay-container">
@@ -577,6 +585,68 @@ function snn_seo_ai_render_overlay() {
         const config = snnSeoAiConfig;
         const overlay = document.getElementById('snn-seo-ai-overlay');
         const itemCount = document.getElementById('snn-seo-item-count');
+
+        // Insert bulk button into page if container exists
+        const bulkButtonContainer = document.getElementById('snn-seo-bulk-button-container');
+        if (bulkButtonContainer) {
+            const bulkActions = document.querySelector('.tablenav.top .bulkactions');
+            if (bulkActions) {
+                // Move button from hidden container to visible location
+                bulkButtonContainer.style.cssText = 'display: inline-block; margin-left: 10px; vertical-align: top;';
+                bulkActions.insertAdjacentElement('afterend', bulkButtonContainer);
+
+                const bulkBtn = document.getElementById('snn-seo-bulk-ai-btn');
+                if (bulkBtn) {
+                    bulkBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        const checkedBoxes = document.querySelectorAll('tbody input[name="post[]"]:checked');
+
+                        if (checkedBoxes.length === 0) {
+                            // Remove any existing warning
+                            const existingWarning = document.getElementById('snn-bulk-warning');
+                            if (existingWarning) existingWarning.remove();
+
+                            // Add warning text below button
+                            const warning = document.createElement('div');
+                            warning.id = 'snn-bulk-warning';
+                            warning.style.cssText = 'color: #d63638; font-size: 12px; margin-top: 5px;';
+                            warning.textContent = '<?php _e('Please select posts first.', 'snn'); ?>';
+                            bulkButtonContainer.appendChild(warning);
+
+                            // Remove warning after 3 seconds
+                            setTimeout(function() {
+                                warning.style.opacity = '1';
+                                let start = null;
+                                function fadeOut(timestamp) {
+                                    if (!start) start = timestamp;
+                                    const progress = (timestamp - start) / 300;
+                                    warning.style.opacity = Math.max(1 - progress, 0);
+                                    if (progress < 1) {
+                                        requestAnimationFrame(fadeOut);
+                                    } else {
+                                        warning.remove();
+                                    }
+                                }
+                                requestAnimationFrame(fadeOut);
+                            }, 3000);
+
+                            return;
+                        }
+
+                        // Remove any existing warning
+                        const existingWarning = document.getElementById('snn-bulk-warning');
+                        if (existingWarning) existingWarning.remove();
+
+                        const postIds = Array.from(checkedBoxes).map(checkbox => parseInt(checkbox.value));
+
+                        snnSeoAiOpenOverlay('bulk', {
+                            items: postIds
+                        });
+                    });
+                }
+            }
+        }
         const presetButtons = document.querySelectorAll('.snn-preset-btn');
         const customPrompt = document.getElementById('snn-seo-custom-prompt');
         const generateTitle = document.getElementById('snn-generate-title');
@@ -1260,95 +1330,6 @@ function snn_seo_ai_meta_box_buttons($post) {
     </script>
     <?php
 }
-
-/**
- * Add bulk AI generation button to post list screens
- */
-function snn_seo_ai_add_bulk_button() {
-    if (!snn_seo_ai_is_enabled()) {
-        return;
-    }
-    
-    $screen = get_current_screen();
-    if (!$screen || $screen->base !== 'edit') {
-        return;
-    }
-    
-    $enabled_post_types = get_option('snn_seo_post_types_enabled', []);
-    if (!isset($enabled_post_types[$screen->post_type]) || !$enabled_post_types[$screen->post_type]) {
-        return;
-    }
-    
-    ?>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof snnSeoAiOpenOverlay === 'undefined') return;
-
-        // Add bulk button container to actions bar
-        const bulkActions = document.querySelector('.tablenav.top .bulkactions');
-        if (bulkActions) {
-            const container = document.createElement('div');
-            container.id = 'snn-seo-bulk-container';
-            container.style.cssText = 'display: inline-block; margin-left: 10px; vertical-align: top;';
-            container.innerHTML = '<button type="button" class="button" id="snn-seo-bulk-ai-btn"><?php _e('Bulk AI SEO Generation ✨', 'snn'); ?></button>';
-            bulkActions.insertAdjacentElement('afterend', container);
-
-            const bulkBtn = document.getElementById('snn-seo-bulk-ai-btn');
-            if (bulkBtn) {
-                bulkBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    const checkedBoxes = document.querySelectorAll('tbody input[name="post[]"]:checked');
-
-                    if (checkedBoxes.length === 0) {
-                        // Remove any existing warning
-                        const existingWarning = document.getElementById('snn-bulk-warning');
-                        if (existingWarning) existingWarning.remove();
-
-                        // Add warning text below button
-                        const warning = document.createElement('div');
-                        warning.id = 'snn-bulk-warning';
-                        warning.style.cssText = 'color: #d63638; font-size: 12px; margin-top: 5px;';
-                        warning.textContent = '<?php _e('Please select posts first.', 'snn'); ?>';
-                        container.appendChild(warning);
-
-                        // Remove warning after 3 seconds
-                        setTimeout(function() {
-                            warning.style.opacity = '1';
-                            let start = null;
-                            function fadeOut(timestamp) {
-                                if (!start) start = timestamp;
-                                const progress = (timestamp - start) / 300;
-                                warning.style.opacity = Math.max(1 - progress, 0);
-                                if (progress < 1) {
-                                    requestAnimationFrame(fadeOut);
-                                } else {
-                                    warning.remove();
-                                }
-                            }
-                            requestAnimationFrame(fadeOut);
-                        }, 3000);
-
-                        return;
-                    }
-
-                    // Remove any existing warning
-                    const existingWarning = document.getElementById('snn-bulk-warning');
-                    if (existingWarning) existingWarning.remove();
-
-                    const postIds = Array.from(checkedBoxes).map(checkbox => parseInt(checkbox.value));
-
-                    snnSeoAiOpenOverlay('bulk', {
-                        items: postIds
-                    });
-                });
-            }
-        }
-    });
-    </script>
-    <?php
-}
-add_action('admin_footer-edit.php', 'snn_seo_ai_add_bulk_button');
 
 /**
  * AJAX: Get post data for generation
