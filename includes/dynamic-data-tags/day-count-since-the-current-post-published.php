@@ -10,7 +10,7 @@ function add_days_since_published_tag( $tags ) {
     $tags[] = [
         'name'  => '{snn_publish_day_count_since_publish}',
         'label' => 'Days Since Published',
-        'group' => 'snn',
+        'group' => 'SNN',
     ];
     
     return $tags;

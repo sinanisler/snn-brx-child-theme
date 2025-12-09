@@ -13,7 +13,7 @@ function add_loop_count_tag( $tags ) {
     $tags[] = [
         'name'  => '{snn_current_loop_count}',
         'label' => 'Current Loop Count',
-        'group' => 'snn',
+        'group' => 'SNN',
     ];
 
     return $tags;
