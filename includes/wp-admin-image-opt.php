@@ -1835,10 +1835,10 @@ function snn_render_optimization_settings_tab() {
                 <button type="button" id="snn_restore_all" class="button" style="color: #d63638; border-color: #d63638;">
                     <?php _e('Restore All Originals', 'snn'); ?>
                 </button>
-                <button type="button" id="snn_delete_originals" class="button" 
-                    style="background-color: #d63638; color: #fff; border-color: #d63638;" 
-                    title="⚠️ WARNING: This will permanently delete all original image files and cannot be reversed! You will not be able to restore images to their original state after this action.">
-                    <?php _e('Save Space Delete Optimized Image Originals', 'snn'); ?>
+                <button type="button" id="snn_delete_originals" class="button"
+                    style="background-color: #d63638; color: #fff; border-color: #d63638;"
+                    title="⚠️ WARNING: This will permanently delete all original image files to save disk space. Optimization metadata will be preserved but images cannot be restored to their original format after this action.">
+                    <?php _e('Delete Originals to Save Space', 'snn'); ?>
                 </button>
             </div>
         </div>
@@ -2075,25 +2075,40 @@ function snn_render_optimization_settings_tab() {
         function renderHistoryTable(items) {
             const $tbody = $('#snn_history_tbody');
             $tbody.empty();
-            
+
             items.forEach(function(item) {
                 const isChecked = selectedHistoryIds.has(item.id) ? 'checked' : '';
-                
+                const originalDeleted = item.original_deleted || false;
+
+                let originalUrlDisplay;
+                if (originalDeleted) {
+                    originalUrlDisplay = '<span style="color: #d63638; font-weight: 500;">🗑️ <?php _e('Deleted (Space Saved)', 'snn'); ?></span>';
+                } else {
+                    originalUrlDisplay = `<a href="${item.original_url}" target="_blank" style="font-size: 11px; word-break: break-all;">${item.original_url}</a>`;
+                }
+
+                let actionButton;
+                if (originalDeleted) {
+                    actionButton = `<button type="button" class="button button-small" disabled title="<?php _e('Original was deleted', 'snn'); ?>">
+                        <?php _e('Cannot Restore', 'snn'); ?>
+                    </button>`;
+                } else {
+                    actionButton = `<button type="button" class="button button-small snn-restore-single" data-id="${item.id}">
+                        <?php _e('Restore', 'snn'); ?>
+                    </button>`;
+                }
+
                 const row = `<tr data-id="${item.id}">
-                    <td><input type="checkbox" class="snn-history-checkbox" value="${item.id}" ${isChecked}></td>
+                    <td><input type="checkbox" class="snn-history-checkbox" value="${item.id}" ${isChecked} ${originalDeleted ? 'disabled' : ''}></td>
                     <td><img src="${item.thumbnail}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 3px;"></td>
                     <td>${item.filename}</td>
-                    <td><a href="${item.original_url}" target="_blank" style="font-size: 11px; word-break: break-all;">${item.original_url}</a></td>
+                    <td>${originalUrlDisplay}</td>
                     <td><a href="${item.current_url}" target="_blank" style="font-size: 11px; word-break: break-all;">${item.current_url}</a></td>
-                    <td>
-                        <button type="button" class="button button-small snn-restore-single" data-id="${item.id}">
-                            <?php _e('Restore', 'snn'); ?>
-                        </button>
-                    </td>
+                    <td>${actionButton}</td>
                 </tr>`;
                 $tbody.append(row);
             });
-            
+
             updateHistorySelectAllCheckbox();
             updateHistorySelectedCount();
         }
@@ -2219,26 +2234,35 @@ function snn_render_optimization_settings_tab() {
                 showHistoryMessage('<?php _e('No optimized images found.', 'snn'); ?>', 'info');
                 return;
             }
-            
+
+            // Count how many originals are NOT already deleted
+            const deletableItems = historyItems.filter(item => !item.original_deleted);
+
+            if (deletableItems.length === 0) {
+                showHistoryMessage('<?php _e('All originals have already been deleted.', 'snn'); ?>', 'info');
+                return;
+            }
+
             const warningMessage = '⚠️ CRITICAL WARNING ⚠️\n' +
-                'You are about to PERMANENTLY DELETE all ' + historyItems.length + ' original image files!\n' +
-                '❌ This action CANNOT be reversed!\n' +
-                '❌ Original files will be PERMANENTLY lost and cant be restored!\n' +
+                'You are about to PERMANENTLY DELETE ' + deletableItems.length + ' original image files to save disk space!\n\n' +
+                '✅ Optimization metadata WILL BE PRESERVED (you can still see savings info)\n' +
+                '❌ Images CANNOT be restored to original format after deletion\n' +
+                '❌ This action CANNOT be reversed!\n\n' +
                 'Type "DELETE" (in uppercase) to confirm:';
-            
+
             const userInput = prompt(warningMessage);
-            
+
             if (userInput !== 'DELETE') {
                 showHistoryMessage('<?php _e('Action cancelled. Original files were not deleted.', 'snn'); ?>', 'info');
                 return;
             }
-            
+
             // Second confirmation
             if (!confirm('<?php _e('FINAL CONFIRMATION: Are you absolutely certain you want to delete all original files? This cannot be undone!', 'snn'); ?>')) {
                 showHistoryMessage('<?php _e('Action cancelled. Original files were not deleted.', 'snn'); ?>', 'info');
                 return;
             }
-            
+
             const allIds = historyItems.map(item => item.id);
             await deleteOriginalFiles(allIds);
         });
@@ -2246,16 +2270,17 @@ function snn_render_optimization_settings_tab() {
         async function deleteOriginalFiles(ids) {
             $('#snn_restore_selected, #snn_restore_all, #snn_delete_originals').prop('disabled', true);
             $('#snn_restore_progress').show();
-            
+
             let successCount = 0;
+            let alreadyDeletedCount = 0;
             let errorCount = 0;
-            
+
             for (let i = 0; i < ids.length; i++) {
                 const id = ids[i];
                 const progress = ((i + 1) / ids.length) * 100;
                 $('#snn_restore_progress_bar').css('width', progress + '%').css('background-color', '#d63638');
                 $('#snn_restore_progress_text').text('<?php _e('Deleting original', 'snn'); ?> ' + (i + 1) + ' / ' + ids.length + '...').css('color', '#d63638');
-                
+
                 try {
                     const response = await $.ajax({
                         url: ajaxurl,
@@ -2266,11 +2291,14 @@ function snn_render_optimization_settings_tab() {
                             nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
                         }
                     });
-                    
+
                     if (response.success) {
-                        successCount++;
-                        // Update the row to show original is deleted
-                        $('tr[data-id="' + id + '"]').find('td').eq(3).html('<span style="color: #d63638;">Deleted</span>');
+                        // Check if it was already deleted or newly deleted
+                        if (response.data && response.data.message && response.data.message.includes('already deleted')) {
+                            alreadyDeletedCount++;
+                        } else {
+                            successCount++;
+                        }
                     } else {
                         errorCount++;
                     }
@@ -2278,17 +2306,23 @@ function snn_render_optimization_settings_tab() {
                     errorCount++;
                 }
             }
-            
+
             $('#snn_restore_selected, #snn_restore_all, #snn_delete_originals').prop('disabled', false);
             $('#snn_restore_progress_text').text('<?php _e('Complete!', 'snn'); ?>');
-            
+
             setTimeout(function() {
                 $('#snn_restore_progress').hide();
                 $('#snn_restore_progress_bar').css('background-color', '#d63638');
                 loadHistory();
             }, 2000);
-            
-            showHistoryMessage('<?php _e('Deletion complete:', 'snn'); ?> ' + successCount + ' <?php _e('originals deleted', 'snn'); ?>' + (errorCount > 0 ? ', ' + errorCount + ' <?php _e('failed', 'snn'); ?>' : '') + '. <?php _e('These images can no longer be restored.', 'snn'); ?>', successCount > 0 ? 'success' : 'error');
+
+            const totalProcessed = successCount + alreadyDeletedCount;
+            const message = '<?php _e('Deletion complete:', 'snn'); ?> ' + successCount + ' <?php _e('deleted', 'snn'); ?>' +
+                (alreadyDeletedCount > 0 ? ', ' + alreadyDeletedCount + ' <?php _e('already deleted', 'snn'); ?>' : '') +
+                (errorCount > 0 ? ', ' + errorCount + ' <?php _e('failed', 'snn'); ?>' : '') +
+                '. <?php _e('Optimization metadata preserved. Images cannot be restored to original format.', 'snn'); ?>';
+
+            showHistoryMessage(message, totalProcessed > 0 ? 'success' : 'error');
         }
         
         async function restoreImages(ids) {
@@ -2362,26 +2396,29 @@ function snn_add_image_optimization_metabox() {
 function snn_image_optimization_metabox_callback($post) {
     $mime_type = get_post_mime_type($post->ID);
     $is_image = strpos($mime_type, 'image/') === 0;
-    
+
     if (!$is_image) {
         echo '<p>' . __('Not an image file.', 'snn') . '</p>';
         return;
     }
-    
+
     $is_optimized = get_post_meta($post->ID, '_snn_optimized', true);
     $original_url = get_post_meta($post->ID, '_snn_original_url', true);
     $original_size = get_post_meta($post->ID, '_snn_original_size', true);
+    $original_total_size = get_post_meta($post->ID, '_snn_original_total_size', true);
     $optimized_size = get_post_meta($post->ID, '_snn_optimized_size', true);
+    $original_deleted = get_post_meta($post->ID, '_snn_original_deleted', true);
+    $space_freed = get_post_meta($post->ID, '_snn_space_freed', true);
     $file_path = get_attached_file($post->ID);
     $current_size = file_exists($file_path) ? filesize($file_path) : 0;
-    
+
     wp_nonce_field('snn_optimize_single_attachment', 'snn_optimize_nonce');
-    
+
     echo '<div class="snn-attachment-optimization">';
-    
+
     if ($is_optimized && $original_url) {
         echo '<p><strong style="color: #00a32a;">✓ ' . __('Optimized', 'snn') . '</strong></p>';
-        
+
         if ($original_size && $optimized_size) {
             $savings = $original_size - $optimized_size;
             $savings_percent = round(($savings / $original_size) * 100, 1);
@@ -2389,33 +2426,96 @@ function snn_image_optimization_metabox_callback($post) {
             echo __('Original:', 'snn') . ' ' . size_format($original_size) . '<br>';
             echo __('Optimized:', 'snn') . ' ' . size_format($optimized_size) . '<br>';
             echo '<span style="color: ' . ($savings > 0 ? '#00a32a' : '#d63638') . ';">'
-                . ($savings > 0 ? '↓' : '↑') . ' ' 
+                . ($savings > 0 ? '↓' : '↑') . ' '
                 . size_format(abs($savings)) . ' (' . abs($savings_percent) . '%)</span>';
             echo '</p>';
         }
-        
-        echo '<p><strong>' . __('Original URL:', 'snn') . '</strong><br>';
-        echo '<a href="' . esc_url($original_url) . '" target="_blank" style="font-size: 11px; word-break: break-all;">' 
-            . esc_html(basename($original_url)) . '</a></p>';
-        
-        echo '<button type="button" class="button button-secondary snn-restore-single-btn" data-id="' . $post->ID . '"'
-            . ' style="width: 100%; margin-bottom: 10px;">' . __('Restore Original', 'snn') . '</button>';
-        
+
+        if ($original_deleted === '1') {
+            echo '<p><strong>' . __('Original Status:', 'snn') . '</strong><br>';
+            echo '<span style="color: #d63638;">🗑️ ' . __('Original Deleted (Space Saved)', 'snn') . '</span><br>';
+            echo '<small style="color: #646970;">' . __('Cannot be restored', 'snn') . '</small>';
+
+            if ($space_freed) {
+                echo '<br><strong style="color: #00a32a;">💾 ' . sprintf(__('Freed: %s', 'snn'), size_format($space_freed)) . '</strong>';
+            }
+            echo '</p>';
+        } else {
+            echo '<p><strong>' . __('Original URL:', 'snn') . '</strong><br>';
+            echo '<a href="' . esc_url($original_url) . '" target="_blank" style="font-size: 11px; word-break: break-all;">'
+                . esc_html(basename($original_url)) . '</a></p>';
+
+            echo '<button type="button" class="button button-secondary snn-restore-single-btn" data-id="' . $post->ID . '"'
+                . ' style="width: 100%; margin-bottom: 10px;">' . __('Restore Original', 'snn') . '</button>';
+        }
+
         echo '<button type="button" class="button snn-reoptimize-btn" data-id="' . $post->ID . '"'
             . ' style="width: 100%;">' . __('Re-optimize', 'snn') . '</button>';
     } else {
         echo '<p>' . __('This image is not optimized.', 'snn') . '</p>';
-        
+
         if ($current_size) {
             echo '<p><strong>' . __('Current Size:', 'snn') . '</strong> ' . size_format($current_size) . '</p>';
         }
-        
+
         echo '<p><a href="' . admin_url('upload.php?page=snn-image-optimization&tab=existing') . '" class="button button-primary" style="width: 100%;">' . __('Go to Bulk Optimizer', 'snn') . '</a></p>';
     }
-    
+
     echo '<div id="snn-metabox-message-' . $post->ID . '" style="margin-top: 10px;"></div>';
+
+    // Add debug metadata section
+    echo '<hr style="margin: 15px 0; border: none; border-top: 1px solid #dcdcde;">';
+    echo '<details style="margin-top: 10px;">';
+    echo '<summary style="cursor: pointer; color: #646970; font-size: 12px; user-select: none;">' . __('🔍 Debug: Raw Metadata', 'snn') . '</summary>';
+    echo '<div style="margin-top: 10px; padding: 10px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 3px; font-family: monospace; font-size: 11px; max-height: 300px; overflow-y: auto;">';
+
+    // Gather all metadata
+    $original_meta = get_post_meta($post->ID, '_snn_original_metadata', true);
+    $has_unscaled_original = !empty($original_meta['original_image']);
+
+    $debug_data = array(
+        'attachment_id' => $post->ID,
+        'file_path' => $file_path,
+        'file_exists' => file_exists($file_path),
+        'mime_type' => $mime_type,
+        'current_size_bytes' => $current_size,
+        'current_url' => wp_get_attachment_url($post->ID),
+        'has_unscaled_original' => $has_unscaled_original ? 'YES - ' . $original_meta['original_image'] : 'NO',
+        'wp_metadata' => wp_get_attachment_metadata($post->ID),
+        'optimization_meta' => array(
+            '_snn_optimized' => get_post_meta($post->ID, '_snn_optimized', true),
+            '_snn_original_url' => get_post_meta($post->ID, '_snn_original_url', true),
+            '_snn_original_file' => get_post_meta($post->ID, '_snn_original_file', true),
+            '_snn_original_size' => get_post_meta($post->ID, '_snn_original_size', true),
+            '_snn_original_total_size' => get_post_meta($post->ID, '_snn_original_total_size', true),
+            '_snn_optimized_size' => get_post_meta($post->ID, '_snn_optimized_size', true),
+            '_snn_optimized_date' => get_post_meta($post->ID, '_snn_optimized_date', true),
+            '_snn_original_metadata' => $original_meta,
+            '_snn_original_deleted' => get_post_meta($post->ID, '_snn_original_deleted', true),
+            '_snn_original_deleted_date' => get_post_meta($post->ID, '_snn_original_deleted_date', true),
+            '_snn_deleted_files_count' => get_post_meta($post->ID, '_snn_deleted_files_count', true),
+            '_snn_space_freed' => get_post_meta($post->ID, '_snn_space_freed', true),
+        )
+    );
+
+    echo '<pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">' . esc_html(print_r($debug_data, true)) . '</pre>';
     echo '</div>';
-    
+
+    // Add manual delete trigger button if files exist and not deleted
+    if ($is_optimized && $original_deleted !== '1') {
+        echo '<div style="margin-top: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 3px;">';
+        echo '<p style="margin: 0 0 8px 0; font-size: 12px; color: #856404;"><strong>Debug Action:</strong></p>';
+        echo '<button type="button" class="button button-small snn-debug-delete-btn" data-id="' . $post->ID . '" style="font-size: 11px;">';
+        echo '🗑️ Delete Original Files Now (Debug)';
+        echo '</button>';
+        echo '<p style="margin: 8px 0 0 0; font-size: 11px; color: #856404;">This will attempt to delete the original file and all thumbnails. Check browser console and WordPress debug.log for details.</p>';
+        echo '</div>';
+    }
+
+    echo '</details>';
+
+    echo '</div>';
+
     // Add inline JavaScript for metabox actions
     ?>
     <script>
@@ -2474,6 +2574,44 @@ function snn_image_optimization_metabox_callback($post) {
         // Re-optimize button
         $('.snn-reoptimize-btn[data-id="' + attachmentId + '"]').on('click', function() {
             showMetaboxMessage('<?php _e('Please use the Bulk Optimizer page for re-optimization.', 'snn'); ?>', 'info');
+        });
+
+        // Debug delete button
+        $('.snn-debug-delete-btn[data-id="' + attachmentId + '"]').on('click', function() {
+            var $btn = $(this);
+
+            if (!confirm('<?php _e('DEBUG: Delete original files now? This will permanently delete the original image and all its thumbnails.', 'snn'); ?>')) {
+                return;
+            }
+
+            $btn.prop('disabled', true).text('<?php _e('Deleting...', 'snn'); ?>');
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'snn_delete_original_file',
+                    attachment_id: attachmentId,
+                    nonce: '<?php echo wp_create_nonce('snn_optimize_existing_nonce'); ?>'
+                },
+                success: function(response) {
+                    console.log('Delete response:', response);
+                    if (response.success) {
+                        showMetaboxMessage('<?php _e('Success!', 'snn'); ?> ' + response.data.message + '<br><?php _e('Refreshing page...', 'snn'); ?>', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        $btn.prop('disabled', false).text('🗑️ <?php _e('Delete Original Files Now (Debug)', 'snn'); ?>');
+                        showMetaboxMessage('<?php _e('Error:', 'snn'); ?> ' + (response.data || '<?php _e('Unknown error', 'snn'); ?>'), 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error:', xhr, status, error);
+                    $btn.prop('disabled', false).text('🗑️ <?php _e('Delete Original Files Now (Debug)', 'snn'); ?>');
+                    showMetaboxMessage('<?php _e('AJAX Error:', 'snn'); ?> ' + error, 'error');
+                }
+            });
         });
     });
     </script>
@@ -2650,12 +2788,32 @@ function snn_save_optimized_existing_image() {
         wp_send_json_error(__('Original file not found.', 'snn'));
     }
     
+    // Get original metadata (includes thumbnail info)
+    $original_metadata = wp_get_attachment_metadata($attachment_id);
+
     // Store original info (only if not already optimized)
     $is_already_optimized = get_post_meta($attachment_id, '_snn_optimized', true);
     if (!$is_already_optimized) {
         update_post_meta($attachment_id, '_snn_original_url', $original_url);
         update_post_meta($attachment_id, '_snn_original_file', $original_file);
         update_post_meta($attachment_id, '_snn_original_size', $original_size);
+        // CRITICAL: Store the complete original metadata including thumbnail list
+        update_post_meta($attachment_id, '_snn_original_metadata', $original_metadata);
+
+        // Calculate total size of original + all thumbnails for accurate space reporting
+        $total_original_size = $original_size;
+        if (!empty($original_metadata['sizes']) && is_array($original_metadata['sizes'])) {
+            $original_dir = dirname($original_file);
+            foreach ($original_metadata['sizes'] as $size_name => $size_info) {
+                if (!empty($size_info['file'])) {
+                    $thumbnail_path = path_join($original_dir, $size_info['file']);
+                    if (file_exists($thumbnail_path)) {
+                        $total_original_size += filesize($thumbnail_path);
+                    }
+                }
+            }
+        }
+        update_post_meta($attachment_id, '_snn_original_total_size', $total_original_size);
     }
     
     // Determine new file path
@@ -2747,7 +2905,8 @@ function snn_get_optimization_history() {
         $current_url = wp_get_attachment_url($attachment->ID);
         $thumbnail = wp_get_attachment_image_src($attachment->ID, 'thumbnail');
         $file_path = get_attached_file($attachment->ID);
-        
+        $original_deleted = get_post_meta($attachment->ID, '_snn_original_deleted', true);
+
         if ($original_url) {
             $history[] = array(
                 'id' => $attachment->ID,
@@ -2755,7 +2914,8 @@ function snn_get_optimization_history() {
                 'original_url' => $original_url,
                 'current_url' => $current_url,
                 'thumbnail' => $thumbnail ? $thumbnail[0] : '',
-                'optimized_date' => get_post_meta($attachment->ID, '_snn_optimized_date', true)
+                'optimized_date' => get_post_meta($attachment->ID, '_snn_optimized_date', true),
+                'original_deleted' => $original_deleted === '1'
             );
         }
     }
@@ -2770,50 +2930,256 @@ function snn_get_optimization_history() {
 }
 
 // Delete original file (for space saving)
+// Handles edge cases: Windows localhost (mixed slashes), Linux hosting (standard paths)
 add_action('wp_ajax_snn_delete_original_file', 'snn_delete_original_file');
 
 function snn_delete_original_file() {
     check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
-    
+
     if (!current_user_can('upload_files')) {
         wp_send_json_error(__('Permission denied.', 'snn'));
     }
-    
+
     $attachment_id = intval($_POST['attachment_id']);
-    
+
     $original_file = get_post_meta($attachment_id, '_snn_original_file', true);
-    
+    $original_metadata = get_post_meta($attachment_id, '_snn_original_metadata', true);
+
     if (!$original_file) {
         wp_send_json_error(__('Original file path not found in metadata.', 'snn'));
     }
-    
-    // Check if file exists
-    if (!file_exists($original_file)) {
-        // File doesn't exist, just remove the meta data
-        delete_post_meta($attachment_id, '_snn_original_url');
-        delete_post_meta($attachment_id, '_snn_original_file');
-        delete_post_meta($attachment_id, '_snn_original_size');
-        
+
+    // Check if already deleted
+    $already_deleted = get_post_meta($attachment_id, '_snn_original_deleted', true);
+    if ($already_deleted === '1') {
         wp_send_json_success(array(
-            'message' => __('Original file was already deleted or missing. Metadata cleaned up.', 'snn')
+            'message' => __('Original files were already deleted previously.', 'snn')
         ));
     }
-    
-    // Delete the original file
-    $delete_result = @unlink($original_file);
-    
-    if ($delete_result) {
-        // Remove original file metadata, but keep optimization info
-        delete_post_meta($attachment_id, '_snn_original_url');
-        delete_post_meta($attachment_id, '_snn_original_file');
-        delete_post_meta($attachment_id, '_snn_original_size');
-        
+
+    // DEBUG: Log what we're working with
+    error_log("SNN Delete Original - Attachment ID: $attachment_id");
+    error_log("SNN Delete Original - Original File (raw): $original_file");
+    error_log("SNN Delete Original - Original Metadata: " . print_r($original_metadata, true));
+
+    // Track deletion results
+    $files_to_delete = array();
+    $deleted_count = 0;
+    $failed_count = 0;
+    $total_size_freed = 0;
+
+    // Get upload directory info
+    $upload_dir = wp_upload_dir();
+    $upload_basedir = wp_normalize_path($upload_dir['basedir']);
+
+    // EDGE CASE HANDLING: Normalize and fix path issues (Windows localhost + Linux hosting)
+    // This handles malformed paths from various environments
+    $original_file = wp_normalize_path($original_file);
+
+    // Method 1: Try stored path directly
+    $original_file_found = false;
+    if (file_exists($original_file)) {
+        $original_file_found = true;
+        error_log("SNN Delete Original - Found via stored path: $original_file");
+    }
+
+    // Method 2: Rebuild from metadata file path (most reliable)
+    if (!$original_file_found && !empty($original_metadata['file'])) {
+        $rebuilt_path = wp_normalize_path($upload_basedir . '/' . $original_metadata['file']);
+        if (file_exists($rebuilt_path)) {
+            $original_file = $rebuilt_path;
+            $original_file_found = true;
+            error_log("SNN Delete Original - Found via metadata rebuild: $original_file");
+        }
+    }
+
+    // Method 3: Try to fix common path issues (Windows backslash corruption)
+    if (!$original_file_found) {
+        // Fix cases like "C:Apache24" -> "C:\Apache24" or "C:/Apache24"
+        $fixed_path = preg_replace('/^([A-Z]):(?![\\\\\/])/', '$1:/', $original_file);
+        $fixed_path = wp_normalize_path($fixed_path);
+        if (file_exists($fixed_path)) {
+            $original_file = $fixed_path;
+            $original_file_found = true;
+            error_log("SNN Delete Original - Found via path fix: $original_file");
+        }
+    }
+
+    // Method 4: Extract filename and search in upload directory
+    if (!$original_file_found && !empty($original_metadata['file'])) {
+        $basename_from_meta = basename($original_metadata['file']);
+        $dir_from_meta = dirname($original_metadata['file']);
+        $search_path = wp_normalize_path($upload_basedir . '/' . $dir_from_meta . '/' . $basename_from_meta);
+        if (file_exists($search_path)) {
+            $original_file = $search_path;
+            $original_file_found = true;
+            error_log("SNN Delete Original - Found via basename search: $original_file");
+        }
+    }
+
+    $original_dir = dirname($original_file);
+
+    $original_filename_no_ext = pathinfo($original_file, PATHINFO_FILENAME);
+    $original_extension = pathinfo($original_file, PATHINFO_EXTENSION);
+
+    // Add main original file (scaled version)
+    if (file_exists($original_file)) {
+        $files_to_delete[] = array(
+            'path' => $original_file,
+            'size' => filesize($original_file),
+            'type' => 'main_scaled',
+            'name' => basename($original_file)
+        );
+        error_log("SNN Delete Original - Found main scaled file: " . basename($original_file));
+    } else {
+        error_log("SNN Delete Original - Main scaled file NOT found: $original_file");
+    }
+
+    // CRITICAL: Check for WordPress full-size original (before scaling)
+    // When WordPress uploads large images, it creates a "-scaled" version and keeps the original
+    // The original unscaled image is stored in metadata['original_image']
+    if (!empty($original_metadata['original_image'])) {
+        $original_unscaled_path = wp_normalize_path($original_dir . '/' . $original_metadata['original_image']);
+        error_log("SNN Delete Original - Checking for unscaled original: " . $original_metadata['original_image']);
+        error_log("SNN Delete Original - Full unscaled path: $original_unscaled_path");
+
+        if (file_exists($original_unscaled_path)) {
+            $files_to_delete[] = array(
+                'path' => $original_unscaled_path,
+                'size' => filesize($original_unscaled_path),
+                'type' => 'main_unscaled',
+                'name' => basename($original_unscaled_path)
+            );
+            error_log("SNN Delete Original - Found unscaled original file: " . basename($original_unscaled_path));
+        } else {
+            error_log("SNN Delete Original - Unscaled original NOT found: $original_unscaled_path");
+        }
+    } else {
+        error_log("SNN Delete Original - No original_image in metadata (image was not scaled by WordPress)");
+    }
+
+    // Use WordPress functions to get all intermediate sizes
+    $intermediate_sizes = get_intermediate_image_sizes();
+    error_log("SNN Delete Original - Registered image sizes: " . print_r($intermediate_sizes, true));
+
+    // Method 1: Use stored metadata
+    if (!empty($original_metadata['sizes']) && is_array($original_metadata['sizes'])) {
+        error_log("SNN Delete Original - Found " . count($original_metadata['sizes']) . " thumbnail sizes in metadata");
+
+        foreach ($original_metadata['sizes'] as $size_name => $size_info) {
+            if (!empty($size_info['file'])) {
+                $thumbnail_path = wp_normalize_path($original_dir . '/' . $size_info['file']);
+                error_log("SNN Delete Original - Checking metadata thumbnail ($size_name): " . $size_info['file']);
+                error_log("SNN Delete Original - Full thumbnail path: $thumbnail_path");
+
+                if (file_exists($thumbnail_path)) {
+                    $files_to_delete[] = array(
+                        'path' => $thumbnail_path,
+                        'size' => filesize($thumbnail_path),
+                        'type' => 'thumbnail',
+                        'size_name' => $size_name,
+                        'name' => basename($thumbnail_path)
+                    );
+                    error_log("SNN Delete Original - Found metadata thumbnail: " . basename($thumbnail_path));
+                } else {
+                    error_log("SNN Delete Original - Metadata thumbnail NOT found: $thumbnail_path");
+                }
+            }
+        }
+    }
+
+    // Method 2: Scan directory for matching files (catches any thumbnails metadata might have missed)
+    // Pattern: {filename}-{width}x{height}.{extension}
+    if (is_dir($original_dir)) {
+        $pattern = $original_filename_no_ext . '-*.' . $original_extension;
+        $glob_pattern = wp_normalize_path($original_dir . '/' . $pattern);
+        error_log("SNN Delete Original - Scanning directory with pattern: $glob_pattern");
+
+        $found_files = glob($glob_pattern);
+        if ($found_files) {
+            error_log("SNN Delete Original - Found " . count($found_files) . " files matching pattern");
+
+            foreach ($found_files as $file_path) {
+                // Check if not already in our list
+                $already_added = false;
+                foreach ($files_to_delete as $existing_file) {
+                    if ($existing_file['path'] === $file_path) {
+                        $already_added = true;
+                        break;
+                    }
+                }
+
+                if (!$already_added && file_exists($file_path)) {
+                    $files_to_delete[] = array(
+                        'path' => $file_path,
+                        'size' => filesize($file_path),
+                        'type' => 'thumbnail_scanned',
+                        'name' => basename($file_path)
+                    );
+                    error_log("SNN Delete Original - Found additional thumbnail via scan: " . basename($file_path));
+                }
+            }
+        } else {
+            error_log("SNN Delete Original - No files found matching pattern");
+        }
+    }
+
+    error_log("SNN Delete Original - Total files to delete: " . count($files_to_delete));
+
+    // If no files found, mark as already deleted
+    if (empty($files_to_delete)) {
+        update_post_meta($attachment_id, '_snn_original_deleted', '1');
+        update_post_meta($attachment_id, '_snn_original_deleted_date', current_time('mysql'));
+
         wp_send_json_success(array(
-            'message' => __('Original file deleted successfully. This image can no longer be restored.', 'snn'),
-            'deleted_file' => basename($original_file)
+            'message' => __('Original file was already deleted or missing. Marked as deleted.', 'snn')
+        ));
+    }
+
+    // Delete all files
+    foreach ($files_to_delete as $file_info) {
+        error_log("SNN Delete Original - Attempting to delete: " . $file_info['path']);
+
+        if (@unlink($file_info['path'])) {
+            $deleted_count++;
+            $total_size_freed += $file_info['size'];
+            error_log("SNN Delete Original - Successfully deleted: " . $file_info['name']);
+        } else {
+            $failed_count++;
+            error_log("SNN Delete Original - FAILED to delete: " . $file_info['name']);
+        }
+    }
+
+    // If at least the main file was deleted, mark as success
+    if ($deleted_count > 0) {
+        // Mark original as deleted, but KEEP all optimization metadata for better UX
+        update_post_meta($attachment_id, '_snn_original_deleted', '1');
+        update_post_meta($attachment_id, '_snn_original_deleted_date', current_time('mysql'));
+        update_post_meta($attachment_id, '_snn_deleted_files_count', $deleted_count);
+        update_post_meta($attachment_id, '_snn_space_freed', $total_size_freed);
+
+        $message = sprintf(
+            __('Successfully deleted %d file(s) and freed %s of disk space.', 'snn'),
+            $deleted_count,
+            size_format($total_size_freed)
+        );
+
+        if ($failed_count > 0) {
+            $message .= ' ' . sprintf(__('%d file(s) could not be deleted.', 'snn'), $failed_count);
+        }
+
+        error_log("SNN Delete Original - Success! Deleted: $deleted_count, Failed: $failed_count, Space freed: " . size_format($total_size_freed));
+
+        wp_send_json_success(array(
+            'message' => $message,
+            'deleted_count' => $deleted_count,
+            'failed_count' => $failed_count,
+            'space_freed' => $total_size_freed,
+            'space_freed_formatted' => size_format($total_size_freed)
         ));
     } else {
-        wp_send_json_error(__('Failed to delete original file. Check file permissions.', 'snn'));
+        error_log("SNN Delete Original - FAILED! No files were deleted. Check permissions.");
+        wp_send_json_error(__('Failed to delete original files. Check file permissions.', 'snn'));
     }
 }
 
@@ -2822,16 +3188,22 @@ add_action('wp_ajax_snn_restore_original_image', 'snn_restore_original_image');
 
 function snn_restore_original_image() {
     check_ajax_referer('snn_optimize_existing_nonce', 'nonce');
-    
+
     if (!current_user_can('upload_files')) {
         wp_send_json_error(__('Permission denied.', 'snn'));
     }
-    
+
     $attachment_id = intval($_POST['attachment_id']);
-    
+
+    // Check if original was deleted
+    $original_deleted = get_post_meta($attachment_id, '_snn_original_deleted', true);
+    if ($original_deleted === '1') {
+        wp_send_json_error(__('Cannot restore: Original file was permanently deleted to save space.', 'snn'));
+    }
+
     $original_file = get_post_meta($attachment_id, '_snn_original_file', true);
     $original_url = get_post_meta($attachment_id, '_snn_original_url', true);
-    
+
     if (!$original_file) {
         wp_send_json_error(__('Original file path not found in metadata.', 'snn'));
     }
@@ -2910,6 +3282,39 @@ function snn_restore_original_image() {
     $metadata = wp_generate_attachment_metadata($attachment_id, $original_file);
     wp_update_attachment_metadata($attachment_id, $metadata);
     
+    // Delete the WebP file(s) - main file and all thumbnails
+    $webp_files_deleted = 0;
+    $webp_files_failed = 0;
+
+    if ($current_file && $current_file !== $original_file && file_exists($current_file)) {
+        // Delete main WebP file
+        if (@unlink($current_file)) {
+            $webp_files_deleted++;
+        } else {
+            $webp_files_failed++;
+            error_log('SNN Image Optimization: Failed to delete WebP file: ' . $current_file);
+        }
+
+        // Delete WebP thumbnails
+        $current_metadata = wp_get_attachment_metadata($attachment_id);
+        if (!empty($current_metadata['sizes']) && is_array($current_metadata['sizes'])) {
+            $current_dir = dirname($current_file);
+            foreach ($current_metadata['sizes'] as $size_name => $size_info) {
+                if (!empty($size_info['file'])) {
+                    $webp_thumbnail_path = path_join($current_dir, $size_info['file']);
+                    if (file_exists($webp_thumbnail_path)) {
+                        if (@unlink($webp_thumbnail_path)) {
+                            $webp_files_deleted++;
+                        } else {
+                            $webp_files_failed++;
+                            error_log('SNN Image Optimization: Failed to delete WebP thumbnail: ' . $webp_thumbnail_path);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Remove optimization meta
     delete_post_meta($attachment_id, '_snn_optimized');
     delete_post_meta($attachment_id, '_snn_optimized_date');
@@ -2918,14 +3323,12 @@ function snn_restore_original_image() {
     delete_post_meta($attachment_id, '_snn_original_url');
     delete_post_meta($attachment_id, '_snn_original_file');
     delete_post_meta($attachment_id, '_snn_original_size');
-    
-    // Delete the WebP file if it exists and is different from original
-    if ($current_file && $current_file !== $original_file && file_exists($current_file)) {
-        $delete_result = @unlink($current_file);
-        if (!$delete_result) {
-            error_log('SNN Image Optimization: Failed to delete WebP file: ' . $current_file);
-        }
-    }
+    delete_post_meta($attachment_id, '_snn_original_metadata');
+    delete_post_meta($attachment_id, '_snn_original_total_size');
+    delete_post_meta($attachment_id, '_snn_original_deleted');
+    delete_post_meta($attachment_id, '_snn_original_deleted_date');
+    delete_post_meta($attachment_id, '_snn_deleted_files_count');
+    delete_post_meta($attachment_id, '_snn_space_freed');
     
     // Clean the cache for this attachment
     clean_attachment_cache($attachment_id);

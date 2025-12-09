@@ -12,8 +12,6 @@
  * is called by `ai-overlay.php` to securely pass the necessary credentials and configuration to the client-side
  * JavaScript.
  *
- * NOW SUPPORTS: Multimodal features including text, images, and PDFs via vision-capable models.
- *
  * ---
  *
  * This file is part of a 3-file system:
@@ -89,81 +87,12 @@ function snn_get_ai_api_config() {
     // You could expand this for other structured formats if needed in the future,
     // e.g., 'json_schema' if you also store a schema definition.
 
-    // Check if the selected model supports vision/multimodal
-    $supports_vision = snn_model_supports_vision($model);
-
     return [
         'apiKey'          => $apiKey,
         'model'           => $model,
         'apiEndpoint'     => $apiEndpoint,
         'systemPrompt'    => $system_prompt,
         'actionPresets'   => array_values($action_presets),
-        'responseFormat'  => $responseFormat,
-        'supportsVision'  => $supports_vision,
-        'maxImageSize'    => 20 * 1024 * 1024, // 20MB limit for OpenRouter
-        'supportedTypes'  => ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'],
+        'responseFormat'  => $responseFormat, // This is the new part passed to ai-overlay.php
     ];
 }
-
-/**
- * Check if a model supports vision/multimodal input.
- * 
- * @param string $model The model identifier.
- * @return bool True if the model supports vision.
- */
-function snn_model_supports_vision($model) {
-    if (empty($model)) {
-        return false;
-    }
-
-    // Get the provider to determine which metadata to check
-    $ai_provider = get_option('snn_ai_provider', 'openai');
-    $metadata = [];
-
-    if ($ai_provider === 'openrouter') {
-        $stored_model = get_option('snn_openrouter_model', '');
-        if ($stored_model === $model) {
-            $metadata_json = get_option('snn_openrouter_model_metadata', '');
-            if (!empty($metadata_json)) {
-                $metadata = json_decode($metadata_json, true);
-                if (!is_array($metadata)) {
-                    $metadata = [];
-                }
-            }
-        }
-    } elseif ($ai_provider === 'openai') {
-        $stored_model = get_option('snn_openai_model', '');
-        if ($stored_model === $model) {
-            $metadata_json = get_option('snn_openai_model_metadata', '');
-            if (!empty($metadata_json)) {
-                $metadata = json_decode($metadata_json, true);
-                if (!is_array($metadata)) {
-                    $metadata = [];
-                }
-            }
-        }
-    }
-
-    // Check input_modalities for image/file support (nested in architecture)
-    $input_modalities = [];
-    if (!empty($metadata['architecture']['input_modalities'])) {
-        $input_modalities = $metadata['architecture']['input_modalities'];
-    } elseif (!empty($metadata['input_modalities'])) {
-        // Fallback to root level
-        $input_modalities = is_array($metadata['input_modalities']) 
-            ? $metadata['input_modalities'] 
-            : explode(',', $metadata['input_modalities']);
-    }
-    
-    if (!empty($input_modalities)) {
-        foreach ($input_modalities as $modality) {
-            $mod = trim($modality);
-            if (in_array($mod, ['image', 'file', 'video'], true)) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
