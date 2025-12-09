@@ -65,6 +65,8 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/user-author-fields.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/custom-field-repeater-first-item.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/attachment-metadata.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/raw-all-custom-fields.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/day-count-since-the-current-post-published.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/current-loop-item-count.php';
 
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
