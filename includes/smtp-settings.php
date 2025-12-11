@@ -94,6 +94,20 @@ function custom_smtp_settings_sanitize($input) {
 
 function custom_smtp_settings_section_callback() {
     echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues.', 'snn') . '</p>';
+    
+    // Check if admin email matches SMTP username
+    $options = get_option('custom_smtp_settings', array());
+    $admin_email = get_option('admin_email');
+    $smtp_username = $options['smtp_username'] ?? '';
+    
+    if (!empty($smtp_username) && !empty($admin_email) && $smtp_username !== $admin_email) {
+        echo '<div style="border: 2px solid #f0b849; background: #fff8e5; padding: 10px; margin: 10px 0; border-radius: 4px;">';
+        echo '<p style="margin: 0; font-size: 13px; color: #856404;">';
+        echo '<strong>⚠ ' . __('Warning:', 'snn') . '</strong> ';
+        echo __('Your SMTP username differs from the WordPress admin email. This may cause delivery issues if SPF/DKIM records don\'t match.', 'snn');
+        echo '</p>';
+        echo '</div>';
+    }
 }
 
 
