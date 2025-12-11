@@ -208,6 +208,11 @@ function custom_smtp_phpmailer_init($phpmailer) {
         $phpmailer->From       = $options['smtp_username'] ?? '';
         $phpmailer->FromName   = get_bloginfo('name');
     }
+    
+    // Fix for WordPress 6.9 email sending issue
+    // Set Sender to empty string to let the mail server handle envelope sender
+    // This resolves the "Could not instantiate mail function" error
+    $phpmailer->Sender = '';
 }
 
 
