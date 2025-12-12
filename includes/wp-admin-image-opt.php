@@ -1080,6 +1080,7 @@ function snn_render_optimize_existing_media_tab() {
         
         <div class="notice notice-info inline" style="margin: 15px 0;">
             <p><strong>⚡ <?php _e('Fast Client-Side Processing:', 'snn'); ?></strong> <?php _e('Images are downloaded and optimized directly in your browser using WebAssembly (libwebp). This gives you access to all advanced compression options and is much faster than server-side processing!', 'snn'); ?></p>
+            <p><strong>🧠 <?php _e('Smart Adaptive Performance:', 'snn'); ?></strong> <?php _e('The optimizer automatically detects your computer\'s speed and adjusts batch sizes and delays to prevent high CPU usage and freezing. Slower machines get smaller batches with cooling periods between processing.', 'snn'); ?></p>
         </div>
         
         <div class="optimization-controls" style="margin: 20px 0; padding: 20px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px;">
@@ -1239,6 +1240,70 @@ function snn_render_optimize_existing_media_tab() {
     let currentPage = 1;
     const perPage = 50;
     let selectedImageIds = new Set(); // Persist selections across pages
+    
+    // Adaptive Performance System
+    let performanceProfile = {
+        batchSize: 5,           // Start with 5 images per batch
+        delayBetweenBatches: 100,  // ms delay between batches
+        delayBetweenImages: 50,    // ms delay between images in a batch
+        isMeasured: false,      // Whether we've measured performance yet
+        avgProcessingTime: 0,   // Average time per image in ms
+        isSlowMachine: false    // Flag for slow machines
+    };
+    
+    // Measure performance on first few images to adapt batch sizes
+    function analyzePerformance(processingTimes) {
+        if (processingTimes.length < 3) return; // Need at least 3 samples
+        
+        const avgTime = processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length;
+        performanceProfile.avgProcessingTime = avgTime;
+        performanceProfile.isMeasured = true;
+        
+        // Categorize machine speed based on average processing time
+        if (avgTime < 200) {
+            // Very fast machine: < 0.2s per image
+            performanceProfile.batchSize = 25;
+            performanceProfile.delayBetweenBatches = 20;
+            performanceProfile.delayBetweenImages = 0;
+            performanceProfile.isSlowMachine = false;
+            console.log('🚀🚀 Very fast machine detected - using maximum batches (25)');
+        } else if (avgTime < 500) {
+            // Fast machine: 0.2-0.5s per image
+            performanceProfile.batchSize = 20;
+            performanceProfile.delayBetweenBatches = 30;
+            performanceProfile.delayBetweenImages = 0;
+            performanceProfile.isSlowMachine = false;
+            console.log('🚀 Fast machine detected - using large batches (20)');
+        } else if (avgTime < 1500) {
+            // Medium machine: 0.5-1.5s per image
+            performanceProfile.batchSize = 5;
+            performanceProfile.delayBetweenBatches = 100;
+            performanceProfile.delayBetweenImages = 50;
+            performanceProfile.isSlowMachine = false;
+            console.log('⚡ Medium speed machine - using balanced batches');
+        } else if (avgTime < 3000) {
+            // Slow machine: 1.5-3s per image
+            performanceProfile.batchSize = 3;
+            performanceProfile.delayBetweenBatches = 200;
+            performanceProfile.delayBetweenImages = 100;
+            performanceProfile.isSlowMachine = true;
+            console.log('🐢 Slow machine detected - using smaller batches with delays');
+        } else {
+            // Very slow machine: > 3s per image
+            performanceProfile.batchSize = 1;
+            performanceProfile.delayBetweenBatches = 300;
+            performanceProfile.delayBetweenImages = 200;
+            performanceProfile.isSlowMachine = true;
+            console.log('🐌 Very slow machine detected - processing one at a time');
+        }
+        
+        console.log(`Performance Profile: ${avgTime.toFixed(0)}ms avg, batch size: ${performanceProfile.batchSize}`);
+    }
+    
+    // Delay function for CPU relief
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
     
     // Show/hide near-lossless level
     $('#snn_lossless').on('change', function() {
@@ -1612,7 +1677,7 @@ function snn_render_optimize_existing_media_tab() {
         });
     }
     
-    // Main optimization
+    // Main optimization with adaptive batching
     $('#snn_optimize_selected').on('click', async function() {
         const selectedRows = [];
         
@@ -1640,22 +1705,50 @@ function snn_render_optimize_existing_media_tab() {
             return;
         }
         
-        const $btn = $(this);
-        $btn.prop('disabled', true);
+        await optimizeImagesWithAdaptiveBatching(selectedRows, settings);
+    });
+    
+    // Optimize images with adaptive batching and performance monitoring
+    async function optimizeImagesWithAdaptiveBatching(imagesToProcess, settings) {
+        const $btnSelected = $('#snn_optimize_selected');
+        const $btnAll = $('#snn_optimize_all');
+        $btnSelected.prop('disabled', true);
+        $btnAll.prop('disabled', true);
         $('#snn_scan_images').prop('disabled', true);
+        
+        // Show progress bar
         $('#snn_optimization_progress').show();
         
         let successCount = 0, skippedCount = 0, errorCount = 0, totalSaved = 0;
+        const processingTimes = []; // Track processing times for first few images
+        const startTime = Date.now();
         
-        for (let i = 0; i < selectedRows.length; i++) {
-            const item = selectedRows[i];
-            const progress = ((i + 1) / selectedRows.length) * 100;
+        // Reset performance profile for new optimization run
+        performanceProfile.isMeasured = false;
+        performanceProfile.batchSize = 5; // Start with conservative batch size
+        
+        for (let i = 0; i < imagesToProcess.length; i++) {
+            const item = imagesToProcess[i];
+            const imageStartTime = Date.now();
             
+            // Update progress bar
+            const progress = ((i + 1) / imagesToProcess.length) * 100;
             $('#snn_opt_progress_bar').css('width', progress + '%');
-            $('#snn_opt_progress_text').html(
-                `<?php _e('Processing', 'snn'); ?> ${i + 1}/${selectedRows.length}...<br>` +
-                `<small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
-            );
+            
+            // Show detailed progress with performance info
+            let progressInfo = `<?php _e('Processing', 'snn'); ?> ${i + 1}/${imagesToProcess.length}`;
+            if (performanceProfile.isMeasured) {
+                progressInfo += ` (${performanceProfile.isSlowMachine ? '🐢 ' : '⚡ '}<?php _e('Batch:', 'snn'); ?> ${performanceProfile.batchSize})`;
+            }
+            progressInfo += `<br><small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`;
+            
+            if (performanceProfile.avgProcessingTime > 0) {
+                const remainingImages = imagesToProcess.length - i;
+                const estimatedSeconds = Math.ceil((remainingImages * performanceProfile.avgProcessingTime) / 1000);
+                progressInfo += `<br><small><?php _e('Est. time remaining:', 'snn'); ?> ~${estimatedSeconds}s</small>`;
+            }
+            
+            $('#snn_opt_progress_text').html(progressInfo);
             
             // Find the row in DOM if exists
             const $row = $(`tr[data-id="${item.id}"]`);
@@ -1666,6 +1759,19 @@ function snn_render_optimize_existing_media_tab() {
             try {
                 const result = await processImage(item.url, item.mime, item.size, settings);
                 
+                // Track processing time for first few images
+                const imageEndTime = Date.now();
+                const processingTime = imageEndTime - imageStartTime;
+                
+                if (processingTimes.length < 10) {
+                    processingTimes.push(processingTime);
+                    
+                    // Analyze performance after 3, 5, and 10 images
+                    if (processingTimes.length === 3 || processingTimes.length === 5 || processingTimes.length === 10) {
+                        analyzePerformance(processingTimes);
+                    }
+                }
+                
                 if (!result.success) throw new Error(result.error);
                 
                 if (result.skipped) {
@@ -1675,21 +1781,20 @@ function snn_render_optimize_existing_media_tab() {
                         $row.find('.new-size').text('-');
                         $row.find('.savings').text('0%').css('color', '#646970');
                     }
-                    continue;
-                }
-                
-                const uploadResult = await uploadOptimizedImage(item.id, result.blob, item.filename);
-                
-                if (!uploadResult.success) throw new Error(uploadResult.error || 'Upload failed');
-                
-                successCount++;
-                totalSaved += result.savings;
-                
-                const pct = Math.round((result.savings / result.originalSize) * 100);
-                if ($row.length) {
-                    $row.find('.snn-status').text('<?php _e('Done', 'snn'); ?>').css('color', '#00a32a');
-                    $row.find('.new-size').text(formatBytes(result.newSize));
-                    $row.find('.savings').text(`-${pct}%`).css('color', '#00a32a');
+                } else {
+                    const uploadResult = await uploadOptimizedImage(item.id, result.blob, item.filename);
+                    
+                    if (!uploadResult.success) throw new Error(uploadResult.error || 'Upload failed');
+                    
+                    successCount++;
+                    totalSaved += result.savings;
+                    
+                    const pct = Math.round((result.savings / result.originalSize) * 100);
+                    if ($row.length) {
+                        $row.find('.snn-status').text('<?php _e('Done', 'snn'); ?>').css('color', '#00a32a');
+                        $row.find('.new-size').text(formatBytes(result.newSize));
+                        $row.find('.savings').text(`-${pct}%`).css('color', '#00a32a');
+                    }
                 }
                 
             } catch (error) {
@@ -1699,25 +1804,39 @@ function snn_render_optimize_existing_media_tab() {
                 }
                 console.error(`Error: ${item.url}`, error);
             }
+            
+            // Apply delays based on performance profile
+            // Delay between images within a batch
+            if (performanceProfile.isMeasured && performanceProfile.delayBetweenImages > 0) {
+                await delay(performanceProfile.delayBetweenImages);
+            }
+            
+            // Delay between batches (every N images based on batch size)
+            if (performanceProfile.isMeasured && (i + 1) % performanceProfile.batchSize === 0 && i < imagesToProcess.length - 1) {
+                await delay(performanceProfile.delayBetweenBatches);
+            }
         }
         
-        $btn.prop('disabled', false);
+        $btnSelected.prop('disabled', false);
+        $btnAll.prop('disabled', false);
         $('#snn_scan_images').prop('disabled', false);
         
+        const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+        
         $('#snn_opt_progress_text').html(
-            `<?php _e('Complete!', 'snn'); ?><br><small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
+            `<?php _e('Complete!', 'snn'); ?> (${totalTime}s)<br><small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
         );
         
         setTimeout(() => $('#snn_optimization_progress').hide(), 5000);
         
         const msgType = successCount > 0 ? 'success' : (skippedCount > 0 ? 'warning' : 'error');
         showMessage(
-            `<?php _e('Complete:', 'snn'); ?> ${successCount} <?php _e('optimized', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?>. <?php _e('Saved:', 'snn'); ?> ${formatBytes(totalSaved)}`,
+            `<?php _e('Complete:', 'snn'); ?> ${successCount} <?php _e('optimized', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?>. <?php _e('Saved:', 'snn'); ?> ${formatBytes(totalSaved)} (${totalTime}s)`,
             msgType
         );
-    });
+    }
     
-    // Optimize All button handler
+    // Optimize All button handler with adaptive batching
     $('#snn_optimize_all').on('click', async function() {
         if (scannedImages.length === 0) {
             showMessage('<?php _e('No images to optimize. Please scan first.', 'snn'); ?>', 'error');
@@ -1730,85 +1849,16 @@ function snn_render_optimize_existing_media_tab() {
             return;
         }
         
-        const $btn = $(this);
-        const $optimizeSelected = $('#snn_optimize_selected');
-        $btn.prop('disabled', true);
-        $optimizeSelected.prop('disabled', true);
-        $('#snn_scan_images').prop('disabled', true);
-        $('#snn_optimization_progress').show();
+        // Convert scannedImages to the format expected by optimizeImagesWithAdaptiveBatching
+        const imagesToProcess = scannedImages.map(img => ({
+            id: img.id,
+            url: img.full_url,
+            mime: img.mime_type,
+            size: img.size_bytes,
+            filename: img.filename
+        }));
         
-        let successCount = 0, skippedCount = 0, errorCount = 0, totalSaved = 0;
-        
-        // Process all images
-        for (let i = 0; i < scannedImages.length; i++) {
-            const item = scannedImages[i];
-            const progress = ((i + 1) / scannedImages.length) * 100;
-            
-            $('#snn_opt_progress_bar').css('width', progress + '%');
-            $('#snn_opt_progress_text').html(
-                `<?php _e('Processing', 'snn'); ?> ${i + 1}/${scannedImages.length}...<br>` +
-                `<small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
-            );
-            
-            // Find the row in DOM if exists
-            const $row = $(`tr[data-id="${item.id}"]`);
-            if ($row.length) {
-                $row.find('.snn-status').text('<?php _e('Processing...', 'snn'); ?>').css('color', '#2271b1');
-            }
-            
-            try {
-                const result = await processImage(item.full_url, item.mime_type, item.size_bytes, settings);
-                
-                if (!result.success) throw new Error(result.error);
-                
-                if (result.skipped) {
-                    skippedCount++;
-                    if ($row.length) {
-                        $row.find('.snn-status').text('<?php _e('Skipped', 'snn'); ?>').css('color', '#dba617');
-                        $row.find('.new-size').text('-');
-                        $row.find('.savings').text('0%').css('color', '#646970');
-                    }
-                    continue;
-                }
-                
-                const uploadResult = await uploadOptimizedImage(item.id, result.blob, item.filename);
-                
-                if (!uploadResult.success) throw new Error(uploadResult.error || 'Upload failed');
-                
-                successCount++;
-                totalSaved += result.savings;
-                
-                const pct = Math.round((result.savings / result.originalSize) * 100);
-                if ($row.length) {
-                    $row.find('.snn-status').text('<?php _e('Done', 'snn'); ?>').css('color', '#00a32a');
-                    $row.find('.new-size').text(formatBytes(result.newSize));
-                    $row.find('.savings').text(`-${pct}%`).css('color', '#00a32a');
-                }
-                
-            } catch (error) {
-                errorCount++;
-                if ($row.length) {
-                    $row.find('.snn-status').text('<?php _e('Error', 'snn'); ?>').css('color', '#d63638');
-                }
-                console.error(`Error: ${item.full_url}`, error);
-            }
-        }
-        
-        $btn.prop('disabled', false);
-        $optimizeSelected.prop('disabled', false);
-        $('#snn_scan_images').prop('disabled', false);
-        
-        $('#snn_opt_progress_text').html(
-            `<?php _e('Complete!', 'snn'); ?><br><small>${successCount} <?php _e('done', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?> | ${formatBytes(totalSaved)} <?php _e('saved', 'snn'); ?></small>`
-        );
-        
-        setTimeout(() => $('#snn_optimization_progress').hide(), 5000);
-        
-        const msgType = successCount > 0 ? 'success' : (skippedCount > 0 ? 'warning' : 'error');
-        showMessage(
-            `<?php _e('Complete:', 'snn'); ?> ${successCount} <?php _e('optimized', 'snn'); ?>, ${skippedCount} <?php _e('skipped', 'snn'); ?>, ${errorCount} <?php _e('failed', 'snn'); ?>. <?php _e('Saved:', 'snn'); ?> ${formatBytes(totalSaved)}`,
-            msgType
-        );
+        await optimizeImagesWithAdaptiveBatching(imagesToProcess, settings);
     });
     </script>
     <?php
