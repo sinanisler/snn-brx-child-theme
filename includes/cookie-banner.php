@@ -1383,7 +1383,7 @@ function snn_output_script_blocker() {
                         var isAllowed = consent[blockedKey] === true;
                         // Log for debugging
                         if (typeof console !== 'undefined' && console.log) {
-                            console.log('SNN: Checking blocked script:', url, '-> Key:', blockedKey, '-> Allowed:', isAllowed, '-> Consent value:', consent[blockedKey]);
+                            // console.log('SNN: Checking blocked script:', url, '-> Key:', blockedKey, '-> Allowed:', isAllowed, '-> Consent value:', consent[blockedKey]);
                         }
                         // Return true only if explicitly set to true
                         // If undefined or false, it should be blocked
@@ -1391,7 +1391,7 @@ function snn_output_script_blocker() {
                     }
                 }
             } catch(e) {
-                console.error('Error parsing consent:', e);
+                //console.error('Error parsing consent:', e);
             }
             
             return false;
@@ -1627,7 +1627,7 @@ function snn_output_banner_js() {
                 
                 // If we found invalid indices or missing services, clear consent
                 if (hasInvalidIndices || Object.keys(validIndices).length !== currentServiceIndices.length) {
-                    console.log('SNN Cookie Banner: Service configuration changed. Clearing old consent.');
+                    // console.log('SNN Cookie Banner: Service configuration changed. Clearing old consent.');
                     eraseCookie('snn_cookie_services');
                     eraseCookie('snn_cookie_accepted');
                     return null;
@@ -1894,7 +1894,7 @@ function snn_output_banner_js() {
                         }
                     });
                 }catch(e){
-                    console.error('Error parsing consent cookie:', e);
+                   // console.error('Error parsing consent cookie:', e);
                 }
             }else{
                 // No consent cookie, default all to checked (initial state)
@@ -1929,7 +1929,7 @@ function snn_output_banner_js() {
                         }
                     });
                 }catch(e){
-                    console.error('Error parsing consent:', e);
+                  //  console.error('Error parsing consent:', e);
                 }
             }
         }
@@ -2047,7 +2047,7 @@ function snn_output_banner_js() {
                 try{
                     var consent = JSON.parse(consentCookie);
                     
-                    console.log('SNN Cookie Banner: Applying custom consent preferences', consent);
+                   // console.log('SNN Cookie Banner: Applying custom consent preferences', consent);
                     
                     // Step 1: Ensure ALL blocked scripts are blocked first
                     blockAllScripts();
@@ -2059,14 +2059,14 @@ function snn_output_banner_js() {
                     // This will check each blocked script against consent
                     unblockScripts(consent);
                     
-                    console.log('SNN Cookie Banner: Custom consent applied successfully');
+                    //console.log('SNN Cookie Banner: Custom consent applied successfully');
                     
                     updateGoogleAnalyticsConsent(true);
                     updateClarityConsent(true);
                     b&&(b.style.display='none');
                     o&&(o.style.display='none');
                 }catch(e){
-                    console.error('Invalid consent cookie, clearing:', e);
+                   // console.error('Invalid consent cookie, clearing:', e);
                     eraseCookie('snn_cookie_accepted');
                     eraseCookie('snn_cookie_services');
                     // Banner will show since no valid consent
