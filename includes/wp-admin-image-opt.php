@@ -1613,12 +1613,36 @@ function snn_render_optimize_existing_media_tab() {
     
     // Decode image based on type
     async function decodeImage(arrayBuffer, mimeType) {
-        if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
-            return await decodeJpeg(arrayBuffer);
-        } else if (mimeType === 'image/png') {
-            return await decodePng(arrayBuffer);
+        // Normalize mime type
+        const normalizedMime = mimeType.toLowerCase().trim();
+        
+        try {
+            if (normalizedMime === 'image/jpeg' || normalizedMime === 'image/jpg') {
+                return await decodeJpeg(arrayBuffer);
+            } else if (normalizedMime === 'image/png') {
+                return await decodePng(arrayBuffer);
+            }
+            throw new Error(`Unsupported mime type: ${mimeType}`);
+        } catch (error) {
+            // If decoder fails, try to detect format from file signature
+            const uint8Array = new Uint8Array(arrayBuffer);
+            const signature = Array.from(uint8Array.slice(0, 4));
+            
+            // PNG signature: 89 50 4E 47
+            if (signature[0] === 0x89 && signature[1] === 0x50 && signature[2] === 0x4E && signature[3] === 0x47) {
+                console.log(`File signature detected as PNG, but mime type was ${mimeType}. Retrying with PNG decoder...`);
+                return await decodePng(arrayBuffer);
+            }
+            
+            // JPEG signature: FF D8 FF
+            if (signature[0] === 0xFF && signature[1] === 0xD8 && signature[2] === 0xFF) {
+                console.log(`File signature detected as JPEG, but mime type was ${mimeType}. Retrying with JPEG decoder...`);
+                return await decodeJpeg(arrayBuffer);
+            }
+            
+            // Re-throw original error if we can't detect format
+            throw error;
         }
-        throw new Error(`Unsupported: ${mimeType}`);
     }
     
     // Build WebP encode options
