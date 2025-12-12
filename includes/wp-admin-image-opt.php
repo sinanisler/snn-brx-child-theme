@@ -1079,8 +1079,7 @@ function snn_render_optimize_existing_media_tab() {
         <p class="description"><?php _e('Convert existing JPG and PNG images in your media library to WebP format. Original images are preserved and can be restored anytime.', 'snn'); ?></p>
         
         <div class="notice notice-info inline" style="margin: 15px 0;">
-            <p><strong>⚡ <?php _e('Fast Client-Side Processing:', 'snn'); ?></strong> <?php _e('Images are downloaded and optimized directly in your browser using WebAssembly (libwebp). This gives you access to all advanced compression options and is much faster than server-side processing!', 'snn'); ?></p>
-            <p><strong>🧠 <?php _e('Smart Adaptive Performance:', 'snn'); ?></strong> <?php _e('The optimizer automatically detects your computer\'s speed and adjusts batch sizes and delays to prevent high CPU usage and freezing. Slower machines get smaller batches with cooling periods between processing.', 'snn'); ?></p>
+            <p><strong>⚡ <?php _e('Fast Client-Side Processing:', 'snn'); ?></strong> <?php _e('Images are downloaded and optimized directly in your browser using WebAssembly (libwebp). Keep browser tab open until optimization completes.', 'snn'); ?></p>
         </div>
         
         <div class="optimization-controls" style="margin: 20px 0; padding: 20px; background: #fff; border: 1px solid #c3c4c7; border-radius: 4px;">
