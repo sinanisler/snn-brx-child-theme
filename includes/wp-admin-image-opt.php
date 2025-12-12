@@ -1480,8 +1480,36 @@ function snn_render_optimize_existing_media_tab() {
         const maxWidth = parseInt($('#snn_max_width').val()) || 0;
         
         images.forEach(function(img) {
-            const statusText = img.optimized ? '<?php _e('Optimized', 'snn'); ?>' : '<?php _e('Pending', 'snn'); ?>';
-            const statusColor = img.optimized ? '#00a32a' : '#646970';
+            // Use persisted status if available
+            let statusText, statusColor, newSizeText, savingsText, savingsColor;
+            
+            if (img.status === 'done') {
+                statusText = '<?php _e('Done', 'snn'); ?>';
+                statusColor = '#00a32a';
+                newSizeText = formatBytes(img.newSize);
+                savingsText = `-${img.savingsPercent}%`;
+                savingsColor = '#00a32a';
+            } else if (img.status === 'skipped') {
+                statusText = '<?php _e('Skipped', 'snn'); ?>';
+                statusColor = '#dba617';
+                newSizeText = '-';
+                savingsText = '0%';
+                savingsColor = '#646970';
+            } else if (img.status === 'error') {
+                statusText = '<?php _e('Error', 'snn'); ?>';
+                statusColor = '#d63638';
+                newSizeText = '-';
+                savingsText = '-';
+                savingsColor = '#d63638';
+            } else {
+                // Default/Pending status
+                statusText = img.optimized ? '<?php _e('Optimized', 'snn'); ?>' : '<?php _e('Pending', 'snn'); ?>';
+                statusColor = img.optimized ? '#00a32a' : '#646970';
+                newSizeText = '-';
+                savingsText = '-';
+                savingsColor = '#646970';
+            }
+            
             const dims = img.width && img.height ? `${img.width}×${img.height}` : '-';
             const willResize = maxWidth > 0 && img.width > maxWidth;
             const resizeNote = willResize ? `<br><small style="color:#dba617;">→${maxWidth}px</small>` : '';
@@ -1495,8 +1523,8 @@ function snn_render_optimize_existing_media_tab() {
                 <td>${dims}${resizeNote}</td>
                 <td>${img.mime_type.replace('image/', '').toUpperCase()}</td>
                 <td>${img.size}</td>
-                <td class="new-size">-</td>
-                <td class="savings">-</td>
+                <td class="new-size">${newSizeText}</td>
+                <td class="savings" style="color: ${savingsColor};">${savingsText}</td>
                 <td><span class="snn-status" style="color: ${statusColor}; font-weight: 500;">${statusText}</span></td>
             </tr>`;
             $tbody.append(row);
@@ -1776,6 +1804,15 @@ function snn_render_optimize_existing_media_tab() {
                 
                 if (result.skipped) {
                     skippedCount++;
+                    
+                    // Update scannedImages array to persist status across pagination
+                    const imgIndex = scannedImages.findIndex(img => img.id === item.id);
+                    if (imgIndex !== -1) {
+                        scannedImages[imgIndex].status = 'skipped';
+                        scannedImages[imgIndex].newSize = null;
+                        scannedImages[imgIndex].savings = 0;
+                    }
+                    
                     if ($row.length) {
                         $row.find('.snn-status').text('<?php _e('Skipped', 'snn'); ?>').css('color', '#dba617');
                         $row.find('.new-size').text('-');
@@ -1790,6 +1827,17 @@ function snn_render_optimize_existing_media_tab() {
                     totalSaved += result.savings;
                     
                     const pct = Math.round((result.savings / result.originalSize) * 100);
+                    
+                    // Update scannedImages array to persist status across pagination
+                    const imgIndex = scannedImages.findIndex(img => img.id === item.id);
+                    if (imgIndex !== -1) {
+                        scannedImages[imgIndex].status = 'done';
+                        scannedImages[imgIndex].newSize = result.newSize;
+                        scannedImages[imgIndex].savings = result.savings;
+                        scannedImages[imgIndex].savingsPercent = pct;
+                        scannedImages[imgIndex].optimized = true;
+                    }
+                    
                     if ($row.length) {
                         $row.find('.snn-status').text('<?php _e('Done', 'snn'); ?>').css('color', '#00a32a');
                         $row.find('.new-size').text(formatBytes(result.newSize));
@@ -1799,6 +1847,15 @@ function snn_render_optimize_existing_media_tab() {
                 
             } catch (error) {
                 errorCount++;
+                
+                // Update scannedImages array to persist status across pagination
+                const imgIndex = scannedImages.findIndex(img => img.id === item.id);
+                if (imgIndex !== -1) {
+                    scannedImages[imgIndex].status = 'error';
+                    scannedImages[imgIndex].newSize = null;
+                    scannedImages[imgIndex].savings = 0;
+                }
+                
                 if ($row.length) {
                     $row.find('.snn-status').text('<?php _e('Error', 'snn'); ?>').css('color', '#d63638');
                 }
