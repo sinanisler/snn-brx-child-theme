@@ -1,0 +1,7 @@
+<?php 
+
+/**
+ * 
+ * * AI Agent Functions
+ * 
+ */

@@ -1,0 +1,6 @@
+<?php 
+/**
+ * 
+ * * AI Chat Overlay
+ * 
+ */
