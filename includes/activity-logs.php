@@ -159,6 +159,7 @@ function snn_get_log_severity_info() {
         'db_optimization'         => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine maintenance activity', 'snn' ) ),
         'featured_image_changed'  => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track featured image updates', 'snn' ) ),
         'reusable_block_updated'  => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track reusable block changes', 'snn' ) ),
+        'option_updated'          => array( 'level' => 'important', 'desc' => __( 'Important: Track all WordPress options and settings changes', 'snn' ) ),
     );
 }
 
@@ -244,6 +245,9 @@ function snn_get_logging_options() {
         'database_activities' => array(
             'db_query_error'  => __( 'Database Query Errors', 'snn' ),
             'db_optimization' => __( 'Database Optimization', 'snn' ),
+        ),
+        'options_activities' => array(
+            'option_updated' => __( 'WordPress Options/Settings Changed', 'snn' ),
         ),
     );
 }
@@ -767,32 +771,27 @@ add_action( 'wp_update_nav_menu', function( $menu_id ) {
     }
 });
 
-// Settings/Options updated
+// Dynamic Settings/Options updated tracking - LOG EVERYTHING when enabled!
 add_action( 'updated_option', function( $option_name, $old_value, $value ) {
-    // Define prefixes for internal WordPress options that update very frequently and should be skipped.
-    $skip_prefixes = array( '_transient_', '_site_transient_', 'cron', '_session_' );
-    // Define exact matches for our own plugin's settings to prevent recursive logging.
-    $skip_exact_matches = array( 'snn_activity_log_enable', 'snn_activity_log_limit' );
-
-    // Skip logging for our own individual logging toggles (snn_log_*)
-    if ( strpos( $option_name, 'snn_log_' ) === 0 ) {
+    // Only skip our own activity log settings to prevent infinite recursive logging
+    if ( strpos( $option_name, 'snn_log_' ) === 0 || strpos( $option_name, 'snn_activity_log_' ) === 0 ) {
         return;
     }
 
-    // Skip if the option name is an exact match in our skip list
-    if ( in_array( $option_name, $skip_exact_matches ) ) {
+    // Only log if option_updated is enabled
+    if ( ! snn_is_log_type_enabled( 'option_updated' ) ) {
         return;
     }
 
-    // Skip if the option name starts with any of the defined internal prefixes
-    foreach ( $skip_prefixes as $prefix ) {
-        if ( strpos( $option_name, $prefix ) === 0 ) {
-            return;
-        }
-    }
+    // Create a detailed log message with old and new values - LOG EVERYTHING ELSE!
+    $old_value_display = snn_format_option_value( $old_value );
+    $new_value_display = snn_format_option_value( $value );
+    
+    $log_message = "Option Updated: {$option_name}";
+    $log_details = "Option: {$option_name}\nOld Value: {$old_value_display}\nNew Value: {$new_value_display}";
 
-    // If not skipped, log the setting update.
-    snn_log_user_activity( 'Setting Updated', $option_name, 0, 'option_updated' );
+    // Log the option update - NO MORE FILTERING!
+    snn_log_user_activity( $log_message, $log_details, 0, 'option_updated' );
 }, 10, 3 );
 
 // Permalink structure changed
@@ -997,6 +996,42 @@ add_action( 'admin_init', function() {
         snn_log_user_activity( 'Database Optimization Requested', 'Admin optimization request', 0, 'db_optimization' );
     }
 });
+
+/**
+ * Formats option values for display in logs.
+ * Handles complex data types and truncates long values.
+ *
+ * @param mixed $value The option value to format.
+ * @return string Formatted value for display.
+ */
+function snn_format_option_value( $value ) {
+    if ( is_null( $value ) ) {
+        return '[NULL]';
+    }
+    
+    if ( is_bool( $value ) ) {
+        return $value ? '[TRUE]' : '[FALSE]';
+    }
+    
+    if ( is_array( $value ) ) {
+        $count = count( $value );
+        if ( $count === 0 ) {
+            return '[Empty Array]';
+        }
+        return "[Array with {$count} items]";
+    }
+    
+    if ( is_object( $value ) ) {
+        return '[Object: ' . get_class( $value ) . ']';
+    }
+    
+    $string_value = (string) $value;
+    if ( strlen( $string_value ) > 200 ) {
+        return substr( $string_value, 0, 200 ) . '... [truncated]';
+    }
+    
+    return $string_value;
+}
 
 /**
  * Custom search filter to search in both title and content for activity logs.
