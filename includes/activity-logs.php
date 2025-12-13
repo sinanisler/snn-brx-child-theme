@@ -102,9 +102,17 @@ function snn_get_log_severity_info() {
         'plugin_activated'        => array( 'level' => 'critical', 'desc' => __( 'Critical: New plugins can introduce security risks', 'snn' ) ),
         'plugin_deactivated'      => array( 'level' => 'critical', 'desc' => __( 'Critical: Track changes to site functionality', 'snn' ) ),
         'plugin_deleted'          => array( 'level' => 'critical', 'desc' => __( 'Critical: Permanent removal should be tracked', 'snn' ) ),
+        'plugin_installed'        => array( 'level' => 'critical', 'desc' => __( 'Critical: New plugin installations can introduce security risks', 'snn' ) ),
         'core_updated'            => array( 'level' => 'critical', 'desc' => __( 'Critical: Track WordPress version changes', 'snn' ) ),
         'application_password'    => array( 'level' => 'critical', 'desc' => __( 'Critical: Monitor API access credentials', 'snn' ) ),
         'privacy_erase'           => array( 'level' => 'critical', 'desc' => __( 'Critical: Required for GDPR compliance', 'snn' ) ),
+        'email_changed'           => array( 'level' => 'critical', 'desc' => __( 'Critical: Email changes can indicate account compromise', 'snn' ) ),
+        'password_changed'        => array( 'level' => 'critical', 'desc' => __( 'Critical: Password changes should be monitored', 'snn' ) ),
+        'site_url_changed'        => array( 'level' => 'critical', 'desc' => __( 'Critical: Site URL changes can break the site', 'snn' ) ),
+        'admin_email_changed'     => array( 'level' => 'critical', 'desc' => __( 'Critical: Admin email changes affect site notifications', 'snn' ) ),
+        'xmlrpc_access'           => array( 'level' => 'critical', 'desc' => __( 'Critical: XML-RPC is often targeted by attackers', 'snn' ) ),
+        'rest_api_auth'           => array( 'level' => 'critical', 'desc' => __( 'Critical: REST API authentication failures may indicate attacks', 'snn' ) ),
+        'theme_installed'         => array( 'level' => 'critical', 'desc' => __( 'Critical: New theme installations can introduce security risks', 'snn' ) ),
         
         // YELLOW - Important Operational
         'user_login'              => array( 'level' => 'important', 'desc' => __( 'Important: Good for accountability and security', 'snn' ) ),
@@ -112,6 +120,8 @@ function snn_get_log_severity_info() {
         'password_reset'          => array( 'level' => 'important', 'desc' => __( 'Important: Monitor password change requests', 'snn' ) ),
         'post_deleted'            => array( 'level' => 'important', 'desc' => __( 'Important: Permanent deletion should be tracked', 'snn' ) ),
         'post_trashed'            => array( 'level' => 'important', 'desc' => __( 'Important: Track content removal', 'snn' ) ),
+        'post_restored'           => array( 'level' => 'important', 'desc' => __( 'Important: Track content restoration', 'snn' ) ),
+        'revision_restored'       => array( 'level' => 'important', 'desc' => __( 'Important: Track revision restorations', 'snn' ) ),
         'attachment_deleted'      => array( 'level' => 'important', 'desc' => __( 'Important: Track media library changes', 'snn' ) ),
         'theme_switched'          => array( 'level' => 'important', 'desc' => __( 'Important: Track visual and functional changes', 'snn' ) ),
         'theme_deleted'           => array( 'level' => 'important', 'desc' => __( 'Important: Track theme removal', 'snn' ) ),
@@ -120,6 +130,11 @@ function snn_get_log_severity_info() {
         'term_deleted'            => array( 'level' => 'important', 'desc' => __( 'Important: Track taxonomy changes', 'snn' ) ),
         'privacy_request'         => array( 'level' => 'important', 'desc' => __( 'Important: Required for GDPR compliance', 'snn' ) ),
         'export_performed'        => array( 'level' => 'important', 'desc' => __( 'Important: Track data exports for security', 'snn' ) ),
+        'session_destroyed'       => array( 'level' => 'important', 'desc' => __( 'Important: Track user session terminations', 'snn' ) ),
+        'bulk_action'             => array( 'level' => 'important', 'desc' => __( 'Important: Bulk operations can affect many items', 'snn' ) ),
+        'plugin_updated'          => array( 'level' => 'important', 'desc' => __( 'Important: Track plugin version changes', 'snn' ) ),
+        'permalink_changed'       => array( 'level' => 'important', 'desc' => __( 'Important: Permalink changes affect SEO and links', 'snn' ) ),
+        'customizer_saved'        => array( 'level' => 'important', 'desc' => __( 'Important: Track theme customization changes', 'snn' ) ),
         
         // GRAY - Lower Priority
         'user_logout'             => array( 'level' => 'low', 'desc' => __( 'Low Priority: Creates high volume, mainly informational', 'snn' ) ),
@@ -142,6 +157,8 @@ function snn_get_log_severity_info() {
         'cron_executed'           => array( 'level' => 'low', 'desc' => __( 'Low Priority: Very high volume, mainly for debugging', 'snn' ) ),
         'db_query_error'          => array( 'level' => 'low', 'desc' => __( 'Low Priority: For debugging database issues', 'snn' ) ),
         'db_optimization'         => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine maintenance activity', 'snn' ) ),
+        'featured_image_changed'  => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track featured image updates', 'snn' ) ),
+        'reusable_block_updated'  => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track reusable block changes', 'snn' ) ),
     );
 }
 
@@ -160,18 +177,27 @@ function snn_get_logging_options() {
             'user_profile_update'   => __( 'User Profile Updates', 'snn' ),
             'user_deleted'          => __( 'User Deletion', 'snn' ),
             'user_role_change'      => __( 'User Role Changes', 'snn' ),
+            'user_capability_change'=> __( 'User Capability Changes', 'snn' ),
             'password_reset'        => __( 'Password Reset Requests', 'snn' ),
+            'password_changed'      => __( 'Password Changes', 'snn' ),
             'failed_login'          => __( 'Failed Login Attempts', 'snn' ),
+            'email_changed'         => __( 'Email Address Changes', 'snn' ),
+            'session_destroyed'     => __( 'Session Terminations', 'snn' ),
         ),
         'content_activities' => array(
             'post_created'          => __( 'Post/Page Creation', 'snn' ),
             'post_updated'          => __( 'Post/Page Updates', 'snn' ),
             'post_deleted'          => __( 'Post/Page Deletion', 'snn' ),
             'post_trashed'          => __( 'Post/Page Trashed', 'snn' ),
+            'post_restored'         => __( 'Post/Page Restored', 'snn' ),
             'post_status_change'    => __( 'Post Status Changes', 'snn' ),
+            'revision_restored'     => __( 'Revision Restored', 'snn' ),
+            'bulk_action'           => __( 'Bulk Actions', 'snn' ),
             'attachment_uploaded'   => __( 'Media Uploads', 'snn' ),
             'attachment_deleted'    => __( 'Media Deletion', 'snn' ),
             'attachment_updated'    => __( 'Media Updates', 'snn' ),
+            'featured_image_changed'=> __( 'Featured Image Changes', 'snn' ),
+            'reusable_block_updated'=> __( 'Reusable Block Changes', 'snn' ),
         ),
         'comment_activities' => array(
             'comment_posted'        => __( 'Comment Posted', 'snn' ),
@@ -182,9 +208,12 @@ function snn_get_logging_options() {
             'comment_deleted'       => __( 'Comment Deleted', 'snn' ),
         ),
         'system_activities' => array(
+            'plugin_installed'      => __( 'Plugin Installation', 'snn' ),
             'plugin_activated'      => __( 'Plugin Activation', 'snn' ),
             'plugin_deactivated'    => __( 'Plugin Deactivation', 'snn' ),
+            'plugin_updated'        => __( 'Plugin Updates', 'snn' ),
             'plugin_deleted'        => __( 'Plugin Deletion', 'snn' ),
+            'theme_installed'       => __( 'Theme Installation', 'snn' ),
             'theme_switched'        => __( 'Theme Switch', 'snn' ),
             'theme_updated'         => __( 'Theme Updates', 'snn' ),
             'theme_deleted'         => __( 'Theme Deletion', 'snn' ),
@@ -192,15 +221,20 @@ function snn_get_logging_options() {
             'widget_updated'        => __( 'Widget Changes', 'snn' ),
             'menu_updated'          => __( 'Menu Updates', 'snn' ),
             'option_updated'        => __( 'Settings Changes', 'snn' ),
+            'permalink_changed'     => __( 'Permalink Structure Changes', 'snn' ),
+            'customizer_saved'      => __( 'Customizer Changes', 'snn' ),
             'export_performed'      => __( 'Data Exports', 'snn' ),
             'cron_executed'         => __( 'Scheduled Tasks (Cron)', 'snn' ),
         ),
         'security_activities' => array(
             'file_edited'           => __( 'Theme/Plugin File Edits', 'snn' ),
-            'user_capability_change' => __( 'User Capability Changes', 'snn' ),
             'privacy_request'       => __( 'Privacy Data Requests', 'snn' ),
             'privacy_erase'         => __( 'Privacy Data Erasure', 'snn' ),
             'application_password'  => __( 'Application Password Events', 'snn' ),
+            'xmlrpc_access'         => __( 'XML-RPC Access', 'snn' ),
+            'rest_api_auth'         => __( 'REST API Authentication Failures', 'snn' ),
+            'site_url_changed'      => __( 'Site URL Changes', 'snn' ),
+            'admin_email_changed'   => __( 'Admin Email Changes', 'snn' ),
         ),
         'taxonomy_activities' => array(
             'term_created' => __( 'Category/Tag Creation', 'snn' ),
@@ -259,10 +293,12 @@ function snn_log_user_activity( $action, $object = '', $object_id = 0, $log_type
     // Add user agent for security-related logs
     $security_log_types = array(
         'failed_login', 'user_login', 'user_logout', 'user_register', 
-        'user_deleted', 'user_role_change', 'password_reset',
+        'user_deleted', 'user_role_change', 'password_reset', 'password_changed',
         'file_edited', 'user_capability_change', 'application_password',
-        'plugin_activated', 'plugin_deactivated', 'plugin_deleted',
-        'theme_switched', 'option_updated'
+        'plugin_activated', 'plugin_deactivated', 'plugin_deleted', 'plugin_installed',
+        'theme_switched', 'option_updated', 'email_changed', 'session_destroyed',
+        'xmlrpc_access', 'rest_api_auth', 'site_url_changed', 'admin_email_changed',
+        'theme_installed', 'theme_deleted'
     );
     if ( in_array( $log_type, $security_log_types ) ) {
         $log_content .= "\nUser Agent: " . ( $_SERVER['HTTP_USER_AGENT'] ?? 'N/A' );
@@ -334,13 +370,31 @@ add_action( 'user_register', function( $user_id ) {
     }
 });
 
-// User profile update
-add_action( 'profile_update', function( $user_id, $old_user_data ) {
+// User profile update - also track email and password changes
+add_action( 'profile_update', function( $user_id, $old_user_data, $userdata = array() ) {
     $user = get_user_by( 'id', $user_id );
-    if ( $user ) {
-        snn_log_user_activity( 'User Profile Updated', $user->user_login, $user_id, 'user_profile_update' );
+    if ( ! $user ) {
+        return;
     }
-}, 10, 2 );
+
+    // Log general profile update
+    snn_log_user_activity( 'User Profile Updated', $user->user_login, $user_id, 'user_profile_update' );
+
+    // Check if email was changed
+    if ( isset( $old_user_data->user_email ) && $old_user_data->user_email !== $user->user_email ) {
+        snn_log_user_activity(
+            "Email Changed from {$old_user_data->user_email} to {$user->user_email}",
+            $user->user_login,
+            $user_id,
+            'email_changed'
+        );
+    }
+
+    // Check if password was changed (userdata contains the new pass if changed)
+    if ( is_array( $userdata ) && ! empty( $userdata['user_pass'] ) ) {
+        snn_log_user_activity( 'Password Changed', $user->user_login, $user_id, 'password_changed' );
+    }
+}, 10, 3 );
 
 // User deleted
 add_action( 'deleted_user', function( $user_id, $reassign ) {
@@ -356,6 +410,22 @@ add_action( 'set_user_role', function( $user_id, $role, $old_roles ) {
     }
 }, 10, 3 );
 
+// User capability change - Role added
+add_action( 'add_user_role', function( $user_id, $role ) {
+    $user = get_user_by( 'id', $user_id );
+    if ( $user ) {
+        snn_log_user_activity( "Role '{$role}' Added to User", $user->user_login, $user_id, 'user_capability_change' );
+    }
+}, 10, 2 );
+
+// User capability change - Role removed
+add_action( 'remove_user_role', function( $user_id, $role ) {
+    $user = get_user_by( 'id', $user_id );
+    if ( $user ) {
+        snn_log_user_activity( "Role '{$role}' Removed from User", $user->user_login, $user_id, 'user_capability_change' );
+    }
+}, 10, 2 );
+
 // Password reset
 add_action( 'password_reset', function( $user, $new_pass ) {
     snn_log_user_activity( 'Password Reset', $user->user_login, $user->ID, 'password_reset' );
@@ -364,6 +434,22 @@ add_action( 'password_reset', function( $user, $new_pass ) {
 // Failed login attempts
 add_action( 'wp_login_failed', function( $username ) {
     snn_log_user_activity( 'Failed Login Attempt', $username, 0, 'failed_login' );
+});
+
+// Session destroyed
+add_action( 'destroy_user_session', function( $session_token ) {
+    $user = wp_get_current_user();
+    if ( $user && $user->ID ) {
+        snn_log_user_activity( 'Session Destroyed', $user->user_login, $user->ID, 'session_destroyed' );
+    }
+});
+
+// All sessions destroyed for a user
+add_action( 'destroy_all_sessions_for_user', function( $user_id ) {
+    $user = get_user_by( 'id', $user_id );
+    if ( $user ) {
+        snn_log_user_activity( 'All Sessions Destroyed', $user->user_login, $user_id, 'session_destroyed' );
+    }
 });
 
 // Post/Page updated (including creation and status changes)
@@ -405,6 +491,17 @@ add_action( 'wp_trash_post', function( $post_id ) {
     snn_log_user_activity( "{$action_label} Trashed", $post->post_title, $post_id, 'post_trashed' );
 });
 
+// Post/Page restored from trash
+add_action( 'untrashed_post', function( $post_id ) {
+    $post = get_post( $post_id );
+    if ( ! $post || $post->post_type === 'snn_activity_log' ) {
+        return;
+    }
+    $post_type = get_post_type_object( $post->post_type );
+    $action_label = $post_type ? $post_type->labels->singular_name : 'Item';
+    snn_log_user_activity( "{$action_label} Restored from Trash", $post->post_title, $post_id, 'post_restored' );
+});
+
 // Post/Page deleted permanently
 add_action( 'delete_post', function( $post_id ) {
     $post = get_post( $post_id );
@@ -415,6 +512,86 @@ add_action( 'delete_post', function( $post_id ) {
     $action_label = $post_type ? $post_type->labels->singular_name : 'Item';
     snn_log_user_activity( "{$action_label} Deleted Permanently", $post->post_title, $post_id, 'post_deleted' );
 });
+
+// Revision restored
+add_action( 'wp_restore_post_revision', function( $post_id, $revision_id ) {
+    $post = get_post( $post_id );
+    if ( $post ) {
+        snn_log_user_activity( 
+            "Revision Restored", 
+            "{$post->post_title} (Revision #{$revision_id})", 
+            $post_id, 
+            'revision_restored' 
+        );
+    }
+}, 10, 2 );
+
+// Bulk actions for posts
+add_filter( 'handle_bulk_actions-edit-post', function( $redirect_to, $action, $post_ids ) {
+    if ( ! empty( $post_ids ) ) {
+        $count = count( $post_ids );
+        snn_log_user_activity( 
+            "Bulk Action: {$action}", 
+            "{$count} posts affected", 
+            0, 
+            'bulk_action' 
+        );
+    }
+    return $redirect_to;
+}, 10, 3 );
+
+// Bulk actions for pages
+add_filter( 'handle_bulk_actions-edit-page', function( $redirect_to, $action, $post_ids ) {
+    if ( ! empty( $post_ids ) ) {
+        $count = count( $post_ids );
+        snn_log_user_activity( 
+            "Bulk Action: {$action}", 
+            "{$count} pages affected", 
+            0, 
+            'bulk_action' 
+        );
+    }
+    return $redirect_to;
+}, 10, 3 );
+
+// Featured image changed
+add_action( 'updated_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
+    if ( $meta_key === '_thumbnail_id' ) {
+        $post = get_post( $post_id );
+        if ( $post && $post->post_type !== 'snn_activity_log' ) {
+            snn_log_user_activity( 'Featured Image Changed', $post->post_title, $post_id, 'featured_image_changed' );
+        }
+    }
+}, 10, 4 );
+
+// Featured image added
+add_action( 'added_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
+    if ( $meta_key === '_thumbnail_id' ) {
+        $post = get_post( $post_id );
+        if ( $post && $post->post_type !== 'snn_activity_log' ) {
+            snn_log_user_activity( 'Featured Image Added', $post->post_title, $post_id, 'featured_image_changed' );
+        }
+    }
+}, 10, 4 );
+
+// Featured image removed
+add_action( 'deleted_post_meta', function( $meta_ids, $post_id, $meta_key, $meta_value ) {
+    if ( $meta_key === '_thumbnail_id' ) {
+        $post = get_post( $post_id );
+        if ( $post && $post->post_type !== 'snn_activity_log' ) {
+            snn_log_user_activity( 'Featured Image Removed', $post->post_title, $post_id, 'featured_image_changed' );
+        }
+    }
+}, 10, 4 );
+
+// Reusable block (wp_block) created or updated
+add_action( 'save_post_wp_block', function( $post_id, $post, $update ) {
+    if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+        return;
+    }
+    $action = $update ? 'Reusable Block Updated' : 'Reusable Block Created';
+    snn_log_user_activity( $action, $post->post_title, $post_id, 'reusable_block_updated' );
+}, 10, 3 );
 
 // Media uploads
 add_action( 'add_attachment', function( $attachment_id ) {
@@ -504,18 +681,72 @@ add_action( 'switch_theme', function( $new_name, $new_theme, $old_theme ) {
     snn_log_user_activity( "Theme Switched from {$old_name} to {$new_name}", $new_name, 0, 'theme_switched' );
 }, 10, 3 );
 
-// Theme updated or Core updated (using upgrader_process_complete)
+// Theme deleted
+add_action( 'delete_theme', function( $stylesheet ) {
+    $theme = wp_get_theme( $stylesheet );
+    $theme_name = $theme->exists() ? $theme->get( 'Name' ) : $stylesheet;
+    snn_log_user_activity( 'Theme Deleted', $theme_name, 0, 'theme_deleted' );
+});
+
+// Theme updated, Core updated, Plugin installed, Theme installed, Plugin updated
 add_action( 'upgrader_process_complete', function( $upgrader_object, $options ) {
     // Theme updates
     if ( $options['action'] == 'update' && $options['type'] == 'theme' ) {
-        foreach ( $options['themes'] as $theme ) {
-            $theme_data = wp_get_theme( $theme );
-            snn_log_user_activity( 'Theme Updated', $theme_data->get( 'Name' ), 0, 'theme_updated' );
+        if ( isset( $options['themes'] ) ) {
+            foreach ( $options['themes'] as $theme ) {
+                $theme_data = wp_get_theme( $theme );
+                snn_log_user_activity( 'Theme Updated', $theme_data->get( 'Name' ), 0, 'theme_updated' );
+            }
         }
     }
+    
     // Core updates
     if ( $options['action'] == 'update' && $options['type'] == 'core' ) {
         snn_log_user_activity( 'WordPress Core Updated', 'Version ' . get_bloginfo( 'version' ), 0, 'core_updated' );
+    }
+
+    // Plugin installed
+    if ( $options['action'] === 'install' && $options['type'] === 'plugin' ) {
+        $plugin_info = isset( $upgrader_object->result['destination_name'] ) ? $upgrader_object->result['destination_name'] : '';
+        if ( method_exists( $upgrader_object, 'plugin_info' ) ) {
+            $plugin_file = $upgrader_object->plugin_info();
+            if ( $plugin_file ) {
+                $plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin_file );
+                $plugin_name = $plugin_data['Name'] ?? $plugin_file;
+                snn_log_user_activity( 'Plugin Installed', $plugin_name, 0, 'plugin_installed' );
+            }
+        } elseif ( $plugin_info ) {
+            snn_log_user_activity( 'Plugin Installed', $plugin_info, 0, 'plugin_installed' );
+        }
+    }
+
+    // Theme installed
+    if ( $options['action'] === 'install' && $options['type'] === 'theme' ) {
+        if ( method_exists( $upgrader_object, 'theme_info' ) ) {
+            $theme_info = $upgrader_object->theme_info();
+            if ( $theme_info ) {
+                snn_log_user_activity( 'Theme Installed', $theme_info->get( 'Name' ), 0, 'theme_installed' );
+            }
+        } elseif ( isset( $upgrader_object->result['destination_name'] ) ) {
+            snn_log_user_activity( 'Theme Installed', $upgrader_object->result['destination_name'], 0, 'theme_installed' );
+        }
+    }
+
+    // Plugin updated
+    if ( $options['action'] === 'update' && $options['type'] === 'plugin' ) {
+        if ( isset( $options['plugins'] ) ) {
+            foreach ( $options['plugins'] as $plugin ) {
+                $plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
+                $plugin_name = $plugin_data['Name'] ?? $plugin;
+                $plugin_version = $plugin_data['Version'] ?? 'unknown';
+                snn_log_user_activity( 
+                    'Plugin Updated', 
+                    "{$plugin_name} to v{$plugin_version}", 
+                    0, 
+                    'plugin_updated' 
+                );
+            }
+        }
     }
 }, 10, 2 );
 
@@ -563,6 +794,61 @@ add_action( 'updated_option', function( $option_name, $old_value, $value ) {
     // If not skipped, log the setting update.
     snn_log_user_activity( 'Setting Updated', $option_name, 0, 'option_updated' );
 }, 10, 3 );
+
+// Permalink structure changed
+add_action( 'update_option_permalink_structure', function( $old_value, $new_value ) {
+    if ( $old_value !== $new_value ) {
+        $old_display = empty( $old_value ) ? 'Plain' : $old_value;
+        $new_display = empty( $new_value ) ? 'Plain' : $new_value;
+        snn_log_user_activity( 
+            "Permalink Structure Changed", 
+            "From '{$old_display}' to '{$new_display}'", 
+            0, 
+            'permalink_changed' 
+        );
+    }
+}, 10, 2 );
+
+// Site URL changed
+add_action( 'update_option_siteurl', function( $old_value, $new_value ) {
+    if ( $old_value !== $new_value ) {
+        snn_log_user_activity( 
+            'Site URL Changed', 
+            "From '{$old_value}' to '{$new_value}'", 
+            0, 
+            'site_url_changed' 
+        );
+    }
+}, 10, 2 );
+
+// Home URL changed
+add_action( 'update_option_home', function( $old_value, $new_value ) {
+    if ( $old_value !== $new_value ) {
+        snn_log_user_activity( 
+            'Home URL Changed', 
+            "From '{$old_value}' to '{$new_value}'", 
+            0, 
+            'site_url_changed' 
+        );
+    }
+}, 10, 2 );
+
+// Admin email changed
+add_action( 'update_option_admin_email', function( $old_value, $new_value ) {
+    if ( $old_value !== $new_value ) {
+        snn_log_user_activity( 
+            'Admin Email Changed', 
+            "From '{$old_value}' to '{$new_value}'", 
+            0, 
+            'admin_email_changed' 
+        );
+    }
+}, 10, 2 );
+
+// Customizer saved
+add_action( 'customize_save_after', function( $manager ) {
+    snn_log_user_activity( 'Customizer Settings Saved', 'Theme Customization', 0, 'customizer_saved' );
+});
 
 // Export performed
 add_action( 'export_wp', function( $args ) {
@@ -626,6 +912,91 @@ add_action( 'wp_delete_application_password', function( $user_id, $item ) {
         snn_log_user_activity( 'Application Password Deleted', $user->user_login, $user_id, 'application_password' );
     }
 }, 10, 2 );
+
+// XML-RPC access logging
+add_action( 'xmlrpc_call', function( $method ) {
+    snn_log_user_activity( 'XML-RPC Call', $method, 0, 'xmlrpc_access' );
+});
+
+// REST API authentication failures
+add_filter( 'rest_authentication_errors', function( $result ) {
+    if ( is_wp_error( $result ) ) {
+        $error_message = $result->get_error_message();
+        snn_log_user_activity( 
+            'REST API Auth Failed', 
+            $error_message, 
+            0, 
+            'rest_api_auth' 
+        );
+    }
+    return $result;
+}, 99 );
+
+// Cron executed - logs when WP cron runs
+add_action( 'wp_loaded', function() {
+    if ( defined( 'DOING_CRON' ) && DOING_CRON && snn_is_log_type_enabled( 'cron_executed' ) ) {
+        // Use shutdown to log at the end of cron execution
+        add_action( 'shutdown', function() {
+            // Only log once per cron run using a static flag
+            static $logged = false;
+            if ( ! $logged ) {
+                $logged = true;
+                snn_log_user_activity( 'Cron Job Executed', 'WordPress Scheduled Tasks', 0, 'cron_executed' );
+            }
+        }, 999 );
+    }
+});
+
+// Database query errors
+add_action( 'init', function() {
+    if ( ! snn_is_log_type_enabled( 'db_query_error' ) ) {
+        return;
+    }
+    
+    // Only enable for logged-in users with admin capability to avoid performance issues
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    global $wpdb;
+    
+    // Log database errors using the $wpdb->last_error check
+    add_action( 'shutdown', function() {
+        global $wpdb;
+        if ( ! empty( $wpdb->last_error ) ) {
+            // Avoid logging the same error multiple times
+            static $logged_errors = array();
+            $error_hash = md5( $wpdb->last_error );
+            
+            if ( ! isset( $logged_errors[ $error_hash ] ) ) {
+                $logged_errors[ $error_hash ] = true;
+                snn_log_user_activity( 
+                    'Database Query Error', 
+                    substr( $wpdb->last_error, 0, 200 ), 
+                    0, 
+                    'db_query_error' 
+                );
+            }
+        }
+    });
+});
+
+// Database optimization - hook into common optimization actions
+add_action( 'wp_ajax_wp_optimize_database', function() {
+    snn_log_user_activity( 'Database Optimization Initiated', 'Manual optimization via AJAX', 0, 'db_optimization' );
+}, 1 );
+
+// Hook for WP-Optimize plugin
+add_action( 'wp_optimize_after_optimization', function() {
+    snn_log_user_activity( 'Database Optimized', 'Optimization completed', 0, 'db_optimization' );
+});
+
+// Hook for when OPTIMIZE TABLE is run via phpMyAdmin or similar
+add_action( 'admin_init', function() {
+    if ( isset( $_GET['action'] ) && $_GET['action'] === 'optimize' && isset( $_GET['page'] ) ) {
+        snn_log_user_activity( 'Database Optimization Requested', 'Admin optimization request', 0, 'db_optimization' );
+    }
+});
 
 /**
  * Custom search filter to search in both title and content for activity logs.
@@ -1277,4 +1648,3 @@ function snn_activity_log_page_html() {
     </script>
     <?php
 }
-
