@@ -173,8 +173,15 @@ function snn_log_user_activity( $action, $object = '', $object_id = 0, $log_type
     $log_title = "{$user_info} || {$action}";
     $log_content = "Object: {$object}\nObject ID: {$object_id}\nIP Address: " . ( $_SERVER['REMOTE_ADDR'] ?? 'N/A' );
 
-    // Add user agent for specific security-related logs
-    if ( in_array( $log_type, array( 'failed_login', 'user_login', 'file_edited' ) ) ) {
+    // Add user agent for security-related logs
+    $security_log_types = array(
+        'failed_login', 'user_login', 'user_logout', 'user_register', 
+        'user_deleted', 'user_role_change', 'password_reset',
+        'file_edited', 'user_capability_change', 'application_password',
+        'plugin_activated', 'plugin_deactivated', 'plugin_deleted',
+        'theme_switched', 'option_updated'
+    );
+    if ( in_array( $log_type, $security_log_types ) ) {
         $log_content .= "\nUser Agent: " . ( $_SERVER['HTTP_USER_AGENT'] ?? 'N/A' );
     }
 
@@ -538,6 +545,137 @@ add_action( 'wp_delete_application_password', function( $user_id, $item ) {
 }, 10, 2 );
 
 /**
+ * Custom search filter to search in both title and content for activity logs.
+ * This allows searching across user names, actions, IP addresses, and details.
+ *
+ * @param string $search The search SQL.
+ * @param WP_Query $query The WP_Query instance.
+ * @return string Modified search SQL.
+ */
+function snn_activity_log_search_filter( $search, $query ) {
+    global $wpdb;
+    
+    if ( ! $query->is_main_query() || empty( $query->query['s'] ) ) {
+        return $search;
+    }
+    
+    $search_term = $wpdb->esc_like( $query->query['s'] );
+    $search_term = '%' . $search_term . '%';
+    
+    // Search in both post_title and post_content
+    $search = " AND (({$wpdb->posts}.post_title LIKE %s) OR ({$wpdb->posts}.post_content LIKE %s))";
+    $search = $wpdb->prepare( $search, $search_term, $search_term );
+    
+    return $search;
+}
+
+/**
+ * Export activity logs to CSV file.
+ * Exports all logs (respecting current filters) to a downloadable CSV.
+ */
+function snn_export_activity_log_csv() {
+    // Query all logs (no pagination limit for export)
+    $args = array(
+        'post_type'      => 'snn_activity_log',
+        'posts_per_page' => -1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    );
+
+    // Apply same filters as the display
+    if ( ! empty( $_GET['s'] ) ) {
+        $search_term = sanitize_text_field( $_GET['s'] );
+        $args['s'] = $search_term;
+        add_filter( 'posts_search', 'snn_activity_log_search_filter', 10, 2 );
+    }
+
+    if ( ! empty( $_GET['date_from'] ) || ! empty( $_GET['date_to'] ) ) {
+        $date_query = array();
+        if ( ! empty( $_GET['date_from'] ) ) {
+            $date_query['after'] = sanitize_text_field( $_GET['date_from'] );
+        }
+        if ( ! empty( $_GET['date_to'] ) ) {
+            $date_query['before'] = sanitize_text_field( $_GET['date_to'] ) . ' 23:59:59';
+        }
+        $date_query['inclusive'] = true;
+        $args['date_query'] = array( $date_query );
+    }
+
+    $logs = new WP_Query( $args );
+
+    if ( ! empty( $_GET['s'] ) ) {
+        remove_filter( 'posts_search', 'snn_activity_log_search_filter', 10 );
+    }
+
+    // Set headers for CSV download
+    header( 'Content-Type: text/csv; charset=utf-8' );
+    header( 'Content-Disposition: attachment; filename=activity-logs-' . date( 'Y-m-d-His' ) . '.csv' );
+    header( 'Pragma: no-cache' );
+    header( 'Expires: 0' );
+
+    // Open output stream
+    $output = fopen( 'php://output', 'w' );
+
+    // Add BOM for UTF-8 Excel compatibility
+    fprintf( $output, chr(0xEF).chr(0xBB).chr(0xBF) );
+
+    // Write CSV headers
+    fputcsv( $output, array( 'Date', 'User', 'Action', 'Object', 'Object ID', 'IP Address', 'User Agent' ) );
+
+    // Write data rows
+    if ( $logs->have_posts() ) {
+        while ( $logs->have_posts() ) {
+            $logs->the_post();
+            
+            // Parse title to extract user and action
+            $title_parts = explode( ' || ', get_the_title(), 2 );
+            $user_info = isset( $title_parts[0] ) ? $title_parts[0] : 'N/A';
+            $action = isset( $title_parts[1] ) ? $title_parts[1] : 'Unknown Action';
+            
+            // Parse content to extract details
+            $content = get_the_content();
+            $ip_address = 'N/A';
+            $user_agent = 'N/A';
+            $object = '';
+            $object_id = '';
+            
+            // Extract IP address
+            if ( preg_match( '/IP Address: ([^\n]+)/', $content, $matches ) ) {
+                $ip_address = trim( $matches[1] );
+            }
+            
+            // Extract User Agent
+            if ( preg_match( '/User Agent: ([^\n]+)/', $content, $matches ) ) {
+                $user_agent = trim( $matches[1] );
+            }
+            
+            // Extract Object
+            if ( preg_match( '/Object: ([^\n]+)/', $content, $matches ) ) {
+                $object = trim( $matches[1] );
+            }
+            
+            // Extract Object ID
+            if ( preg_match( '/Object ID: ([^\n]+)/', $content, $matches ) ) {
+                $object_id = trim( $matches[1] );
+            }
+            
+            fputcsv( $output, array(
+                get_the_date( 'Y-m-d H:i:s' ),
+                $user_info,
+                $action,
+                $object,
+                $object_id,
+                $ip_address,
+                $user_agent
+            ) );
+        }
+        wp_reset_postdata();
+    }
+
+    fclose( $output );
+}
+
+/**
  * HTML for the activity log administration page.
  * Displays settings, a clear log button, and a table of recent activity.
  */
@@ -554,6 +692,12 @@ function snn_activity_log_page_html() {
         // Delete all posts of our custom log type.
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
         echo '<div class="updated notice is-dismissible"><p>' . __( 'Activity log cleared.', 'snn' ) . '</p></div>';
+    }
+
+    // Handle CSV export
+    if ( isset( $_POST['snn_export_csv_nonce'] ) && wp_verify_nonce( $_POST['snn_export_csv_nonce'], 'snn_export_csv_action' ) ) {
+        snn_export_activity_log_csv();
+        exit;
     }
     ?>
     <div class="wrap">
@@ -622,19 +766,44 @@ function snn_activity_log_page_html() {
             <?php submit_button(); // WordPress standard submit button ?>
         </form>
 
-        <form method="post">
-            <?php wp_nonce_field( 'snn_clear_log_action', 'snn_clear_log_nonce' ); ?>
-            <?php submit_button( __( 'Clear All Logs', 'snn' ), 'delete', 'snn-clear-log' ); ?>
-        </form>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <form method="post" style="margin: 0;">
+                <?php wp_nonce_field( 'snn_clear_log_action', 'snn_clear_log_nonce' ); ?>
+                <?php submit_button( __( 'Clear All Logs', 'snn' ), 'delete', 'snn-clear-log', false ); ?>
+            </form>
+            <form method="post" style="margin: 0;">
+                <?php wp_nonce_field( 'snn_export_csv_action', 'snn_export_csv_nonce' ); ?>
+                <?php submit_button( __( 'Export to CSV', 'snn' ), 'secondary', 'snn-export-csv', false ); ?>
+            </form>
+        </div>
 
         <hr>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em;">
+        <div style="margin-bottom: 1em;">
             <h2><?php _e( 'Recent Activity', 'snn' ); ?></h2>
-            <p class="search-box">
-                <label class="screen-reader-text" for="snn-log-search-input"><?php _e('Search Logs:', 'snn'); ?></label>
-                <input type="search" id="snn-log-search-input" name="snn_log_search" placeholder="<?php _e('Filter logs...', 'snn'); ?>">
-            </p>
+            <form method="get" action="" style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-top: 15px;">
+                <input type="hidden" name="page" value="snn-activity-log" />
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="snn-log-search-input" style="display: block; margin-bottom: 5px; font-weight: 600;"><?php _e('Search:', 'snn'); ?></label>
+                        <input type="search" id="snn-log-search-input" name="s" value="<?php echo esc_attr( isset( $_GET['s'] ) ? $_GET['s'] : '' ); ?>" placeholder="<?php _e('Search logs...', 'snn'); ?>" style="width: 100%;" />
+                    </div>
+                    <div>
+                        <label for="snn-log-date-from" style="display: block; margin-bottom: 5px; font-weight: 600;"><?php _e('From Date:', 'snn'); ?></label>
+                        <input type="date" id="snn-log-date-from" name="date_from" value="<?php echo esc_attr( isset( $_GET['date_from'] ) ? $_GET['date_from'] : '' ); ?>" style="width: 155px;" />
+                    </div>
+                    <div>
+                        <label for="snn-log-date-to" style="display: block; margin-bottom: 5px; font-weight: 600;"><?php _e('To Date:', 'snn'); ?></label>
+                        <input type="date" id="snn-log-date-to" name="date_to" value="<?php echo esc_attr( isset( $_GET['date_to'] ) ? $_GET['date_to'] : '' ); ?>" style="width: 155px;" />
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <?php submit_button( __( 'Filter', 'snn' ), 'primary', 'filter', false ); ?>
+                        <?php if ( ! empty( $_GET['s'] ) || ! empty( $_GET['date_from'] ) || ! empty( $_GET['date_to'] ) ) : ?>
+                            <a href="<?php echo admin_url( 'admin.php?page=snn-activity-log' ); ?>" class="button"><?php _e( 'Reset', 'snn' ); ?></a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </form>
         </div>
 
         <table class="wp-list-table widefat fixed striped">
@@ -660,7 +829,34 @@ function snn_activity_log_page_html() {
                     'order'          => 'DESC', // Order by newest first.
                     'paged'          => $paged,
                 );
+
+                // Add search query if present
+                if ( ! empty( $_GET['s'] ) ) {
+                    $search_term = sanitize_text_field( $_GET['s'] );
+                    $args['s'] = $search_term;
+                    // Also search in post content
+                    add_filter( 'posts_search', 'snn_activity_log_search_filter', 10, 2 );
+                }
+
+                // Add date range filtering if present
+                if ( ! empty( $_GET['date_from'] ) || ! empty( $_GET['date_to'] ) ) {
+                    $date_query = array();
+                    if ( ! empty( $_GET['date_from'] ) ) {
+                        $date_query['after'] = sanitize_text_field( $_GET['date_from'] );
+                    }
+                    if ( ! empty( $_GET['date_to'] ) ) {
+                        $date_query['before'] = sanitize_text_field( $_GET['date_to'] ) . ' 23:59:59';
+                    }
+                    $date_query['inclusive'] = true;
+                    $args['date_query'] = array( $date_query );
+                }
+
                 $logs = new WP_Query( $args );
+                
+                // Remove search filter
+                if ( ! empty( $_GET['s'] ) ) {
+                    remove_filter( 'posts_search', 'snn_activity_log_search_filter', 10 );
+                }
                 if ( $logs->have_posts() ) :
                     while ( $logs->have_posts() ) : $logs->the_post();
                         // Safely explode the title using the robust separator to get user info and action.
@@ -682,7 +878,7 @@ function snn_activity_log_page_html() {
                         <tr class="snn-log-entry">
                             <td>
                                 <div style="font-size: 11px; color: #666; margin-bottom: 2px;"><?php echo esc_html( $human_time ); ?></div>
-                                <div><?php echo get_the_date( 'Y-m-d H:i:s' ); ?></div>
+                                <div><?php echo get_the_date( 'd.M.Y' ); ?><br><?php echo get_the_date( 'H:i:s' ); ?></div>
                             </td>
                             <td><?php echo esc_html( $user_info ); ?></td>
                             <td><?php echo esc_html( $action ); ?></td>
@@ -701,12 +897,9 @@ function snn_activity_log_page_html() {
                     wp_reset_postdata(); // Restore original post data.
                 else : ?>
                     <tr id="snn-no-logs-found">
-                        <td colspan="4"><?php _e( 'No activity logged yet.', 'snn' ); ?></td>
+                        <td colspan="5"><?php _e( 'No activity logged yet.', 'snn' ); ?></td>
                     </tr>
                 <?php endif; ?>
-                       <tr id="snn-no-search-results" style="display: none;">
-                        <td colspan="4"><?php _e( 'No matching logs found.', 'snn' ); ?></td>
-                    </tr>
             </tbody>
         </table>
 
@@ -714,6 +907,17 @@ function snn_activity_log_page_html() {
         // Display pagination if there are multiple pages
         if ( $logs->max_num_pages > 1 ) :
             $big = 999999999; // need an unlikely integer
+            // Preserve search and filter parameters in pagination
+            $add_args = array();
+            if ( ! empty( $_GET['s'] ) ) {
+                $add_args['s'] = sanitize_text_field( $_GET['s'] );
+            }
+            if ( ! empty( $_GET['date_from'] ) ) {
+                $add_args['date_from'] = sanitize_text_field( $_GET['date_from'] );
+            }
+            if ( ! empty( $_GET['date_to'] ) ) {
+                $add_args['date_to'] = sanitize_text_field( $_GET['date_to'] );
+            }
             $pagination_args = array(
                 'base'      => add_query_arg( 'paged', '%#%' ),
                 'format'    => '',
@@ -722,7 +926,7 @@ function snn_activity_log_page_html() {
                 'prev_text' => __( '&laquo; Previous', 'snn' ),
                 'next_text' => __( 'Next &raquo;', 'snn' ),
                 'type'      => 'plain',
-                'add_args'  => false,
+                'add_args'  => $add_args,
             );
             ?>
             <div class="snn-pagination" style="margin-top: 20px;">
@@ -857,39 +1061,6 @@ function snn_activity_log_page_html() {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Search functionality for the activity log table
-            const searchInput = document.getElementById('snn-log-search-input');
-            if (searchInput) {
-                searchInput.addEventListener('keyup', function() {
-                    const filter = searchInput.value.toLowerCase();
-                    const logList = document.getElementById('snn-log-list');
-                    const rows = logList.getElementsByClassName('snn-log-entry');
-                    const noResultsRow = document.getElementById('snn-no-search-results');
-                    let visibleCount = 0;
-
-                    // Iterate through each log entry row
-                    for (let i = 0; i < rows.length; i++) {
-                        const rowText = rows[i].textContent.toLowerCase();
-                        if (rowText.includes(filter)) {
-                            rows[i].style.display = ''; // Show row if it matches the filter
-                            visibleCount++;
-                        } else {
-                            rows[i].style.display = 'none'; // Hide row if it doesn't match
-                        }
-                    }
-
-                    // Show/hide "No matching logs found" message
-                    if (noResultsRow) {
-                        // Only show "No matching logs" if there are actual logs to filter and none match.
-                        if (visibleCount === 0 && rows.length > 0) {
-                            noResultsRow.style.display = '';
-                        } else {
-                            noResultsRow.style.display = 'none';
-                        }
-                    }
-                });
-            }
-
             // Accordion functionality for the logging options section
             const accordionButtons = document.querySelectorAll('.snn-accordion-button');
             accordionButtons.forEach(button => {
