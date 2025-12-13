@@ -63,6 +63,30 @@ function snn_activity_log_register_settings() {
 add_action( 'admin_init', 'snn_activity_log_register_settings' );
 
 /**
+ * Handle CSV export early before any HTML output
+ */
+function snn_handle_activity_log_export() {
+    // Only run on our activity log page
+    if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'snn-activity-log' ) {
+        return;
+    }
+    
+    // Check if export was requested
+    if ( ! isset( $_POST['snn_export_csv_nonce'] ) || ! wp_verify_nonce( $_POST['snn_export_csv_nonce'], 'snn_export_csv_action' ) ) {
+        return;
+    }
+    
+    // Check user capabilities
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+    
+    // Trigger the export
+    snn_export_activity_log_csv();
+}
+add_action( 'admin_init', 'snn_handle_activity_log_export' );
+
+/**
  * Defines and returns an array of all available logging options, categorized for better organization.
  * Each option has a unique key and a human-readable label.
  *
@@ -673,6 +697,7 @@ function snn_export_activity_log_csv() {
     }
 
     fclose( $output );
+    exit; // Stop execution to prevent HTML from being included in the CSV
 }
 
 /**
@@ -692,12 +717,6 @@ function snn_activity_log_page_html() {
         // Delete all posts of our custom log type.
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
         echo '<div class="updated notice is-dismissible"><p>' . __( 'Activity log cleared.', 'snn' ) . '</p></div>';
-    }
-
-    // Handle CSV export
-    if ( isset( $_POST['snn_export_csv_nonce'] ) && wp_verify_nonce( $_POST['snn_export_csv_nonce'], 'snn_export_csv_action' ) ) {
-        snn_export_activity_log_csv();
-        exit;
     }
     ?>
     <div class="wrap">
