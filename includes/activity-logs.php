@@ -640,20 +640,25 @@ function snn_activity_log_page_html() {
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th scope="col" style="width:140px;"><?php _e( 'Date', 'snn' ); ?></th>
+                    <th scope="col" style="width:180px;"><?php _e( 'Date', 'snn' ); ?></th>
                     <th scope="col" style="width:140px;"><?php _e( 'User', 'snn' ); ?></th>
                     <th scope="col" style="width:250px;"><?php _e( 'Action', 'snn' ); ?></th>
+                    <th scope="col" style="width:140px;"><?php _e( 'IP Address', 'snn' ); ?></th>
                     <th scope="col"><?php _e( 'Details', 'snn' ); ?></th>
                 </tr>
             </thead>
             <tbody id="snn-log-list">
                 <?php
+                // Get current page number for pagination
+                $paged = isset( $_GET['paged'] ) ? max( 1, intval( $_GET['paged'] ) ) : 1;
+                
                 // Query arguments to retrieve recent activity logs.
                 $args = array(
                     'post_type'      => 'snn_activity_log',
-                    'posts_per_page' => 1000, // Display up to 1000 recent logs on this page.
+                    'posts_per_page' => 50, // Display 50 logs per page for better performance
                     'orderby'        => 'date',
                     'order'          => 'DESC', // Order by newest first.
+                    'paged'          => $paged,
                 );
                 $logs = new WP_Query( $args );
                 if ( $logs->have_posts() ) :
@@ -662,12 +667,35 @@ function snn_activity_log_page_html() {
                         $title_parts = explode(' || ', get_the_title(), 2);
                         $user_info = isset($title_parts[0]) ? $title_parts[0] : 'N/A';
                         $action = isset($title_parts[1]) ? $title_parts[1] : 'Unknown Action';
+                        
+                        // Extract IP address from content
+                        $content = get_the_content();
+                        $ip_address = 'N/A';
+                        if ( preg_match( '/IP Address: ([0-9.]+|[0-9a-fA-F:]+)/', $content, $matches ) ) {
+                            $ip_address = $matches[1];
+                        }
+                        
+                        // Get human-readable time difference
+                        $post_time = get_post_time( 'U' );
+                        $human_time = human_time_diff( $post_time, current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'snn' );
                         ?>
                         <tr class="snn-log-entry">
-                            <td><?php echo get_the_date( 'Y-m-d H:i:s' ); ?></td>
+                            <td>
+                                <div style="font-size: 11px; color: #666; margin-bottom: 2px;"><?php echo esc_html( $human_time ); ?></div>
+                                <div><?php echo get_the_date( 'Y-m-d H:i:s' ); ?></div>
+                            </td>
                             <td><?php echo esc_html( $user_info ); ?></td>
                             <td><?php echo esc_html( $action ); ?></td>
-                            <td><pre><?php echo esc_html( get_the_content() ); ?></pre></td>
+                            <td>
+                                <?php if ( $ip_address !== 'N/A' ) : ?>
+                                    <a href="https://radar.cloudflare.com/ip/<?php echo esc_attr( $ip_address ); ?>" target="_blank" rel="noopener noreferrer" title="<?php _e( 'View IP details on Cloudflare Radar', 'snn' ); ?>">
+                                        <?php echo esc_html( $ip_address ); ?>
+                                    </a>
+                                <?php else : ?>
+                                    <?php echo esc_html( $ip_address ); ?>
+                                <?php endif; ?>
+                            </td>
+                            <td><pre><?php echo esc_html( $content ); ?></pre></td>
                         </tr>
                     <?php endwhile;
                     wp_reset_postdata(); // Restore original post data.
@@ -681,6 +709,26 @@ function snn_activity_log_page_html() {
                     </tr>
             </tbody>
         </table>
+
+        <?php
+        // Display pagination if there are multiple pages
+        if ( $logs->max_num_pages > 1 ) :
+            $big = 999999999; // need an unlikely integer
+            $pagination_args = array(
+                'base'      => add_query_arg( 'paged', '%#%' ),
+                'format'    => '',
+                'current'   => $paged,
+                'total'     => $logs->max_num_pages,
+                'prev_text' => __( '&laquo; Previous', 'snn' ),
+                'next_text' => __( 'Next &raquo;', 'snn' ),
+                'type'      => 'plain',
+                'add_args'  => false,
+            );
+            ?>
+            <div class="snn-pagination" style="margin-top: 20px;">
+                <?php echo paginate_links( $pagination_args ); ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <style>
@@ -761,6 +809,49 @@ function snn_activity_log_page_html() {
 
         .snn-logging-options td {
             padding: 10px;
+        }
+
+        /* Pagination styles */
+        .snn-pagination {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .snn-pagination .page-numbers {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 0 2px;
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #0073aa;
+            text-decoration: none;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .snn-pagination .page-numbers:hover {
+            background: #0073aa;
+            color: #fff;
+            border-color: #0073aa;
+        }
+
+        .snn-pagination .page-numbers.current {
+            background: #0073aa;
+            color: #fff;
+            border-color: #0073aa;
+            font-weight: 600;
+        }
+
+        .snn-pagination .page-numbers.dots {
+            border: none;
+            background: transparent;
+            color: #555;
+            cursor: default;
+        }
+
+        .snn-pagination .page-numbers.dots:hover {
+            background: transparent;
+            color: #555;
         }
     </style>
 
