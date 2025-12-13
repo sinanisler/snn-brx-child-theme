@@ -87,6 +87,65 @@ function snn_handle_activity_log_export() {
 add_action( 'admin_init', 'snn_handle_activity_log_export' );
 
 /**
+ * Returns the severity level and description for each log type.
+ *
+ * @return array Associative array mapping log type keys to severity info.
+ */
+function snn_get_log_severity_info() {
+    return array(
+        // RED - Critical Security & Compliance
+        'failed_login'            => array( 'level' => 'critical', 'desc' => __( 'Critical: Essential for security monitoring and detecting potential attacks', 'snn' ) ),
+        'user_deleted'            => array( 'level' => 'critical', 'desc' => __( 'Critical: Important for compliance and security auditing', 'snn' ) ),
+        'user_role_change'        => array( 'level' => 'critical', 'desc' => __( 'Critical: Essential for tracking privilege escalation', 'snn' ) ),
+        'user_capability_change'  => array( 'level' => 'critical', 'desc' => __( 'Critical: Essential for tracking permission changes', 'snn' ) ),
+        'file_edited'             => array( 'level' => 'critical', 'desc' => __( 'Critical: Detects unauthorized code modifications', 'snn' ) ),
+        'plugin_activated'        => array( 'level' => 'critical', 'desc' => __( 'Critical: New plugins can introduce security risks', 'snn' ) ),
+        'plugin_deactivated'      => array( 'level' => 'critical', 'desc' => __( 'Critical: Track changes to site functionality', 'snn' ) ),
+        'plugin_deleted'          => array( 'level' => 'critical', 'desc' => __( 'Critical: Permanent removal should be tracked', 'snn' ) ),
+        'core_updated'            => array( 'level' => 'critical', 'desc' => __( 'Critical: Track WordPress version changes', 'snn' ) ),
+        'application_password'    => array( 'level' => 'critical', 'desc' => __( 'Critical: Monitor API access credentials', 'snn' ) ),
+        'privacy_erase'           => array( 'level' => 'critical', 'desc' => __( 'Critical: Required for GDPR compliance', 'snn' ) ),
+        
+        // YELLOW - Important Operational
+        'user_login'              => array( 'level' => 'important', 'desc' => __( 'Important: Good for accountability and security', 'snn' ) ),
+        'user_register'           => array( 'level' => 'important', 'desc' => __( 'Important: Track new user accounts', 'snn' ) ),
+        'password_reset'          => array( 'level' => 'important', 'desc' => __( 'Important: Monitor password change requests', 'snn' ) ),
+        'post_deleted'            => array( 'level' => 'important', 'desc' => __( 'Important: Permanent deletion should be tracked', 'snn' ) ),
+        'post_trashed'            => array( 'level' => 'important', 'desc' => __( 'Important: Track content removal', 'snn' ) ),
+        'attachment_deleted'      => array( 'level' => 'important', 'desc' => __( 'Important: Track media library changes', 'snn' ) ),
+        'theme_switched'          => array( 'level' => 'important', 'desc' => __( 'Important: Track visual and functional changes', 'snn' ) ),
+        'theme_deleted'           => array( 'level' => 'important', 'desc' => __( 'Important: Track theme removal', 'snn' ) ),
+        'option_updated'          => array( 'level' => 'important', 'desc' => __( 'Important: Track configuration changes', 'snn' ) ),
+        'comment_deleted'         => array( 'level' => 'important', 'desc' => __( 'Important: Track permanent comment removal', 'snn' ) ),
+        'term_deleted'            => array( 'level' => 'important', 'desc' => __( 'Important: Track taxonomy changes', 'snn' ) ),
+        'privacy_request'         => array( 'level' => 'important', 'desc' => __( 'Important: Required for GDPR compliance', 'snn' ) ),
+        'export_performed'        => array( 'level' => 'important', 'desc' => __( 'Important: Track data exports for security', 'snn' ) ),
+        
+        // GRAY - Lower Priority
+        'user_logout'             => array( 'level' => 'low', 'desc' => __( 'Low Priority: Creates high volume, mainly informational', 'snn' ) ),
+        'user_profile_update'     => array( 'level' => 'low', 'desc' => __( 'Low Priority: Frequent updates, less critical', 'snn' ) ),
+        'post_created'            => array( 'level' => 'low', 'desc' => __( 'Low Priority: High volume on active sites', 'snn' ) ),
+        'post_updated'            => array( 'level' => 'low', 'desc' => __( 'Low Priority: Very high volume, can cause bloat', 'snn' ) ),
+        'post_status_change'      => array( 'level' => 'low', 'desc' => __( 'Low Priority: Frequent on editorial sites', 'snn' ) ),
+        'attachment_uploaded'     => array( 'level' => 'low', 'desc' => __( 'Low Priority: High volume, mainly informational', 'snn' ) ),
+        'attachment_updated'      => array( 'level' => 'low', 'desc' => __( 'Low Priority: Frequent updates, less critical', 'snn' ) ),
+        'comment_posted'          => array( 'level' => 'low', 'desc' => __( 'Low Priority: High volume on active sites', 'snn' ) ),
+        'comment_approved'        => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine moderation action', 'snn' ) ),
+        'comment_unapproved'      => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine moderation action', 'snn' ) ),
+        'comment_trashed'         => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine moderation action', 'snn' ) ),
+        'comment_spammed'         => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine spam filtering', 'snn' ) ),
+        'theme_updated'           => array( 'level' => 'low', 'desc' => __( 'Low Priority: Regular maintenance activity', 'snn' ) ),
+        'widget_updated'          => array( 'level' => 'low', 'desc' => __( 'Low Priority: Minor configuration changes', 'snn' ) ),
+        'menu_updated'            => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine navigation changes', 'snn' ) ),
+        'term_created'            => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine taxonomy management', 'snn' ) ),
+        'term_edited'             => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine taxonomy updates', 'snn' ) ),
+        'cron_executed'           => array( 'level' => 'low', 'desc' => __( 'Low Priority: Very high volume, mainly for debugging', 'snn' ) ),
+        'db_query_error'          => array( 'level' => 'low', 'desc' => __( 'Low Priority: For debugging database issues', 'snn' ) ),
+        'db_optimization'         => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine maintenance activity', 'snn' ) ),
+    );
+}
+
+/**
  * Defines and returns an array of all available logging options, categorized for better organization.
  * Each option has a unique key and a human-readable label.
  *
@@ -764,10 +823,19 @@ function snn_activity_log_page_html() {
                         <table class="form-table snn-logging-options">
                             <?php
                             $logging_options = snn_get_logging_options();
+                            $severity_info = snn_get_log_severity_info();
                             foreach ( $logging_options as $category => $options ) :
-                                foreach ( $options as $key => $label ) : ?>
+                                foreach ( $options as $key => $label ) : 
+                                    $severity = isset( $severity_info[$key] ) ? $severity_info[$key] : array( 'level' => 'low', 'desc' => '' );
+                                    $severity_class = 'snn-severity-' . $severity['level'];
+                                    ?>
                                     <tr>
-                                        <th scope="row"><?php echo esc_html( $label ); ?></th>
+                                        <th scope="row">
+                                            <span class="snn-severity-indicator <?php echo esc_attr( $severity_class ); ?>" title="<?php echo esc_attr( $severity['desc'] ); ?>">
+                                                <span class="snn-severity-dot"></span>
+                                            </span>
+                                            <?php echo esc_html( $label ); ?>
+                                        </th>
                                         <td>
                                             <label>
                                                 <input type="checkbox" name="snn_log_<?php echo esc_attr( $key ); ?>" value="1" <?php checked( 1, get_option( 'snn_log_' . $key, true ), true ); ?> />
@@ -955,6 +1023,97 @@ function snn_activity_log_page_html() {
     </div>
 
     <style>
+        /* Styles for severity indicators */
+        .snn-severity-indicator {
+            display: inline-block;
+            position: relative;
+            margin-right: 8px;
+            cursor: help;
+            vertical-align: middle;
+        }
+
+        .snn-severity-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .snn-severity-critical .snn-severity-dot {
+            background-color: #dc3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+        }
+
+        .snn-severity-important .snn-severity-dot {
+            background-color: #ffc107;
+            box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
+        }
+
+        .snn-severity-low .snn-severity-dot {
+            background-color: #6c757d;
+            box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.2);
+        }
+
+        /* Tooltip styles */
+        .snn-severity-indicator::before {
+            content: attr(title);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: #2c3338;
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.4;
+            border-radius: 4px;
+            white-space: nowrap;
+            max-width: 300px;
+            white-space: normal;
+            width: max-content;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 99999999;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .snn-severity-indicator::after {
+            content: '';
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #2c3338;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .snn-severity-indicator:hover::before,
+        .snn-severity-indicator:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Adjust tooltip position for better visibility */
+        .snn-logging-options tr:first-child .snn-severity-indicator::before {
+            bottom: auto;
+            top: 125%;
+        }
+
+        .snn-logging-options tr:first-child .snn-severity-indicator::after {
+            bottom: auto;
+            top: 115%;
+            border-top-color: transparent;
+            border-bottom-color: #2c3338;
+        }
+
         /* Styles for the accordion component */
         .snn-accordion {
             margin: 20px 0;
