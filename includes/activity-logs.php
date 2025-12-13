@@ -999,7 +999,7 @@ add_action( 'admin_init', function() {
 
 /**
  * Formats option values for display in logs.
- * Handles complex data types and truncates long values.
+ * Outputs exact raw values without summarization.
  *
  * @param mixed $value The option value to format.
  * @return string Formatted value for display.
@@ -1013,24 +1013,13 @@ function snn_format_option_value( $value ) {
         return $value ? '[TRUE]' : '[FALSE]';
     }
     
-    if ( is_array( $value ) ) {
-        $count = count( $value );
-        if ( $count === 0 ) {
-            return '[Empty Array]';
-        }
-        return "[Array with {$count} items]";
+    if ( is_array( $value ) || is_object( $value ) ) {
+        // Output exact raw serialized content
+        return serialize( $value );
     }
     
-    if ( is_object( $value ) ) {
-        return '[Object: ' . get_class( $value ) . ']';
-    }
-    
-    $string_value = (string) $value;
-    if ( strlen( $string_value ) > 200 ) {
-        return substr( $string_value, 0, 200 ) . '... [truncated]';
-    }
-    
-    return $string_value;
+    // Return the exact string value without truncation
+    return (string) $value;
 }
 
 /**
