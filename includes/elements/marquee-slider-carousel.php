@@ -173,7 +173,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 --marquee-duration: " . ($settings['duration'] ?? 30) . "s;
                 --marquee-direction: forwards;
                 display: flex;
-                overflow: hidden;
+                overflow:  ;
                 width: 100%;
                 position: relative;
             }
@@ -234,7 +234,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
-                overflow: hidden; /* Added to contain children */
+                overflow:  ; /* Added to contain children */
             }
             .{$unique_id} .marquee__item--text {
                 white-space: normal; /* Changed from nowrap to normal */
@@ -301,16 +301,17 @@ class Snn_Marquee_Slider_Carousel extends Element {
         // --- HTML Rendering ---
         echo '<div class="marquee__track">';
         if ( ! empty( $settings['items'] ) && is_array( $settings['items'] ) ) {
-            foreach ( $settings['items'] as $item ) {
+            foreach ( $settings['items'] as $index => $item ) {
                 $has_link = ! empty( $item['link']['url'] );
                 $tag      = $has_link ? 'a' : 'div';
+                $item_id  = "item-{$this->id}-{$index}"; // Create unique ID using element ID and index
 
                 // Set link attributes if a link is provided
                 if ( $has_link ) {
-                    $this->set_link_attributes( "item-{$item['_id']}", $item['link'] );
+                    $this->set_link_attributes( $item_id, $item['link'] );
                 }
 
-                echo "<{$tag} class='marquee__item' " . ($has_link ? $this->render_attributes( "item-{$item['_id']}" ) : '') . ">";
+                echo "<{$tag} class='marquee__item' " . ($has_link ? $this->render_attributes( $item_id ) : '') . ">";
 
                 if ( ! empty( $item['image']['id'] ) ) {
                     echo wp_get_attachment_image( $item['image']['id'], 'full', false, ['loading' => 'eager'] );
