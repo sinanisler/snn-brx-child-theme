@@ -173,7 +173,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 --marquee-duration: " . ($settings['duration'] ?? 30) . "s;
                 --marquee-direction: forwards;
                 display: flex;
-                overflow:  ;
+                overflow: hidden;
                 width: 100%;
                 position: relative;
             }
