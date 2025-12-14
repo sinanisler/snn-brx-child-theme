@@ -147,6 +147,9 @@ class Snn_Gallery_And_Thumbnails extends Element {
         // Static CSS (non-responsive styles only)
         ?>
         <style>
+            .snn-gallery-wrapper {
+                width: 100%;
+            }
             /* Gallery Container */
             #<?php echo $element_id; ?> {
                 max-width: 100%;
