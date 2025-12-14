@@ -241,6 +241,15 @@ function snn_seo_settings_page_callback() {
     <div class="wrap">
         <h1><?php _e('SEO Settings', 'snn'); ?></h1>
         
+        <?php
+        // Show simple warning if WordPress has "Discourage search engines" enabled
+        if (get_option('blog_public') == '0'): ?>
+            <div style="border: 2px solid #dc3232; padding: 10px; margin: 15px 0; color: #dc3232; font-weight: 600; max-width: 900px;">
+                ⚠️ WARNING: Your entire website is set to NOINDEX - Search engines cannot find your site! 
+                <a href="/wp-admin/options-reading.php" style="color: #dc3232; text-decoration: underline;">Fix this in Reading Settings</a>
+            </div>
+        <?php endif; ?>
+        
         <?php settings_errors('snn_seo_messages'); ?>
         
         <?php
@@ -896,6 +905,8 @@ function snn_seo_filter_document_title($title) {
     return '';
 }
 add_filter('pre_get_document_title', 'snn_seo_filter_document_title', 100);
+
+
 
 /**
  * Output SEO meta tags in <head> - IMPROVED VERSION
