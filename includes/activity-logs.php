@@ -1006,11 +1006,11 @@ add_action( 'admin_init', function() {
  */
 function snn_format_option_value( $value ) {
     if ( is_null( $value ) ) {
-        return '[NULL]';
+        return 'NULL';
     }
     
     if ( is_bool( $value ) ) {
-        return $value ? '[TRUE]' : '[FALSE]';
+        return $value ? 'TRUE' : 'FALSE';
     }
     
     if ( is_array( $value ) || is_object( $value ) ) {
@@ -1288,6 +1288,41 @@ function snn_activity_log_page_html() {
             </form>
         </div>
 
+<style>
+/* JSON syntax highlighting styles */
+.json-key {
+    color: #0451a5;
+    font-weight: bold;
+}
+.json-value {
+    color: #098658;
+}
+.json-string {
+    color: #a31515;
+}
+</style>
+
+<script>
+// Simple syntax highlighting for the <pre> blocks
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('#snn-log-list pre').forEach(function(preElement) {
+        var content = preElement.textContent;
+        
+        // Simple pattern matching for key-value pairs
+        var highlighted = content
+            // Highlight keys (text before colon)
+            .replace(/^([^:\n]+):/gm, '<span class="json-key">$1</span>:')
+            // Highlight URLs and values
+            .replace(/(https?:\/\/[^\s]+)/g, '<span class="json-string">$1</span>')
+            // Highlight IP addresses
+            .replace(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g, '<span class="json-value">$1</span>');
+        
+        preElement.innerHTML = highlighted;
+    });
+});
+</script>
+
+
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
@@ -1373,7 +1408,7 @@ function snn_activity_log_page_html() {
                                     <?php echo esc_html( $ip_address ); ?>
                                 <?php endif; ?>
                             </td>
-                            <td><pre><?php echo esc_html( $content ); ?></pre></td>
+                            <td><pre style=" white-space: pre-wrap; height: 125px; overflow: auto;"><?php echo esc_html( $content ); ?></pre></td>
                         </tr>
                     <?php endwhile;
                     wp_reset_postdata(); // Restore original post data.
