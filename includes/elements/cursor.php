@@ -39,56 +39,11 @@ class Custom_Cursor_Element extends \Bricks\Element {
 	 */
 	public function set_controls() {
 
-		// ========== MAIN CURSOR ==========
-
-		$this->controls['mainCursorEnable'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable Main Cursor', 'bricks' ),
-			'type'    => 'checkbox',
-			'inline'  => true,
-			'default' => true,
-		];
-
-		$this->controls['mainCursorShape'] = [
-			'tab'      => 'content',
-			'label'    => esc_html__( 'Shape', 'bricks' ),
-			'type'     => 'select',
-			'options'  => [
-				'circle' => esc_html__( 'Circle', 'bricks' ),
-				'square' => esc_html__( 'Square', 'bricks' ),
-			],
-			'default'  => 'circle',
-			'inline'   => true,
-			'required' => [ 'mainCursorEnable', '=', true ],
-		];
-
-		$this->controls['mainCursorSize'] = [
-			'tab'      => 'content',
-			'label'    => esc_html__( 'Size (px)', 'bricks' ),
-			'type'     => 'number',
-			'unit'     => 'px',
-			'default'  => 10,
-			'min'      => 5,
-			'max'      => 100,
-			'required' => [ 'mainCursorEnable', '=', true ],
-		];
-
-		$this->controls['mainCursorColor'] = [
-			'tab'      => 'content',
-			'label'    => esc_html__( 'Background Color', 'bricks' ),
-			'type'     => 'color',
-			'inline'   => true,
-			'default'  => [
-				'hex' => '#000000',
-			],
-			'required' => [ 'mainCursorEnable', '=', true ],
-		];
-
-		// ========== HOVER STATES REPEATER ==========
+		// ========== CURSOR REPEATER ==========
 
 		$this->controls['cursorHovers'] = [
 			'tab'           => 'content',
-			'label'         => esc_html__( 'Hover Cursors', 'bricks' ),
+			'label'         => esc_html__( 'Cursors', 'bricks' ),
 			'type'          => 'repeater',
 			'titleProperty' => 'hoverName',
 			'placeholder'   => esc_html__( 'Hover State', 'bricks' ),
@@ -246,42 +201,22 @@ class Custom_Cursor_Element extends \Bricks\Element {
 	 */
 	public function render() {
 		$settings = $this->settings;
-		
+
 		// Get settings with defaults
-		$main_cursor_enable = isset( $settings['mainCursorEnable'] ) ? true : false;
-		$main_cursor_shape  = isset( $settings['mainCursorShape'] ) ? $settings['mainCursorShape'] : 'circle';
-		$main_cursor_size   = isset( $settings['mainCursorSize'] ) ? $settings['mainCursorSize'] : 10;
-		$main_cursor_color  = isset( $settings['mainCursorColor']['hex'] ) ? $settings['mainCursorColor']['hex'] : '#000000';
-		$cursor_hovers      = isset( $settings['cursorHovers'] ) ? $settings['cursorHovers'] : [];
-		$cursor_speed       = isset( $settings['cursorSpeed'] ) ? $settings['cursorSpeed'] : 0.125;
-		$center_mouse       = isset( $settings['centerMouse'] ) ? true : false;
-		$hide_on_builder    = isset( $settings['hideOnBuilder'] ) ? true : false;
-		$cursor_z_index     = isset( $settings['cursorZIndex'] ) ? $settings['cursorZIndex'] : 9999;
-		
+		$cursor_hovers   = isset( $settings['cursorHovers'] ) ? $settings['cursorHovers'] : [];
+		$cursor_speed    = isset( $settings['cursorSpeed'] ) ? $settings['cursorSpeed'] : 0.125;
+		$center_mouse    = isset( $settings['centerMouse'] ) ? true : false;
+		$hide_on_builder = isset( $settings['hideOnBuilder'] ) ? true : false;
+		$cursor_z_index  = isset( $settings['cursorZIndex'] ) ? $settings['cursorZIndex'] : 9999;
+
 		// Generate unique ID for this element instance
 		$element_id = 'custom-cursor-' . $this->id;
-		
+
 		?>
 		<div <?php echo $this->render_attributes( '_root' ); ?> id="<?php echo esc_attr( $element_id ); ?>">
-			
-			<?php if ( $main_cursor_enable ) : ?>
-				<!-- Main Cursor -->
-				<div class="snn-cursor" data-cursor="main" style="
-					position: fixed;
-					top: 0;
-					left: 0;
-					z-index: <?php echo esc_attr( $cursor_z_index ); ?>;
-					width: <?php echo esc_attr( $main_cursor_size ); ?>px;
-					height: <?php echo esc_attr( $main_cursor_size ); ?>px;
-					border-radius: <?php echo $main_cursor_shape === 'circle' ? '50%' : '0'; ?>;
-					pointer-events: none;
-					background-color: <?php echo esc_attr( $main_cursor_color ); ?>;
-					transform: translate(-200px, -200px);
-				"></div>
-			<?php endif; ?>
-			
-			<?php 
-			// Render hover cursors
+
+			<?php
+			// Render cursors
 			if ( ! empty( $cursor_hovers ) && is_array( $cursor_hovers ) ) :
 				foreach ( $cursor_hovers as $index => $hover ) :
 					$hover_name           = isset( $hover['hoverName'] ) ? $hover['hoverName'] : 'Hover ' . ( $index + 1 );
@@ -301,8 +236,8 @@ class Custom_Cursor_Element extends \Bricks\Element {
 					
 					if ( empty( $hover_targets ) ) continue;
 					
-					$hover_class = 'hover-cursor-' . sanitize_title( $hover_name ) . '-' . $index;
-					
+					$cursor_class = 'cursor-' . sanitize_title( $hover_name ) . '-' . $index;
+
 					// Determine background style
 					$bg_style = '';
 					if ( $hover_type === 'image' && ! empty( $hover_image_url ) ) {
@@ -311,9 +246,9 @@ class Custom_Cursor_Element extends \Bricks\Element {
 						$bg_style = "background-color: " . esc_attr( $hover_color ) . ";";
 					}
 					?>
-					
-					<!-- Hover Cursor: <?php echo esc_html( $hover_name ); ?> -->
-					<div class="<?php echo esc_attr( $hover_class ); ?>" data-cursor="hover" data-targets="<?php echo esc_attr( $hover_targets ); ?>" style="
+
+					<!-- Cursor: <?php echo esc_html( $hover_name ); ?> -->
+					<div class="<?php echo esc_attr( $cursor_class ); ?>" data-cursor="main" data-targets="<?php echo esc_attr( $hover_targets ); ?>" style="
 						position: fixed;
 						top: 0;
 						left: 0;
@@ -326,38 +261,38 @@ class Custom_Cursor_Element extends \Bricks\Element {
 						visibility: hidden;
 						transition: opacity 0.3s ease, visibility 0.3s ease;
 					">
-						<div class="<?php echo esc_attr( $hover_class ); ?>-circle" style="
+						<div class="<?php echo esc_attr( $cursor_class ); ?>-circle" style="
 							width: <?php echo esc_attr( $hover_size ); ?>px;
 							height: <?php echo esc_attr( $hover_size ); ?>px;
 							display: flex;
 							<?php echo $bg_style; ?>
 							border-radius: <?php echo $hover_shape === 'circle' ? '50%' : '0'; ?>;
-							animation: rotate-<?php echo esc_attr( $hover_class ); ?> <?php echo esc_attr( $hover_rotate_speed ); ?>s infinite linear;
+							animation: rotate-<?php echo esc_attr( $cursor_class ); ?> <?php echo esc_attr( $hover_rotate_speed ); ?>s infinite linear;
 							justify-content: center;
 							align-items: center;
 						">
 							<?php if ( $hover_show_arrow && ! empty( $hover_arrow_url ) ) : ?>
-								<div class="<?php echo esc_attr( $hover_class ); ?>-arrow" style="
+								<div class="<?php echo esc_attr( $cursor_class ); ?>-arrow" style="
 									width: <?php echo esc_attr( $hover_arrow_size ); ?>px;
 									height: <?php echo esc_attr( $hover_arrow_size ); ?>px;
 									display: block;
 									background: url('<?php echo esc_url( $hover_arrow_url ); ?>') no-repeat center center;
 									background-size: contain;
 									<?php if ( $hover_reverse_rotate ) : ?>
-									animation: rotate-<?php echo esc_attr( $hover_class ); ?>-reverse <?php echo esc_attr( $hover_rotate_speed ); ?>s infinite linear;
+									animation: rotate-<?php echo esc_attr( $cursor_class ); ?>-reverse <?php echo esc_attr( $hover_rotate_speed ); ?>s infinite linear;
 									<?php endif; ?>
 								"></div>
 							<?php endif; ?>
 						</div>
 					</div>
-					
+
 					<style>
-						@keyframes rotate-<?php echo esc_attr( $hover_class ); ?> {
+						@keyframes rotate-<?php echo esc_attr( $cursor_class ); ?> {
 							from { transform: rotate(0deg); }
 							to { transform: rotate(-360deg); }
 						}
 						<?php if ( $hover_reverse_rotate ) : ?>
-						@keyframes rotate-<?php echo esc_attr( $hover_class ); ?>-reverse {
+						@keyframes rotate-<?php echo esc_attr( $cursor_class ); ?>-reverse {
 							from { transform: rotate(0deg); }
 							to { transform: rotate(360deg); }
 						}
@@ -376,79 +311,43 @@ class Custom_Cursor_Element extends \Bricks\Element {
 			<script>
 			(function() {
 				'use strict';
-				
+
 				// Configuration
 				const cursorConfig = {
 					speed: <?php echo esc_js( $cursor_speed ); ?>,
-					centerMouse: <?php echo $center_mouse ? 'true' : 'false'; ?>,
-					hovers: []
+					centerMouse: <?php echo $center_mouse ? 'true' : 'false'; ?>
 				};
-				
-				<?php if ( $main_cursor_enable ) : ?>
-				// Initialize main cursor
-				const mainCursor = document.querySelector('#<?php echo esc_js( $element_id ); ?> .snn-cursor[data-cursor="main"]');
-				if (mainCursor) {
-					new Cotton(mainCursor, {
-						speed: cursorConfig.speed,
-						centerMouse: cursorConfig.centerMouse
-					});
-				}
-				<?php endif; ?>
-				
-				// Initialize hover cursors
-				const hoverCursors = document.querySelectorAll('#<?php echo esc_js( $element_id ); ?> [data-cursor="hover"]');
-				hoverCursors.forEach(function(hoverCursor) {
-					const targets = hoverCursor.getAttribute('data-targets');
+
+				// Initialize all cursors
+				const cursors = document.querySelectorAll('#<?php echo esc_js( $element_id ); ?> [data-cursor="main"]');
+				cursors.forEach(function(cursor) {
+					const targets = cursor.getAttribute('data-targets');
 					if (!targets) return;
-					
+
 					// Set initial hidden state
-					hoverCursor.style.opacity = '0';
-					hoverCursor.style.visibility = 'hidden';
-					
-					// Make hover cursor follow mouse
-					new Cotton(hoverCursor, {
+					cursor.style.opacity = '0';
+					cursor.style.visibility = 'hidden';
+
+					// Make cursor follow mouse
+					new Cotton(cursor, {
 						speed: cursorConfig.speed,
 						centerMouse: cursorConfig.centerMouse
 					});
-					
-					// Setup interactions
-					<?php if ( $main_cursor_enable ) : ?>
-					new Cotton(mainCursor, {
-						models: targets,
-						on: {
-							enterModel: function(cursorEl) {
-								hoverCursor.style.opacity = '1';
-								hoverCursor.style.visibility = 'visible';
-								cursorEl.style.opacity = '0';
-							},
-							leaveModel: function(cursorEl) {
-								hoverCursor.style.opacity = '0';
-								hoverCursor.style.visibility = 'hidden';
-								cursorEl.style.opacity = '1';
-							}
-						}
-					});
-					<?php else : ?>
-					// Without main cursor, just show/hide hover cursor
+
+					// Show/hide cursor on target hover
 					const targetElements = document.querySelectorAll(targets);
 					targetElements.forEach(function(target) {
 						target.addEventListener('mouseenter', function() {
-							hoverCursor.style.opacity = '1';
-							hoverCursor.style.visibility = 'visible';
+							cursor.style.opacity = '1';
+							cursor.style.visibility = 'visible';
 						});
 						target.addEventListener('mouseleave', function() {
-							hoverCursor.style.opacity = '0';
-							hoverCursor.style.visibility = 'hidden';
+							cursor.style.opacity = '0';
+							cursor.style.visibility = 'hidden';
 						});
 					});
-					
-					new Cotton(hoverCursor, {
-						speed: cursorConfig.speed,
-						centerMouse: cursorConfig.centerMouse
-					});
-					<?php endif; ?>
 				});
-				
+
 				<?php if ( $hide_on_builder ) : ?>
 				// Hide cursors in Bricks builder
 				if (document.body.classList.contains('bricks-is-frontend-builder')) {
