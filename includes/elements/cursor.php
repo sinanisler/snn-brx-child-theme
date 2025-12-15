@@ -71,84 +71,28 @@ class SNN_Custom_Cursor_Element extends Element {
 			'tab'           => 'content',
 			'label'         => esc_html__( 'Hover Cursors', 'snn' ),
 			'type'          => 'repeater',
-			'titleProperty' => 'cursor_name',
+			'titleProperty' => 'cursor_selector',
 			'default'       => [],
 			'fields'        => [
-				'cursor_name' => [
-					'label'   => esc_html__( 'Cursor Name', 'snn' ),
-					'type'    => 'text',
-					'default' => 'My Cursor',
+				'cursor_selector' => [
+					'label'       => esc_html__( 'Cursor Selector', 'snn' ),
+					'type'        => 'text',
+					'default'     => '.my-cursor',
+					'description' => esc_html__( 'CSS selector for the DOM element that will BE the cursor (e.g., .project-hover, .karriere-hover)', 'snn' ),
 				],
-				'cursor_type' => [
-					'label'   => esc_html__( 'Cursor Type', 'snn' ),
-					'type'    => 'select',
-					'options' => [
-						'circle'       => esc_html__( 'Circle with Text', 'snn' ),
-						'circle_arrow' => esc_html__( 'Circle with Arrow', 'snn' ),
-						'custom'       => esc_html__( 'Custom', 'snn' ),
-					],
-					'default' => 'circle',
-				],
-				'circle_size' => [
-					'label'    => esc_html__( 'Circle Size', 'snn' ),
-					'type'     => 'number',
-					'default'  => 140,
-					'min'      => 20,
-					'max'      => 500,
-					'step'     => 1,
-					'unit'     => 'px',
-					'required' => [ 'cursor_type', '!=', 'custom' ],
-				],
-				'circle_bg_image' => [
-					'label'    => esc_html__( 'Circle Background Image', 'snn' ),
-					'type'     => 'image',
-					'default'  => '',
-					'required' => [ 'cursor_type', '=', 'circle' ],
-				],
-				'inner_icon_image' => [
-					'label'    => esc_html__( 'Inner Icon/Arrow Image', 'snn' ),
-					'type'     => 'image',
-					'default'  => '',
-					'required' => [ 'cursor_type', '=', 'circle_arrow' ],
-				],
-				'inner_icon_size' => [
-					'label'    => esc_html__( 'Inner Icon Size', 'snn' ),
-					'type'     => 'number',
-					'default'  => 44,
-					'min'      => 10,
-					'max'      => 200,
-					'step'     => 1,
-					'unit'     => 'px',
-					'required' => [ 'cursor_type', '=', 'circle_arrow' ],
-				],
-				'rotation_speed' => [
-					'label'    => esc_html__( 'Rotation Speed (seconds)', 'snn' ),
-					'type'     => 'number',
-					'default'  => 20,
-					'min'      => 1,
-					'max'      => 60,
-					'step'     => 1,
-					'unit'     => 's',
-					'required' => [ 'cursor_type', '!=', 'custom' ],
-				],
-				'target_selector' => [
-					'label'       => esc_html__( 'Target CSS Selector', 'snn' ),
+				'target_hover_selector' => [
+					'label'       => esc_html__( 'Target Hover Selector', 'snn' ),
 					'type'        => 'text',
 					'default'     => '.my-target',
-					'description' => esc_html__( 'CSS selector for elements that trigger this cursor (e.g., .project, #brxe-vzibxz)', 'snn' ),
+					'description' => esc_html__( 'CSS selector for elements that when hovered will show this cursor (e.g., .project, #brxe-vzibxz)', 'snn' ),
 				],
-				'custom_html' => [
-					'label'       => esc_html__( 'Custom HTML', 'snn' ),
-					'type'        => 'editor',
-					'default'     => '<div class="custom-cursor-content">Custom</div>',
-					'description' => esc_html__( 'Custom HTML for cursor (only used when Cursor Type is "Custom")', 'snn' ),
-					'required'    => [ 'cursor_type', '=', 'custom' ],
-				],
-				'custom_css' => [
-					'label'       => esc_html__( 'Custom CSS', 'snn' ),
-					'type'        => 'textarea',
-					'default'     => '',
-					'description' => esc_html__( 'Additional CSS styles for this cursor', 'snn' ),
+				'cursor_speed' => [
+					'label'   => esc_html__( 'Cursor Speed', 'snn' ),
+					'type'    => 'number',
+					'default' => 0.125,
+					'min'     => 0.01,
+					'max'     => 1,
+					'step'    => 0.01,
 				],
 			],
 		];
@@ -156,12 +100,12 @@ class SNN_Custom_Cursor_Element extends Element {
 
 	public function render() {
 		// Get settings
-		$default_size  = intval( $this->settings['default_cursor_size'] ?? 10 );
-		$cursor_color  = $this->ensure_string( $this->settings['default_cursor_color'] ?? '#000000' );
-		$cursor_speed  = floatval( $this->settings['cursor_speed'] ?? 0.125 );
-		$z_index       = intval( $this->settings['cursor_z_index'] ?? 9999 );
-		$hide_builder  = isset( $this->settings['hide_in_builder'] ) ? $this->settings['hide_in_builder'] : true;
-		$hover_cursors = isset( $this->settings['hover_cursors'] ) && is_array( $this->settings['hover_cursors'] )
+		$default_size     = intval( $this->settings['default_cursor_size'] ?? 10 );
+		$cursor_color     = $this->ensure_string( $this->settings['default_cursor_color'] ?? '#000000' );
+		$default_speed    = floatval( $this->settings['cursor_speed'] ?? 0.125 );
+		$z_index          = intval( $this->settings['cursor_z_index'] ?? 9999 );
+		$hide_builder     = isset( $this->settings['hide_in_builder'] ) ? $this->settings['hide_in_builder'] : true;
+		$hover_cursors    = isset( $this->settings['hover_cursors'] ) && is_array( $this->settings['hover_cursors'] )
 			? $this->settings['hover_cursors']
 			: [];
 
@@ -175,36 +119,6 @@ class SNN_Custom_Cursor_Element extends Element {
 
 		// Output default cursor
 		echo '<div id="' . esc_attr( $unique_id ) . '-default" class="snn-cursor-default"></div>';
-
-		// Output hover cursors
-		if ( ! empty( $hover_cursors ) ) {
-			foreach ( $hover_cursors as $index => $cursor ) {
-				$cursor_id   = $unique_id . '-hover-' . $index;
-				$cursor_type = $cursor['cursor_type'] ?? 'circle';
-				$cursor_name = $cursor['cursor_name'] ?? 'Cursor ' . ( $index + 1 );
-
-				echo '<div id="' . esc_attr( $cursor_id ) . '" class="snn-cursor-hover snn-cursor-hover-' . esc_attr( $index ) . '" data-cursor-name="' . esc_attr( $cursor_name ) . '">';
-
-				if ( $cursor_type === 'circle' || $cursor_type === 'circle_arrow' ) {
-					$circle_size     = intval( $cursor['circle_size'] ?? 140 );
-					$circle_bg_image = $cursor['circle_bg_image']['url'] ?? '';
-					$inner_icon      = $cursor['inner_icon_image']['url'] ?? '';
-					$inner_size      = intval( $cursor['inner_icon_size'] ?? 44 );
-
-					echo '<div class="snn-cursor-circle">';
-					if ( $cursor_type === 'circle_arrow' && $inner_icon ) {
-						echo '<div class="snn-cursor-inner-icon"></div>';
-					}
-					echo '</div>';
-
-				} elseif ( $cursor_type === 'custom' ) {
-					$custom_html = $cursor['custom_html'] ?? '<div>Custom</div>';
-					echo wp_kses_post( $custom_html );
-				}
-
-				echo '</div>';
-			}
-		}
 
 		// CSS Styles
 		echo '<style>';
@@ -232,84 +146,6 @@ class SNN_Custom_Cursor_Element extends Element {
 			transition: opacity 0.3s ease;
 		}';
 
-		// Hover cursor base styles
-		echo '.snn-cursor-hover {
-			position: fixed;
-			top: 0;
-			left: 0;
-			z-index: ' . esc_attr( $z_index ) . ';
-			pointer-events: none;
-			transform: translate(-200px, -200px);
-			opacity: 0;
-			visibility: hidden;
-			transition: opacity 0.3s ease, visibility 0.3s ease;
-		}';
-
-		// Individual hover cursor styles
-		if ( ! empty( $hover_cursors ) ) {
-			foreach ( $hover_cursors as $index => $cursor ) {
-				$cursor_id       = $unique_id . '-hover-' . $index;
-				$cursor_type     = $cursor['cursor_type'] ?? 'circle';
-				$circle_size     = intval( $cursor['circle_size'] ?? 140 );
-				$circle_bg_image = $cursor['circle_bg_image']['url'] ?? '';
-				$inner_icon      = $cursor['inner_icon_image']['url'] ?? '';
-				$inner_size      = intval( $cursor['inner_icon_size'] ?? 44 );
-				$rotation_speed  = intval( $cursor['rotation_speed'] ?? 20 );
-				$custom_css      = $cursor['custom_css'] ?? '';
-
-				echo '#' . esc_attr( $cursor_id ) . ' {
-					width: ' . esc_attr( $circle_size ) . 'px;
-					height: ' . esc_attr( $circle_size ) . 'px;
-				}';
-
-				if ( $cursor_type === 'circle' || $cursor_type === 'circle_arrow' ) {
-					echo '#' . esc_attr( $cursor_id ) . ' .snn-cursor-circle {
-						width: ' . esc_attr( $circle_size ) . 'px;
-						height: ' . esc_attr( $circle_size ) . 'px;
-						display: flex;
-						justify-content: center;
-						align-items: center;
-					}';
-
-					if ( $circle_bg_image ) {
-						echo '#' . esc_attr( $cursor_id ) . ' .snn-cursor-circle {
-							background: url(' . esc_url( $circle_bg_image ) . ') no-repeat center center;
-							background-size: contain;
-							animation: rotate-cursor-' . esc_attr( $index ) . ' ' . esc_attr( $rotation_speed ) . 's infinite linear;
-						}';
-
-						// Rotation animation
-						echo '@keyframes rotate-cursor-' . esc_attr( $index ) . ' {
-							from { transform: rotate(0deg); }
-							to { transform: rotate(-360deg); }
-						}';
-					}
-
-					if ( $cursor_type === 'circle_arrow' && $inner_icon ) {
-						echo '#' . esc_attr( $cursor_id ) . ' .snn-cursor-inner-icon {
-							width: ' . esc_attr( $inner_size ) . 'px;
-							height: ' . esc_attr( $inner_size ) . 'px;
-							display: block;
-							background: url(' . esc_url( $inner_icon ) . ') no-repeat center center;
-							background-size: contain;
-							animation: rotate-cursor-reverse-' . esc_attr( $index ) . ' ' . esc_attr( $rotation_speed ) . 's infinite linear;
-						}';
-
-						// Reverse rotation animation
-						echo '@keyframes rotate-cursor-reverse-' . esc_attr( $index ) . ' {
-							from { transform: rotate(0deg); }
-							to { transform: rotate(360deg); }
-						}';
-					}
-				}
-
-				// Custom CSS
-				if ( ! empty( $custom_css ) ) {
-					echo wp_kses_post( $custom_css );
-				}
-			}
-		}
-
 		echo '</style>';
 
 		// JavaScript - Cotton library + initialization
@@ -326,47 +162,62 @@ class SNN_Custom_Cursor_Element extends Element {
 
 			// Initialize default cursor
 			new Cotton(defaultCursor, {
-				speed: ' . esc_js( $cursor_speed ) . '
+				speed: ' . esc_js( $default_speed ) . '
 			});
 			';
 
-		// Initialize hover cursors
+		// Initialize hover cursors using existing DOM elements
 		if ( ! empty( $hover_cursors ) ) {
-			echo 'const cursorConfig = {';
+			echo 'const cursorConfig = [';
 
 			foreach ( $hover_cursors as $index => $cursor ) {
-				$cursor_id       = $unique_id . '-hover-' . $index;
-				$target_selector = $cursor['target_selector'] ?? '.target-' . $index;
+				$cursor_selector       = $cursor['cursor_selector'] ?? '';
+				$target_hover_selector = $cursor['target_hover_selector'] ?? '';
+				$cursor_speed          = floatval( $cursor['cursor_speed'] ?? 0.125 );
 
-				echo 'cursor_' . esc_js( $index ) . ': {
-					element: document.querySelector("#' . esc_js( $cursor_id ) . '"),
-					targets: "' . esc_js( $target_selector ) . '"
+				if ( empty( $cursor_selector ) || empty( $target_hover_selector ) ) {
+					continue;
+				}
+
+				echo '{
+					cursorSelector: "' . esc_js( $cursor_selector ) . '",
+					targetSelector: "' . esc_js( $target_hover_selector ) . '",
+					speed: ' . esc_js( $cursor_speed ) . '
 				},';
 			}
 
-			echo '};';
+			echo '];';
 
-			echo 'Object.values(cursorConfig).forEach(function(config) {
-				if (!config.element) return;
+			echo 'cursorConfig.forEach(function(config) {
+				const cursorElement = document.querySelector(config.cursorSelector);
 
-				// Initialize Cotton for each hover cursor
-				new Cotton(config.element, {
-					speed: ' . esc_js( $cursor_speed ) . '
+				if (!cursorElement) {
+					console.warn("Cursor element not found: " + config.cursorSelector);
+					return;
+				}
+
+				// Set initial hidden state for hover cursors
+				cursorElement.style.opacity = "0";
+				cursorElement.style.visibility = "hidden";
+
+				// Initialize Cotton for the cursor element
+				new Cotton(cursorElement, {
+					speed: config.speed
 				});
 
 				// Setup hover interactions
 				new Cotton(defaultCursor, {
-					models: config.targets,
-					speed: ' . esc_js( $cursor_speed ) . ',
+					models: config.targetSelector,
+					speed: config.speed,
 					on: {
 						enterModel: function(cursorEl) {
-							config.element.style.opacity = "1";
-							config.element.style.visibility = "visible";
+							cursorElement.style.opacity = "1";
+							cursorElement.style.visibility = "visible";
 							cursorEl.style.opacity = "0";
 						},
 						leaveModel: function(cursorEl) {
-							config.element.style.opacity = "0";
-							config.element.style.visibility = "hidden";
+							cursorElement.style.opacity = "0";
+							cursorElement.style.visibility = "hidden";
 							cursorEl.style.opacity = "1";
 						}
 					}
