@@ -1,6 +1,8 @@
 # SNN-BRX - Bricks Builder Child Theme
 
-[![Sponsor me](https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46)](https://github.com/sponsors/sinanisler)
+<a href="https://github.com/sponsors/sinanisler">
+<img src="https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46" width="290" height="auto" />
+</a>
 
 
 [![GPL-3.0](https://img.shields.io/github/license/ESKYoung/shields-io-visitor-counter?logo=GNU&logoColor=FFFFFF)](https://github.com/sinanisler/snn-brx-child-theme/blob/main/license.txt)
