@@ -94,6 +94,18 @@ class SNN_Custom_Cursor_Element extends Element {
 					'max'     => 1,
 					'step'    => 0.01,
 				],
+				'cursor_x_position' => [
+					'label'       => esc_html__( 'Cursor X Position', 'snn' ),
+					'type'        => 'number',
+					'default'     => 0,
+					'description' => esc_html__( 'Horizontal offset from center in pixels', 'snn' ),
+				],
+				'cursor_y_position' => [
+					'label'       => esc_html__( 'Cursor Y Position', 'snn' ),
+					'type'        => 'number',
+					'default'     => 0,
+					'description' => esc_html__( 'Vertical offset from center in pixels', 'snn' ),
+				],
 			],
 		];
 	}
@@ -174,6 +186,8 @@ class SNN_Custom_Cursor_Element extends Element {
 				$cursor_selector       = $cursor['cursor_selector'] ?? '';
 				$target_hover_selector = $cursor['target_hover_selector'] ?? '';
 				$cursor_speed          = floatval( $cursor['cursor_speed'] ?? 0.125 );
+				$cursor_x_position     = floatval( $cursor['cursor_x_position'] ?? 0 );
+				$cursor_y_position     = floatval( $cursor['cursor_y_position'] ?? 0 );
 
 				if ( empty( $cursor_selector ) || empty( $target_hover_selector ) ) {
 					continue;
@@ -182,7 +196,9 @@ class SNN_Custom_Cursor_Element extends Element {
 				echo '{
 					cursorSelector: "' . esc_js( $cursor_selector ) . '",
 					targetSelector: "' . esc_js( $target_hover_selector ) . '",
-					speed: ' . esc_js( $cursor_speed ) . '
+					speed: ' . esc_js( $cursor_speed ) . ',
+					offsetX: ' . esc_js( $cursor_x_position ) . ',
+					offsetY: ' . esc_js( $cursor_y_position ) . '
 				},';
 			}
 
@@ -192,7 +208,7 @@ class SNN_Custom_Cursor_Element extends Element {
 				const cursorElement = document.querySelector(config.cursorSelector);
 
 				if (!cursorElement) {
-					console.warn("Cursor element not found: " + config.cursorSelector);
+					console.warn("Cursor element not found or could not be selected. Move this element as latest on footer !: " + config.cursorSelector);
 					return;
 				}
 
@@ -200,9 +216,28 @@ class SNN_Custom_Cursor_Element extends Element {
 				cursorElement.style.opacity = "0";
 				cursorElement.style.visibility = "hidden";
 
-				// Initialize Cotton for the cursor element
+				// Store original transform for offset calculation
+				const originalTransform = window.getComputedStyle(cursorElement).transform;
+
+				// Initialize Cotton for the cursor element with centerMouse enabled
 				new Cotton(cursorElement, {
-					speed: config.speed
+					speed: config.speed,
+					centerMouse: true,
+					on: {
+						cottonMove: function(element) {
+							// Apply offset if specified
+							if (config.offsetX !== 0 || config.offsetY !== 0) {
+								const currentTransform = element.style.transform;
+								// Extract the translate values and add offset
+								const match = currentTransform.match(/translate\(calc\(-50% \+ (.+?)px\), calc\(-50% \+ (.+?)px\)\)/);
+								if (match) {
+									const x = parseFloat(match[1]) + config.offsetX;
+									const y = parseFloat(match[2]) + config.offsetY;
+									element.style.transform = "translate(calc(-50% + " + x + "px), calc(-50% + " + y + "px))";
+								}
+							}
+						}
+					}
 				});
 
 				// Setup hover interactions
