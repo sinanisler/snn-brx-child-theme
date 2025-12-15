@@ -212,6 +212,13 @@ class SNN_Custom_Cursor_Element extends Element {
 					return;
 				}
 
+				// Fix positioning for Cotton.js - must match default cursor positioning
+				cursorElement.style.position = "fixed";
+				cursorElement.style.top = "0";
+				cursorElement.style.left = "0";
+				cursorElement.style.pointerEvents = "none";
+				cursorElement.style.zIndex = "' . esc_js( $z_index ) . '";
+
 				// Set initial hidden state for hover cursors
 				cursorElement.style.opacity = "0";
 				cursorElement.style.visibility = "hidden";
