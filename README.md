@@ -11,6 +11,11 @@
 
 SNN-BRX is a professional and powerful child theme designed to be the essential building suite for agencies and professionals using Bricks Builder. It streamlines your Bricks Builder projects by offering a comprehensive collection of features and tools, all within a single, robust child theme. Say goodbye to plugin overload and embrace a more efficient, performant, and unified website building experience..
 
+<a href="https://www.youtube.com/watch?v=AnM3wEoL7Cg">
+<img width="865" height="483" alt="image" src="https://github.com/user-attachments/assets/eb81ffa8-62a5-400f-83f9-01263d6473f0" />
+</a>
+
+
 ## Key Features
 
 SNN-BRX aims to replace the need for numerous individual plugins by integrating core functionalities directly into the theme. Here's a glimpse of what SNN-BRX offers:
