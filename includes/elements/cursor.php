@@ -1,448 +1,400 @@
 <?php
-/**
- * Custom Cursor Element for Bricks Builder
- * 
- * This element creates customizable cursor effects using the Cotton.js library
- * with support for multiple cursor states via repeater fields.
- * 
- * @package Bricks
- * @since 1.0.0
- */
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+use Bricks\Element;
 
-class Custom_Cursor_Element extends \Bricks\Element {
-	
-	// Element properties
-	public $category     = 'general';
-	public $name         = 'custom-cursor';
-	public $icon         = 'ti-mouse';
-	public $css_selector = '.custom-cursor-wrapper';
-	public $scripts      = ['customCursorScript'];
-	
-	/**
-	 * Return localized element label
-	 */
+class SNN_Custom_Cursor_Element extends Element {
+	public $category       = 'snn';
+	public $name           = 'snn-custom-cursor';
+	public $icon           = 'ti-cursor';
+	public $css_selector   = '.snn-custom-cursor-wrapper';
+	public $scripts        = [];
+	public $nestable       = false;
+
 	public function get_label() {
-		return esc_html__( 'Custom Cursor', 'bricks' );
+		return esc_html__( 'Custom Cursor', 'snn' );
 	}
-	
-	/**
-	 * Return element keywords for search
-	 */
-	public function get_keywords() {
-		return [ 'cursor', 'mouse', 'pointer', 'custom', 'follow', 'hover', 'interactive' ];
-	}
-	
-	/**
-	 * Set builder control groups
-	 */
-	public function set_control_groups() {
-		// No groups needed - cleaner interface
-	}
-	
-	/**
-	 * Set builder controls
-	 */
+
 	public function set_controls() {
-
-		// ========== MAIN CURSOR (Simple dot) ==========
-
-		$this->controls['mainCursorSize'] = [
-			'tab'         => 'content',
-			'label'       => esc_html__( 'Main Cursor Size', 'bricks' ),
-			'type'        => 'number',
-			'unit'        => 'px',
-			'default'     => 10,
-			'min'         => 5,
-			'max'         => 100,
-			'description' => esc_html__( 'Small dot that follows mouse', 'bricks' ),
+		// Default Cursor Settings
+		$this->controls['default_cursor_size'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Default Cursor Size', 'snn' ),
+			'type'    => 'number',
+			'default' => 10,
+			'min'     => 1,
+			'max'     => 50,
+			'step'    => 1,
+			'unit'    => 'px',
 		];
 
-		$this->controls['mainCursorColor'] = [
-			'tab'         => 'content',
-			'label'       => esc_html__( 'Main Cursor Color', 'bricks' ),
-			'type'        => 'color',
-			'inline'      => true,
-			'default'     => [
-				'hex' => 'var(--c1)',
+		$this->controls['default_cursor_color'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Default Cursor Color', 'snn' ),
+			'type'    => 'color',
+			'default' => [
+				'hex' => '#000000',
 			],
-			'description' => esc_html__( 'Color of the small cursor dot', 'bricks' ),
 		];
 
-		// ========== HOVER STATES REPEATER ==========
-		
-		$this->controls['cursorHovers'] = [
+		$this->controls['cursor_speed'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Cursor Speed', 'snn' ),
+			'type'    => 'number',
+			'default' => 0.125,
+			'min'     => 0.01,
+			'max'     => 1,
+			'step'    => 0.01,
+		];
+
+		$this->controls['cursor_z_index'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Cursor Z-Index', 'snn' ),
+			'type'    => 'number',
+			'default' => 9999,
+			'min'     => 1,
+			'max'     => 99999,
+			'step'    => 1,
+		];
+
+		$this->controls['hide_in_builder'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Hide in Bricks Builder', 'snn' ),
+			'type'    => 'checkbox',
+			'default' => true,
+		];
+
+		// Repeater for Hover States
+		$this->controls['hover_cursors'] = [
 			'tab'           => 'content',
-			'label'         => esc_html__( 'Hover Cursors', 'bricks' ),
+			'label'         => esc_html__( 'Hover Cursors', 'snn' ),
 			'type'          => 'repeater',
-			'titleProperty' => 'hoverName',
-			'placeholder'   => esc_html__( 'Hover State', 'bricks' ),
-			'description'   => esc_html__( 'Add special cursors that appear on hover', 'bricks' ),
-			'default'       => [
-				[
-					'hoverName'        => 'Project Hover',
-					'hoverTargets'     => '.project',
-					'hoverSize'        => 140,
-					'hoverShowArrow'   => true,
-					'hoverArrowSize'   => 44,
-					'hoverRotateSpeed' => 20,
-				],
-			],
+			'titleProperty' => 'cursor_name',
+			'default'       => [],
 			'fields'        => [
-				'hoverName' => [
-					'label'       => esc_html__( 'Name', 'bricks' ),
+				'cursor_name' => [
+					'label'   => esc_html__( 'Cursor Name', 'snn' ),
+					'type'    => 'text',
+					'default' => 'My Cursor',
+				],
+				'cursor_type' => [
+					'label'   => esc_html__( 'Cursor Type', 'snn' ),
+					'type'    => 'select',
+					'options' => [
+						'circle'       => esc_html__( 'Circle with Text', 'snn' ),
+						'circle_arrow' => esc_html__( 'Circle with Arrow', 'snn' ),
+						'custom'       => esc_html__( 'Custom', 'snn' ),
+					],
+					'default' => 'circle',
+				],
+				'circle_size' => [
+					'label'    => esc_html__( 'Circle Size', 'snn' ),
+					'type'     => 'number',
+					'default'  => 140,
+					'min'      => 20,
+					'max'      => 500,
+					'step'     => 1,
+					'unit'     => 'px',
+					'required' => [ 'cursor_type', '!=', 'custom' ],
+				],
+				'circle_bg_image' => [
+					'label'    => esc_html__( 'Circle Background Image', 'snn' ),
+					'type'     => 'image',
+					'default'  => '',
+					'required' => [ 'cursor_type', '=', 'circle' ],
+				],
+				'inner_icon_image' => [
+					'label'    => esc_html__( 'Inner Icon/Arrow Image', 'snn' ),
+					'type'     => 'image',
+					'default'  => '',
+					'required' => [ 'cursor_type', '=', 'circle_arrow' ],
+				],
+				'inner_icon_size' => [
+					'label'    => esc_html__( 'Inner Icon Size', 'snn' ),
+					'type'     => 'number',
+					'default'  => 44,
+					'min'      => 10,
+					'max'      => 200,
+					'step'     => 1,
+					'unit'     => 'px',
+					'required' => [ 'cursor_type', '=', 'circle_arrow' ],
+				],
+				'rotation_speed' => [
+					'label'    => esc_html__( 'Rotation Speed (seconds)', 'snn' ),
+					'type'     => 'number',
+					'default'  => 20,
+					'min'      => 1,
+					'max'      => 60,
+					'step'     => 1,
+					'unit'     => 's',
+					'required' => [ 'cursor_type', '!=', 'custom' ],
+				],
+				'target_selector' => [
+					'label'       => esc_html__( 'Target CSS Selector', 'snn' ),
 					'type'        => 'text',
-					'placeholder' => esc_html__( 'e.g., Project Hover', 'bricks' ),
-					'description' => esc_html__( 'Identifies this hover state', 'bricks' ),
+					'default'     => '.my-target',
+					'description' => esc_html__( 'CSS selector for elements that trigger this cursor (e.g., .project, #brxe-vzibxz)', 'snn' ),
 				],
-
-				'hoverTargets' => [
-					'label'       => esc_html__( 'Target Selectors', 'bricks' ),
-					'type'        => 'text',
-					'placeholder' => esc_html__( '.project, #element-id', 'bricks' ),
-					'description' => esc_html__( 'Elements that trigger this cursor', 'bricks' ),
+				'custom_html' => [
+					'label'       => esc_html__( 'Custom HTML', 'snn' ),
+					'type'        => 'editor',
+					'default'     => '<div class="custom-cursor-content">Custom</div>',
+					'description' => esc_html__( 'Custom HTML for cursor (only used when Cursor Type is "Custom")', 'snn' ),
+					'required'    => [ 'cursor_type', '=', 'custom' ],
 				],
-
-				'hoverSize' => [
-					'label'       => esc_html__( 'Size', 'bricks' ),
-					'type'        => 'number',
-					'unit'        => 'px',
-					'default'     => 140,
-					'min'         => 50,
-					'max'         => 300,
-					'description' => esc_html__( 'Circle diameter in pixels', 'bricks' ),
-				],
-
-				'hoverImageUrl' => [
-					'label'       => esc_html__( 'Circle Image', 'bricks' ),
-					'type'        => 'image',
-					'description' => esc_html__( 'Rotating circle background', 'bricks' ),
-				],
-
-				'hoverShowArrow' => [
-					'label'       => esc_html__( 'Show Center Arrow', 'bricks' ),
-					'type'        => 'checkbox',
-					'inline'      => true,
-					'default'     => true,
-					'description' => esc_html__( 'Display arrow in center', 'bricks' ),
-				],
-
-				'hoverArrowImage' => [
-					'label'       => esc_html__( 'Arrow Image', 'bricks' ),
-					'type'        => 'image',
-					'required'    => [ 'hoverShowArrow', '=', true ],
-					'description' => esc_html__( 'Arrow that rotates opposite', 'bricks' ),
-				],
-
-				'hoverArrowSize' => [
-					'label'       => esc_html__( 'Arrow Size', 'bricks' ),
-					'type'        => 'number',
-					'unit'        => 'px',
-					'default'     => 44,
-					'min'         => 20,
-					'max'         => 100,
-					'required'    => [ 'hoverShowArrow', '=', true ],
-					'description' => esc_html__( 'Arrow width & height', 'bricks' ),
-				],
-
-				'hoverRotateSpeed' => [
-					'label'       => esc_html__( 'Rotation Speed', 'bricks' ),
-					'type'        => 'number',
-					'default'     => 20,
-					'min'         => 5,
-					'max'         => 60,
-					'description' => esc_html__( 'Seconds per full rotation', 'bricks' ),
-				],
-
-				'hoverReverseRotation' => [
-					'label'       => esc_html__( 'Reverse Arrow', 'bricks' ),
-					'type'        => 'checkbox',
-					'inline'      => true,
-					'default'     => true,
-					'description' => esc_html__( 'Arrow spins opposite way', 'bricks' ),
+				'custom_css' => [
+					'label'       => esc_html__( 'Custom CSS', 'snn' ),
+					'type'        => 'textarea',
+					'default'     => '',
+					'description' => esc_html__( 'Additional CSS styles for this cursor', 'snn' ),
 				],
 			],
 		];
-		
-		// ========== SETTINGS ==========
-
-		$this->controls['cursorSpeed'] = [
-			'tab'         => 'content',
-			'label'       => esc_html__( 'Follow Speed', 'bricks' ),
-			'type'        => 'number',
-			'default'     => 0.125,
-			'min'         => 0.01,
-			'max'         => 1,
-			'step'        => 0.01,
-			'description' => esc_html__( 'Lower = smoother delay (0.01-1)', 'bricks' ),
-		];
-
-		$this->controls['cursorZIndex'] = [
-			'tab'         => 'content',
-			'label'       => esc_html__( 'Z-Index', 'bricks' ),
-			'type'        => 'number',
-			'default'     => 9,
-			'min'         => 0,
-			'max'         => 9999,
-			'description' => esc_html__( 'Cursor layer order', 'bricks' ),
-		];
-
-		$this->controls['hideOnBuilder'] = [
-			'tab'         => 'content',
-			'label'       => esc_html__( 'Hide in Builder', 'bricks' ),
-			'type'        => 'checkbox',
-			'inline'      => true,
-			'default'     => true,
-			'description' => esc_html__( 'Hide while editing', 'bricks' ),
-		];
 	}
-	
-	/**
-	 * Enqueue element styles and scripts
-	 */
-	public function enqueue_scripts() {
-		// Cotton.js library is inline in the element for simplicity
-		// You can also enqueue it separately if preferred
-	}
-	
-	/**
-	 * Render element HTML on frontend
-	 */
+
 	public function render() {
-		$settings = $this->settings;
+		// Get settings
+		$default_size  = intval( $this->settings['default_cursor_size'] ?? 10 );
+		$cursor_color  = $this->ensure_string( $this->settings['default_cursor_color'] ?? '#000000' );
+		$cursor_speed  = floatval( $this->settings['cursor_speed'] ?? 0.125 );
+		$z_index       = intval( $this->settings['cursor_z_index'] ?? 9999 );
+		$hide_builder  = isset( $this->settings['hide_in_builder'] ) ? $this->settings['hide_in_builder'] : true;
+		$hover_cursors = isset( $this->settings['hover_cursors'] ) && is_array( $this->settings['hover_cursors'] )
+			? $this->settings['hover_cursors']
+			: [];
 
-		// Get settings with defaults
-		$main_cursor_size = isset( $settings['mainCursorSize'] ) ? $settings['mainCursorSize'] : 10;
-		$main_cursor_color = isset( $settings['mainCursorColor']['hex'] ) ? $settings['mainCursorColor']['hex'] : 'var(--c1)';
-		$cursor_hovers = isset( $settings['cursorHovers'] ) ? $settings['cursorHovers'] : [];
-		$cursor_speed = isset( $settings['cursorSpeed'] ) ? $settings['cursorSpeed'] : 0.125;
-		$hide_on_builder = isset( $settings['hideOnBuilder'] ) ? true : false;
-		$cursor_z_index = isset( $settings['cursorZIndex'] ) ? $settings['cursorZIndex'] : 9;
+		// Generate unique ID
+		$unique_id = 'snn-cursor-' . uniqid();
 
-		// Generate unique ID for this element instance
-		$element_id = 'custom-cursor-' . $this->id;
+		$this->set_attribute( '_root', 'class', 'snn-custom-cursor-wrapper' );
+		$this->set_attribute( '_root', 'id', $unique_id );
 
-		?>
-		<div <?php echo $this->render_attributes( '_root' ); ?> id="<?php echo esc_attr( $element_id ); ?>">
+		echo '<div ' . $this->render_attributes( '_root' ) . '>';
 
-			<!-- Main Cursor (Simple Dot) -->
-			<div id="snn-cursor" class="snn-cursor" data-cursor="main" style="
-				position: fixed;
-				top: 0;
-				left: 0;
-				z-index: <?php echo esc_attr( $cursor_z_index ); ?>;
-				width: <?php echo esc_attr( $main_cursor_size ); ?>px;
-				height: <?php echo esc_attr( $main_cursor_size ); ?>px;
-				border-radius: 50%;
-				pointer-events: none;
-				background-color: <?php echo esc_attr( $main_cursor_color ); ?>;
-				transform: translate(-200px, -200px);
-			"></div>
-			
-			<?php
-			// Render hover cursors
-			if ( ! empty( $cursor_hovers ) && is_array( $cursor_hovers ) ) :
-				foreach ( $cursor_hovers as $index => $hover ) :
-					$hover_name = isset( $hover['hoverName'] ) ? $hover['hoverName'] : 'Hover ' . ( $index + 1 );
-					$hover_targets = isset( $hover['hoverTargets'] ) ? $hover['hoverTargets'] : '';
-					$hover_size = isset( $hover['hoverSize'] ) ? $hover['hoverSize'] : 140;
-					$hover_image_id = isset( $hover['hoverImageUrl']['id'] ) ? $hover['hoverImageUrl']['id'] : 0;
-					$hover_image_url = $hover_image_id ? wp_get_attachment_image_url( $hover_image_id, 'full' ) : '';
-					$hover_show_arrow = isset( $hover['hoverShowArrow'] ) ? true : false;
-					$hover_arrow_image_id = isset( $hover['hoverArrowImage']['id'] ) ? $hover['hoverArrowImage']['id'] : 0;
-					$hover_arrow_url = $hover_arrow_image_id ? wp_get_attachment_image_url( $hover_arrow_image_id, 'full' ) : '';
-					$hover_arrow_size = isset( $hover['hoverArrowSize'] ) ? $hover['hoverArrowSize'] : 44;
-					$hover_rotate_speed = isset( $hover['hoverRotateSpeed'] ) ? $hover['hoverRotateSpeed'] : 20;
-					$hover_reverse_rotate = isset( $hover['hoverReverseRotation'] ) ? true : false;
+		// Output default cursor
+		echo '<div id="' . esc_attr( $unique_id ) . '-default" class="snn-cursor-default"></div>';
 
-					if ( empty( $hover_targets ) ) continue;
+		// Output hover cursors
+		if ( ! empty( $hover_cursors ) ) {
+			foreach ( $hover_cursors as $index => $cursor ) {
+				$cursor_id   = $unique_id . '-hover-' . $index;
+				$cursor_type = $cursor['cursor_type'] ?? 'circle';
+				$cursor_name = $cursor['cursor_name'] ?? 'Cursor ' . ( $index + 1 );
 
-					$hover_class = sanitize_title( $hover_name ) . '-hover';
-					?>
+				echo '<div id="' . esc_attr( $cursor_id ) . '" class="snn-cursor-hover snn-cursor-hover-' . esc_attr( $index ) . '" data-cursor-name="' . esc_attr( $cursor_name ) . '">';
 
-					<!-- Hover Cursor: <?php echo esc_html( $hover_name ); ?> -->
-					<div class="<?php echo esc_attr( $hover_class ); ?>" data-cursor="hover" data-targets="<?php echo esc_attr( $hover_targets ); ?>" style="
-						position: fixed;
-						top: 0;
-						left: 0;
-						z-index: <?php echo esc_attr( $cursor_z_index ); ?>;
-						width: <?php echo esc_attr( $hover_size ); ?>px;
-						height: <?php echo esc_attr( $hover_size ); ?>px;
-						pointer-events: none;
-						transform: translate(-200px, -200px);
-						opacity: 0;
-						visibility: hidden;
-					">
-						<div class="<?php echo esc_attr( $hover_class ); ?>-circle" style="
-							width: <?php echo esc_attr( $hover_size ); ?>px;
-							height: <?php echo esc_attr( $hover_size ); ?>px;
-							display: flex;
-							<?php if ( ! empty( $hover_image_url ) ) : ?>
-							background: url('<?php echo esc_url( $hover_image_url ); ?>') no-repeat center center;
-							background-size: contain;
-							<?php endif; ?>
-							animation: rotate-<?php echo esc_attr( $hover_class ); ?> <?php echo esc_attr( $hover_rotate_speed ); ?>s infinite linear;
-							justify-content: center;
-							align-items: center;
-						">
-							<?php if ( $hover_show_arrow && ! empty( $hover_arrow_url ) ) : ?>
-								<div class="<?php echo esc_attr( $hover_class ); ?>-circle-logo" style="
-									width: <?php echo esc_attr( $hover_arrow_size ); ?>px;
-									height: <?php echo esc_attr( $hover_arrow_size ); ?>px;
-									display: block;
-									background: url('<?php echo esc_url( $hover_arrow_url ); ?>') no-repeat center center;
-									background-size: contain;
-									<?php if ( $hover_reverse_rotate ) : ?>
-									animation: rotate-<?php echo esc_attr( $hover_class ); ?>-reverse <?php echo esc_attr( $hover_rotate_speed ); ?>s infinite linear;
-									<?php endif; ?>
-								"></div>
-							<?php endif; ?>
-						</div>
-					</div>
+				if ( $cursor_type === 'circle' || $cursor_type === 'circle_arrow' ) {
+					$circle_size     = intval( $cursor['circle_size'] ?? 140 );
+					$circle_bg_image = $cursor['circle_bg_image']['url'] ?? '';
+					$inner_icon      = $cursor['inner_icon_image']['url'] ?? '';
+					$inner_size      = intval( $cursor['inner_icon_size'] ?? 44 );
 
-				<?php endforeach; ?>
-			<?php endif; ?>
+					echo '<div class="snn-cursor-circle">';
+					if ( $cursor_type === 'circle_arrow' && $inner_icon ) {
+						echo '<div class="snn-cursor-inner-icon"></div>';
+					}
+					echo '</div>';
 
-			<!-- CSS Animations -->
-			<style>
-				::selection {
-					background: gray;
-					color: black;
+				} elseif ( $cursor_type === 'custom' ) {
+					$custom_html = $cursor['custom_html'] ?? '<div>Custom</div>';
+					echo wp_kses_post( $custom_html );
 				}
 
-				<?php if ( ! empty( $cursor_hovers ) && is_array( $cursor_hovers ) ) : ?>
-					<?php foreach ( $cursor_hovers as $index => $hover ) : ?>
-						<?php
-						$hover_name = isset( $hover['hoverName'] ) ? $hover['hoverName'] : 'Hover ' . ( $index + 1 );
-						$hover_class = sanitize_title( $hover_name ) . '-hover';
-						?>
-						@keyframes rotate-<?php echo esc_attr( $hover_class ); ?> {
+				echo '</div>';
+			}
+		}
+
+		// CSS Styles
+		echo '<style>';
+
+		// Selection color
+		echo '::selection { background: gray; color: black; }';
+
+		// Hide in builder template editor
+		if ( $hide_builder ) {
+			echo '.bricks_template-template-default #' . esc_attr( $unique_id ) . ' { display: none !important; }';
+		}
+
+		// Default cursor styles
+		echo '#' . esc_attr( $unique_id ) . '-default {
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: ' . esc_attr( $z_index ) . ';
+			width: ' . esc_attr( $default_size ) . 'px;
+			height: ' . esc_attr( $default_size ) . 'px;
+			border-radius: 50%;
+			pointer-events: none;
+			background-color: ' . esc_attr( $cursor_color ) . ';
+			transform: translate(-200px, -200px);
+			transition: opacity 0.3s ease;
+		}';
+
+		// Hover cursor base styles
+		echo '.snn-cursor-hover {
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: ' . esc_attr( $z_index ) . ';
+			pointer-events: none;
+			transform: translate(-200px, -200px);
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.3s ease, visibility 0.3s ease;
+		}';
+
+		// Individual hover cursor styles
+		if ( ! empty( $hover_cursors ) ) {
+			foreach ( $hover_cursors as $index => $cursor ) {
+				$cursor_id       = $unique_id . '-hover-' . $index;
+				$cursor_type     = $cursor['cursor_type'] ?? 'circle';
+				$circle_size     = intval( $cursor['circle_size'] ?? 140 );
+				$circle_bg_image = $cursor['circle_bg_image']['url'] ?? '';
+				$inner_icon      = $cursor['inner_icon_image']['url'] ?? '';
+				$inner_size      = intval( $cursor['inner_icon_size'] ?? 44 );
+				$rotation_speed  = intval( $cursor['rotation_speed'] ?? 20 );
+				$custom_css      = $cursor['custom_css'] ?? '';
+
+				echo '#' . esc_attr( $cursor_id ) . ' {
+					width: ' . esc_attr( $circle_size ) . 'px;
+					height: ' . esc_attr( $circle_size ) . 'px;
+				}';
+
+				if ( $cursor_type === 'circle' || $cursor_type === 'circle_arrow' ) {
+					echo '#' . esc_attr( $cursor_id ) . ' .snn-cursor-circle {
+						width: ' . esc_attr( $circle_size ) . 'px;
+						height: ' . esc_attr( $circle_size ) . 'px;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+					}';
+
+					if ( $circle_bg_image ) {
+						echo '#' . esc_attr( $cursor_id ) . ' .snn-cursor-circle {
+							background: url(' . esc_url( $circle_bg_image ) . ') no-repeat center center;
+							background-size: contain;
+							animation: rotate-cursor-' . esc_attr( $index ) . ' ' . esc_attr( $rotation_speed ) . 's infinite linear;
+						}';
+
+						// Rotation animation
+						echo '@keyframes rotate-cursor-' . esc_attr( $index ) . ' {
 							from { transform: rotate(0deg); }
 							to { transform: rotate(-360deg); }
-						}
-						@keyframes rotate-<?php echo esc_attr( $hover_class ); ?>-reverse {
+						}';
+					}
+
+					if ( $cursor_type === 'circle_arrow' && $inner_icon ) {
+						echo '#' . esc_attr( $cursor_id ) . ' .snn-cursor-inner-icon {
+							width: ' . esc_attr( $inner_size ) . 'px;
+							height: ' . esc_attr( $inner_size ) . 'px;
+							display: block;
+							background: url(' . esc_url( $inner_icon ) . ') no-repeat center center;
+							background-size: contain;
+							animation: rotate-cursor-reverse-' . esc_attr( $index ) . ' ' . esc_attr( $rotation_speed ) . 's infinite linear;
+						}';
+
+						// Reverse rotation animation
+						echo '@keyframes rotate-cursor-reverse-' . esc_attr( $index ) . ' {
 							from { transform: rotate(0deg); }
 							to { transform: rotate(360deg); }
-						}
-					<?php endforeach; ?>
-				<?php endif; ?>
-
-				/* Hide in Bricks template editor */
-				.bricks_template-template-default #snn-cursor,
-				.bricks_template-template-default [data-cursor="hover"] {
-					display: none !important;
-				}
-			</style>
-			
-		</div>
-
-		<!-- Scripts loaded in footer for proper initialization -->
-		<?php
-		// Add to footer via wp_footer hook
-		add_action('wp_footer', function() use ($element_id, $cursor_speed, $hide_on_builder) {
-			?>
-			<script>
-			// Cotton.js Library
-			<?php echo $this->get_cotton_js(); ?>
-			</script>
-
-			<script>
-			// Custom Cursor Initialization - Config based approach
-			(function() {
-				'use strict';
-
-				// Configuration object - easy to add more hovers
-				const cursorConfig = {
-					default: '#snn-cursor',
-					speed: <?php echo esc_js( $cursor_speed ); ?>,
-					hovers: []
-				};
-
-				// Build hovers array from data attributes
-				const hoverElements = document.querySelectorAll('#<?php echo esc_js( $element_id ); ?> [data-cursor="hover"]');
-				hoverElements.forEach(function(el) {
-					const targets = el.getAttribute('data-targets');
-					if (targets) {
-						cursorConfig.hovers.push({
-							cursor: '.' + el.className.split(' ')[0],
-							targets: targets
-						});
+						}';
 					}
+				}
+
+				// Custom CSS
+				if ( ! empty( $custom_css ) ) {
+					echo wp_kses_post( $custom_css );
+				}
+			}
+		}
+
+		echo '</style>';
+
+		// JavaScript - Cotton library + initialization
+		echo '<script>';
+
+		// Cotton.js library (minified)
+		echo '!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Cotton=t()}(this,(function(){"use strict";function e(t){return(e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(t)}function t(e,t){for(var n=0;n<t.length;n++){var a=t[n];a.enumerable=a.enumerable||!1,a.configurable=!0,"value"in a&&(a.writable=!0),Object.defineProperty(e,a.key,a)}}function n(e){return function(e){if(Array.isArray(e))return a(e)}(e)||function(e){if("undefined"!=typeof Symbol&&null!=e[Symbol.iterator]||null!=e["@@iterator"])return Array.from(e)}(e)||function(e,t){if(!e)return;if("string"==typeof e)return a(e,t);var n=Object.prototype.toString.call(e).slice(8,-1);"Object"===n&&e.constructor&&(n=e.constructor.name);if("Map"===n||"Set"===n)return Array.from(e);if("Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n))return a(e,t)}(e)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance.nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function a(e,t){(null==t||t>e.length)&&(t=e.length);for(var n=0,a=new Array(t);n<t;n++)a[n]=e[n];return a}function o(e){console.error("[Cotton warn]: ".concat(e))}function r(e){var t=e.getBoundingClientRect(),n=document.body.getBoundingClientRect();return{width:t.width,height:t.height,centerX:t.left-n.left+t.width/2-s(e),centerY:t.top-n.top+t.height/2-i(e)}}function s(e){var t=getComputedStyle(e).transform,n=t.match(/^matrix3d((.+))$/);return n?parseFloat(n[1].split(", ")[12]):(n=t.match(/^matrix((.+))$/))?parseFloat(n[1].split(", ")[4]):0}function i(e){var t=getComputedStyle(e).transform,n=t.match(/^matrix3d((.+))$/);return n?parseFloat(n[1].split(", ")[13]):(n=t.match(/^matrix((.+))$/))?parseFloat(n[1].split(", ")[5]):0}function l(e){var t=e.element,n=e.params,a=n.data;a.x&&a.y?(a.dx=(a.mouseX-a.x)*n.speed,a.dy=(a.mouseY-a.y)*n.speed,Math.abs(a.dx)+Math.abs(a.dy)<.1?(a.x=a.mouseX,a.y=a.mouseY):(a.x+=a.dx,a.y+=a.dy)):(a.x=a.mouseX,a.y=a.mouseY),a.animationFrame=requestAnimationFrame((function(){l(e)})),n.centerMouse?t.style.transform="translate(calc(-50% + ".concat(a.x,"px), calc(-50% + ").concat(a.y,"px))"):t.style.transform="translate(".concat(a.x,"px, ").concat(a.y,"px)")}function c(e){var t=e.element,n=e.params,a=n.data,o=n.airMode;a.distanceX&&a.distanceY?(a.dx=(a.distanceX-a.x)*n.speed,a.dy=(a.distanceY-a.y)*n.speed,Math.abs(a.dx)+Math.abs(a.dy)<.1?(a.x=a.distanceX,a.y=a.distanceY):(a.x+=a.dx,a.y+=a.dy)):(a.x=a.distanceX,a.y=a.distanceY),a.animationFrame=requestAnimationFrame((function(){c(e)}));var r=o.reverse?-a.x:a.x,s=o.reverse?-a.y:a.y,i="number"==typeof a.transformX?a.transformX+"px":a.transformX,l="number"==typeof a.transformY?a.transformY+"px":a.transformY,d=a.transformX?"calc(".concat(i," + ").concat(Math.floor(r/o.resistance),"px)"):"".concat(Math.floor(r/o.resistance),"px"),m=a.transformY?"calc(".concat(l," + ").concat(Math.floor(s/o.resistance),"px)"):"".concat(Math.floor(s/o.resistance),"px");t.style.transform="translate(".concat(d,", ").concat(m,")")}function d(e,t){if(0!==e.models.length){var n=e.models;if(t)n.forEach((function(t){t.addEventListener("mouseenter",e.enterModelHandler),t.addEventListener("mouseleave",e.leaveModelHandler)}));else{n.forEach((function(t){t.removeEventListener("mouseenter",e.enterModelHandler),t.removeEventListener("mouseleave",e.leaveModelHandler)}));var a=document.querySelectorAll(e.params.models);a.forEach((function(t){t.addEventListener("mouseenter",e.enterModelHandler),t.addEventListener("mouseleave",e.leaveModelHandler)})),e.models=a}}}return function(){function a(t,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,a);var r,s={data:{mouseX:null,mouseY:null,distanceX:null,distanceY:null,x:null,y:null,dx:null,dy:null,animationFrame:void 0},scene:"body",conttonInitClass:"cotton-init",cottonMovingClass:"cotton-moving",cottonActiveClass:"cotton-active",models:".cotton-model",modelsActiveClass:"model-active",centerMouse:!0,speed:.125,airMode:!1,on:{enterModel:null,leaveModel:null,enterScene:null,leaveScene:null,cottonMove:null}};if(this.element=t instanceof Element?t:document.querySelector(t),this.params=Object.assign({},s,n),this.scene=this.params.scene instanceof Element?this.params.scene:document.querySelector(this.params.scene),this.models=NodeList.prototype.isPrototypeOf(this.params.models)?this.params.models:document.querySelectorAll(this.params.models),this.enterModelHandler=this.enterModelHandler.bind(this),this.leaveModelHandler=this.leaveModelHandler.bind(this),!this.element)return o("Cannot define a cotton element which is not exist");if(!this.scene)return o("Cannot define a scene which is not exist");if((this.params.speed>1||this.params.speed<=0)&&(this.params.speed=.125),this.params.airMode){var i=this.params.airMode,l={resistance:15,reverse:!1,alive:!1};"object"!==e(i)||Array.isArray(i)?this.params.airMode=l:this.params.airMode=Object.assign(l,i),(i.resistance<1||i.resistance>100)&&(i.resistance=15)}(r=navigator.userAgent).indexOf("Android")>-1||r.indexOf("Adr"),r.indexOf("Mac")>-1&&"ontouchend"in document||a.init(this)}var m,u,f;return m=a,f=[{key:"getMouseData",value:function(e){var t=e.element,a=e.scene,o=e.params,l=o.data,c=o.airMode;a.addEventListener("mousemove",(function(a){l.mouseX=c?a.pageX:a.clientX,l.mouseY=c?a.pageY:a.clientY,n(t.classList).indexOf(o.conttonInitClass)>-1&&t.classList.add(o.cottonMovingClass),o.on.cottonMove&&"function"==typeof o.on.cottonMove&&o.on.cottonMove.call(e,t,a)})),c&&(c.alive||(l.rect=r(t),l.transformX=s(t),l.transformY=i(t),window.addEventListener("resize",(function(){l.rect=r(t),l.transformX=s(t),l.transformY=i(t)}))),a.addEventListener("mousemove",(function(){c.alive&&(l.rect=r(t));var e=window.innerWidth+l.rect.width/2,n=window.innerHeight+l.rect.height/2,a=l.mouseX-l.rect.centerX,o=l.mouseY-l.rect.centerY;l.distanceX=Math.min(Math.max(parseInt(a),-e),e),l.distanceY=Math.min(Math.max(parseInt(o),-n),n)})))}},{key:"init",value:function(e){var t=e.element,n=e.params,o=e.scene;o.addEventListener("mouseenter",(function(a){n.on.enterScene&&"function"==typeof n.on.enterScene&&n.on.enterScene.call(e,t,o,a)})),o.addEventListener("mouseleave",(function(a){t.classList.remove(n.cottonMovingClass),n.on.leaveScene&&"function"==typeof n.on.leaveScene&&n.on.leaveScene.call(e,t,o,a)})),a.getMouseData(e,!0),e.move(),d(e,!0)}}],(u=[{key:"enterModelHandler",value:function(e){var t=this.element,n=this.params;n.on.enterModel&&"function"==typeof n.on.enterModel&&n.on.enterModel.call(this,t,e.target,e),t.classList.add(n.cottonActiveClass),e.target.classList.add(n.modelsActiveClass)}},{key:"leaveModelHandler",value:function(e){var t=this.element,n=this.params;n.on.leaveModel&&"function"==typeof n.on.leaveModel&&n.on.leaveModel.call(this,t,e.target,e),t.classList.remove(n.cottonActiveClass),e.target.classList.remove(n.modelsActiveClass)}},{key:"move",value:function(){var e=this.params.data,t=this.params.airMode;this.element.classList.add(this.params.conttonInitClass),e.animationFrame||(t?c(this):l(this))}},{key:"stop",value:function(){var e=this.params.data;this.element.classList.remove(this.params.conttonInitClass),this.element.classList.remove(this.params.cottonMovingClass),cancelAnimationFrame(e.animationFrame),e.animationFrame=void 0}},{key:"updateModels",value:function(){d(this,!1)}}])&&t(m.prototype,u),f&&t(m,f),a}()}));';
+
+		// Configuration and initialization
+		echo '(function() {
+			const defaultCursor = document.querySelector("#' . esc_js( $unique_id ) . '-default");
+
+			if (!defaultCursor) return;
+
+			// Initialize default cursor
+			new Cotton(defaultCursor, {
+				speed: ' . esc_js( $cursor_speed ) . '
+			});
+			';
+
+		// Initialize hover cursors
+		if ( ! empty( $hover_cursors ) ) {
+			echo 'const cursorConfig = {';
+
+			foreach ( $hover_cursors as $index => $cursor ) {
+				$cursor_id       = $unique_id . '-hover-' . $index;
+				$target_selector = $cursor['target_selector'] ?? '.target-' . $index;
+
+				echo 'cursor_' . esc_js( $index ) . ': {
+					element: document.querySelector("#' . esc_js( $cursor_id ) . '"),
+					targets: "' . esc_js( $target_selector ) . '"
+				},';
+			}
+
+			echo '};';
+
+			echo 'Object.values(cursorConfig).forEach(function(config) {
+				if (!config.element) return;
+
+				// Initialize Cotton for each hover cursor
+				new Cotton(config.element, {
+					speed: ' . esc_js( $cursor_speed ) . '
 				});
 
-				// Initialize cursors function
-				function initCursors(config) {
-					const defaultCursor = document.querySelector(config.default);
-					if (!defaultCursor) return;
+				// Setup hover interactions
+				new Cotton(defaultCursor, {
+					models: config.targets,
+					speed: ' . esc_js( $cursor_speed ) . ',
+					on: {
+						enterModel: function(cursorEl) {
+							config.element.style.opacity = "1";
+							config.element.style.visibility = "visible";
+							cursorEl.style.opacity = "0";
+						},
+						leaveModel: function(cursorEl) {
+							config.element.style.opacity = "0";
+							config.element.style.visibility = "hidden";
+							cursorEl.style.opacity = "1";
+						}
+					}
+				});
+			});';
+		}
 
-					// Setup default cursor
-					new Cotton(defaultCursor, {
-						speed: config.speed
-					});
+		echo '})();';
+		echo '</script>';
 
-					// Setup each hover state
-					config.hovers.forEach(function(hover) {
-						const hoverCursor = document.querySelector(hover.cursor);
-						if (!hoverCursor) return;
-
-						// Set initial hidden state
-						hoverCursor.style.opacity = '0';
-						hoverCursor.style.visibility = 'hidden';
-
-						// Make hover cursor follow mouse
-						new Cotton(hoverCursor, {
-							speed: config.speed
-						});
-
-						// Setup interactions
-						new Cotton(defaultCursor, {
-							models: hover.targets,
-							on: {
-								enterModel: function(cursorEl) {
-									hoverCursor.style.opacity = '1';
-									hoverCursor.style.visibility = 'visible';
-									cursorEl.style.opacity = '0';
-								},
-								leaveModel: function(cursorEl) {
-									hoverCursor.style.opacity = '0';
-									hoverCursor.style.visibility = 'hidden';
-									cursorEl.style.opacity = '1';
-								}
-							}
-						});
-					});
-				}
-
-				// Initialize everything
-				initCursors(cursorConfig);
-
-				<?php if ( $hide_on_builder ) : ?>
-				// Hide cursors in Bricks builder
-				if (document.body.classList.contains('bricks-is-frontend-builder')) {
-					const allCursors = document.querySelectorAll('#<?php echo esc_js( $element_id ); ?> [data-cursor]');
-					allCursors.forEach(function(cursor) {
-						cursor.style.display = 'none';
-					});
-				}
-				<?php endif; ?>
-			})();
-			</script>
-			<?php
-		}, 999); // High priority to load after other scripts
-		?>
-		<?php
+		echo '</div>';
 	}
-	
+
 	/**
-	 * Get Cotton.js library inline
-	 * 
-	 * @return string Cotton.js library code
+	 * Helper method to ensure color value is a string
 	 */
-	private function get_cotton_js() {
-		// Cotton.js library (minified version)
-		return <<<'COTTONJS'
-!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Cotton=t()}(this,(function(){"use strict";function e(t){return(e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(t)}function t(e,t){for(var n=0;n<t.length;n++){var a=t[n];a.enumerable=a.enumerable||!1,a.configurable=!0,"value"in a&&(a.writable=!0),Object.defineProperty(e,a.key,a)}}function n(e){return function(e){if(Array.isArray(e))return a(e)}(e)||function(e){if("undefined"!=typeof Symbol&&null!=e[Symbol.iterator]||null!=e["@@iterator"])return Array.from(e)}(e)||function(e,t){if(!e)return;if("string"==typeof e)return a(e,t);var n=Object.prototype.toString.call(e).slice(8,-1);"Object"===n&&e.constructor&&(n=e.constructor.name);if("Map"===n||"Set"===n)return Array.from(e);if("Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n))return a(e,t)}(e)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function a(e,t){(null==t||t>e.length)&&(t=e.length);for(var n=0,a=new Array(t);n<t;n++)a[n]=e[n];return a}function o(e){console.error("[Cotton warn]: ".concat(e))}function r(e){var t=e.getBoundingClientRect(),n=document.body.getBoundingClientRect();return{width:t.width,height:t.height,centerX:t.left-n.left+t.width/2-s(e),centerY:t.top-n.top+t.height/2-i(e)}}function s(e){var t=getComputedStyle(e).transform,n=t.match(/^matrix3d\((.+)\)$/);return n?parseFloat(n[1].split(", ")[12]):(n=t.match(/^matrix\((.+)\)$/))?parseFloat(n[1].split(", ")[4]):0}function i(e){var t=getComputedStyle(e).transform,n=t.match(/^matrix3d\((.+)\)$/);return n?parseFloat(n[1].split(", ")[13]):(n=t.match(/^matrix\((.+)\)$/))?parseFloat(n[1].split(", ")[5]):0}function l(e){var t=e.element,n=e.params,a=n.data;a.x&&a.y?(a.dx=(a.mouseX-a.x)*n.speed,a.dy=(a.mouseY-a.y)*n.speed,Math.abs(a.dx)+Math.abs(a.dy)<.1?(a.x=a.mouseX,a.y=a.mouseY):(a.x+=a.dx,a.y+=a.dy)):(a.x=a.mouseX,a.y=a.mouseY),a.animationFrame=requestAnimationFrame((function(){l(e)})),n.centerMouse?t.style.transform="translate(calc(-50% + ".concat(a.x,"px), calc(-50% + ").concat(a.y,"px))"):t.style.transform="translate(".concat(a.x,"px, ").concat(a.y,"px)")}function c(e){var t=e.element,n=e.params,a=n.data,o=n.airMode;a.distanceX&&a.distanceY?(a.dx=(a.distanceX-a.x)*n.speed,a.dy=(a.distanceY-a.y)*n.speed,Math.abs(a.dx)+Math.abs(a.dy)<.1?(a.x=a.distanceX,a.y=a.distanceY):(a.x+=a.dx,a.y+=a.dy)):(a.x=a.distanceX,a.y=a.distanceY),a.animationFrame=requestAnimationFrame((function(){c(e)}));var r=o.reverse?-a.x:a.x,s=o.reverse?-a.y:a.y,i="number"==typeof a.transformX?a.transformX+"px":a.transformX,l="number"==typeof a.transformY?a.transformY+"px":a.transformY,d=a.transformX?"calc(".concat(i," + ").concat(Math.floor(r/o.resistance),"px)"):"".concat(Math.floor(r/o.resistance),"px"),m=a.transformY?"calc(".concat(l," + ").concat(Math.floor(s/o.resistance),"px)"):"".concat(Math.floor(s/o.resistance),"px");t.style.transform="translate(".concat(d,", ").concat(m,")")}function d(e,t){if(0!==e.models.length){var n=e.models;if(t)n.forEach((function(t){t.addEventListener("mouseenter",e.enterModelHandler),t.addEventListener("mouseleave",e.leaveModelHandler)}));else{n.forEach((function(t){t.removeEventListener("mouseenter",e.enterModelHandler),t.removeEventListener("mouseleave",e.leaveModelHandler)}));var a=document.querySelectorAll(e.params.models);a.forEach((function(t){t.addEventListener("mouseenter",e.enterModelHandler),t.addEventListener("mouseleave",e.leaveModelHandler)})),e.models=a}}}return function(){function a(t,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,a);var r,s={data:{mouseX:null,mouseY:null,distanceX:null,distanceY:null,x:null,y:null,dx:null,dy:null,animationFrame:void 0},scene:"body",conttonInitClass:"cotton-init",cottonMovingClass:"cotton-moving",cottonActiveClass:"cotton-active",models:".cotton-model",modelsActiveClass:"model-active",centerMouse:!0,speed:.125,airMode:!1,on:{enterModel:null,leaveModel:null,enterScene:null,leaveScene:null,cottonMove:null}};if(this.element=t instanceof Element?t:document.querySelector(t),this.params=Object.assign({},s,n),this.scene=this.params.scene instanceof Element?this.params.scene:document.querySelector(this.params.scene),this.models=NodeList.prototype.isPrototypeOf(this.params.models)?this.params.models:document.querySelectorAll(this.params.models),this.enterModelHandler=this.enterModelHandler.bind(this),this.leaveModelHandler=this.leaveModelHandler.bind(this),!this.element)return o("Cannot define a cotton element which is not exist");if(!this.scene)return o("Cannot define a scene which is not exist");if((this.params.speed>1||this.params.speed<=0)&&(this.params.speed=.125),this.params.airMode){var i=this.params.airMode,l={resistance:15,reverse:!1,alive:!1};"object"!==e(i)||Array.isArray(i)?this.params.airMode=l:this.params.airMode=Object.assign(l,i),(i.resistance<1||i.resistance>100)&&(i.resistance=15)}(r=navigator.userAgent).indexOf("Android")>-1||r.indexOf("Adr"),r.indexOf("Mac")>-1&&"ontouchend"in document||a.init(this)}var m,u,f;return m=a,f=[{key:"getMouseData",value:function(e){var t=e.element,a=e.scene,o=e.params,l=o.data,c=o.airMode;a.addEventListener("mousemove",(function(a){l.mouseX=c?a.pageX:a.clientX,l.mouseY=c?a.pageY:a.clientY,n(t.classList).indexOf(o.conttonInitClass)>-1&&t.classList.add(o.cottonMovingClass),o.on.cottonMove&&"function"==typeof o.on.cottonMove&&o.on.cottonMove.call(e,t,a)})),c&&(c.alive||(l.rect=r(t),l.transformX=s(t),l.transformY=i(t),window.addEventListener("resize",(function(){l.rect=r(t),l.transformX=s(t),l.transformY=i(t)}))),a.addEventListener("mousemove",(function(){c.alive&&(l.rect=r(t));var e=window.innerWidth+l.rect.width/2,n=window.innerHeight+l.rect.height/2,a=l.mouseX-l.rect.centerX,o=l.mouseY-l.rect.centerY;l.distanceX=Math.min(Math.max(parseInt(a),-e),e),l.distanceY=Math.min(Math.max(parseInt(o),-n),n)})))}},{key:"init",value:function(e){var t=e.element,n=e.params,o=e.scene;o.addEventListener("mouseenter",(function(a){n.on.enterScene&&"function"==typeof n.on.enterScene&&n.on.enterScene.call(e,t,o,a)})),o.addEventListener("mouseleave",(function(a){t.classList.remove(n.cottonMovingClass),n.on.leaveScene&&"function"==typeof n.on.leaveScene&&n.on.leaveScene.call(e,t,o,a)})),a.getMouseData(e,!0),e.move(),d(e,!0)}}],(u=[{key:"enterModelHandler",value:function(e){var t=this.element,n=this.params;n.on.enterModel&&"function"==typeof n.on.enterModel&&n.on.enterModel.call(this,t,e.target,e),t.classList.add(n.cottonActiveClass),e.target.classList.add(n.modelsActiveClass)}},{key:"leaveModelHandler",value:function(e){var t=this.element,n=this.params;n.on.leaveModel&&"function"==typeof n.on.leaveModel&&n.on.leaveModel.call(this,t,e.target,e),t.classList.remove(n.cottonActiveClass),e.target.classList.remove(n.modelsActiveClass)}},{key:"move",value:function(){var e=this.params.data,t=this.params.airMode;this.element.classList.add(this.params.conttonInitClass),e.animationFrame||(t?c(this):l(this))}},{key:"stop",value:function(){var e=this.params.data;this.element.classList.remove(this.params.conttonInitClass),this.element.classList.remove(this.params.cottonMovingClass),cancelAnimationFrame(e.animationFrame),e.animationFrame=void 0}},{key:"updateModels",value:function(){d(this,!1)}}])&&t(m.prototype,u),f&&t(m,f),a}()}));
-COTTONJS;
+	private function ensure_string( $value ) {
+		if ( is_array( $value ) ) {
+			if ( isset( $value['hex'] ) ) {
+				return $value['hex'];
+			}
+			if ( isset( $value['raw'] ) ) {
+				return $value['raw'];
+			}
+			return implode( ' ', $value );
+		} elseif ( is_scalar( $value ) ) {
+			return (string) $value;
+		}
+		return '';
 	}
 }
