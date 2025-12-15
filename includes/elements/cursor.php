@@ -160,15 +160,6 @@ class Custom_Cursor_Element extends \Bricks\Element {
 			'description' => esc_html__( 'How fast the cursor follows the mouse (0.01 - 1)', 'bricks' ),
 		];
 
-		$this->controls['centerMouse'] = [
-			'tab'         => 'content',
-			'label'       => esc_html__( 'Center on Mouse', 'bricks' ),
-			'type'        => 'checkbox',
-			'inline'      => true,
-			'default'     => true,
-			'description' => esc_html__( 'Center the cursor on mouse position', 'bricks' ),
-		];
-
 		$this->controls['hideOnBuilder'] = [
 			'tab'         => 'content',
 			'label'       => esc_html__( 'Hide in Builder', 'bricks' ),
@@ -205,7 +196,6 @@ class Custom_Cursor_Element extends \Bricks\Element {
 		// Get settings with defaults
 		$cursor_hovers   = isset( $settings['cursorHovers'] ) ? $settings['cursorHovers'] : [];
 		$cursor_speed    = isset( $settings['cursorSpeed'] ) ? $settings['cursorSpeed'] : 0.125;
-		$center_mouse    = isset( $settings['centerMouse'] ) ? true : false;
 		$hide_on_builder = isset( $settings['hideOnBuilder'] ) ? true : false;
 		$cursor_z_index  = isset( $settings['cursorZIndex'] ) ? $settings['cursorZIndex'] : 9999;
 
@@ -257,9 +247,6 @@ class Custom_Cursor_Element extends \Bricks\Element {
 						height: <?php echo esc_attr( $hover_size ); ?>px;
 						pointer-events: none;
 						transform: translate(-200px, -200px);
-						opacity: 0;
-						visibility: hidden;
-						transition: opacity 0.3s ease, visibility 0.3s ease;
 					">
 						<div class="<?php echo esc_attr( $cursor_class ); ?>-circle" style="
 							width: <?php echo esc_attr( $hover_size ); ?>px;
@@ -312,10 +299,20 @@ class Custom_Cursor_Element extends \Bricks\Element {
 			(function() {
 				'use strict';
 
+				<?php if ( $hide_on_builder ) : ?>
+				// Hide cursors in Bricks builder
+				if (document.body.classList.contains('bricks-is-frontend-builder')) {
+					const allCursors = document.querySelectorAll('#<?php echo esc_js( $element_id ); ?> [data-cursor]');
+					allCursors.forEach(function(cursor) {
+						cursor.style.display = 'none';
+					});
+					return;
+				}
+				<?php endif; ?>
+
 				// Configuration
 				const cursorConfig = {
-					speed: <?php echo esc_js( $cursor_speed ); ?>,
-					centerMouse: <?php echo $center_mouse ? 'true' : 'false'; ?>
+					speed: <?php echo esc_js( $cursor_speed ); ?>
 				};
 
 				// Initialize all cursors
@@ -328,10 +325,9 @@ class Custom_Cursor_Element extends \Bricks\Element {
 					cursor.style.opacity = '0';
 					cursor.style.visibility = 'hidden';
 
-					// Make cursor follow mouse
+					// Make cursor follow mouse (no centerMouse option - let Cotton use default)
 					new Cotton(cursor, {
-						speed: cursorConfig.speed,
-						centerMouse: cursorConfig.centerMouse
+						speed: cursorConfig.speed
 					});
 
 					// Show/hide cursor on target hover
@@ -347,16 +343,6 @@ class Custom_Cursor_Element extends \Bricks\Element {
 						});
 					});
 				});
-
-				<?php if ( $hide_on_builder ) : ?>
-				// Hide cursors in Bricks builder
-				if (document.body.classList.contains('bricks-is-frontend-builder')) {
-					const allCursors = document.querySelectorAll('#<?php echo esc_js( $element_id ); ?> [data-cursor]');
-					allCursors.forEach(function(cursor) {
-						cursor.style.display = 'none';
-					});
-				}
-				<?php endif; ?>
 			})();
 			</script>
 			
