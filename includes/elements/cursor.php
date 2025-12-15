@@ -35,44 +35,22 @@ class Custom_Cursor_Element extends \Bricks\Element {
 	}
 	
 	/**
-	 * Set builder control groups
-	 */
-	public function set_control_groups() {
-		$this->control_groups['main_cursor'] = [
-			'title' => esc_html__( 'Main Cursor', 'bricks' ),
-			'tab'   => 'content',
-		];
-		
-		$this->control_groups['cursor_hovers'] = [
-			'title' => esc_html__( 'Hover States', 'bricks' ),
-			'tab'   => 'content',
-		];
-		
-		$this->control_groups['settings'] = [
-			'title' => esc_html__( 'Settings', 'bricks' ),
-			'tab'   => 'content',
-		];
-	}
-	
-	/**
 	 * Set builder controls
 	 */
 	public function set_controls() {
-		
-		// ========== MAIN CURSOR GROUP ==========
-		
+
+		// ========== MAIN CURSOR ==========
+
 		$this->controls['mainCursorEnable'] = [
 			'tab'     => 'content',
-			'group'   => 'main_cursor',
 			'label'   => esc_html__( 'Enable Main Cursor', 'bricks' ),
 			'type'    => 'checkbox',
 			'inline'  => true,
 			'default' => true,
 		];
-		
+
 		$this->controls['mainCursorShape'] = [
 			'tab'      => 'content',
-			'group'    => 'main_cursor',
 			'label'    => esc_html__( 'Shape', 'bricks' ),
 			'type'     => 'select',
 			'options'  => [
@@ -83,10 +61,9 @@ class Custom_Cursor_Element extends \Bricks\Element {
 			'inline'   => true,
 			'required' => [ 'mainCursorEnable', '=', true ],
 		];
-		
+
 		$this->controls['mainCursorSize'] = [
 			'tab'      => 'content',
-			'group'    => 'main_cursor',
 			'label'    => esc_html__( 'Size (px)', 'bricks' ),
 			'type'     => 'number',
 			'unit'     => 'px',
@@ -95,10 +72,9 @@ class Custom_Cursor_Element extends \Bricks\Element {
 			'max'      => 100,
 			'required' => [ 'mainCursorEnable', '=', true ],
 		];
-		
+
 		$this->controls['mainCursorColor'] = [
 			'tab'      => 'content',
-			'group'    => 'main_cursor',
 			'label'    => esc_html__( 'Background Color', 'bricks' ),
 			'type'     => 'color',
 			'inline'   => true,
@@ -107,30 +83,15 @@ class Custom_Cursor_Element extends \Bricks\Element {
 			],
 			'required' => [ 'mainCursorEnable', '=', true ],
 		];
-		
+
 		// ========== HOVER STATES REPEATER ==========
-		
+
 		$this->controls['cursorHovers'] = [
 			'tab'           => 'content',
-			'group'         => 'cursor_hovers',
 			'label'         => esc_html__( 'Hover Cursors', 'bricks' ),
 			'type'          => 'repeater',
 			'titleProperty' => 'hoverName',
 			'placeholder'   => esc_html__( 'Hover State', 'bricks' ),
-			'default'       => [
-				[
-					'hoverName'        => 'Project Hover',
-					'hoverTargets'     => '.project',
-					'hoverShape'       => 'circle',
-					'hoverSize'        => 140,
-					'hoverType'        => 'color',
-					'hoverColor'       => [ 'hex' => '#000000' ],
-					'hoverImageUrl'    => '',
-					'hoverShowArrow'   => true,
-					'hoverArrowSize'   => 44,
-					'hoverRotateSpeed' => 20,
-				],
-			],
 			'fields'        => [
 				'hoverName' => [
 					'label'       => esc_html__( 'Name', 'bricks' ),
@@ -231,11 +192,10 @@ class Custom_Cursor_Element extends \Bricks\Element {
 			],
 		];
 		
-		// ========== SETTINGS GROUP ==========
-		
+		// ========== SETTINGS ==========
+
 		$this->controls['cursorSpeed'] = [
 			'tab'         => 'content',
-			'group'       => 'settings',
 			'label'       => esc_html__( 'Follow Speed', 'bricks' ),
 			'type'        => 'number',
 			'default'     => 0.125,
@@ -244,30 +204,27 @@ class Custom_Cursor_Element extends \Bricks\Element {
 			'step'        => 0.01,
 			'description' => esc_html__( 'How fast the cursor follows the mouse (0.01 - 1)', 'bricks' ),
 		];
-		
+
 		$this->controls['centerMouse'] = [
 			'tab'         => 'content',
-			'group'       => 'settings',
 			'label'       => esc_html__( 'Center on Mouse', 'bricks' ),
 			'type'        => 'checkbox',
 			'inline'      => true,
 			'default'     => true,
 			'description' => esc_html__( 'Center the cursor on mouse position', 'bricks' ),
 		];
-		
+
 		$this->controls['hideOnBuilder'] = [
 			'tab'         => 'content',
-			'group'       => 'settings',
 			'label'       => esc_html__( 'Hide in Builder', 'bricks' ),
 			'type'        => 'checkbox',
 			'inline'      => true,
 			'default'     => true,
 			'description' => esc_html__( 'Hide cursors when editing in Bricks Builder', 'bricks' ),
 		];
-		
+
 		$this->controls['cursorZIndex'] = [
 			'tab'     => 'content',
-			'group'   => 'settings',
 			'label'   => esc_html__( 'Z-Index', 'bricks' ),
 			'type'    => 'number',
 			'default' => 9999,
