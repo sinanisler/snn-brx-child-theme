@@ -21,7 +21,7 @@ class SNN_Custom_Cursor_Element extends Element {
 		// Default Cursor Settings
 		$this->controls['default_cursor_size'] = [
 			'tab'     => 'content',
-			'label'   => esc_html__( 'Default Cursor Size', 'snn' ),
+			'label'   => esc_html__( 'Default Body Cursor Size', 'snn' ),
 			'type'    => 'number',
 			'default' => 10,
 			'min'     => 1,
@@ -57,13 +57,6 @@ class SNN_Custom_Cursor_Element extends Element {
 			'min'     => 1,
 			'max'     => 99999,
 			'step'    => 1,
-		];
-
-		$this->controls['hide_in_builder'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Hide in Bricks Builder', 'snn' ),
-			'type'    => 'checkbox',
-			'default' => true,
 		];
 
 		// Repeater for Hover States
@@ -116,7 +109,6 @@ class SNN_Custom_Cursor_Element extends Element {
 		$cursor_color     = $this->ensure_string( $this->settings['default_cursor_color'] ?? '#000000' );
 		$default_speed    = floatval( $this->settings['cursor_speed'] ?? 0.125 );
 		$z_index          = intval( $this->settings['cursor_z_index'] ?? 9999 );
-		$hide_builder     = isset( $this->settings['hide_in_builder'] ) ? $this->settings['hide_in_builder'] : true;
 		$hover_cursors    = isset( $this->settings['hover_cursors'] ) && is_array( $this->settings['hover_cursors'] )
 			? $this->settings['hover_cursors']
 			: [];
@@ -137,11 +129,6 @@ class SNN_Custom_Cursor_Element extends Element {
 
 		// Selection color
 		echo '::selection { background: gray; color: black; }';
-
-		// Hide in builder template editor
-		if ( $hide_builder ) {
-			echo '.bricks_template-template-default #' . esc_attr( $unique_id ) . ' { display: none !important; }';
-		}
 
 		// Default cursor styles
 		echo '#' . esc_attr( $unique_id ) . '-default {
@@ -208,7 +195,7 @@ class SNN_Custom_Cursor_Element extends Element {
 				const cursorElement = document.querySelector(config.cursorSelector);
 
 				if (!cursorElement) {
-					console.warn("Cursor element not found or could not be selected. Move this element as latest on footer !: " + config.cursorSelector);
+					console.warn("Cursor element not found or could not be selected. Move Cursor Element as latest on the Structure !: " + config.cursorSelector);
 					return;
 				}
 
