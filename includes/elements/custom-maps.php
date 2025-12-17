@@ -66,7 +66,14 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                 'icon_size' => [
                     'label'   => __( 'Icon Size (px)', 'snn' ),
                     'type'    => 'number',
-                    'default' => 24,
+                    'units'   => true,
+                    'css'     => [
+                        [
+                            'property' => 'font-size',
+                            'selector' => '.leaflet-icon-custom',
+                        ],
+                    ],
+                    'default' => '24px',
                     'step'    => 1,
                     'min'     => 10,
                     'inline'  => true,
@@ -115,20 +122,34 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['map_height'] = [
             'tab'     => 'content',
-            'label'   => __( 'Map Height (px)', 'snn' ),
+            'label'   => __( 'Map Height', 'snn' ),
             'type'    => 'number',
-            'default' => 400,
+            'units'   => true,
+            'css'     => [
+                [
+                    'property' => 'height',
+                    'selector' => '',
+                ],
+            ],
+            'default' => '400px',
             'min'     => 100,
             'step'    => 10,
         ];
 
         $this->controls['popup_font_size'] = [
             'tab'    => 'content',
-            'label'  => __( 'Popup Font Size (px)', 'snn' ),
+            'label'  => __( 'Popup Font Size', 'snn' ),
             'type'   => 'number',
+            'units'  => true,
+            'css'    => [
+                [
+                    'property' => 'font-size',
+                    'selector' => '.custom-openstreetmap-popup',
+                ],
+            ],
             'min'    => 10,
             'step'   => 1,
-            'default'=> 14,
+            'default'=> '14px',
             'inline' => true,
         ];
 
@@ -304,10 +325,9 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         }
 
         // Set up the root attributes using Bricks methods.
-        // Here we add our wrapper class and inline style.
+        // Here we add our wrapper class.
         $root_classes = ['custom-openstreetmap-wrapper'];
         $this->set_attribute('_root', 'class', $root_classes);
-        $this->set_attribute('_root', 'style', "height: {$map_height}px; width: 100%; max-width: 100%;");
 
         // Check if an ID is already set on the element’s root.
         // If not, generate one.
@@ -318,41 +338,41 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             $this->set_attribute('_root', 'id', $map_id);
         }
 
-        // Inline CSS for popup font size and other Leaflet styling
-        $popup_font_size_css = '';
-        if ( ! empty( $popup_font_size ) ) {
-            $popup_font_size_css = "
-                <style>
-                    #{$map_id} .custom-openstreetmap-popup {
-                        font-size: {$popup_font_size}px;
-                    }
-                    .leaflet-icon-custom {
-                        display: flex;
-                    }
-                    .leaflet-icon-custom svg {
-                        width: 100% !important;
-                        height:auto ;
-                    }
-                    .leaflet-marker-icon {
-                        height: auto !important;
-                    }
-                    .leaflet-container a.leaflet-popup-close-button {
-                        font-size: 20px !important;
-                    }
-                    .leaflet-control-attribution {
-                        font-size: 11px;
-                        color: gray !important;
-                    }
-                    .leaflet-control-attribution a,
-                    .leaflet-control-attribution span {
-                        display: none;
-                    }
-                    .leaflet-top, .leaflet-bottom {
-                        z-index: 500 !important;
-                    }
-                </style>
-            ";
-        }
+        // Inline CSS for Leaflet styling
+        $popup_font_size_css = "
+            <style>
+                .leaflet-icon-custom {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .leaflet-icon-custom svg {
+                    width: 100% !important;
+                    height: auto;
+                }
+                .leaflet-marker-icon {
+                    height: auto !important;
+                }
+                .leaflet-container a.leaflet-popup-close-button {
+                    font-size: 20px !important;
+                }
+                .leaflet-control-attribution {
+                    font-size: 11px;
+                    color: gray !important;
+                }
+                .leaflet-control-attribution a,
+                .leaflet-control-attribution span {
+                    display: none;
+                }
+                .leaflet-top, .leaflet-bottom {
+                    z-index: 500 !important;
+                }
+                #{$map_id} {
+                    width: 100%;
+                    max-width: 100%;
+                }
+            </style>
+        ";
 
         $tile_url = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
         if ( $map_style === 'light' ) {
