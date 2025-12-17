@@ -24,16 +24,6 @@ class SNN_Custom_Cursor_Element extends Element {
 			'label'   => esc_html__( 'Default Body Cursor Size', 'snn' ),
 			'type'    => 'number',
 			'units'   => true,
-			'css'     => [
-				[
-					'property' => 'width',
-					'selector' => '.snn-cursor-default',
-				],
-				[
-					'property' => 'height',
-					'selector' => '.snn-cursor-default',
-				],
-			],
 			'default' => 10,
 			'min'     => 1,
 			'max'     => 50,
@@ -63,12 +53,6 @@ class SNN_Custom_Cursor_Element extends Element {
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Cursor Z-Index', 'snn' ),
 			'type'    => 'number',
-			'css'     => [
-				[
-					'property' => 'z-index',
-					'selector' => '.snn-cursor-default',
-				],
-			],
 			'default' => 9999,
 			'min'     => 1,
 			'max'     => 99999,
@@ -79,12 +63,6 @@ class SNN_Custom_Cursor_Element extends Element {
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Cursor Aspect Ratio', 'snn' ),
 			'type'    => 'number',
-			'css'     => [
-				[
-					'property' => 'aspect-ratio',
-					'selector' => '.snn-cursor-default',
-				],
-			],
 			'default' => 1,
 			'min'     => 0.1,
 			'max'     => 10,
@@ -165,6 +143,7 @@ class SNN_Custom_Cursor_Element extends Element {
 		echo '::selection { background: gray; color: black; }';
 
 		// Default cursor styles
+		$aspect_ratio = floatval( $this->settings['cursor_aspect_ratio'] ?? 1 );
 		echo '#' . esc_attr( $unique_id ) . '-default {
 			position: fixed;
 			top: 0;
@@ -172,6 +151,7 @@ class SNN_Custom_Cursor_Element extends Element {
 			z-index: ' . esc_attr( $z_index ) . ';
 			width: ' . esc_attr( $default_size ) . 'px;
 			height: ' . esc_attr( $default_size ) . 'px;
+			aspect-ratio: ' . esc_attr( $aspect_ratio ) . ';
 			border-radius: 50%;
 			pointer-events: none;
 			background-color: ' . esc_attr( $cursor_color ) . ';
