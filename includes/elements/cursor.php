@@ -23,11 +23,21 @@ class SNN_Custom_Cursor_Element extends Element {
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Default Body Cursor Size', 'snn' ),
 			'type'    => 'number',
+			'units'   => true,
+			'css'     => [
+				[
+					'property' => 'width',
+					'selector' => '.snn-cursor-default',
+				],
+				[
+					'property' => 'height',
+					'selector' => '.snn-cursor-default',
+				],
+			],
 			'default' => 10,
 			'min'     => 1,
 			'max'     => 50,
 			'step'    => 1,
-			'unit'    => 'px',
 		];
 
 		$this->controls['default_cursor_color'] = [
@@ -53,10 +63,32 @@ class SNN_Custom_Cursor_Element extends Element {
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Cursor Z-Index', 'snn' ),
 			'type'    => 'number',
+			'css'     => [
+				[
+					'property' => 'z-index',
+					'selector' => '.snn-cursor-default',
+				],
+			],
 			'default' => 9999,
 			'min'     => 1,
 			'max'     => 99999,
 			'step'    => 1,
+		];
+
+		$this->controls['cursor_aspect_ratio'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Cursor Aspect Ratio', 'snn' ),
+			'type'    => 'number',
+			'css'     => [
+				[
+					'property' => 'aspect-ratio',
+					'selector' => '.snn-cursor-default',
+				],
+			],
+			'default' => 1,
+			'min'     => 0.1,
+			'max'     => 10,
+			'step'    => 0.1,
 		];
 
 		// Repeater for Hover States
@@ -90,12 +122,14 @@ class SNN_Custom_Cursor_Element extends Element {
 				'cursor_x_position' => [
 					'label'       => esc_html__( 'Cursor X Position', 'snn' ),
 					'type'        => 'number',
+					'units'       => true,
 					'default'     => 0,
 					'description' => esc_html__( 'Horizontal offset from center in pixels', 'snn' ),
 				],
 				'cursor_y_position' => [
 					'label'       => esc_html__( 'Cursor Y Position', 'snn' ),
 					'type'        => 'number',
+					'units'       => true,
 					'default'     => 0,
 					'description' => esc_html__( 'Vertical offset from center in pixels', 'snn' ),
 				],
