@@ -509,7 +509,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
     public static function render_builder() {
         ?>
         <script type="text/x-template" id="tmpl-bricks-element-openstreetmap">
-            <div class="custom-openstreetmap-wrapper" style="height: 400px; background: #eaeaea; display: flex; align-items: center; justify-content: center;">
+            <div class="custom-openstreetmap-wrapper" style="width:100%; height: 400px; background: #eaeaea; display: flex; align-items: center; justify-content: center;">
                 <span style="color: #555;">OpenStreetMap Placeholder</span>
             </div>
         </script>
