@@ -73,7 +73,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                             'selector' => '.leaflet-icon-custom',
                         ],
                     ],
-                    'default' => '24px',
+                    'default' => 24,
                     'step'    => 1,
                     'min'     => 10,
                     'inline'  => true,
@@ -131,7 +131,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     'selector' => '',
                 ],
             ],
-            'default' => '400px',
+            'default' => 400,
             'min'     => 100,
             'step'    => 10,
         ];
@@ -149,7 +149,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             ],
             'min'    => 10,
             'step'   => 1,
-            'default'=> '14px',
+            'default'=> 14,
             'inline' => true,
         ];
 
@@ -221,8 +221,6 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         $map_center_lng         = isset( $this->settings['map_center_lng'] ) ? floatval( $this->settings['map_center_lng'] ) : -0.09;
         $zoom_level             = isset( $this->settings['zoom_level'] ) ? intval( $this->settings['zoom_level'] ) : 13;
         $markers                = isset( $this->settings['markers'] ) ? $this->settings['markers'] : [];
-        $map_height             = isset( $this->settings['map_height'] ) ? intval( $this->settings['map_height'] ) : 400;
-        $popup_font_size        = isset( $this->settings['popup_font_size'] ) ? intval( $this->settings['popup_font_size'] ) : 14;
         $map_style              = isset( $this->settings['map_style'] ) ? $this->settings['map_style'] : 'default';
 
         // If post type query is enabled, fetch markers from posts
