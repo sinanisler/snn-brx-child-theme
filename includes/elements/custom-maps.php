@@ -115,35 +115,21 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['map_height'] = [
             'tab'     => 'content',
-            'label'   => __( 'Map Height', 'snn' ),
+            'label'   => __( 'Map Height (px)', 'snn' ),
             'type'    => 'number',
-            'units'   => true,
-            'default' => '400px',
+            'default' => 400,
             'min'     => 100,
             'step'    => 10,
-            'css'     => [
-                [
-                    'property' => 'height',
-                    'selector' => '',
-                ],
-            ],
         ];
 
         $this->controls['popup_font_size'] = [
-            'tab'     => 'content',
-            'label'   => __( 'Popup Font Size', 'snn' ),
-            'type'    => 'number',
-            'units'   => true,
-            'min'     => 10,
-            'step'    => 1,
-            'default' => '14px',
-            'inline'  => true,
-            'css'     => [
-                [
-                    'property' => 'font-size',
-                    'selector' => '.custom-openstreetmap-popup',
-                ],
-            ],
+            'tab'    => 'content',
+            'label'  => __( 'Popup Font Size (px)', 'snn' ),
+            'type'   => 'number',
+            'min'    => 10,
+            'step'   => 1,
+            'default'=> 14,
+            'inline' => true,
         ];
 
         $this->controls['map_style'] = [
@@ -214,6 +200,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         $map_center_lng         = isset( $this->settings['map_center_lng'] ) ? floatval( $this->settings['map_center_lng'] ) : -0.09;
         $zoom_level             = isset( $this->settings['zoom_level'] ) ? intval( $this->settings['zoom_level'] ) : 13;
         $markers                = isset( $this->settings['markers'] ) ? $this->settings['markers'] : [];
+        $map_height             = isset( $this->settings['map_height'] ) ? intval( $this->settings['map_height'] ) : 400;
+        $popup_font_size        = isset( $this->settings['popup_font_size'] ) ? intval( $this->settings['popup_font_size'] ) : 14;
         $map_style              = isset( $this->settings['map_style'] ) ? $this->settings['map_style'] : 'default';
 
         // If post type query is enabled, fetch markers from posts
@@ -316,9 +304,10 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         }
 
         // Set up the root attributes using Bricks methods.
-        // Here we add our wrapper class.
+        // Here we add our wrapper class and inline style.
         $root_classes = ['custom-openstreetmap-wrapper'];
         $this->set_attribute('_root', 'class', $root_classes);
+        $this->set_attribute('_root', 'style', "height: {$map_height}px; width: 100%; max-width: 100%;");
 
         // Check if an ID is already set on the element’s root.
         // If not, generate one.
@@ -329,35 +318,41 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
             $this->set_attribute('_root', 'id', $map_id);
         }
 
-        // Inline CSS for Leaflet styling (non-responsive styles only)
-        ?>
-        <style>
-            .leaflet-icon-custom {
-                display: flex;
-            }
-            .leaflet-icon-custom svg {
-                width: 100% !important;
-                height: auto;
-            }
-            .leaflet-marker-icon {
-                height: auto !important;
-            }
-            .leaflet-container a.leaflet-popup-close-button {
-                font-size: 20px !important;
-            }
-            .leaflet-control-attribution {
-                font-size: 11px;
-                color: gray !important;
-            }
-            .leaflet-control-attribution a,
-            .leaflet-control-attribution span {
-                display: none;
-            }
-            .leaflet-top, .leaflet-bottom {
-                z-index: 500 !important;
-            }
-        </style>
-        <?php
+        // Inline CSS for popup font size and other Leaflet styling
+        $popup_font_size_css = '';
+        if ( ! empty( $popup_font_size ) ) {
+            $popup_font_size_css = "
+                <style>
+                    #{$map_id} .custom-openstreetmap-popup {
+                        font-size: {$popup_font_size}px;
+                    }
+                    .leaflet-icon-custom {
+                        display: flex;
+                    }
+                    .leaflet-icon-custom svg {
+                        width: 100% !important;
+                        height:auto ;
+                    }
+                    .leaflet-marker-icon {
+                        height: auto !important;
+                    }
+                    .leaflet-container a.leaflet-popup-close-button {
+                        font-size: 20px !important;
+                    }
+                    .leaflet-control-attribution {
+                        font-size: 11px;
+                        color: gray !important;
+                    }
+                    .leaflet-control-attribution a,
+                    .leaflet-control-attribution span {
+                        display: none;
+                    }
+                    .leaflet-top, .leaflet-bottom {
+                        z-index: 500 !important;
+                    }
+                </style>
+            ";
+        }
 
         $tile_url = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
         if ( $map_style === 'light' ) {
@@ -367,6 +362,8 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
         }
         $tile_attribution = '©OpenStreetMap';
         ?>
+
+        <?php echo $popup_font_size_css; ?>
 
         <div <?php echo $this->render_attributes('_root'); ?>>
         </div>
