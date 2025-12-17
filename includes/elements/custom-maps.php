@@ -70,6 +70,12 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                     'step'    => 1,
                     'min'     => 10,
                     'inline'  => true,
+                    'css'     => [
+                        [
+                            'property' => 'font-size',
+                            'selector' => '.leaflet-icon-custom',
+                        ],
+                    ],
                 ],
                 'icon_color' => [
                     'label'   => __( 'Icon Color', 'snn' ),
@@ -79,6 +85,12 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
                         'rgba' => 'rgba(0,0,0,1)',
                     ],
                     'inline'  => true,
+                    'css'     => [
+                        [
+                            'property' => 'color',
+                            'selector' => '.leaflet-icon-custom',
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -115,21 +127,35 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
         $this->controls['map_height'] = [
             'tab'     => 'content',
-            'label'   => __( 'Map Height (px)', 'snn' ),
+            'label'   => __( 'Map Height', 'snn' ),
             'type'    => 'number',
-            'default' => 400,
+            'units'   => true,
+            'default' => '400px',
             'min'     => 100,
             'step'    => 10,
+            'css'     => [
+                [
+                    'property' => 'height',
+                    'selector' => '',
+                ],
+            ],
         ];
 
         $this->controls['popup_font_size'] = [
-            'tab'    => 'content',
-            'label'  => __( 'Popup Font Size (px)', 'snn' ),
-            'type'   => 'number',
-            'min'    => 10,
-            'step'   => 1,
-            'default'=> 14,
-            'inline' => true,
+            'tab'     => 'content',
+            'label'   => __( 'Popup Font Size', 'snn' ),
+            'type'    => 'number',
+            'units'   => true,
+            'min'     => 10,
+            'step'    => 1,
+            'default' => '14px',
+            'inline'  => true,
+            'css'     => [
+                [
+                    'property' => 'font-size',
+                    'selector' => '.custom-openstreetmap-popup',
+                ],
+            ],
         ];
 
         $this->controls['map_style'] = [
