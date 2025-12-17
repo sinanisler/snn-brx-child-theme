@@ -143,6 +143,27 @@ class Snn_Marquee_Slider_Carousel extends Element {
             'inline'  => true,
         ];
 
+        $this->controls['imageObjectFit'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Image Object Fit', 'snn' ),
+            'type'    => 'select',
+            'options' => [
+                'cover'      => esc_html__( 'Cover', 'snn' ),
+                'contain'    => esc_html__( 'Contain', 'snn' ),
+                'fill'       => esc_html__( 'Fill', 'snn' ),
+                'none'       => esc_html__( 'None', 'snn' ),
+                'scale-down' => esc_html__( 'Scale Down', 'snn' ),
+            ],
+            'default' => 'cover',
+            'css'     => [
+                [
+                    'property' => 'object-fit',
+                    'selector' => '.marquee__item img',
+                ],
+            ],
+            'inline'  => true,
+        ];
+
         $this->controls['imageEffect'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Image Effect on Hover', 'snn' ),
