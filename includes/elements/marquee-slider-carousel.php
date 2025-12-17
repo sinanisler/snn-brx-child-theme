@@ -70,6 +70,12 @@ class Snn_Marquee_Slider_Carousel extends Element {
             'label'   => esc_html__( 'Gap', 'snn' ),
             'type'    => 'number',
             'units'   => ['px', 'rem', 'em', '%'],
+            'css'     => [
+                [
+                    'property' => 'gap',
+                    'selector' => '.marquee__track',
+                ],
+            ],
             'default' => '20px',
             'inline'  => true,
         ];
@@ -118,6 +124,23 @@ class Snn_Marquee_Slider_Carousel extends Element {
                     'selector' => '.marquee__item img',
                 ],
             ],
+        ];
+
+        $this->controls['imageAspectRatio'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Image Aspect Ratio', 'snn' ),
+            'type'    => 'number',
+            'default' => '',
+            'placeholder' => '1',
+            'step'    => 0.1,
+            'min'     => 0.1,
+            'css'     => [
+                [
+                    'property' => 'aspect-ratio',
+                    'selector' => '.marquee__item img',
+                ],
+            ],
+            'inline'  => true,
         ];
 
         $this->controls['imageEffect'] = [
