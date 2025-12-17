@@ -117,7 +117,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
             'label'   => esc_html__( 'Image Height', 'snn' ),
             'type'    => 'number',
             'units'   => ['px', 'rem', 'em'],
-            'default' => '50px',
+            'default' => '100',
             'css'     => [
                 [
                     'property' => 'height',
