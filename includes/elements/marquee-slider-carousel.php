@@ -102,6 +102,12 @@ class Snn_Marquee_Slider_Carousel extends Element {
             'type'    => 'number',
             'units'   => ['px', 'rem', 'em', 'vh'],
             'default' => '500px',
+            'css'     => [
+                [
+                    'property' => 'max-height',
+                    'selector' => '',
+                ],
+            ],
             'inline'  => true,
             'required' => ['direction', '=', ['up', 'down']],
         ];
