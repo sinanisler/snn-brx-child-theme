@@ -96,6 +96,16 @@ class Snn_Marquee_Slider_Carousel extends Element {
             'inline'  => true,
         ];
 
+        $this->controls['verticalMaxHeight'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Vertical Max Height', 'snn' ),
+            'type'    => 'number',
+            'units'   => ['px', 'rem', 'em', 'vh'],
+            'default' => '500px',
+            'inline'  => true,
+            'required' => ['direction', '=', ['up', 'down']],
+        ];
+
         // --- Item Style Settings ---
         $this->controls['itemWidth'] = [
             'tab'     => 'content',
@@ -208,7 +218,8 @@ class Snn_Marquee_Slider_Carousel extends Element {
         $gap            = $settings['gap'] ?? '1.5rem';
         $pause_on_hover = $settings['pauseOnHover'] ?? false;
         $image_effect   = $settings['imageEffect'] ?? 'none';
-        $enable_fade    = $settings['enableFade'] ?? false; 
+        $enable_fade    = $settings['enableFade'] ?? false;
+        $vertical_max_height = $settings['verticalMaxHeight'] ?? '500px'; 
 
         echo "<style>
             /* Marquee Container */
@@ -257,7 +268,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
             /* Vertical Container & Animation */
             .{$unique_id}[data-direction=\"up\"],
             .{$unique_id}[data-direction=\"down\"] {
-                max-height: 500px;
+                max-height: {$vertical_max_height};
             }
             .{$unique_id}[data-direction=\"up\"] .marquee__track,
             .{$unique_id}[data-direction=\"down\"] .marquee__track {
