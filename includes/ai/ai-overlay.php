@@ -240,7 +240,8 @@ function snn_add_ai_script_to_footer() {
 [data-controlkey="custom_data_animate_end_value"] .snn-ai-button,
 [data-controlkey="custom_data_animate_duration_value"] .snn-ai-button,
 [data-controlkey="custom_data_animate_stagger_value"] .snn-ai-button,
-[data-controlkey="custom_data_animate_delay_value"] .snn-ai-button
+[data-controlkey="custom_data_animate_delay_value"] .snn-ai-button,
+[data-controlkey="custom_data_animate_ease_value"] .snn-ai-button
         {
             display: none !important;
         }
