@@ -491,7 +491,7 @@ function snn_seo_settings_page_callback() {
                 </label>
                 <p class="description">
                     <?php _e('Sitemap URL:', 'snn'); ?> <code><?php echo home_url('/sitemap.xml'); ?></code><br>
-                    <?php _e('Paginated with max 100 links per page. Each post type and taxonomy gets its own sitemap.', 'snn'); ?>
+                    <?php _e('Paginated with max 100 links per page. Each post type and taxonomy gets its own sitemap. After enabling sitemap.xml please re-save your permalink settings.', 'snn'); ?>
                 </p>
 
                 <?php if ($sitemap_enabled): ?>
