@@ -957,6 +957,19 @@ function snn_frontend_post_handler(){
     $term_ids = [];
 
     if(!$title || !$content) wp_send_json_error('Title and content required.');
+    
+    // Check if user has capability to create this post type
+    $post_type_obj = get_post_type_object($type);
+    if (!$post_type_obj || !current_user_can($post_type_obj->cap->create_posts)) {
+        wp_send_json_error('Insufficient permissions to create this post type.');
+    }
+    
+    // Additional check for post status capability
+    if ($status === 'publish' && !current_user_can($post_type_obj->cap->publish_posts)) {
+        // Downgrade to draft if user can't publish
+        $status = 'draft';
+    }
+    
     if($taxonomy && taxonomy_exists($taxonomy) && !empty($_POST['snn_tax_terms'])) {
         foreach((array)$_POST['snn_tax_terms'] as $tid){
             $term_ids[] = intval($tid);
