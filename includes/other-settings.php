@@ -77,8 +77,16 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'disable_comments',
-        __('Disable Comments', 'snn'),
+        __('Require Login to Comment', 'snn'),
         'snn_disable_comments_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
+    add_settings_field(
+        'disable_comments_completely',
+        __('Disable Comments Completely', 'snn'),
+        'snn_disable_comments_completely_callback',
         'snn-other-settings',
         'snn_other_settings_section'
     );
@@ -123,6 +131,7 @@ function snn_sanitize_other_settings($input) {
     $sanitized['auto_update_bricks'] = isset($input['auto_update_bricks']) && $input['auto_update_bricks'] ? 1 : 0;
     $sanitized['move_bricks_menu'] = isset($input['move_bricks_menu']) && $input['move_bricks_menu'] ? 1 : 0;
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
+    $sanitized['disable_comments_completely'] = isset($input['disable_comments_completely']) && $input['disable_comments_completely'] ? 1 : 0;
     $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
 
@@ -133,7 +142,8 @@ function snn_sanitize_other_settings($input) {
     }
 
     // Update comment_registration option only when this setting is saved
-    if ($sanitized['disable_comments']) {
+    // Enable if either setting requires it
+    if ($sanitized['disable_comments'] || $sanitized['disable_comments_completely']) {
         update_option('comment_registration', 1);
     } else {
         update_option('comment_registration', 0);
@@ -191,8 +201,24 @@ function snn_disable_comments_callback() {
     ?>
     <label>
         <input type="checkbox" name="snn_other_settings[disable_comments]" value="1" <?php checked(1, isset($options['disable_comments']) ? $options['disable_comments'] : 0); ?>>
-        <?php _e('Disable all comments on the site', 'snn'); ?>
+        <?php _e('Require users to be registered and logged in to comment', 'snn'); ?>
     </label>
+    <p>
+        <?php _e('Enabling this setting will allow only logged-in users to comment. Guest/public commenting will be disabled.', 'snn'); ?>
+    </p>
+    <?php
+}
+
+function snn_disable_comments_completely_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_other_settings[disable_comments_completely]" value="1" <?php checked(1, isset($options['disable_comments_completely']) ? $options['disable_comments_completely'] : 0); ?>>
+        <?php _e('Disable all comments site-wide', 'snn'); ?>
+    </label>
+    <p>
+        <?php _e('Enabling this setting will completely disable all comments on the site. No one will be able to comment, even logged-in users.', 'snn'); ?>
+    </p>
     <?php
 }
 
@@ -301,11 +327,15 @@ add_filter('custom_menu_order', '__return_true');
 
 function snn_hide_comments_section() {
     $options = get_option('snn_other_settings');
-    if (isset($options['disable_comments']) && $options['disable_comments']) {
+    
+    // Completely disable comments if the complete disable option is checked
+    if (isset($options['disable_comments_completely']) && $options['disable_comments_completely']) {
         echo '<style>#menu-comments { display: none !important; }</style>';
         add_filter('comments_open', '__return_false', 20, 2);
         add_filter('pings_open', '__return_false', 20, 2);
     }
+    // Note: The 'disable_comments' setting (require login) is handled by WordPress
+    // via the comment_registration option set in the sanitize function
 }
 add_action('admin_head', 'snn_hide_comments_section');
 
