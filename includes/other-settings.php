@@ -299,8 +299,6 @@ function snn_hide_comments_section() {
         update_option('comment_registration', 1);
         add_filter('comments_open', '__return_false', 20, 2);
         add_filter('pings_open', '__return_false', 20, 2);
-    } else {
-        update_option('comment_registration', 0);
     }
 }
 add_action('admin_head', 'snn_hide_comments_section');
