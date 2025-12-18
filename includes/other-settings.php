@@ -132,6 +132,13 @@ function snn_sanitize_other_settings($input) {
         $sanitized['dashboard_custom_metabox_content'] = '';
     }
 
+    // Update comment_registration option only when this setting is saved
+    if ($sanitized['disable_comments']) {
+        update_option('comment_registration', 1);
+    } else {
+        update_option('comment_registration', 0);
+    }
+
     return $sanitized;
 }
 
@@ -296,7 +303,6 @@ function snn_hide_comments_section() {
     $options = get_option('snn_other_settings');
     if (isset($options['disable_comments']) && $options['disable_comments']) {
         echo '<style>#menu-comments { display: none !important; }</style>';
-        update_option('comment_registration', 1);
         add_filter('comments_open', '__return_false', 20, 2);
         add_filter('pings_open', '__return_false', 20, 2);
     }
