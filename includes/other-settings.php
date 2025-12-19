@@ -465,6 +465,9 @@ function snn_display_custom_dashboard_metabox() {
                 #dashboard-widgets { padding: 0 !important; }
                 .wrap h1:first-of-type { display: none; }
                 .postbox { border: none !important; }
+
+                .postbox-header{border-bottom:none!important; }
+                .postbox{border: none!important; box-shadow: none!important; }
             </style>
             ';
         }
