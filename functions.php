@@ -53,7 +53,7 @@ require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 require_once SNN_PATH . 'includes/wp-admin-image-opt.php';
-
+require_once SNN_PATH . 'includes/wp-admin-dashboard-widgets.php';
 
 // Register Custom Dynamic Data Tags
 require_once SNN_PATH . 'includes/dynamic-data-tags/estimated-post-read-time.php';
