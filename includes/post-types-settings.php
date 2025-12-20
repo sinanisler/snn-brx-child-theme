@@ -38,6 +38,7 @@ function snn_render_custom_post_types_page() {
         'show_in_menu'      => __( 'Show in Menu', 'snn' ),
         'show_ui'           => __( 'Show UI', 'snn' ),
         'show_in_nav_menus' => __( 'Show in Nav Menus', 'snn' ),
+        'show_order'        => __( 'Show Order', 'snn' ),
     );
 
     if ( isset( $_POST['snn_custom_post_types_nonce'] ) && wp_verify_nonce( $_POST['snn_custom_post_types_nonce'], 'snn_save_custom_post_types' ) ) {
@@ -52,6 +53,7 @@ function snn_render_custom_post_types_page() {
                     $show_in_menu      = isset( $post_type['show_in_menu'] ) ? 1 : 0;
                     $show_ui           = isset( $post_type['show_ui'] ) ? 1 : 0;
                     $show_in_nav_menus = isset( $post_type['show_in_nav_menus'] ) ? 1 : 0;
+                    $show_order        = isset( $post_type['show_order'] ) ? 1 : 0;
                     $private           = isset( $post_type['private'] ) ? 1 : 0;
 
                     $custom_post_types[] = array(
@@ -63,6 +65,7 @@ function snn_render_custom_post_types_page() {
                         'show_in_menu'       => $show_in_menu,
                         'show_ui'            => $show_ui,
                         'show_in_nav_menus'  => $show_in_nav_menus,
+                        'show_order'         => $show_order,
                     );
                 }
             }
@@ -89,6 +92,7 @@ function snn_render_custom_post_types_page() {
         $post_type['show_in_menu']      = ( isset( $post_type['show_in_menu'] ) && $post_type['show_in_menu'] !== '' ) ? $post_type['show_in_menu'] : 1;
         $post_type['show_ui']           = ( isset( $post_type['show_ui'] ) && $post_type['show_ui'] !== '' ) ? $post_type['show_ui'] : 1;
         $post_type['show_in_nav_menus'] = ( isset( $post_type['show_in_nav_menus'] ) && $post_type['show_in_nav_menus'] !== '' ) ? $post_type['show_in_nav_menus'] : 1;
+        $post_type['show_order']        = isset( $post_type['show_order'] ) ? $post_type['show_order'] : 0;
         $post_type['private']           = isset( $post_type['private'] ) ? $post_type['private'] : 0;
     }
     unset( $post_type );
@@ -129,7 +133,7 @@ function snn_render_custom_post_types_page() {
 
                             <?php foreach ( $additional_options as $opt_key => $opt_label ) : ?>
                                 <label>
-                                    <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][<?php echo esc_attr( $opt_key ); ?>]" <?php checked( !isset($post_type[$opt_key]) || $post_type[$opt_key], 1 ); ?> />
+                                    <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][<?php echo esc_attr( $opt_key ); ?>]" <?php checked( $opt_key === 'show_order' ? (isset($post_type[$opt_key]) && $post_type[$opt_key]) : (!isset($post_type[$opt_key]) || $post_type[$opt_key]), 1 ); ?> />
                                     <?php echo esc_html( $opt_label ); ?>
                                 </label>
                             <?php endforeach; ?>
@@ -169,7 +173,8 @@ function snn_render_custom_post_types_page() {
             const additionalOptions = {
                 'show_in_menu': '<?php echo esc_js( __( 'Show in Menu', 'snn' ) ); ?>',
                 'show_ui': '<?php echo esc_js( __( 'Show UI', 'snn' ) ); ?>',
-                'show_in_nav_menus': '<?php echo esc_js( __( 'Show in Nav Menus', 'snn' ) ); ?>'
+                'show_in_nav_menus': '<?php echo esc_js( __( 'Show in Nav Menus', 'snn' ) ); ?>',
+                'show_order': '<?php echo esc_js( __( 'Show Order', 'snn' ) ); ?>'
             };
 
             function slugify(value) {
@@ -216,9 +221,10 @@ function snn_render_custom_post_types_page() {
                     `;
                     if (key === 'page-attributes') {
                         for (const [optKey, optLabel] of Object.entries(additionalOptions)) {
+                            const isChecked = optKey !== 'show_order';
                             html += `
                                 <label>
-                                    <input type="checkbox" name="custom_post_types[${index}][${optKey}]" checked />
+                                    <input type="checkbox" name="custom_post_types[${index}][${optKey}]" ${isChecked ? 'checked' : ''} />
                                     ${optLabel}
                                 </label>
                             `;
@@ -405,6 +411,32 @@ function snn_register_custom_post_types() {
 
         if ( $enable_notes ) {
             add_post_type_support( $post_type_slug, 'editor', array( 'notes' => true ) );
+        }
+
+        // Add Order column if show_order is enabled
+        if ( isset( $post_type['show_order'] ) && $post_type['show_order'] ) {
+            add_filter( "manage_{$post_type_slug}_posts_columns", function( $columns ) {
+                $new_columns = array();
+                foreach ( $columns as $key => $value ) {
+                    $new_columns[$key] = $value;
+                    if ( $key === 'title' ) {
+                        $new_columns['menu_order'] = __( 'Order', 'snn' );
+                    }
+                }
+                return $new_columns;
+            } );
+
+            add_action( "manage_{$post_type_slug}_posts_custom_column", function( $column_name, $post_id ) {
+                if ( $column_name === 'menu_order' ) {
+                    $post = get_post( $post_id );
+                    echo esc_html( $post->menu_order );
+                }
+            }, 10, 2 );
+
+            add_filter( "manage_edit-{$post_type_slug}_sortable_columns", function( $columns ) {
+                $columns['menu_order'] = 'menu_order';
+                return $columns;
+            } );
         }
     }
 }
