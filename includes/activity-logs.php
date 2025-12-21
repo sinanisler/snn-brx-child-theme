@@ -126,6 +126,7 @@ function snn_get_log_severity_info() {
         'theme_switched'          => array( 'level' => 'important', 'desc' => __( 'Important: Track visual and functional changes', 'snn' ) ),
         'theme_deleted'           => array( 'level' => 'important', 'desc' => __( 'Important: Track theme removal', 'snn' ) ),
         'option_updated'          => array( 'level' => 'important', 'desc' => __( 'Important: Track configuration changes', 'snn' ) ),
+        'transient_doing_cron_updated' => array( 'level' => 'informational', 'desc' => __( 'Informational: Track WordPress cron transient updates (very frequent)', 'snn' ) ),
         'comment_deleted'         => array( 'level' => 'important', 'desc' => __( 'Important: Track permanent comment removal', 'snn' ) ),
         'term_deleted'            => array( 'level' => 'important', 'desc' => __( 'Important: Track taxonomy changes', 'snn' ) ),
         'privacy_request'         => array( 'level' => 'important', 'desc' => __( 'Important: Required for GDPR compliance', 'snn' ) ),
@@ -248,6 +249,7 @@ function snn_get_logging_options() {
         ),
         'options_activities' => array(
             'option_updated' => __( 'WordPress Options/Settings Changed', 'snn' ),
+            'transient_doing_cron_updated' => __( 'Transient Doing Cron Updates', 'snn' ),
         ),
     );
 }
@@ -775,6 +777,20 @@ add_action( 'wp_update_nav_menu', function( $menu_id ) {
 add_action( 'updated_option', function( $option_name, $old_value, $value ) {
     // Only skip our own activity log settings to prevent infinite recursive logging
     if ( strpos( $option_name, 'snn_log_' ) === 0 || strpos( $option_name, 'snn_activity_log_' ) === 0 ) {
+        return;
+    }
+
+    // Handle _transient_doing_cron separately
+    if ( $option_name === '_transient_doing_cron' ) {
+        if ( snn_is_log_type_enabled( 'transient_doing_cron_updated' ) ) {
+            $old_value_display = snn_format_option_value( $old_value );
+            $new_value_display = snn_format_option_value( $value );
+            
+            $log_message = "Transient Doing Cron Updated";
+            $log_details = "Option: {$option_name}\nOld Value: {$old_value_display}\nNew Value: {$new_value_display}";
+            
+            snn_log_user_activity( $log_message, $log_details, 0, 'transient_doing_cron_updated' );
+        }
         return;
     }
 
