@@ -126,7 +126,7 @@ function snn_get_log_severity_info() {
         'theme_switched'          => array( 'level' => 'important', 'desc' => __( 'Important: Track visual and functional changes', 'snn' ) ),
         'theme_deleted'           => array( 'level' => 'important', 'desc' => __( 'Important: Track theme removal', 'snn' ) ),
         'option_updated'          => array( 'level' => 'important', 'desc' => __( 'Important: Track configuration changes', 'snn' ) ),
-        'transient_doing_cron_updated' => array( 'level' => 'informational', 'desc' => __( 'Informational: Track WordPress cron transient updates (very frequent)', 'snn' ) ),
+        'transient_doing_cron_updated' => array( 'level' => 'low', 'desc' => __( 'Informational: Track WordPress cron transient updates (very frequent)', 'snn' ) ),
         'comment_deleted'         => array( 'level' => 'important', 'desc' => __( 'Important: Track permanent comment removal', 'snn' ) ),
         'term_deleted'            => array( 'level' => 'important', 'desc' => __( 'Important: Track taxonomy changes', 'snn' ) ),
         'privacy_request'         => array( 'level' => 'important', 'desc' => __( 'Important: Required for GDPR compliance', 'snn' ) ),
