@@ -1,4 +1,4 @@
-/* ===========================================
+/* ===========================================  
 
   ACCESSIBILITY WIDGET
 
@@ -503,19 +503,171 @@ const DEFAULT_WIDGET_CONFIG = {
 
   // Voice Command Configuration - Developers can customize commands for different languages
   voiceCommands: {
-    showMenu: ['show menu', 'open menu', 'accessibility menu'],
-    highContrast: ['high contrast'],
-    biggerText: ['bigger text', 'large text'],
-    textSpacing: ['text spacing'],
-    pauseAnimations: ['pause animations', 'stop animations'],
-    hideImages: ['hide images'],
-    dyslexiaFont: ['dyslexia friendly', 'dyslexia font'],
-    biggerCursor: ['bigger cursor', 'large cursor'],
-    lineHeight: ['line height'],
-    textAlign: ['align text', 'text align'],
-    screenReader: ['screen reader'],
-    voiceControl: ['voice command', 'voice control'],
-    resetAll: ['reset all', 'reset everything']
+    en: {
+      showMenu: ['show menu', 'open menu', 'accessibility menu', 'access menu'],
+      highContrast: ['high contrast', 'contrast', 'dark mode', 'increase contrast'],
+      biggerText: ['bigger text', 'large text', 'text size', 'increase text', 'bigger', 'larger text', 'text bigger', 'make text bigger', 'enlarge text'],
+      textSpacing: ['text spacing', 'spacing', 'letter spacing', 'text space'],
+      pauseAnimations: ['pause animations', 'stop animations', 'disable animations', 'no animations'],
+      hideImages: ['hide images', 'remove images', 'no images'],
+      dyslexiaFont: ['dyslexia friendly', 'dyslexia font', 'readable font', 'easy font'],
+      biggerCursor: ['bigger cursor', 'large cursor', 'cursor size', 'big cursor'],
+      lineHeight: ['line height', 'line spacing', 'space between lines', 'line space'],
+      textAlign: ['align text', 'text align', 'center text', 'alignment'],
+      screenReader: ['screen reader', 'read aloud', 'voice reader'],
+      voiceControl: ['voice command', 'voice control', 'voice commands'],
+      resetAll: ['reset all', 'reset everything', 'clear all', 'reset settings', 'reset']
+    },
+    de: {
+      showMenu: ['menü anzeigen', 'menü öffnen', 'barrierefreiheitsmenü', 'zugangsmenü'],
+      highContrast: ['hoher kontrast', 'kontrast', 'dunkler modus', 'kontrast erhöhen'],
+      biggerText: ['größerer text', 'großer text', 'textgröße', 'text vergrößern', 'größer', 'text größer'],
+      textSpacing: ['textabstand', 'abstand', 'buchstabenabstand', 'text abstand'],
+      pauseAnimations: ['animationen pausieren', 'animationen stoppen', 'animationen deaktivieren'],
+      hideImages: ['bilder ausblenden', 'bilder entfernen', 'keine bilder'],
+      dyslexiaFont: ['legasthenie freundlich', 'legasthenie schrift', 'lesbare schrift'],
+      biggerCursor: ['größerer cursor', 'großer cursor', 'cursor größe'],
+      lineHeight: ['zeilenhöhe', 'zeilenabstand', 'abstand zwischen zeilen'],
+      textAlign: ['text ausrichten', 'textausrichtung', 'text zentrieren'],
+      screenReader: ['screenreader', 'vorlesen', 'sprach reader'],
+      voiceControl: ['sprachbefehl', 'sprachsteuerung', 'sprachbefehle'],
+      resetAll: ['alles zurücksetzen', 'alle zurücksetzen', 'alle löschen', 'einstellungen zurücksetzen']
+    },
+    es: {
+      showMenu: ['mostrar menú', 'abrir menú', 'menú de accesibilidad', 'menú de acceso'],
+      highContrast: ['alto contraste', 'contraste', 'modo oscuro', 'aumentar contraste'],
+      biggerText: ['texto más grande', 'texto grande', 'tamaño de texto', 'aumentar texto', 'más grande'],
+      textSpacing: ['espaciado de texto', 'espaciado', 'espaciado de letras', 'espacio de texto'],
+      pauseAnimations: ['pausar animaciones', 'detener animaciones', 'desactivar animaciones'],
+      hideImages: ['ocultar imágenes', 'quitar imágenes', 'sin imágenes'],
+      dyslexiaFont: ['amigable para dislexia', 'fuente de dislexia', 'fuente legible'],
+      biggerCursor: ['cursor más grande', 'cursor grande', 'tamaño de cursor'],
+      lineHeight: ['altura de línea', 'espaciado de líneas', 'espacio entre líneas'],
+      textAlign: ['alinear texto', 'alineación de texto', 'centrar texto'],
+      screenReader: ['lector de pantalla', 'leer en voz alta', 'lector de voz'],
+      voiceControl: ['comando de voz', 'control de voz', 'comandos de voz'],
+      resetAll: ['restablecer todo', 'restablecer todo', 'borrar todo', 'restablecer configuración']
+    },
+    it: {
+      showMenu: ['mostra menu', 'apri menu', 'menu accessibilità', 'menu accesso'],
+      highContrast: ['alto contrasto', 'contrasto', 'modalità scura', 'aumenta contrasto'],
+      biggerText: ['testo più grande', 'testo grande', 'dimensione testo', 'aumenta testo', 'più grande'],
+      textSpacing: ['spaziatura testo', 'spaziatura', 'spaziatura lettere', 'spazio testo'],
+      pauseAnimations: ['pausa animazioni', 'ferma animazioni', 'disabilita animazioni'],
+      hideImages: ['nascondi immagini', 'rimuovi immagini', 'nessuna immagine'],
+      dyslexiaFont: ['adatto alla dislessia', 'font dislessia', 'font leggibile'],
+      biggerCursor: ['cursore più grande', 'cursore grande', 'dimensione cursore'],
+      lineHeight: ['altezza linea', 'spaziatura linee', 'spazio tra linee'],
+      textAlign: ['allinea testo', 'allineamento testo', 'centra testo'],
+      screenReader: ['lettore schermo', 'leggi ad alta voce', 'lettore vocale'],
+      voiceControl: ['comando vocale', 'controllo vocale', 'comandi vocali'],
+      resetAll: ['ripristina tutto', 'ripristina tutto', 'cancella tutto', 'ripristina impostazioni']
+    },
+    fr: {
+      showMenu: ['afficher menu', 'ouvrir menu', 'menu accessibilité', 'menu accès'],
+      highContrast: ['contraste élevé', 'contraste', 'mode sombre', 'augmenter contraste'],
+      biggerText: ['texte plus grand', 'grand texte', 'taille texte', 'augmenter texte', 'plus grand'],
+      textSpacing: ['espacement texte', 'espacement', 'espacement lettres', 'espace texte'],
+      pauseAnimations: ['mettre en pause animations', 'arrêter animations', 'désactiver animations'],
+      hideImages: ['masquer images', 'supprimer images', 'aucune image'],
+      dyslexiaFont: ['convivial dyslexie', 'police dyslexie', 'police lisible'],
+      biggerCursor: ['curseur plus grand', 'grand curseur', 'taille curseur'],
+      lineHeight: ['hauteur ligne', 'espacement lignes', 'espace entre lignes'],
+      textAlign: ['aligner texte', 'alignement texte', 'centrer texte'],
+      screenReader: ['lecteur écran', 'lire à haute voix', 'lecteur vocal'],
+      voiceControl: ['commande vocale', 'contrôle vocal', 'commandes vocales'],
+      resetAll: ['réinitialiser tout', 'réinitialiser tout', 'effacer tout', 'réinitialiser paramètres']
+    },
+    ru: {
+      showMenu: ['показать меню', 'открыть меню', 'меню доступности', 'меню доступа'],
+      highContrast: ['высокая контрастность', 'контрастность', 'темный режим', 'увеличить контрастность'],
+      biggerText: ['больший текст', 'большой текст', 'размер текста', 'увеличить текст', 'больше'],
+      textSpacing: ['межбуквенный интервал', 'интервал', 'интервал букв', 'пространство текста'],
+      pauseAnimations: ['приостановить анимацию', 'остановить анимацию', 'отключить анимацию'],
+      hideImages: ['скрыть изображения', 'убрать изображения', 'без изображений'],
+      dyslexiaFont: ['для дислексии', 'шрифт дислексии', 'читаемый шрифт'],
+      biggerCursor: ['увеличенный курсор', 'большой курсор', 'размер курсора'],
+      lineHeight: ['высота строки', 'интервал строк', 'пространство между строками'],
+      textAlign: ['выровнять текст', 'выравнивание текста', 'центрировать текст'],
+      screenReader: ['программа чтения', 'читать вслух', 'голосовой ридер'],
+      voiceControl: ['голосовая команда', 'голосовое управление', 'голосовые команды'],
+      resetAll: ['сбросить все', 'сбросить всё', 'очистить все', 'сбросить настройки']
+    },
+    tr: {
+      showMenu: ['menüyü göster', 'menü aç', 'erişilebilirlik menüsü', 'erişim menüsü'],
+      highContrast: ['yüksek kontrast', 'kontrast', 'karanlık mod', 'kontrastı artır'],
+      biggerText: ['daha büyük metin', 'büyük metin', 'metin boyutu', 'metni büyüt', 'daha büyük'],
+      textSpacing: ['metin aralığı', 'aralık', 'harf aralığı', 'metin boşluğu'],
+      pauseAnimations: ['animasyonları duraklat', 'animasyonları durdur', 'animasyonları kapat'],
+      hideImages: ['resimleri gizle', 'resimleri kaldır', 'resim yok'],
+      dyslexiaFont: ['disleksi dostu', 'disleksi yazı tipi', 'okunabilir yazı tipi'],
+      biggerCursor: ['daha büyük imleç', 'büyük imleç', 'imleç boyutu'],
+      lineHeight: ['satır yüksekliği', 'satır aralığı', 'satırlar arası boşluk'],
+      textAlign: ['metni hizala', 'metin hizalama', 'metni ortala'],
+      screenReader: ['ekran okuyucu', 'sesli oku', 'ses okuyucu'],
+      voiceControl: ['sesli komut', 'sesli kontrol', 'sesli komutlar'],
+      resetAll: ['hepsini sıfırla', 'tümünü sıfırla', 'hepsini temizle', 'ayarları sıfırla']
+    },
+    ar: {
+      showMenu: ['إظهار القائمة', 'فتح القائمة', 'قائمة إمكانية الوصول', 'قائمة الوصول'],
+      highContrast: ['تباين عالي', 'تباين', 'الوضع المظلم', 'زيادة التباين'],
+      biggerText: ['نص أكبر', 'نص كبير', 'حجم النص', 'تكبير النص', 'أكبر'],
+      textSpacing: ['تباعد النص', 'تباعد', 'تباعد الحروف', 'مساحة النص'],
+      pauseAnimations: ['إيقاف الرسوم المتحركة مؤقتا', 'إيقاف الرسوم المتحركة', 'تعطيل الرسوم المتحركة'],
+      hideImages: ['إخفاء الصور', 'إزالة الصور', 'بدون صور'],
+      dyslexiaFont: ['صديق لعسر القراءة', 'خط عسر القراءة', 'خط قابل للقراءة'],
+      biggerCursor: ['مؤشر أكبر', 'مؤشر كبير', 'حجم المؤشر'],
+      lineHeight: ['ارتفاع الخط', 'تباعد الأسطر', 'مساحة بين الأسطر'],
+      textAlign: ['محاذاة النص', 'محاذاة النص', 'توسيط النص'],
+      screenReader: ['قارئ الشاشة', 'اقرأ بصوت عالٍ', 'قارئ صوتي'],
+      voiceControl: ['الأمر الصوتي', 'التحكم الصوتي', 'الأوامر الصوتية'],
+      resetAll: ['إعادة تعيين الكل', 'إعادة تعيين جميع', 'مسح الكل', 'إعادة تعيين الإعدادات']
+    },
+    hi: {
+      showMenu: ['मेनू दिखाएं', 'मेनू खोलें', 'पहुंच मेनू', 'एक्सेस मेनू'],
+      highContrast: ['उच्च कंट्रास्ट', 'कंट्रास्ट', 'डार्क मोड', 'कंट्रास्ट बढ़ाएं'],
+      biggerText: ['बड़ा टेक्स्ट', 'बड़ा टेक्स्ट', 'टेक्स्ट का आकार', 'टेक्स्ट बढ़ाएं', 'बड़ा'],
+      textSpacing: ['टेक्स्ट स्पेसिंग', 'स्पेसिंग', 'अक्षर स्पेसिंग', 'टेक्स्ट स्पेस'],
+      pauseAnimations: ['एनिमेशन रोकें', 'एनिमेशन बंद करें', 'एनिमेशन अक्षम करें'],
+      hideImages: ['चित्र छिपाएं', 'चित्र हटाएं', 'कोई चित्र नहीं'],
+      dyslexiaFont: ['डिस्लेक्सिया के अनुकूल', 'डिस्लेक्सिया फ़ॉन्ट', 'पढ़ने योग्य फ़ॉन्ट'],
+      biggerCursor: ['बड़ा कर्सर', 'बड़ा कर्सर', 'कर्सर का आकार'],
+      lineHeight: ['लाइन की ऊंचाई', 'लाइन स्पेसिंग', 'लाइनों के बीच स्पेस'],
+      textAlign: ['टेक्स्ट अलाइन करें', 'टेक्स्ट संरेखण', 'टेक्स्ट केंद्र में करें'],
+      screenReader: ['स्क्रीन रीडर', 'जोर से पढ़ें', 'वॉयस रीडर'],
+      voiceControl: ['वॉयस कमांड', 'वॉयस नियंत्रण', 'वॉयस कमांड्स'],
+      resetAll: ['सभी रीसेट करें', 'सब कुछ रीसेट करें', 'सब साफ़ करें', 'सेटिंग्स रीसेट करें']
+    },
+    'zh-cn': {
+      showMenu: ['显示菜单', '打开菜单', '辅助功能菜单', '访问菜单'],
+      highContrast: ['高对比度', '对比度', '暗模式', '增加对比度'],
+      biggerText: ['更大的文本', '大文本', '文本大小', '增大文本', '更大'],
+      textSpacing: ['文本间距', '间距', '字母间距', '文本空间'],
+      pauseAnimations: ['暂停动画', '停止动画', '禁用动画'],
+      hideImages: ['隐藏图片', '删除图片', '无图片'],
+      dyslexiaFont: ['阅读障碍友好', '阅读障碍字体', '可读字体'],
+      biggerCursor: ['更大的光标', '大光标', '光标大小'],
+      lineHeight: ['行高', '行间距', '行之间的空间'],
+      textAlign: ['对齐文本', '文本对齐', '居中文本'],
+      screenReader: ['屏幕阅读器', '大声朗读', '语音阅读器'],
+      voiceControl: ['语音命令', '语音控制', '语音命令'],
+      resetAll: ['重置全部', '重置所有', '清除全部', '重置设置']
+    },
+    jp: {
+      showMenu: ['メニューを表示', 'メニューを開く', 'アクセシビリティメニュー', 'アクセスメニュー'],
+      highContrast: ['ハイコントラスト', 'コントラスト', 'ダークモード', 'コントラストを上げる'],
+      biggerText: ['大きいテキスト', '大きなテキスト', 'テキストサイズ', 'テキストを大きく', 'より大きい'],
+      textSpacing: ['テキスト間隔', '間隔', '文字間隔', 'テキストスペース'],
+      pauseAnimations: ['アニメーション一時停止', 'アニメーション停止', 'アニメーション無効'],
+      hideImages: ['画像を非表示', '画像を削除', '画像なし'],
+      dyslexiaFont: ['ディスレクシア対応', 'ディスレクシアフォント', '読みやすいフォント'],
+      biggerCursor: ['大きいカーソル', '大きなカーソル', 'カーソルサイズ'],
+      lineHeight: ['行の高さ', '行間隔', '行間のスペース'],
+      textAlign: ['テキスト配置', 'テキスト配置', 'テキストを中央'],
+      screenReader: ['スクリーンリーダー', '音声で読む', '音声リーダー'],
+      voiceControl: ['音声コマンド', '音声制御', '音声コマンド'],
+      resetAll: ['すべてリセット', 'すべてリセット', 'すべてクリア', '設定をリセット']
+    }
   },
 
   // Grid Layout Configuration
@@ -1521,6 +1673,7 @@ function createActionButton(buttonText, actionFunction, iconSVG, optionsConfig =
   button.setAttribute('data-options-config', optionsConfig ? JSON.stringify(optionsConfig) : '');
   if (optionId) {
     button.setAttribute('data-accessibility-option-id', optionId);
+    button.setAttribute('data-key', optionId); // Add data-key for voice commands
   }
 
   // Update initial status
@@ -1852,7 +2005,24 @@ const screenReader = {
         if (content.trim() !== '') {
           window.speechSynthesis.cancel();
           const speech = new SpeechSynthesisUtterance(content);
-          speech.lang = 'en-US';
+          
+          // Set language based on current interface language
+          let speechLang = 'en-US'; // default
+          switch(currentLanguage) {
+            case 'de': speechLang = 'de-DE'; break;
+            case 'es': speechLang = 'es-ES'; break;
+            case 'it': speechLang = 'it-IT'; break;
+            case 'fr': speechLang = 'fr-FR'; break;
+            case 'ru': speechLang = 'ru-RU'; break;
+            case 'tr': speechLang = 'tr-TR'; break;
+            case 'ar': speechLang = 'ar-SA'; break;
+            case 'hi': speechLang = 'hi-IN'; break;
+            case 'zh-cn': speechLang = 'zh-CN'; break;
+            case 'jp': speechLang = 'ja-JP'; break;
+            default: speechLang = 'en-US';
+          }
+          speech.lang = speechLang;
+          
           speech.onerror = function (event) {
             console.warn('Speech synthesis error:', event.error);
           };
@@ -1873,10 +2043,26 @@ const screenReader = {
     localStorage.setItem('screenReader', isActive);
 
     try {
+      // Set language based on current interface language
+      let speechLang = 'en-US'; // default
+      switch(currentLanguage) {
+        case 'de': speechLang = 'de-DE'; break;
+        case 'es': speechLang = 'es-ES'; break;
+        case 'it': speechLang = 'it-IT'; break;
+        case 'fr': speechLang = 'fr-FR'; break;
+        case 'ru': speechLang = 'ru-RU'; break;
+        case 'tr': speechLang = 'tr-TR'; break;
+        case 'ar': speechLang = 'ar-SA'; break;
+        case 'hi': speechLang = 'hi-IN'; break;
+        case 'zh-cn': speechLang = 'zh-CN'; break;
+        case 'jp': speechLang = 'ja-JP'; break;
+        default: speechLang = 'en-US';
+      }
+
       if (isActive) {
         document.addEventListener('focusin', screenReader.handleFocus);
         const feedbackSpeech = new SpeechSynthesisUtterance(getTranslation('screenReaderOn'));
-        feedbackSpeech.lang = 'en-US';
+        feedbackSpeech.lang = speechLang;
         feedbackSpeech.onerror = function (event) {
           console.warn('Speech synthesis feedback error:', event.error);
         };
@@ -1885,7 +2071,7 @@ const screenReader = {
         document.removeEventListener('focusin', screenReader.handleFocus);
         window.speechSynthesis.cancel();
         const feedbackSpeech = new SpeechSynthesisUtterance(getTranslation('screenReaderOff'));
-        feedbackSpeech.lang = 'en-US';
+        feedbackSpeech.lang = speechLang;
         feedbackSpeech.onerror = function (event) {
           console.warn('Speech synthesis feedback error:', event.error);
         };
@@ -1942,7 +2128,23 @@ const voiceControl = {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       voiceControl.recognition = new SpeechRecognition();
       voiceControl.recognition.interimResults = false;
-      voiceControl.recognition.lang = 'en-US';
+      
+      // Set language based on current interface language
+      let recognitionLang = 'en-US'; // default
+      switch(currentLanguage) {
+        case 'de': recognitionLang = 'de-DE'; break;
+        case 'es': recognitionLang = 'es-ES'; break;
+        case 'it': recognitionLang = 'it-IT'; break;
+        case 'fr': recognitionLang = 'fr-FR'; break;
+        case 'ru': recognitionLang = 'ru-RU'; break;
+        case 'tr': recognitionLang = 'tr-TR'; break;
+        case 'ar': recognitionLang = 'ar-SA'; break;
+        case 'hi': recognitionLang = 'hi-IN'; break;
+        case 'zh-cn': recognitionLang = 'zh-CN'; break;
+        case 'jp': recognitionLang = 'ja-JP'; break;
+        default: recognitionLang = 'en-US';
+      }
+      voiceControl.recognition.lang = recognitionLang;
       voiceControl.recognition.continuous = false;
 
       voiceControl.recognition.onstart = function () {
@@ -1990,62 +2192,92 @@ const voiceControl = {
     console.log(`Received command: ${command}`);
 
     try {
+      // Normalize the command by removing extra spaces and making it lowercase
+      const normalizedCommand = command.toLowerCase().trim().replace(/\s+/g, ' ');
+      
+      // Get voice commands for current language, fallback to English
+      const languageCommands = WIDGET_CONFIG.voiceCommands[currentLanguage] || WIDGET_CONFIG.voiceCommands['en'];
+      
       // Check for show menu commands
-      if (WIDGET_CONFIG.voiceCommands.showMenu.some(cmd => command.includes(cmd))) {
+      if (languageCommands.showMenu.some(cmd => normalizedCommand.includes(cmd))) {
         if (!menuCache.button) menuCache.init();
         if (menuCache.button) {
           menuCache.button.click();
+          console.log('Successfully opened menu');
         }
         return;
       }
 
       // Check for reset all commands
-      if (WIDGET_CONFIG.voiceCommands.resetAll.some(cmd => command.includes(cmd))) {
+      if (languageCommands.resetAll.some(cmd => normalizedCommand.includes(cmd))) {
         resetAccessibilitySettings();
+        console.log('Successfully reset all settings');
         return;
       }
 
       // Build dynamic command map based on configuration
       let localStorageKey = null;
+      let matchedCommand = null;
 
-      // Check each command group
-      if (WIDGET_CONFIG.voiceCommands.highContrast.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'highContrast';
-      } else if (WIDGET_CONFIG.voiceCommands.biggerText.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'biggerText';
-      } else if (WIDGET_CONFIG.voiceCommands.textSpacing.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'textSpacing';
-      } else if (WIDGET_CONFIG.voiceCommands.pauseAnimations.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'pauseAnimations';
-      } else if (WIDGET_CONFIG.voiceCommands.hideImages.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'hideImages';
-      } else if (WIDGET_CONFIG.voiceCommands.dyslexiaFont.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'dyslexiaFont';
-      } else if (WIDGET_CONFIG.voiceCommands.biggerCursor.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'biggerCursor';
-      } else if (WIDGET_CONFIG.voiceCommands.lineHeight.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'lineHeight';
-      } else if (WIDGET_CONFIG.voiceCommands.textAlign.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'textAlign';
-      } else if (WIDGET_CONFIG.voiceCommands.screenReader.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'screenReader';
-      } else if (WIDGET_CONFIG.voiceCommands.voiceControl.some(cmd => command.includes(cmd))) {
-        localStorageKey = 'voiceControl';
+      // Check each command group with better matching
+      for (const [key, commands] of Object.entries(languageCommands)) {
+        if (key === 'showMenu' || key === 'resetAll') continue; // Already handled above
+        
+        const isMatch = commands.some(cmd => {
+          // Check for exact matches first
+          if (normalizedCommand.includes(cmd.toLowerCase())) {
+            matchedCommand = cmd;
+            return true;
+          }
+          // Check for partial word matches (at least 3 characters)
+          const cmdWords = cmd.toLowerCase().split(' ');
+          const inputWords = normalizedCommand.split(' ');
+          return cmdWords.some(cmdWord => 
+            cmdWord.length >= 3 && inputWords.some(inputWord => 
+              inputWord.includes(cmdWord) || cmdWord.includes(inputWord)
+            )
+          );
+        });
+        
+        if (isMatch) {
+          localStorageKey = key;
+          break;
+        }
       }
 
       if (localStorageKey) {
         // Use cached menu reference if available
         if (!menuCache.menu) menuCache.init();
-        const button = menuCache.menu?.querySelector(
+        
+        // Try to find button by data-key first (toggle buttons)
+        let button = menuCache.menu?.querySelector(
           `.snn-accessibility-option[data-key='${localStorageKey}']`
         );
+        
+        // If not found, try to find by data-accessibility-option-id (action buttons)
+        if (!button) {
+          button = menuCache.menu?.querySelector(
+            `.snn-accessibility-option[data-accessibility-option-id='${localStorageKey}']`
+          );
+        }
+        
         if (button) {
           button.click();
+          console.log(`Successfully executed command: ${command} (matched: ${matchedCommand || localStorageKey})`);
         } else {
-          console.log('Button not found for command:', command);
+          console.log('Button not found for command:', command, '(key:', localStorageKey, ')');
         }
       } else {
         console.log('Command not recognized:', command);
+        // Provide helpful suggestions
+        const availableCommands = Object.values(languageCommands).flat();
+        const suggestions = availableCommands.filter(cmd => 
+          cmd.toLowerCase().includes(normalizedCommand.split(' ')[0]) ||
+          normalizedCommand.split(' ')[0].includes(cmd.toLowerCase().split(' ')[0])
+        );
+        if (suggestions.length > 0) {
+          console.log('Did you mean one of these?', suggestions.slice(0, 3));
+        }
       }
     } catch (error) {
       console.warn('Voice command handling error:', error);
