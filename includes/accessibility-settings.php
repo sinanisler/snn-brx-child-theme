@@ -368,7 +368,7 @@ function snn_enqueue_accessibility_widget_head() {
         $src  = get_stylesheet_directory_uri() . '/assets/js/snn-accessibility.js';
         $path = get_stylesheet_directory() . '/assets/js/snn-accessibility.js';
         $ver  = file_exists( $path ) ? filemtime( $path ) : false;
-        wp_enqueue_script( 'snn-accessibility-widget', $src, [], $ver, false );
+        wp_enqueue_script( 'snn-accessibility-widget', $src, [], $ver, true );
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_accessibility_widget_head');
