@@ -1,4 +1,4 @@
-/* ===========================================  
+/* ===========================================    
 
   ACCESSIBILITY WIDGET
 
@@ -514,6 +514,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['bigger cursor', 'large cursor', 'cursor size', 'big cursor'],
       lineHeight: ['line height', 'line spacing', 'space between lines', 'line space'],
       textAlign: ['align text', 'text align', 'center text', 'alignment'],
+      saturation: ['saturation', 'color saturation', 'saturate', 'desaturate', 'grayscale'],
+      fontSelection: ['font selection', 'change font', 'select font', 'font'],
+      colorFilter: ['color filter', 'color blind', 'colorblind', 'filter'],
       screenReader: ['screen reader', 'read aloud', 'voice reader'],
       voiceControl: ['voice command', 'voice control', 'voice commands'],
       resetAll: ['reset all', 'reset everything', 'clear all', 'reset settings', 'reset']
@@ -529,6 +532,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['größerer cursor', 'großer cursor', 'cursor größe'],
       lineHeight: ['zeilenhöhe', 'zeilenabstand', 'abstand zwischen zeilen'],
       textAlign: ['text ausrichten', 'textausrichtung', 'text zentrieren'],
+      saturation: ['sättigung', 'farbsättigung', 'sättigen', 'entsättigen', 'graustufen'],
+      fontSelection: ['schriftauswahl', 'schrift ändern', 'schrift wählen', 'schrift'],
+      colorFilter: ['farbfilter', 'farbenblind', 'filter'],
       screenReader: ['screenreader', 'vorlesen', 'sprach reader'],
       voiceControl: ['sprachbefehl', 'sprachsteuerung', 'sprachbefehle'],
       resetAll: ['alles zurücksetzen', 'alle zurücksetzen', 'alle löschen', 'einstellungen zurücksetzen']
@@ -544,6 +550,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['cursor más grande', 'cursor grande', 'tamaño de cursor'],
       lineHeight: ['altura de línea', 'espaciado de líneas', 'espacio entre líneas'],
       textAlign: ['alinear texto', 'alineación de texto', 'centrar texto'],
+      saturation: ['saturación', 'saturación de color', 'saturar', 'desaturar', 'escala de grises'],
+      fontSelection: ['selección de fuente', 'cambiar fuente', 'seleccionar fuente', 'fuente'],
+      colorFilter: ['filtro de color', 'daltónico', 'filtro'],
       screenReader: ['lector de pantalla', 'leer en voz alta', 'lector de voz'],
       voiceControl: ['comando de voz', 'control de voz', 'comandos de voz'],
       resetAll: ['restablecer todo', 'restablecer todo', 'borrar todo', 'restablecer configuración']
@@ -559,6 +568,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['cursore più grande', 'cursore grande', 'dimensione cursore'],
       lineHeight: ['altezza linea', 'spaziatura linee', 'spazio tra linee'],
       textAlign: ['allinea testo', 'allineamento testo', 'centra testo'],
+      saturation: ['saturazione', 'saturazione colore', 'saturare', 'desaturare', 'scala di grigi'],
+      fontSelection: ['selezione font', 'cambia font', 'seleziona font', 'font'],
+      colorFilter: ['filtro colore', 'daltonico', 'filtro'],
       screenReader: ['lettore schermo', 'leggi ad alta voce', 'lettore vocale'],
       voiceControl: ['comando vocale', 'controllo vocale', 'comandi vocali'],
       resetAll: ['ripristina tutto', 'ripristina tutto', 'cancella tutto', 'ripristina impostazioni']
@@ -574,6 +586,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['curseur plus grand', 'grand curseur', 'taille curseur'],
       lineHeight: ['hauteur ligne', 'espacement lignes', 'espace entre lignes'],
       textAlign: ['aligner texte', 'alignement texte', 'centrer texte'],
+      saturation: ['saturation', 'saturation couleur', 'saturer', 'désaturer', 'niveaux de gris'],
+      fontSelection: ['sélection police', 'changer police', 'sélectionner police', 'police'],
+      colorFilter: ['filtre couleur', 'daltonien', 'filtre'],
       screenReader: ['lecteur écran', 'lire à haute voix', 'lecteur vocal'],
       voiceControl: ['commande vocale', 'contrôle vocal', 'commandes vocales'],
       resetAll: ['réinitialiser tout', 'réinitialiser tout', 'effacer tout', 'réinitialiser paramètres']
@@ -589,6 +604,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['увеличенный курсор', 'большой курсор', 'размер курсора'],
       lineHeight: ['высота строки', 'интервал строк', 'пространство между строками'],
       textAlign: ['выровнять текст', 'выравнивание текста', 'центрировать текст'],
+      saturation: ['насыщенность', 'насыщенность цвета', 'насытить', 'обесцветить', 'оттенки серого'],
+      fontSelection: ['выбор шрифта', 'изменить шрифт', 'выбрать шрифт', 'шрифт'],
+      colorFilter: ['цветовой фильтр', 'дальтонизм', 'фильтр'],
       screenReader: ['программа чтения', 'читать вслух', 'голосовой ридер'],
       voiceControl: ['голосовая команда', 'голосовое управление', 'голосовые команды'],
       resetAll: ['сбросить все', 'сбросить всё', 'очистить все', 'сбросить настройки']
@@ -604,6 +622,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['daha büyük imleç', 'büyük imleç', 'imleç boyutu'],
       lineHeight: ['satır yüksekliği', 'satır aralığı', 'satırlar arası boşluk'],
       textAlign: ['metni hizala', 'metin hizalama', 'metni ortala'],
+      saturation: ['doygunluk', 'renk doygunluğu', 'doygunlaştır', 'solgunlaştır', 'gri tonlama'],
+      fontSelection: ['yazı tipi seçimi', 'yazı tipini değiştir', 'yazı tipi seç', 'yazı tipi'],
+      colorFilter: ['renk filtresi', 'renk körü', 'filtre'],
       screenReader: ['ekran okuyucu', 'sesli oku', 'ses okuyucu'],
       voiceControl: ['sesli komut', 'sesli kontrol', 'sesli komutlar'],
       resetAll: ['hepsini sıfırla', 'tümünü sıfırla', 'hepsini temizle', 'ayarları sıfırla']
@@ -619,6 +640,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['مؤشر أكبر', 'مؤشر كبير', 'حجم المؤشر'],
       lineHeight: ['ارتفاع الخط', 'تباعد الأسطر', 'مساحة بين الأسطر'],
       textAlign: ['محاذاة النص', 'محاذاة النص', 'توسيط النص'],
+      saturation: ['التشبع', 'تشبع اللون', 'تشبيع', 'إزالة التشبع', 'تدرج رمادي'],
+      fontSelection: ['اختيار الخط', 'تغيير الخط', 'اختر الخط', 'خط'],
+      colorFilter: ['مرشح الألوان', 'عمى الألوان', 'مرشح'],
       screenReader: ['قارئ الشاشة', 'اقرأ بصوت عالٍ', 'قارئ صوتي'],
       voiceControl: ['الأمر الصوتي', 'التحكم الصوتي', 'الأوامر الصوتية'],
       resetAll: ['إعادة تعيين الكل', 'إعادة تعيين جميع', 'مسح الكل', 'إعادة تعيين الإعدادات']
@@ -634,6 +658,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['बड़ा कर्सर', 'बड़ा कर्सर', 'कर्सर का आकार'],
       lineHeight: ['लाइन की ऊंचाई', 'लाइन स्पेसिंग', 'लाइनों के बीच स्पेस'],
       textAlign: ['टेक्स्ट अलाइन करें', 'टेक्स्ट संरेखण', 'टेक्स्ट केंद्र में करें'],
+      saturation: ['संतृप्ति', 'रंग संतृप्ति', 'संतृप्त करें', 'असंतृप्त करें', 'ग्रेस्केल'],
+      fontSelection: ['फ़ॉन्ट चयन', 'फ़ॉन्ट बदलें', 'फ़ॉन्ट चुनें', 'फ़ॉन्ट'],
+      colorFilter: ['रंग फ़िल्टर', 'वर्णान्धता', 'फ़िल्टर'],
       screenReader: ['स्क्रीन रीडर', 'जोर से पढ़ें', 'वॉयस रीडर'],
       voiceControl: ['वॉयस कमांड', 'वॉयस नियंत्रण', 'वॉयस कमांड्स'],
       resetAll: ['सभी रीसेट करें', 'सब कुछ रीसेट करें', 'सब साफ़ करें', 'सेटिंग्स रीसेट करें']
@@ -649,6 +676,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['更大的光标', '大光标', '光标大小'],
       lineHeight: ['行高', '行间距', '行之间的空间'],
       textAlign: ['对齐文本', '文本对齐', '居中文本'],
+      saturation: ['饱和度', '颜色饱和度', '饱和', '去饱和', '灰度'],
+      fontSelection: ['字体选择', '更改字体', '选择字体', '字体'],
+      colorFilter: ['颜色滤镜', '色盲', '滤镜'],
       screenReader: ['屏幕阅读器', '大声朗读', '语音阅读器'],
       voiceControl: ['语音命令', '语音控制', '语音命令'],
       resetAll: ['重置全部', '重置所有', '清除全部', '重置设置']
@@ -664,6 +694,9 @@ const DEFAULT_WIDGET_CONFIG = {
       biggerCursor: ['大きいカーソル', '大きなカーソル', 'カーソルサイズ'],
       lineHeight: ['行の高さ', '行間隔', '行間のスペース'],
       textAlign: ['テキスト配置', 'テキスト配置', 'テキストを中央'],
+      saturation: ['彩度', '色彩度', '彩度を上げる', '彩度を下げる', 'グレースケール'],
+      fontSelection: ['フォント選択', 'フォント変更', 'フォント選択', 'フォント'],
+      colorFilter: ['カラーフィルター', '色覚異常', 'フィルター'],
       screenReader: ['スクリーンリーダー', '音声で読む', '音声リーダー'],
       voiceControl: ['音声コマンド', '音声制御', '音声コマンド'],
       resetAll: ['すべてリセット', 'すべてリセット', 'すべてクリア', '設定をリセット']
@@ -736,7 +769,7 @@ const widgetStyles = `
     display: flex;
     justify-content: center;
     align-items: center;
-    border:solid 2px white;
+    border:solid 4px white;
   }
   
   #snn-accessibility-button:hover {
