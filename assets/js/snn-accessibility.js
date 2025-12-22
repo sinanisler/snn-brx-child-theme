@@ -8,7 +8,6 @@
 
 =========================================== */
 
-
 // ===========================================
 // TRANSLATIONS
 // ===========================================
@@ -1018,8 +1017,8 @@ const pageStyles = `
 // ===========================================
 
 const icons = {
-  buttonsvg: `<svg xmlns="http://www.w3.org/2000/svg" style="fill:white;" viewBox="0 0 24 24" width="30px" height="30px"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M20.5 6c-2.61.7-5.67 1-8.5 1s-5.89-.3-8.5-1L3 8c1.86.5 4 .83 6 1v13h2v-6h2v6h2V9c2-.17 4.14-.5 6-1l-.5-2zM12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>`,
-  highContrast: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" version="1.2" viewBox="0 0 35 35"><path fill="currentColor" fill-rule="evenodd" d="M1.89998 15.6285c0-7.58203 6.14649-13.72852 13.72852-13.72852 7.5821 0 13.7286 6.14649 13.7286 13.72852 0 .6081-.0395 1.2069-.1161 1.794.5933.2913 1.1478.6497 1.6534 1.0654.1725-.9268.2627-1.8825.2627-2.8594 0-8.57615-6.9524-15.5285244-15.5286-15.5285244C7.05235.0999756.0999756 7.05235.0999756 15.6285c0 8.5762 6.9523744 15.5286 15.5285244 15.5286 1.2241 0 2.415-.1416 3.5574-.4093-.4388-.4866-.8222-1.0242-1.1402-1.6028-.7847.1394-1.5924.2121-2.4172.2121-7.58203 0-13.72852-6.1465-13.72852-13.7286Z" clip-rule="evenodd"/><path fill="currentColor" fill-rule="evenodd" d="M2.35 15.6286C2.35 8.29502 8.29502 2.35 15.6286 2.35c7.3335 0 13.2785 5.94502 13.2785 13.2786 0 .5408-.0323 1.0741-.0951 1.5979.444.1881.8687.4128 1.2703.6703.1151-.7392.1748-1.4967.1748-2.2682C30.2571 7.54943 23.7077 1 15.6286 1 7.54943 1 15.6286 1 7.54943 1 15.6286c0 8.0791 6.54943 14.6285 14.6286 14.6285 1.0033 0 1.9831-.101 2.9297-.2934-.276-.3898-.52-.8038-.7282-1.2382-.716.1195-1.4515.1816-2.2015.1816-7.33358 0-13.2786-5.945-13.2786-13.2785Z" clip-rule="evenodd"/><path fill="currentColor" fill-rule="evenodd" d="M15.6286 1C7.54943 1 1 7.54943 1 15.6286c0 8.0791 6.54943 14.6285 14.6286 14.6285" clip-rule="evenodd"/><path stroke="currentColor" stroke-width="1.8" d="M15.6286 1C7.54943 1 1 7.54943 1 15.6286c0 8.0791 6.54943 14.6285 14.6286 14.6285"/><path fill="currentColor" fill-rule="evenodd" d="M22.8729 25.114c0-1.3811 1.0901-2.5007 2.4359-2.5007 1.3459 0 2.436 1.1196 2.436 2.5007 0 1.38-1.0901 2.4997-2.436 2.4997-1.3458 0-2.4359-1.1197-2.4359-2.4997Zm7.2258-2.0373c-.0899-.2248-.071-.4785.0512-.6875l.912-1.5598c.0898-.1532.0668-.3504-.0574-.4779l-1.0556-1.0832c-.1232-.1264-.3153-.1511-.4657-.0589l-1.5225.9374c-.201.1237-.4495.1427-.667.051-.2181-.092-.3797-.2819-.4358-.5118l-.4329-1.7763c-.0428-.1735-.1953-.2957-.3696-.2957h-1.4931c-.1744 0-.3268.1222-.3696.2957l-.433 1.7763c-.056.2299-.2177.4198-.4357.5118-.2176.0917-.466.0727-.6671-.051l-1.5225-.9374c-.1503-.0922-.3424-.0675-.4656.0589l-1.0556 1.0832c-.1243.1275-.1473.3247-.0575.4779l.9121 1.5598c.1222.209.1411.4627.0511.6875-.0895.2239-.2806.3916-.5142.4514l-1.7165.4395c-.1692.0439-.2882.2003-.2882.3803v1.5311c0 .18.119.3364.2882.3804l1.7165.4394c.2336.0599.4247.2276.5142.4515.09.2247.0711.4785-.0511.6874l-.9121 1.5599c-.0898.1532-.0668.3503.0575.4778l1.0556 1.0833c.1232.1264.3153.151.4656.0589l1.5225-.9374c.2011-.1238.4495-.1428.6671-.051.218.092.3797.2818.4357.5118l.433 1.7762c.0428.1736.1952.2968.3696.2968h1.4931c.1743 0 .3268-.1232.3696-.2968l.4329-1.7762c.0561-.23.2177-.4198.4358-.5118.2175-.0918.466-.0728.667.051l1.5225.9374c.1504.0921.3425.0675.4657-.0589l1.0556-1.0833c.1242-.1275.1472-.3246.0574-.4778l-.912-1.5599c-.1222-.2089-.1411-.4627-.0512-.6874.0896-.2239.2806-.3916.5142-.4515l1.7166-.4394c.1691-.044.2881-.2004.2881-.3804v-1.5311c0-.18-.119-.3364-.2881-.3803l-1.7166-.4395c-.2336-.0598-.4246-.2275-.5142-.4514Z" clip-rule="evenodd"/></svg>`,
+  buttonsvg: `<svg xmlns="http://www.w3.org/2000/svg" style="fill:white;" viewBox="0 0 24 24" width="30px" height="30px"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M20.5 6c-2.61 0.7-5.67 1-8.5 1s-5.89-0.3-8.5-1L3 8c1.86 0.5 4 0.83 6 1v13h2v-6h2v6h2V9c2-0.17 4.14-0.5 6-1l-0.5-2zM12 6c1.1 0 2-0.9 2-2s-0.9-2-2-2-2 0.9-2 2 0.9 2 2 2z"></path></svg>`,
+  highContrast: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" version="1.2" viewBox="0 0 35 35"><path fill="currentColor" fill-rule="evenodd" d="M1.89998 15.6285c0-7.58203 6.14649-13.72852 13.72852-13.72852 7.5821 0 13.7286 6.14649 13.7286 13.72852 0 0.6081-0.0395 1.2069-0.1161 1.794 0.5933 0.2913 1.1478 0.6497 1.6534 1.0654 0.1725-0.9268 0.2627-1.8825 0.2627-2.8594 0-8.57615-6.9524-15.5285244-15.5286-15.5285244C7.05235 0.0999756 0.0999756 7.05235 0.0999756 15.6285c0 8.5762 6.9523744 15.5286 15.5285244 15.5286 1.2241 0 2.415-0.1416 3.5574-0.4093-0.4388-0.4866-0.8222-1.0242-1.1402-1.6028-0.7847 0.1394-1.5924 0.2121-2.4172 0.2121-7.58203 0-13.72852-6.1465-13.72852-13.7286Z" clip-rule="evenodd"/><path fill="currentColor" fill-rule="evenodd" d="M2.35 15.6286C2.35 8.29502 8.29502 2.35 15.6286 2.35c7.3335 0 13.2785 5.94502 13.2785 13.2786 0 0.5408-0.0323 1.0741-0.0951 1.5979 0.444 0.1881 0.8687 0.4128 1.2703 0.6703 0.1151-0.7392 0.1748-1.4967 0.1748-2.2682C30.2571 7.54943 23.7077 1 15.6286 1 7.54943 1 1 7.54943 1 15.6286c0 8.0791 6.54943 14.6285 14.6286 14.6285 1.0033 0 1.9831-0.101 2.9297-0.2934-0.276-0.3898-0.52-0.8038-0.7282-1.2382-0.716 0.1195-1.4515 0.1816-2.2015 0.1816-7.33358 0-13.2786-5.945-13.2786-13.2785Z" clip-rule="evenodd"/><path fill="currentColor" fill-rule="evenodd" d="M15.6286 1C7.54943 1 1 7.54943 1 15.6286c0 8.0791 6.54943 14.6285 14.6286 14.6285" clip-rule="evenodd"/><path stroke="currentColor" stroke-width="1.8" d="M15.6286 1C7.54943 1 1 7.54943 1 15.6286c0 8.0791 6.54943 14.6285 14.6286 14.6285"/><path fill="currentColor" fill-rule="evenodd" d="M22.8729 25.114c0-1.3811 1.0901-2.5007 2.4359-2.5007 1.3459 0 2.436 1.1196 2.436 2.5007 0 1.38-1.0901 2.4997-2.436 2.4997-1.3458 0-2.4359-1.1197-2.4359-2.4997Zm7.2258-2.0373c-0.0899-0.2248-0.071-0.4785 0.0512-0.6875l0.912-1.5598c0.0898-0.1532 0.0668-0.3504-0.0574-0.4779l-1.0556-1.0832c-0.1232-0.1264-0.3153-0.1511-0.4657-0.0589l-1.5225 0.9374c-0.201 0.1237-0.4495 0.1427-0.667 0.051-0.2181-0.092-0.3797-0.2819-0.4358-0.5118l-0.4329-1.7763c-0.0428-0.1735-0.1953-0.2957-0.3696-0.2957h-1.4931c-0.1744 0-0.3268 0.1222-0.3696 0.2957l-0.433 1.7763c-0.056 0.2299-0.2177 0.4198-0.4357 0.5118-0.2176 0.0917-0.466 0.0727-0.6671-0.051l-1.5225-0.9374c-0.1503-0.0922-0.3424-0.0675-0.4656 0.0589l-1.0556 1.0832c-0.1243 0.1275-0.1473 0.3247-0.0575 0.4779l0.9121 1.5598c0.1222 0.209 0.1411 0.4627 0.0511 0.6875-0.0895 0.2239-0.2806 0.3916-0.5142 0.4514l-1.7165 0.4395c-0.1692 0.0439-0.2882 0.2003-0.2882 0.3803v1.5311c0 0.18 0.119 0.3364 0.2882 0.3804l1.7165 0.4394c0.2336 0.0599 0.4247 0.2276 0.5142 0.4515 0.09 0.2247 0.0711 0.4785-0.0511 0.6874l-0.9121 1.5599c-0.0898 0.1532-0.0668 0.3503 0.0575 0.4778l1.0556 1.0833c0.1232 0.1264 0.3153 0.151 0.4656 0.0589l1.5225-0.9374c0.2011-0.1238 0.4495-0.1428 0.6671-0.051 0.218 0.092 0.3797 0.2818 0.4357 0.5118l0.433 1.7762c0.0428 0.1736 0.1952 0.2968 0.3696 0.2968h1.4931c0.1743 0 0.3268-0.1232 0.3696-0.2968l0.4329-1.7762c0.0561-0.23 0.2177-0.4198 0.4358-0.5118 0.2175-0.0918 0.466-0.0728 0.667 0.051l1.5225 0.9374c0.1504 0.0921 0.3425 0.0675 0.4657-0.0589l1.0556-1.0833c0.1242-0.1275 0.1472-0.3246 0.0574-0.4778l-0.912-1.5599c-0.1222-0.2089-0.1411-0.4627-0.0512-0.6874 0.0896-0.2239 0.2806-0.3916 0.5142-0.4515l1.7166-0.4394c0.1691-0.044 0.2881-0.2004 0.2881-0.3804v-1.5311c0-0.18-0.119-0.3364-0.2881-0.3803l-1.7166-0.4395c-0.2336-0.0598-0.4246-0.2275-0.5142-0.4514Z" clip-rule="evenodd"/></svg>`,
   biggerText: `<svg xmlns="http://www.w3.org/2000/svg" version="1.2" viewBox="0 0 36 23"><g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-width="2"><path stroke-linejoin="round" d="M26.58 21.3225806V1m-7.92 4.06451613V1H34.5v4.06451613"/><path d="M22.62 21.3225806h7.92"/><path stroke-linejoin="round" d="M6.78 18.6129032V5.06451613M1.5 7.77419355V5.06451613h10.56v2.70967742"/><path d="M4.14 18.6129032h5.28"/></g></svg>`,
   textSpacing: `<svg xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 15 15" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.55293 0.999969C4.75295 0.999969 4.93372 1.11917 5.0125 1.30301L8.01106 8.29982C8.11984 8.55363 8.00226 8.84757 7.74844 8.95635C7.49463 9.06512 7.20069 8.94754 7.09191 8.69373L6.11613 6.41685H2.98973L2.01395 8.69373C1.90517 8.94754 1.61123 9.06512 1.35742 8.95635C1.1036 8.84757 0.986023 8.55363 1.0948 8.29982L4.09336 1.30301C4.17214 1.11917 4.35291 0.999969 4.55293 0.999969ZM4.55293 2.76929L5.75186 5.56685H3.354L4.55293 2.76929ZM11.0562 9.00214C11.2617 9.00214 11.4463 8.87633 11.5215 8.68502L14.2733 1.68299C14.3743 1.42598 14.2478 1.13575 13.9908 1.03475C13.7338 0.933747 13.4436 1.06021 13.3426 1.31722L11.0562 7.13514L8.76973 1.31722C8.66873 1.06021 8.3785 0.933747 8.1215 1.03475C7.86449 1.13575 7.73802 1.42598 7.83902 1.68299L10.5908 8.68502C10.666 8.87633 10.8506 9.00214 11.0562 9.00214ZM14.9537 12.4999C14.9537 12.606 14.9115 12.7077 14.8365 12.7828L12.8365 14.7828C12.6803 14.939 12.4271 14.939 12.2708 14.7828C12.1146 14.6265 12.1146 14.3733 12.2708 14.2171L13.588 12.8999H1.51937L2.83653 14.2171C2.99274 14.3733 2.99274 14.6265 2.83653 14.7828C2.68032 14.939 2.42705 14.939 2.27084 14.7828L0.270843 12.7828C0.195828 12.7077 0.153687 12.606 0.153687 12.4999C0.153687 12.3938 0.195828 12.2921 0.270843 12.2171L2.27084 10.2171C2.42705 10.0609 2.68032 10.0609 2.83653 10.2171C2.99274 10.3733 2.99274 10.6265 2.83653 10.7828L1.51937 12.0999L13.588 12.0999L12.2708 10.7828C12.1146 10.6265 12.1146 10.3733 12.2708 10.2171C12.4271 10.0609 12.6803 10.0609 12.8365 10.2171L14.8365 12.2171C14.9115 12.2921 14.9537 12.3938 14.9537 12.4999Z" fill="#000000"/></svg>`,
   pauseAnimations: `<svg xmlns="http://www.w3.org/2000/svg" version="1.2" viewBox="0 0 37 36"><g fill="none" fill-rule="evenodd"><path fill="currentColor" d="M15.8087111 23.6666667h-1.2702778c-.4429444 0-.8018333-.3598334-.8018333-.8027778v-9.7277778c0-.4429444.3588889-.8027778.8018333-.8027778h1.2702778c.4429445 0 .8027778.3598334.8027778.8027778v9.7277778c0 .4429444-.3598333.8027778-.8027778.8027778m6.6525722 0h-1.2702777c-.442 0-.8018334-.3598334-.8018334-.8027778v-9.7277778c0-.4429444.3598334-.8027778.8018334-.8027778h1.2702777c.4438889 0 .8027778.3598334.8027778.8027778v9.7277778c0 .4429444-.3588889.8027778-.8027778.8027778"/><path stroke="currentColor" stroke-linecap="round" stroke-width="1.88888889" d="M18.5 4.77777778V1m0 34v-3.7777778M31.7222222 18H35.5m-34 0h3.77777778m3.87278889-9.34943333L6.47873333 5.97967778M30.5204167 30.0204167l-2.6708889-2.6708889m-.0000945-18.69896113 2.6708889-2.67088889M6.47911111 30.0204167l2.67183333-2.6708889M23.5542889 5.78219444l1.4440555-3.49066666M12.0013722 33.7087556l1.4440556-3.4906667m17.2723778-7.1638 3.4906666 1.4440555M2.79124444 11.5013722l3.49066667 1.4440556m7.15274999-7.15860558L11.9877722 2.2971m13.0246445 31.4061778-1.4468889-3.4897222m7.14765-17.2788945L34.2029 11.4877722M2.79672222 24.5124167l3.48972222-1.4468889"/></g></svg>`,
@@ -1095,8 +1094,12 @@ function createShadowContainer() {
 
 // Cache for DOM elements to improve performance
 const domCache = {
-  body: document.body,
-  documentElement: document.documentElement,
+  get body() {
+    return document.body;
+  },
+  get documentElement() {
+    return document.documentElement;
+  },
   images: null,
   lastImageUpdate: 0,
   getImages: function () {
@@ -1111,6 +1114,12 @@ const domCache = {
 
 // Apply saved settings from localStorage (optimized)
 function applySettings() {
+  // Check if body element exists
+  if (!domCache.body || !domCache.documentElement) {
+    console.warn('Body or document element not ready yet');
+    return;
+  }
+
   const settings = [
     { key: 'biggerCursor', className: 'snn-bigger-cursor' },
     { key: 'biggerText', className: 'snn-bigger-text' },
@@ -1145,79 +1154,121 @@ function applySettings() {
     }
   });
 
-  // Apply all class changes at once
+  // Apply all class changes at once - ONLY remove classes that start with 'snn-'
   if (bodyClassesToAdd.length > 0) {
     domCache.body.classList.add(...bodyClassesToAdd);
   }
   if (bodyClassesToRemove.length > 0) {
-    domCache.body.classList.remove(...bodyClassesToRemove);
+    // Only remove our own classes, never remove classes that don't start with 'snn-'
+    bodyClassesToRemove.forEach(className => {
+      if (className.startsWith('snn-')) {
+        domCache.body.classList.remove(className);
+      }
+    });
   }
   if (docClassesToAdd.length > 0) {
     domCache.documentElement.classList.add(...docClassesToAdd);
   }
   if (docClassesToRemove.length > 0) {
-    domCache.documentElement.classList.remove(...docClassesToRemove);
+    // Only remove our own classes, never remove classes that don't start with 'snn-'
+    docClassesToRemove.forEach(className => {
+      if (className.startsWith('snn-')) {
+        domCache.documentElement.classList.remove(className);
+      }
+    });
   }
 
-  // Handle font selection
+  // Handle font selection - only remove widget's own font classes
   const fontClasses = ['snn-font-arial', 'snn-font-times', 'snn-font-verdana'];
-  domCache.body.classList.remove(...fontClasses);
+  fontClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
   const selectedFont = localStorage.getItem('fontSelection');
   if (selectedFont) {
     domCache.body.classList.add(`snn-font-${selectedFont}`);
   }
 
-  // Handle color filters
+  // Handle color filters - only remove widget's own filter classes
   const filterClasses = ['snn-filter-protanopia', 'snn-filter-deuteranopia', 'snn-filter-tritanopia', 'snn-filter-grayscale'];
-  domCache.documentElement.classList.remove(...filterClasses);
+  filterClasses.forEach(className => {
+    if (domCache.documentElement.classList.contains(className)) {
+      domCache.documentElement.classList.remove(className);
+    }
+  });
   const selectedFilter = localStorage.getItem('colorFilter');
   if (selectedFilter) {
     domCache.documentElement.classList.add(`snn-filter-${selectedFilter}`);
   }
 
-  // Handle saturation filters
+  // Handle saturation filters - only remove widget's own saturation classes
   const saturationClasses = ['snn-saturation-low', 'snn-saturation-high', 'snn-saturation-none'];
-  domCache.documentElement.classList.remove(...saturationClasses);
+  saturationClasses.forEach(className => {
+    if (domCache.documentElement.classList.contains(className)) {
+      domCache.documentElement.classList.remove(className);
+    }
+  });
   const selectedSaturation = localStorage.getItem('saturation');
   if (selectedSaturation) {
     domCache.documentElement.classList.add(`snn-saturation-${selectedSaturation}`);
   }
 
-  // Handle text alignment
+  // Handle text alignment - only remove widget's own alignment classes
   const alignClasses = ['snn-text-align-left', 'snn-text-align-center', 'snn-text-align-right'];
-  domCache.body.classList.remove(...alignClasses);
+  alignClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
   const selectedAlign = localStorage.getItem('textAlign');
   if (selectedAlign) {
     domCache.body.classList.add(`snn-text-align-${selectedAlign}`);
   }
 
-  // Handle bigger text
+  // Handle bigger text - only remove widget's own text size classes
   const textClasses = ['snn-bigger-text-medium', 'snn-bigger-text-large', 'snn-bigger-text-xlarge'];
-  domCache.body.classList.remove(...textClasses);
+  textClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
   const selectedTextSize = localStorage.getItem('biggerText');
   if (selectedTextSize) {
     domCache.body.classList.add(`snn-bigger-text-${selectedTextSize}`);
   }
 
-  // Handle high contrast
+  // Handle high contrast - only remove widget's own contrast classes
   const contrastClasses = ['snn-high-contrast-medium', 'snn-high-contrast-high', 'snn-high-contrast-ultra'];
-  domCache.body.classList.remove(...contrastClasses);
+  contrastClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
   const selectedContrast = localStorage.getItem('highContrast');
   if (selectedContrast) {
     domCache.body.classList.add(`snn-high-contrast-${selectedContrast}`);
   }
 
-  // Handle Text Spacing (3 Levels)
+  // Handle Text Spacing (3 Levels) - only remove widget's own spacing classes
   const spacingClasses = ['snn-text-spacing-light', 'snn-text-spacing-medium', 'snn-text-spacing-heavy'];
-  domCache.body.classList.remove(...spacingClasses);
+  spacingClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
   const selectedSpacing = localStorage.getItem('textSpacing');
   if (selectedSpacing) {
     domCache.body.classList.add(`snn-text-spacing-${selectedSpacing}`);
   }
 
-  // Handle Line Height (3 Levels)
+  // Handle Line Height (3 Levels) - only remove widget's own line height classes
   const lineHeightClasses = ['snn-line-height-2em', 'snn-line-height-3em', 'snn-line-height-4em'];
-  domCache.body.classList.remove(...lineHeightClasses);
+  lineHeightClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
   const selectedLineHeight = localStorage.getItem('lineHeight');
   if (selectedLineHeight) {
     domCache.body.classList.add(`snn-line-height-${selectedLineHeight}`);
@@ -1288,7 +1339,14 @@ function resetAccessibilitySettings() {
   ];
   keys.forEach((key) => localStorage.removeItem(key));
 
-  // Remove all CSS classes
+  // Remove only widget's own CSS classes - never touch existing body/document classes
+  // Check if body and documentElement exist first
+  if (!document.body || !document.documentElement) {
+    console.warn('Body or document element not ready during reset');
+    return;
+  }
+
+  // Remove body classes only if they exist and start with 'snn-'
   const cssClasses = [
     'snn-bigger-cursor',
     'snn-bigger-text',
@@ -1297,17 +1355,30 @@ function resetAccessibilitySettings() {
     'snn-text-align',
     'snn-font-arial',
     'snn-font-times',
-    'snn-font-verdana'
-  ];
-  cssClasses.forEach(cls => document.body.classList.remove(cls));
-
-  const bodyClasses2 = [
+    'snn-font-verdana',
     'snn-high-contrast-medium',
     'snn-high-contrast-high',
-    'snn-high-contrast-ultra'
+    'snn-high-contrast-ultra',
+    'snn-bigger-text-medium',
+    'snn-bigger-text-large',
+    'snn-bigger-text-xlarge',
+    'snn-text-spacing-light',
+    'snn-text-spacing-medium',
+    'snn-text-spacing-heavy',
+    'snn-line-height-2em',
+    'snn-line-height-3em',
+    'snn-line-height-4em',
+    'snn-text-align-left',
+    'snn-text-align-center',
+    'snn-text-align-right'
   ];
-  bodyClasses2.forEach(cls => document.body.classList.remove(cls));
+  cssClasses.forEach(cls => {
+    if (document.body.classList.contains(cls)) {
+      document.body.classList.remove(cls);
+    }
+  });
 
+  // Remove document element classes only if they exist and start with 'snn-'
   const documentClasses = [
     'snn-filter-protanopia',
     'snn-filter-deuteranopia',
@@ -1317,21 +1388,11 @@ function resetAccessibilitySettings() {
     'snn-saturation-high',
     'snn-saturation-none'
   ];
-  documentClasses.forEach(cls => document.documentElement.classList.remove(cls));
-
-  const textSizeClasses = [
-    'snn-bigger-text-medium',
-    'snn-bigger-text-large',
-    'snn-bigger-text-xlarge'
-  ];
-  textSizeClasses.forEach(cls => document.body.classList.remove(cls));
-
-  // Clear Multi-level classes
-  const spacingClasses = ['snn-text-spacing-light', 'snn-text-spacing-medium', 'snn-text-spacing-heavy'];
-  spacingClasses.forEach(cls => document.body.classList.remove(cls));
-
-  const lineHeightClasses = ['snn-line-height-2em', 'snn-line-height-3em', 'snn-line-height-4em'];
-  lineHeightClasses.forEach(cls => document.body.classList.remove(cls));
+  documentClasses.forEach(cls => {
+    if (document.documentElement.classList.contains(cls)) {
+      document.documentElement.classList.remove(cls);
+    }
+  });
 
   domCache.getImages().forEach((img) => (img.style.display = ''));
 
@@ -1564,9 +1625,13 @@ function handleFontSelection() {
   const currentIndex = fonts.indexOf(currentFont);
   const nextIndex = (currentIndex + 1) % (fonts.length + 1); // +1 for default
 
-  // Remove all font classes in one operation
+  // Remove only widget's own font classes
   const fontClasses = ['snn-font-arial', 'snn-font-times', 'snn-font-verdana'];
-  domCache.body.classList.remove(...fontClasses);
+  fontClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
 
   if (nextIndex === fonts.length) {
     // Default font
@@ -1587,9 +1652,13 @@ function handleSaturation() {
   const currentIndex = saturations.indexOf(currentSaturation);
   const nextIndex = (currentIndex + 1) % (saturations.length + 1); // +1 for default
 
-  // Remove all saturation classes in one operation
+  // Remove only widget's own saturation classes
   const saturationClasses = ['snn-saturation-low', 'snn-saturation-high', 'snn-saturation-none'];
-  domCache.documentElement.classList.remove(...saturationClasses);
+  saturationClasses.forEach(className => {
+    if (domCache.documentElement.classList.contains(className)) {
+      domCache.documentElement.classList.remove(className);
+    }
+  });
 
   if (nextIndex === saturations.length) {
     // Default saturation
@@ -1613,9 +1682,13 @@ function handleColorFilter() {
   const currentIndex = filters.indexOf(currentFilter);
   const nextIndex = (currentIndex + 1) % (filters.length + 1); // +1 for none
 
-  // Remove all filter classes in one operation
+  // Remove only widget's own filter classes
   const filterClasses = ['snn-filter-protanopia', 'snn-filter-deuteranopia', 'snn-filter-tritanopia', 'snn-filter-grayscale'];
-  domCache.documentElement.classList.remove(...filterClasses);
+  filterClasses.forEach(className => {
+    if (domCache.documentElement.classList.contains(className)) {
+      domCache.documentElement.classList.remove(className);
+    }
+  });
 
   if (nextIndex === filters.length) {
     // No filter
@@ -1636,9 +1709,13 @@ function handleTextAlign() {
   const currentIndex = alignments.indexOf(currentAlign);
   const nextIndex = (currentIndex + 1) % (alignments.length + 1); // +1 for none
 
-  // Remove all alignment classes
+  // Remove only widget's own alignment classes
   const alignClasses = ['snn-text-align-left', 'snn-text-align-center', 'snn-text-align-right'];
-  domCache.body.classList.remove(...alignClasses);
+  alignClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
 
   if (nextIndex === alignments.length) {
     // Default alignment
@@ -1659,9 +1736,13 @@ function handleBiggerText() {
   const currentIndex = textSizes.indexOf(currentSize);
   const nextIndex = (currentIndex + 1) % (textSizes.length + 1); // +1 for none
 
-  // Remove all text size classes
+  // Remove only widget's own text size classes
   const textClasses = ['snn-bigger-text-medium', 'snn-bigger-text-large', 'snn-bigger-text-xlarge'];
-  domCache.body.classList.remove(...textClasses);
+  textClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
 
   if (nextIndex === textSizes.length) {
     // Default text size
@@ -1682,9 +1763,13 @@ function handleHighContrast() {
   const currentIndex = contrastLevels.indexOf(currentContrast);
   const nextIndex = (currentIndex + 1) % (contrastLevels.length + 1); // +1 for none
 
-  // Remove all contrast classes
+  // Remove only widget's own contrast classes
   const contrastClasses = ['snn-high-contrast-medium', 'snn-high-contrast-high', 'snn-high-contrast-ultra'];
-  domCache.body.classList.remove(...contrastClasses);
+  contrastClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
 
   if (nextIndex === contrastLevels.length) {
     // Default contrast
@@ -1705,9 +1790,13 @@ function handleTextSpacing() {
   const currentIndex = spacings.indexOf(currentSpacing);
   const nextIndex = (currentIndex + 1) % (spacings.length + 1); // +1 for none
 
-  // Remove all spacing classes
+  // Remove only widget's own spacing classes
   const spacingClasses = ['snn-text-spacing-light', 'snn-text-spacing-medium', 'snn-text-spacing-heavy'];
-  domCache.body.classList.remove(...spacingClasses);
+  spacingClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
 
   if (nextIndex === spacings.length) {
     // Default
@@ -1728,9 +1817,13 @@ function handleLineHeight() {
   const currentIndex = heights.indexOf(currentHeight);
   const nextIndex = (currentIndex + 1) % (heights.length + 1); // +1 for none
 
-  // Remove all line height classes
+  // Remove only widget's own line height classes
   const heightClasses = ['snn-line-height-2em', 'snn-line-height-3em', 'snn-line-height-4em'];
-  domCache.body.classList.remove(...heightClasses);
+  heightClasses.forEach(className => {
+    if (domCache.body.classList.contains(className)) {
+      domCache.body.classList.remove(className);
+    }
+  });
 
   if (nextIndex === heights.length) {
     // Default
