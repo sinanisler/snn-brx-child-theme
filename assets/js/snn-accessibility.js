@@ -769,7 +769,7 @@ const widgetStyles = `
     display: flex;
     justify-content: center;
     align-items: center;
-    border:solid 4px white;
+    border:solid 2px white;
   }
   
   #snn-accessibility-button:hover {
