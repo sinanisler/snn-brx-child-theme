@@ -52,8 +52,36 @@ function snn_register_accessibility_settings() {
     );
     add_settings_field(
         'main_color',
-        __('Accessibility Widget Color', 'snn'),
+        __('Primary Color', 'snn'),
         'snn_main_color_callback',
+        'snn-accessibility-settings',
+        'snn_accessibility_settings_section'
+    );
+    add_settings_field(
+        'secondary_color',
+        __('Secondary Color', 'snn'),
+        'snn_secondary_color_callback',
+        'snn-accessibility-settings',
+        'snn_accessibility_settings_section'
+    );
+    add_settings_field(
+        'option_bg_color',
+        __('Option Background Color', 'snn'),
+        'snn_option_bg_color_callback',
+        'snn-accessibility-settings',
+        'snn_accessibility_settings_section'
+    );
+    add_settings_field(
+        'option_text_color',
+        __('Option Text Color', 'snn'),
+        'snn_option_text_color_callback',
+        'snn-accessibility-settings',
+        'snn_accessibility_settings_section'
+    );
+    add_settings_field(
+        'option_icon_color',
+        __('Option Icon Color', 'snn'),
+        'snn_option_icon_color_callback',
         'snn-accessibility-settings',
         'snn_accessibility_settings_section'
     );
@@ -107,20 +135,28 @@ function snn_sanitize_accessibility_settings( $input ) {
     $sanitized = [];
     $sanitized['enqueue_accessibility'] = ! empty( $input['enqueue_accessibility'] ) ? 1 : 0;
     
-    // Sanitize color input - allow any valid CSS color value
-    if ( ! empty( $input['main_color'] ) ) {
-        $color = trim( $input['main_color'] );
-        // Basic sanitization - remove potentially harmful characters but allow CSS color formats
-        $color = preg_replace('/[<>"\']/', '', $color);
-        $sanitized['main_color'] = $color;
-    } else {
-        $sanitized['main_color'] = '#07757f';
-    }
+    // Helper function to sanitize color values
+    $sanitize_color = function( $color, $default ) {
+        if ( ! empty( $color ) ) {
+            $color = trim( $color );
+            // Basic sanitization - remove potentially harmful characters but allow CSS color formats
+            $color = preg_replace('/[<>"\']/', '', $color);
+            return $color;
+        }
+        return $default;
+    };
     
-    $sanitized['btn_width']              = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 45;
-    $sanitized['btn_height']             = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 45;
-    $align = isset( $input['btn_alignment'] ) ? $input['btn_alignment'] : 'left';
-    $sanitized['btn_alignment']          = in_array( $align, ['left','right'], true ) ? $align : 'left';
+    // Sanitize all color inputs
+    $sanitized['main_color']        = $sanitize_color( $input['main_color'] ?? '', '#1663d7' );
+    $sanitized['secondary_color']   = $sanitize_color( $input['secondary_color'] ?? '', '#ffffff' );
+    $sanitized['option_bg_color']   = $sanitize_color( $input['option_bg_color'] ?? '', '#ffffff' );
+    $sanitized['option_text_color'] = $sanitize_color( $input['option_text_color'] ?? '', '#333333' );
+    $sanitized['option_icon_color'] = $sanitize_color( $input['option_icon_color'] ?? '', '#000000' );
+    
+    $sanitized['btn_width']              = ! empty( $input['btn_width'] )  ? absint( $input['btn_width'] )  : 55;
+    $sanitized['btn_height']             = ! empty( $input['btn_height'] ) ? absint( $input['btn_height'] ) : 55;
+    $align = isset( $input['btn_alignment'] ) ? $input['btn_alignment'] : 'right';
+    $sanitized['btn_alignment']          = in_array( $align, ['left','right'], true ) ? $align : 'right';
     $sanitized['btn_spacing_left']       = ! empty( $input['btn_spacing_left'] )   ? absint( $input['btn_spacing_left'] )   : 20;
     $sanitized['btn_spacing_bottom']     = ! empty( $input['btn_spacing_bottom'] ) ? absint( $input['btn_spacing_bottom'] ) : 20;
     $sanitized['btn_spacing_right']      = ! empty( $input['btn_spacing_right'] )  ? absint( $input['btn_spacing_right'] )  : 20;
@@ -143,26 +179,131 @@ function snn_enqueue_accessibility_callback() {
 }
 function snn_main_color_callback() {
     $opt = get_option('snn_accessibility_settings');
-    $val = ! empty($opt['main_color']) ? $opt['main_color'] : '#07757f';
+    $val = ! empty($opt['main_color']) ? $opt['main_color'] : '#1663d7';
     ?>
     <div style="display: flex; align-items: center; gap: 10px;">
-        <input type="color" id="snn_color_picker" value="<?php echo esc_attr($val); ?>" style="width: 50px; height: 40px; border: none; cursor: pointer;">
-        <input type="text" name="snn_accessibility_settings[main_color]" id="snn_color_input" value="<?php echo esc_attr($val); ?>" placeholder="e.g., #07757f, rgb(7, 117, 127), var(--primary-color)" style="width: 300px; padding: 5px;">
+        <input type="color" id="snn_color_picker_main" value="<?php echo esc_attr($val); ?>" style="width: 50px; height: 40px; border: none; cursor: pointer;">
+        <input type="text" name="snn_accessibility_settings[main_color]" id="snn_color_input_main" value="<?php echo esc_attr($val); ?>" placeholder="e.g., #1663d7, rgb(22, 99, 215)" style="width: 300px; padding: 5px;">
     </div>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const colorPicker = document.getElementById('snn_color_picker');
-        const colorInput = document.getElementById('snn_color_input');
+        const colorPicker = document.getElementById('snn_color_picker_main');
+        const colorInput = document.getElementById('snn_color_input_main');
         
-        // Update text input when color picker changes
         colorPicker.addEventListener('input', function() {
             colorInput.value = this.value;
         });
         
-        // Update color picker when text input changes (if it's a valid hex color)
         colorInput.addEventListener('input', function() {
             const value = this.value.trim();
-            // Check if it's a valid hex color
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                colorPicker.value = value;
+            }
+        });
+    });
+    </script>
+    <?php
+}
+function snn_secondary_color_callback() {
+    $opt = get_option('snn_accessibility_settings');
+    $val = ! empty($opt['secondary_color']) ? $opt['secondary_color'] : '#ffffff';
+    ?>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="color" id="snn_color_picker_secondary" value="<?php echo esc_attr($val); ?>" style="width: 50px; height: 40px; border: none; cursor: pointer;">
+        <input type="text" name="snn_accessibility_settings[secondary_color]" id="snn_color_input_secondary" value="<?php echo esc_attr($val); ?>" placeholder="e.g., #ffffff" style="width: 300px; padding: 5px;">
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const colorPicker = document.getElementById('snn_color_picker_secondary');
+        const colorInput = document.getElementById('snn_color_input_secondary');
+        
+        colorPicker.addEventListener('input', function() {
+            colorInput.value = this.value;
+        });
+        
+        colorInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                colorPicker.value = value;
+            }
+        });
+    });
+    </script>
+    <?php
+}
+function snn_option_bg_color_callback() {
+    $opt = get_option('snn_accessibility_settings');
+    $val = ! empty($opt['option_bg_color']) ? $opt['option_bg_color'] : '#ffffff';
+    ?>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="color" id="snn_color_picker_option_bg" value="<?php echo esc_attr($val); ?>" style="width: 50px; height: 40px; border: none; cursor: pointer;">
+        <input type="text" name="snn_accessibility_settings[option_bg_color]" id="snn_color_input_option_bg" value="<?php echo esc_attr($val); ?>" placeholder="e.g., #ffffff" style="width: 300px; padding: 5px;">
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const colorPicker = document.getElementById('snn_color_picker_option_bg');
+        const colorInput = document.getElementById('snn_color_input_option_bg');
+        
+        colorPicker.addEventListener('input', function() {
+            colorInput.value = this.value;
+        });
+        
+        colorInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                colorPicker.value = value;
+            }
+        });
+    });
+    </script>
+    <?php
+}
+function snn_option_text_color_callback() {
+    $opt = get_option('snn_accessibility_settings');
+    $val = ! empty($opt['option_text_color']) ? $opt['option_text_color'] : '#333333';
+    ?>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="color" id="snn_color_picker_option_text" value="<?php echo esc_attr($val); ?>" style="width: 50px; height: 40px; border: none; cursor: pointer;">
+        <input type="text" name="snn_accessibility_settings[option_text_color]" id="snn_color_input_option_text" value="<?php echo esc_attr($val); ?>" placeholder="e.g., #333333" style="width: 300px; padding: 5px;">
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const colorPicker = document.getElementById('snn_color_picker_option_text');
+        const colorInput = document.getElementById('snn_color_input_option_text');
+        
+        colorPicker.addEventListener('input', function() {
+            colorInput.value = this.value;
+        });
+        
+        colorInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                colorPicker.value = value;
+            }
+        });
+    });
+    </script>
+    <?php
+}
+function snn_option_icon_color_callback() {
+    $opt = get_option('snn_accessibility_settings');
+    $val = ! empty($opt['option_icon_color']) ? $opt['option_icon_color'] : '#000000';
+    ?>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <input type="color" id="snn_color_picker_option_icon" value="<?php echo esc_attr($val); ?>" style="width: 50px; height: 40px; border: none; cursor: pointer;">
+        <input type="text" name="snn_accessibility_settings[option_icon_color]" id="snn_color_input_option_icon" value="<?php echo esc_attr($val); ?>" placeholder="e.g., #000000" style="width: 300px; padding: 5px;">
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const colorPicker = document.getElementById('snn_color_picker_option_icon');
+        const colorInput = document.getElementById('snn_color_input_option_icon');
+        
+        colorPicker.addEventListener('input', function() {
+            colorInput.value = this.value;
+        });
+        
+        colorInput.addEventListener('input', function() {
+            const value = this.value.trim();
             if (/^#[0-9A-F]{6}$/i.test(value)) {
                 colorPicker.value = value;
             }
@@ -173,21 +314,21 @@ function snn_main_color_callback() {
 }
 function snn_btn_width_callback() {
     $opt = get_option('snn_accessibility_settings');
-    $val = ! empty($opt['btn_width']) ? $opt['btn_width'] : 45;
+    $val = ! empty($opt['btn_width']) ? $opt['btn_width'] : 55;
     ?>
     <input type="number" name="snn_accessibility_settings[btn_width]" value="<?php echo esc_attr($val); ?>" min="0" step="1"> px
     <?php
 }
 function snn_btn_height_callback() {
     $opt = get_option('snn_accessibility_settings');
-    $val = ! empty($opt['btn_height']) ? $opt['btn_height'] : 45;
+    $val = ! empty($opt['btn_height']) ? $opt['btn_height'] : 55;
     ?>
     <input type="number" name="snn_accessibility_settings[btn_height]" value="<?php echo esc_attr($val); ?>" min="0" step="1"> px
     <?php
 }
 function snn_btn_alignment_callback() {
     $opt = get_option('snn_accessibility_settings');
-    $val = ! empty($opt['btn_alignment']) ? $opt['btn_alignment'] : 'left';
+    $val = ! empty($opt['btn_alignment']) ? $opt['btn_alignment'] : 'right';
     ?>
     <select name="snn_accessibility_settings[btn_alignment]">
         <option value="left" <?php selected($val, 'left'); ?>><?php esc_html_e( 'Left', 'snn' ); ?></option>
@@ -217,23 +358,23 @@ function snn_btn_spacing_right_callback() {
     <?php
 }
 
-// Enqueue widget JS in head, but skip when Bricks editor is running.
+// Enqueue new snn-accessibility widget JS, but skip when Bricks editor is running.
 function snn_enqueue_accessibility_widget_head() {
     if ( isset( $_GET['bricks'] ) && 'run' === $_GET['bricks'] ) {
         return;
     }
     $opt = get_option('snn_accessibility_settings');
     if ( ! empty( $opt['enqueue_accessibility'] ) ) {
-        $src  = get_stylesheet_directory_uri() . '/assets/js/accessibility.min.js';
-        $path = get_stylesheet_directory() . '/assets/js/accessibility.min.js';
+        $src  = get_stylesheet_directory_uri() . '/assets/js/snn-accessibility.js';
+        $path = get_stylesheet_directory() . '/assets/js/snn-accessibility.js';
         $ver  = file_exists( $path ) ? filemtime( $path ) : false;
         wp_enqueue_script( 'snn-accessibility-widget', $src, [], $ver, false );
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_accessibility_widget_head');
 
-// Output inline JS & styles in footer, but skip when Bricks editor is running.
-function snn_output_accessibility_widget_footer() {
+// Output widget configuration in head, but skip when Bricks editor is running.
+function snn_output_accessibility_widget_config() {
     if ( isset( $_GET['bricks'] ) && 'run' === $_GET['bricks'] ) {
         return;
     }
@@ -241,89 +382,43 @@ function snn_output_accessibility_widget_footer() {
     if ( empty( $opt['enqueue_accessibility'] ) ) {
         return;
     }
-    $c  = $opt['main_color'];
-    $w  = $opt['btn_width'];
-    $h  = $opt['btn_height'];
-    $a  = $opt['btn_alignment'];
-    $l  = $opt['btn_spacing_left'];
-    $b  = $opt['btn_spacing_bottom'];
-    $r  = $opt['btn_spacing_right'];
+    
+    // Get all settings with defaults
+    $primary       = ! empty($opt['main_color'])        ? $opt['main_color']        : '#1663d7';
+    $secondary     = ! empty($opt['secondary_color'])   ? $opt['secondary_color']   : '#ffffff';
+    $option_bg     = ! empty($opt['option_bg_color'])   ? $opt['option_bg_color']   : '#ffffff';
+    $option_text   = ! empty($opt['option_text_color']) ? $opt['option_text_color'] : '#333333';
+    $option_icon   = ! empty($opt['option_icon_color']) ? $opt['option_icon_color'] : '#000000';
+    $btn_width     = ! empty($opt['btn_width'])         ? $opt['btn_width']         : 55;
+    $btn_height    = ! empty($opt['btn_height'])        ? $opt['btn_height']        : 55;
+    $alignment     = ! empty($opt['btn_alignment'])     ? $opt['btn_alignment']     : 'right';
+    $spacing_left  = ! empty($opt['btn_spacing_left'])  ? $opt['btn_spacing_left']  : 20;
+    $spacing_bottom= ! empty($opt['btn_spacing_bottom']) ? $opt['btn_spacing_bottom']: 20;
+    $spacing_right = ! empty($opt['btn_spacing_right']) ? $opt['btn_spacing_right'] : 20;
+    
+    // Determine spacing values based on alignment
+    $side_value = ( 'left' === $alignment ) ? $spacing_left : $spacing_right;
+    
     ?>
     <script>
-    const mainColor = '<?php echo esc_js($c); ?>';
-    function applyStylesToMenuBtn(btn){
-        if(!btn) return;
-        btn.style.setProperty('outline',`5px solid ${mainColor}`,'important');
-        btn.style.setProperty('background',mainColor,'important');
-        btn.style.setProperty('background',`linear-gradient(96deg,${mainColor}0,${mainColor}100%)`,'important');
-    }
-    function applyStylesToMenuHeader(h){
-        if(!h) return;
-        h.style.setProperty('background-color',mainColor,'important');
-    }
-    function checkAndStyleElements(){
-        const btn = document.querySelector('.asw-menu-btn');
-        const hdr = document.querySelector('.asw-menu-header');
-        if(btn) applyStylesToMenuBtn(btn);
-        if(hdr) applyStylesToMenuHeader(hdr);
-        if(btn && hdr) observer.disconnect();
-    }
-    const observer = new MutationObserver(checkAndStyleElements);
-    observer.observe(document.body,{childList:true,subtree:true});
-    document.addEventListener("DOMContentLoaded",checkAndStyleElements);
+    window.ACCESSIBILITY_WIDGET_CONFIG = {
+        colors: {
+            primary: '<?php echo esc_js($primary); ?>',
+            secondary: '<?php echo esc_js($secondary); ?>',
+            optionBg: '<?php echo esc_js($option_bg); ?>',
+            optionText: '<?php echo esc_js($option_text); ?>',
+            optionIcon: '<?php echo esc_js($option_icon); ?>'
+        },
+        button: {
+            size: '<?php echo esc_js($btn_width); ?>px'
+        },
+        widgetPosition: {
+            side: '<?php echo esc_js($alignment); ?>',
+            <?php echo esc_js($alignment); ?>: '<?php echo esc_js($side_value); ?>px',
+            bottom: '<?php echo esc_js($spacing_bottom); ?>px'
+        }
+    };
     </script>
-    <style>
-    :root {
-        --main-color: <?php echo esc_html($c); ?>;
-        --btn-width: <?php echo esc_html($w); ?>px;
-        --btn-height: <?php echo esc_html($h); ?>px;
-    }
-    <?php if ( 'left' === $a ): ?>
-    .asw-menu-btn {
-        left: <?php echo esc_html($l); ?>px !important;
-        bottom: <?php echo esc_html($b); ?>px !important;
-        right: <?php echo esc_html($r); ?>px !important;
-    }
-    <?php else: ?>
-    .asw-menu-btn {
-        right: <?php echo esc_html($r); ?>px !important;
-        bottom: <?php echo esc_html($b); ?>px !important;
-        left: auto !important;
-    }
-    <?php endif; ?>
-    .asw-footer { display: none !important; }
-    .asw-menu-content {
-        max-height: 100% !important;
-        padding-top: 15px !important;
-        padding-bottom: 15px !important;
-        overflow: auto !important;
-    }
-    .asw-menu-header svg,
-    .asw-menu-header svg path { fill: var(--main-color) !important; }
-    .asw-btn { aspect-ratio: 6/3.8 !important; }
-    .asw-adjust-font {
-        display: flex !important;
-        justify-content: space-between;
-    }
-    .asw-adjust-font > div { margin-top: 0 !important; gap: 5px; }
-    .asw-menu-header div[role=button] { padding: 8px !important; }
-    .asw-menu-btn svg{
-        width:  calc(<?php echo esc_html($w / 1.4); ?>px / 1.4 ) !important;
-        height: calc(<?php echo esc_html($w / 1.4); ?>px / 1.4 ) !important;
-        min-width: auto !important;
-        min-height: auto !important;
-    }
-    .asw-menu-btn {
-        width: <?php echo esc_html($w / 1.4); ?>px !important;
-        height: <?php echo esc_html($w / 1.4); ?>px !important;
-        min-width: auto !important;
-        min-height: auto !important;
-    }
-    .asw-menu, .asw-widget {
-        user-select: auto !important;
-        outline: 2px !important;
-    }
-    </style>
     <?php
 }
-add_action('wp_footer', 'snn_output_accessibility_widget_footer');
+add_action('wp_head', 'snn_output_accessibility_widget_config', 5);
