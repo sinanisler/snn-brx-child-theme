@@ -1,4 +1,4 @@
-/* ===========================================    
+/* ===========================================      
 
   ACCESSIBILITY WIDGET
 
@@ -342,6 +342,756 @@ const TRANSLATIONS = {
     reset: 'リセット',
     saturation: '彩度',
     selectLanguage: '言語を選択'
+  },
+  pt: {
+    accessibilityMenu: 'Menu de Acessibilidade',
+    closeAccessibilityMenu: 'Fechar Menu de Acessibilidade',
+    accessibilityTools: 'Ferramentas de Acessibilidade',
+    resetAllSettings: 'Redefinir Configurações',
+    screenReader: 'Leitor de Tela',
+    voiceCommand: 'Comando de Voz',
+    textSpacing: 'Espaçamento de Texto',
+    pauseAnimations: 'Pausar Animações',
+    hideImages: 'Ocultar Imagens',
+    dyslexiaFriendly: 'Fonte para Dislexia',
+    biggerCursor: 'Cursor Maior',
+    lineHeight: 'Altura da Linha',
+    fontSelection: 'Seleção de Fonte',
+    colorFilter: 'Filtro de Cor',
+    textAlign: 'Alinhamento do Texto',
+    textSize: 'Tamanho do Texto',
+    highContrast: 'Alto Contraste',
+    defaultFont: 'Fonte Padrão',
+    noFilter: 'Sem Filtro',
+    default: 'Padrão',
+    screenReaderOn: 'Leitor de tela ativado',
+    screenReaderOff: 'Leitor de tela desativado',
+    voiceControlActivated: 'Controle de voz ativado',
+    notSupportedBrowser: 'não é suportado neste navegador',
+    close: 'Fechar',
+    reset: 'Redefinir',
+    saturation: 'Saturação',
+    selectLanguage: 'Selecionar Idioma'
+  },
+  bn: {
+    accessibilityMenu: 'অ্যাক্সেসিবিলিটি মেনু',
+    closeAccessibilityMenu: 'মেনু বন্ধ করুন',
+    accessibilityTools: 'অ্যাক্সেসিবিলিটি টুলস',
+    resetAllSettings: 'সব সেটিংস রিসেট করুন',
+    screenReader: 'স্ক্রিন রিডার',
+    voiceCommand: 'ভয়েস কমান্ড',
+    textSpacing: 'টেক্সট স্পেসিং',
+    pauseAnimations: 'অ্যানিমেশন থামান',
+    hideImages: 'ছবি লুকান',
+    dyslexiaFriendly: 'ডিসলেক্সিয়া ফ্রেন্ডলি',
+    biggerCursor: 'বড় কার্সার',
+    lineHeight: 'লাইনের উচ্চতা',
+    fontSelection: 'ফন্ট নির্বাচন',
+    colorFilter: 'কালার ফিল্টার',
+    textAlign: 'লেখা বিন্যাস',
+    textSize: 'লেখার আকার',
+    highContrast: 'হাই কন্ট্রাস্ট',
+    defaultFont: 'ডিফল্ট ফন্ট',
+    noFilter: 'কোন ফিল্টার নেই',
+    default: 'ডিফল্ট',
+    screenReaderOn: 'স্ক্রিন রিডার চালু',
+    screenReaderOff: 'স্ক্রিন রিডার বন্ধ',
+    voiceControlActivated: 'ভয়েস কন্ট্রোল সক্রিয়',
+    notSupportedBrowser: 'এই ব্রাউজারে সমর্থিত নয়',
+    close: 'বন্ধ',
+    reset: 'রিসেট',
+    saturation: 'স্যাচুরেশন',
+    selectLanguage: 'ভাষা নির্বাচন করুন'
+  },
+  ko: {
+    accessibilityMenu: '접근성 메뉴',
+    closeAccessibilityMenu: '접근성 메뉴 닫기',
+    accessibilityTools: '접근성 도구',
+    resetAllSettings: '모든 설정 초기화',
+    screenReader: '스크린 리더',
+    voiceCommand: '음성 명령',
+    textSpacing: '텍스트 간격',
+    pauseAnimations: '애니메이션 일시 중지',
+    hideImages: '이미지 숨기기',
+    dyslexiaFriendly: '난독증 배려',
+    biggerCursor: '큰 커서',
+    lineHeight: '줄 높이',
+    fontSelection: '글꼴 선택',
+    colorFilter: '색상 필터',
+    textAlign: '텍스트 정렬',
+    textSize: '텍스트 크기',
+    highContrast: '고대비',
+    defaultFont: '기본 글꼴',
+    noFilter: '필터 없음',
+    default: '기본',
+    screenReaderOn: '스크린 리더 켜짐',
+    screenReaderOff: '스크린 리더 꺼짐',
+    voiceControlActivated: '음성 제어 활성화',
+    notSupportedBrowser: '이 브라우저에서 지원되지 않습니다',
+    close: '닫기',
+    reset: '초기화',
+    saturation: '채도',
+    selectLanguage: '언어 선택'
+  },
+  vi: {
+    accessibilityMenu: 'Menu Trợ năng',
+    closeAccessibilityMenu: 'Đóng Menu',
+    accessibilityTools: 'Công cụ Trợ năng',
+    resetAllSettings: 'Đặt lại Tất cả',
+    screenReader: 'Trình đọc màn hình',
+    voiceCommand: 'Lệnh giọng nói',
+    textSpacing: 'Khoảng cách chữ',
+    pauseAnimations: 'Dừng Hoạt ảnh',
+    hideImages: 'Ẩn Hình ảnh',
+    dyslexiaFriendly: 'Phông chữ dễ đọc',
+    biggerCursor: 'Con trỏ lớn',
+    lineHeight: 'Chiều cao dòng',
+    fontSelection: 'Chọn phông chữ',
+    colorFilter: 'Bộ lọc màu',
+    textAlign: 'Căn chỉnh văn bản',
+    textSize: 'Cỡ chữ',
+    highContrast: 'Độ tương phản cao',
+    defaultFont: 'Phông chữ mặc định',
+    noFilter: 'Không bộ lọc',
+    default: 'Mặc định',
+    screenReaderOn: 'Bật trình đọc màn hình',
+    screenReaderOff: 'Tắt trình đọc màn hình',
+    voiceControlActivated: 'Đã kích hoạt điều khiển giọng nói',
+    notSupportedBrowser: 'không được hỗ trợ trên trình duyệt này',
+    close: 'Đóng',
+    reset: 'Đặt lại',
+    saturation: 'Độ bão hòa',
+    selectLanguage: 'Chọn Ngôn ngữ'
+  },
+  id: {
+    accessibilityMenu: 'Menu Aksesibilitas',
+    closeAccessibilityMenu: 'Tutup Menu',
+    accessibilityTools: 'Alat Aksesibilitas',
+    resetAllSettings: 'Atur Ulang Semua',
+    screenReader: 'Pembaca Layar',
+    voiceCommand: 'Perintah Suara',
+    textSpacing: 'Jarak Teks',
+    pauseAnimations: 'Hentikan Animasi',
+    hideImages: 'Sembunyikan Gambar',
+    dyslexiaFriendly: 'Ramah Disleksia',
+    biggerCursor: 'Kursor Besar',
+    lineHeight: 'Tinggi Baris',
+    fontSelection: 'Pilihan Font',
+    colorFilter: 'Filter Warna',
+    textAlign: 'Perataan Teks',
+    textSize: 'Ukuran Teks',
+    highContrast: 'Kontras Tinggi',
+    defaultFont: 'Font Default',
+    noFilter: 'Tanpa Filter',
+    default: 'Default',
+    screenReaderOn: 'Pembaca layar aktif',
+    screenReaderOff: 'Pembaca layar mati',
+    voiceControlActivated: 'Kontrol suara diaktifkan',
+    notSupportedBrowser: 'tidak didukung di browser ini',
+    close: 'Tutup',
+    reset: 'Atur Ulang',
+    saturation: 'Saturasi',
+    selectLanguage: 'Pilih Bahasa'
+  },
+  th: {
+    accessibilityMenu: 'เมนูการเข้าถึง',
+    closeAccessibilityMenu: 'ปิดเมนู',
+    accessibilityTools: 'เครื่องมือการเข้าถึง',
+    resetAllSettings: 'รีเซ็ตการตั้งค่าทั้งหมด',
+    screenReader: 'โปรแกรมอ่านหน้าจอ',
+    voiceCommand: 'คำสั่งเสียง',
+    textSpacing: 'ระยะห่างข้อความ',
+    pauseAnimations: 'หยุดภาพเคลื่อนไหว',
+    hideImages: 'ซ่อนรูปภาพ',
+    dyslexiaFriendly: 'ฟอนต์สำหรับผู้ที่มีปัญหาการอ่าน',
+    biggerCursor: 'เคอร์เซอร์ขนาดใหญ่',
+    lineHeight: 'ความสูงบรรทัด',
+    fontSelection: 'เลือกฟอนต์',
+    colorFilter: 'ตัวกรองสี',
+    textAlign: 'การจัดตำแหน่งข้อความ',
+    textSize: 'ขนาดข้อความ',
+    highContrast: 'ความคมชัดสูง',
+    defaultFont: 'ฟอนต์เริ่มต้น',
+    noFilter: 'ไม่มีตัวกรอง',
+    default: 'ค่าเริ่มต้น',
+    screenReaderOn: 'เปิดโปรแกรมอ่านหน้าจอ',
+    screenReaderOff: 'ปิดโปรแกรมอ่านหน้าจอ',
+    voiceControlActivated: 'เปิดใช้งานการควบคุมด้วยเสียง',
+    notSupportedBrowser: 'ไม่รองรับในเบราว์เซอร์นี้',
+    close: 'ปิด',
+    reset: 'รีเซ็ต',
+    saturation: 'ความอิ่มตัวของสี',
+    selectLanguage: 'เลือกภาษา'
+  },
+  pl: {
+    accessibilityMenu: 'Menu Dostępności',
+    closeAccessibilityMenu: 'Zamknij Menu',
+    accessibilityTools: 'Narzędzia Dostępności',
+    resetAllSettings: 'Resetuj Ustawienia',
+    screenReader: 'Czytnik Ekranu',
+    voiceCommand: 'Komendy Głosowe',
+    textSpacing: 'Odstępy w Tekście',
+    pauseAnimations: 'Zatrzymaj Animacje',
+    hideImages: 'Ukryj Obrazki',
+    dyslexiaFriendly: 'Dla Dyslektyków',
+    biggerCursor: 'Większy Kursor',
+    lineHeight: 'Wysokość Linii',
+    fontSelection: 'Wybór Czcionki',
+    colorFilter: 'Filtr Kolorów',
+    textAlign: 'Wyrównanie Tekstu',
+    textSize: 'Rozmiar Tekstu',
+    highContrast: 'Wysoki Kontrast',
+    defaultFont: 'Domyślna Czcionka',
+    noFilter: 'Bez Filtra',
+    default: 'Domyślne',
+    screenReaderOn: 'Czytnik ekranu włączony',
+    screenReaderOff: 'Czytnik ekranu wyłączony',
+    voiceControlActivated: 'Sterowanie głosem aktywne',
+    notSupportedBrowser: 'nie jest obsługiwane w tej przeglądarce',
+    close: 'Zamknij',
+    reset: 'Resetuj',
+    saturation: 'Nasycenie',
+    selectLanguage: 'Wybierz Język'
+  },
+  nl: {
+    accessibilityMenu: 'Toegankelijkheidsmenu',
+    closeAccessibilityMenu: 'Menu Sluiten',
+    accessibilityTools: 'Hulpmiddelen',
+    resetAllSettings: 'Minstellingen Resetten',
+    screenReader: 'Schermlezer',
+    voiceCommand: 'Spraakcommando',
+    textSpacing: 'Tekstafstand',
+    pauseAnimations: 'Animaties Pauzeren',
+    hideImages: 'Afbeeldingen Verbergen',
+    dyslexiaFriendly: 'Dyslexie Vriendelijk',
+    biggerCursor: 'Grotere Cursor',
+    lineHeight: 'Regelhoogte',
+    fontSelection: 'Lettertype Selectie',
+    colorFilter: 'Kleurfilter',
+    textAlign: 'Tekst Uitlijning',
+    textSize: 'Tekstgrootte',
+    highContrast: 'Hoog Contrast',
+    defaultFont: 'Standaard Lettertype',
+    noFilter: 'Geen Filter',
+    default: 'Standaard',
+    screenReaderOn: 'Schermlezer aan',
+    screenReaderOff: 'Schermlezer uit',
+    voiceControlActivated: 'Spraakbesturing geactiveerd',
+    notSupportedBrowser: 'wordt niet ondersteund in deze browser',
+    close: 'Sluiten',
+    reset: 'Resetten',
+    saturation: 'Verzadiging',
+    selectLanguage: 'Selecteer Taal'
+  },
+  el: {
+    accessibilityMenu: 'Μενού Προσβασιμότητας',
+    closeAccessibilityMenu: 'Κλείσιμο Μενού',
+    accessibilityTools: 'Εργαλεία Προσβασιμότητας',
+    resetAllSettings: 'Επαναφορά Ρυθμίσεων',
+    screenReader: 'Αναγνώστης Οθόνης',
+    voiceCommand: 'Φωνητική Εντολή',
+    textSpacing: 'Απόσταση Κειμένου',
+    pauseAnimations: 'Παύση Κινήσεων',
+    hideImages: 'Απόκρυψη Εικόνων',
+    dyslexiaFriendly: 'Φιλικό για Δυσλεξία',
+    biggerCursor: 'Μεγαλύτερος Δρομέας',
+    lineHeight: 'Ύψος Γραμμής',
+    fontSelection: 'Επιλογή Γραμματοσειράς',
+    colorFilter: 'Φίλτρο Χρώματος',
+    textAlign: 'Στοίχιση Κειμένου',
+    textSize: 'Μέγεθος Κειμένου',
+    highContrast: 'Υψηλή Αντίθεση',
+    defaultFont: 'Προεπιλεγμένη Γραμματοσειρά',
+    noFilter: 'Χωρίς Φίλτρο',
+    default: 'Προεπιλογή',
+    screenReaderOn: 'Αναγνώστης οθόνης ενεργός',
+    screenReaderOff: 'Αναγνώστης οθόνης ανενεργός',
+    voiceControlActivated: 'Φωνητικός έλεγχος ενεργοποιήθηκε',
+    notSupportedBrowser: 'δεν υποστηρίζεται σε αυτόν τον περιηγητή',
+    close: 'Κλείσιμο',
+    reset: 'Επαναφορά',
+    saturation: 'Κορεσμός',
+    selectLanguage: 'Επιλογή Γλώσσας'
+  },
+  sv: {
+    accessibilityMenu: 'Tillgänglighetsmeny',
+    closeAccessibilityMenu: 'Stäng Meny',
+    accessibilityTools: 'Verktyg',
+    resetAllSettings: 'Återställ Inställningar',
+    screenReader: 'Skärmläsare',
+    voiceCommand: 'Röstkommando',
+    textSpacing: 'Textavstånd',
+    pauseAnimations: 'Pausa Animationer',
+    hideImages: 'Dölj Bilder',
+    dyslexiaFriendly: 'Dyslexi Vänlig',
+    biggerCursor: 'Större Markör',
+    lineHeight: 'Radhöjd',
+    fontSelection: 'Teckensnittsval',
+    colorFilter: 'Färgfilter',
+    textAlign: 'Textjustering',
+    textSize: 'Textstorlek',
+    highContrast: 'Hög Kontrast',
+    defaultFont: 'Standardteckensnitt',
+    noFilter: 'Inget Filter',
+    default: 'Standard',
+    screenReaderOn: 'Skärmläsare på',
+    screenReaderOff: 'Skärmläsare av',
+    voiceControlActivated: 'Röststyrning aktiverad',
+    notSupportedBrowser: 'stöds inte i denna webbläsare',
+    close: 'Stäng',
+    reset: 'Återställ',
+    saturation: 'Mättnad',
+    selectLanguage: 'Välj Språk'
+  },
+  no: {
+    accessibilityMenu: 'Tilgjengelighetsmeny',
+    closeAccessibilityMenu: 'Lukk Meny',
+    accessibilityTools: 'Verktøy',
+    resetAllSettings: 'Nullstill Innstillinger',
+    screenReader: 'Skjermleser',
+    voiceCommand: 'Talekommando',
+    textSpacing: 'Tekstavstand',
+    pauseAnimations: 'Pause Animasjoner',
+    hideImages: 'Skjul Bilder',
+    dyslexiaFriendly: 'Dysleksivennlig',
+    biggerCursor: 'Større Markør',
+    lineHeight: 'Linjehøyde',
+    fontSelection: 'Skrifttype',
+    colorFilter: 'Fargefilter',
+    textAlign: 'Tekstjustering',
+    textSize: 'Tekststørrelse',
+    highContrast: 'Høy Kontrast',
+    defaultFont: 'Standard Skrifttype',
+    noFilter: 'Ingen Filter',
+    default: 'Standard',
+    screenReaderOn: 'Skjermleser på',
+    screenReaderOff: 'Skjermleser av',
+    voiceControlActivated: 'Talestyring aktivert',
+    notSupportedBrowser: 'støttes ikke i denne nettleseren',
+    close: 'Lukk',
+    reset: 'Nullstill',
+    saturation: 'Metning',
+    selectLanguage: 'Velg Språk'
+  },
+  da: {
+    accessibilityMenu: 'Tilgængelighedsmenu',
+    closeAccessibilityMenu: 'Luk Menu',
+    accessibilityTools: 'Værktøjer',
+    resetAllSettings: 'Nulstil Indstillinger',
+    screenReader: 'Skærmlæser',
+    voiceCommand: 'Stemmekommando',
+    textSpacing: 'Tekstafstand',
+    pauseAnimations: 'Pause Animationer',
+    hideImages: 'Skjul Billeder',
+    dyslexiaFriendly: 'Ordblindevenlig',
+    biggerCursor: 'Større Markør',
+    lineHeight: 'Linjehøjde',
+    fontSelection: 'Skrifttype',
+    colorFilter: 'Farvefilter',
+    textAlign: 'Tekstjustering',
+    textSize: 'Tekststørrelse',
+    highContrast: 'Høj Kontrast',
+    defaultFont: 'Standard Skrifttype',
+    noFilter: 'Intet Filter',
+    default: 'Standard',
+    screenReaderOn: 'Skærmlæser til',
+    screenReaderOff: 'Skærmlæser fra',
+    voiceControlActivated: 'Stemmestyring aktiveret',
+    notSupportedBrowser: 'understøttes ikke i denne browser',
+    close: 'Luk',
+    reset: 'Nulstil',
+    saturation: 'Mætning',
+    selectLanguage: 'Vælg Sprog'
+  },
+  fi: {
+    accessibilityMenu: 'Saavutettavuusvalikko',
+    closeAccessibilityMenu: 'Sulje Valikko',
+    accessibilityTools: 'Työkalut',
+    resetAllSettings: 'Nollaa Asetukset',
+    screenReader: 'Ruudunluku',
+    voiceCommand: 'Äänikomento',
+    textSpacing: 'Tekstiväli',
+    pauseAnimations: 'Pysäytä Animaatiot',
+    hideImages: 'Piilota Kuvat',
+    dyslexiaFriendly: 'Lukihäiriöystävällinen',
+    biggerCursor: 'Suurempi Kohdistin',
+    lineHeight: 'Rivikorkeus',
+    fontSelection: 'Fonttivalinta',
+    colorFilter: 'Värisuodatin',
+    textAlign: 'Tekstin Tasaus',
+    textSize: 'Tekstin Koko',
+    highContrast: 'Suuri Kontrasti',
+    defaultFont: 'Oletusfontti',
+    noFilter: 'Ei Suodatinta',
+    default: 'Oletus',
+    screenReaderOn: 'Ruudunluku päällä',
+    screenReaderOff: 'Ruudunluku pois',
+    voiceControlActivated: 'Ääniohjaus aktivoitu',
+    notSupportedBrowser: 'ei tueta tässä selaimessa',
+    close: 'Sulje',
+    reset: 'Nollaa',
+    saturation: 'Kylläisyys',
+    selectLanguage: 'Valitse Kieli'
+  },
+  cs: {
+    accessibilityMenu: 'Menu Usnadnění',
+    closeAccessibilityMenu: 'Zavřít Menu',
+    accessibilityTools: 'Nástroje',
+    resetAllSettings: 'Resetovat Nastavení',
+    screenReader: 'Čtečka Obrazovky',
+    voiceCommand: 'Hlasový Příkaz',
+    textSpacing: 'Rozestupy Textu',
+    pauseAnimations: 'Pozastavit Animace',
+    hideImages: 'Skrýt Obrázky',
+    dyslexiaFriendly: 'Pro Dyslektiky',
+    biggerCursor: 'Větší Kurzor',
+    lineHeight: 'Výška Řádku',
+    fontSelection: 'Výběr Písma',
+    colorFilter: 'Barevný Filtr',
+    textAlign: 'Zarovnání Textu',
+    textSize: 'Velikost Textu',
+    highContrast: 'Vysoký Kontrast',
+    defaultFont: 'Výchozí Písmo',
+    noFilter: 'Bez Filtru',
+    default: 'Výchozí',
+    screenReaderOn: 'Čtečka obrazovky zapnuta',
+    screenReaderOff: 'Čtečka obrazovky vypnuta',
+    voiceControlActivated: 'Hlasové ovládání aktivováno',
+    notSupportedBrowser: 'není v tomto prohlížeči podporováno',
+    close: 'Zavřít',
+    reset: 'Resetovat',
+    saturation: 'Sytost',
+    selectLanguage: 'Vybrat Jazyk'
+  },
+  hu: {
+    accessibilityMenu: 'Akadálymentesítési Menü',
+    closeAccessibilityMenu: 'Menü Bezárása',
+    accessibilityTools: 'Eszközök',
+    resetAllSettings: 'Beállítások Alaphelyzetbe',
+    screenReader: 'Képernyőolvasó',
+    voiceCommand: 'Hangparancs',
+    textSpacing: 'Szöveg Térköz',
+    pauseAnimations: 'Animációk Szüneteltetése',
+    hideImages: 'Képek Elrejtése',
+    dyslexiaFriendly: 'Diszlexia Barát',
+    biggerCursor: 'Nagyobb Kurzor',
+    lineHeight: 'Sormagasság',
+    fontSelection: 'Betűtípus Választás',
+    colorFilter: 'Színszűrő',
+    textAlign: 'Szöveg Igazítás',
+    textSize: 'Szövegméret',
+    highContrast: 'Nagy Kontraszt',
+    defaultFont: 'Alapértelmezett Betű',
+    noFilter: 'Nincs Szűrő',
+    default: 'Alapértelmezett',
+    screenReaderOn: 'Képernyőolvasó be',
+    screenReaderOff: 'Képernyőolvasó ki',
+    voiceControlActivated: 'Hangvezérlés aktiválva',
+    notSupportedBrowser: 'nem támogatott ebben a böngészőben',
+    close: 'Bezárás',
+    reset: 'Visszaállítás',
+    saturation: 'Telítettség',
+    selectLanguage: 'Nyelv Választása'
+  },
+  ro: {
+    accessibilityMenu: 'Meniu Accesibilitate',
+    closeAccessibilityMenu: 'Închide Meniul',
+    accessibilityTools: 'Instrumente',
+    resetAllSettings: 'Resetează Setările',
+    screenReader: 'Cititor de Ecran',
+    voiceCommand: 'Comandă Vocală',
+    textSpacing: 'Spațiere Text',
+    pauseAnimations: 'Pauză Animații',
+    hideImages: 'Ascunde Imaginile',
+    dyslexiaFriendly: 'Pentru Dislexie',
+    biggerCursor: 'Cursor Mai Mare',
+    lineHeight: 'Înălțime Linie',
+    fontSelection: 'Selecție Font',
+    colorFilter: 'Filtru de Culoare',
+    textAlign: 'Aliniere Text',
+    textSize: 'Mărime Text',
+    highContrast: 'Contrast Înalt',
+    defaultFont: 'Font Implicit',
+    noFilter: 'Fără Filtru',
+    default: 'Implicit',
+    screenReaderOn: 'Cititor ecran pornit',
+    screenReaderOff: 'Cititor ecran oprit',
+    voiceControlActivated: 'Control vocal activat',
+    notSupportedBrowser: 'nu este suportat în acest browser',
+    close: 'Închide',
+    reset: 'Resetează',
+    saturation: 'Saturație',
+    selectLanguage: 'Selectează Limba'
+  },
+  he: {
+    accessibilityMenu: 'תפריט נגישות',
+    closeAccessibilityMenu: 'סגור תפריט',
+    accessibilityTools: 'כלי נגישות',
+    resetAllSettings: 'אפס הגדרות',
+    screenReader: 'קורא מסך',
+    voiceCommand: 'פקודה קולית',
+    textSpacing: 'ריווח טקסט',
+    pauseAnimations: 'השהה אנימציות',
+    hideImages: 'הסתר תמונות',
+    dyslexiaFriendly: 'ידידותי לדיסלקציה',
+    biggerCursor: 'סמן גדול',
+    lineHeight: 'גובה שורה',
+    fontSelection: 'בחירת גופן',
+    colorFilter: 'מסנן צבעים',
+    textAlign: 'יישור טקסט',
+    textSize: 'גודל טקסט',
+    highContrast: 'ניגודיות גבוהה',
+    defaultFont: 'גופן ברירת מחדל',
+    noFilter: 'ללא מסנן',
+    default: 'ברירת מחדל',
+    screenReaderOn: 'קורא מסך פועל',
+    screenReaderOff: 'קורא מסך כבוי',
+    voiceControlActivated: 'שליטה קולית הופעלה',
+    notSupportedBrowser: 'אינו נתמך בדפדפן זה',
+    close: 'סגור',
+    reset: 'אפס',
+    saturation: 'רוויה',
+    selectLanguage: 'בחר שפה'
+  },
+  fa: {
+    accessibilityMenu: 'منوی دسترسی',
+    closeAccessibilityMenu: 'بستن منو',
+    accessibilityTools: 'ابزارهای دسترسی',
+    resetAllSettings: 'بازنشانی تنظیمات',
+    screenReader: 'صفحه‌خوان',
+    voiceCommand: 'دستور صوتی',
+    textSpacing: 'فاصله متن',
+    pauseAnimations: 'توقف انیمیشن',
+    hideImages: 'مخفی کردن تصاویر',
+    dyslexiaFriendly: 'دوستدار و نارساخوانی',
+    biggerCursor: 'نشانگر بزرگتر',
+    lineHeight: 'ارتفاع خط',
+    fontSelection: 'انتخاب قلم',
+    colorFilter: 'فیلتر رنگ',
+    textAlign: 'تراز متن',
+    textSize: 'اندازه متن',
+    highContrast: 'کنتراست بالا',
+    defaultFont: 'قلم پیش‌فرض',
+    noFilter: 'بدون فیلتر',
+    default: 'پیش‌فرض',
+    screenReaderOn: 'صفحه‌خوان روشن',
+    screenReaderOff: 'صفحه‌خوان خاموش',
+    voiceControlActivated: 'کنترل صوتی فعال شد',
+    notSupportedBrowser: 'در این مرورگر پشتیبانی نمی‌شود',
+    close: 'بستن',
+    reset: 'بازنشانی',
+    saturation: 'اشباع',
+    selectLanguage: 'انتخاب زبان'
+  },
+  ur: {
+    accessibilityMenu: 'رسائی کا مینو',
+    closeAccessibilityMenu: 'مینو بند کریں',
+    accessibilityTools: 'رسائی کے اوزار',
+    resetAllSettings: 'تمام ترتیبات کو دوبارہ ترتیب دیں',
+    screenReader: 'اسکرین ریڈر',
+    voiceCommand: 'صوتی کمانڈ',
+    textSpacing: 'ٹیکسٹ اسپیسنگ',
+    pauseAnimations: 'اینیمیشن روکیں',
+    hideImages: 'تصاویر چھپائیں',
+    dyslexiaFriendly: 'ڈسلیکسیا فرینڈلی',
+    biggerCursor: 'بڑا کرسر',
+    lineHeight: 'لائن کی اونچائی',
+    fontSelection: 'فونٹ کا انتخاب',
+    colorFilter: 'کلر فلٹر',
+    textAlign: 'ٹیکسٹ الائنمنٹ',
+    textSize: 'ٹیکسٹ کا سائز',
+    highContrast: 'ہائی کنٹراسٹ',
+    defaultFont: 'ڈیفالٹ فونٹ',
+    noFilter: 'کوئی فلٹر نہیں',
+    default: 'ڈیفالٹ',
+    screenReaderOn: 'اسکرین ریڈر آن',
+    screenReaderOff: 'اسکرین ریڈر آف',
+    voiceControlActivated: 'وائس کنٹرول فعال',
+    notSupportedBrowser: 'اس براؤزر میں سپورٹ نہیں ہے',
+    close: 'بند کریں',
+    reset: 'ری سیٹ',
+    saturation: 'دیگر',
+    selectLanguage: 'زبان منتخب کریں'
+  },
+  pa: {
+    accessibilityMenu: 'ਪਹੁੰਚਯੋਗਤਾ ਮੀਨੂ',
+    closeAccessibilityMenu: 'ਮੀਨੂ ਬੰਦ ਕਰੋ',
+    accessibilityTools: 'ਪਹੁੰਚਯੋਗਤਾ ਟੂਲ',
+    resetAllSettings: 'ਸਾਰੀਆਂ ਸੈਟਿੰਗਾਂ ਰੀਸੈਟ ਕਰੋ',
+    screenReader: 'ਸਕ੍ਰੀਨ ਰੀਡਰ',
+    voiceCommand: 'ਵਾਇਸ ਕਮਾਂਡ',
+    textSpacing: 'ਟੈਕਸਟ ਸਪੇਸਿੰਗ',
+    pauseAnimations: 'ਐਨੀਮੇਸ਼ਨ ਰੋਕੋ',
+    hideImages: 'ਚਿੱਤਰ ਲੁਕਾਓ',
+    dyslexiaFriendly: 'ਡਿਸਲੈਕਸੀਆ ਫਰੈਂਡਲੀ',
+    biggerCursor: 'ਵੱਡਾ ਕਰਸਰ',
+    lineHeight: 'ਲਾਈਨ ਦੀ ਉਚਾਈ',
+    fontSelection: 'ਫੌਂਟ ਚੋਣ',
+    colorFilter: 'ਰੰਗ ਫਿਲਟਰ',
+    textAlign: 'ਟੈਕਸਟ ਅਲਾਈਨਮੈਂਟ',
+    textSize: 'ਟੈਕਸਟ ਦਾ ਆਕਾਰ',
+    highContrast: 'ਹਾਈ ਕੰਟਰਾਸਟ',
+    defaultFont: 'ਡਿਫੌਲਟ ਫੌਂਟ',
+    noFilter: 'ਕੋਈ ਫਿਲਟਰ ਨਹੀਂ',
+    default: 'ਡਿਫੌਲਟ',
+    screenReaderOn: 'ਸਕ੍ਰੀਨ ਰੀਡਰ ਚਾਲੂ',
+    screenReaderOff: 'ਸਕ੍ਰੀਨ ਰੀਡਰ ਬੰਦ',
+    voiceControlActivated: 'ਵਾਇਸ ਕੰਟਰੋਲ ਐਕਟੀਵੇਟਿਡ',
+    notSupportedBrowser: 'ਇਸ ਬ੍ਰਾਊਜ਼ਰ ਤੇ ਸਮਰਥਿਤ ਨਹੀਂ ਹੈ',
+    close: 'ਬੰਦ ਕਰੋ',
+    reset: 'ਰੀਸੈਟ',
+    saturation: 'ਸੰਤ੍ਰਿਪਤੀ',
+    selectLanguage: 'ਭਾਸ਼ਾ ਚੁਣੋ'
+  },
+  mr: {
+    accessibilityMenu: 'प्रवेशयोग्यता मेनू',
+    closeAccessibilityMenu: 'मेनू बंद करा',
+    accessibilityTools: 'साधने',
+    resetAllSettings: 'सर्व सेटिंग्ज रीसेट करा',
+    screenReader: 'स्क्रीन रीडर',
+    voiceCommand: 'व्हॉइस कमांड',
+    textSpacing: 'मजकूर अंतर',
+    pauseAnimations: 'अॅनिमेशन थांबवा',
+    hideImages: 'प्रतिमा लपवा',
+    dyslexiaFriendly: 'डिस्लेक्सिया फ्रेंडली',
+    biggerCursor: 'मोठा कर्सर',
+    lineHeight: 'ओळीची उंची',
+    fontSelection: 'फॉन्ट निवड',
+    colorFilter: 'रंग फिल्टर',
+    textAlign: 'मजकूर संरेखन',
+    textSize: 'मजकूर आकार',
+    highContrast: 'उच्च कॉन्ट्रास्ट',
+    defaultFont: 'डीफॉल्ट फॉन्ट',
+    noFilter: 'फिल्टर नाही',
+    default: 'डीफॉल्ट',
+    screenReaderOn: 'स्क्रीन रीडर चालू',
+    screenReaderOff: 'स्क्रीन रीडर बंद',
+    voiceControlActivated: 'आवाज नियंत्रण सक्रिय',
+    notSupportedBrowser: 'या ब्राउझरमध्ये समर्थित नाही',
+    close: 'बंद',
+    reset: 'रीसेट',
+    saturation: 'संपृक्तता',
+    selectLanguage: 'भाषा निवडा'
+  },
+  te: {
+    accessibilityMenu: 'యాక్సెసిబిలిటీ మెనూ',
+    closeAccessibilityMenu: 'మెనూ మూసివేయి',
+    accessibilityTools: 'సాధనాలు',
+    resetAllSettings: 'అన్ని సెట్టింగ్‌లను రీసెట్ చేయండి',
+    screenReader: 'స్క్రీన్ రీడర్',
+    voiceCommand: 'వాయిస్ కమాండ్',
+    textSpacing: 'టెక్స్ట్ స్పేసింగ్',
+    pauseAnimations: 'యానిమేషన్లను ఆపివేయండి',
+    hideImages: 'చిత్రాలను దాచండి',
+    dyslexiaFriendly: 'డిస్లెక్సియా ఫ్రెండ్లీ',
+    biggerCursor: 'పెద్ద కర్సర్',
+    lineHeight: 'లైన్ ఎత్తు',
+    fontSelection: 'ఫాంట్ ఎంపిక',
+    colorFilter: 'కలర్ ఫిల్టర్',
+    textAlign: 'టెక్స్ట్ అలైన్‌మెంట్',
+    textSize: 'టెక్స్ట్ సైజు',
+    highContrast: 'హై కాంట్రాస్ట్',
+    defaultFont: 'డిఫాల్ట్ ఫాంట్',
+    noFilter: 'ఫిల్టర్ లేదు',
+    default: 'డిఫాల్ట్',
+    screenReaderOn: 'స్క్రీన్ రీడర్ ఆన్',
+    screenReaderOff: 'స్క్రీన్ రీడర్ ఆఫ్',
+    voiceControlActivated: 'వాయిస్ కంట్రోల్ యాక్టివేట్ చేయబడింది',
+    notSupportedBrowser: 'ఈ బ్రౌజర్‌లో మద్దతు లేదు',
+    close: 'మూసివేయి',
+    reset: 'రీసెట్',
+    saturation: 'సంతృప్తత',
+    selectLanguage: 'భాషను ఎంచుకోండి'
+  },
+  ta: {
+    accessibilityMenu: 'அணுகல் பட்டி',
+    closeAccessibilityMenu: 'பட்டியை மூடு',
+    accessibilityTools: 'கருவிகள்',
+    resetAllSettings: 'அமைப்புகளை மீட்டமை',
+    screenReader: 'திரை படிப்பான்',
+    voiceCommand: 'குரல் கட்டளை',
+    textSpacing: 'உரை இடைவெளி',
+    pauseAnimations: 'அனிமேஷன்களை இடைநிறுத்து',
+    hideImages: 'படங்களை மறை',
+    dyslexiaFriendly: 'டிஸ்லெக்ஸியா நட்பு',
+    biggerCursor: 'பெரிய கர்சர்',
+    lineHeight: 'வரி உயரம்',
+    fontSelection: 'எழுத்துரு தேர்வு',
+    colorFilter: 'வண்ண வடிகட்டி',
+    textAlign: 'உரை சீரமைப்பு',
+    textSize: 'உரை அளவு',
+    highContrast: 'உயர் மாறுபாடு',
+    defaultFont: 'இயல்புநிலை எழுத்துரு',
+    noFilter: 'வடிகட்டி இல்லை',
+    default: 'இயல்புநிலை',
+    screenReaderOn: 'திரை படிப்பான் ஆன்',
+    screenReaderOff: 'திரை படிப்பான் ஆஃப்',
+    voiceControlActivated: 'குரல் கட்டுப்பாடு செயல்படுத்தப்பட்டது',
+    notSupportedBrowser: 'இந்த உலாவியில் ஆதரிக்கப்படவில்லை',
+    close: 'மூடு',
+    reset: 'மீட்டமை',
+    saturation: 'செறிவு',
+    selectLanguage: 'மொழியைத் தேர்ந்தெடு'
+  },
+  ms: {
+    accessibilityMenu: 'Menu Kebolehcapaian',
+    closeAccessibilityMenu: 'Tutup Menu',
+    accessibilityTools: 'Alat',
+    resetAllSettings: 'Tetapkan Semula Semua',
+    screenReader: 'Pembaca Skrin',
+    voiceCommand: 'Arahan Suara',
+    textSpacing: 'Jarak Teks',
+    pauseAnimations: 'Jeda Animasi',
+    hideImages: 'Sembunyikan Imej',
+    dyslexiaFriendly: 'Mesra Disleksia',
+    biggerCursor: 'Kursor Besar',
+    lineHeight: 'Ketinggian Baris',
+    fontSelection: 'Pilihan Fon',
+    colorFilter: 'Penapis Warna',
+    textAlign: 'Jajaran Teks',
+    textSize: 'Saiz Teks',
+    highContrast: 'Kontras Tinggi',
+    defaultFont: 'Fon Lalai',
+    noFilter: 'Tiada Penapis',
+    default: 'Lalai',
+    screenReaderOn: 'Pembaca skrin dihidupkan',
+    screenReaderOff: 'Pembaca skrin dimatikan',
+    voiceControlActivated: 'Kawalan suara diaktifkan',
+    notSupportedBrowser: 'tidak disokong dalam pelayar ini',
+    close: 'Tutup',
+    reset: 'Tetapkan Semula',
+    saturation: 'Ketepuan',
+    selectLanguage: 'Pilih Bahasa'
+  },
+  tl: {
+    accessibilityMenu: 'Menu ng Accessibility',
+    closeAccessibilityMenu: 'Isara ang Menu',
+    accessibilityTools: 'Mga Tool',
+    resetAllSettings: 'I-reset Lahat',
+    screenReader: 'Screen Reader',
+    voiceCommand: 'Voice Command',
+    textSpacing: 'Puwang sa Teksto',
+    pauseAnimations: 'Ihinto ang Animasyon',
+    hideImages: 'Itago ang mga Larawan',
+    dyslexiaFriendly: 'Dyslexia Friendly',
+    biggerCursor: 'Mas Malaking Cursor',
+    lineHeight: 'Taas ng Linya',
+    fontSelection: 'Pagpili ng Font',
+    colorFilter: 'Filter ng Kulay',
+    textAlign: 'Pagkakahanay ng Teksto',
+    textSize: 'Laki ng Teksto',
+    highContrast: 'Mataas na Contrast',
+    defaultFont: 'Default na Font',
+    noFilter: 'Walang Filter',
+    default: 'Default',
+    screenReaderOn: 'Naka-on ang screen reader',
+    screenReaderOff: 'Naka-off ang screen reader',
+    voiceControlActivated: 'Aktibo ang voice control',
+    notSupportedBrowser: 'ay hindi suportado sa browser na ito',
+    close: 'Isara',
+    reset: 'I-reset',
+    saturation: 'Saturation',
+    selectLanguage: 'Piliin ang Wika'
   }
 };
 
@@ -350,25 +1100,25 @@ let currentLanguage = 'en';
 
 function detectBrowserLanguage() {
   const browserLang = (navigator.language || navigator.userLanguage).toLowerCase();
-  
+
   // Direct match
   if (TRANSLATIONS[browserLang]) {
     return browserLang;
   }
-  
+
   // Try language code only (e.g., 'en' from 'en-US')
   const langCode = browserLang.split('-')[0];
   if (TRANSLATIONS[langCode]) {
     return langCode;
   }
-  
+
   // Special case for Chinese
   if (browserLang.includes('zh')) {
     if (browserLang.includes('cn') || browserLang.includes('hans')) {
       return 'zh-cn';
     }
   }
-  
+
   // Default to English
   return 'en';
 }
@@ -700,6 +1450,456 @@ const DEFAULT_WIDGET_CONFIG = {
       screenReader: ['スクリーンリーダー', '音声で読む', '音声リーダー'],
       voiceControl: ['音声コマンド', '音声制御', '音声コマンド'],
       resetAll: ['すべてリセット', 'すべてリセット', 'すべてクリア', '設定をリセット']
+    },
+    pt: {
+      showMenu: ['mostrar menu', 'abrir menu', 'menu de acessibilidade'],
+      highContrast: ['alto contraste', 'aumentar contraste', 'modo escuro'],
+      biggerText: ['texto maior', 'aumentar texto', 'tamanho do texto'],
+      textSpacing: ['espaçamento de texto', 'espaçamento'],
+      pauseAnimations: ['pausar animações', 'parar animações'],
+      hideImages: ['ocultar imagens', 'esconder imagens'],
+      dyslexiaFriendly: ['fonte para dislexia', 'amigável para dislexia'],
+      biggerCursor: ['cursor maior', 'aumentar cursor'],
+      lineHeight: ['altura da linha', 'espaçamento entre linhas'],
+      textAlign: ['alinhamento do texto', 'alinhar texto'],
+      saturation: ['saturação', 'saturar'],
+      fontSelection: ['seleção de fonte', 'escolher fonte'],
+      colorFilter: ['filtro de cor', 'daltonismo'],
+      screenReader: ['leitor de tela', 'ler tela'],
+      voiceControl: ['comando de voz', 'controle por voz'],
+      resetAll: ['redefinir tudo', 'limpar tudo']
+    },
+    bn: {
+      showMenu: ['মেনু দেখান', 'মেনু খুলুন'],
+      highContrast: ['হাই কন্ট্রাস্ট', 'কন্ট্রাস্ট বাড়ান'],
+      biggerText: ['বড় টেক্সট', 'লেখা বড় করুন'],
+      textSpacing: ['টেক্সট স্পেসিং'],
+      pauseAnimations: ['অ্যানিমেশন থামান'],
+      hideImages: ['ছবি লুকান'],
+      dyslexiaFriendly: ['ডিসলেক্সিয়া'],
+      biggerCursor: ['বড় কার্সার'],
+      lineHeight: ['লাইনের উচ্চতা'],
+      textAlign: ['টেক্সট বিন্যাস'],
+      saturation: ['স্যাচুরেশন'],
+      fontSelection: ['ফন্ট নির্বাচন'],
+      colorFilter: ['কালার ফিল্টার'],
+      screenReader: ['স্ক্রিন রিডার'],
+      voiceControl: ['ভয়েস কমান্ড'],
+      resetAll: ['রিসেট করুন']
+    },
+    ko: {
+      showMenu: ['메뉴 보기', '메뉴 열기', '접근성 메뉴'],
+      highContrast: ['고대비', '대비 증가'],
+      biggerText: ['텍스트 크게', '글자 크게', '텍스트 확대'],
+      textSpacing: ['텍스트 간격', '자간'],
+      pauseAnimations: ['애니메이션 중지', '애니메이션 일시정지'],
+      hideImages: ['이미지 숨기기', '사진 숨기기'],
+      dyslexiaFriendly: ['난독증', '읽기 쉬운 글꼴'],
+      biggerCursor: ['큰 커서', '커서 확대'],
+      lineHeight: ['줄 높이', '행간'],
+      textAlign: ['텍스트 정렬', '정렬'],
+      saturation: ['채도', '색상 채도'],
+      fontSelection: ['글꼴 선택', '폰트 변경'],
+      colorFilter: ['색상 필터', '색맹'],
+      screenReader: ['스크린 리더', '화면 읽기'],
+      voiceControl: ['음성 명령', '음성 제어'],
+      resetAll: ['초기화', '모두 초기화']
+    },
+    vi: {
+      showMenu: ['hiện menu', 'mở menu', 'menu trợ năng'],
+      highContrast: ['tương phản cao', 'tăng tương phản'],
+      biggerText: ['cỡ chữ lớn', 'tăng cỡ chữ', 'chữ to'],
+      textSpacing: ['khoảng cách chữ'],
+      pauseAnimations: ['dừng hoạt ảnh', 'tắt hoạt ảnh'],
+      hideImages: ['ẩn hình ảnh', 'tắt hình ảnh'],
+      dyslexiaFriendly: ['phông chữ dễ đọc'],
+      biggerCursor: ['con trỏ lớn'],
+      lineHeight: ['chiều cao dòng'],
+      textAlign: ['căn chỉnh văn bản'],
+      saturation: ['độ bão hòa'],
+      fontSelection: ['chọn phông chữ'],
+      colorFilter: ['bộ lọc màu'],
+      screenReader: ['trình đọc màn hình'],
+      voiceControl: ['điều khiển giọng nói'],
+      resetAll: ['đặt lại tất cả', 'khôi phục']
+    },
+    id: {
+      showMenu: ['tampilkan menu', 'buka menu'],
+      highContrast: ['kontras tinggi'],
+      biggerText: ['teks besar', 'perbesar teks'],
+      textSpacing: ['jarak teks'],
+      pauseAnimations: ['hentikan animasi'],
+      hideImages: ['sembunyikan gambar'],
+      dyslexiaFriendly: ['ramah disleksia'],
+      biggerCursor: ['kursor besar'],
+      lineHeight: ['tinggi baris'],
+      textAlign: ['perataan teks'],
+      saturation: ['saturasi'],
+      fontSelection: ['pilihan font'],
+      colorFilter: ['filter warna'],
+      screenReader: ['pembaca layar'],
+      voiceControl: ['perintah suara'],
+      resetAll: ['atur ulang semua']
+    },
+    th: {
+      showMenu: ['แสดงเมนู', 'เปิดเมนู'],
+      highContrast: ['ความคมชัดสูง'],
+      biggerText: ['ข้อความใหญ่', 'ขยายข้อความ'],
+      textSpacing: ['ระยะห่างข้อความ'],
+      pauseAnimations: ['หยุดภาพเคลื่อนไหว'],
+      hideImages: ['ซ่อนรูปภาพ'],
+      dyslexiaFriendly: ['ฟอนต์อ่านง่าย'],
+      biggerCursor: ['เคอร์เซอร์ใหญ่'],
+      lineHeight: ['ความสูงบรรทัด'],
+      textAlign: ['จัดตำแหน่งข้อความ'],
+      saturation: ['ความอิ่มตัว'],
+      fontSelection: ['เลือกฟอนต์'],
+      colorFilter: ['ตัวกรองสี'],
+      screenReader: ['โปรแกรมอ่านหน้าจอ'],
+      voiceControl: ['คำสั่งเสียง'],
+      resetAll: ['รีเซ็ตทั้งหมด']
+    },
+    pl: {
+      showMenu: ['pokaż menu', 'otwórz menu'],
+      highContrast: ['wysoki kontrast'],
+      biggerText: ['większy tekst', 'powiększ tekst'],
+      textSpacing: ['odstępy tekstu'],
+      pauseAnimations: ['zatrzymaj animacje'],
+      hideImages: ['ukryj obrazki'],
+      dyslexiaFriendly: ['dla dyslektyków'],
+      biggerCursor: ['większy kursor'],
+      lineHeight: ['wysokość linii'],
+      textAlign: ['wyrównanie tekstu'],
+      saturation: ['nasycenie'],
+      fontSelection: ['wybór czcionki'],
+      colorFilter: ['filtr kolorów'],
+      screenReader: ['czytnik ekranu'],
+      voiceControl: ['sterowanie głosem'],
+      resetAll: ['resetuj wszystko']
+    },
+    nl: {
+      showMenu: ['tooon menu', 'open menu'],
+      highContrast: ['hoog contrast'],
+      biggerText: ['grotere tekst', 'tekst vergroten'],
+      textSpacing: ['tekstafstand'],
+      pauseAnimations: ['animaties pauzeren'],
+      hideImages: ['afbeeldingen verbergen'],
+      dyslexiaFriendly: ['dyslexie vriendelijk'],
+      biggerCursor: ['grotere cursor'],
+      lineHeight: ['regelhoogte'],
+      textAlign: ['tekst uitlijning'],
+      saturation: ['verzadiging'],
+      fontSelection: ['lettertype selectie'],
+      colorFilter: ['kleurfilter'],
+      screenReader: ['schermlezer'],
+      voiceControl: ['spraakbesturing'],
+      resetAll: ['alles resetten']
+    },
+    el: {
+      showMenu: ['εμφάνιση μενού', 'άνοιγμα μενού'],
+      highContrast: ['υψηλή αντίθεση'],
+      biggerText: ['μεγαλύτερο κείμενο'],
+      textSpacing: ['απόσταση κειμένου'],
+      pauseAnimations: ['παύση κινήσεων'],
+      hideImages: ['απόκρυψη εικόνων'],
+      dyslexiaFriendly: ['δυσλεξία'],
+      biggerCursor: ['μεγαλύτερος δρομέας'],
+      lineHeight: ['ύψος γραμμής'],
+      textAlign: ['στοίχιση κειμένου'],
+      saturation: ['κορεσμός'],
+      fontSelection: ['επιλογή γραμματοσειράς'],
+      colorFilter: ['φίλτρο χρώματος'],
+      screenReader: ['αναγνώστης οθόνης'],
+      voiceControl: ['φωνητική εντολή'],
+      resetAll: ['επαναφορά όλων']
+    },
+    sv: {
+      showMenu: ['visa meny', 'öppna meny'],
+      highContrast: ['hög kontrast'],
+      biggerText: ['större text'],
+      textSpacing: ['textavstånd'],
+      pauseAnimations: ['pausa animationer'],
+      hideImages: ['dölj bilder'],
+      dyslexiaFriendly: ['dyslexivänlig'],
+      biggerCursor: ['större markör'],
+      lineHeight: ['radhöjd'],
+      textAlign: ['textjustering'],
+      saturation: ['mättnad'],
+      fontSelection: ['teckensnittsval'],
+      colorFilter: ['färgfilter'],
+      screenReader: ['skärmläsare'],
+      voiceControl: ['röststyrning'],
+      resetAll: ['återställ allt']
+    },
+    no: {
+      showMenu: ['vis meny', 'åpne meny'],
+      highContrast: ['høy kontrast'],
+      biggerText: ['større tekst'],
+      textSpacing: ['tekstavstand'],
+      pauseAnimations: ['pause animasjoner'],
+      hideImages: ['skjul bilder'],
+      dyslexiaFriendly: ['dysleksivennlig'],
+      biggerCursor: ['større markør'],
+      lineHeight: ['linjehøyde'],
+      textAlign: ['tekstjustering'],
+      saturation: ['metning'],
+      fontSelection: ['skrifttype'],
+      colorFilter: ['fargefilter'],
+      screenReader: ['skjermleser'],
+      voiceControl: ['talestyring'],
+      resetAll: ['nullstill alt']
+    },
+    da: {
+      showMenu: ['vis menu', 'åbn menu'],
+      highContrast: ['høj kontrast'],
+      biggerText: ['større tekst'],
+      textSpacing: ['tekstafstand'],
+      pauseAnimations: ['pause animationer'],
+      hideImages: ['skjul billeder'],
+      dyslexiaFriendly: ['ordblindevenlig'],
+      biggerCursor: ['større markør'],
+      lineHeight: ['linjehøjde'],
+      textAlign: ['tekstjustering'],
+      saturation: ['mætning'],
+      fontSelection: ['skrifttype'],
+      colorFilter: ['farvefilter'],
+      screenReader: ['skærmlæser'],
+      voiceControl: ['stemmestyring'],
+      resetAll: ['nulstil alt']
+    },
+    fi: {
+      showMenu: ['näytä valikko', 'avaa valikko'],
+      highContrast: ['suuri kontrasti'],
+      biggerText: ['suurempi teksti'],
+      textSpacing: ['tekstiväli'],
+      pauseAnimations: ['pysäytä animaatiot'],
+      hideImages: ['piilota kuvat'],
+      dyslexiaFriendly: ['lukihäiriö'],
+      biggerCursor: ['suurempi kohdistin'],
+      lineHeight: ['rivikorkeus'],
+      textAlign: ['tekstin tasaus'],
+      saturation: ['kylläisyys'],
+      fontSelection: ['fonttivalinta'],
+      colorFilter: ['värisuodatin'],
+      screenReader: ['ruudunluku'],
+      voiceControl: ['ääniohjaus'],
+      resetAll: ['nollaa kaikki']
+    },
+    cs: {
+      showMenu: ['zobrazit menu', 'otevřít menu'],
+      highContrast: ['vysoký kontrast'],
+      biggerText: ['větší text'],
+      textSpacing: ['rozestupy textu'],
+      pauseAnimations: ['pozastavit animace'],
+      hideImages: ['skrýt obrázky'],
+      dyslexiaFriendly: ['pro dyslektiky'],
+      biggerCursor: ['větší kurzor'],
+      lineHeight: ['výška řádku'],
+      textAlign: ['zarovnání textu'],
+      saturation: ['sytost'],
+      fontSelection: ['výběr písma'],
+      colorFilter: ['barevný filtr'],
+      screenReader: ['čtečka obrazovky'],
+      voiceControl: ['hlasové ovládání'],
+      resetAll: ['resetovat vše']
+    },
+    hu: {
+      showMenu: ['menü megjelenítése', 'menü megnyitása'],
+      highContrast: ['nagy kontraszt'],
+      biggerText: ['nagyobb szöveg'],
+      textSpacing: ['szöveg térköz'],
+      pauseAnimations: ['animációk szüneteltetése'],
+      hideImages: ['képek elrejtése'],
+      dyslexiaFriendly: ['diszlexia'],
+      biggerCursor: ['nagyobb kurzor'],
+      lineHeight: ['sormagasság'],
+      textAlign: ['szöveg igazítás'],
+      saturation: ['telítettség'],
+      fontSelection: ['betűtípus'],
+      colorFilter: ['színszűrő'],
+      screenReader: ['képernyőolvasó'],
+      voiceControl: ['hangvezérlés'],
+      resetAll: ['mindent alaphelyzetbe']
+    },
+    ro: {
+      showMenu: ['arată meniul', 'deschide meniul'],
+      highContrast: ['contrast înalt'],
+      biggerText: ['text mai mare'],
+      textSpacing: ['spațiere text'],
+      pauseAnimations: ['pauză animații'],
+      hideImages: ['ascunde imaginile'],
+      dyslexiaFriendly: ['dislexie'],
+      biggerCursor: ['cursor mai mare'],
+      lineHeight: ['înălțime linie'],
+      textAlign: ['aliniere text'],
+      saturation: ['saturație'],
+      fontSelection: ['selecție font'],
+      colorFilter: ['filtru culoare'],
+      screenReader: ['cititor ecran'],
+      voiceControl: ['control vocal'],
+      resetAll: ['resetează tot']
+    },
+    he: {
+      showMenu: ['הצג תפריט', 'פתח תפריט'],
+      highContrast: ['ניגודיות גבוהה'],
+      biggerText: ['טקסט גדול'],
+      textSpacing: ['ריווח טקסט'],
+      pauseAnimations: ['עצור אנימציות'],
+      hideImages: ['הסתר תמונות'],
+      dyslexiaFriendly: ['דיסלקציה'],
+      biggerCursor: ['סמן גדול'],
+      lineHeight: ['גובה שורה'],
+      textAlign: ['יישור טקסט'],
+      saturation: ['רוויה'],
+      fontSelection: ['גופן'],
+      colorFilter: ['מסנן צבע'],
+      screenReader: ['קורא מסך'],
+      voiceControl: ['שליטה קולית'],
+      resetAll: ['אפס הכל']
+    },
+    fa: {
+      showMenu: ['نمایش منو', 'باز کردن منو'],
+      highContrast: ['کنتراست بالا'],
+      biggerText: ['متن بزرگتر'],
+      textSpacing: ['فاصله متن'],
+      pauseAnimations: ['توقف انیمیشن'],
+      hideImages: ['مخفی کردن تصاویر'],
+      dyslexiaFriendly: ['نارساخوانی'],
+      biggerCursor: ['نشانگر بزرگتر'],
+      lineHeight: ['ارتفاع خط'],
+      textAlign: ['تراز متن'],
+      saturation: ['اشباع'],
+      fontSelection: ['انتخاب قلم'],
+      colorFilter: ['فیلتر رنگ'],
+      screenReader: ['صفحه‌خوان'],
+      voiceControl: ['کنترل صوتی'],
+      resetAll: ['بازنشانی همه']
+    },
+    ur: {
+      showMenu: ['مینو دکھائیں', 'مینو کھولیں'],
+      highContrast: ['ہائی کنٹراسٹ'],
+      biggerText: ['بڑا متن'],
+      textSpacing: ['ٹیکسٹ اسپیسنگ'],
+      pauseAnimations: ['اینیمیشن روکیں'],
+      hideImages: ['تصاویر چھپائیں'],
+      dyslexiaFriendly: ['ڈسلیکسیا'],
+      biggerCursor: ['بڑا کرسر'],
+      lineHeight: ['لائن کی اونچائی'],
+      textAlign: ['ٹیکسٹ الائنمنٹ'],
+      saturation: ['دیگر'],
+      fontSelection: ['فونٹ'],
+      colorFilter: ['کلر فلٹر'],
+      screenReader: ['اسکرین ریڈر'],
+      voiceControl: ['وائس کنٹرول'],
+      resetAll: ['سب دوبارہ ترتیب دیں']
+    },
+    pa: {
+      showMenu: ['ਮੀਨੂ ਦਿਖਾਓ'],
+      highContrast: ['ਹਾਈ ਕੰਟਰਾਸਟ'],
+      biggerText: ['ਵੱਡਾ ਟੈਕਸਟ'],
+      textSpacing: ['ਟੈਕਸਟ ਸਪੇਸਿੰਗ'],
+      pauseAnimations: ['ਐਨੀਮੇਸ਼ਨ ਰੋਕੋ'],
+      hideImages: ['ਚਿੱਤਰ ਲੁਕਾਓ'],
+      dyslexiaFriendly: ['ਡਿਸਲੈਕਸੀਆ'],
+      biggerCursor: ['ਵੱਡਾ ਕਰਸਰ'],
+      lineHeight: ['ਲਾਈਨ ਦੀ ਉਚਾਈ'],
+      textAlign: ['ਟੈਕਸਟ ਅਲਾਈਨਮੈਂਟ'],
+      saturation: ['ਸੰਤ੍ਰਿਪਤੀ'],
+      fontSelection: ['ਫੌਂਟ'],
+      colorFilter: ['ਰੰਗ ਫਿਲਟਰ'],
+      screenReader: ['ਸਕ੍ਰੀਨ ਰੀਡਰ'],
+      voiceControl: ['ਵਾਇਸ ਕੰਟਰੋਲ'],
+      resetAll: ['ਰੀਸੈਟ']
+    },
+    mr: {
+      showMenu: ['मेनू दाखवा'],
+      highContrast: ['उच्च कॉन्ट्रास्ट'],
+      biggerText: ['मोठा मजकूर'],
+      textSpacing: ['मजकूर अंतर'],
+      pauseAnimations: ['अॅनिमेशन थांबवा'],
+      hideImages: ['प्रतिमा लपवा'],
+      dyslexiaFriendly: ['डिस्लेक्सिया'],
+      biggerCursor: ['मोठा कर्सर'],
+      lineHeight: ['ओळीची उंची'],
+      textAlign: ['मजकूर संरेखन'],
+      saturation: ['संपृक्तता'],
+      fontSelection: ['फॉन्ट'],
+      colorFilter: ['रंग फिल्टर'],
+      screenReader: ['स्क्रीन रीडर'],
+      voiceControl: ['आवाज नियंत्रण'],
+      resetAll: ['रीसेट करा']
+    },
+    te: {
+      showMenu: ['మెనూ చూపించు'],
+      highContrast: ['హై కాంట్రాస్ట్'],
+      biggerText: ['పెద్ద టెక్స్ట్'],
+      textSpacing: ['టెక్స్ట్ స్పేసింగ్'],
+      pauseAnimations: ['యానిమేషన్లు ఆపండి'],
+      hideImages: ['చిత్రాలను దాచండి'],
+      dyslexiaFriendly: ['డిస్లెక్సియా'],
+      biggerCursor: ['పెద్ద కర్సర్'],
+      lineHeight: ['లైన్ ఎత్తు'],
+      textAlign: ['టెక్స్ట్ అలైన్‌మెంట్'],
+      saturation: ['సంతృప్తత'],
+      fontSelection: ['ఫాంట్'],
+      colorFilter: ['కలర్ ఫిల్టర్'],
+      screenReader: ['స్క్రీన్ రీడర్'],
+      voiceControl: ['వాయిస్ కంట్రోల్'],
+      resetAll: ['రీసెట్']
+    },
+    ta: {
+      showMenu: ['மெனுவைக் காட்டு'],
+      highContrast: ['உயர் மாறுபாடு'],
+      biggerText: ['பெரிய உரை'],
+      textSpacing: ['உரை இடைவெளி'],
+      pauseAnimations: ['அனிமேஷன் நிறுத்து'],
+      hideImages: ['படங்களை மறை'],
+      dyslexiaFriendly: ['டிஸ்லெக்ஸியா'],
+      biggerCursor: ['பெரிய கர்சர்'],
+      lineHeight: ['வரி உயரம்'],
+      textAlign: ['உரை சீரமைப்பு'],
+      saturation: ['செறிவு'],
+      fontSelection: ['எழுத்துரு'],
+      colorFilter: ['வண்ண வடிகட்டி'],
+      screenReader: ['திரை படிப்பான்'],
+      voiceControl: ['குரல் கட்டுப்பாடு'],
+      resetAll: ['மீட்டமை']
+    },
+    ms: {
+      showMenu: ['tunjukkan menu'],
+      highContrast: ['kontras tinggi'],
+      biggerText: ['teks besar'],
+      textSpacing: ['jarak teks'],
+      pauseAnimations: ['jeda animasi'],
+      hideImages: ['sembunyikan imej'],
+      dyslexiaFriendly: ['disleksia'],
+      biggerCursor: ['kursor besar'],
+      lineHeight: ['ketinggian baris'],
+      textAlign: ['jajaran teks'],
+      saturation: ['ketepuan'],
+      fontSelection: ['pilihan fon'],
+      colorFilter: ['penapis warna'],
+      screenReader: ['pembaca skrin'],
+      voiceControl: ['kawalan suara'],
+      resetAll: ['tetapkan semula']
+    },
+    tl: {
+      showMenu: ['ipakita ang menu'],
+      highContrast: ['mataas na contrast'],
+      biggerText: ['mas malaking teksto'],
+      textSpacing: ['puwang sa teksto'],
+      pauseAnimations: ['ihinto ang animasyon'],
+      hideImages: ['itago ang mga larawan'],
+      dyslexiaFriendly: ['dyslexia'],
+      biggerCursor: ['mas malaking cursor'],
+      lineHeight: ['taas ng linya'],
+      textAlign: ['pagkakahanay ng teksto'],
+      saturation: ['saturation'],
+      fontSelection: ['font'],
+      colorFilter: ['filter ng kulay'],
+      screenReader: ['screen reader'],
+      voiceControl: ['voice control'],
+      resetAll: ['i-reset lahat']
     }
   },
 
@@ -1595,7 +2795,7 @@ function resetAccessibilitySettings() {
   buttons.forEach((button) => {
     button.classList.remove('active');
     button.setAttribute('aria-pressed', 'false');
-    
+
     // Reset step indicators
     const steps = button.querySelectorAll('.snn-option-step');
     steps.forEach(step => step.classList.remove('active'));
@@ -1685,12 +2885,12 @@ function createToggleButton(
 // Create special action buttons (for cycling through options)
 function createActionButton(buttonText, actionFunction, iconSVG, optionsConfig = null, optionId = null) {
   const button = document.createElement('button');
-  
+
   let buttonHTML = `
     <span class="snn-icon">${iconSVG}</span>
     <span class="snn-button-text">${buttonText}</span>
   `;
-  
+
   // Add option steps if configured
   if (optionsConfig) {
     buttonHTML += '<div class="snn-option-steps">';
@@ -1699,7 +2899,7 @@ function createActionButton(buttonText, actionFunction, iconSVG, optionsConfig =
     }
     buttonHTML += '</div>';
   }
-  
+
   button.innerHTML = buttonHTML;
   button.setAttribute('aria-label', buttonText);
   button.classList.add('snn-accessibility-option');
@@ -1735,10 +2935,10 @@ function createActionButton(buttonText, actionFunction, iconSVG, optionsConfig =
 // Update action button status on page load
 function updateActionButtonStatus(button, optionId, optionsConfig) {
   if (!optionsConfig) return;
-  
+
   const steps = button.querySelectorAll('.snn-option-step');
   let currentIndex = -1;
-  
+
   if (optionId === 'fontSelection') {
     const currentFont = localStorage.getItem('fontSelection');
     const fonts = ['arial', 'times', 'verdana'];
@@ -1772,7 +2972,7 @@ function updateActionButtonStatus(button, optionId, optionsConfig) {
     const saturations = ['low', 'high', 'none'];
     currentIndex = currentSaturation ? saturations.indexOf(currentSaturation) : -1;
   }
-  
+
   // Update step indicators - show all previous steps as active
   steps.forEach((step, index) => {
     if (index <= currentIndex) {
@@ -2015,7 +3215,7 @@ function handleLineHeight() {
     // Default
     localStorage.removeItem('lineHeight');
     return getTranslation('default');
-  } else{
+  } else {
     const selectedHeight = heights[nextIndex];
     localStorage.setItem('lineHeight', selectedHeight);
     domCache.body.classList.add(`snn-line-height-${selectedHeight}`);
@@ -2038,10 +3238,10 @@ const screenReader = {
         if (content.trim() !== '') {
           window.speechSynthesis.cancel();
           const speech = new SpeechSynthesisUtterance(content);
-          
+
           // Set language based on current interface language
           let speechLang = 'en-US'; // default
-          switch(currentLanguage) {
+          switch (currentLanguage) {
             case 'de': speechLang = 'de-DE'; break;
             case 'es': speechLang = 'es-ES'; break;
             case 'it': speechLang = 'it-IT'; break;
@@ -2052,10 +3252,35 @@ const screenReader = {
             case 'hi': speechLang = 'hi-IN'; break;
             case 'zh-cn': speechLang = 'zh-CN'; break;
             case 'jp': speechLang = 'ja-JP'; break;
+            case 'pt': speechLang = 'pt-PT'; break;
+            case 'bn': speechLang = 'bn-IN'; break;
+            case 'ko': speechLang = 'ko-KR'; break;
+            case 'vi': speechLang = 'vi-VN'; break;
+            case 'id': speechLang = 'id-ID'; break;
+            case 'th': speechLang = 'th-TH'; break;
+            case 'pl': speechLang = 'pl-PL'; break;
+            case 'nl': speechLang = 'nl-NL'; break;
+            case 'el': speechLang = 'el-GR'; break;
+            case 'sv': speechLang = 'sv-SE'; break;
+            case 'no': speechLang = 'no-NO'; break;
+            case 'da': speechLang = 'da-DK'; break;
+            case 'fi': speechLang = 'fi-FI'; break;
+            case 'cs': speechLang = 'cs-CZ'; break;
+            case 'hu': speechLang = 'hu-HU'; break;
+            case 'ro': speechLang = 'ro-RO'; break;
+            case 'he': speechLang = 'he-IL'; break;
+            case 'fa': speechLang = 'fa-IR'; break;
+            case 'ur': speechLang = 'ur-PK'; break;
+            case 'pa': speechLang = 'pa-IN'; break;
+            case 'mr': speechLang = 'mr-IN'; break;
+            case 'te': speechLang = 'te-IN'; break;
+            case 'ta': speechLang = 'ta-IN'; break;
+            case 'ms': speechLang = 'ms-MY'; break;
+            case 'tl': speechLang = 'fil-PH'; break;
             default: speechLang = 'en-US';
           }
           speech.lang = speechLang;
-          
+
           speech.onerror = function (event) {
             console.warn('Speech synthesis error:', event.error);
           };
@@ -2078,7 +3303,7 @@ const screenReader = {
     try {
       // Set language based on current interface language
       let speechLang = 'en-US'; // default
-      switch(currentLanguage) {
+      switch (currentLanguage) {
         case 'de': speechLang = 'de-DE'; break;
         case 'es': speechLang = 'es-ES'; break;
         case 'it': speechLang = 'it-IT'; break;
@@ -2161,10 +3386,10 @@ const voiceControl = {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       voiceControl.recognition = new SpeechRecognition();
       voiceControl.recognition.interimResults = false;
-      
+
       // Set language based on current interface language
       let recognitionLang = 'en-US'; // default
-      switch(currentLanguage) {
+      switch (currentLanguage) {
         case 'de': recognitionLang = 'de-DE'; break;
         case 'es': recognitionLang = 'es-ES'; break;
         case 'it': recognitionLang = 'it-IT'; break;
@@ -2175,6 +3400,31 @@ const voiceControl = {
         case 'hi': recognitionLang = 'hi-IN'; break;
         case 'zh-cn': recognitionLang = 'zh-CN'; break;
         case 'jp': recognitionLang = 'ja-JP'; break;
+        case 'pt': recognitionLang = 'pt-PT'; break;
+        case 'bn': recognitionLang = 'bn-IN'; break;
+        case 'ko': recognitionLang = 'ko-KR'; break;
+        case 'vi': recognitionLang = 'vi-VN'; break;
+        case 'id': recognitionLang = 'id-ID'; break;
+        case 'th': recognitionLang = 'th-TH'; break;
+        case 'pl': recognitionLang = 'pl-PL'; break;
+        case 'nl': recognitionLang = 'nl-NL'; break;
+        case 'el': recognitionLang = 'el-GR'; break;
+        case 'sv': recognitionLang = 'sv-SE'; break;
+        case 'no': recognitionLang = 'no-NO'; break;
+        case 'da': recognitionLang = 'da-DK'; break;
+        case 'fi': recognitionLang = 'fi-FI'; break;
+        case 'cs': recognitionLang = 'cs-CZ'; break;
+        case 'hu': recognitionLang = 'hu-HU'; break;
+        case 'ro': recognitionLang = 'ro-RO'; break;
+        case 'he': recognitionLang = 'he-IL'; break;
+        case 'fa': recognitionLang = 'fa-IR'; break;
+        case 'ur': recognitionLang = 'ur-PK'; break;
+        case 'pa': recognitionLang = 'pa-IN'; break;
+        case 'mr': recognitionLang = 'mr-IN'; break;
+        case 'te': recognitionLang = 'te-IN'; break;
+        case 'ta': recognitionLang = 'ta-IN'; break;
+        case 'ms': recognitionLang = 'ms-MY'; break;
+        case 'tl': recognitionLang = 'fil-PH'; break;
         default: recognitionLang = 'en-US';
       }
       voiceControl.recognition.lang = recognitionLang;
@@ -2227,10 +3477,10 @@ const voiceControl = {
     try {
       // Normalize the command by removing extra spaces and making it lowercase
       const normalizedCommand = command.toLowerCase().trim().replace(/\s+/g, ' ');
-      
+
       // Get voice commands for current language, fallback to English
       const languageCommands = WIDGET_CONFIG.voiceCommands[currentLanguage] || WIDGET_CONFIG.voiceCommands['en'];
-      
+
       // Check for show menu commands
       if (languageCommands.showMenu.some(cmd => normalizedCommand.includes(cmd))) {
         if (!menuCache.button) menuCache.init();
@@ -2255,7 +3505,7 @@ const voiceControl = {
       // Check each command group with better matching
       for (const [key, commands] of Object.entries(languageCommands)) {
         if (key === 'showMenu' || key === 'resetAll') continue; // Already handled above
-        
+
         const isMatch = commands.some(cmd => {
           // Check for exact matches first
           if (normalizedCommand.includes(cmd.toLowerCase())) {
@@ -2265,13 +3515,13 @@ const voiceControl = {
           // Check for partial word matches (at least 3 characters)
           const cmdWords = cmd.toLowerCase().split(' ');
           const inputWords = normalizedCommand.split(' ');
-          return cmdWords.some(cmdWord => 
-            cmdWord.length >= 3 && inputWords.some(inputWord => 
+          return cmdWords.some(cmdWord =>
+            cmdWord.length >= 3 && inputWords.some(inputWord =>
               inputWord.includes(cmdWord) || cmdWord.includes(inputWord)
             )
           );
         });
-        
+
         if (isMatch) {
           localStorageKey = key;
           break;
@@ -2281,19 +3531,19 @@ const voiceControl = {
       if (localStorageKey) {
         // Use cached menu reference if available
         if (!menuCache.menu) menuCache.init();
-        
+
         // Try to find button by data-key first (toggle buttons)
         let button = menuCache.menu?.querySelector(
           `.snn-accessibility-option[data-key='${localStorageKey}']`
         );
-        
+
         // If not found, try to find by data-accessibility-option-id (action buttons)
         if (!button) {
           button = menuCache.menu?.querySelector(
             `.snn-accessibility-option[data-accessibility-option-id='${localStorageKey}']`
           );
         }
-        
+
         if (button) {
           button.click();
           console.log(`Successfully executed command: ${command} (matched: ${matchedCommand || localStorageKey})`);
@@ -2304,7 +3554,7 @@ const voiceControl = {
         console.log('Command not recognized:', command);
         // Provide helpful suggestions
         const availableCommands = Object.values(languageCommands).flat();
-        const suggestions = availableCommands.filter(cmd => 
+        const suggestions = availableCommands.filter(cmd =>
           cmd.toLowerCase().includes(normalizedCommand.split(' ')[0]) ||
           normalizedCommand.split(' ')[0].includes(cmd.toLowerCase().split(' ')[0])
         );
@@ -2372,7 +3622,7 @@ function createAccessibilityMenu() {
   const languageSelector = document.createElement('select');
   languageSelector.classList.add('snn-language-selector');
   languageSelector.setAttribute('aria-label', getTranslation('selectLanguage'));
-  
+
   const languages = [
     { code: 'en', name: 'English' },
     { code: 'de', name: 'Deutsch' },
@@ -2384,9 +3634,34 @@ function createAccessibilityMenu() {
     { code: 'ar', name: 'العربية' },
     { code: 'hi', name: 'हिन्दी' },
     { code: 'zh-cn', name: '简体中文' },
-    { code: 'jp', name: '日本語' }
+    { code: 'jp', name: '日本語' },
+    { code: 'pt', name: 'Português' },
+    { code: 'bn', name: 'বাংলা' },
+    { code: 'ko', name: '한국어' },
+    { code: 'vi', name: 'Tiếng Việt' },
+    { code: 'id', name: 'Bahasa Indonesia' },
+    { code: 'th', name: 'ไทย' },
+    { code: 'pl', name: 'Polski' },
+    { code: 'nl', name: 'Nederlands' },
+    { code: 'el', name: 'Ελληνικά' },
+    { code: 'sv', name: 'Svenska' },
+    { code: 'no', name: 'Norsk' },
+    { code: 'da', name: 'Dansk' },
+    { code: 'fi', name: 'Suomi' },
+    { code: 'cs', name: 'Čeština' },
+    { code: 'hu', name: 'Magyar' },
+    { code: 'ro', name: 'Română' },
+    { code: 'he', name: 'עברית' },
+    { code: 'fa', name: 'فارسی' },
+    { code: 'ur', name: 'اردو' },
+    { code: 'pa', name: 'ਪੰਜਾਬੀ' },
+    { code: 'mr', name: 'मराठी' },
+    { code: 'te', name: 'తెలుగు' },
+    { code: 'ta', name: 'தமிழ்' },
+    { code: 'ms', name: 'Bahasa Melayu' },
+    { code: 'tl', name: 'Filipino' }
   ];
-  
+
   languages.forEach(lang => {
     const option = document.createElement('option');
     option.value = lang.code;
@@ -2396,15 +3671,15 @@ function createAccessibilityMenu() {
     }
     languageSelector.appendChild(option);
   });
-  
-  languageSelector.addEventListener('change', function(e) {
+
+  languageSelector.addEventListener('change', function (e) {
     const newLang = e.target.value;
     if (setLanguage(newLang)) {
       // Recreate the menu with new language
       updateMenuLanguage();
     }
   });
-  
+
   content.appendChild(languageSelector);
 
   // Create grid wrapper for accessibility options
@@ -2458,7 +3733,7 @@ function createAccessibilityMenu() {
       optionsConfig: { count: 4 },
       optionId: 'colorFilter'
     },
-    
+
     // Order 5-11: Other visual/text features
     {
       order: 5,
@@ -2530,7 +3805,7 @@ function createAccessibilityMenu() {
       enabled: WIDGET_CONFIG.enableHideImages,
       optionId: 'hideImages'
     },
-    
+
     // Order 11: Animation controls (Reduced Motion merged here)
     {
       order: 11,
@@ -2542,7 +3817,7 @@ function createAccessibilityMenu() {
       enabled: WIDGET_CONFIG.enablePauseAnimations,
       optionId: 'pauseAnimations'
     },
-    
+
     // Order 98-99: Screen Reader and Voice Control (always last)
     {
       order: 98,
@@ -2574,7 +3849,7 @@ function createAccessibilityMenu() {
     .sort((a, b) => a.order - b.order)
     .forEach((config) => {
       let button;
-      
+
       if (config.type === 'action') {
         button = createActionButton(config.text, config.actionFunction, config.icon, config.optionsConfig, config.optionId);
       } else if (config.type === 'toggle') {
@@ -2589,7 +3864,7 @@ function createAccessibilityMenu() {
           config.optionId
         );
       }
-      
+
       if (button) {
         optionsGrid.appendChild(button);
       }
@@ -2608,26 +3883,26 @@ function createAccessibilityMenu() {
 function updateMenuLanguage() {
   const menu = shadowRoot.getElementById('snn-accessibility-menu');
   if (!menu) return;
-  
+
   const wasOpen = menu.style.display === 'block';
-  
+
   // Remove old menu
   menu.remove();
-  
+
   // Clear cache
   menuCache.menu = null;
   menuCache.closeButton = null;
   keyboardCache.focusableElements = null;
-  
+
   // Recreate menu
   createAccessibilityMenu();
-  
+
   // Update button aria-label
   const mainButton = shadowRoot.getElementById('snn-accessibility-button');
   if (mainButton) {
     mainButton.setAttribute('aria-label', getTranslation('accessibilityMenu'));
   }
-  
+
   // Reopen if it was open
   if (wasOpen) {
     menuCache.init();
@@ -2764,13 +4039,13 @@ function handleMenuKeyboard(e) {
 function initAccessibilityWidget() {
   // Create shadow DOM first
   createShadowContainer();
-  
+
   // Inject page styles (for accessibility features)
   injectPageStyles();
-  
+
   // Apply saved settings
   applySettings();
-  
+
   // Create widget UI inside shadow DOM
   createAccessibilityButton();
   createAccessibilityMenu();
