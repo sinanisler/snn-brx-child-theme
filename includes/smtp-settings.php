@@ -104,7 +104,7 @@ function custom_smtp_settings_section_callback() {
         echo '<div style="border: 2px solid #f0b849; background: #fff8e5; padding: 10px; margin: 10px 0; border-radius: 4px;">';
         echo '<p style="margin: 0; font-size: 13px; color: #856404;">';
         echo '<strong>⚠ ' . __('Warning:', 'snn') . '</strong> ';
-        echo __('Your SMTP username differs from the WordPress admin email. This may cause delivery issues if SPF/DKIM records don\'t match.', 'snn');
+        echo __('Your SMTP username differs from the WordPress Site Setting email. This may cause delivery issues if SPF/DKIM records don\'t match.', 'snn');
         echo '</p>';
         echo '</div>';
     }
