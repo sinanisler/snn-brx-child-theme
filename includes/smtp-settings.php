@@ -221,6 +221,12 @@ function custom_smtp_phpmailer_init($phpmailer) {
         // Set From to the same as username (or change as you see fit)
         $phpmailer->From       = $options['smtp_username'] ?? '';
         $phpmailer->FromName   = get_bloginfo('name');
+        
+        // Set timeout to prevent hanging (10 seconds for connection, 10 for sending)
+        $phpmailer->Timeout = 10;
+        
+        // Enable debug output for troubleshooting (commented out by default)
+        // $phpmailer->SMTPDebug = 2;
     }
     
     // Fix for WordPress 6.9 email sending issue
