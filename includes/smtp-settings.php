@@ -245,27 +245,231 @@ function custom_smtp_enqueue_scripts($hook) {
 }
 
 /**
- * A helper function to check if the server/port is reachable, with a short timeout.
+ * A comprehensive SMTP connection test that checks DNS, port, SSL/TLS, and authentication.
  *
  * @param string $host
  * @param int    $port
- * @return bool
+ * @param string $encryption ('ssl', 'tls', or 'none')
+ * @param string $username
+ * @param string $password
+ * @return array Array with 'success' (bool) and 'message' (string) keys
  */
-function custom_smtp_check_port_availability($host, $port) {
-    $errno    = 0;
-    $errstr   = '';
-    // Shorten the timeout to help avoid long stalls
-    $timeout  = 3; // seconds
-    $connection = @fsockopen($host, $port, $errno, $errstr, $timeout);
+function custom_smtp_comprehensive_connection_test($host, $port, $encryption = 'none', $username = '', $password = '') {
+    // Step 1: DNS Resolution Check
+    error_log("SMTP TEST: Checking DNS resolution for $host");
+    $ip = gethostbyname($host);
+    if ($ip === $host && !filter_var($host, FILTER_VALIDATE_IP)) {
+        error_log("SMTP TEST: DNS resolution failed for $host");
+        return array(
+            'success' => false,
+            'message' => sprintf(
+                __('DNS Resolution Failed: Could not resolve hostname "%s". Please verify the SMTP host is correct.', 'snn'),
+                esc_html($host)
+            )
+        );
+    }
+    error_log("SMTP TEST: DNS resolved $host to $ip");
 
-    if (is_resource($connection)) {
-        fclose($connection);
-        return true;
+    // Step 2: Basic Port Connectivity
+    error_log("SMTP TEST: Testing basic port connectivity to $host:$port");
+    $errno = 0;
+    $errstr = '';
+    $timeout = 5;
+
+    // Use SSL/TLS context if encryption is set
+    $context = stream_context_create();
+    if (strtolower($encryption) === 'ssl') {
+        stream_context_set_option($context, 'ssl', 'verify_peer', false);
+        stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
+        $connection = @stream_socket_client("ssl://$host:$port", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
+    } else {
+        $connection = @fsockopen($host, $port, $errno, $errstr, $timeout);
     }
 
-    // Log debug info if something goes wrong
-    error_log("SMTP CHECK: Could not connect to $host on port $port. Error ($errno): $errstr");
-    return false;
+    if (!is_resource($connection)) {
+        error_log("SMTP TEST: Port connection failed. Error ($errno): $errstr");
+
+        // Provide specific error messages based on common error codes
+        if ($errno === 110 || $errno === 60) {
+            return array(
+                'success' => false,
+                'message' => sprintf(
+                    __('Connection Timeout: Could not connect to %s on port %d. The port may be blocked by your hosting firewall or the server is not responding.', 'snn'),
+                    esc_html($host),
+                    esc_html($port)
+                )
+            );
+        } elseif ($errno === 111 || $errno === 61) {
+            return array(
+                'success' => false,
+                'message' => sprintf(
+                    __('Connection Refused: Server %s refused connection on port %d. Verify the port number is correct and the SMTP service is running.', 'snn'),
+                    esc_html($host),
+                    esc_html($port)
+                )
+            );
+        } else {
+            return array(
+                'success' => false,
+                'message' => sprintf(
+                    __('Connection Failed: Could not connect to %s on port %d. Error: %s', 'snn'),
+                    esc_html($host),
+                    esc_html($port),
+                    esc_html($errstr)
+                )
+            );
+        }
+    }
+
+    error_log("SMTP TEST: Port connection successful");
+
+    // Step 3: SMTP Protocol Test with STARTTLS support
+    error_log("SMTP TEST: Testing SMTP protocol handshake");
+
+    // Read greeting
+    $greeting = fgets($connection, 512);
+    error_log("SMTP TEST: Server greeting: " . trim($greeting));
+
+    if (!$greeting || substr($greeting, 0, 3) !== '220') {
+        fclose($connection);
+        return array(
+            'success' => false,
+            'message' => sprintf(
+                __('SMTP Protocol Error: Server did not send proper greeting. Response: %s', 'snn'),
+                esc_html(trim($greeting))
+            )
+        );
+    }
+
+    // Send EHLO command
+    fputs($connection, "EHLO localhost\r\n");
+    $ehlo_response = '';
+    while ($line = fgets($connection, 512)) {
+        $ehlo_response .= $line;
+        if (substr($line, 3, 1) === ' ') break; // End of multi-line response
+    }
+    error_log("SMTP TEST: EHLO response: " . trim($ehlo_response));
+
+    if (substr($ehlo_response, 0, 3) !== '250') {
+        fclose($connection);
+        return array(
+            'success' => false,
+            'message' => sprintf(
+                __('SMTP Protocol Error: Server rejected EHLO command. Response: %s', 'snn'),
+                esc_html(trim($ehlo_response))
+            )
+        );
+    }
+
+    // Step 4: STARTTLS Test (if encryption is TLS)
+    if (strtolower($encryption) === 'tls') {
+        error_log("SMTP TEST: Initiating STARTTLS");
+
+        fputs($connection, "STARTTLS\r\n");
+        $starttls_response = fgets($connection, 512);
+        error_log("SMTP TEST: STARTTLS response: " . trim($starttls_response));
+
+        if (substr($starttls_response, 0, 3) !== '220') {
+            fclose($connection);
+            return array(
+                'success' => false,
+                'message' => sprintf(
+                    __('TLS Error: Server does not support STARTTLS or rejected the request. Response: %s', 'snn'),
+                    esc_html(trim($starttls_response))
+                )
+            );
+        }
+
+        // Enable TLS encryption
+        $crypto_result = stream_socket_enable_crypto($connection, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+        if (!$crypto_result) {
+            fclose($connection);
+            return array(
+                'success' => false,
+                'message' => __('TLS Encryption Failed: Could not establish secure TLS connection. The server\'s SSL certificate may be invalid or expired.', 'snn')
+            );
+        }
+        error_log("SMTP TEST: TLS encryption established successfully");
+
+        // Send EHLO again after STARTTLS
+        fputs($connection, "EHLO localhost\r\n");
+        while ($line = fgets($connection, 512)) {
+            if (substr($line, 3, 1) === ' ') break;
+        }
+    }
+
+    // Step 5: Authentication Test (if credentials provided)
+    if (!empty($username) && !empty($password)) {
+        error_log("SMTP TEST: Testing authentication with username: $username");
+
+        fputs($connection, "AUTH LOGIN\r\n");
+        $auth_response = fgets($connection, 512);
+        error_log("SMTP TEST: AUTH LOGIN response: " . trim($auth_response));
+
+        if (substr($auth_response, 0, 3) !== '334') {
+            fclose($connection);
+            return array(
+                'success' => false,
+                'message' => sprintf(
+                    __('Authentication Error: Server does not support LOGIN authentication method. Response: %s', 'snn'),
+                    esc_html(trim($auth_response))
+                )
+            );
+        }
+
+        // Send username
+        fputs($connection, base64_encode($username) . "\r\n");
+        $user_response = fgets($connection, 512);
+        error_log("SMTP TEST: Username response: " . trim($user_response));
+
+        if (substr($user_response, 0, 3) !== '334') {
+            fclose($connection);
+            return array(
+                'success' => false,
+                'message' => sprintf(
+                    __('Authentication Error: Server rejected username. Response: %s', 'snn'),
+                    esc_html(trim($user_response))
+                )
+            );
+        }
+
+        // Send password
+        fputs($connection, base64_encode($password) . "\r\n");
+        $pass_response = fgets($connection, 512);
+        error_log("SMTP TEST: Password response: " . trim($pass_response));
+
+        if (substr($pass_response, 0, 3) !== '235') {
+            fclose($connection);
+
+            // Check for specific authentication failure codes
+            if (substr($pass_response, 0, 3) === '535') {
+                return array(
+                    'success' => false,
+                    'message' => __('Authentication Failed: Invalid username or password. Please verify your SMTP credentials are correct.', 'snn')
+                );
+            } else {
+                return array(
+                    'success' => false,
+                    'message' => sprintf(
+                        __('Authentication Error: Server rejected credentials. Response: %s', 'snn'),
+                        esc_html(trim($pass_response))
+                    )
+                );
+            }
+        }
+
+        error_log("SMTP TEST: Authentication successful");
+    }
+
+    // Clean up
+    fputs($connection, "QUIT\r\n");
+    fclose($connection);
+
+    error_log("SMTP TEST: All checks passed successfully");
+    return array(
+        'success' => true,
+        'message' => __('Connection test successful! All checks passed.', 'snn')
+    );
 }
 
 
@@ -306,22 +510,25 @@ function custom_smtp_handle_test_email_submission() {
     if (!empty($options['enable_smtp'])) {
         $host = $options['smtp_host'] ?? '';
         $port = $options['smtp_port'] ?? 25;
+        $encryption = $options['smtp_encryption'] ?? 'none';
+        $username = $options['smtp_username'] ?? '';
+        $password = $options['smtp_password'] ?? '';
 
-        // Check if the host/port are reachable before sending the email
-        if (!custom_smtp_check_port_availability($host, $port)) {
+        // Run comprehensive connection test before attempting to send
+        $test_result = custom_smtp_comprehensive_connection_test($host, $port, $encryption, $username, $password);
+
+        if (!$test_result['success']) {
             add_settings_error(
                 'custom_smtp_test_email',
-                'custom_smtp_port_blocked',
-                sprintf(
-                    __('Could not connect to %s on port %d. It may be blocked by your hosting environment.', 'snn'),
-                    esc_html($host),
-                    esc_html($port)
-                ),
+                'custom_smtp_connection_failed',
+                $test_result['message'],
                 'error'
             );
-            error_log("SMTP TEST: Host/Port check failed for $host:$port. Aborting send.");
+            error_log("SMTP TEST: Comprehensive connection test failed. Aborting send.");
             return; // Stop here; don't attempt sending the email
         }
+
+        error_log("SMTP TEST: Comprehensive connection test passed.");
     }
 
     // Attempt to send email using wp_mail()
