@@ -433,21 +433,31 @@ class Snn_Event_Action_Selector extends Element {
                         // Add listener for each event in the pair (or single event)
                         eventTypes.forEach(eventType => {
                             tr.addEventListener(eventType, function(e) {
-                                // Special handling for blur events
-                                if (eventType === 'blur') {
+                                // Special handling for events that can fire when interacting with child elements
+                                if (eventType === 'blur' || eventType === 'mouseout' || eventType === 'mouseleave' || eventType === 'pointerleave') {
                                     setTimeout(() => {
                                         actions.forEach(actionConfig => {
                                             const targetSel = actionConfig.target_selector;
                                             const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
                                             
-                                            // Check if the new focus is inside any of the action targets
-                                            const newFocus = document.activeElement;
-                                            const isFocusInTargets = Array.from(targets).some(t => 
-                                                t.contains(newFocus) || t === newFocus
-                                            );
+                                            let isStillInTargets = false;
                                             
-                                            // Only perform action if focus moved outside all targets
-                                            if (!isFocusInTargets && targets.length) {
+                                            if (eventType === 'blur') {
+                                                // Check if focus is still within action targets
+                                                const newFocus = document.activeElement;
+                                                isStillInTargets = Array.from(targets).some(t => 
+                                                    t.contains(newFocus) || t === newFocus
+                                                );
+                                            } else {
+                                                // For mouse/pointer events, check if mouse is still hovering over targets
+                                                const hoveredElements = document.querySelectorAll(':hover');
+                                                isStillInTargets = Array.from(targets).some(t => 
+                                                    Array.from(hoveredElements).some(h => h === t || t.contains(h))
+                                                );
+                                            }
+                                            
+                                            // Only perform action if interaction moved outside all targets
+                                            if (!isStillInTargets && targets.length) {
                                                 performAction(actionConfig, Array.from(targets), e);
                                             }
                                         });
