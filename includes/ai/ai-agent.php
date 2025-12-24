@@ -312,11 +312,22 @@ function snn_make_ai_request($config, $messages, $tools = null) {
     $data = json_decode($response_body, true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log('AI Agent: JSON decode error - ' . $response_body);
         return new WP_Error('json_error', 'Failed to parse API response.');
     }
 
     if (!isset($data['choices']) || empty($data['choices'])) {
-        return new WP_Error('invalid_response', 'Invalid API response structure.');
+        error_log('AI Agent: Invalid response structure - ' . print_r($data, true));
+
+        // Check if there's an error message in the response
+        if (isset($data['error'])) {
+            $error_msg = is_array($data['error']) && isset($data['error']['message'])
+                ? $data['error']['message']
+                : (is_string($data['error']) ? $data['error'] : 'Unknown API error');
+            return new WP_Error('api_error', 'AI API error: ' . $error_msg);
+        }
+
+        return new WP_Error('invalid_response', 'Invalid API response structure. Check error logs for details.');
     }
 
     return $data;
