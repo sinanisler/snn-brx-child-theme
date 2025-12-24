@@ -304,17 +304,7 @@ class Snn_Event_Action_Selector extends Element {
                                 el.focus({ preventScroll: false });
                                 break;
                             case 'Blur Element':
-                                // Check if blur is caused by clicking within the action targets
-                                setTimeout(() => {
-                                    const activeEl = document.activeElement;
-                                    const clickedInsideTargets = Array.from(targets).some(t => 
-                                        t.contains(activeEl) || t === activeEl
-                                    );
-                                    
-                                    if (!clickedInsideTargets) {
-                                        el.blur();
-                                    }
-                                }, 150);
+                                el.blur();
                                 break;
                             case 'Toggle Fullscreen':
                                 if (!document.fullscreenElement) { el.requestFullscreen().catch(()=>{}); }
@@ -443,15 +433,37 @@ class Snn_Event_Action_Selector extends Element {
                         // Add listener for each event in the pair (or single event)
                         eventTypes.forEach(eventType => {
                             tr.addEventListener(eventType, function(e) {
-                                actions.forEach(actionConfig => {
-                                    const targetSel = actionConfig.target_selector;
-                                    const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
-                                    if(targets.length) {
-                                        performAction(actionConfig, Array.from(targets), e);
-                                    } else {
-                                        console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
-                                    }
-                                });
+                                // Special handling for blur events
+                                if (eventType === 'blur') {
+                                    setTimeout(() => {
+                                        actions.forEach(actionConfig => {
+                                            const targetSel = actionConfig.target_selector;
+                                            const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+                                            
+                                            // Check if the new focus is inside any of the action targets
+                                            const newFocus = document.activeElement;
+                                            const isFocusInTargets = Array.from(targets).some(t => 
+                                                t.contains(newFocus) || t === newFocus
+                                            );
+                                            
+                                            // Only perform action if focus moved outside all targets
+                                            if (!isFocusInTargets && targets.length) {
+                                                performAction(actionConfig, Array.from(targets), e);
+                                            }
+                                        });
+                                    }, 150);
+                                } else {
+                                    // Normal handling for other events
+                                    actions.forEach(actionConfig => {
+                                        const targetSel = actionConfig.target_selector;
+                                        const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+                                        if(targets.length) {
+                                            performAction(actionConfig, Array.from(targets), e);
+                                        } else {
+                                            console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
+                                        }
+                                    });
+                                }
                             });
                         });
                     });
