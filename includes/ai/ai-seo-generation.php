@@ -704,7 +704,8 @@ function snn_seo_ai_render_overlay() {
         // Update labels based on excerpt mode and current mode
         function updateLabels() {
             const isExcerptMode = excerptModeCheckbox.checked;
-            const isTerm = currentMode === 'term';
+            // Check if we're dealing with terms (either single term mode or bulk term mode)
+            const isTerm = currentMode === 'term' || (currentMode === 'bulk' && currentData.itemType === 'term');
             
             // Set checkbox label based on mode (post type vs taxonomy)
             if (isTerm) {
