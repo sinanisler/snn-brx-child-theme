@@ -600,7 +600,17 @@ function snn_seo_ai_render_overlay() {
                     bulkBtn.addEventListener('click', function(e) {
                         e.preventDefault();
 
-                        const checkedBoxes = document.querySelectorAll('tbody input[name="post[]"]:checked');
+                        // Check for both post checkboxes and term checkboxes
+                        let checkedBoxes = document.querySelectorAll('tbody input[name="post[]"]:checked');
+                        let itemType = 'post';
+                        let warningMessage = '<?php _e('Please select posts first.', 'snn'); ?>';
+                        
+                        if (checkedBoxes.length === 0) {
+                            // Try taxonomy terms
+                            checkedBoxes = document.querySelectorAll('tbody input[name="delete_tags[]"]:checked');
+                            itemType = 'term';
+                            warningMessage = '<?php _e('Please select terms first.', 'snn'); ?>';
+                        }
 
                         if (checkedBoxes.length === 0) {
                             // Remove any existing warning
@@ -611,7 +621,7 @@ function snn_seo_ai_render_overlay() {
                             const warning = document.createElement('div');
                             warning.id = 'snn-bulk-warning';
                             warning.style.cssText = 'color: #d63638; font-size: 12px; margin-top: 5px;';
-                            warning.textContent = '<?php _e('Please select posts first.', 'snn'); ?>';
+                            warning.textContent = warningMessage;
                             bulkButtonContainer.appendChild(warning);
 
                             // Remove warning after 3 seconds
@@ -638,10 +648,11 @@ function snn_seo_ai_render_overlay() {
                         const existingWarning = document.getElementById('snn-bulk-warning');
                         if (existingWarning) existingWarning.remove();
 
-                        const postIds = Array.from(checkedBoxes).map(checkbox => parseInt(checkbox.value));
+                        const itemIds = Array.from(checkedBoxes).map(checkbox => parseInt(checkbox.value));
 
                         snnSeoAiOpenOverlay('bulk', {
-                            items: postIds
+                            items: itemIds,
+                            itemType: itemType
                         });
                     });
                 }
@@ -907,13 +918,14 @@ function snn_seo_ai_render_overlay() {
             bulkResultsContainer.innerHTML = '';
 
             const items = currentData.items;
+            const itemType = currentData.itemType || 'post';
             const total = items.length;
             document.getElementById('snn-bulk-total').textContent = total;
 
             bulkGeneratedData = [];
 
             for (let i = 0; i < items.length; i++) {
-                const postId = items[i];
+                const itemId = items[i];
                 document.getElementById('snn-bulk-current').textContent = i + 1;
                 const progressFill = document.querySelector('.snn-progress-fill');
                 if (progressFill) {
@@ -921,10 +933,16 @@ function snn_seo_ai_render_overlay() {
                 }
 
                 try {
-                    // Fetch post data using fetch API
+                    // Fetch data using fetch API
                     const formData = new FormData();
-                    formData.append('action', 'snn_seo_ai_get_post_data');
-                    formData.append('post_id', postId);
+                    
+                    if (itemType === 'term') {
+                        formData.append('action', 'snn_seo_ai_get_term_data');
+                        formData.append('term_id', itemId);
+                    } else {
+                        formData.append('action', 'snn_seo_ai_get_post_data');
+                        formData.append('post_id', itemId);
+                    }
                     formData.append('nonce', config.nonce);
 
                     const response = await fetch(config.ajaxUrl, {
@@ -932,23 +950,24 @@ function snn_seo_ai_render_overlay() {
                         body: formData
                     });
 
-                    const postData = await response.json();
+                    const itemData = await response.json();
 
-                    if (!postData.success) continue;
+                    if (!itemData.success) continue;
 
                     // Generate SEO
-                    const prompt = buildPromptForData(postData.data);
+                    const prompt = buildPromptForData(itemData.data);
                     const result = await callAI(prompt);
 
                     // Store generated data
                     bulkGeneratedData.push({
-                        postId: postId,
-                        postTitle: postData.data.title,
+                        itemId: itemId,
+                        itemType: itemType,
+                        itemTitle: itemData.data.title || itemData.data.name,
                         title: result.title,
                         description: result.description
                     });
                 } catch (error) {
-                    console.error('Error processing post ' + postId, error);
+                    console.error('Error processing ' + itemType + ' ' + itemId, error);
                 }
             }
 
@@ -1004,7 +1023,7 @@ function snn_seo_ai_render_overlay() {
                 const itemHtml = `
                     <div class="snn-bulk-item" data-index="${index}">
                         <div class="snn-bulk-item-header">
-                            <span class="snn-bulk-item-title">${escapeHtml(item.postTitle)}</span>
+                            <span class="snn-bulk-item-title">${escapeHtml(item.itemTitle)}</span>
                             <button type="button" class="snn-bulk-item-regenerate" data-index="${index}">
                                 ${config.strings.regenerate}
                             </button>
@@ -1053,10 +1072,16 @@ function snn_seo_ai_render_overlay() {
                     try {
                         const itemData = bulkGeneratedData[index];
 
-                        // Fetch fresh post data
+                        // Fetch fresh data
                         const formData = new FormData();
-                        formData.append('action', 'snn_seo_ai_get_post_data');
-                        formData.append('post_id', itemData.postId);
+                        
+                        if (itemData.itemType === 'term') {
+                            formData.append('action', 'snn_seo_ai_get_term_data');
+                            formData.append('term_id', itemData.itemId);
+                        } else {
+                            formData.append('action', 'snn_seo_ai_get_post_data');
+                            formData.append('post_id', itemData.itemId);
+                        }
                         formData.append('nonce', config.nonce);
 
                         const response = await fetch(config.ajaxUrl, {
@@ -1064,10 +1089,10 @@ function snn_seo_ai_render_overlay() {
                             body: formData
                         });
 
-                        const postData = await response.json();
+                        const fetchedData = await response.json();
 
-                        if (postData.success) {
-                            const prompt = buildPromptForData(postData.data);
+                        if (fetchedData.success) {
+                            const prompt = buildPromptForData(fetchedData.data);
                             const result = await callAI(prompt);
 
                             // Update stored data
@@ -1106,8 +1131,14 @@ function snn_seo_ai_render_overlay() {
             for (const item of bulkGeneratedData) {
                 try {
                     const formData = new FormData();
-                    formData.append('action', 'snn_seo_ai_save_post');
-                    formData.append('post_id', item.postId);
+                    
+                    if (item.itemType === 'term') {
+                        formData.append('action', 'snn_seo_ai_save_term');
+                        formData.append('term_id', item.itemId);
+                    } else {
+                        formData.append('action', 'snn_seo_ai_save_post');
+                        formData.append('post_id', item.itemId);
+                    }
                     formData.append('nonce', config.nonce);
 
                     if (generateTitle.checked) {
@@ -1124,7 +1155,7 @@ function snn_seo_ai_render_overlay() {
                     });
                     saved++;
                 } catch (error) {
-                    console.error('Error saving post ' + item.postId, error);
+                    console.error('Error saving ' + item.itemType + ' ' + item.itemId, error);
                 }
             }
 
@@ -1165,7 +1196,8 @@ function snn_seo_ai_render_overlay() {
                 whatToGenerate = 'Generate SEO description (max 160 chars)';
             }
 
-            if (currentMode === 'term') {
+            // Check if this is term data (has 'name' property) or post data (has 'title' property)
+            if (data.name !== undefined || currentMode === 'term') {
                 return `${basePrompt}\n\n${whatToGenerate} for this taxonomy term:\nTerm: ${data.name}\nDescription: ${data.description || 'N/A'}\n\nReturn JSON: {"title": "...", "description": "..."}`;
             } else {
                 return `${basePrompt}\n\n${whatToGenerate} for this content:\nTitle: ${data.title}\nContent: ${(data.content || '').substring(0, 2000)}\n\nReturn JSON: {"title": "...", "description": "..."}`;
@@ -1370,6 +1402,35 @@ function snn_seo_ai_get_post_data_handler() {
     ));
 }
 add_action('wp_ajax_snn_seo_ai_get_post_data', 'snn_seo_ai_get_post_data_handler');
+
+/**
+ * AJAX: Get term data for generation
+ */
+function snn_seo_ai_get_term_data_handler() {
+    check_ajax_referer('snn_seo_ai_nonce', 'nonce');
+    
+    if (!current_user_can('manage_categories')) {
+        wp_send_json_error('Insufficient permissions');
+    }
+    
+    $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
+    
+    if (!$term_id) {
+        wp_send_json_error('Invalid term ID');
+    }
+    
+    $term = get_term($term_id);
+    if (!$term || is_wp_error($term)) {
+        wp_send_json_error('Term not found');
+    }
+    
+    wp_send_json_success(array(
+        'termId' => $term_id,
+        'name' => $term->name,
+        'description' => $term->description
+    ));
+}
+add_action('wp_ajax_snn_seo_ai_get_term_data', 'snn_seo_ai_get_term_data_handler');
 
 /**
  * AJAX: Save post SEO data
