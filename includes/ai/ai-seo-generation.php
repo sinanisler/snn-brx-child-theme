@@ -1215,6 +1215,11 @@ function snn_seo_ai_render_overlay() {
                     if (generateDesc.checked) {
                         formData.append('description', item.description);
                     }
+                    
+                    const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
+                    if (isExcerptMode) {
+                        formData.append('excerpt_mode', '1');
+                    }
 
                     await fetch(config.ajaxUrl, {
                         method: 'POST',
