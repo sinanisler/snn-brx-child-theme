@@ -82,6 +82,8 @@ function snn_seo_ai_enqueue_admin_scripts($hook) {
                 'contextInfo' => __('AI is reading:', 'snn'),
                 'seoTitle' => __('SEO Title', 'snn'),
                 'seoDescription' => __('SEO Description', 'snn'),
+                'excerpt' => __('Excerpt', 'snn'),
+                'taxonomyDescription' => __('Taxonomy Description', 'snn'),
                 'processing' => __('Processing item', 'snn'),
                 'of' => __('of', 'snn'),
             )
@@ -146,9 +148,20 @@ function snn_seo_ai_render_overlay() {
                         </label>
                         <label class="snn-checkbox-label">
                             <input type="checkbox" id="snn-generate-description" checked />
-                            <?php _e('SEO Description', 'snn'); ?>
+                            <span id="snn-description-label"><?php _e('SEO Description', 'snn'); ?></span>
                         </label>
                     </div>
+                </div>
+                
+                <!-- Excerpt/Description Mode -->
+                <div class="snn-seo-ai-mode">
+                    <label class="snn-checkbox-label">
+                        <input type="checkbox" id="snn-generate-excerpt-mode" />
+                        <span id="snn-excerpt-mode-label"><?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?></span>
+                    </label>
+                    <p class="description" style="margin: 8px 0 0 26px; font-size: 12px; color: #646970;">
+                        <?php _e('Enable this if you want to generate post excerpts or taxonomy descriptions instead of SEO meta descriptions. Useful when your meta description template reads from these fields.', 'snn'); ?>
+                    </p>
                 </div>
                 
                 <!-- Custom Prompt -->
@@ -294,6 +307,14 @@ function snn_seo_ai_render_overlay() {
         margin-bottom: 10px;
         font-weight: 600;
         font-size: 14px;
+    }
+    
+    .snn-seo-ai-mode {
+        margin-bottom: 20px;
+        padding: 12px;
+        background: #f6f7f7;
+        border-radius: 4px;
+        border-left: 3px solid #2271b1;
     }
     
     .snn-seo-ai-checkboxes {
@@ -662,6 +683,9 @@ function snn_seo_ai_render_overlay() {
         const customPrompt = document.getElementById('snn-seo-custom-prompt');
         const generateTitle = document.getElementById('snn-generate-title');
         const generateDesc = document.getElementById('snn-generate-description');
+        const excerptModeCheckbox = document.getElementById('snn-generate-excerpt-mode');
+        const excerptModeLabel = document.getElementById('snn-excerpt-mode-label');
+        const descriptionLabel = document.getElementById('snn-description-label');
         const results = document.querySelector('.snn-seo-ai-results');
         const resultTitle = document.getElementById('snn-seo-result-title');
         const resultDesc = document.getElementById('snn-seo-result-description');
@@ -679,6 +703,46 @@ function snn_seo_ai_render_overlay() {
         let currentData = {};
         let selectedPresets = [];
         let bulkGeneratedData = []; // Store generated results for bulk
+        
+        // Update labels based on excerpt mode and current mode
+        function updateLabels() {
+            const isExcerptMode = excerptModeCheckbox.checked;
+            const isTerm = currentMode === 'term';
+            
+            if (isExcerptMode) {
+                if (isTerm) {
+                    descriptionLabel.textContent = config.strings.taxonomyDescription;
+                    excerptModeLabel.textContent = '<?php _e('Generate Taxonomy Description instead of Meta Description', 'snn'); ?>';
+                } else {
+                    descriptionLabel.textContent = config.strings.excerpt;
+                    excerptModeLabel.textContent = '<?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?>';
+                }
+            } else {
+                descriptionLabel.textContent = config.strings.seoDescription;
+                if (isTerm) {
+                    excerptModeLabel.textContent = '<?php _e('Generate Taxonomy Description instead of Meta Description', 'snn'); ?>';
+                } else {
+                    excerptModeLabel.textContent = '<?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?>';
+                }
+            }
+            
+            // Update result field labels
+            const resultDescLabel = document.querySelector('.snn-seo-result-item:last-child label');
+            if (resultDescLabel && isExcerptMode) {
+                if (isTerm) {
+                    resultDescLabel.textContent = config.strings.taxonomyDescription + ':';
+                } else {
+                    resultDescLabel.textContent = config.strings.excerpt + ':';
+                }
+            } else if (resultDescLabel) {
+                resultDescLabel.textContent = config.strings.seoDescription + ':';
+            }
+        }
+        
+        // Listen to excerpt mode changes
+        if (excerptModeCheckbox) {
+            excerptModeCheckbox.addEventListener('change', updateLabels);
+        }
 
         // Helper functions for show/hide
         function showElement(el) {
@@ -777,6 +841,9 @@ function snn_seo_ai_render_overlay() {
                 countText = `(${data.name})`;
             }
             itemCount.textContent = countText;
+            
+            // Update labels for current mode
+            updateLabels();
 
             fadeIn(overlay, 200);
         };
@@ -1187,13 +1254,32 @@ function snn_seo_ai_render_overlay() {
             const genTitle = generateTitle.checked;
             const genDesc = generateDesc.checked;
 
+            const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
+            const isTerm = data.name !== undefined || currentMode === 'term';
+            
             let whatToGenerate = '';
             if (genTitle && genDesc) {
-                whatToGenerate = 'Generate SEO title (max 60 chars) and description (max 160 chars)';
+                if (isExcerptMode) {
+                    if (isTerm) {
+                        whatToGenerate = 'Generate SEO title (max 60 chars) and taxonomy description (max 160 chars)';
+                    } else {
+                        whatToGenerate = 'Generate SEO title (max 60 chars) and post excerpt (max 160 chars)';
+                    }
+                } else {
+                    whatToGenerate = 'Generate SEO title (max 60 chars) and meta description (max 160 chars)';
+                }
             } else if (genTitle) {
                 whatToGenerate = 'Generate SEO title (max 60 chars)';
             } else if (genDesc) {
-                whatToGenerate = 'Generate SEO description (max 160 chars)';
+                if (isExcerptMode) {
+                    if (isTerm) {
+                        whatToGenerate = 'Generate taxonomy description (max 160 chars)';
+                    } else {
+                        whatToGenerate = 'Generate post excerpt (max 160 chars)';
+                    }
+                } else {
+                    whatToGenerate = 'Generate SEO meta description (max 160 chars)';
+                }
             }
 
             // Check if this is term data (has 'name' property) or post data (has 'title' property)
@@ -1266,6 +1352,11 @@ function snn_seo_ai_render_overlay() {
             if (generateDesc.checked) {
                 formData.append('description', resultDesc.value);
             }
+            
+            const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
+            if (isExcerptMode) {
+                formData.append('excerpt_mode', '1');
+            }
 
             return fetch(config.ajaxUrl, {
                 method: 'POST',
@@ -1292,6 +1383,11 @@ function snn_seo_ai_render_overlay() {
                 // Also update the visible form field
                 const termDescField = document.getElementById('snn_seo_term_description');
                 if (termDescField) termDescField.value = resultDesc.value;
+            }
+            
+            const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
+            if (isExcerptMode) {
+                formData.append('excerpt_mode', '1');
             }
 
             return fetch(config.ajaxUrl, {
@@ -1445,6 +1541,7 @@ function snn_seo_ai_save_post_handler() {
     $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
     $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
     $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
+    $excerpt_mode = isset($_POST['excerpt_mode']) && $_POST['excerpt_mode'] === '1';
     
     if (!$post_id) {
         wp_send_json_error('Invalid post ID');
@@ -1455,7 +1552,16 @@ function snn_seo_ai_save_post_handler() {
     }
     
     if ($description) {
-        update_post_meta($post_id, '_snn_seo_description', $description);
+        if ($excerpt_mode) {
+            // Save to post excerpt instead of meta description
+            wp_update_post(array(
+                'ID' => $post_id,
+                'post_excerpt' => $description
+            ));
+        } else {
+            // Save to meta description
+            update_post_meta($post_id, '_snn_seo_description', $description);
+        }
     }
     
     wp_send_json_success();
@@ -1475,9 +1581,15 @@ function snn_seo_ai_save_term_handler() {
     $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
     $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
     $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
+    $excerpt_mode = isset($_POST['excerpt_mode']) && $_POST['excerpt_mode'] === '1';
     
     if (!$term_id) {
         wp_send_json_error('Invalid term ID');
+    }
+    
+    $term = get_term($term_id);
+    if (!$term || is_wp_error($term)) {
+        wp_send_json_error('Term not found');
     }
     
     if ($title) {
@@ -1485,7 +1597,15 @@ function snn_seo_ai_save_term_handler() {
     }
     
     if ($description) {
-        update_term_meta($term_id, '_snn_seo_description', $description);
+        if ($excerpt_mode) {
+            // Save to taxonomy description instead of meta description
+            wp_update_term($term_id, $term->taxonomy, array(
+                'description' => $description
+            ));
+        } else {
+            // Save to meta description
+            update_term_meta($term_id, '_snn_seo_description', $description);
+        }
     }
     
     wp_send_json_success();
