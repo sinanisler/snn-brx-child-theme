@@ -129,8 +129,16 @@ function snn_ai_agent_chat_handler() {
         // Step 6: Add system message if not present
         try {
             if (!isset($messages[0]['role']) || $messages[0]['role'] !== 'system') {
-                $system_content = $config['systemPrompt'] . "\n\nYou are working within a WordPress environment. " .
-                                "Use the available tools to manage posts, users, and other WordPress content when needed.";
+                $system_content = $config['systemPrompt'] . "\n\n" .
+                                "You are an AI assistant with access to WordPress tools. " .
+                                "You have the following abilities:\n" .
+                                "- List all posts, pages, and custom post types\n" .
+                                "- Get counts of posts, pages, users, and taxonomies\n" .
+                                "- Create new posts with specified title, content, and status\n" .
+                                "- Analyze post content for SEO metrics\n" .
+                                "- List all registered post types on the site\n\n" .
+                                "When a user asks about posts, pages, or content, ALWAYS use the appropriate tool to get accurate, up-to-date information. " .
+                                "Never guess or make assumptions about what content exists - always use the tools to fetch the actual data.";
 
                 array_unshift($messages, [
                     'role' => 'system',
@@ -472,7 +480,9 @@ function snn_execute_tool_calls($tool_calls) {
 function snn_execute_ability_tool($function_name, $arguments) {
     // Convert function name back to ability name
     // snn__get_user_count becomes snn/get-user-count
-    $ability_name = str_replace(['__', '_'], ['/', '-'], $function_name);
+    // First replace __ with /, then replace remaining _ with -
+    $ability_name = str_replace('__', '/', $function_name);
+    $ability_name = str_replace('_', '-', $ability_name);
 
     error_log('AI Agent: Mapping "' . $function_name . '" to ability "' . $ability_name . '"');
 

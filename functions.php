@@ -62,6 +62,8 @@ require_once SNN_PATH . 'includes/ai/abilities/user-count.php';
 require_once SNN_PATH . 'includes/ai/abilities/create-new-post.php';
 require_once SNN_PATH . 'includes/ai/abilities/taxonomy-and-terms-count.php';
 require_once SNN_PATH . 'includes/ai/abilities/seo-analyser.php';
+require_once SNN_PATH . 'includes/ai/abilities/list-all-posts.php';
+require_once SNN_PATH . 'includes/ai/abilities/list-all-post-types.php';
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 require_once SNN_PATH . 'includes/wp-admin-image-opt.php';
