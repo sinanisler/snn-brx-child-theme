@@ -304,10 +304,7 @@ class Snn_Event_Action_Selector extends Element {
                                 el.focus({ preventScroll: false });
                                 break;
                             case 'Blur Element':
-                                 if (e && e.relatedTarget && el.contains(e.relatedTarget)) {
-                                        return; // Don't hide if focusing within
-                                    }
-                                el.blur();
+                                 setTimeout(() => el.blur(), 50);
                                 break;
                             case 'Toggle Fullscreen':
                                 if (!document.fullscreenElement) { el.requestFullscreen().catch(()=>{}); }
