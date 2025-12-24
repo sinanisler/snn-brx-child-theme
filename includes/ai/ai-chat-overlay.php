@@ -575,63 +575,145 @@ function snn_ai_chat_overlay_output() {
 
         // Handle AJAX success
         function handleAjaxSuccess(response) {
+            console.log('AI Agent Response:', response);
             hideTyping();
 
+            // Check for error response
             if (!response.success) {
-                showError(response.data?.message || 'An error occurred. Please try again.');
+                const errorMsg = response.data?.message || 'An error occurred. Please try again.';
+                console.error('AI Agent Error:', errorMsg);
+                showError(errorMsg);
+                resetProcessing();
+                return;
+            }
+
+            // Validate response data
+            if (!response.data) {
+                console.error('AI Agent Error: Missing response data');
+                showError('Invalid response from server.');
                 resetProcessing();
                 return;
             }
 
             const data = response.data;
 
-            // Handle tool calls
-            if (data.requires_continuation && data.tool_results) {
-                handleToolCalls(data);
-            } else {
-                handleFinalResponse(data);
+            try {
+                // Handle tool calls
+                if (data.requires_continuation && data.tool_results) {
+                    handleToolCalls(data);
+                } else {
+                    handleFinalResponse(data);
+                }
+            } catch (e) {
+                console.error('Error handling response:', e);
+                showError('Failed to process response: ' + e.message);
+                resetProcessing();
             }
         }
 
         // Handle tool calls
         function handleToolCalls(data) {
-            // Add assistant message with tool_calls to conversation
-            state.conversationMessages.push(data.message);
+            try {
+                console.log('Processing tool calls:', data.tool_results);
 
-            // Display and add tool results
-            if (Array.isArray(data.tool_results)) {
-                data.tool_results.forEach(function(toolResult) {
-                    try {
-                        const toolData = JSON.parse(toolResult.content);
-                        addMessageToUI('tool', null, toolResult.name, toolData);
-                        state.conversationMessages.push(toolResult);
-                    } catch (e) {
-                        console.error('Failed to parse tool result:', e);
-                    }
-                });
+                // Validate data
+                if (!data.message) {
+                    throw new Error('Missing assistant message with tool calls');
+                }
+
+                // Add assistant message with tool_calls to conversation
+                state.conversationMessages.push(data.message);
+
+                // Display and add tool results
+                if (Array.isArray(data.tool_results)) {
+                    data.tool_results.forEach(function(toolResult, index) {
+                        try {
+                            if (!toolResult.content) {
+                                console.warn('Tool result ' + index + ' missing content');
+                                return;
+                            }
+
+                            const toolData = JSON.parse(toolResult.content);
+                            addMessageToUI('tool', null, toolResult.name, toolData);
+                            state.conversationMessages.push(toolResult);
+                        } catch (e) {
+                            console.error('Failed to parse tool result ' + index + ':', e);
+                            showError('Failed to parse tool result: ' + e.message);
+                        }
+                    });
+                } else {
+                    console.warn('tool_results is not an array');
+                }
+
+                // Continue conversation
+                setTimeout(processMessage, CONFIG.RETRY_DELAY);
+
+            } catch (e) {
+                console.error('Error in handleToolCalls:', e);
+                showError('Tool execution error: ' + e.message);
+                resetProcessing();
             }
-
-            // Continue conversation
-            setTimeout(processMessage, CONFIG.RETRY_DELAY);
         }
 
         // Handle final response
         function handleFinalResponse(data) {
-            if (data.message && data.message.content) {
-                addMessageToUI('assistant', data.message.content);
-                state.conversationMessages.push({
-                    role: 'assistant',
-                    content: data.message.content
-                });
-            }
+            try {
+                console.log('Final response:', data.message);
 
-            resetProcessing();
+                if (!data.message) {
+                    throw new Error('Missing message in final response');
+                }
+
+                if (data.message.content) {
+                    addMessageToUI('assistant', data.message.content);
+                    state.conversationMessages.push({
+                        role: 'assistant',
+                        content: data.message.content
+                    });
+                } else {
+                    console.warn('Final response has no content');
+                }
+
+                resetProcessing();
+
+            } catch (e) {
+                console.error('Error in handleFinalResponse:', e);
+                showError('Failed to display response: ' + e.message);
+                resetProcessing();
+            }
         }
 
         // Handle AJAX error
         function handleAjaxError(xhr, status, error) {
+            console.error('AJAX Error:', {xhr: xhr, status: status, error: error});
             hideTyping();
-            showError('Connection error: ' + (error || 'Unknown error'));
+
+            let errorMsg = 'Connection error';
+
+            if (xhr.status === 0) {
+                errorMsg = 'Network error. Please check your connection.';
+            } else if (xhr.status === 403) {
+                errorMsg = 'Access denied. Please check your permissions.';
+            } else if (xhr.status === 404) {
+                errorMsg = 'Endpoint not found. Please check configuration.';
+            } else if (xhr.status === 500) {
+                errorMsg = 'Server error. Please try again later.';
+            } else if (error) {
+                errorMsg = 'Connection error: ' + error;
+            }
+
+            // Try to parse error response
+            try {
+                if (xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
+                    errorMsg = xhr.responseJSON.data.message;
+                } else if (xhr.responseText) {
+                    console.log('Error response text:', xhr.responseText);
+                }
+            } catch (e) {
+                console.error('Failed to parse error response:', e);
+            }
+
+            showError(errorMsg);
             resetProcessing();
         }
 
