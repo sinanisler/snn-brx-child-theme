@@ -67,6 +67,8 @@ function snn_custom_css_utils_wp_footer() {
 
         [data-control=color] .bricks-control-popup .color-palette{ grid-template-columns: repeat(auto-fit,minmax(36px,36px)) ; }
         .bricks-control-popup .color-palette-grid{ grid-template-columns: repeat(auto-fit, minmax(36px, calc(10% - 4px))) !important; }
+        [data-control=color] .bricks-control-popup .color-palette-grid li.active div:before {
+            left: 0px !important;    transform: none !important;    width: 100% !important;    right: auto !important;}
     </style>
     <?php
     }
