@@ -28,78 +28,124 @@ add_action('wp_ajax_snn_ai_agent_chat', 'snn_ai_agent_chat_handler');
  * Processes user messages, handles tool calls, and returns AI responses
  */
 function snn_ai_agent_chat_handler() {
-    // Verify nonce for security
-    check_ajax_referer('snn_ai_agent_nonce', 'nonce');
+    try {
+        error_log('=== AI Agent: New request started ===');
 
-    // Check user permissions
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(['message' => 'Unauthorized access.']);
-        return;
-    }
+        // Verify nonce for security
+        check_ajax_referer('snn_ai_agent_nonce', 'nonce');
 
-    // Get the AI configuration
-    if (!function_exists('snn_get_ai_api_config')) {
-        wp_send_json_error(['message' => 'AI configuration not available.']);
-        return;
-    }
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            error_log('AI Agent: Unauthorized access attempt');
+            wp_send_json_error(['message' => 'Unauthorized access.']);
+            return;
+        }
 
-    $config = snn_get_ai_api_config();
+        // Get the AI configuration
+        if (!function_exists('snn_get_ai_api_config')) {
+            error_log('AI Agent: snn_get_ai_api_config function not found');
+            wp_send_json_error(['message' => 'AI configuration not available.']);
+            return;
+        }
 
-    if (empty($config['apiKey']) || empty($config['apiEndpoint'])) {
-        wp_send_json_error(['message' => 'AI API not configured properly.']);
-        return;
-    }
+        $config = snn_get_ai_api_config();
 
-    // Get request data
-    $messages = isset($_POST['messages']) ? json_decode(stripslashes($_POST['messages']), true) : [];
-    $use_tools = isset($_POST['use_tools']) ? filter_var($_POST['use_tools'], FILTER_VALIDATE_BOOLEAN) : true;
+        if (empty($config['apiKey']) || empty($config['apiEndpoint'])) {
+            error_log('AI Agent: Missing API key or endpoint');
+            wp_send_json_error(['message' => 'AI API not configured properly.']);
+            return;
+        }
 
-    if (empty($messages) || !is_array($messages)) {
-        wp_send_json_error(['message' => 'Invalid messages format.']);
-        return;
-    }
+        // Get request data
+        $messages = isset($_POST['messages']) ? json_decode(stripslashes($_POST['messages']), true) : [];
+        $use_tools = isset($_POST['use_tools']) ? filter_var($_POST['use_tools'], FILTER_VALIDATE_BOOLEAN) : true;
 
-    // Prepare system message for WordPress context
-    $system_message = [
-        'role' => 'system',
-        'content' => $config['systemPrompt'] . "\n\nYou are working within a WordPress environment and have access to various tools to help manage the website. You can create, read, update posts, pages, and other WordPress content. Always use the appropriate tool when the user asks for WordPress-related operations."
-    ];
+        error_log('AI Agent: Received ' . count($messages) . ' messages, use_tools=' . ($use_tools ? 'true' : 'false'));
 
-    // Prepend system message if not already present
-    if (empty($messages) || $messages[0]['role'] !== 'system') {
-        array_unshift($messages, $system_message);
-    }
+        if (empty($messages) || !is_array($messages)) {
+            error_log('AI Agent: Invalid messages format - ' . print_r($messages, true));
+            wp_send_json_error(['message' => 'Invalid messages format.']);
+            return;
+        }
 
-    // Define available tools from WordPress Abilities
-    $tools = $use_tools ? snn_get_ai_tools_from_abilities() : null;
+        // Prepare system message for WordPress context
+        $system_message = [
+            'role' => 'system',
+            'content' => $config['systemPrompt'] . "\n\nYou are working within a WordPress environment and have access to various tools to help manage the website. You can create, read, update posts, pages, and other WordPress content. Always use the appropriate tool when the user asks for WordPress-related operations."
+        ];
 
-    // Make API request
-    $response = snn_make_ai_agent_request($config, $messages, $tools);
+        // Prepend system message ONLY if not already present
+        // Check if first message is a system message
+        if (!isset($messages[0]) || $messages[0]['role'] !== 'system') {
+            array_unshift($messages, $system_message);
+            error_log('AI Agent: Added system message to conversation');
+        } else {
+            error_log('AI Agent: System message already present, skipping');
+        }
 
-    if (is_wp_error($response)) {
-        wp_send_json_error(['message' => $response->get_error_message()]);
-        return;
-    }
+        // Define available tools from WordPress Abilities
+        $tools = $use_tools ? snn_get_ai_tools_from_abilities() : null;
 
-    // Handle tool calls if present
-    $assistant_message = $response['choices'][0]['message'];
+        if ($tools !== null) {
+            error_log('AI Agent: Loaded ' . count($tools) . ' tools from abilities');
+        }
 
-    if (isset($assistant_message['tool_calls']) && !empty($assistant_message['tool_calls'])) {
-        // Execute tool calls
-        $tool_results = snn_execute_tool_calls($assistant_message['tool_calls']);
+        // Make API request
+        error_log('AI Agent: Making API request to ' . $config['apiEndpoint']);
+        $response = snn_make_ai_agent_request($config, $messages, $tools);
 
-        // Return both the assistant message and tool results
-        wp_send_json_success([
-            'message' => $assistant_message,
-            'tool_results' => $tool_results,
-            'requires_continuation' => true
-        ]);
-    } else {
-        // No tool calls, return the final response
-        wp_send_json_success([
-            'message' => $assistant_message,
-            'requires_continuation' => false
-        ]);
+        if (is_wp_error($response)) {
+            error_log('AI Agent: API request failed - ' . $response->get_error_message());
+            wp_send_json_error(['message' => $response->get_error_message()]);
+            return;
+        }
+
+        // Validate response structure
+        if (!isset($response['choices'][0]['message'])) {
+            error_log('AI Agent: Invalid response structure - ' . print_r($response, true));
+            wp_send_json_error(['message' => 'Invalid response structure from AI API.']);
+            return;
+        }
+
+        // Handle tool calls if present
+        $assistant_message = $response['choices'][0]['message'];
+
+        if (isset($assistant_message['tool_calls']) && !empty($assistant_message['tool_calls'])) {
+            error_log('AI Agent: Processing ' . count($assistant_message['tool_calls']) . ' tool calls');
+
+            // Execute tool calls
+            $tool_results = snn_execute_tool_calls($assistant_message['tool_calls']);
+
+            error_log('AI Agent: Tool execution completed, sending results');
+
+            // Return both the assistant message and tool results
+            wp_send_json_success([
+                'message' => $assistant_message,
+                'tool_results' => $tool_results,
+                'requires_continuation' => true
+            ]);
+        } else {
+            error_log('AI Agent: No tool calls, sending final response');
+
+            // No tool calls, return the final response
+            wp_send_json_success([
+                'message' => $assistant_message,
+                'requires_continuation' => false
+            ]);
+        }
+
+        error_log('=== AI Agent: Request completed successfully ===');
+
+    } catch (Exception $e) {
+        error_log('AI Agent Exception: ' . $e->getMessage());
+        error_log('AI Agent Exception File: ' . $e->getFile() . ':' . $e->getLine());
+        error_log('AI Agent Stack trace: ' . $e->getTraceAsString());
+        wp_send_json_error(['message' => 'Server error: ' . $e->getMessage()]);
+    } catch (Error $e) {
+        error_log('AI Agent Fatal Error: ' . $e->getMessage());
+        error_log('AI Agent Fatal Error File: ' . $e->getFile() . ':' . $e->getLine());
+        error_log('AI Agent Stack trace: ' . $e->getTraceAsString());
+        wp_send_json_error(['message' => 'Fatal error occurred. Check error logs for details.']);
     }
 }
 
@@ -167,6 +213,7 @@ function snn_make_ai_agent_request($config, $messages, $tools = null) {
 function snn_get_ai_tools_from_abilities() {
     // Check if WordPress Abilities API is available
     if (!function_exists('wp_get_abilities')) {
+        error_log('AI Agent: wp_get_abilities function not found');
         return [];
     }
 
@@ -179,10 +226,17 @@ function snn_get_ai_tools_from_abilities() {
             continue;
         }
 
+        $ability_name = $ability->get_name();
+
+        // Convert ability name to function name
+        // Replace ONLY the first slash with double underscore to preserve other underscores
+        // Example: snn/get_user_count -> snn__get_user_count (reversible!)
+        $function_name = str_replace('/', '__', $ability_name);
+
         $tool = [
             'type' => 'function',
             'function' => [
-                'name' => str_replace('/', '_', $ability->get_name()), // Convert snn/ability to snn_ability
+                'name' => $function_name,
                 'description' => $ability->get_description(),
             ]
         ];
@@ -199,6 +253,8 @@ function snn_get_ai_tools_from_abilities() {
         }
 
         $tools[] = $tool;
+
+        error_log('AI Agent: Registered tool "' . $function_name . '" for ability "' . $ability_name . '"');
     }
 
     return $tools;
@@ -214,7 +270,11 @@ function snn_execute_tool_calls($tool_calls) {
         $function_name = $tool_call['function']['name'];
         $arguments = json_decode($tool_call['function']['arguments'], true);
 
+        error_log('AI Agent: Executing tool "' . $function_name . '" with arguments: ' . print_r($arguments, true));
+
         $result = snn_execute_ability_tool($function_name, $arguments);
+
+        error_log('AI Agent: Tool "' . $function_name . '" execution result: ' . print_r($result, true));
 
         $results[] = [
             'tool_call_id' => $tool_call['id'],
@@ -231,11 +291,15 @@ function snn_execute_tool_calls($tool_calls) {
  * Execute an ability tool
  */
 function snn_execute_ability_tool($function_name, $arguments) {
-    // Convert function name back to ability name (snn_ability to snn/ability)
-    $ability_name = str_replace('_', '/', $function_name);
+    // Convert function name back to ability name (snn__get_user_count to snn/get_user_count)
+    // Replace double underscore back to slash
+    $ability_name = str_replace('__', '/', $function_name);
+
+    error_log('AI Agent: Converting function name "' . $function_name . '" to ability "' . $ability_name . '"');
 
     // Check if WordPress Abilities API is available
     if (!function_exists('wp_get_ability')) {
+        error_log('AI Agent: wp_get_ability function not found');
         return [
             'error' => 'WordPress Abilities API not available.'
         ];
@@ -245,6 +309,7 @@ function snn_execute_ability_tool($function_name, $arguments) {
     $ability = wp_get_ability($ability_name);
 
     if (!$ability) {
+        error_log('AI Agent: Ability "' . $ability_name . '" not found');
         return [
             'error' => 'Ability "' . $ability_name . '" not found.'
         ];
@@ -252,6 +317,7 @@ function snn_execute_ability_tool($function_name, $arguments) {
 
     // Check permission
     if (!$ability->check_permission()) {
+        error_log('AI Agent: Permission denied for ability "' . $ability_name . '"');
         return [
             'error' => 'Permission denied for ability "' . $ability_name . '".'
         ];
@@ -259,18 +325,23 @@ function snn_execute_ability_tool($function_name, $arguments) {
 
     // Execute the ability
     try {
+        error_log('AI Agent: Executing ability "' . $ability_name . '"');
         $result = $ability->execute($arguments);
 
         // Handle WP_Error
         if (is_wp_error($result)) {
+            error_log('AI Agent: Ability execution returned WP_Error: ' . $result->get_error_message());
             return [
                 'error' => $result->get_error_message(),
                 'error_code' => $result->get_error_code(),
             ];
         }
 
+        error_log('AI Agent: Ability "' . $ability_name . '" executed successfully');
         return $result;
     } catch (Exception $e) {
+        error_log('AI Agent: Exception executing ability "' . $ability_name . '": ' . $e->getMessage());
+        error_log('AI Agent: Exception trace: ' . $e->getTraceAsString());
         return [
             'error' => 'Exception executing ability: ' . $e->getMessage()
         ];
