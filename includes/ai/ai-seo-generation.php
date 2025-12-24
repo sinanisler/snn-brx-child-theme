@@ -1286,11 +1286,22 @@ function snn_seo_ai_render_overlay() {
                 }
             }
 
-            // Check if this is term data (has 'name' property) or post data (has 'title' property)
+            // Check if this is term data or post data
             if (data.name !== undefined || currentMode === 'term') {
-                return `${basePrompt}\n\n${whatToGenerate} for this taxonomy term:\nTerm: ${data.name}\nDescription: ${data.description || 'N/A'}\n\nReturn JSON: {"title": "...", "description": "..."}`;
+                // Restructured to make custom prompt more prominent
+                return `${whatToGenerate} for this taxonomy term:
+Term: ${data.name}
+Description: ${data.description || 'N/A'}
+${basePrompt ? '\n\nAdditional instructions:\n' + basePrompt : ''}
+
+Return ONLY a JSON object with this exact structure: {"title": "...", "description": "..."}`;
             } else {
-                return `${basePrompt}\n\n${whatToGenerate} for this content:\nTitle: ${data.title}\nContent: ${(data.content || '').substring(0, 2000)}\n\nReturn JSON: {"title": "...", "description": "..."}`;
+                return `${whatToGenerate} for this content:
+Title: ${data.title}
+Content: ${(data.content || '').substring(0, 2000)}
+${basePrompt ? '\n\nAdditional instructions:\n' + basePrompt : ''}
+
+Return ONLY a JSON object with this exact structure: {"title": "...", "description": "..."}`;
             }
         }
         
