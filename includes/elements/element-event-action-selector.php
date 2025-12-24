@@ -304,7 +304,17 @@ class Snn_Event_Action_Selector extends Element {
                                 el.focus({ preventScroll: false });
                                 break;
                             case 'Blur Element':
-                                 setTimeout(() => el.blur(), 50);
+                                // Check if blur is caused by clicking within the action targets
+                                setTimeout(() => {
+                                    const activeEl = document.activeElement;
+                                    const clickedInsideTargets = Array.from(targets).some(t => 
+                                        t.contains(activeEl) || t === activeEl
+                                    );
+                                    
+                                    if (!clickedInsideTargets) {
+                                        el.blur();
+                                    }
+                                }, 150);
                                 break;
                             case 'Toggle Fullscreen':
                                 if (!document.fullscreenElement) { el.requestFullscreen().catch(()=>{}); }
