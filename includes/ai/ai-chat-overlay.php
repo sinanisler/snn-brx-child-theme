@@ -558,18 +558,9 @@ function snn_ai_chat_overlay_output() {
                     if (response.success) {
                         const data = response.data;
 
-                        // Add assistant message
-                        if (data.message.content) {
-                            addMessageToUI('assistant', data.message.content);
-                            conversationMessages.push({
-                                role: 'assistant',
-                                content: data.message.content
-                            });
-                        }
-
                         // Handle tool calls
                         if (data.requires_continuation && data.tool_results) {
-                            // Add assistant message with tool calls
+                            // Add assistant message with tool calls to conversation
                             conversationMessages.push(data.message);
 
                             // Add tool results to UI and conversation
@@ -584,6 +575,15 @@ function snn_ai_chat_overlay_output() {
                                 processMessage();
                             }, 500);
                         } else {
+                            // Final response - add assistant message
+                            if (data.message && data.message.content) {
+                                addMessageToUI('assistant', data.message.content);
+                                conversationMessages.push({
+                                    role: 'assistant',
+                                    content: data.message.content
+                                });
+                            }
+
                             // Conversation complete
                             isProcessing = false;
                             sendButton.prop('disabled', false);
