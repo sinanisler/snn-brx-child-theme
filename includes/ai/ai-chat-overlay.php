@@ -9,11 +9,11 @@
  * users can interact with an AI agent that has access to WordPress tools.
  *
  * Features:
- * - Chat overlay UI in WordPress admin
+ * - Right-side slide-in chat panel
+ * - Simple light mode design (white bg, black text)
  * - Integration with ai-agent.php for backend processing
  * - Tool calling visualization
  * - Message history management
- * - Responsive design
  */
 
 if (!defined('ABSPATH')) {
@@ -93,183 +93,144 @@ function snn_ai_chat_overlay_output() {
     ?>
 
     <style>
-        /* AI Chat Overlay Styles */
-        #snn-ai-chat-overlay {
-            display: none;
+        /* AI Chat Panel - Simple Light Mode */
+        #snn-ai-chat-panel {
             position: fixed;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: #ffffff;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
             z-index: 999999;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #snn-ai-chat-overlay.active {
-            display: flex;
-        }
-
-        .snn-ai-chat-container {
-            background: #1e1e1e;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 800px;
-            height: 85vh;
-            max-height: 700px;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+            transition: right 0.3s ease;
+        }
+
+        #snn-ai-chat-panel.active {
+            right: 0;
         }
 
         .snn-ai-chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 24px;
+            background: #000000;
+            color: #ffffff;
+            padding: 16px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .snn-ai-chat-header h2 {
             margin: 0;
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .snn-ai-chat-header h2 .dashicons {
-            font-size: 24px;
-            width: 24px;
-            height: 24px;
         }
 
         .snn-ai-chat-close {
-            background: rgba(255, 255, 255, 0.2);
+            background: transparent;
             border: none;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            color: #ffffff;
             cursor: pointer;
+            font-size: 20px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.3s ease;
-            font-size: 20px;
         }
 
         .snn-ai-chat-close:hover {
-            background: rgba(255, 255, 255, 0.3);
+            opacity: 0.7;
         }
 
         .snn-ai-chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #2d2d2d;
+            padding: 16px;
+            background: #ffffff;
         }
 
         .snn-ai-chat-message {
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             display: flex;
-            gap: 12px;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            flex-direction: column;
+            gap: 6px;
         }
 
         .snn-ai-chat-message.user {
-            flex-direction: row-reverse;
+            align-items: flex-end;
         }
 
-        .snn-ai-chat-message-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 18px;
+        .snn-ai-chat-message.assistant {
+            align-items: flex-start;
         }
 
-        .snn-ai-chat-message.user .snn-ai-chat-message-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .snn-ai-chat-message.assistant .snn-ai-chat-message-avatar,
-        .snn-ai-chat-message.tool .snn-ai-chat-message-avatar {
-            background: #3a3a3a;
-            color: #888;
+        .snn-ai-chat-message-label {
+            font-size: 11px;
+            color: #666666;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
         .snn-ai-chat-message-content {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 12px;
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 6px;
             line-height: 1.5;
             word-wrap: break-word;
+            font-size: 14px;
         }
 
         .snn-ai-chat-message.user .snn-ai-chat-message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-bottom-right-radius: 4px;
+            background: #000000;
+            color: #ffffff;
         }
 
         .snn-ai-chat-message.assistant .snn-ai-chat-message-content {
-            background: #3a3a3a;
-            color: #e0e0e0;
-            border-bottom-left-radius: 4px;
+            background: #f5f5f5;
+            color: #000000;
+            border: 1px solid #e0e0e0;
+        }
+
+        .snn-ai-chat-message.tool {
+            align-items: flex-start;
         }
 
         .snn-ai-chat-message.tool .snn-ai-chat-message-content {
-            background: #2a4a2a;
-            color: #a8d5a8;
-            border-left: 3px solid #4caf50;
+            background: #fafafa;
+            color: #333333;
+            border: 1px solid #e0e0e0;
             font-family: 'Courier New', monospace;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .snn-ai-chat-message.tool .tool-name {
             font-weight: bold;
-            color: #4caf50;
-            margin-bottom: 8px;
+            color: #000000;
+            margin-bottom: 6px;
         }
 
         .snn-ai-chat-message.tool .tool-result {
-            background: rgba(0, 0, 0, 0.2);
+            background: #ffffff;
             padding: 8px;
+            border: 1px solid #e0e0e0;
             border-radius: 4px;
-            margin-top: 8px;
+            margin-top: 6px;
             white-space: pre-wrap;
-            max-height: 200px;
+            max-height: 150px;
             overflow-y: auto;
         }
 
         .snn-ai-chat-typing {
             display: none;
-            padding: 12px 16px;
-            background: #3a3a3a;
-            border-radius: 12px;
+            padding: 10px 14px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
             width: fit-content;
-            margin-left: 48px;
         }
 
         .snn-ai-chat-typing.active {
@@ -282,9 +243,9 @@ function snn_ai_chat_overlay_output() {
         }
 
         .snn-ai-chat-typing-dots span {
-            width: 8px;
-            height: 8px;
-            background: #888;
+            width: 6px;
+            height: 6px;
+            background: #666666;
             border-radius: 50%;
             animation: typing 1.4s infinite;
         }
@@ -299,168 +260,156 @@ function snn_ai_chat_overlay_output() {
 
         @keyframes typing {
             0%, 60%, 100% {
-                transform: translateY(0);
-                opacity: 0.5;
+                opacity: 0.3;
             }
             30% {
-                transform: translateY(-10px);
                 opacity: 1;
             }
         }
 
         .snn-ai-chat-input-container {
-            padding: 20px;
-            background: #1e1e1e;
-            border-top: 1px solid #3a3a3a;
+            padding: 16px;
+            background: #ffffff;
+            border-top: 1px solid #e0e0e0;
         }
 
         .snn-ai-chat-input-wrapper {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: flex-end;
         }
 
         .snn-ai-chat-input {
             flex: 1;
-            background: #2d2d2d;
-            border: 1px solid #3a3a3a;
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: #e0e0e0;
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 4px;
+            padding: 10px 12px;
+            color: #000000;
             font-size: 14px;
             resize: none;
-            max-height: 120px;
-            min-height: 44px;
+            max-height: 100px;
+            min-height: 40px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
         }
 
         .snn-ai-chat-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #000000;
         }
 
         .snn-ai-chat-send {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
             border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
+            color: #ffffff;
+            padding: 10px 16px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            height: 44px;
+            font-size: 14px;
+            height: 40px;
+            transition: opacity 0.2s ease;
         }
 
         .snn-ai-chat-send:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            opacity: 0.8;
         }
 
         .snn-ai-chat-send:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
-            transform: none;
         }
 
         .snn-ai-chat-clear {
             background: transparent;
-            border: 1px solid #3a3a3a;
-            color: #888;
-            padding: 8px 16px;
-            border-radius: 8px;
+            border: 1px solid #000000;
+            color: #000000;
+            padding: 6px 12px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
             margin-top: 8px;
+            width: 100%;
             transition: all 0.2s ease;
         }
 
         .snn-ai-chat-clear:hover {
-            border-color: #667eea;
-            color: #667eea;
+            background: #000000;
+            color: #ffffff;
         }
 
         /* Scrollbar styling */
         .snn-ai-chat-messages::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
 
         .snn-ai-chat-messages::-webkit-scrollbar-track {
-            background: #1e1e1e;
+            background: #f5f5f5;
         }
 
         .snn-ai-chat-messages::-webkit-scrollbar-thumb {
-            background: #3a3a3a;
-            border-radius: 4px;
+            background: #cccccc;
+            border-radius: 3px;
         }
 
         .snn-ai-chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #4a4a4a;
+            background: #999999;
         }
 
         /* Error message */
         .snn-ai-chat-error {
-            background: #4a2a2a;
-            color: #ff8a80;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin: 12px 0;
-            border-left: 3px solid #f44336;
+            background: #fff5f5;
+            color: #c00000;
+            padding: 10px 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #ffcccc;
+            font-size: 13px;
         }
 
         /* Mobile responsive */
         @media (max-width: 768px) {
-            .snn-ai-chat-container {
+            #snn-ai-chat-panel {
                 width: 100%;
-                height: 100%;
-                max-height: 100%;
-                border-radius: 0;
-            }
-
-            .snn-ai-chat-message-content {
-                max-width: 85%;
+                right: -100%;
             }
         }
     </style>
 
-    <div id="snn-ai-chat-overlay">
-        <div class="snn-ai-chat-container">
-            <div class="snn-ai-chat-header">
-                <h2>
-                    <span class="dashicons dashicons-format-chat"></span>
-                    AI Assistant
-                </h2>
-                <button class="snn-ai-chat-close" aria-label="Close">×</button>
-            </div>
+    <div id="snn-ai-chat-panel">
+        <div class="snn-ai-chat-header">
+            <h2>AI Assistant</h2>
+            <button class="snn-ai-chat-close" aria-label="Close">×</button>
+        </div>
 
-            <div class="snn-ai-chat-messages" id="snn-ai-chat-messages">
-                <div class="snn-ai-chat-message assistant">
-                    <div class="snn-ai-chat-message-avatar">🤖</div>
-                    <div class="snn-ai-chat-message-content">
-                        Hello! I'm your AI assistant with access to WordPress tools. I can help you create posts, update content, search for information, and more. What would you like to do today?
-                    </div>
+        <div class="snn-ai-chat-messages" id="snn-ai-chat-messages">
+            <div class="snn-ai-chat-message assistant">
+                <div class="snn-ai-chat-message-label">Assistant</div>
+                <div class="snn-ai-chat-message-content">
+                    Hello! I'm your AI assistant. I can help you manage your WordPress site. What would you like to do?
                 </div>
             </div>
+        </div>
 
-            <div class="snn-ai-chat-typing" id="snn-ai-chat-typing">
-                <div class="snn-ai-chat-typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
+        <div class="snn-ai-chat-typing" id="snn-ai-chat-typing">
+            <div class="snn-ai-chat-typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
+        </div>
 
-            <div class="snn-ai-chat-input-container">
-                <div class="snn-ai-chat-input-wrapper">
-                    <textarea
-                        id="snn-ai-chat-input"
-                        class="snn-ai-chat-input"
-                        placeholder="Ask me anything about your WordPress site..."
-                        rows="1"
-                    ></textarea>
-                    <button id="snn-ai-chat-send" class="snn-ai-chat-send">Send</button>
-                </div>
-                <button id="snn-ai-chat-clear" class="snn-ai-chat-clear">Clear Chat</button>
+        <div class="snn-ai-chat-input-container">
+            <div class="snn-ai-chat-input-wrapper">
+                <textarea
+                    id="snn-ai-chat-input"
+                    class="snn-ai-chat-input"
+                    placeholder="Type your message..."
+                    rows="1"
+                ></textarea>
+                <button id="snn-ai-chat-send" class="snn-ai-chat-send">Send</button>
             </div>
+            <button id="snn-ai-chat-clear" class="snn-ai-chat-clear">Clear Chat</button>
         </div>
     </div>
 
@@ -473,30 +422,28 @@ function snn_ai_chat_overlay_output() {
         let isProcessing = false;
 
         // DOM elements
-        const overlay = $('#snn-ai-chat-overlay');
+        const panel = $('#snn-ai-chat-panel');
         const messagesContainer = $('#snn-ai-chat-messages');
         const inputField = $('#snn-ai-chat-input');
         const sendButton = $('#snn-ai-chat-send');
         const clearButton = $('#snn-ai-chat-clear');
         const typingIndicator = $('#snn-ai-chat-typing');
 
-        // Open/Close overlay
+        // Open/Close panel
         $(document).on('click', '#wp-admin-bar-snn-ai-chat-button a, .snn-ai-chat-trigger', function(e) {
             e.preventDefault();
-            overlay.addClass('active');
+            panel.addClass('active');
             inputField.focus();
         });
 
-        $('.snn-ai-chat-close, #snn-ai-chat-overlay').on('click', function(e) {
-            if (e.target === this) {
-                overlay.removeClass('active');
-            }
+        $('.snn-ai-chat-close').on('click', function() {
+            panel.removeClass('active');
         });
 
         // Auto-resize textarea
         inputField.on('input', function() {
             this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
         });
 
         // Send message on Enter (Shift+Enter for new line)
@@ -512,13 +459,13 @@ function snn_ai_chat_overlay_output() {
 
         // Clear chat
         clearButton.on('click', function() {
-            if (confirm('Are you sure you want to clear the chat history?')) {
+            if (confirm('Clear chat history?')) {
                 conversationMessages = [];
                 messagesContainer.html(
                     '<div class="snn-ai-chat-message assistant">' +
-                    '<div class="snn-ai-chat-message-avatar">🤖</div>' +
+                    '<div class="snn-ai-chat-message-label">Assistant</div>' +
                     '<div class="snn-ai-chat-message-content">' +
-                    'Hello! I\'m your AI assistant with access to WordPress tools. I can help you create posts, update content, search for information, and more. What would you like to do today?' +
+                    'Hello! I\'m your AI assistant. I can help you manage your WordPress site. What would you like to do?' +
                     '</div></div>'
                 );
             }
@@ -548,16 +495,14 @@ function snn_ai_chat_overlay_output() {
         }
 
         function addMessageToUI(role, content, toolName = null, toolResult = null) {
-            const avatar = role === 'user' ? '👤' : (role === 'tool' ? '🔧' : '🤖');
+            const label = role === 'user' ? 'You' : (role === 'tool' ? 'Tool' : 'Assistant');
 
-            let messageHTML = `
-                <div class="snn-ai-chat-message ${role}">
-                    <div class="snn-ai-chat-message-avatar">${avatar}</div>
-                    <div class="snn-ai-chat-message-content">
-            `;
+            let messageHTML = `<div class="snn-ai-chat-message ${role}">`;
+            messageHTML += `<div class="snn-ai-chat-message-label">${label}</div>`;
+            messageHTML += `<div class="snn-ai-chat-message-content">`;
 
             if (role === 'tool' && toolName) {
-                messageHTML += `<div class="tool-name">🔧 ${toolName}</div>`;
+                messageHTML += `<div class="tool-name">${toolName}</div>`;
                 if (toolResult) {
                     const resultText = typeof toolResult === 'object'
                         ? JSON.stringify(toolResult, null, 2)
@@ -661,7 +606,7 @@ function snn_ai_chat_overlay_output() {
 
         function showError(message) {
             messagesContainer.append(
-                '<div class="snn-ai-chat-error">⚠️ ' + escapeHtml(message) + '</div>'
+                '<div class="snn-ai-chat-error">' + escapeHtml(message) + '</div>'
             );
             scrollToBottom();
         }

@@ -6,13 +6,12 @@
  *
  * Purpose: This file provides the backend AI agent functionality with tool calling capabilities.
  * It handles multiple AI requests, tool execution, and manages the conversation flow between
- * the frontend chat interface and the AI API.
+ * the frontend chat interface and the AI API. It uses WordPress Abilities API for tools.
  *
  * Features:
- * - Tool calling support for various WordPress operations
+ * - Automatic tool generation from WordPress Abilities
  * - Multi-turn conversation handling
- * - Streaming response support
- * - WordPress integration (posts, pages, media, etc.)
+ * - WordPress Abilities integration
  */
 
 if (!defined('ABSPATH')) {
@@ -71,8 +70,8 @@ function snn_ai_agent_chat_handler() {
         array_unshift($messages, $system_message);
     }
 
-    // Define available tools
-    $tools = $use_tools ? snn_get_ai_agent_tools() : null;
+    // Define available tools from WordPress Abilities
+    $tools = $use_tools ? snn_get_ai_tools_from_abilities() : null;
 
     // Make API request
     $response = snn_make_ai_agent_request($config, $messages, $tools);
@@ -163,176 +162,46 @@ function snn_make_ai_agent_request($config, $messages, $tools = null) {
 }
 
 /**
- * Get available tools for the AI agent
+ * Get AI tools from WordPress Abilities API
  */
-function snn_get_ai_agent_tools() {
-    $tools = [
-        [
-            'type' => 'function',
-            'function' => [
-                'name' => 'create_post',
-                'description' => 'Creates a new WordPress post with the given title and content',
-                'parameters' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'title' => [
-                            'type' => 'string',
-                            'description' => 'The title of the post'
-                        ],
-                        'content' => [
-                            'type' => 'string',
-                            'description' => 'The content of the post (can include HTML)'
-                        ],
-                        'status' => [
-                            'type' => 'string',
-                            'enum' => ['draft', 'publish', 'pending'],
-                            'description' => 'The post status. Default is draft.'
-                        ],
-                        'category' => [
-                            'type' => 'string',
-                            'description' => 'Category name (optional)'
-                        ]
-                    ],
-                    'required' => ['title', 'content']
-                ]
-            ]
-        ],
-        [
-            'type' => 'function',
-            'function' => [
-                'name' => 'update_post',
-                'description' => 'Updates an existing WordPress post',
-                'parameters' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'post_id' => [
-                            'type' => 'integer',
-                            'description' => 'The ID of the post to update'
-                        ],
-                        'title' => [
-                            'type' => 'string',
-                            'description' => 'The new title (optional)'
-                        ],
-                        'content' => [
-                            'type' => 'string',
-                            'description' => 'The new content (optional)'
-                        ],
-                        'status' => [
-                            'type' => 'string',
-                            'enum' => ['draft', 'publish', 'pending', 'trash'],
-                            'description' => 'The new post status (optional)'
-                        ]
-                    ],
-                    'required' => ['post_id']
-                ]
-            ]
-        ],
-        [
-            'type' => 'function',
-            'function' => [
-                'name' => 'get_posts',
-                'description' => 'Retrieves a list of WordPress posts with optional filters',
-                'parameters' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'post_type' => [
-                            'type' => 'string',
-                            'description' => 'Post type (post, page, etc.). Default is post.'
-                        ],
-                        'posts_per_page' => [
-                            'type' => 'integer',
-                            'description' => 'Number of posts to retrieve. Default is 10.'
-                        ],
-                        'post_status' => [
-                            'type' => 'string',
-                            'description' => 'Post status (publish, draft, etc.). Default is publish.'
-                        ],
-                        'search' => [
-                            'type' => 'string',
-                            'description' => 'Search term to filter posts'
-                        ]
-                    ]
-                ]
-            ]
-        ],
-        [
-            'type' => 'function',
-            'function' => [
-                'name' => 'get_post_by_id',
-                'description' => 'Retrieves a specific WordPress post by its ID',
-                'parameters' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'post_id' => [
-                            'type' => 'integer',
-                            'description' => 'The ID of the post to retrieve'
-                        ]
-                    ],
-                    'required' => ['post_id']
-                ]
-            ]
-        ],
-        [
-            'type' => 'function',
-            'function' => [
-                'name' => 'create_page',
-                'description' => 'Creates a new WordPress page',
-                'parameters' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'title' => [
-                            'type' => 'string',
-                            'description' => 'The title of the page'
-                        ],
-                        'content' => [
-                            'type' => 'string',
-                            'description' => 'The content of the page (can include HTML)'
-                        ],
-                        'status' => [
-                            'type' => 'string',
-                            'enum' => ['draft', 'publish', 'pending'],
-                            'description' => 'The page status. Default is draft.'
-                        ]
-                    ],
-                    'required' => ['title', 'content']
-                ]
-            ]
-        ],
-        [
-            'type' => 'function',
-            'function' => [
-                'name' => 'get_site_info',
-                'description' => 'Retrieves WordPress site information',
-                'parameters' => [
-                    'type' => 'object',
-                    'properties' => []
-                ]
-            ]
-        ],
-        [
-            'type' => 'function',
-            'function' => [
-                'name' => 'search_content',
-                'description' => 'Searches for content across the WordPress site',
-                'parameters' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'query' => [
-                            'type' => 'string',
-                            'description' => 'The search query'
-                        ],
-                        'post_type' => [
-                            'type' => 'string',
-                            'description' => 'Post type to search in (post, page, any). Default is any.'
-                        ]
-                    ],
-                    'required' => ['query']
-                ]
-            ]
-        ]
-    ];
+function snn_get_ai_tools_from_abilities() {
+    // Check if WordPress Abilities API is available
+    if (!function_exists('wp_get_abilities')) {
+        return [];
+    }
 
-    return apply_filters('snn_ai_agent_tools', $tools);
+    $abilities = wp_get_abilities();
+    $tools = [];
+
+    foreach ($abilities as $ability) {
+        // Only include abilities that the current user has permission to execute
+        if (!$ability->check_permission()) {
+            continue;
+        }
+
+        $tool = [
+            'type' => 'function',
+            'function' => [
+                'name' => str_replace('/', '_', $ability->get_name()), // Convert snn/ability to snn_ability
+                'description' => $ability->get_description(),
+            ]
+        ];
+
+        // Add input schema if it exists
+        $input_schema = $ability->get_input_schema();
+        if ($input_schema) {
+            $tool['function']['parameters'] = $input_schema;
+        } else {
+            $tool['function']['parameters'] = [
+                'type' => 'object',
+                'properties' => [],
+            ];
+        }
+
+        $tools[] = $tool;
+    }
+
+    return $tools;
 }
 
 /**
@@ -345,7 +214,7 @@ function snn_execute_tool_calls($tool_calls) {
         $function_name = $tool_call['function']['name'];
         $arguments = json_decode($tool_call['function']['arguments'], true);
 
-        $result = snn_execute_single_tool($function_name, $arguments);
+        $result = snn_execute_ability_tool($function_name, $arguments);
 
         $results[] = [
             'tool_call_id' => $tool_call['id'],
@@ -359,246 +228,51 @@ function snn_execute_tool_calls($tool_calls) {
 }
 
 /**
- * Execute a single tool function
+ * Execute an ability tool
  */
-function snn_execute_single_tool($function_name, $arguments) {
-    switch ($function_name) {
-        case 'create_post':
-            return snn_tool_create_post($arguments);
+function snn_execute_ability_tool($function_name, $arguments) {
+    // Convert function name back to ability name (snn_ability to snn/ability)
+    $ability_name = str_replace('_', '/', $function_name);
 
-        case 'update_post':
-            return snn_tool_update_post($arguments);
-
-        case 'get_posts':
-            return snn_tool_get_posts($arguments);
-
-        case 'get_post_by_id':
-            return snn_tool_get_post_by_id($arguments);
-
-        case 'create_page':
-            return snn_tool_create_page($arguments);
-
-        case 'get_site_info':
-            return snn_tool_get_site_info();
-
-        case 'search_content':
-            return snn_tool_search_content($arguments);
-
-        default:
-            return ['error' => 'Unknown tool: ' . $function_name];
-    }
-}
-
-/**
- * Tool: Create Post
- */
-function snn_tool_create_post($args) {
-    $post_data = [
-        'post_title' => sanitize_text_field($args['title']),
-        'post_content' => wp_kses_post($args['content']),
-        'post_status' => isset($args['status']) ? sanitize_text_field($args['status']) : 'draft',
-        'post_type' => 'post'
-    ];
-
-    $post_id = wp_insert_post($post_data);
-
-    if (is_wp_error($post_id)) {
-        return ['error' => $post_id->get_error_message()];
-    }
-
-    // Handle category if provided
-    if (isset($args['category']) && !empty($args['category'])) {
-        $category = get_category_by_slug(sanitize_title($args['category']));
-        if ($category) {
-            wp_set_post_categories($post_id, [$category->term_id]);
-        }
-    }
-
-    return [
-        'success' => true,
-        'post_id' => $post_id,
-        'edit_url' => get_edit_post_link($post_id, 'raw'),
-        'view_url' => get_permalink($post_id)
-    ];
-}
-
-/**
- * Tool: Update Post
- */
-function snn_tool_update_post($args) {
-    $post_data = ['ID' => intval($args['post_id'])];
-
-    if (isset($args['title'])) {
-        $post_data['post_title'] = sanitize_text_field($args['title']);
-    }
-
-    if (isset($args['content'])) {
-        $post_data['post_content'] = wp_kses_post($args['content']);
-    }
-
-    if (isset($args['status'])) {
-        $post_data['post_status'] = sanitize_text_field($args['status']);
-    }
-
-    $result = wp_update_post($post_data);
-
-    if (is_wp_error($result)) {
-        return ['error' => $result->get_error_message()];
-    }
-
-    return [
-        'success' => true,
-        'post_id' => $args['post_id'],
-        'edit_url' => get_edit_post_link($args['post_id'], 'raw'),
-        'view_url' => get_permalink($args['post_id'])
-    ];
-}
-
-/**
- * Tool: Get Posts
- */
-function snn_tool_get_posts($args) {
-    $query_args = [
-        'post_type' => isset($args['post_type']) ? sanitize_text_field($args['post_type']) : 'post',
-        'posts_per_page' => isset($args['posts_per_page']) ? intval($args['posts_per_page']) : 10,
-        'post_status' => isset($args['post_status']) ? sanitize_text_field($args['post_status']) : 'publish',
-    ];
-
-    if (isset($args['search'])) {
-        $query_args['s'] = sanitize_text_field($args['search']);
-    }
-
-    $posts = get_posts($query_args);
-    $results = [];
-
-    foreach ($posts as $post) {
-        $results[] = [
-            'id' => $post->ID,
-            'title' => $post->post_title,
-            'excerpt' => wp_trim_words($post->post_content, 30),
-            'status' => $post->post_status,
-            'date' => $post->post_date,
-            'edit_url' => get_edit_post_link($post->ID, 'raw'),
-            'view_url' => get_permalink($post->ID)
+    // Check if WordPress Abilities API is available
+    if (!function_exists('wp_get_ability')) {
+        return [
+            'error' => 'WordPress Abilities API not available.'
         ];
     }
 
-    return [
-        'success' => true,
-        'posts' => $results,
-        'count' => count($results)
-    ];
-}
+    // Get the ability
+    $ability = wp_get_ability($ability_name);
 
-/**
- * Tool: Get Post By ID
- */
-function snn_tool_get_post_by_id($args) {
-    $post = get_post(intval($args['post_id']));
-
-    if (!$post) {
-        return ['error' => 'Post not found'];
+    if (!$ability) {
+        return [
+            'error' => 'Ability "' . $ability_name . '" not found.'
+        ];
     }
 
-    return [
-        'success' => true,
-        'post' => [
-            'id' => $post->ID,
-            'title' => $post->post_title,
-            'content' => $post->post_content,
-            'excerpt' => $post->post_excerpt,
-            'status' => $post->post_status,
-            'type' => $post->post_type,
-            'date' => $post->post_date,
-            'modified' => $post->post_modified,
-            'author' => get_the_author_meta('display_name', $post->post_author),
-            'edit_url' => get_edit_post_link($post->ID, 'raw'),
-            'view_url' => get_permalink($post->ID)
-        ]
-    ];
-}
-
-/**
- * Tool: Create Page
- */
-function snn_tool_create_page($args) {
-    $page_data = [
-        'post_title' => sanitize_text_field($args['title']),
-        'post_content' => wp_kses_post($args['content']),
-        'post_status' => isset($args['status']) ? sanitize_text_field($args['status']) : 'draft',
-        'post_type' => 'page'
-    ];
-
-    $page_id = wp_insert_post($page_data);
-
-    if (is_wp_error($page_id)) {
-        return ['error' => $page_id->get_error_message()];
+    // Check permission
+    if (!$ability->check_permission()) {
+        return [
+            'error' => 'Permission denied for ability "' . $ability_name . '".'
+        ];
     }
 
-    return [
-        'success' => true,
-        'page_id' => $page_id,
-        'edit_url' => get_edit_post_link($page_id, 'raw'),
-        'view_url' => get_permalink($page_id)
-    ];
-}
+    // Execute the ability
+    try {
+        $result = $ability->execute($arguments);
 
-/**
- * Tool: Get Site Info
- */
-function snn_tool_get_site_info() {
-    $theme = wp_get_theme();
-
-    return [
-        'success' => true,
-        'site_name' => get_bloginfo('name'),
-        'site_description' => get_bloginfo('description'),
-        'site_url' => get_site_url(),
-        'admin_email' => get_option('admin_email'),
-        'wordpress_version' => get_bloginfo('version'),
-        'theme' => [
-            'name' => $theme->get('Name'),
-            'version' => $theme->get('Version')
-        ],
-        'active_plugins' => count(get_option('active_plugins', [])),
-        'users_count' => count_users()['total_users'],
-        'posts_count' => wp_count_posts('post')->publish,
-        'pages_count' => wp_count_posts('page')->publish
-    ];
-}
-
-/**
- * Tool: Search Content
- */
-function snn_tool_search_content($args) {
-    $search_args = [
-        's' => sanitize_text_field($args['query']),
-        'post_type' => isset($args['post_type']) ? sanitize_text_field($args['post_type']) : 'any',
-        'posts_per_page' => 20,
-        'post_status' => 'publish'
-    ];
-
-    $search_query = new WP_Query($search_args);
-    $results = [];
-
-    if ($search_query->have_posts()) {
-        while ($search_query->have_posts()) {
-            $search_query->the_post();
-            $results[] = [
-                'id' => get_the_ID(),
-                'title' => get_the_title(),
-                'excerpt' => get_the_excerpt(),
-                'type' => get_post_type(),
-                'url' => get_permalink(),
-                'edit_url' => get_edit_post_link(get_the_ID(), 'raw')
+        // Handle WP_Error
+        if (is_wp_error($result)) {
+            return [
+                'error' => $result->get_error_message(),
+                'error_code' => $result->get_error_code(),
             ];
         }
-        wp_reset_postdata();
-    }
 
-    return [
-        'success' => true,
-        'results' => $results,
-        'total_found' => $search_query->found_posts
-    ];
+        return $result;
+    } catch (Exception $e) {
+        return [
+            'error' => 'Exception executing ability: ' . $e->getMessage()
+        ];
+    }
 }
