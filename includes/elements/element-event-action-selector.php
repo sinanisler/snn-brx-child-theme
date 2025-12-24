@@ -39,7 +39,10 @@ class Snn_Event_Action_Selector extends Element {
             "bricks/ajax/popup/start","bricks/ajax/popup/end","bricks/ajax/popup/loaded",
             "bricks/ajax/start","bricks/ajax/end",
             "bricks/ajax/pagination/completed","bricks/ajax/load_page/completed",
-            "bricks/ajax/query_result/completed","bricks/ajax/query_result/displayed"
+            "bricks/ajax/query_result/completed","bricks/ajax/query_result/displayed",
+            "focus / blur","mouseenter / mouseleave","mouseover / mouseout",
+            "pointerenter / pointerleave","mousedown / mouseup","touchstart / touchend",
+            "dragstart / dragend","play / pause","animationstart / animationend"
         ];
 
         $actions = [
@@ -422,16 +425,23 @@ class Snn_Event_Action_Selector extends Element {
                         return;
                     }
 
+                    // Check if this is a paired event (e.g., "focus / blur")
+                    const isPairedEvent = evType.includes(' / ');
+                    const eventTypes = isPairedEvent ? evType.split(' / ').map(e => e.trim()) : [evType];
+
                     triggers.forEach(tr => {
-                        tr.addEventListener(evType, function(e) {
-                            actions.forEach(actionConfig => {
-                                const targetSel = actionConfig.target_selector;
-                                const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
-                                if(targets.length) {
-                                    performAction(actionConfig, Array.from(targets), e);
-                                } else {
-                                    console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
-                                }
+                        // Add listener for each event in the pair (or single event)
+                        eventTypes.forEach(eventType => {
+                            tr.addEventListener(eventType, function(e) {
+                                actions.forEach(actionConfig => {
+                                    const targetSel = actionConfig.target_selector;
+                                    const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+                                    if(targets.length) {
+                                        performAction(actionConfig, Array.from(targets), e);
+                                    } else {
+                                        console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
+                                    }
+                                });
                             });
                         });
                     });
