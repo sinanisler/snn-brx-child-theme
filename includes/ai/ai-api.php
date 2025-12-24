@@ -49,7 +49,7 @@ function snn_get_ai_api_config() {
     $openrouter_model     = get_option('snn_openrouter_model', '');
     $system_prompt        = get_option(
         'snn_system_prompt',
-        'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Dont generate markdown. Only respond with the needed content and nothing else always!'
+        'You are a helpful AI assistant with direct access to WordPress through function calling. When users ask you to DO something (create, list, analyze, etc.), you MUST call the appropriate tool/function - never just describe or confirm the action. Use tools for: listing posts/pages/users, creating content, analyzing SEO, getting counts. After calling a tool and seeing its result, then provide a friendly summary to the user.'
     );
 
     // NEW: Retrieve the desired response format type from settings
