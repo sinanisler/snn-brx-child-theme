@@ -159,9 +159,6 @@ function snn_seo_ai_render_overlay() {
                         <input type="checkbox" id="snn-generate-excerpt-mode" />
                         <span id="snn-excerpt-mode-label"><?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?></span>
                     </label>
-                    <p class="description" style="margin: 8px 0 0 26px; font-size: 12px; color: #646970;">
-                        <?php _e('Enable this if you want to generate post excerpts or taxonomy descriptions instead of SEO meta descriptions. Useful when your meta description template reads from these fields.', 'snn'); ?>
-                    </p>
                 </div>
                 
                 <!-- Custom Prompt -->
@@ -709,21 +706,22 @@ function snn_seo_ai_render_overlay() {
             const isExcerptMode = excerptModeCheckbox.checked;
             const isTerm = currentMode === 'term';
             
+            // Set checkbox label based on mode (post type vs taxonomy)
+            if (isTerm) {
+                excerptModeLabel.textContent = '<?php _e('Generate Term Description instead of Meta Description', 'snn'); ?>';
+            } else {
+                excerptModeLabel.textContent = '<?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?>';
+            }
+            
+            // Update the "Generate" checkbox label based on excerpt mode
             if (isExcerptMode) {
                 if (isTerm) {
                     descriptionLabel.textContent = config.strings.taxonomyDescription;
-                    excerptModeLabel.textContent = '<?php _e('Generate Taxonomy Description instead of Meta Description', 'snn'); ?>';
                 } else {
                     descriptionLabel.textContent = config.strings.excerpt;
-                    excerptModeLabel.textContent = '<?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?>';
                 }
             } else {
                 descriptionLabel.textContent = config.strings.seoDescription;
-                if (isTerm) {
-                    excerptModeLabel.textContent = '<?php _e('Generate Taxonomy Description instead of Meta Description', 'snn'); ?>';
-                } else {
-                    excerptModeLabel.textContent = '<?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?>';
-                }
             }
             
             // Update result field labels
