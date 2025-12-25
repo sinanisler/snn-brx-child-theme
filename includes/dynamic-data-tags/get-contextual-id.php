@@ -52,35 +52,101 @@ function add_get_contextual_id_tags_to_builder($tags) {
 function get_contextual_id($type) {
     switch ($type) {
         case 'author':
-            return is_singular() ? get_post_field('post_author', get_the_ID()) : '';
+            // On author archive pages, return the queried author ID
+            if (is_author()) {
+                return get_queried_object_id();
+            }
+            // On singular posts/pages, return the post author
+            if (is_singular()) {
+                return get_post_field('post_author', get_the_ID());
+            }
+            // In the loop, return current post's author
+            if (in_the_loop() && get_the_ID()) {
+                return get_post_field('post_author', get_the_ID());
+            }
+            return '';
+            
         case 'post':
-            return is_singular() ? get_the_ID() : '';
+            // Return current post ID if available
+            $post_id = get_the_ID();
+            if ($post_id) {
+                return $post_id;
+            }
+            // On front page or home, try to get page for posts ID
+            if (is_home() && !is_front_page()) {
+                return get_option('page_for_posts');
+            }
+            // On front page
+            if (is_front_page() && get_option('show_on_front') === 'page') {
+                return get_option('page_on_front');
+            }
+            return '';
+            
         case 'term':
+            // On any taxonomy archive (category, tag, or custom taxonomy)
             if (is_category() || is_tag() || is_tax()) {
-                $term = get_queried_object();
-                return isset($term->term_id) ? $term->term_id : '';
+                return get_queried_object_id();
+            }
+            // Try to get term from queried object
+            $queried = get_queried_object();
+            if (isset($queried->term_id)) {
+                return $queried->term_id;
             }
             return '';
+            
         case 'taxonomy':
-            if (is_tax()) {
-                $taxonomy = get_queried_object();
-                return isset($taxonomy->taxonomy) ? $taxonomy->taxonomy : '';
+            // On any taxonomy archive
+            if (is_category() || is_tag() || is_tax()) {
+                $queried = get_queried_object();
+                return isset($queried->taxonomy) ? $queried->taxonomy : '';
             }
             return '';
+            
         case 'user':
             return is_user_logged_in() ? get_current_user_id() : '';
+            
         case 'page':
-            return is_page() ? get_the_ID() : '';
+            // On page, return page ID
+            if (is_page()) {
+                return get_the_ID();
+            }
+            // On front page
+            if (is_front_page() && get_option('show_on_front') === 'page') {
+                return get_option('page_on_front');
+            }
+            // In loop on page
+            if (in_the_loop() && is_page()) {
+                return get_the_ID();
+            }
+            return '';
+            
         case 'category':
-            return is_category() ? get_queried_object_id() : '';
+            // On category archive
+            if (is_category()) {
+                return get_queried_object_id();
+            }
+            return '';
+            
         case 'tag':
-            return is_tag() ? get_queried_object_id() : '';
+            // On tag archive
+            if (is_tag()) {
+                return get_queried_object_id();
+            }
+            return '';
+            
         case 'archive':
-            return is_archive() ? get_queried_object_id() : '';
+            // On any archive (including author, category, tag, date, custom post type, custom taxonomy)
+            if (is_archive()) {
+                return get_queried_object_id();
+            }
+            return '';
+            
         case 'search':
             return is_search() ? get_search_query() : '';
+            
         case '404':
             return is_404() ? '404' : '';
+            
         default:
             return '';
     }
