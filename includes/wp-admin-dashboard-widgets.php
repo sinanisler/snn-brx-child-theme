@@ -10,7 +10,6 @@ function my_custom_fonts() {
 .postbox-header{border-bottom:none !important; }
 .postbox{border: none !important; box-shadow: none !important; }
 .sticky-menu h1:has(.index-php){ display:none }
-.sticky-menu h1:not(.inside h1){ display:block }
 </style>
 
 <?php
