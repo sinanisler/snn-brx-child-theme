@@ -9,7 +9,8 @@ function my_custom_fonts() {
 <style>
 .postbox-header{border-bottom:none !important; }
 .postbox{border: none !important; box-shadow: none !important; }
-h1:has(.ui-sortable-handle){ display:none }
+.index-php h1{ display:none }
+.index-php h1:not(.inside h1){ display:block }
 </style>
 
 <?php
