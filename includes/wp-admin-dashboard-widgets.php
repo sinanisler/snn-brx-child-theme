@@ -9,7 +9,7 @@ function my_custom_fonts() {
 <style>
 .postbox-header{border-bottom:none !important; }
 .postbox{border: none !important; box-shadow: none !important; }
-.sticky-menu h1:has(.ui-sortable-handle){ display:none }
+h1:has(.ui-sortable-handle){ display:none }
 </style>
 
 <?php
