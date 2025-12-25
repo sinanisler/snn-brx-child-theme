@@ -24,17 +24,23 @@
 add_filter('bricks/dynamic_tags_list', 'add_get_contextual_id_tags_to_builder');
 function add_get_contextual_id_tags_to_builder($tags) {
     $types = [
-        'author'   => 'Current Author ID',
-        'post'     => 'Current Post ID',
-        'term'     => 'Current Term ID',
-        'taxonomy' => 'Current Taxonomy Name',
-        'user'     => 'Current Logged User ID',
-        'page'     => 'Current Page ID',
-        'category' => 'Current Category ID',
-        'tag'      => 'Current Tag ID',
-        'archive'  => 'Current Archive Term ID',
-        'search'   => 'Search Query',
-        '404'      => '404 Page Indicator',
+        'author'            => 'Current Author ID',
+        'post'              => 'Current Post ID',
+        'term'              => 'Current Term ID',
+        'taxonomy'          => 'Current Taxonomy Name',
+        'user'              => 'Current Logged User ID',
+        'page'              => 'Current Page ID',
+        'category'          => 'Current Category ID',
+        'tag'               => 'Current Tag ID',
+        'archive'           => 'Current Archive Term ID',
+        'search'            => 'Search Query',
+        '404'               => '404 Page Indicator',
+        'post_type'         => 'Current Post Type',
+        'post_type_archive' => 'Post Type Archive Name',
+        'queried_object_id' => 'Queried Object ID',
+        'site'              => 'Site/Blog ID',
+        'parent'            => 'Parent Post/Page ID',
+        'template'          => 'Current Template Name',
     ];
 
     foreach ($types as $type => $label) {
@@ -83,15 +89,41 @@ function get_contextual_id($type) {
             return '';
             
         case 'term':
-            // On any taxonomy archive (category, tag, or custom taxonomy)
-            if (is_category() || is_tag() || is_tax()) {
+        case 'category':
+        case 'tag':
+            // Universal term ID getter with multiple fallbacks
+            
+            // 1. Check specific archive types first
+            if ($type === 'category' && is_category()) {
                 return get_queried_object_id();
             }
-            // Try to get term from queried object
+            if ($type === 'tag' && is_tag()) {
+                return get_queried_object_id();
+            }
+            
+            // 2. Any taxonomy archive
+            if (is_category() || is_tag() || is_tax()) {
+                $term_id = get_queried_object_id();
+                if ($term_id) {
+                    // For 'category' or 'tag' type, verify it's the right taxonomy
+                    if ($type === 'category') {
+                        $term = get_term($term_id);
+                        return ($term && !is_wp_error($term) && $term->taxonomy === 'category') ? $term_id : '';
+                    }
+                    if ($type === 'tag') {
+                        $term = get_term($term_id);
+                        return ($term && !is_wp_error($term) && $term->taxonomy === 'post_tag') ? $term_id : '';
+                    }
+                    return $term_id;
+                }
+            }
+            
+            // 3. Try queried object
             $queried = get_queried_object();
             if (isset($queried->term_id)) {
                 return $queried->term_id;
             }
+            
             return '';
             
         case 'taxonomy':
@@ -120,20 +152,6 @@ function get_contextual_id($type) {
             }
             return '';
             
-        case 'category':
-            // On category archive
-            if (is_category()) {
-                return get_queried_object_id();
-            }
-            return '';
-            
-        case 'tag':
-            // On tag archive
-            if (is_tag()) {
-                return get_queried_object_id();
-            }
-            return '';
-            
         case 'archive':
             // On any archive (including author, category, tag, date, custom post type, custom taxonomy)
             if (is_archive()) {
@@ -146,6 +164,53 @@ function get_contextual_id($type) {
             
         case '404':
             return is_404() ? '404' : '';
+            
+        case 'post_type':
+            // Get current post type
+            if (is_singular()) {
+                return get_post_type();
+            }
+            if (is_post_type_archive()) {
+                $pt = get_query_var('post_type');
+                return is_array($pt) ? reset($pt) : $pt;
+            }
+            if (in_the_loop()) {
+                return get_post_type();
+            }
+            return '';
+            
+        case 'post_type_archive':
+            // Get post type archive slug
+            if (is_post_type_archive()) {
+                $post_type = get_query_var('post_type');
+                return is_array($post_type) ? reset($post_type) : $post_type;
+            }
+            return '';
+            
+        case 'queried_object_id':
+            // Universal fallback - gets ID of whatever is being queried
+            $id = get_queried_object_id();
+            return $id ? $id : '';
+            
+        case 'site':
+            // Multisite support
+            return get_current_blog_id();
+            
+        case 'parent':
+            // Get parent post/page ID
+            if (is_singular()) {
+                $post = get_post();
+                return $post && $post->post_parent ? $post->post_parent : '';
+            }
+            return '';
+            
+        case 'template':
+            // Get current template file name
+            if (is_singular()) {
+                $template = get_page_template_slug();
+                return $template ? basename($template, '.php') : 'default';
+            }
+            return '';
             
         default:
             return '';
