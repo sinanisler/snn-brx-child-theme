@@ -98,7 +98,8 @@ class SNN_Element_Comment_List extends Element {
 .snn-comment-author-link{display:block;margin-top:8px;font-weight:bold;color:#333;text-decoration:none}
 .snn-comment-metadata{font-size:12px;color:#999;margin-top:4px}
 .snn-comment-body{display:flex;gap:10px;width:100%}
-.snn-comment-content{background:#f9f9f9;padding:12px;border-radius:6px;line-height:2;width:100%}
+.snn-comment-content-wrapper{background:#f9f9f9;padding:12px;border-radius:6px;width:100%}
+.snn-comment-content{line-height:2}
 .snn-comment-content blockquote{font-family:inherit; font-size:inherit;}
 .snn-comment-reply{margin-top:8px;font-size:13px}
 .snn-comment-reply a{text-decoration:none;color:#0073aa}
@@ -111,8 +112,7 @@ class SNN_Element_Comment_List extends Element {
 .snn-comment-item:hover .snn-comment-edit-btn,.snn-comment-item:hover .snn-comment-delete-btn{display:block}
 .snn-comment-item.editing .snn-comment-save-btn,.snn-comment-item.editing .snn-comment-cancel-btn{display:block}
 .snn-comment-item.editing .snn-comment-edit-btn,.snn-comment-item.editing .snn-comment-delete-btn{display:none}
-.snn-comment-rating-wrapper{margin-bottom:10px;padding-left:120px}
-.snn-comment-rating{font-size:18px;color:#ffc107}
+.snn-comment-rating{margin-top:10px;font-size:18px;color:#ffc107}
 .snn-comment-rating span{margin-right:2px}
 img.snn-img-align-left{float:left;margin-right:10px;margin-bottom:10px}
 img.snn-img-align-right{float:right;margin-left:10px;margin-bottom:10px}
@@ -174,18 +174,6 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
                 $show_ratings = isset( $args['show_ratings'] ) ? $args['show_ratings'] : false;
                 ?>
 <li <?php comment_class( 'snn-comment-item' ); ?> id="comment-<?php comment_ID(); ?>">
-    <?php if ( $show_ratings ) :
-        $rating = get_comment_meta( $comment->comment_ID, 'snn_rating_comment', true );
-        if ( $rating && $rating >= 1 && $rating <= 5 ) :
-    ?>
-    <div class="snn-comment-rating-wrapper">
-        <div class="snn-comment-rating">
-            <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
-                <span><?php echo $i <= $rating ? '★' : '☆'; ?></span>
-            <?php endfor; ?>
-        </div>
-    </div>
-    <?php endif; endif; ?>
     <comment id="div-comment-<?php comment_ID(); ?>" class="snn-comment-body">
         <div class="snn-comment-author snn-comment-vcard">
             <?php
@@ -207,10 +195,22 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
                 </a>
             </div>
         </div>
-        <div class="snn-comment-content">
-            <?php
-                echo apply_filters( 'comment_text', $comment->comment_content, $comment );
+        <div class="snn-comment-content-wrapper">
+            <div class="snn-comment-content">
+                <?php
+                    echo apply_filters( 'comment_text', $comment->comment_content, $comment );
+                ?>
+            </div>
+            <?php if ( $show_ratings ) :
+                $rating = get_comment_meta( $comment->comment_ID, 'snn_rating_comment', true );
+                if ( $rating && $rating >= 1 && $rating <= 5 ) :
             ?>
+            <div class="snn-comment-rating">
+                <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
+                    <span><?php echo $i <= $rating ? '★' : '☆'; ?></span>
+                <?php endfor; ?>
+            </div>
+            <?php endif; endif; ?>
         </div>
     </comment>
 </li>
