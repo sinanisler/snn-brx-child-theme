@@ -287,14 +287,10 @@ class SNN_Element_Comment_Form extends Element {
 				</div>';
 		}
 
-		$comment_field_html = $enable_toolbar 
-			? '<p class="snn-comment-form-comment">
-				<textarea id="comment" name="comment" cols="45" rows="8" required style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></textarea>
-			</p>' . $rating_field
-			: '<p class="snn-comment-form-comment">
-				<label for="comment">' . esc_html__( 'Comment', 'snn' ) . '</label>
-				<textarea id="comment" name="comment" cols="45" rows="8" required></textarea>
-			</p>' . $rating_field;
+		$comment_field_html = $rating_field . '<p class="comment-form-comment">
+				
+				<textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" required="required"' . ( $enable_toolbar ? ' style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"' : '' ) . '></textarea>
+			</p>';
 
 		comment_form( [
 			'class_form'    => 'snn-comment-form',
