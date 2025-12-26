@@ -25,6 +25,7 @@ add_filter('bricks/dynamic_tags_list', 'add_get_contextual_id_tags_to_builder');
 function add_get_contextual_id_tags_to_builder($tags) {
     $types = [
         'author'            => 'Current Author ID',
+        'author_loggedin'   => 'Current Logged-in User ID',
         'post'              => 'Current Post ID',
         'term'              => 'Current Term ID',
         'taxonomy'          => 'Current Taxonomy Name',
@@ -71,6 +72,10 @@ function get_contextual_id($type) {
                 return get_post_field('post_author', get_the_ID());
             }
             return '';
+            
+        case 'author_loggedin':
+            // Return the currently logged-in user's ID only
+            return is_user_logged_in() ? get_current_user_id() : '';
             
         case 'post':
             // Return current post ID if available
