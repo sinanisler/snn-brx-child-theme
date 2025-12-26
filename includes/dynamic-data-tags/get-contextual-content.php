@@ -45,19 +45,19 @@ add_filter('bricks/dynamic_tags_list', 'add_get_contextual_content_tags_to_build
 function add_get_contextual_content_tags_to_builder($tags) {
     // Post/Page content tags
     $content_types = [
-        'title'           => 'Post Title',
-        'content'         => 'Post Content',
-        'excerpt'         => 'Post Excerpt',
-        'author'          => 'Post Author Name',
-        'author_email'    => 'Post Author Email',
-        'author_url'      => 'Post Author URL',
-        'date'            => 'Post Date',
-        'modified'        => 'Post Modified Date',
-        'featured_image'  => 'Featured Image URL',
-        'permalink'       => 'Post Permalink',
-        'slug'            => 'Post Slug',
-        'type'            => 'Post Type',
-        'status'          => 'Post Status',
+        'title'           => 'Current Post Title',
+        'content'         => 'Current Post Content',
+        'excerpt'         => 'Current Post Excerpt',
+        'author'          => 'Current Post Author Name',
+        'author_email'    => 'Current Post Author Email',
+        'author_url'      => 'Current Post Author URL',
+        'date'            => 'Current Post Date',
+        'modified'        => 'Current Post Modified Date',
+        'featured_image'  => 'Current Post Featured Image URL',
+        'permalink'       => 'Current Post Permalink',
+        'slug'            => 'Current Post Slug',
+        'type'            => 'Current Post Type',
+        'status'          => 'Current Post Status',
     ];
 
     foreach ($content_types as $type => $label) {
@@ -70,10 +70,10 @@ function add_get_contextual_content_tags_to_builder($tags) {
 
     // Archive term tags
     $archive_types = [
-        'archive_term:name'   => 'Archive Term Name',
-        'archive_term:desc'   => 'Archive Term Description',
-        'archive_term:slug'   => 'Archive Term Slug',
-        'archive_term:count'  => 'Archive Term Count',
+        'archive_term:name'   => 'Current Term Name',
+        'archive_term:desc'   => 'Current Term Description',
+        'archive_term:slug'   => 'Current Term Slug',
+        'archive_term:count'  => 'Current Term Count',
     ];
 
     foreach ($archive_types as $type => $label) {
