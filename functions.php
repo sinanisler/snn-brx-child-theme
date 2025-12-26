@@ -63,6 +63,7 @@ require_once SNN_PATH . 'includes/wp-admin-dashboard-widgets.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/estimated-post-read-time.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/get-contextual-id.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/contextual-slug.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/get-contextual-content.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/parent-link.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/parent-id.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/post-term-count.php';
