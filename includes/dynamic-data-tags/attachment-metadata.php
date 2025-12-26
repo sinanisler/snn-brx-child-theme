@@ -50,7 +50,28 @@ function add_attachment_metadata_tags_to_builder($tags) {
 
     // Register custom field examples (note: dynamic parsing will handle ANY custom field name)
     $custom_field_examples = [
-        'logo'        => 'Logo',, $custom_field = null) {
+        'logo'        => 'Logo',
+        'hero_image'  => 'Hero Image',
+        'thumbnail'   => 'Thumbnail',
+        'gallery'     => 'Gallery',
+        'banner'      => 'Banner',
+    ];
+
+    foreach ($custom_field_examples as $cf_name => $cf_label) {
+        foreach ($metadata_fields as $field => $label) {
+            $tags[] = [
+                'name'  => "{attachment_metadata_{$cf_name}:$field}",
+                'label' => "$cf_label $label",
+                'group' => 'SNN - Custom Fields',
+            ];
+        }
+    }
+
+    return $tags;
+}
+
+// Step 2: Helper function to retrieve attachment metadata.
+function get_attachment_metadata_value($field, $attachment_id = null, $custom_field = null) {
     // If custom field is specified, get attachment ID from that field
     if ($custom_field) {
         global $post;
@@ -73,27 +94,6 @@ function add_attachment_metadata_tags_to_builder($tags) {
         $attachment_id = intval($attachment_id);
     }
     
-        'hero_image'  => 'Hero Image',
-        'thumbnail'   => 'Thumbnail',
-        'gallery'     => 'Gallery',
-        'banner'      => 'Banner',
-    ];
-
-    foreach ($custom_field_examples as $cf_name => $cf_label) {
-        foreach ($metadata_fields as $field => $label) {
-            $tags[] = [
-                'name'  => "{attachment_metadata_{$cf_name}:$field}",
-                'label' => "$cf_label $label",
-                'group' => 'SNN - Custom Fields',
-            ];
-        }
-    }
-
-    return $tags;
-}
-
-// Step 2: Helper function to retrieve attachment metadata.
-function get_attachment_metadata_value($field, $attachment_id = null) {
     // If no attachment ID provided, try to determine from context
     if (!$attachment_id) {
         global $post;
