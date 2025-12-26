@@ -51,6 +51,39 @@ class SNN_Video_Player_Element extends Element {
             'description' => esc_html__( 'Enable this to automatically use the current post\'s featured image as the video poster.', 'snn' ),
         ];
 
+        $this->controls['subtitles'] = [
+            'tab'           => 'content',
+            'label'         => esc_html__( 'Subtitles / Captions', 'snn' ),
+            'type'          => 'repeater',
+            'titleProperty' => 'label',
+            'placeholder'   => esc_html__( 'Subtitle language', 'bricks' ),
+            'fields'        => [
+                'subtitle_file' => [
+                    'label' => esc_html__( 'WebVTT File', 'snn' ),
+                    'type'  => 'file',
+                    'description' => esc_html__( 'Upload a WebVTT subtitle file (.vtt)', 'snn' ),
+                ],
+                'label' => [
+                    'label' => esc_html__( 'Label', 'snn' ),
+                    'type'  => 'text',
+                    'placeholder' => esc_html__( 'e.g., English, Spanish, French', 'snn' ),
+                    'description' => esc_html__( 'Language name shown to users. If empty, will use the filename.', 'snn' ),
+                ],
+                'srclang' => [
+                    'label' => esc_html__( 'Language Code', 'snn' ),
+                    'type'  => 'text',
+                    'placeholder' => esc_html__( 'e.g., en, es, fr', 'snn' ),
+                    'description' => esc_html__( 'ISO 639-1 language code (optional but recommended)', 'snn' ),
+                ],
+                'is_default' => [
+                    'label' => esc_html__( 'Default', 'snn' ),
+                    'type'  => 'checkbox',
+                    'default' => false,
+                    'description' => esc_html__( 'Set as default subtitle', 'snn' ),
+                ],
+            ],
+        ];
+
         $this->controls['autoplay'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Autoplay', 'snn' ),
@@ -225,6 +258,55 @@ class SNN_Video_Player_Element extends Element {
             }
         }
         
+        // Process subtitles
+        $subtitles = [];
+        if ( ! empty( $settings['subtitles'] ) && is_array( $settings['subtitles'] ) ) {
+            foreach ( $settings['subtitles'] as $index => $subtitle ) {
+                if ( ! empty( $subtitle['subtitle_file'] ) ) {
+                    $file_data = $subtitle['subtitle_file'];
+                    $subtitle_url = '';
+                    $subtitle_label = '';
+                    
+                    // Get subtitle URL
+                    if ( is_array( $file_data ) && ! empty( $file_data['url'] ) ) {
+                        $subtitle_url = $file_data['url'];
+                        // Get filename from URL if no label provided
+                        if ( empty( $subtitle['label'] ) && ! empty( $file_data['filename'] ) ) {
+                            $subtitle_label = pathinfo( $file_data['filename'], PATHINFO_FILENAME );
+                        }
+                    } elseif ( is_string( $file_data ) ) {
+                        if ( is_numeric( $file_data ) ) {
+                            $subtitle_url = wp_get_attachment_url( intval( $file_data ) );
+                            // Get filename from attachment if no label provided
+                            if ( empty( $subtitle['label'] ) ) {
+                                $subtitle_label = basename( get_attached_file( intval( $file_data ) ), '.vtt' );
+                            }
+                        } else {
+                            $subtitle_url = $file_data;
+                            // Get filename from URL if no label provided
+                            if ( empty( $subtitle['label'] ) ) {
+                                $subtitle_label = basename( $file_data, '.vtt' );
+                            }
+                        }
+                    }
+                    
+                    // Use custom label if provided
+                    if ( ! empty( $subtitle['label'] ) ) {
+                        $subtitle_label = $subtitle['label'];
+                    }
+                    
+                    if ( ! empty( $subtitle_url ) && ! empty( $subtitle_label ) ) {
+                        $subtitles[] = [
+                            'url' => $subtitle_url,
+                            'label' => $subtitle_label,
+                            'srclang' => ! empty( $subtitle['srclang'] ) ? $subtitle['srclang'] : 'en',
+                            'is_default' => ! empty( $subtitle['is_default'] ),
+                        ];
+                    }
+                }
+            }
+        }
+        
         // Check if chapter looping is enabled
         $enable_chapter_looping = ! empty( $settings['enable_chapter_looping'] );
         $chapters = [];
@@ -313,17 +395,40 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-volume-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--thumb-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--primary-accent-color); }
             #" . esc_attr($root_id) . " .snn-chapter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 5px; height: 6px; background: var(--chapter-dot-color); border-radius: 0px; cursor: pointer; transition: transform 0.2s ease; }
             #" . esc_attr($root_id) . " .snn-chapter-dot:hover { transform: translate(-50%, -50%) scale(1.5); }
+            #" . esc_attr($root_id) . " .snn-cc-container { position: relative; }
+            #" . esc_attr($root_id) . " .snn-cc-menu { position: absolute; bottom: 100%; right: 0; margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.9); border-radius: 5px; min-width: 200px; max-height: 250px; overflow-y: auto; display: none; z-index: 100; }
+            #" . esc_attr($root_id) . " .snn-cc-menu.snn-show { display: block; }
+            #" . esc_attr($root_id) . " .snn-cc-menu::-webkit-scrollbar { width: 6px; }
+            #" . esc_attr($root_id) . " .snn-cc-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+            #" . esc_attr($root_id) . " .snn-cc-menu::-webkit-scrollbar-thumb { background: var(--primary-accent-color); border-radius: 3px; }
+            #" . esc_attr($root_id) . " .snn-cc-menu::-webkit-scrollbar-thumb:hover { background: var(--primary-accent-color); opacity: 0.8; }
+            #" . esc_attr($root_id) . " .snn-cc-menu-item { padding: 12px 16px; cursor: pointer; color: var(--text-color); font-size: 14px; transition: background-color 0.2s; border: none; background: none; width: 100%; text-align: left; display: flex; align-items: center; gap: 8px; }
+            #" . esc_attr($root_id) . " .snn-cc-menu-item:hover { background-color: var(--button-hover-background); }
+            #" . esc_attr($root_id) . " .snn-cc-menu-item.snn-active { background-color: var(--primary-accent-color); color: var(--tooltip-text-color); }
+            #" . esc_attr($root_id) . " .snn-cc-menu-item svg { width: 16px; height: 16px; fill: currentColor; }
             #" . esc_attr($root_id) . " .snn-hidden { display: none !important; }
         </style>";
 
         ?>
         <div class="snn-video-container">
-            <video class="snn-video" poster="<?php echo esc_url( $poster_url ); ?>" playsinline
+            <video class="snn-video" poster="<?php echo esc_url( $poster_url ); ?>" playsinline crossorigin="anonymous"
                 <?php echo $autoplay ? 'autoplay' : ''; ?>
                 <?php echo $muted ? 'muted' : ''; ?>
                 <?php echo $loop ? 'loop' : ''; ?>
             >
                 <source src="<?php echo esc_url( $video_url ); ?>" type="video/mp4">
+                <?php 
+                foreach ( $subtitles as $index => $subtitle ) : 
+                    $default_attr = $subtitle['is_default'] ? 'default' : '';
+                ?>
+                    <track 
+                        kind="subtitles" 
+                        label="<?php echo esc_attr( $subtitle['label'] ); ?>" 
+                        srclang="<?php echo esc_attr( $subtitle['srclang'] ); ?>" 
+                        src="<?php echo esc_url( $subtitle['url'] ); ?>"
+                        <?php echo $default_attr; ?>
+                    >
+                <?php endforeach; ?>
                 Your browser does not support the video tag.
             </video>
 
@@ -349,6 +454,27 @@ class SNN_Video_Player_Element extends Element {
                             <div class="snn-time-display">00:00 / 00:00</div>
                         </div>
                         <div class="snn-controls-right">
+                            <?php if ( ! empty( $subtitles ) ) : ?>
+                            <div class="snn-cc-container">
+                                <button class="snn-control-button snn-cc-btn" aria-label="Subtitles">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 12h4v2H4v-2zm10 6H4v-2h10v2zm6 0h-4v-2h4v2zm0-4H10v-2h10v2z"></path></svg>
+                                </button>
+                                <div class="snn-cc-menu">
+                                    <button class="snn-cc-menu-item snn-cc-off" data-track="-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path></svg>
+                                        Off
+                                    </button>
+                                    <?php foreach ( $subtitles as $index => $subtitle ) : ?>
+                                    <button class="snn-cc-menu-item <?php echo $subtitle['is_default'] ? 'snn-active' : ''; ?>" data-track="<?php echo $index; ?>">
+                                        <?php if ( $subtitle['is_default'] ) : ?>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg>
+                                        <?php endif; ?>
+                                        <?php echo esc_html( $subtitle['label'] ); ?>
+                                    </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             <button class="snn-control-button snn-fullscreen-btn" aria-label="Fullscreen">
                                 <svg class="snn-fullscreen-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path></svg>
                                 <svg class="snn-fullscreen-exit-icon snn-hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"></path></svg>
@@ -375,7 +501,8 @@ class SNN_Video_Player_Element extends Element {
                 CHAPTERS: <?php echo json_encode($chapters); ?>,
                 KEY_SEEK_SECONDS: 5,
                 INITIAL_MUTED: <?php echo json_encode($muted); ?>,
-                DISABLE_AUTOHIDE: <?php echo json_encode($disable_autohide); ?>
+                DISABLE_AUTOHIDE: <?php echo json_encode($disable_autohide); ?>,
+                HAS_SUBTITLES: <?php echo json_encode( ! empty( $subtitles ) ); ?>
             };
 
             const ICONS = {
@@ -383,6 +510,7 @@ class SNN_Video_Player_Element extends Element {
                 pause: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`,
                 volumeHigh: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`,
                 volumeMute: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`,
+                check: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg>`,
             };
 
             const videoContainer          = playerWrapper.querySelector('.snn-video-container');
@@ -402,6 +530,9 @@ class SNN_Video_Player_Element extends Element {
             const fullscreenIcon          = playerWrapper.querySelector('.snn-fullscreen-icon');
             const fullscreenExitIcon      = playerWrapper.querySelector('.snn-fullscreen-exit-icon');
             const progressContainer       = playerWrapper.querySelector('.snn-progress-container');
+            const ccBtn                   = playerWrapper.querySelector('.snn-cc-btn');
+            const ccMenu                  = playerWrapper.querySelector('.snn-cc-menu');
+            const ccMenuItems             = playerWrapper.querySelectorAll('.snn-cc-menu-item');
 
             if (!video || !controlsOverlay || !playPauseBtn || !progressThumb) return;
 
@@ -710,6 +841,60 @@ class SNN_Video_Player_Element extends Element {
                 document.addEventListener('touchend', stopThumbDrag);
             });
 
+            // Subtitle/CC functionality
+            if (CONFIG.HAS_SUBTITLES && ccBtn && ccMenu) {
+                ccBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    ccMenu.classList.toggle('snn-show');
+                });
+
+                ccMenuItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const trackIndex = parseInt(item.dataset.track);
+                        
+                        // Remove all active classes and checkmarks
+                        ccMenuItems.forEach(menuItem => {
+                            menuItem.classList.remove('snn-active');
+                            const existingCheck = menuItem.querySelector('svg');
+                            if (existingCheck) {
+                                existingCheck.remove();
+                            }
+                        });
+                        
+                        // Disable all text tracks
+                        for (let i = 0; i < video.textTracks.length; i++) {
+                            video.textTracks[i].mode = 'disabled';
+                        }
+                        
+                        // Enable selected track or turn off
+                        if (trackIndex >= 0 && trackIndex < video.textTracks.length) {
+                            video.textTracks[trackIndex].mode = 'showing';
+                            item.classList.add('snn-active');
+                            // Add checkmark
+                            const checkmark = document.createElement('div');
+                            checkmark.innerHTML = ICONS.check;
+                            item.insertBefore(checkmark.firstChild, item.firstChild);
+                        } else {
+                            // "Off" was selected
+                            item.classList.add('snn-active');
+                            const checkmark = document.createElement('div');
+                            checkmark.innerHTML = ICONS.check;
+                            item.insertBefore(checkmark.firstChild, item.firstChild);
+                        }
+                        
+                        ccMenu.classList.remove('snn-show');
+                    });
+                });
+
+                // Close CC menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (ccMenu && !ccMenu.contains(e.target) && !ccBtn.contains(e.target)) {
+                        ccMenu.classList.remove('snn-show');
+                    }
+                });
+            }
+
             const handleKeydown = (e) => {
                 if (!isPlayerInView) return;
 
@@ -723,6 +908,12 @@ class SNN_Video_Player_Element extends Element {
                     case 'm': e.preventDefault(); toggleMute(); break;
                     case 'arrowright': e.preventDefault(); video.currentTime = Math.min(video.duration, video.currentTime + CONFIG.KEY_SEEK_SECONDS); break;
                     case 'arrowleft': e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - CONFIG.KEY_SEEK_SECONDS); break;
+                    case 'c': 
+                        if (CONFIG.HAS_SUBTITLES && ccBtn && ccMenu) {
+                            e.preventDefault(); 
+                            ccMenu.classList.toggle('snn-show');
+                        }
+                        break;
                 }
             };
 
