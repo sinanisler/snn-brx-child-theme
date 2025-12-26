@@ -32,12 +32,22 @@ class SNN_Element_Comment_Form extends Element {
 			'inline'  => true,
 		];
 
+		$this->controls['enable_toolbar'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Enable rich text toolbar', 'snn' ),
+			'type'    => 'checkbox',
+			'default' => false,
+			'inline'  => true,
+			'description' => esc_html__( 'Enable rich text editor with formatting toolbar', 'snn' ),
+		];
+
 		$this->controls['allow_uploads'] = [
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Enable media upload', 'snn' ),
 			'type'    => 'checkbox',
-			'default' => true,
+			'default' => false,
 			'inline'  => true,
+			'required' => [ 'enable_toolbar', '=', true ],
 		];
 
 		$this->controls['enable_website_field'] = [
@@ -184,7 +194,8 @@ class SNN_Element_Comment_Form extends Element {
 	public function render() {
 
 		$label          = $this->settings['submit_label'] ?? esc_html__( 'Post Comment', 'snn' );
-		$uploads        = ! empty( $this->settings['allow_uploads'] );
+		$enable_toolbar = ! empty( $this->settings['enable_toolbar'] );
+		$uploads        = ! empty( $this->settings['allow_uploads'] ) && $enable_toolbar;
 		$hide_logged_in = ! empty( $this->settings['hide_logged_in_as'] );
 		$reply_title    = $this->settings['reply_title'] ?? esc_html__( 'Leave a Reply', 'snn' );
 		$nonce          = wp_create_nonce( 'snn_comment_media_upload' );
@@ -276,18 +287,25 @@ class SNN_Element_Comment_Form extends Element {
 				</div>';
 		}
 
+		$comment_field_html = $enable_toolbar 
+			? '<p class="snn-comment-form-comment">
+				<textarea id="comment" name="comment" cols="45" rows="8" required style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></textarea>
+			</p>' . $rating_field
+			: '<p class="snn-comment-form-comment">
+				<label for="comment">' . esc_html__( 'Comment', 'snn' ) . '</label>
+				<textarea id="comment" name="comment" cols="45" rows="8" required></textarea>
+			</p>' . $rating_field;
+
 		comment_form( [
 			'class_form'    => 'snn-comment-form',
 			'class_submit'  => 'snn-comment-submit',
 			'label_submit'  => $label,
 			'title_reply'   => $reply_title,
-			'comment_field' => '
-				<p class="snn-comment-form-comment">
-					<textarea id="comment" name="comment" cols="45" rows="8" required style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></textarea>
-				</p>' . $rating_field,
+			'comment_field' => $comment_field_html,
 			'fields'        => apply_filters( 'comment_form_default_fields', $fields, $post_id ),
 		] );
 		?>
+		<?php if ( $enable_toolbar ) : ?>
 		<script>
 		/* === helper: robust inline style application === */
 		function applyInlineStyleToSelection(styleProp, value) {
@@ -598,6 +616,7 @@ class SNN_Element_Comment_Form extends Element {
 			<?php endif; ?>
 		});
 		</script>
+		<?php endif; // enable_toolbar ?>
 		<?php
 		echo '</div>';
 	}
