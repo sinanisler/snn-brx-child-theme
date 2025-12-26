@@ -195,6 +195,37 @@ class SNN_Element_Comment_Form extends Element {
 		$req       = get_option( 'require_name_email' );
 		$post_id   = get_the_ID();
 
+		// Check if rating is enabled and user already commented
+		if ( $enable_rating ) {
+			$user_id = get_current_user_id();
+			$has_commented = false;
+
+			if ( $user_id ) {
+				// Check for logged-in user
+				$existing_comments = get_comments( [
+					'post_id' => $post_id,
+					'user_id' => $user_id,
+					'count'   => true,
+				] );
+				$has_commented = $existing_comments > 0;
+			} elseif ( ! empty( $commenter['comment_author_email'] ) ) {
+				// Check for non-logged-in user by email
+				$existing_comments = get_comments( [
+					'post_id'      => $post_id,
+					'author_email' => $commenter['comment_author_email'],
+					'count'        => true,
+				] );
+				$has_commented = $existing_comments > 0;
+			}
+
+			if ( $has_commented ) {
+				echo '<div class="snn-comment-form-wrapper">';
+				echo '<p class="snn-already-rated-message">' . esc_html__( 'You already rated.', 'snn' ) . '</p>';
+				echo '</div>';
+				return;
+			}
+		}
+
 		$this->set_attribute( '_root', 'class', 'snn-comment-form-wrapper' );
 		if ( $hide_logged_in ) {
 			$this->set_attribute( '_root', 'class', 'hide-logged-in-as' );
