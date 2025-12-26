@@ -111,7 +111,8 @@ class SNN_Element_Comment_List extends Element {
 .snn-comment-item:hover .snn-comment-edit-btn,.snn-comment-item:hover .snn-comment-delete-btn{display:block}
 .snn-comment-item.editing .snn-comment-save-btn,.snn-comment-item.editing .snn-comment-cancel-btn{display:block}
 .snn-comment-item.editing .snn-comment-edit-btn,.snn-comment-item.editing .snn-comment-delete-btn{display:none}
-.snn-comment-rating{margin-top:8px;font-size:18px;color:#ffc107}
+.snn-comment-rating-wrapper{margin-bottom:10px;padding-left:120px}
+.snn-comment-rating{font-size:18px;color:#ffc107}
 .snn-comment-rating span{margin-right:2px}
 img.snn-img-align-left{float:left;margin-right:10px;margin-bottom:10px}
 img.snn-img-align-right{float:right;margin-left:10px;margin-bottom:10px}
@@ -173,6 +174,18 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
                 $show_ratings = isset( $args['show_ratings'] ) ? $args['show_ratings'] : false;
                 ?>
 <li <?php comment_class( 'snn-comment-item' ); ?> id="comment-<?php comment_ID(); ?>">
+    <?php if ( $show_ratings ) :
+        $rating = get_comment_meta( $comment->comment_ID, 'snn_rating_comment', true );
+        if ( $rating && $rating >= 1 && $rating <= 5 ) :
+    ?>
+    <div class="snn-comment-rating-wrapper">
+        <div class="snn-comment-rating">
+            <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
+                <span><?php echo $i <= $rating ? '★' : '☆'; ?></span>
+            <?php endfor; ?>
+        </div>
+    </div>
+    <?php endif; endif; ?>
     <comment id="div-comment-<?php comment_ID(); ?>" class="snn-comment-body">
         <div class="snn-comment-author snn-comment-vcard">
             <?php
@@ -199,16 +212,6 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
                 echo apply_filters( 'comment_text', $comment->comment_content, $comment );
             ?>
         </div>
-        <?php if ( $show_ratings ) :
-            $rating = get_comment_meta( $comment->comment_ID, 'snn_rating_comment', true );
-            if ( $rating && $rating >= 1 && $rating <= 5 ) :
-        ?>
-        <div class="snn-comment-rating">
-            <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
-                <span><?php echo $i <= $rating ? '★' : '☆'; ?></span>
-            <?php endfor; ?>
-        </div>
-        <?php endif; endif; ?>
     </comment>
 </li>
                 <?php
@@ -223,6 +226,11 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
             'show_ratings' => $show_ratings,
         ], $comments );
         echo '</ul>';
+
+        if ( ! $enable ) {
+            echo '</div>';
+            return;
+        }
 
         // User role check for delete button
         $current  = get_current_user_id();
