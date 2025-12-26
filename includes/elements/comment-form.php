@@ -65,6 +65,15 @@ class SNN_Element_Comment_Form extends Element {
 			'inline'  => true,
 		];
 
+		$this->controls['enable_rating'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Enable rating', 'snn' ),
+			'type'    => 'checkbox',
+			'default' => false,
+			'inline'  => true,
+			'description' => esc_html__( 'Show 5-star rating selector. Rating is saved to comment custom field: snn_rating_comment', 'snn' ),
+		];
+
 		/* ---------- STYLE TAB -------------------------------------------------- */
 
 		$this->controls['button_typography'] = [
@@ -180,6 +189,7 @@ class SNN_Element_Comment_Form extends Element {
 		$reply_title    = $this->settings['reply_title'] ?? esc_html__( 'Leave a Reply', 'snn' );
 		$nonce          = wp_create_nonce( 'snn_comment_media_upload' );
 		$show_website   = ! empty( $this->settings['enable_website_field'] );
+		$enable_rating  = ! empty( $this->settings['enable_rating'] );
 
 		$commenter = wp_get_current_commenter();
 		$req       = get_option( 'require_name_email' );
@@ -220,6 +230,14 @@ class SNN_Element_Comment_Form extends Element {
 		#snn-comment-editor-editor img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
 		.snn-comment-submit{border:none;padding:10px}
 		#snn-comment-editor-editor p{margin:0 0 1em 0}
+		/* --- rating --- */
+		.snn-comment-rating-wrapper{margin:15px 0}
+		.snn-comment-rating-wrapper label{display:block;margin-bottom:8px;font-weight:bold}
+		.snn-comment-rating-stars{display:inline-flex;gap:5px;font-size:32px;cursor:pointer;user-select:none}
+		.snn-comment-rating-stars span{color:#ddd;transition:color 0.2s}
+		.snn-comment-rating-stars span.active,.snn-comment-rating-stars span:hover,.snn-comment-rating-stars span:hover ~ span{color:#ffc107}
+		.snn-comment-rating-stars span:hover ~ span{color:#ddd}
+		#snn-comment-rating-input{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 		</style>
 		<?php
 
@@ -242,6 +260,22 @@ class SNN_Element_Comment_Form extends Element {
 				'" size="30" /></p>';
 		}
 
+		$rating_field = '';
+		if ( $enable_rating ) {
+			$rating_field = '
+				<div class="snn-comment-rating-wrapper">
+					<label>' . esc_html__( 'Rating', 'snn' ) . '</label>
+					<div class="snn-comment-rating-stars" id="snn-rating-selector">
+						<span data-value="1">★</span>
+						<span data-value="2">★</span>
+						<span data-value="3">★</span>
+						<span data-value="4">★</span>
+						<span data-value="5">★</span>
+					</div>
+					<input type="hidden" id="snn-comment-rating-input" name="snn_rating_comment" value="0">
+				</div>';
+		}
+
 		comment_form( [
 			'class_form'    => 'snn-comment-form',
 			'class_submit'  => 'snn-comment-submit',
@@ -250,7 +284,7 @@ class SNN_Element_Comment_Form extends Element {
 			'comment_field' => '
 				<p class="snn-comment-form-comment">
 					<textarea id="comment" name="comment" cols="45" rows="8" required style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></textarea>
-				</p>',
+				</p>' . $rating_field,
 			'fields'        => apply_filters( 'comment_form_default_fields', $fields, $post_id ),
 		] );
 		?>
@@ -524,6 +558,44 @@ class SNN_Element_Comment_Form extends Element {
 					sync();
 				};
 			});
+
+			/* === RATING SYSTEM === */
+			<?php if ( $enable_rating ) : ?>
+			const ratingSelector = document.getElementById('snn-rating-selector');
+			const ratingInput = document.getElementById('snn-comment-rating-input');
+			if (ratingSelector && ratingInput) {
+				const stars = ratingSelector.querySelectorAll('span');
+				let currentRating = 0;
+
+				stars.forEach((star, index) => {
+					star.addEventListener('click', () => {
+						currentRating = parseInt(star.dataset.value);
+						ratingInput.value = currentRating;
+						updateStars();
+					});
+
+					star.addEventListener('mouseenter', () => {
+						const hoverValue = parseInt(star.dataset.value);
+						stars.forEach((s, i) => {
+							s.style.color = i < hoverValue ? '#ffc107' : '#ddd';
+						});
+					});
+				});
+
+				ratingSelector.addEventListener('mouseleave', updateStars);
+
+				function updateStars() {
+					stars.forEach((s, i) => {
+						s.style.color = i < currentRating ? '#ffc107' : '#ddd';
+						if (i < currentRating) {
+							s.classList.add('active');
+						} else {
+							s.classList.remove('active');
+						}
+					});
+				}
+			}
+			<?php endif; ?>
 		});
 		</script>
 		<?php
@@ -556,5 +628,18 @@ if ( ! function_exists( 'snn_comment_media_upload' ) ) {
 		] );
 	}
 	add_action( 'wp_ajax_snn_comment_media_upload', 'snn_comment_media_upload' );
+}
+
+/* ---------- SAVE RATING TO COMMENT META ------------------------------- */
+if ( ! function_exists( 'snn_save_comment_rating' ) ) {
+	function snn_save_comment_rating( $comment_id ) {
+		if ( isset( $_POST['snn_rating_comment'] ) ) {
+			$rating = intval( $_POST['snn_rating_comment'] );
+			if ( $rating >= 1 && $rating <= 5 ) {
+				update_comment_meta( $comment_id, 'snn_rating_comment', $rating );
+			}
+		}
+	}
+	add_action( 'comment_post', 'snn_save_comment_rating' );
 }
 ?>

@@ -41,6 +41,14 @@ class SNN_Element_Comment_List extends Element {
             'default' => true,
             'inline'  => true,
         ];
+        $this->controls['show_ratings'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Show ratings', 'snn' ),
+            'type'    => 'checkbox',
+            'default' => true,
+            'inline'  => true,
+            'description' => esc_html__( 'Display star ratings from comment custom field: snn_rating_comment', 'snn' ),
+        ];
         $this->controls['typography'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Comment typography', 'snn' ),
@@ -66,6 +74,7 @@ class SNN_Element_Comment_List extends Element {
         $avatar  = intval( $this->settings['avatar'] ?? 48 );
         $order   = $this->settings['order'] ?? 'ASC';
         $enable  = ! empty( $this->settings['inline_edit'] );
+        $show_ratings = ! empty( $this->settings['show_ratings'] );
 
         $this->set_attribute( '_root', 'class', 'snn-comment-list-wrapper' );
         echo '<div ' . $this->render_attributes( '_root' ) . '>';
@@ -102,6 +111,8 @@ class SNN_Element_Comment_List extends Element {
 .snn-comment-item:hover .snn-comment-edit-btn,.snn-comment-item:hover .snn-comment-delete-btn{display:block}
 .snn-comment-item.editing .snn-comment-save-btn,.snn-comment-item.editing .snn-comment-cancel-btn{display:block}
 .snn-comment-item.editing .snn-comment-edit-btn,.snn-comment-item.editing .snn-comment-delete-btn{display:none}
+.snn-comment-rating{margin-top:8px;font-size:18px;color:#ffc107}
+.snn-comment-rating span{margin-right:2px}
 img.snn-img-align-left{float:left;margin-right:10px;margin-bottom:10px}
 img.snn-img-align-right{float:right;margin-left:10px;margin-bottom:10px}
 img.snn-img-align-center{display:block;float:none;margin:auto;margin-bottom:10px}
@@ -159,6 +170,7 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
             function snn_comment_callback( $comment, $args, $depth ) {
                 $GLOBALS['comment'] = $comment;
                 $avatar_size = $args['avatar_size'];
+                $show_ratings = isset( $args['show_ratings'] ) ? $args['show_ratings'] : false;
                 ?>
 <li <?php comment_class( 'snn-comment-item' ); ?> id="comment-<?php comment_ID(); ?>">
     <comment id="div-comment-<?php comment_ID(); ?>" class="snn-comment-body">
@@ -187,6 +199,16 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
                 echo apply_filters( 'comment_text', $comment->comment_content, $comment );
             ?>
         </div>
+        <?php if ( $show_ratings ) :
+            $rating = get_comment_meta( $comment->comment_ID, 'snn_rating_comment', true );
+            if ( $rating && $rating >= 1 && $rating <= 5 ) :
+        ?>
+        <div class="snn-comment-rating">
+            <?php for ( $i = 1; $i <= 5; $i++ ) : ?>
+                <span><?php echo $i <= $rating ? '★' : '☆'; ?></span>
+            <?php endfor; ?>
+        </div>
+        <?php endif; endif; ?>
     </comment>
 </li>
                 <?php
@@ -198,6 +220,7 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
             'callback'    => 'snn_comment_callback',
             'avatar_size' => $avatar,
             'max_depth'   => 4,
+            'show_ratings' => $show_ratings,
         ], $comments );
         echo '</ul>';
 
