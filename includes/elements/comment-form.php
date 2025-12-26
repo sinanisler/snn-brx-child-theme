@@ -287,9 +287,9 @@ class SNN_Element_Comment_Form extends Element {
 				</div>';
 		}
 
-		$comment_field_html = $rating_field . '<p class="comment-form-comment">
-				
-				<textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" required="required"' . ( $enable_toolbar ? ' style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"' : '' ) . '></textarea>
+		$comment_field_html = $rating_field . '<p class="comment-form-comment">'
+			. ( ! $enable_toolbar ? '<label for="comment">' . esc_html__( 'Comment', 'snn' ) . ' <span class="required">*</span></label>' : '' )
+			. '<textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" required="required"' . ( $enable_toolbar ? ' style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"' : '' ) . '></textarea>
 			</p>';
 
 		comment_form( [
@@ -306,7 +306,7 @@ class SNN_Element_Comment_Form extends Element {
 		/* === helper: robust inline style application === */
 		function applyInlineStyleToSelection(styleProp, value) {
 			const sel = window.getSelection();
-			if (!sel.rangeCount) return;
+			if (!sel.rangeCount) return;read full code 
 
 			let range = sel.getRangeAt(0);
 
