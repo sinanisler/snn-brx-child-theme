@@ -427,16 +427,16 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-cc-menu-item.snn-active { background-color: var(--primary-accent-color); color: var(--tooltip-text-color); }
             #" . esc_attr($root_id) . " .snn-cc-menu-item svg { width: 16px; height: 16px; fill: currentColor; }
             #" . esc_attr($root_id) . " .snn-cc-settings-btn { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-            #" . esc_attr($root_id) . " .snn-cc-settings-panel { display: none; padding: 16px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-panel { display: none; padding: 8px 12px; }
             #" . esc_attr($root_id) . " .snn-cc-settings-panel.snn-show { display: block; }
             #" . esc_attr($root_id) . " .snn-cc-lang-list { display: block; }
             #" . esc_attr($root_id) . " .snn-cc-lang-list.snn-hidden { display: none; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-row { margin-bottom: 16px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-row { margin-bottom: 8px; }
             #" . esc_attr($root_id) . " .snn-cc-settings-row:last-child { margin-bottom: 0; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-label { display: block; color: var(--text-color); font-size: 12px; margin-bottom: 8px; font-weight: 500; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-input { width: 100%; padding: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: var(--text-color); font-size: 14px; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-input[type=\"color\"] { height: 40px; cursor: pointer; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-input[type=\"range\"] { padding: 0; height: 8px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-label { display: block; color: var(--text-color); font-size: 11px; margin-bottom: 4px; font-weight: 500; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-input { width: 100%; padding: 6px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: var(--text-color); font-size: 13px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-input[type=\"color\"] { height: 32px; cursor: pointer; padding: 2px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-input[type=\"range\"] { padding: 0; height: 6px; }
             #" . esc_attr($root_id) . " .snn-cc-back-btn { display: none; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
             #" . esc_attr($root_id) . " .snn-cc-back-btn.snn-show { display: flex; }
             #" . esc_attr($root_id) . " .snn-cc-back-btn svg { width: 16px; height: 16px; }
@@ -1036,13 +1036,25 @@ class SNN_Video_Player_Element extends Element {
                     ccMenu.classList.toggle('snn-show');
                 });
 
+                // Add click handlers only to subtitle track items (not Settings or Back buttons)
                 ccMenuItems.forEach(item => {
+                    // Skip Settings and Back buttons - they have their own handlers
+                    if (item.classList.contains('snn-cc-settings-btn') || item.classList.contains('snn-cc-back-btn')) {
+                        return;
+                    }
+                    
                     item.addEventListener('click', (e) => {
                         e.stopPropagation();
+                        
                         const trackIndex = parseInt(item.dataset.track);
                         
-                        // Remove all active classes and checkmarks
+                        // Remove all active classes and checkmarks from track items only
                         ccMenuItems.forEach(menuItem => {
+                            // Skip Settings and Back buttons when removing active states
+                            if (menuItem.classList.contains('snn-cc-settings-btn') || menuItem.classList.contains('snn-cc-back-btn')) {
+                                return;
+                            }
+                            
                             menuItem.classList.remove('snn-active');
                             const existingCheck = menuItem.querySelector('svg');
                             if (existingCheck) {
