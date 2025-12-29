@@ -622,6 +622,11 @@ class SNN_Video_Player_Element extends Element {
                 const isFullscreen = !!document.fullscreenElement;
                 fullscreenIcon?.classList.toggle('snn-hidden', isFullscreen);
                 fullscreenExitIcon?.classList.toggle('snn-hidden', !isFullscreen);
+                
+                // When entering fullscreen, show controls initially then set auto-hide timer
+                if (isFullscreen) {
+                    showControls();
+                }
             };
 
             const updateChapterSectionsFill = () => {
@@ -665,6 +670,10 @@ class SNN_Video_Player_Element extends Element {
                 if (!CONFIG.DISABLE_AUTOHIDE) {
                     inactivityTimer = setTimeout(hideControls, CONFIG.INACTIVITY_TIMEOUT);
                 }
+            };
+
+            const handleMouseMove = () => {
+                showControls();
             };
 
             const generateChapterSections = () => {
@@ -939,11 +948,18 @@ class SNN_Video_Player_Element extends Element {
             });
 
             videoContainer?.addEventListener('mouseenter', showControls);
-            videoContainer?.addEventListener('mousemove', showControls);
+            videoContainer?.addEventListener('mousemove', handleMouseMove);
             videoContainer?.addEventListener('mouseleave', () => {
                 if (!CONFIG.DISABLE_AUTOHIDE) {
                     clearTimeout(inactivityTimer);
                     hideControls();
+                }
+            });
+
+            // Handle mouse movement in fullscreen mode
+            document.addEventListener('mousemove', (e) => {
+                if (document.fullscreenElement === videoContainer) {
+                    handleMouseMove();
                 }
             });
 
