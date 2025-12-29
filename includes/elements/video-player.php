@@ -435,8 +435,8 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-cc-settings-row:last-child { margin-bottom: 0; }
             #" . esc_attr($root_id) . " .snn-cc-settings-label { display: block; color: var(--text-color); font-size: 12px; margin-bottom: 8px; font-weight: 500; }
             #" . esc_attr($root_id) . " .snn-cc-settings-input { width: 100%; padding: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: var(--text-color); font-size: 14px; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-input[type="color"] { height: 40px; cursor: pointer; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-input[type="range"] { padding: 0; height: 8px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-input[type=\"color\"] { height: 40px; cursor: pointer; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-input[type=\"range\"] { padding: 0; height: 8px; }
             #" . esc_attr($root_id) . " .snn-cc-back-btn { display: none; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
             #" . esc_attr($root_id) . " .snn-cc-back-btn.snn-show { display: flex; }
             #" . esc_attr($root_id) . " .snn-cc-back-btn svg { width: 16px; height: 16px; }
