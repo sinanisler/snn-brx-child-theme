@@ -519,9 +519,9 @@ class SNN_Video_Player_Element extends Element {
                                     </div>
                                     <div class="snn-cc-settings-panel">
                                         <div class="snn-cc-settings-row">
-                                            <label class="snn-cc-settings-label">Font Size</label>
+                                            <label class="snn-cc-settings-label">Font Size <span class="snn-cc-settings-label" style="text-align: center; margin-top: 4px;"><span class="snn-cc-font-size-value">20</span>px</span> </label>
                                             <input type="range" class="snn-cc-settings-input snn-cc-font-size" min="12" max="48" value="20" step="2">
-                                            <span class="snn-cc-settings-label" style="text-align: center; margin-top: 4px;"><span class="snn-cc-font-size-value">20</span>px</span>
+                                            
                                         </div>
                                         <div class="snn-cc-settings-row">
                                             <label class="snn-cc-settings-label">Text Color</label>
