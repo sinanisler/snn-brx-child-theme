@@ -622,11 +622,6 @@ class SNN_Video_Player_Element extends Element {
                 const isFullscreen = !!document.fullscreenElement;
                 fullscreenIcon?.classList.toggle('snn-hidden', isFullscreen);
                 fullscreenExitIcon?.classList.toggle('snn-hidden', !isFullscreen);
-                
-                // When entering fullscreen, show controls initially then set auto-hide timer
-                if (isFullscreen) {
-                    showControls();
-                }
             };
 
             const updateChapterSectionsFill = () => {
@@ -658,7 +653,10 @@ class SNN_Video_Player_Element extends Element {
             };
 
             const hideControls = () => {
-                if (video.paused || CONFIG.DISABLE_AUTOHIDE) return;
+                if (CONFIG.DISABLE_AUTOHIDE) return;
+                // In fullscreen mode, always allow hiding controls even if paused
+                const isFullscreen = !!document.fullscreenElement;
+                if (video.paused && !isFullscreen) return;
                 videoContainer?.classList.add('snn-controls-hidden');
                 videoContainer?.classList.remove('snn-controls-visible');
             };
@@ -668,12 +666,11 @@ class SNN_Video_Player_Element extends Element {
                 videoContainer?.classList.add('snn-controls-visible');
                 clearTimeout(inactivityTimer);
                 if (!CONFIG.DISABLE_AUTOHIDE) {
-                    inactivityTimer = setTimeout(hideControls, CONFIG.INACTIVITY_TIMEOUT);
+                    // Use 2 seconds in fullscreen mode
+                    const isFullscreen = !!document.fullscreenElement;
+                    const timeout = isFullscreen ? 2000 : CONFIG.INACTIVITY_TIMEOUT;
+                    inactivityTimer = setTimeout(hideControls, timeout);
                 }
-            };
-
-            const handleMouseMove = () => {
-                showControls();
             };
 
             const generateChapterSections = () => {
@@ -948,18 +945,11 @@ class SNN_Video_Player_Element extends Element {
             });
 
             videoContainer?.addEventListener('mouseenter', showControls);
-            videoContainer?.addEventListener('mousemove', handleMouseMove);
+            videoContainer?.addEventListener('mousemove', showControls);
             videoContainer?.addEventListener('mouseleave', () => {
                 if (!CONFIG.DISABLE_AUTOHIDE) {
                     clearTimeout(inactivityTimer);
                     hideControls();
-                }
-            });
-
-            // Handle mouse movement in fullscreen mode
-            document.addEventListener('mousemove', (e) => {
-                if (document.fullscreenElement === videoContainer) {
-                    handleMouseMove();
                 }
             });
 
