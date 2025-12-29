@@ -431,9 +431,9 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-cc-settings-panel.snn-show { display: block; }
             #" . esc_attr($root_id) . " .snn-cc-lang-list { display: block; }
             #" . esc_attr($root_id) . " .snn-cc-lang-list.snn-hidden { display: none; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-row { margin-bottom: 8px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-row { margin-bottom: 2px; }
             #" . esc_attr($root_id) . " .snn-cc-settings-row:last-child { margin-bottom: 0; }
-            #" . esc_attr($root_id) . " .snn-cc-settings-label { display: block; color: var(--text-color); font-size: 14px; margin-bottom: 4px; font-weight: 500; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-label { display: block; color: var(--text-color); font-size: 14px; margin-bottom: 0px; font-weight: 500; }
             #" . esc_attr($root_id) . " .snn-cc-settings-input { width: 100%; padding: 6px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: var(--text-color); font-size: 13px; }
             #" . esc_attr($root_id) . " .snn-cc-settings-input[type=\"color\"] { height: 24px; cursor: pointer; padding: 0px; }
             #" . esc_attr($root_id) . " .snn-cc-settings-input[type=\"range\"] { padding: 0; height: 6px; }
@@ -519,8 +519,8 @@ class SNN_Video_Player_Element extends Element {
                                     </div>
                                     <div class="snn-cc-settings-panel">
                                         <div class="snn-cc-settings-row">
-                                            <label class="snn-cc-settings-label">Font Size <span class="snn-cc-settings-label" style="text-align: center; margin-top: 4px;"><span class="snn-cc-font-size-value">20</span>px</span> </label>
-                                            <input type="range" class="snn-cc-settings-input snn-cc-font-size" min="12" max="48" value="20" step="2">
+                                            <label class="snn-cc-settings-label">Font Size <span class="snn-cc-settings-label" ><span class="snn-cc-font-size-value">20</span>px</span> </label>
+                                            <input type="range" class="snn-cc-settings-input snn-cc-font-size" min="10" max="100" value="20" step="2">
                                             
                                         </div>
                                         <div class="snn-cc-settings-row">
