@@ -148,7 +148,7 @@ class SNN_Video_Player_Element extends Element {
                     'selector' => '.snn-video-container',
                 ],
             ],
-            'default' => '400px',
+            'default' => '400',
         ];
 
         $this->controls['player_max_width'] = [
