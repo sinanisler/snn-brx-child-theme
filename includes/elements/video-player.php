@@ -364,7 +364,7 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: cover; }
             #" . esc_attr($root_id) . " .snn-video-container:fullscreen { width: 100vw; height: 100vh; max-width: 100%; border-radius: 0; }
             #" . esc_attr($root_id) . " .snn-controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease-in-out; }
-            #" . esc_attr($root_id) . " .snn-video-container:hover .snn-controls-overlay, #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
+            #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
             #" . esc_attr($root_id) . " .snn-controls-hidden .snn-controls-overlay { cursor: none; opacity: 0; pointer-events: none; }
             #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; }
             #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; height: 5px; }
@@ -949,7 +949,7 @@ class SNN_Video_Player_Element extends Element {
             videoContainer?.addEventListener('mouseleave', () => {
                 if (!CONFIG.DISABLE_AUTOHIDE) {
                     clearTimeout(inactivityTimer);
-                    hideControls();
+                    inactivityTimer = setTimeout(hideControls, 300);
                 }
             });
 
