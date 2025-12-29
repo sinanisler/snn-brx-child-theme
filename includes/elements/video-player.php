@@ -426,6 +426,21 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-cc-menu-item:hover { background-color: var(--button-hover-background); }
             #" . esc_attr($root_id) . " .snn-cc-menu-item.snn-active { background-color: var(--primary-accent-color); color: var(--tooltip-text-color); }
             #" . esc_attr($root_id) . " .snn-cc-menu-item svg { width: 16px; height: 16px; fill: currentColor; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-btn { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+            #" . esc_attr($root_id) . " .snn-cc-settings-panel { display: none; padding: 16px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-panel.snn-show { display: block; }
+            #" . esc_attr($root_id) . " .snn-cc-lang-list { display: block; }
+            #" . esc_attr($root_id) . " .snn-cc-lang-list.snn-hidden { display: none; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-row { margin-bottom: 16px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-row:last-child { margin-bottom: 0; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-label { display: block; color: var(--text-color); font-size: 12px; margin-bottom: 8px; font-weight: 500; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-input { width: 100%; padding: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: var(--text-color); font-size: 14px; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-input[type="color"] { height: 40px; cursor: pointer; }
+            #" . esc_attr($root_id) . " .snn-cc-settings-input[type="range"] { padding: 0; height: 8px; }
+            #" . esc_attr($root_id) . " .snn-cc-back-btn { display: none; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+            #" . esc_attr($root_id) . " .snn-cc-back-btn.snn-show { display: flex; }
+            #" . esc_attr($root_id) . " .snn-cc-back-btn svg { width: 16px; height: 16px; }
+            #" . esc_attr($root_id) . " video::cue { font-size: 20px; }
             #" . esc_attr($root_id) . " .snn-hidden { display: none !important; }
         </style>";
 
@@ -480,18 +495,48 @@ class SNN_Video_Player_Element extends Element {
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 12h4v2H4v-2zm10 6H4v-2h10v2zm6 0h-4v-2h4v2zm0-4H10v-2h10v2z"></path></svg>
                                 </button>
                                 <div class="snn-cc-menu">
-                                    <button class="snn-cc-menu-item snn-cc-off" data-track="-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path></svg>
-                                        Off
+                                    <button class="snn-cc-back-btn snn-cc-menu-item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                                        Back
                                     </button>
-                                    <?php foreach ( $subtitles as $index => $subtitle ) : ?>
-                                    <button class="snn-cc-menu-item <?php echo $subtitle['is_default'] ? 'snn-active' : ''; ?>" data-track="<?php echo $index; ?>">
-                                        <?php if ( $subtitle['is_default'] ) : ?>
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg>
-                                        <?php endif; ?>
-                                        <?php echo esc_html( $subtitle['label'] ); ?>
-                                    </button>
-                                    <?php endforeach; ?>
+                                    <div class="snn-cc-lang-list">
+                                        <button class="snn-cc-menu-item snn-cc-off" data-track="-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path></svg>
+                                            Off
+                                        </button>
+                                        <?php foreach ( $subtitles as $index => $subtitle ) : ?>
+                                        <button class="snn-cc-menu-item <?php echo $subtitle['is_default'] ? 'snn-active' : ''; ?>" data-track="<?php echo $index; ?>">
+                                            <?php if ( $subtitle['is_default'] ) : ?>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path></svg>
+                                            <?php endif; ?>
+                                            <?php echo esc_html( $subtitle['label'] ); ?>
+                                        </button>
+                                        <?php endforeach; ?>
+                                        <button class="snn-cc-menu-item snn-cc-settings-btn">
+                                            <span>Settings</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>
+                                        </button>
+                                    </div>
+                                    <div class="snn-cc-settings-panel">
+                                        <div class="snn-cc-settings-row">
+                                            <label class="snn-cc-settings-label">Font Size</label>
+                                            <input type="range" class="snn-cc-settings-input snn-cc-font-size" min="12" max="48" value="20" step="2">
+                                            <span class="snn-cc-settings-label" style="text-align: center; margin-top: 4px;"><span class="snn-cc-font-size-value">20</span>px</span>
+                                        </div>
+                                        <div class="snn-cc-settings-row">
+                                            <label class="snn-cc-settings-label">Text Color</label>
+                                            <input type="color" class="snn-cc-settings-input snn-cc-text-color" value="#ffffff">
+                                        </div>
+                                        <div class="snn-cc-settings-row">
+                                            <label class="snn-cc-settings-label">Background Color</label>
+                                            <input type="color" class="snn-cc-settings-input snn-cc-bg-color" value="#000000">
+                                        </div>
+                                        <div class="snn-cc-settings-row">
+                                            <label class="snn-cc-settings-label">Background Opacity</label>
+                                            <input type="range" class="snn-cc-settings-input snn-cc-bg-opacity" min="0" max="100" value="80" step="5">
+                                            <span class="snn-cc-settings-label" style="text-align: center; margin-top: 4px;"><span class="snn-cc-bg-opacity-value">80</span>%</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <?php endif; ?>
@@ -553,6 +598,16 @@ class SNN_Video_Player_Element extends Element {
             const ccBtn                   = playerWrapper.querySelector('.snn-cc-btn');
             const ccMenu                  = playerWrapper.querySelector('.snn-cc-menu');
             const ccMenuItems             = playerWrapper.querySelectorAll('.snn-cc-menu-item');
+            const ccSettingsBtn           = playerWrapper.querySelector('.snn-cc-settings-btn');
+            const ccSettingsPanel         = playerWrapper.querySelector('.snn-cc-settings-panel');
+            const ccLangList              = playerWrapper.querySelector('.snn-cc-lang-list');
+            const ccBackBtn               = playerWrapper.querySelector('.snn-cc-back-btn');
+            const ccFontSizeInput         = playerWrapper.querySelector('.snn-cc-font-size');
+            const ccFontSizeValue         = playerWrapper.querySelector('.snn-cc-font-size-value');
+            const ccTextColorInput        = playerWrapper.querySelector('.snn-cc-text-color');
+            const ccBgColorInput          = playerWrapper.querySelector('.snn-cc-bg-color');
+            const ccBgOpacityInput        = playerWrapper.querySelector('.snn-cc-bg-opacity');
+            const ccBgOpacityValue        = playerWrapper.querySelector('.snn-cc-bg-opacity-value');
 
             if (!video || !controlsOverlay || !playPauseBtn || !progressThumb) return;
 
@@ -870,6 +925,109 @@ class SNN_Video_Player_Element extends Element {
                 document.addEventListener('touchmove', handleThumbDrag);
                 document.addEventListener('touchend', stopThumbDrag);
             });
+
+            // Load subtitle settings from localStorage
+            const loadSubtitleSettings = () => {
+                const settings = {
+                    fontSize: localStorage.getItem('snn-cc-font-size') || '20',
+                    textColor: localStorage.getItem('snn-cc-text-color') || '#ffffff',
+                    bgColor: localStorage.getItem('snn-cc-bg-color') || '#000000',
+                    bgOpacity: localStorage.getItem('snn-cc-bg-opacity') || '80'
+                };
+                return settings;
+            };
+
+            const saveSubtitleSetting = (key, value) => {
+                localStorage.setItem(key, value);
+            };
+
+            const applySubtitleStyles = (settings) => {
+                const styleId = 'snn-subtitle-styles-' + '<?php echo esc_js($root_id); ?>';
+                let styleEl = document.getElementById(styleId);
+                if (!styleEl) {
+                    styleEl = document.createElement('style');
+                    styleEl.id = styleId;
+                    document.head.appendChild(styleEl);
+                }
+                
+                const opacity = parseInt(settings.bgOpacity) / 100;
+                const bgColorRgb = settings.bgColor.match(/\w\w/g).map(x => parseInt(x, 16));
+                const bgColorRgba = `rgba(${bgColorRgb[0]}, ${bgColorRgb[1]}, ${bgColorRgb[2]}, ${opacity})`;
+                
+                styleEl.textContent = `
+                    #<?php echo esc_js($root_id); ?> video::cue {
+                        font-size: ${settings.fontSize}px !important;
+                        color: ${settings.textColor} !important;
+                        background-color: ${bgColorRgba} !important;
+                    }
+                `;
+            };
+
+            // Initialize subtitle settings
+            if (CONFIG.HAS_SUBTITLES && ccSettingsPanel) {
+                const settings = loadSubtitleSettings();
+                
+                if (ccFontSizeInput) {
+                    ccFontSizeInput.value = settings.fontSize;
+                    if (ccFontSizeValue) ccFontSizeValue.textContent = settings.fontSize;
+                }
+                if (ccTextColorInput) ccTextColorInput.value = settings.textColor;
+                if (ccBgColorInput) ccBgColorInput.value = settings.bgColor;
+                if (ccBgOpacityInput) {
+                    ccBgOpacityInput.value = settings.bgOpacity;
+                    if (ccBgOpacityValue) ccBgOpacityValue.textContent = settings.bgOpacity;
+                }
+                
+                applySubtitleStyles(settings);
+                
+                // Font size change
+                ccFontSizeInput?.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    if (ccFontSizeValue) ccFontSizeValue.textContent = value;
+                    saveSubtitleSetting('snn-cc-font-size', value);
+                    const currentSettings = loadSubtitleSettings();
+                    applySubtitleStyles(currentSettings);
+                });
+                
+                // Text color change
+                ccTextColorInput?.addEventListener('input', (e) => {
+                    saveSubtitleSetting('snn-cc-text-color', e.target.value);
+                    const currentSettings = loadSubtitleSettings();
+                    applySubtitleStyles(currentSettings);
+                });
+                
+                // Background color change
+                ccBgColorInput?.addEventListener('input', (e) => {
+                    saveSubtitleSetting('snn-cc-bg-color', e.target.value);
+                    const currentSettings = loadSubtitleSettings();
+                    applySubtitleStyles(currentSettings);
+                });
+                
+                // Background opacity change
+                ccBgOpacityInput?.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    if (ccBgOpacityValue) ccBgOpacityValue.textContent = value;
+                    saveSubtitleSetting('snn-cc-bg-opacity', value);
+                    const currentSettings = loadSubtitleSettings();
+                    applySubtitleStyles(currentSettings);
+                });
+                
+                // Settings button click
+                ccSettingsBtn?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    ccLangList?.classList.add('snn-hidden');
+                    ccSettingsPanel?.classList.add('snn-show');
+                    ccBackBtn?.classList.add('snn-show');
+                });
+                
+                // Back button click
+                ccBackBtn?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    ccLangList?.classList.remove('snn-hidden');
+                    ccSettingsPanel?.classList.remove('snn-show');
+                    ccBackBtn?.classList.remove('snn-show');
+                });
+            }
 
             // Subtitle/CC functionality
             if (CONFIG.HAS_SUBTITLES && ccBtn && ccMenu) {
