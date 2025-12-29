@@ -574,7 +574,11 @@ class SNN_Video_Player_Element extends Element {
 
             const updateProgressBarFill = (bar) => {
                 if (!bar) return;
-                const progress = bar.value;
+                let progress = bar.value;
+                // Volume slider has values 0-1, convert to percentage
+                if (bar.classList.contains('snn-volume-slider')) {
+                    progress = progress * 100;
+                }
                 const accentColor = getComputedStyle(playerWrapper).getPropertyValue('--primary-accent-color').trim();
                 const trackColor = getComputedStyle(playerWrapper).getPropertyValue('--slider-track-color').trim();
                 bar.style.background = `linear-gradient(to right, ${accentColor} ${progress}%, ${trackColor} ${progress}%)`;
