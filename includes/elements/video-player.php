@@ -225,7 +225,7 @@ class SNN_Video_Player_Element extends Element {
             'tab'   => 'content',
             'label' => esc_html__( 'Controls Bar Background', 'snn' ),
             'type'  => 'color',
-            'default' => 'rgba(0, 0, 0, 0.5)',
+            'default' => 'rgba(0, 0, 0, 0.8)',
         ];
     }
 
@@ -386,8 +386,8 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease-in-out; }
             #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
             #" . esc_attr($root_id) . " .snn-controls-hidden .snn-controls-overlay { cursor: none; opacity: 0; pointer-events: none; }
-            #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; background-color: var(--controls-bar-bg); }
-            #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; height: 5px; }
+            #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 12px 0 0px 12px; background: linear-gradient(to top, var(--controls-bar-bg) 0%, rgba(0, 0, 0, 0.2) 100%); }
+            #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 4px; height: 5px; }
             #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--tooltip-text-color); font-size: 12px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: normal; word-wrap: break-word; transform: translateX(-50%); max-width: 260px; z-index: 10; line-height: 1.4; }
             #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; }
             #" . esc_attr($root_id) . " .snn-chapter-sections-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; z-index: 3; pointer-events: all; }
