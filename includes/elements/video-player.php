@@ -148,7 +148,7 @@ class SNN_Video_Player_Element extends Element {
                     'selector' => '.snn-video-container',
                 ],
             ],
-            'default' => '400',
+            'default' => '400px',
         ];
 
         $this->controls['player_max_width'] = [
@@ -219,13 +219,6 @@ class SNN_Video_Player_Element extends Element {
             'label' => esc_html__( 'Tooltip Text Color', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(255, 255, 255, 1)',
-        ];
-
-        $this->controls['controls_bar_bg'] = [
-            'tab'   => 'content',
-            'label' => esc_html__( 'Controls Bar Background', 'snn' ),
-            'type'  => 'color',
-            'default' => 'rgba(0, 0, 0, 0.8)',
         ];
     }
 
@@ -374,20 +367,19 @@ class SNN_Video_Player_Element extends Element {
         $btn_hover_bg        = $settings['button_hover_background']['raw'] ?? $settings['button_hover_background']['hex'] ?? 'rgba(255, 255, 255, 0.2)';
         $button_color        = $settings['button_color']['raw'] ?? $settings['button_color']['hex'] ?? 'rgba(255, 255, 255, 1)';
         $tooltip_text_color  = $settings['tooltip_text_color']['raw'] ?? $settings['tooltip_text_color']['hex'] ?? 'rgba(0, 0, 0, 1)';
-        $controls_bar_bg     = $settings['controls_bar_bg']['raw'] ?? $settings['controls_bar_bg']['hex'] ?? 'rgba(0, 0, 0, 0.5)';
 
         echo "<div {$this->render_attributes('_root')}>";
 
         echo "<style>
-            #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --thumb-color: {$thumb_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; --tooltip-text-color: {$tooltip_text_color}; --controls-bar-bg: {$controls_bar_bg}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
+            #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --thumb-color: {$thumb_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; --tooltip-text-color: {$tooltip_text_color}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
             #" . esc_attr($root_id) . " .snn-video-container { position: relative; background-color: #000; overflow: hidden; height: var(--player-height); }
             #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: cover; }
             #" . esc_attr($root_id) . " .snn-video-container:fullscreen { width: 100vw; height: 100vh; max-width: 100%; border-radius: 0; }
             #" . esc_attr($root_id) . " .snn-controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease-in-out; }
             #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
             #" . esc_attr($root_id) . " .snn-controls-hidden .snn-controls-overlay { cursor: none; opacity: 0; pointer-events: none; }
-            #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 12px 0 0px 12px; background: linear-gradient(to top, var(--controls-bar-bg) 0%, rgba(0, 0, 0, 0.2) 100%); }
-            #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 4px; height: 5px; }
+            #" . esc_attr($root_id) . " .snn-controls-bar-container { padding: 9px 15px; }
+            #" . esc_attr($root_id) . " .snn-progress-container { position: relative; margin-bottom: 7.5px; height: 5px; }
             #" . esc_attr($root_id) . " .snn-progress-tooltip { position: absolute; background-color: var(--primary-accent-color); color: var(--tooltip-text-color); font-size: 12px; border-radius: 3.75px; padding: 3.75px 7.5px; bottom: 100%; margin-bottom: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: normal; word-wrap: break-word; transform: translateX(-50%); max-width: 260px; z-index: 10; line-height: 1.4; }
             #" . esc_attr($root_id) . " .snn-chapter-dots-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; }
             #" . esc_attr($root_id) . " .snn-chapter-sections-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; z-index: 3; pointer-events: all; }
