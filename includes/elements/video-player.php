@@ -141,7 +141,13 @@ class SNN_Video_Player_Element extends Element {
             'tab'   => 'content',
             'label' => esc_html__( 'Player Height', 'snn' ),
             'type'  => 'number',
-            'units' => ['px', 'vh'],
+            'units' => ['px', 'vh', 'rem', 'em'],
+            'css'   => [
+                [
+                    'property' => 'height',
+                    'selector' => '.snn-video-container',
+                ],
+            ],
             'default' => '400px',
         ];
 
@@ -149,7 +155,13 @@ class SNN_Video_Player_Element extends Element {
             'tab'   => 'content',
             'label' => esc_html__( 'Player Max Width', 'snn' ),
             'type'  => 'number',
-            'units' => ['px', '%'],
+            'units' => ['px', '%', 'rem', 'em', 'vw'],
+            'css'   => [
+                [
+                    'property' => 'max-width',
+                    'selector' => '',
+                ],
+            ],
             'default' => '100%',
         ];
 
