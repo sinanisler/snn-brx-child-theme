@@ -450,25 +450,6 @@ class SNN_Query_Nestable extends Element {
             echo esc_html( print_r( $settings, true ) );
             echo '</pre>';
             
-            echo '<h4>Post Parent Debug:</h4>';
-            echo '<pre style="background: #fff; padding: 10px;">';
-            echo 'post_parent raw: ' . var_export( $settings['post_parent'] ?? 'NOT SET', true ) . "\n";
-            echo 'post_parent type: ' . gettype( $settings['post_parent'] ?? null ) . "\n";
-            echo 'post_parent isset: ' . var_export( isset( $settings['post_parent'] ), true ) . "\n";
-            echo 'post_parent !== "": ' . var_export( ( $settings['post_parent'] ?? '' ) !== '', true ) . "\n";
-            echo 'post_parent__in raw: ' . var_export( $settings['post_parent__in'] ?? 'NOT SET', true ) . "\n";
-            echo 'post_parent__in type: ' . gettype( $settings['post_parent__in'] ?? null ) . "\n";
-            echo 'post_parent__not_in raw: ' . var_export( $settings['post_parent__not_in'] ?? 'NOT SET', true ) . "\n";
-            echo 'post_parent__not_in type: ' . gettype( $settings['post_parent__not_in'] ?? null ) . "\n";
-            
-            // Test conversion
-            if ( isset( $settings['post_parent'] ) ) {
-                echo "\nConversion test:\n";
-                echo '  parse_dynamic_value result: ' . var_export( $this->parse_dynamic_value( $settings['post_parent'] ), true ) . "\n";
-                echo '  intval result: ' . var_export( intval( $this->parse_dynamic_value( $settings['post_parent'] ) ), true ) . "\n";
-            }
-            echo '</pre>';
-            
             echo '<h4>Built Query Args:</h4>';
             echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
             echo esc_html( print_r( $query_args, true ) );
