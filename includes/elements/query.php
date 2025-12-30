@@ -586,11 +586,10 @@ class SNN_Query_Nestable extends Element {
 
     /**
      * Render dynamic data tags in control values
-     * Converts Bricks dynamic tags like {post_id} to their actual values
+     * Converts Bricks dynamic tags like {post_id} or {parent_id} to their actual values
      * 
-     * CRITICAL FIX: Now uses context stack to get correct post ID in nested queries
-     * When a nested query renders, it needs to use {post_id} of the PARENT query's current post,
-     * not the global get_the_ID() which might be stale or incorrect.
+     * CRITICAL: This handles both built-in Bricks tags ({post_id}) and custom tags ({parent_id})
+     * Uses the context stack to get correct post ID in nested queries
      */
     private function render_control_dynamic_data( $value, $post_id = null ) {
         if ( $value === null || $value === '' ) {
@@ -619,18 +618,45 @@ class SNN_Query_Nestable extends Element {
             }
         }
 
-        // Use Bricks' dynamic data rendering function
+        // Get the post object for Bricks filters
+        $post = get_post( $post_id );
+        if ( ! $post ) {
+            return $value;
+        }
+
+        // Try multiple Bricks rendering methods to ensure compatibility
+        
+        // Method 1: Use Bricks' render_dynamic_data function if available
         if ( function_exists( 'bricks_render_dynamic_data' ) ) {
             return bricks_render_dynamic_data( $value, $post_id );
         }
 
-        // Fallback: Try Bricks class method (older versions)
-        if ( class_exists( '\Bricks\Integrations\Dynamic_Data\Providers' ) && method_exists( '\Bricks\Integrations\Dynamic_Data\Providers', 'render_content' ) ) {
-            $post = get_post( $post_id );
+        // Method 2: Use Bricks Dynamic Data Providers class (for older Bricks versions)
+        if ( class_exists( '\Bricks\Integrations\Dynamic_Data\Providers' ) && 
+             method_exists( '\Bricks\Integrations\Dynamic_Data\Providers', 'render_content' ) ) {
             return \Bricks\Integrations\Dynamic_Data\Providers::render_content( $value, $post );
         }
 
-        return $value;
+        // Method 3: Apply Bricks filters directly (supports custom tags like {parent_id})
+        // This ensures custom tags registered via bricks/dynamic_data/render_content work
+        $rendered = apply_filters( 'bricks/dynamic_data/render_content', $value, $post, 'text' );
+        if ( $rendered !== $value ) {
+            return $rendered;
+        }
+
+        // Method 4: Try the render_tag filter for individual tags
+        $rendered = apply_filters( 'bricks/dynamic_data/render_tag', $value, $post, 'text' );
+        if ( $rendered !== $value ) {
+            return $rendered;
+        }
+
+        // Method 5: Manual replacement for common tags as last resort
+        $replacements = [
+            '{post_id}'     => $post_id,
+            '{parent_id}'   => $post->post_parent ? $post->post_parent : $post_id,
+        ];
+        
+        return str_replace( array_keys( $replacements ), array_values( $replacements ), $value );
     }
 
     /**
