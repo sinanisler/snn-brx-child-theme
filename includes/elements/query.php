@@ -456,20 +456,26 @@ class SNN_Query_Nestable extends Element {
     }
 
     public function render() {
-        $settings   = $this->settings;
+        // CRITICAL FIX: Get RAW settings before Bricks processes dynamic data
+        // Bricks stores raw settings in $this->element (the raw element data)
+        // We need to use these instead of $this->settings which has already been processed
+        $raw_settings = isset( $this->element['settings'] ) ? $this->element['settings'] : $this->settings;
+        
+        $settings   = $this->settings; // Keep this for non-dynamic fields
         $no_wrapper = ! empty( $settings['no_wrapper'] );
         $wrapper_id = 'snn-query-' . $this->id;
         $debug_mode = ! empty( $settings['debug'] );
 
         // DEBUG: Show raw settings to see if Bricks already processed the tags
-        if ( $debug_mode && isset( $settings['post_parent'] ) ) {
+        if ( $debug_mode && isset( $raw_settings['post_parent'] ) ) {
             global $snn_raw_settings_log;
             if ( ! isset( $snn_raw_settings_log ) ) {
                 $snn_raw_settings_log = [];
             }
             $snn_raw_settings_log[] = [
                 'element_id' => $this->id,
-                'post_parent_raw' => $settings['post_parent'],
+                'post_parent_raw' => $raw_settings['post_parent'],
+                'post_parent_processed' => $settings['post_parent'],
                 'get_the_id' => get_the_ID(),
                 'context_stack' => self::$post_context_stack,
             ];
@@ -481,10 +487,10 @@ class SNN_Query_Nestable extends Element {
             wp_cache_delete( 'last_changed', 'posts' );
         }
 
-        // CRITICAL FIX: Build query args RIGHT NOW, at render time
+        // CRITICAL FIX: Build query args RIGHT NOW, at render time, using RAW settings
         // This ensures that for nested queries, the parent's setup_postdata() 
         // has already been called, making {post_id} resolve correctly
-        $query_args = $this->build_query_args( $settings );
+        $query_args = $this->build_query_args( $raw_settings );
 
         // Create WP_Query with the query args
         $posts_query = new \WP_Query( $query_args );
@@ -503,7 +509,7 @@ class SNN_Query_Nestable extends Element {
             // Show raw settings received by render()
             global $snn_raw_settings_log;
             if ( ! empty( $snn_raw_settings_log ) ) {
-                echo '<h4>Raw Settings When render() Called:</h4>';
+                echo '<h4>Raw vs Processed Settings:</h4>';
                 echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
                 echo esc_html( print_r( $snn_raw_settings_log, true ) );
                 echo '</pre>';
