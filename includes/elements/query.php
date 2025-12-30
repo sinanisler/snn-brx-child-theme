@@ -828,7 +828,18 @@ class SNN_Query_Nestable extends Element {
      * Supports: {post_id}, {current_post}, {author_id}, {term_id}
      */
     private function parse_dynamic_value( $value ) {
+        // Store original for debugging
+        $original_value = $value;
+        
         if ( empty( $value ) ) {
+            return $value;
+        }
+
+        // Only process if value contains dynamic tags
+        $has_dynamic_tags = strpos( $value, '{' ) !== false && strpos( $value, '}' ) !== false;
+        
+        if ( ! $has_dynamic_tags ) {
+            // No dynamic tags, return as-is
             return $value;
         }
 
