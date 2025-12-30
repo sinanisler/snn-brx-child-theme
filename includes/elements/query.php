@@ -23,7 +23,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'No Wrapper', 'snn' ),
             'type'    => 'checkbox',
-            'default' => false,
         ];
 
         // ====================
@@ -41,7 +40,6 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'Post Type', 'snn' ),
             'type'    => 'select',
             'options' => $post_type_options,
-            'default' => 'post',
             'multiple' => true,
             'placeholder' => esc_html__( 'Select post types', 'snn' ),
         ];
@@ -62,7 +60,6 @@ class SNN_Query_Nestable extends Element {
                 'any'        => esc_html__( 'Any', 'snn' ),
             ],
             'multiple' => true,
-            'default'  => [ 'publish' ],
             'placeholder' => esc_html__( 'Select status', 'snn' ),
         ];
 
@@ -74,7 +71,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Posts Per Page', 'snn' ),
             'type'    => 'number',
-            'default' => 10,
             'description' => esc_html__( 'Use -1 to show all posts', 'snn' ),
         ];
 
@@ -82,7 +78,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Offset', 'snn' ),
             'type'    => 'number',
-            'default' => 0,
             'description' => esc_html__( 'Number of posts to skip', 'snn' ),
         ];
 
@@ -90,7 +85,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Paged', 'snn' ),
             'type'    => 'number',
-            'default' => 0,
             'description' => esc_html__( 'Page number (0 = current page)', 'snn' ),
         ];
 
@@ -98,14 +92,12 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'No Paging', 'snn' ),
             'type'    => 'checkbox',
-            'default' => false,
         ];
 
         $this->controls['ignore_sticky_posts'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Ignore Sticky Posts', 'snn' ),
             'type'    => 'checkbox',
-            'default' => true,
         ];
 
         // ====================
@@ -134,7 +126,6 @@ class SNN_Query_Nestable extends Element {
                 'meta_value_num' => esc_html__( 'Meta Value (Numeric)', 'snn' ),
                 'post__in'       => esc_html__( 'post__in order', 'snn' ),
             ],
-            'default' => 'date',
         ];
 
         $this->controls['order'] = [
@@ -145,7 +136,6 @@ class SNN_Query_Nestable extends Element {
                 'ASC'  => esc_html__( 'Ascending', 'snn' ),
                 'DESC' => esc_html__( 'Descending', 'snn' ),
             ],
-            'default' => 'DESC',
         ];
 
         $this->controls['meta_key'] = [
@@ -290,7 +280,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Direct Children Only', 'snn' ),
             'type'    => 'checkbox',
-            'default' => false,
             'description' => esc_html__( 'When using post_parent, get only direct children (not grandchildren)', 'snn' ),
         ];
 
@@ -307,7 +296,6 @@ class SNN_Query_Nestable extends Element {
                 'true'  => esc_html__( 'Has Password', 'snn' ),
                 'false' => esc_html__( 'No Password', 'snn' ),
             ],
-            'default' => '',
         ];
 
         // ====================
@@ -358,7 +346,6 @@ class SNN_Query_Nestable extends Element {
                 '<'  => '<',
                 '<=' => '<=',
             ],
-            'default' => '=',
         ];
 
         // ====================
@@ -369,7 +356,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'No Found Rows', 'snn' ),
             'type'    => 'checkbox',
-            'default' => false,
             'description' => esc_html__( 'Improves performance if pagination not needed', 'snn' ),
         ];
 
@@ -377,21 +363,18 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Cache Results', 'snn' ),
             'type'    => 'checkbox',
-            'default' => true,
         ];
 
         $this->controls['update_post_meta_cache'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Update Post Meta Cache', 'snn' ),
             'type'    => 'checkbox',
-            'default' => true,
         ];
 
         $this->controls['update_post_term_cache'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Update Post Term Cache', 'snn' ),
             'type'    => 'checkbox',
-            'default' => true,
         ];
 
         // ====================
@@ -430,7 +413,6 @@ class SNN_Query_Nestable extends Element {
             'tab'         => 'content',
             'label'       => esc_html__( 'Empty Message', 'snn' ),
             'type'        => 'text',
-            'default'     => esc_html__( 'No posts matched your criteria.', 'snn' ),
             'placeholder' => esc_html__( 'No posts found', 'snn' ),
         ];
 
@@ -442,7 +424,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Debug', 'snn' ),
             'type'    => 'checkbox',
-            'default' => false,
             'description' => esc_html__( 'Show debug information for troubleshooting', 'snn' ),
         ];
     }
