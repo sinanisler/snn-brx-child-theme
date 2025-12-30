@@ -569,7 +569,7 @@ class SNN_Query_Nestable extends Element {
      * Render dynamic data in a value
      * Bricks dynamic tags like {post_id} need to be rendered before use
      */
-    private function render_dynamic_data( $value, $post_id = null ) {
+    public function render_dynamic_data( $value, $post_id = null ) {
         if ( $value === null || $value === '' ) {
             return $value;
         }
