@@ -468,6 +468,8 @@ class SNN_Query_Nestable extends Element {
         }
 
         // Build WP_Query args from individual controls
+        // NOTE: We build args BEFORE the loop for debug purposes,
+        // but in nested queries, args will be rebuilt inside the loop
         $query_args = $this->build_query_args( $settings );
 
         // Create WP_Query with the query args
@@ -492,6 +494,7 @@ class SNN_Query_Nestable extends Element {
             echo '<p><strong>Posts Found:</strong> ' . $posts_query->found_posts . '</p>';
             echo '<p><strong>Post Count:</strong> ' . $posts_query->post_count . '</p>';
             echo '<p><strong>Current Post ID:</strong> ' . get_the_ID() . '</p>';
+            echo '<p><strong>Post Context Stack:</strong> ' . ( ! empty( self::$post_context_stack ) ? implode( ' > ', self::$post_context_stack ) : 'Empty' ) . '</p>';
             
             echo '<h4>SQL Query:</h4>';
             echo '<pre style="background: #fff; padding: 10px; overflow-x: auto; word-wrap: break-word; white-space: pre-wrap;">';
@@ -530,16 +533,19 @@ class SNN_Query_Nestable extends Element {
                 $posts_query->the_post();
                 $current_post_id = get_the_ID();
                 
-                // ADDED: Push current post ID onto context stack BEFORE rendering children
+                // CRITICAL: Push current post ID onto context stack BEFORE rendering children
+                // This ensures nested queries can access the correct parent post ID via {post_id}
                 self::$post_context_stack[] = $current_post_id;
                 
                 // Set up postdata for dynamic data
                 setup_postdata( $current_post_id );
                 
                 // Render nested children for each post
+                // Any nested query elements will now have access to the correct post context
                 echo Frontend::render_children( $this );
                 
-                // ADDED: Pop post ID from context stack AFTER rendering children
+                // CRITICAL: Pop post ID from context stack AFTER rendering children
+                // This restores the correct context for any parent query
                 array_pop( self::$post_context_stack );
             }
 
@@ -573,7 +579,10 @@ class SNN_Query_Nestable extends Element {
     /**
      * Render dynamic data tags in control values
      * Converts Bricks dynamic tags like {post_id} to their actual values
-     * MODIFIED: Now uses context stack to get correct post ID in nested queries
+     * 
+     * CRITICAL FIX: Now uses context stack to get correct post ID in nested queries
+     * When a nested query renders, it needs to use {post_id} of the PARENT query's current post,
+     * not the global get_the_ID() which might be stale or incorrect.
      */
     private function render_control_dynamic_data( $value, $post_id = null ) {
         if ( $value === null || $value === '' ) {
@@ -590,9 +599,10 @@ class SNN_Query_Nestable extends Element {
             return $value;
         }
 
-        // MODIFIED: Use context stack to get correct post ID in nested queries
+        // CRITICAL FIX: Use context stack to get correct post ID in nested queries
         if ( $post_id === null ) {
             // Use the most recent post from context stack (top of stack)
+            // This is the parent post in a nested query scenario
             if ( ! empty( self::$post_context_stack ) ) {
                 $post_id = end( self::$post_context_stack );
             } else {
@@ -617,6 +627,10 @@ class SNN_Query_Nestable extends Element {
 
     /**
      * Build WP_Query arguments from individual control values
+     * 
+     * IMPORTANT: In nested queries, this is called INSIDE the parent query loop,
+     * AFTER setup_postdata() has been called, so dynamic data like {post_id}
+     * will resolve to the correct parent post ID via the context stack.
      */
     private function build_query_args( $settings ) {
         $args = [];
@@ -735,9 +749,11 @@ class SNN_Query_Nestable extends Element {
             }
         }
 
-        // POST PARENT - CRITICAL: Render dynamic data before processing
+        // POST PARENT - CRITICAL FIX: Dynamic data is now rendered at the RIGHT TIME
+        // When this function is called inside a nested query loop, the context stack
+        // contains the parent post ID, so {post_id} will resolve correctly
         if ( isset( $settings['post_parent'] ) && $settings['post_parent'] !== '' ) {
-            // Render dynamic data first (e.g., {post_id} -> 370)
+            // Render dynamic data NOW (when we're in the correct post context)
             $post_parent_value = $this->render_control_dynamic_data( $settings['post_parent'] );
             $args['post_parent'] = intval( $post_parent_value );
         }
