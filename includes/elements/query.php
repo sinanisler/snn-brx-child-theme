@@ -467,9 +467,9 @@ class SNN_Query_Nestable extends Element {
             wp_cache_delete( 'last_changed', 'posts' );
         }
 
-        // Build WP_Query args from individual controls
-        // NOTE: We build args BEFORE the loop for debug purposes,
-        // but in nested queries, args will be rebuilt inside the loop
+        // CRITICAL FIX: Build query args RIGHT NOW, at render time
+        // This ensures that for nested queries, the parent's setup_postdata() 
+        // has already been called, making {post_id} resolve correctly
         $query_args = $this->build_query_args( $settings );
 
         // Create WP_Query with the query args
@@ -496,6 +496,14 @@ class SNN_Query_Nestable extends Element {
             echo '<p><strong>Current Post ID:</strong> ' . get_the_ID() . '</p>';
             echo '<p><strong>Post Context Stack:</strong> ' . ( ! empty( self::$post_context_stack ) ? implode( ' > ', self::$post_context_stack ) : 'Empty' ) . '</p>';
             
+            // Show dynamic data transformation log
+            global $snn_debug_log;
+            if ( ! empty( $snn_debug_log ) ) {
+                echo '<h4>Dynamic Data Transformations:</h4>';
+                echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
+                echo esc_html( print_r( $snn_debug_log, true ) );
+                echo '</pre>';
+            }
             echo '<h4>SQL Query:</h4>';
             echo '<pre style="background: #fff; padding: 10px; overflow-x: auto; word-wrap: break-word; white-space: pre-wrap;">';
             echo esc_html( $posts_query->request );
@@ -753,8 +761,22 @@ class SNN_Query_Nestable extends Element {
         // When this function is called inside a nested query loop, the context stack
         // contains the parent post ID, so {post_id} will resolve correctly
         if ( isset( $settings['post_parent'] ) && $settings['post_parent'] !== '' ) {
+            $original_value = $settings['post_parent'];
             // Render dynamic data NOW (when we're in the correct post context)
             $post_parent_value = $this->render_control_dynamic_data( $settings['post_parent'] );
+            
+            // DEBUG: Log the transformation if debug mode is on
+            global $snn_debug_log;
+            if ( ! isset( $snn_debug_log ) ) {
+                $snn_debug_log = [];
+            }
+            $snn_debug_log[] = [
+                'original' => $original_value,
+                'rendered' => $post_parent_value,
+                'context_stack' => self::$post_context_stack,
+                'get_the_id' => get_the_ID(),
+            ];
+            
             $args['post_parent'] = intval( $post_parent_value );
         }
 
