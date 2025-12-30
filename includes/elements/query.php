@@ -272,7 +272,7 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'post_parent', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'Parent post ID', 'snn' ),
-            'description' => esc_html__( 'Get children of this parent. Use 0 for top-level posts only. Use {post_id} for current post.', 'snn' ),
+            'description' => esc_html__( 'Get children of this parent. Use 0 for top-level posts only. For nested queries, use {post_id} or {parent_id} - the tag will be processed at the correct time in the loop context.', 'snn' ),
             'inline'  => true,
         ];
 
@@ -461,6 +461,20 @@ class SNN_Query_Nestable extends Element {
         $wrapper_id = 'snn-query-' . $this->id;
         $debug_mode = ! empty( $settings['debug'] );
 
+        // DEBUG: Show raw settings to see if Bricks already processed the tags
+        if ( $debug_mode && isset( $settings['post_parent'] ) ) {
+            global $snn_raw_settings_log;
+            if ( ! isset( $snn_raw_settings_log ) ) {
+                $snn_raw_settings_log = [];
+            }
+            $snn_raw_settings_log[] = [
+                'element_id' => $this->id,
+                'post_parent_raw' => $settings['post_parent'],
+                'get_the_id' => get_the_ID(),
+                'context_stack' => self::$post_context_stack,
+            ];
+        }
+
         // Clear query cache if enabled (default: true)
         $clear_cache = isset( $settings['clear_query_cache'] ) ? $settings['clear_query_cache'] : true;
         if ( $clear_cache ) {
@@ -478,13 +492,22 @@ class SNN_Query_Nestable extends Element {
         // Debug output
         if ( $debug_mode ) {
             echo '<div class="snn-query-debug" style="background: #f0f0f0; border: 2px solid #333; padding: 20px; margin: 20px 0; font-family: monospace; font-size: 12px;">';
-            echo '<h3 style="margin-top: 0; color: #d00;">🐛 DEBUG MODE</h3>';
+            echo '<h3 style="margin-top: 0; color: #d00;">🐛 DEBUG MODE - Element ID: ' . esc_html( $this->id ) . '</h3>';
+            echo '<p><strong>Query Level:</strong> ' . ( empty( self::$post_context_stack ) ? 'ROOT (outer query)' : 'NESTED (level ' . count( self::$post_context_stack ) . ')' ) . '</p>';
             
             echo '<h4>Settings (from controls):</h4>';
             echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
             echo esc_html( print_r( $settings, true ) );
             echo '</pre>';
             
+            // Show raw settings received by render()
+            global $snn_raw_settings_log;
+            if ( ! empty( $snn_raw_settings_log ) ) {
+                echo '<h4>Raw Settings When render() Called:</h4>';
+                echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
+                echo esc_html( print_r( $snn_raw_settings_log, true ) );
+                echo '</pre>';
+            }
             echo '<h4>Built Query Args:</h4>';
             echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
             echo esc_html( print_r( $query_args, true ) );
