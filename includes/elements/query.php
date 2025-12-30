@@ -433,18 +433,68 @@ class SNN_Query_Nestable extends Element {
             'default'     => esc_html__( 'No posts matched your criteria.', 'snn' ),
             'placeholder' => esc_html__( 'No posts found', 'snn' ),
         ];
+
+        // ====================
+        // DEBUG
+        // ====================
+
+        $this->controls['debug'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Debug', 'snn' ),
+            'type'    => 'checkbox',
+            'default' => false,
+            'description' => esc_html__( 'Show debug information for troubleshooting', 'snn' ),
+        ];
     }
 
     public function render() {
         $settings   = $this->settings;
         $no_wrapper = ! empty( $settings['no_wrapper'] );
         $wrapper_id = 'snn-query-' . $this->id;
+        $debug_mode = ! empty( $settings['debug'] );
 
         // Build WP_Query args from individual controls
         $query_args = $this->build_query_args( $settings );
 
         // Create WP_Query with the query args
         $posts_query = new \WP_Query( $query_args );
+
+        // Debug output
+        if ( $debug_mode ) {
+            echo '<div class="snn-query-debug" style="background: #f0f0f0; border: 2px solid #333; padding: 20px; margin: 20px 0; font-family: monospace; font-size: 12px;">';
+            echo '<h3 style="margin-top: 0; color: #d00;">🐛 DEBUG MODE</h3>';
+            
+            echo '<h4>Settings (from controls):</h4>';
+            echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
+            echo esc_html( print_r( $settings, true ) );
+            echo '</pre>';
+            
+            echo '<h4>Built Query Args:</h4>';
+            echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
+            echo esc_html( print_r( $query_args, true ) );
+            echo '</pre>';
+            
+            echo '<h4>Query Results:</h4>';
+            echo '<p><strong>Posts Found:</strong> ' . $posts_query->found_posts . '</p>';
+            echo '<p><strong>Post Count:</strong> ' . $posts_query->post_count . '</p>';
+            echo '<p><strong>Current Post ID:</strong> ' . get_the_ID() . '</p>';
+            
+            echo '<h4>SQL Query:</h4>';
+            echo '<pre style="background: #fff; padding: 10px; overflow-x: auto; word-wrap: break-word; white-space: pre-wrap;">';
+            echo esc_html( $posts_query->request );
+            echo '</pre>';
+            
+            if ( $posts_query->have_posts() ) {
+                echo '<h4>Found Posts:</h4>';
+                echo '<ul>';
+                foreach ( $posts_query->posts as $post ) {
+                    echo '<li>ID: ' . $post->ID . ' | Title: ' . esc_html( $post->post_title ) . ' | Parent: ' . $post->post_parent . '</li>';
+                }
+                echo '</ul>';
+            }
+            
+            echo '</div>';
+        }
 
         if ( $posts_query->have_posts() ) {
             // Output wrapper opening tag
