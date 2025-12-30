@@ -264,16 +264,34 @@ class SNN_Query_Nestable extends Element {
 
         $this->controls['post_parent'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Post Parent', 'snn' ),
-            'type'    => 'number',
-            'description' => esc_html__( 'Parent post ID (0 for top-level)', 'snn' ),
+            'label'   => esc_html__( 'Post Parent ID', 'snn' ),
+            'type'    => 'text',
+            'placeholder' => esc_html__( 'Parent post ID', 'snn' ),
+            'description' => esc_html__( 'Get children of this parent. Use 0 for top-level posts only. Use {post_id} for current post.', 'snn' ),
         ];
 
         $this->controls['post_parent__in'] = [
             'tab'     => 'content',
-            'label'   => esc_html__( 'Post Parent IDs', 'snn' ),
+            'label'   => esc_html__( 'Post Parent IDs (Include)', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'e.g., 1,2,3', 'snn' ),
+            'description' => esc_html__( 'Comma-separated parent IDs to include', 'snn' ),
+        ];
+
+        $this->controls['post_parent__not_in'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Post Parent IDs (Exclude)', 'snn' ),
+            'type'    => 'text',
+            'placeholder' => esc_html__( 'e.g., 1,2,3', 'snn' ),
+            'description' => esc_html__( 'Comma-separated parent IDs to exclude', 'snn' ),
+        ];
+
+        $this->controls['direct_children_only'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Direct Children Only', 'snn' ),
+            'type'    => 'checkbox',
+            'default' => false,
+            'description' => esc_html__( 'When using post_parent, get only direct children (not grandchildren)', 'snn' ),
         ];
 
         // ====================
@@ -436,12 +454,19 @@ class SNN_Query_Nestable extends Element {
                 echo '<div ' . $this->render_attributes( '_root' ) . '>';
             }
 
-            // Set query loop for Bricks dynamic data support
-            Query::set_loop_object( $this->id, 'wp_query', $posts_query );
+            // Store original query for Bricks dynamic data
+            global $wp_query;
+            $original_query = $wp_query;
+            
+            // Temporarily replace global query for Bricks dynamic data to work
+            $wp_query = $posts_query;
 
             // Loop through posts
             while ( $posts_query->have_posts() ) {
                 $posts_query->the_post();
+                
+                // Set up postdata for dynamic data
+                setup_postdata( get_the_ID() );
                 
                 // Render nested children for each post
                 echo Frontend::render_children( $this );
@@ -450,8 +475,8 @@ class SNN_Query_Nestable extends Element {
             // Reset post data
             wp_reset_postdata();
             
-            // Destroy loop object
-            Query::destroy_loop_object( $this->id );
+            // Restore original query
+            $wp_query = $original_query;
 
             // Output wrapper closing tag
             if ( ! $no_wrapper ) {
@@ -588,13 +613,39 @@ class SNN_Query_Nestable extends Element {
 
         // POST PARENT
         if ( isset( $settings['post_parent'] ) && $settings['post_parent'] !== '' ) {
-            $args['post_parent'] = intval( $settings['post_parent'] );
+            $parent_id = $this->parse_dynamic_value( $settings['post_parent'] );
+            $args['post_parent'] = intval( $parent_id );
         }
 
         if ( ! empty( $settings['post_parent__in'] ) ) {
-            $parent_ids = array_map( 'intval', array_filter( explode( ',', $settings['post_parent__in'] ) ) );
+            $parent_ids_str = $this->parse_dynamic_value( $settings['post_parent__in'] );
+            $parent_ids = array_map( 'intval', array_filter( explode( ',', $parent_ids_str ) ) );
             if ( ! empty( $parent_ids ) ) {
                 $args['post_parent__in'] = $parent_ids;
+            }
+        }
+
+        if ( ! empty( $settings['post_parent__not_in'] ) ) {
+            $parent_ids_str = $this->parse_dynamic_value( $settings['post_parent__not_in'] );
+            $parent_ids = array_map( 'intval', array_filter( explode( ',', $parent_ids_str ) ) );
+            if ( ! empty( $parent_ids ) ) {
+                $args['post_parent__not_in'] = $parent_ids;
+            }
+        }
+
+        // Direct children only - exclude grandchildren
+        if ( ! empty( $settings['direct_children_only'] ) && isset( $args['post_parent'] ) && $args['post_parent'] > 0 ) {
+            // Get all children of the parent
+            $direct_children = get_children( [
+                'post_parent' => $args['post_parent'],
+                'post_type'   => $args['post_type'],
+                'fields'      => 'ids',
+            ] );
+            
+            if ( ! empty( $direct_children ) ) {
+                // Override post_parent with post__in to get only direct children
+                unset( $args['post_parent'] );
+                $args['post__in'] = $direct_children;
             }
         }
 
