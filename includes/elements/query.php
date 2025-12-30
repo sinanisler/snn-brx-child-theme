@@ -566,6 +566,23 @@ class SNN_Query_Nestable extends Element {
     }
 
     /**
+     * Render dynamic data tags in a value
+     * Converts Bricks dynamic tags like {post_id} to their actual values
+     */
+    private function render_dynamic_data( $value ) {
+        if ( empty( $value ) || ! is_string( $value ) ) {
+            return $value;
+        }
+
+        // Check if the value contains dynamic data tags
+        if ( strpos( $value, '{' ) !== false && function_exists( 'bricks_render_dynamic_data' ) ) {
+            return bricks_render_dynamic_data( $value );
+        }
+
+        return $value;
+    }
+
+    /**
      * Build WP_Query arguments from individual control values
      */
     private function build_query_args( $settings ) {
@@ -585,15 +602,18 @@ class SNN_Query_Nestable extends Element {
 
         // PAGINATION
         if ( isset( $settings['posts_per_page'] ) && $settings['posts_per_page'] !== '' ) {
-            $args['posts_per_page'] = intval( $settings['posts_per_page'] );
+            $rendered_value = $this->render_dynamic_data( $settings['posts_per_page'] );
+            $args['posts_per_page'] = intval( $rendered_value );
         }
 
         if ( isset( $settings['offset'] ) && $settings['offset'] > 0 ) {
-            $args['offset'] = intval( $settings['offset'] );
+            $rendered_value = $this->render_dynamic_data( $settings['offset'] );
+            $args['offset'] = intval( $rendered_value );
         }
 
         if ( isset( $settings['paged'] ) && $settings['paged'] > 0 ) {
-            $args['paged'] = intval( $settings['paged'] );
+            $rendered_value = $this->render_dynamic_data( $settings['paged'] );
+            $args['paged'] = intval( $rendered_value );
         } elseif ( ! empty( $settings['paged'] ) && $settings['paged'] === 0 ) {
             // Use current page
             $args['paged'] = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
@@ -617,53 +637,56 @@ class SNN_Query_Nestable extends Element {
         }
 
         if ( ! empty( $settings['meta_key'] ) ) {
-            $args['meta_key'] = $settings['meta_key'];
+            $args['meta_key'] = $this->render_dynamic_data( $settings['meta_key'] );
         }
 
         // SEARCH
         if ( ! empty( $settings['s'] ) ) {
-            $args['s'] = $settings['s'];
+            $args['s'] = $this->render_dynamic_data( $settings['s'] );
         }
 
         // AUTHOR
         if ( ! empty( $settings['author'] ) ) {
-            $args['author'] = $settings['author'];
+            $args['author'] = $this->render_dynamic_data( $settings['author'] );
         }
 
         if ( ! empty( $settings['author_name'] ) ) {
-            $args['author_name'] = $settings['author_name'];
+            $args['author_name'] = $this->render_dynamic_data( $settings['author_name'] );
         }
 
         // CATEGORY
         if ( ! empty( $settings['cat'] ) ) {
-            $args['cat'] = $settings['cat'];
+            $args['cat'] = $this->render_dynamic_data( $settings['cat'] );
         }
 
         if ( ! empty( $settings['category_name'] ) ) {
-            $args['category_name'] = $settings['category_name'];
+            $args['category_name'] = $this->render_dynamic_data( $settings['category_name'] );
         }
 
         // TAG
         if ( ! empty( $settings['tag'] ) ) {
-            $args['tag'] = $settings['tag'];
+            $args['tag'] = $this->render_dynamic_data( $settings['tag'] );
         }
 
         if ( ! empty( $settings['tag_id'] ) ) {
-            $args['tag_id'] = intval( $settings['tag_id'] );
+            $rendered_value = $this->render_dynamic_data( $settings['tag_id'] );
+            $args['tag_id'] = intval( $rendered_value );
         }
 
         // SPECIFIC POSTS
         if ( ! empty( $settings['p'] ) ) {
-            $args['p'] = intval( $settings['p'] );
+            $rendered_value = $this->render_dynamic_data( $settings['p'] );
+            $args['p'] = intval( $rendered_value );
         }
 
         if ( ! empty( $settings['name'] ) ) {
-            $args['name'] = $settings['name'];
+            $args['name'] = $this->render_dynamic_data( $settings['name'] );
         }
 
         if ( ! empty( $settings['post__in'] ) ) {
-            // Convert comma-separated string to array of integers
-            $post_ids = array_map( 'intval', array_filter( explode( ',', $settings['post__in'] ), function($val) {
+            // Render dynamic data first, then convert comma-separated string to array of integers
+            $rendered_value = $this->render_dynamic_data( $settings['post__in'] );
+            $post_ids = array_map( 'intval', array_filter( explode( ',', $rendered_value ), function($val) {
                 return $val !== '';
             } ) );
             if ( ! empty( $post_ids ) ) {
@@ -672,8 +695,9 @@ class SNN_Query_Nestable extends Element {
         }
 
         if ( ! empty( $settings['post__not_in'] ) ) {
-            // Convert comma-separated string to array of integers
-            $post_ids = array_map( 'intval', array_filter( explode( ',', $settings['post__not_in'] ), function($val) {
+            // Render dynamic data first, then convert comma-separated string to array of integers
+            $rendered_value = $this->render_dynamic_data( $settings['post__not_in'] );
+            $post_ids = array_map( 'intval', array_filter( explode( ',', $rendered_value ), function($val) {
                 return $val !== '';
             } ) );
             if ( ! empty( $post_ids ) ) {
@@ -683,12 +707,14 @@ class SNN_Query_Nestable extends Element {
 
         // POST PARENT
         if ( isset( $settings['post_parent'] ) && $settings['post_parent'] !== '' ) {
-            $args['post_parent'] = intval( $settings['post_parent'] );
+            $rendered_value = $this->render_dynamic_data( $settings['post_parent'] );
+            $args['post_parent'] = intval( $rendered_value );
         }
 
         if ( isset( $settings['post_parent__in'] ) && $settings['post_parent__in'] !== '' ) {
-            $parent_ids_str = trim( $settings['post_parent__in'] );
-            
+            $rendered_value = $this->render_dynamic_data( $settings['post_parent__in'] );
+            $parent_ids_str = trim( $rendered_value );
+
             if ( $parent_ids_str !== '' ) {
                 $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
                 // Don't filter out any values, including 0
@@ -699,8 +725,9 @@ class SNN_Query_Nestable extends Element {
         }
 
         if ( isset( $settings['post_parent__not_in'] ) && $settings['post_parent__not_in'] !== '' ) {
-            $parent_ids_str = trim( $settings['post_parent__not_in'] );
-            
+            $rendered_value = $this->render_dynamic_data( $settings['post_parent__not_in'] );
+            $parent_ids_str = trim( $rendered_value );
+
             if ( $parent_ids_str !== '' ) {
                 $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
                 // Don't filter out any values, including 0
@@ -737,20 +764,24 @@ class SNN_Query_Nestable extends Element {
 
         // DATE
         if ( ! empty( $settings['year'] ) ) {
-            $args['year'] = intval( $settings['year'] );
+            $rendered_value = $this->render_dynamic_data( $settings['year'] );
+            $args['year'] = intval( $rendered_value );
         }
 
         if ( ! empty( $settings['monthnum'] ) ) {
-            $args['monthnum'] = intval( $settings['monthnum'] );
+            $rendered_value = $this->render_dynamic_data( $settings['monthnum'] );
+            $args['monthnum'] = intval( $rendered_value );
         }
 
         if ( ! empty( $settings['day'] ) ) {
-            $args['day'] = intval( $settings['day'] );
+            $rendered_value = $this->render_dynamic_data( $settings['day'] );
+            $args['day'] = intval( $rendered_value );
         }
 
         // COMMENT COUNT
         if ( isset( $settings['comment_count'] ) && $settings['comment_count'] !== '' ) {
-            $comment_count = intval( $settings['comment_count'] );
+            $rendered_value = $this->render_dynamic_data( $settings['comment_count'] );
+            $comment_count = intval( $rendered_value );
             if ( ! empty( $settings['comment_count_compare'] ) ) {
                 $args['comment_count'] = [
                     'value'   => $comment_count,
@@ -780,21 +811,24 @@ class SNN_Query_Nestable extends Element {
 
         // ADVANCED JSON QUERIES
         if ( ! empty( $settings['tax_query'] ) ) {
-            $tax_query = json_decode( $settings['tax_query'], true );
+            $rendered_value = $this->render_dynamic_data( $settings['tax_query'] );
+            $tax_query = json_decode( $rendered_value, true );
             if ( is_array( $tax_query ) ) {
                 $args['tax_query'] = $tax_query;
             }
         }
 
         if ( ! empty( $settings['meta_query'] ) ) {
-            $meta_query = json_decode( $settings['meta_query'], true );
+            $rendered_value = $this->render_dynamic_data( $settings['meta_query'] );
+            $meta_query = json_decode( $rendered_value, true );
             if ( is_array( $meta_query ) ) {
                 $args['meta_query'] = $meta_query;
             }
         }
 
         if ( ! empty( $settings['date_query'] ) ) {
-            $date_query = json_decode( $settings['date_query'], true );
+            $rendered_value = $this->render_dynamic_data( $settings['date_query'] );
+            $date_query = json_decode( $rendered_value, true );
             if ( is_array( $date_query ) ) {
                 $args['date_query'] = $date_query;
             }
