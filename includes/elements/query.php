@@ -473,10 +473,19 @@ class SNN_Query_Nestable extends Element {
             echo '<pre style="background: #fff; padding: 10px;">';
             echo 'post_parent raw: ' . var_export( $settings['post_parent'] ?? 'NOT SET', true ) . "\n";
             echo 'post_parent type: ' . gettype( $settings['post_parent'] ?? null ) . "\n";
+            echo 'post_parent isset: ' . var_export( isset( $settings['post_parent'] ), true ) . "\n";
+            echo 'post_parent !== "": ' . var_export( ( $settings['post_parent'] ?? '' ) !== '', true ) . "\n";
             echo 'post_parent__in raw: ' . var_export( $settings['post_parent__in'] ?? 'NOT SET', true ) . "\n";
             echo 'post_parent__in type: ' . gettype( $settings['post_parent__in'] ?? null ) . "\n";
             echo 'post_parent__not_in raw: ' . var_export( $settings['post_parent__not_in'] ?? 'NOT SET', true ) . "\n";
             echo 'post_parent__not_in type: ' . gettype( $settings['post_parent__not_in'] ?? null ) . "\n";
+            
+            // Test conversion
+            if ( isset( $settings['post_parent'] ) ) {
+                echo "\nConversion test:\n";
+                echo '  parse_dynamic_value result: ' . var_export( $this->parse_dynamic_value( $settings['post_parent'] ), true ) . "\n";
+                echo '  intval result: ' . var_export( intval( $this->parse_dynamic_value( $settings['post_parent'] ) ), true ) . "\n";
+            }
             echo '</pre>';
             
             echo '<h4>Built Query Args:</h4>';
@@ -680,8 +689,19 @@ class SNN_Query_Nestable extends Element {
 
         // POST PARENT
         if ( isset( $settings['post_parent'] ) && $settings['post_parent'] !== '' ) {
-            $parent_id = $this->parse_dynamic_value( $settings['post_parent'] );
-            $args['post_parent'] = intval( $parent_id );
+            $parent_id_raw = $settings['post_parent'];
+            $parent_id_parsed = $this->parse_dynamic_value( $parent_id_raw );
+            $parent_id_int = intval( $parent_id_parsed );
+            
+            // Debug logging
+            if ( ! empty( $settings['debug'] ) ) {
+                error_log( 'POST PARENT DEBUG:' );
+                error_log( '  Raw: ' . var_export( $parent_id_raw, true ) );
+                error_log( '  After parse: ' . var_export( $parent_id_parsed, true ) );
+                error_log( '  After intval: ' . var_export( $parent_id_int, true ) );
+            }
+            
+            $args['post_parent'] = $parent_id_int;
         }
 
         if ( isset( $settings['post_parent__in'] ) && $settings['post_parent__in'] !== '' ) {
@@ -690,10 +710,8 @@ class SNN_Query_Nestable extends Element {
             
             if ( $parent_ids_str !== '' ) {
                 $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
-                $parent_ids = array_filter( $parent_ids, function($val) {
-                    return $val !== 0 || $val === 0; // Keep all values including 0
-                } );
-                if ( ! empty( $parent_ids ) ) {
+                // Don't filter out any values, including 0
+                if ( ! empty( $parent_ids ) || $parent_ids === [0] ) {
                     $args['post_parent__in'] = $parent_ids;
                 }
             }
@@ -705,10 +723,8 @@ class SNN_Query_Nestable extends Element {
             
             if ( $parent_ids_str !== '' ) {
                 $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
-                $parent_ids = array_filter( $parent_ids, function($val) {
-                    return $val !== 0 || $val === 0; // Keep all values including 0
-                } );
-                if ( ! empty( $parent_ids ) ) {
+                // Don't filter out any values, including 0
+                if ( ! empty( $parent_ids ) || $parent_ids === [0] ) {
                     $args['post_parent__not_in'] = $parent_ids;
                 }
             }
