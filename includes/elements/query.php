@@ -751,32 +751,7 @@ class SNN_Query_Nestable extends Element {
             }
         }
 
-        // Direct children only - exclude grandchildren
-        if ( ! empty( $settings['direct_children_only'] ) && isset( $args['post_parent'] ) && $args['post_parent'] > 0 ) {
-            // Get all children of the parent WITH proper ordering
-            $get_children_args = [
-                'post_parent' => $args['post_parent'],
-                'post_type'   => $args['post_type'],
-                'fields'      => 'ids',
-                'orderby'     => isset( $args['orderby'] ) ? $args['orderby'] : 'menu_order',
-                'order'       => isset( $args['order'] ) ? $args['order'] : 'ASC',
-            ];
-            
-            $direct_children = get_children( $get_children_args );
-            
-            if ( ! empty( $direct_children ) ) {
-                // Override post_parent with post__in to get only direct children
-                unset( $args['post_parent'] );
-                $args['post__in'] = $direct_children;
-                
-                // CRITICAL: Force orderby to 'post__in' to preserve the order from get_children
-                if ( ! empty( $args['orderby'] ) && $args['orderby'] !== 'post__in' ) {
-                    // The order is already set by get_children query above
-                    $args['orderby'] = 'post__in';
-                    unset( $args['order'] ); // Order is already baked into post__in array
-                }
-            }
-        }
+
         // PASSWORD
         if ( isset( $settings['has_password'] ) && $settings['has_password'] !== '' ) {
             if ( $settings['has_password'] === 'true' ) {
