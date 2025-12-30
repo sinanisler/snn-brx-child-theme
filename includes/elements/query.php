@@ -566,19 +566,40 @@ class SNN_Query_Nestable extends Element {
     }
 
     /**
-     * Render dynamic data tags in a value
-     * Converts Bricks dynamic tags like {post_id} to their actual values
+     * Render dynamic data in a value
+     * Bricks dynamic tags like {post_id} need to be rendered before use
      */
-    private function render_dynamic_data( $value ) {
-        if ( empty( $value ) || ! is_string( $value ) ) {
+    private function render_dynamic_data( $value, $post_id = null ) {
+        if ( $value === null || $value === '' ) {
             return $value;
         }
-
-        // Check if the value contains dynamic data tags
-        if ( strpos( $value, '{' ) !== false && function_exists( 'bricks_render_dynamic_data' ) ) {
-            return bricks_render_dynamic_data( $value );
+        
+        // If it's not a string, return as-is
+        if ( ! is_string( $value ) ) {
+            return $value;
         }
-
+        
+        // Check if value contains dynamic data markers (curly braces)
+        if ( strpos( $value, '{' ) === false ) {
+            return $value;
+        }
+        
+        // Get current post ID for context if not provided
+        if ( $post_id === null ) {
+            $post_id = get_the_ID();
+        }
+        
+        // Use Bricks' dynamic data rendering function
+        if ( function_exists( 'bricks_render_dynamic_data' ) ) {
+            return bricks_render_dynamic_data( $value, $post_id );
+        }
+        
+        // Fallback: Try Bricks class method (older versions)
+        if ( class_exists( '\Bricks\Integrations\Dynamic_Data\Providers' ) && method_exists( '\Bricks\Integrations\Dynamic_Data\Providers', 'render_content' ) ) {
+            $post = get_post( $post_id );
+            return \Bricks\Integrations\Dynamic_Data\Providers::render_content( $value, $post );
+        }
+        
         return $value;
     }
 
@@ -602,18 +623,15 @@ class SNN_Query_Nestable extends Element {
 
         // PAGINATION
         if ( isset( $settings['posts_per_page'] ) && $settings['posts_per_page'] !== '' ) {
-            $rendered_value = $this->render_dynamic_data( $settings['posts_per_page'] );
-            $args['posts_per_page'] = intval( $rendered_value );
+            $args['posts_per_page'] = intval( $settings['posts_per_page'] );
         }
 
         if ( isset( $settings['offset'] ) && $settings['offset'] > 0 ) {
-            $rendered_value = $this->render_dynamic_data( $settings['offset'] );
-            $args['offset'] = intval( $rendered_value );
+            $args['offset'] = intval( $settings['offset'] );
         }
 
         if ( isset( $settings['paged'] ) && $settings['paged'] > 0 ) {
-            $rendered_value = $this->render_dynamic_data( $settings['paged'] );
-            $args['paged'] = intval( $rendered_value );
+            $args['paged'] = intval( $settings['paged'] );
         } elseif ( ! empty( $settings['paged'] ) && $settings['paged'] === 0 ) {
             // Use current page
             $args['paged'] = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
@@ -669,14 +687,14 @@ class SNN_Query_Nestable extends Element {
         }
 
         if ( ! empty( $settings['tag_id'] ) ) {
-            $rendered_value = $this->render_dynamic_data( $settings['tag_id'] );
-            $args['tag_id'] = intval( $rendered_value );
+            $tag_id = $this->render_dynamic_data( $settings['tag_id'] );
+            $args['tag_id'] = intval( $tag_id );
         }
 
         // SPECIFIC POSTS
         if ( ! empty( $settings['p'] ) ) {
-            $rendered_value = $this->render_dynamic_data( $settings['p'] );
-            $args['p'] = intval( $rendered_value );
+            $p = $this->render_dynamic_data( $settings['p'] );
+            $args['p'] = intval( $p );
         }
 
         if ( ! empty( $settings['name'] ) ) {
@@ -684,10 +702,10 @@ class SNN_Query_Nestable extends Element {
         }
 
         if ( ! empty( $settings['post__in'] ) ) {
-            // Render dynamic data first, then convert comma-separated string to array of integers
-            $rendered_value = $this->render_dynamic_data( $settings['post__in'] );
-            $post_ids = array_map( 'intval', array_filter( explode( ',', $rendered_value ), function($val) {
-                return $val !== '';
+            // Render dynamic data first, then convert to array
+            $post_in_value = $this->render_dynamic_data( $settings['post__in'] );
+            $post_ids = array_map( 'intval', array_filter( explode( ',', $post_in_value ), function($val) {
+                return trim( $val ) !== '';
             } ) );
             if ( ! empty( $post_ids ) ) {
                 $args['post__in'] = $post_ids;
@@ -695,29 +713,30 @@ class SNN_Query_Nestable extends Element {
         }
 
         if ( ! empty( $settings['post__not_in'] ) ) {
-            // Render dynamic data first, then convert comma-separated string to array of integers
-            $rendered_value = $this->render_dynamic_data( $settings['post__not_in'] );
-            $post_ids = array_map( 'intval', array_filter( explode( ',', $rendered_value ), function($val) {
-                return $val !== '';
+            // Render dynamic data first, then convert to array
+            $post_not_in_value = $this->render_dynamic_data( $settings['post__not_in'] );
+            $post_ids = array_map( 'intval', array_filter( explode( ',', $post_not_in_value ), function($val) {
+                return trim( $val ) !== '';
             } ) );
             if ( ! empty( $post_ids ) ) {
                 $args['post__not_in'] = $post_ids;
             }
         }
 
-        // POST PARENT
+        // POST PARENT - CRITICAL: Render dynamic data before processing
         if ( isset( $settings['post_parent'] ) && $settings['post_parent'] !== '' ) {
-            $rendered_value = $this->render_dynamic_data( $settings['post_parent'] );
-            $args['post_parent'] = intval( $rendered_value );
+            // Render dynamic data first (e.g., {post_id} -> 370)
+            $post_parent_value = $this->render_dynamic_data( $settings['post_parent'] );
+            $args['post_parent'] = intval( $post_parent_value );
         }
 
         if ( isset( $settings['post_parent__in'] ) && $settings['post_parent__in'] !== '' ) {
-            $rendered_value = $this->render_dynamic_data( $settings['post_parent__in'] );
-            $parent_ids_str = trim( $rendered_value );
-
+            // Render dynamic data first
+            $parent_ids_str = $this->render_dynamic_data( $settings['post_parent__in'] );
+            $parent_ids_str = trim( $parent_ids_str );
+            
             if ( $parent_ids_str !== '' ) {
                 $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
-                // Don't filter out any values, including 0
                 if ( ! empty( $parent_ids ) || $parent_ids === [0] ) {
                     $args['post_parent__in'] = $parent_ids;
                 }
@@ -725,12 +744,12 @@ class SNN_Query_Nestable extends Element {
         }
 
         if ( isset( $settings['post_parent__not_in'] ) && $settings['post_parent__not_in'] !== '' ) {
-            $rendered_value = $this->render_dynamic_data( $settings['post_parent__not_in'] );
-            $parent_ids_str = trim( $rendered_value );
-
+            // Render dynamic data first
+            $parent_ids_str = $this->render_dynamic_data( $settings['post_parent__not_in'] );
+            $parent_ids_str = trim( $parent_ids_str );
+            
             if ( $parent_ids_str !== '' ) {
                 $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
-                // Don't filter out any values, including 0
                 if ( ! empty( $parent_ids ) || $parent_ids === [0] ) {
                     $args['post_parent__not_in'] = $parent_ids;
                 }
@@ -764,24 +783,20 @@ class SNN_Query_Nestable extends Element {
 
         // DATE
         if ( ! empty( $settings['year'] ) ) {
-            $rendered_value = $this->render_dynamic_data( $settings['year'] );
-            $args['year'] = intval( $rendered_value );
+            $args['year'] = intval( $settings['year'] );
         }
 
         if ( ! empty( $settings['monthnum'] ) ) {
-            $rendered_value = $this->render_dynamic_data( $settings['monthnum'] );
-            $args['monthnum'] = intval( $rendered_value );
+            $args['monthnum'] = intval( $settings['monthnum'] );
         }
 
         if ( ! empty( $settings['day'] ) ) {
-            $rendered_value = $this->render_dynamic_data( $settings['day'] );
-            $args['day'] = intval( $rendered_value );
+            $args['day'] = intval( $settings['day'] );
         }
 
         // COMMENT COUNT
         if ( isset( $settings['comment_count'] ) && $settings['comment_count'] !== '' ) {
-            $rendered_value = $this->render_dynamic_data( $settings['comment_count'] );
-            $comment_count = intval( $rendered_value );
+            $comment_count = intval( $settings['comment_count'] );
             if ( ! empty( $settings['comment_count_compare'] ) ) {
                 $args['comment_count'] = [
                     'value'   => $comment_count,
@@ -809,26 +824,26 @@ class SNN_Query_Nestable extends Element {
             $args['update_post_term_cache'] = ! empty( $settings['update_post_term_cache'] );
         }
 
-        // ADVANCED JSON QUERIES
+        // ADVANCED JSON QUERIES - Also render dynamic data in JSON
         if ( ! empty( $settings['tax_query'] ) ) {
-            $rendered_value = $this->render_dynamic_data( $settings['tax_query'] );
-            $tax_query = json_decode( $rendered_value, true );
+            $tax_query_str = $this->render_dynamic_data( $settings['tax_query'] );
+            $tax_query = json_decode( $tax_query_str, true );
             if ( is_array( $tax_query ) ) {
                 $args['tax_query'] = $tax_query;
             }
         }
 
         if ( ! empty( $settings['meta_query'] ) ) {
-            $rendered_value = $this->render_dynamic_data( $settings['meta_query'] );
-            $meta_query = json_decode( $rendered_value, true );
+            $meta_query_str = $this->render_dynamic_data( $settings['meta_query'] );
+            $meta_query = json_decode( $meta_query_str, true );
             if ( is_array( $meta_query ) ) {
                 $args['meta_query'] = $meta_query;
             }
         }
 
         if ( ! empty( $settings['date_query'] ) ) {
-            $rendered_value = $this->render_dynamic_data( $settings['date_query'] );
-            $date_query = json_decode( $rendered_value, true );
+            $date_query_str = $this->render_dynamic_data( $settings['date_query'] );
+            $date_query = json_decode( $date_query_str, true );
             if ( is_array( $date_query ) ) {
                 $args['date_query'] = $date_query;
             }
