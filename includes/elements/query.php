@@ -525,6 +525,10 @@ class SNN_Query_Nestable extends Element {
             echo '<p><strong>Current Post ID:</strong> ' . get_the_ID() . '</p>';
             echo '<p><strong>Post Context Stack:</strong> ' . ( ! empty( self::$post_context_stack ) ? implode( ' > ', self::$post_context_stack ) : 'Empty' ) . '</p>';
             
+            global $post;
+            echo '<p><strong>Global $post ID:</strong> ' . ( $post ? $post->ID : 'NULL' ) . '</p>';
+            echo '<p><strong>Global $post Parent:</strong> ' . ( $post && $post->post_parent ? $post->post_parent : 'None' ) . '</p>';
+            
             // Show dynamic data transformation log
             global $snn_debug_log;
             if ( ! empty( $snn_debug_log ) ) {
@@ -615,10 +619,10 @@ class SNN_Query_Nestable extends Element {
 
     /**
      * Render dynamic data tags in control values
-     * Converts Bricks dynamic tags like {post_id} or {parent_id} to their actual values
+     * COMPLETELY REWRITTEN: Bypass Bricks and use native WordPress global $post
      * 
-     * CRITICAL: This handles both built-in Bricks tags ({post_id}) and custom tags ({parent_id})
-     * Uses the context stack to get correct post ID in nested queries
+     * For nested queries, we use the CURRENT global $post (set by setup_postdata)
+     * NOT Bricks' dynamic data system which processes tags too early
      */
     private function render_control_dynamic_data( $value, $post_id = null ) {
         if ( $value === null || $value === '' ) {
@@ -635,57 +639,50 @@ class SNN_Query_Nestable extends Element {
             return $value;
         }
 
-        // CRITICAL FIX: Use context stack to get correct post ID in nested queries
-        if ( $post_id === null ) {
-            // Use the most recent post from context stack (top of stack)
-            // This is the parent post in a nested query scenario
-            if ( ! empty( self::$post_context_stack ) ) {
-                $post_id = end( self::$post_context_stack );
-            } else {
-                // Fallback to current post if not in a query loop
-                $post_id = get_the_ID();
-            }
-        }
-
-        // Get the post object for Bricks filters
-        $post = get_post( $post_id );
-        if ( ! $post ) {
-            return $value;
-        }
-
-        // Try multiple Bricks rendering methods to ensure compatibility
+        // CRITICAL: Use WordPress native globals, NOT Bricks
+        global $post;
         
-        // Method 1: Use Bricks' render_dynamic_data function if available
-        if ( function_exists( 'bricks_render_dynamic_data' ) ) {
-            return bricks_render_dynamic_data( $value, $post_id );
+        // If no post_id specified, use the current global $post
+        if ( $post_id === null && $post ) {
+            $post_id = $post->ID;
+        } elseif ( $post_id === null ) {
+            $post_id = get_the_ID();
         }
 
-        // Method 2: Use Bricks Dynamic Data Providers class (for older Bricks versions)
-        if ( class_exists( '\Bricks\Integrations\Dynamic_Data\Providers' ) && 
-             method_exists( '\Bricks\Integrations\Dynamic_Data\Providers', 'render_content' ) ) {
-            return \Bricks\Integrations\Dynamic_Data\Providers::render_content( $value, $post );
-        }
-
-        // Method 3: Apply Bricks filters directly (supports custom tags like {parent_id})
-        // This ensures custom tags registered via bricks/dynamic_data/render_content work
-        $rendered = apply_filters( 'bricks/dynamic_data/render_content', $value, $post, 'text' );
-        if ( $rendered !== $value ) {
-            return $rendered;
-        }
-
-        // Method 4: Try the render_tag filter for individual tags
-        $rendered = apply_filters( 'bricks/dynamic_data/render_tag', $value, $post, 'text' );
-        if ( $rendered !== $value ) {
-            return $rendered;
-        }
-
-        // Method 5: Manual replacement for common tags as last resort
+        // Simple, direct replacements using WordPress native data
         $replacements = [
-            '{post_id}'     => $post_id,
-            '{parent_id}'   => $post->post_parent ? $post->post_parent : $post_id,
+            '{post_id}'             => $post_id,
+            '{parent_id}'           => ( $post && $post->post_parent ) ? $post->post_parent : $post_id,
+            '{parent_id:top_level}' => $this->get_top_level_parent( $post_id ),
         ];
         
         return str_replace( array_keys( $replacements ), array_values( $replacements ), $value );
+    }
+
+    /**
+     * Get the top-level parent (traverse up the hierarchy)
+     */
+    private function get_top_level_parent( $post_id ) {
+        $current_post = get_post( $post_id );
+        if ( ! $current_post ) {
+            return $post_id;
+        }
+
+        $parent_id = $current_post->post_parent;
+        if ( ! $parent_id ) {
+            return $post_id;
+        }
+
+        // Traverse up to find the top-level parent
+        while ( $parent_post = get_post( $parent_id ) ) {
+            if ( $parent_post->post_parent ) {
+                $parent_id = $parent_post->post_parent;
+            } else {
+                break;
+            }
+        }
+
+        return $parent_id;
     }
 
     /**
@@ -821,13 +818,15 @@ class SNN_Query_Nestable extends Element {
             $post_parent_value = $this->render_control_dynamic_data( $settings['post_parent'] );
             
             // DEBUG: Log the transformation if debug mode is on
-            global $snn_debug_log;
+            global $snn_debug_log, $post;
             if ( ! isset( $snn_debug_log ) ) {
                 $snn_debug_log = [];
             }
             $snn_debug_log[] = [
                 'original' => $original_value,
                 'rendered' => $post_parent_value,
+                'global_post_id' => $post ? $post->ID : 'NULL',
+                'global_post_parent' => $post && $post->post_parent ? $post->post_parent : 'None',
                 'context_stack' => self::$post_context_stack,
                 'get_the_id' => get_the_ID(),
             ];
