@@ -13,6 +13,9 @@ class SNN_Query_Nestable extends Element {
     public $css_selector = '.snn-query-nestable-wrapper';
     public $nestable     = true;
 
+    // ADDED: Static stack to track post context in nested queries
+    private static $post_context_stack = [];
+
     public function get_label() {
         return esc_html__( 'Query (Nestable)', 'snn' );
     }
@@ -381,6 +384,13 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'checkbox',
         ];
 
+        $this->controls['clear_query_cache'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Clear Query Cache', 'snn' ),
+            'type'    => 'checkbox',
+            'description' => esc_html__( 'Clear WordPress cache before running query to ensure fresh results', 'snn' ),
+        ];
+
         $this->controls['update_post_meta_cache'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'update_post_meta_cache', 'snn' ),
@@ -451,6 +461,12 @@ class SNN_Query_Nestable extends Element {
         $wrapper_id = 'snn-query-' . $this->id;
         $debug_mode = ! empty( $settings['debug'] );
 
+        // Clear query cache if enabled (default: true)
+        $clear_cache = isset( $settings['clear_query_cache'] ) ? $settings['clear_query_cache'] : true;
+        if ( $clear_cache ) {
+            wp_cache_delete( 'last_changed', 'posts' );
+        }
+
         // Build WP_Query args from individual controls
         $query_args = $this->build_query_args( $settings );
 
@@ -502,16 +518,36 @@ class SNN_Query_Nestable extends Element {
                 echo '<div ' . $this->render_attributes( '_root' ) . '>';
             }
 
+            // Store original query for Bricks dynamic data
+            global $wp_query;
+            $original_query = $wp_query;
+            
+            // Temporarily replace global query for Bricks dynamic data to work
+            $wp_query = $posts_query;
+
             // Loop through posts
             while ( $posts_query->have_posts() ) {
                 $posts_query->the_post();
+                $current_post_id = get_the_ID();
+                
+                // ADDED: Push current post ID onto context stack BEFORE rendering children
+                self::$post_context_stack[] = $current_post_id;
+                
+                // Set up postdata for dynamic data
+                setup_postdata( $current_post_id );
                 
                 // Render nested children for each post
                 echo Frontend::render_children( $this );
+                
+                // ADDED: Pop post ID from context stack AFTER rendering children
+                array_pop( self::$post_context_stack );
             }
 
             // Reset post data
             wp_reset_postdata();
+            
+            // Restore original query
+            $wp_query = $original_query;
 
             // Output wrapper closing tag
             if ( ! $no_wrapper ) {
@@ -537,6 +573,7 @@ class SNN_Query_Nestable extends Element {
     /**
      * Render dynamic data tags in control values
      * Converts Bricks dynamic tags like {post_id} to their actual values
+     * MODIFIED: Now uses context stack to get correct post ID in nested queries
      */
     private function render_control_dynamic_data( $value, $post_id = null ) {
         if ( $value === null || $value === '' ) {
@@ -553,9 +590,15 @@ class SNN_Query_Nestable extends Element {
             return $value;
         }
 
-        // Get post ID if not provided
+        // MODIFIED: Use context stack to get correct post ID in nested queries
         if ( $post_id === null ) {
-            $post_id = get_the_ID();
+            // Use the most recent post from context stack (top of stack)
+            if ( ! empty( self::$post_context_stack ) ) {
+                $post_id = end( self::$post_context_stack );
+            } else {
+                // Fallback to current post if not in a query loop
+                $post_id = get_the_ID();
+            }
         }
 
         // Use Bricks' dynamic data rendering function
@@ -692,7 +735,7 @@ class SNN_Query_Nestable extends Element {
             }
         }
 
-        // POST PARENT
+        // POST PARENT - CRITICAL: Render dynamic data before processing
         if ( isset( $settings['post_parent'] ) && $settings['post_parent'] !== '' ) {
             // Render dynamic data first (e.g., {post_id} -> 370)
             $post_parent_value = $this->render_control_dynamic_data( $settings['post_parent'] );
@@ -724,6 +767,7 @@ class SNN_Query_Nestable extends Element {
                 }
             }
         }
+
 
         // PASSWORD
         if ( isset( $settings['has_password'] ) && $settings['has_password'] !== '' ) {
@@ -777,7 +821,7 @@ class SNN_Query_Nestable extends Element {
             $args['update_post_term_cache'] = ! empty( $settings['update_post_term_cache'] );
         }
 
-        // ADVANCED JSON QUERIES
+        // ADVANCED JSON QUERIES - Also render dynamic data in JSON
         if ( ! empty( $settings['tax_query'] ) ) {
             $tax_query_str = $this->render_control_dynamic_data( $settings['tax_query'] );
             $tax_query = json_decode( $tax_query_str, true );
