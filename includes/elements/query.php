@@ -469,6 +469,16 @@ class SNN_Query_Nestable extends Element {
             echo esc_html( print_r( $settings, true ) );
             echo '</pre>';
             
+            echo '<h4>Post Parent Debug:</h4>';
+            echo '<pre style="background: #fff; padding: 10px;">';
+            echo 'post_parent raw: ' . var_export( $settings['post_parent'] ?? 'NOT SET', true ) . "\n";
+            echo 'post_parent type: ' . gettype( $settings['post_parent'] ?? null ) . "\n";
+            echo 'post_parent__in raw: ' . var_export( $settings['post_parent__in'] ?? 'NOT SET', true ) . "\n";
+            echo 'post_parent__in type: ' . gettype( $settings['post_parent__in'] ?? null ) . "\n";
+            echo 'post_parent__not_in raw: ' . var_export( $settings['post_parent__not_in'] ?? 'NOT SET', true ) . "\n";
+            echo 'post_parent__not_in type: ' . gettype( $settings['post_parent__not_in'] ?? null ) . "\n";
+            echo '</pre>';
+            
             echo '<h4>Built Query Args:</h4>';
             echo '<pre style="background: #fff; padding: 10px; overflow-x: auto;">';
             echo esc_html( print_r( $query_args, true ) );
@@ -674,23 +684,33 @@ class SNN_Query_Nestable extends Element {
             $args['post_parent'] = intval( $parent_id );
         }
 
-        if ( ! empty( $settings['post_parent__in'] ) ) {
+        if ( isset( $settings['post_parent__in'] ) && $settings['post_parent__in'] !== '' ) {
             $parent_ids_str = $this->parse_dynamic_value( $settings['post_parent__in'] );
-            $parent_ids = array_map( 'intval', array_filter( explode( ',', $parent_ids_str ), function($val) {
-                return $val !== '';
-            } ) );
-            if ( ! empty( $parent_ids ) ) {
-                $args['post_parent__in'] = $parent_ids;
+            $parent_ids_str = trim( $parent_ids_str );
+            
+            if ( $parent_ids_str !== '' ) {
+                $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
+                $parent_ids = array_filter( $parent_ids, function($val) {
+                    return $val !== 0 || $val === 0; // Keep all values including 0
+                } );
+                if ( ! empty( $parent_ids ) ) {
+                    $args['post_parent__in'] = $parent_ids;
+                }
             }
         }
 
-        if ( ! empty( $settings['post_parent__not_in'] ) ) {
+        if ( isset( $settings['post_parent__not_in'] ) && $settings['post_parent__not_in'] !== '' ) {
             $parent_ids_str = $this->parse_dynamic_value( $settings['post_parent__not_in'] );
-            $parent_ids = array_map( 'intval', array_filter( explode( ',', $parent_ids_str ), function($val) {
-                return $val !== '';
-            } ) );
-            if ( ! empty( $parent_ids ) ) {
-                $args['post_parent__not_in'] = $parent_ids;
+            $parent_ids_str = trim( $parent_ids_str );
+            
+            if ( $parent_ids_str !== '' ) {
+                $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
+                $parent_ids = array_filter( $parent_ids, function($val) {
+                    return $val !== 0 || $val === 0; // Keep all values including 0
+                } );
+                if ( ! empty( $parent_ids ) ) {
+                    $args['post_parent__not_in'] = $parent_ids;
+                }
             }
         }
 
