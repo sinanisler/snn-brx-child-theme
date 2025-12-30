@@ -453,7 +453,7 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Debug', 'snn' ),
             'type'    => 'checkbox',
-            'description' => esc_html__( 'Show debug information for troubleshooting', 'snn' ),
+            'description' => 'Enable comprehensive debug output displaying: <strong>Settings</strong> (raw control values from the element configuration), <strong>Built Query Args</strong> (final WP_Query parameters after processing all settings and dynamic data), <strong>Query Results</strong> (total posts found, post count, and current post ID context), <strong>SQL Query</strong> (the actual database query executed by WordPress), and <strong>Found Posts</strong> (detailed list of matched posts showing IDs, titles, and parent relationships). This powerful troubleshooting tool helps you understand exactly what parameters are being passed to WP_Query, verify dynamic data rendering (like {post_id}), and diagnose why queries may not be returning expected results. <a href="https://developer.wordpress.org/reference/classes/wp_query/" target="_blank" rel="noopener noreferrer" style="color: #2271b1; text-decoration: underline;">View WP_Query Class Documentation →</a>',
         ];
     }
 
