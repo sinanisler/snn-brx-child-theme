@@ -143,7 +143,6 @@ class SNN_Query_Nestable extends Element {
                 'DESC' => esc_html__( 'Descending', 'snn' ),
             ],
             'inline'  => true,
-            'default' => 'ASC',
         ];
 
         $this->controls['meta_key'] = [
