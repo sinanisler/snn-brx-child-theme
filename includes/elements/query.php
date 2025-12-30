@@ -42,6 +42,7 @@ class SNN_Query_Nestable extends Element {
             'options' => $post_type_options,
             'multiple' => true,
             'placeholder' => esc_html__( 'Select post types', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['post_status'] = [
@@ -61,6 +62,7 @@ class SNN_Query_Nestable extends Element {
             ],
             'multiple' => true,
             'placeholder' => esc_html__( 'Select status', 'snn' ),
+            'inline'  => true,
         ];
 
         // ====================
@@ -126,6 +128,7 @@ class SNN_Query_Nestable extends Element {
                 'meta_value_num' => esc_html__( 'Meta Value (Numeric)', 'snn' ),
                 'post__in'       => esc_html__( 'post__in order', 'snn' ),
             ],
+            'inline'  => true,
         ];
 
         $this->controls['order'] = [
@@ -136,6 +139,7 @@ class SNN_Query_Nestable extends Element {
                 'ASC'  => esc_html__( 'Ascending', 'snn' ),
                 'DESC' => esc_html__( 'Descending', 'snn' ),
             ],
+            'inline'  => true,
         ];
 
         $this->controls['meta_key'] = [
@@ -144,6 +148,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'Enter meta key', 'snn' ),
             'description' => esc_html__( 'Required for meta_value orderby', 'snn' ),
+            'inline'  => true,
         ];
 
         // ====================
@@ -155,6 +160,7 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'Search', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'Search keyword', 'snn' ),
+            'inline'  => true,
         ];
 
         // ====================
@@ -167,6 +173,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'e.g., 1 or 1,2,3', 'snn' ),
             'description' => esc_html__( 'Comma-separated author IDs', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['author_name'] = [
@@ -174,6 +181,7 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'Author Name', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'user_nicename', 'snn' ),
+            'inline'  => true,
         ];
 
         // ====================
@@ -186,6 +194,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'Category ID(s)', 'snn' ),
             'description' => esc_html__( 'e.g., 1 or 1,2,3 or -1 to exclude', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['category_name'] = [
@@ -193,6 +202,7 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'Category Slug', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'category-slug', 'snn' ),
+            'inline'  => true,
         ];
 
         // ====================
@@ -205,6 +215,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'tag-slug', 'snn' ),
             'description' => esc_html__( 'Comma-separated for OR, + for AND', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['tag_id'] = [
@@ -212,6 +223,7 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'Tag ID', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'Tag ID', 'snn' ),
+            'inline'  => true,
         ];
 
         // ====================
@@ -230,6 +242,7 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'Post Slug', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'post-slug', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['post__in'] = [
@@ -238,6 +251,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'e.g., 1,2,3', 'snn' ),
             'description' => esc_html__( 'Comma-separated post IDs', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['post__not_in'] = [
@@ -246,6 +260,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'e.g., 1,2,3', 'snn' ),
             'description' => esc_html__( 'Comma-separated post IDs', 'snn' ),
+            'inline'  => true,
         ];
 
         // ====================
@@ -258,6 +273,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'Parent post ID', 'snn' ),
             'description' => esc_html__( 'Get children of this parent. Use 0 for top-level posts only. Use {post_id} for current post.', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['post_parent__in'] = [
@@ -266,6 +282,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'e.g., 1,2,3', 'snn' ),
             'description' => esc_html__( 'Comma-separated parent IDs to include', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['post_parent__not_in'] = [
@@ -274,6 +291,7 @@ class SNN_Query_Nestable extends Element {
             'type'    => 'text',
             'placeholder' => esc_html__( 'e.g., 1,2,3', 'snn' ),
             'description' => esc_html__( 'Comma-separated parent IDs to exclude', 'snn' ),
+            'inline'  => true,
         ];
 
         $this->controls['direct_children_only'] = [
@@ -296,6 +314,7 @@ class SNN_Query_Nestable extends Element {
                 'true'  => esc_html__( 'Has Password', 'snn' ),
                 'false' => esc_html__( 'No Password', 'snn' ),
             ],
+            'inline'  => true,
         ];
 
         // ====================
@@ -346,6 +365,7 @@ class SNN_Query_Nestable extends Element {
                 '<'  => '<',
                 '<=' => '<=',
             ],
+            'inline'  => true,
         ];
 
         // ====================
@@ -363,6 +383,14 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Cache Results', 'snn' ),
             'type'    => 'checkbox',
+        ];
+
+        $this->controls['clear_query_cache'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Clear Query Cache', 'snn' ),
+            'type'    => 'checkbox',
+            'default' => true,
+            'description' => esc_html__( 'Clear WordPress cache before running query to ensure fresh results', 'snn' ),
         ];
 
         $this->controls['update_post_meta_cache'] = [
@@ -414,6 +442,7 @@ class SNN_Query_Nestable extends Element {
             'label'       => esc_html__( 'Empty Message', 'snn' ),
             'type'        => 'text',
             'placeholder' => esc_html__( 'No posts found', 'snn' ),
+            'inline'      => true,
         ];
 
         // ====================
@@ -433,6 +462,12 @@ class SNN_Query_Nestable extends Element {
         $no_wrapper = ! empty( $settings['no_wrapper'] );
         $wrapper_id = 'snn-query-' . $this->id;
         $debug_mode = ! empty( $settings['debug'] );
+
+        // Clear query cache if enabled (default: true)
+        $clear_cache = isset( $settings['clear_query_cache'] ) ? $settings['clear_query_cache'] : true;
+        if ( $clear_cache ) {
+            wp_cache_delete( 'last_changed', 'posts' );
+        }
 
         // Build WP_Query args from individual controls
         $query_args = $this->build_query_args( $settings );
