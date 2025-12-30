@@ -657,8 +657,7 @@ class SNN_Query_Nestable extends Element {
 
         // SPECIFIC POSTS
         if ( ! empty( $settings['p'] ) ) {
-            $p_value = $this->parse_dynamic_value( $settings['p'] );
-            $args['p'] = intval( $p_value );
+            $args['p'] = intval( $settings['p'] );
         }
 
         if ( ! empty( $settings['name'] ) ) {
@@ -667,8 +666,7 @@ class SNN_Query_Nestable extends Element {
 
         if ( ! empty( $settings['post__in'] ) ) {
             // Convert comma-separated string to array of integers
-            $post_in_str = $this->parse_dynamic_value( $settings['post__in'] );
-            $post_ids = array_map( 'intval', array_filter( explode( ',', $post_in_str ), function($val) {
+            $post_ids = array_map( 'intval', array_filter( explode( ',', $settings['post__in'] ), function($val) {
                 return $val !== '';
             } ) );
             if ( ! empty( $post_ids ) ) {
@@ -678,8 +676,7 @@ class SNN_Query_Nestable extends Element {
 
         if ( ! empty( $settings['post__not_in'] ) ) {
             // Convert comma-separated string to array of integers
-            $post_not_in_str = $this->parse_dynamic_value( $settings['post__not_in'] );
-            $post_ids = array_map( 'intval', array_filter( explode( ',', $post_not_in_str ), function($val) {
+            $post_ids = array_map( 'intval', array_filter( explode( ',', $settings['post__not_in'] ), function($val) {
                 return $val !== '';
             } ) );
             if ( ! empty( $post_ids ) ) {
@@ -689,24 +686,11 @@ class SNN_Query_Nestable extends Element {
 
         // POST PARENT
         if ( isset( $settings['post_parent'] ) && $settings['post_parent'] !== '' ) {
-            $parent_id_raw = $settings['post_parent'];
-            $parent_id_parsed = $this->parse_dynamic_value( $parent_id_raw );
-            $parent_id_int = intval( $parent_id_parsed );
-            
-            // Debug logging
-            if ( ! empty( $settings['debug'] ) ) {
-                error_log( 'POST PARENT DEBUG:' );
-                error_log( '  Raw: ' . var_export( $parent_id_raw, true ) );
-                error_log( '  After parse: ' . var_export( $parent_id_parsed, true ) );
-                error_log( '  After intval: ' . var_export( $parent_id_int, true ) );
-            }
-            
-            $args['post_parent'] = $parent_id_int;
+            $args['post_parent'] = intval( $settings['post_parent'] );
         }
 
         if ( isset( $settings['post_parent__in'] ) && $settings['post_parent__in'] !== '' ) {
-            $parent_ids_str = $this->parse_dynamic_value( $settings['post_parent__in'] );
-            $parent_ids_str = trim( $parent_ids_str );
+            $parent_ids_str = trim( $settings['post_parent__in'] );
             
             if ( $parent_ids_str !== '' ) {
                 $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
@@ -718,8 +702,7 @@ class SNN_Query_Nestable extends Element {
         }
 
         if ( isset( $settings['post_parent__not_in'] ) && $settings['post_parent__not_in'] !== '' ) {
-            $parent_ids_str = $this->parse_dynamic_value( $settings['post_parent__not_in'] );
-            $parent_ids_str = trim( $parent_ids_str );
+            $parent_ids_str = trim( $settings['post_parent__not_in'] );
             
             if ( $parent_ids_str !== '' ) {
                 $parent_ids = array_map( 'intval', array_map( 'trim', explode( ',', $parent_ids_str ) ) );
@@ -821,63 +804,6 @@ class SNN_Query_Nestable extends Element {
         }
 
         return $args;
-    }
-
-    /**
-     * Parse dynamic values in controls
-     * Supports: {post_id}, {current_post}, {author_id}, {term_id}
-     */
-    private function parse_dynamic_value( $value ) {
-        // Store original for debugging
-        $original_value = $value;
-        
-        if ( empty( $value ) ) {
-            return $value;
-        }
-
-        // Only process if value contains dynamic tags
-        $has_dynamic_tags = strpos( $value, '{' ) !== false && strpos( $value, '}' ) !== false;
-        
-        if ( ! $has_dynamic_tags ) {
-            // No dynamic tags, return as-is
-            return $value;
-        }
-
-        // Handle {post_id} or {current_post}
-        if ( strpos( $value, '{post_id}' ) !== false || strpos( $value, '{current_post}' ) !== false ) {
-            $post_id = get_the_ID();
-            $value = str_replace( [ '{post_id}', '{current_post}' ], $post_id, $value );
-        }
-
-        // Handle {author_id}
-        if ( strpos( $value, '{author_id}' ) !== false ) {
-            $author_id = get_post_field( 'post_author', get_the_ID() );
-            $value = str_replace( '{author_id}', $author_id, $value );
-        }
-
-        // Handle {term_id} - get first term from current post's main taxonomy
-        if ( strpos( $value, '{term_id}' ) !== false ) {
-            $post_type = get_post_type();
-            $taxonomies = get_object_taxonomies( $post_type );
-            $term_id = 0;
-            
-            if ( ! empty( $taxonomies ) ) {
-                $terms = get_the_terms( get_the_ID(), $taxonomies[0] );
-                if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-                    $term_id = $terms[0]->term_id;
-                }
-            }
-            
-            $value = str_replace( '{term_id}', $term_id, $value );
-        }
-
-        // Handle {parent_id} - get parent of current post
-        if ( strpos( $value, '{parent_id}' ) !== false ) {
-            $parent_id = wp_get_post_parent_id( get_the_ID() );
-            $value = str_replace( '{parent_id}', $parent_id, $value );
-        }
-
-        return $value;
     }
 }
 ?>
