@@ -234,7 +234,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'p', 'snn' ),
             'type'    => 'number',
-            'description' => esc_html__( 'Single post by ID', 'snn' ),
         ];
 
         $this->controls['name'] = [
@@ -250,7 +249,6 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'post__in', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'e.g., 1,2,3', 'snn' ),
-            'description' => esc_html__( 'Comma-separated post IDs', 'snn' ),
             'inline'  => true,
         ];
 
@@ -259,7 +257,6 @@ class SNN_Query_Nestable extends Element {
             'label'   => esc_html__( 'post__not_in', 'snn' ),
             'type'    => 'text',
             'placeholder' => esc_html__( 'e.g., 1,2,3', 'snn' ),
-            'description' => esc_html__( 'Comma-separated post IDs', 'snn' ),
             'inline'  => true,
         ];
 
@@ -350,7 +347,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'comment_count', 'snn' ),
             'type'    => 'number',
-            'description' => esc_html__( 'Filter by comment count', 'snn' ),
         ];
 
         $this->controls['comment_count_compare'] = [
@@ -389,7 +385,6 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Clear Query Cache', 'snn' ),
             'type'    => 'checkbox',
-            'default' => true,
             'description' => esc_html__( 'Clear WordPress cache before running query to ensure fresh results', 'snn' ),
         ];
 
