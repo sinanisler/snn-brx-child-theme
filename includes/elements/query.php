@@ -599,7 +599,9 @@ class SNN_Query_Nestable extends Element {
         if ( ! empty( $settings['post__in'] ) ) {
             // Convert comma-separated string to array of integers
             $post_in_str = $this->parse_dynamic_value( $settings['post__in'] );
-            $post_ids = array_map( 'intval', array_filter( explode( ',', $post_in_str ) ) );
+            $post_ids = array_map( 'intval', array_filter( explode( ',', $post_in_str ), function($val) {
+                return $val !== '';
+            } ) );
             if ( ! empty( $post_ids ) ) {
                 $args['post__in'] = $post_ids;
             }
@@ -608,7 +610,9 @@ class SNN_Query_Nestable extends Element {
         if ( ! empty( $settings['post__not_in'] ) ) {
             // Convert comma-separated string to array of integers
             $post_not_in_str = $this->parse_dynamic_value( $settings['post__not_in'] );
-            $post_ids = array_map( 'intval', array_filter( explode( ',', $post_not_in_str ) ) );
+            $post_ids = array_map( 'intval', array_filter( explode( ',', $post_not_in_str ), function($val) {
+                return $val !== '';
+            } ) );
             if ( ! empty( $post_ids ) ) {
                 $args['post__not_in'] = $post_ids;
             }
@@ -622,7 +626,9 @@ class SNN_Query_Nestable extends Element {
 
         if ( ! empty( $settings['post_parent__in'] ) ) {
             $parent_ids_str = $this->parse_dynamic_value( $settings['post_parent__in'] );
-            $parent_ids = array_map( 'intval', array_filter( explode( ',', $parent_ids_str ) ) );
+            $parent_ids = array_map( 'intval', array_filter( explode( ',', $parent_ids_str ), function($val) {
+                return $val !== '';
+            } ) );
             if ( ! empty( $parent_ids ) ) {
                 $args['post_parent__in'] = $parent_ids;
             }
@@ -630,7 +636,9 @@ class SNN_Query_Nestable extends Element {
 
         if ( ! empty( $settings['post_parent__not_in'] ) ) {
             $parent_ids_str = $this->parse_dynamic_value( $settings['post_parent__not_in'] );
-            $parent_ids = array_map( 'intval', array_filter( explode( ',', $parent_ids_str ) ) );
+            $parent_ids = array_map( 'intval', array_filter( explode( ',', $parent_ids_str ), function($val) {
+                return $val !== '';
+            } ) );
             if ( ! empty( $parent_ids ) ) {
                 $args['post_parent__not_in'] = $parent_ids;
             }
