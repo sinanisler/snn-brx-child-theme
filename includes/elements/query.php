@@ -13,6 +13,9 @@ class SNN_Query_Nestable extends Element {
     public $css_selector = '.snn-query-nestable-wrapper';
     public $nestable     = true;
 
+    // ADDED: Static stack to track post context in nested queries
+    private static $post_context_stack = [];
+
     public function get_label() {
         return esc_html__( 'Query (Nestable)', 'snn' );
     }
@@ -525,12 +528,19 @@ class SNN_Query_Nestable extends Element {
             // Loop through posts
             while ( $posts_query->have_posts() ) {
                 $posts_query->the_post();
+                $current_post_id = get_the_ID();
+                
+                // ADDED: Push current post ID onto context stack BEFORE rendering children
+                self::$post_context_stack[] = $current_post_id;
                 
                 // Set up postdata for dynamic data
-                setup_postdata( get_the_ID() );
+                setup_postdata( $current_post_id );
                 
                 // Render nested children for each post
                 echo Frontend::render_children( $this );
+                
+                // ADDED: Pop post ID from context stack AFTER rendering children
+                array_pop( self::$post_context_stack );
             }
 
             // Reset post data
@@ -563,6 +573,7 @@ class SNN_Query_Nestable extends Element {
     /**
      * Render dynamic data tags in control values
      * Converts Bricks dynamic tags like {post_id} to their actual values
+     * MODIFIED: Now uses context stack to get correct post ID in nested queries
      */
     private function render_control_dynamic_data( $value, $post_id = null ) {
         if ( $value === null || $value === '' ) {
@@ -579,9 +590,15 @@ class SNN_Query_Nestable extends Element {
             return $value;
         }
 
-        // Get current post ID for context if not provided
+        // MODIFIED: Use context stack to get correct post ID in nested queries
         if ( $post_id === null ) {
-            $post_id = get_the_ID();
+            // Use the most recent post from context stack (top of stack)
+            if ( ! empty( self::$post_context_stack ) ) {
+                $post_id = end( self::$post_context_stack );
+            } else {
+                // Fallback to current post if not in a query loop
+                $post_id = get_the_ID();
+            }
         }
 
         // Use Bricks' dynamic data rendering function
