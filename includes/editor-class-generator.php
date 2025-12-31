@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         // Create the menu item INSIDE the ul
         const menuItem = document.createElement('li');
         menuItem.className = 'class-generator sep';
-        menuItem.innerHTML = '<span class="label">Class Generator</span>';
+        menuItem.innerHTML = '<span class="label">Generate Classes</span>';
         
         // Click handler
         menuItem.addEventListener('click', (e) => {
