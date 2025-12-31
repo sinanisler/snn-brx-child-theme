@@ -66,6 +66,7 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/contextual-slug.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/get-contextual-content.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/parent-link.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/parent-id.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/parent-detection.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/post-term-count.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/user-author-fields.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/custom-field-repeater-first-item.php';
