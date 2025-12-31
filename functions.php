@@ -44,11 +44,9 @@ require_once SNN_PATH . 'includes/activity-logs.php';
 require_once SNN_PATH . 'includes/seo.php';
 require_once SNN_PATH . 'includes/seo-bricks-setting.php';
 
-// require_once SNN_PATH . 'includes/ai.php';
 require_once SNN_PATH . 'includes/ai/ai-settings.php';
 require_once SNN_PATH . 'includes/ai/ai-api.php';
 require_once SNN_PATH . 'includes/ai/ai-overlay.php';
-require_once SNN_PATH . 'includes/ai/ai-design.php';
 require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
 // AI Agent and Chat
 //require_once SNN_PATH . 'includes/ai/ai-agent.php';
