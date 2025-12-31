@@ -57,25 +57,25 @@ function get_first_child_post($property = '') {
     // Get all ancestors (parent, grandparent, great-grandparent, etc.)
     $ancestors = get_post_ancestors($current_post_id);
 
+    // Determine which page to get children from
+    $target_parent_id = null;
+
     if (empty($ancestors)) {
-        // If no ancestors, we can't get grandparent
-        return '';
-    }
-
-    // Get the grandparent ID (second item in ancestors array)
-    // ancestors[0] = parent, ancestors[1] = grandparent
-    if (isset($ancestors[1])) {
-        // Has grandparent, use it
-        $grandparent_id = $ancestors[1];
+        // No ancestors - we're on a top-level page
+        // Get the first child of the current page itself
+        $target_parent_id = $current_post_id;
+    } elseif (isset($ancestors[1])) {
+        // Has grandparent - get grandparent's first child
+        $target_parent_id = $ancestors[1];
     } else {
-        // Only has parent, use parent as reference point
-        $grandparent_id = $ancestors[0];
+        // Only has parent - get parent's first child
+        $target_parent_id = $ancestors[0];
     }
 
-    // Query for the first child of the grandparent based on menu_order
+    // Query for the first child based on menu_order
     $args = [
         'post_type'      => $current_post->post_type,
-        'post_parent'    => $grandparent_id,
+        'post_parent'    => $target_parent_id,
         'posts_per_page' => 1,
         'orderby'        => 'menu_order',
         'order'          => 'ASC',
