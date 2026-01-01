@@ -73,6 +73,9 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/attachment-metadata.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/raw-all-custom-fields.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/day-count-since-the-current-post-published.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/current-loop-item-count.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/total-video-duration.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/single-video-duration.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/average-comment-rating.php';
 
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
