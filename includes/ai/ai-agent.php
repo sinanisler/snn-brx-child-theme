@@ -15,7 +15,7 @@ Here is the **Agentic Workflow** visualized in ASCII, specifically designed for 
               v
 +-----------------------------+
 | 1. REASONING (The Brain)    | <-----------------------------+
-| - Query Ability Registry    |                               |
+| - WP Ability Registry       |                               |
 | - Identify: 'get-count'     |                               |
 | - Identify: 'create-draft'  |                               |
 +-----------------------------+                               |
