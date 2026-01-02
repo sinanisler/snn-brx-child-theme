@@ -10,7 +10,7 @@ Here is the **Agentic Workflow** visualized in ASCII, specifically designed for 
 
 ```text
        [ USER PROMPT ] 
-       "Make a draft of my current post count"
+       "Make a draft post about XXX and tell me how many posts I have."
               |
               v
 +-----------------------------+
