@@ -378,34 +378,68 @@ function snn_render_block_editor_ai_overlay() {
         }
 
         function initializeBlockEditorAI() {
-            // Add toolbar button using WordPress components
-            const { registerFormatType } = wp.richText;
-            const { RichTextToolbarButton } = wp.blockEditor;
-            const { createElement } = wp.element;
+            const { registerPlugin } = wp.plugins;
+            const { BlockControls } = wp.blockEditor;
+            const { ToolbarGroup, ToolbarButton } = wp.components;
+            const { createElement, Fragment } = wp.element;
 
-            // Register AI format type (this adds it to the toolbar)
-            registerFormatType('snn/ai-assistant', {
-                title: 'AI Assistant',
-                tagName: 'span',
-                className: null,
-                edit: function(props) {
-                    return createElement(RichTextToolbarButton, {
-                        icon: createElement('span', {
-                            style: {
-                                fontSize: '16px',
-                                fontWeight: 'bold',
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text'
-                            }
-                        }, 'AI'),
-                        title: 'AI Assistant',
-                        onClick: function() {
-                            openAIOverlay();
-                        },
-                        isActive: false
-                    });
+            // Create AI icon SVG
+            const aiIcon = createElement('svg', {
+                width: 20,
+                height: 20,
+                viewBox: '0 0 20 20',
+                xmlns: 'http://www.w3.org/2000/svg'
+            },
+                createElement('defs', null,
+                    createElement('linearGradient', {
+                        id: 'aiGradient',
+                        x1: '0%',
+                        y1: '0%',
+                        x2: '100%',
+                        y2: '100%'
+                    },
+                        createElement('stop', { offset: '0%', style: { stopColor: '#667eea' } }),
+                        createElement('stop', { offset: '100%', style: { stopColor: '#764ba2' } })
+                    )
+                ),
+                createElement('text', {
+                    x: '50%',
+                    y: '50%',
+                    dominantBaseline: 'middle',
+                    textAnchor: 'middle',
+                    fontSize: '14',
+                    fontWeight: 'bold',
+                    fill: 'url(#aiGradient)'
+                }, 'AI')
+            );
+
+            // Register plugin to add toolbar button
+            registerPlugin('snn-ai-assistant', {
+                render: function() {
+                    const { useSelect } = wp.data;
+
+                    const hasSelection = useSelect(function(select) {
+                        const editor = select('core/block-editor');
+                        const selectedBlockIds = editor.getSelectedBlockClientIds();
+                        const selection = window.getSelection();
+                        return selectedBlockIds.length > 0 || (selection && selection.toString().trim());
+                    }, []);
+
+                    if (!hasSelection) {
+                        return null;
+                    }
+
+                    return createElement(BlockControls, { group: 'block' },
+                        createElement(ToolbarGroup, null,
+                            createElement(ToolbarButton, {
+                                icon: aiIcon,
+                                label: 'AI Assistant',
+                                onClick: function() {
+                                    openAIOverlay();
+                                }
+                            })
+                        )
+                    );
                 }
             });
 
