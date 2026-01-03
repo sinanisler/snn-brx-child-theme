@@ -176,13 +176,13 @@ function snn_add_block_editor_ai_panel() {
         }
 
         .snn-block-ai-actions-container {
-            margin-bottom: 12px;
+            margin-bottom: 6px;
         }
 
         .snn-block-ai-action-button {
             display: inline-block;
-            padding: 6px 12px;
-            margin: 4px;
+            padding: 2px 6px;
+            margin: 3px;
             background-color: white;
             border: 1px solid #8c8f94;
             border-radius: 4px;
