@@ -355,15 +355,14 @@ function snn_add_block_editor_ai_panel() {
                 const summaryPanel = document.querySelector('.editor-post-panel__section.editor-post-summary');
 
                 if (!summaryPanel) {
-                    console.log('SNN AI: Summary panel not found yet, retrying...');
-                    setTimeout(injectAIButtonIntoSummaryPanel, 500);
-                    return;
+                    console.log('SNN AI: Summary panel not found yet');
+                    return false;
                 }
 
                 // Check if button already exists
                 if (document.getElementById('snn-ai-summary-button')) {
-                    console.log('SNN AI: Button already injected');
-                    return;
+                    console.log('SNN AI: Button already exists');
+                    return true;
                 }
 
                 // Create button container matching WordPress styles
@@ -393,10 +392,74 @@ function snn_add_block_editor_ai_panel() {
                     summaryPanel.insertBefore(buttonContainer, summaryPanel.firstChild);
                     console.log('SNN AI: Button injected into Summary panel at top');
                 }
+
+                return true;
             }
 
-            // Start injection
-            injectAIButtonIntoSummaryPanel();
+            // Setup MutationObserver to watch for DOM changes and re-inject button if needed
+            function setupButtonPersistence() {
+                let injectionTimer = null;
+                let isInjecting = false;
+
+                // Debounced injection attempt
+                const attemptInjection = () => {
+                    if (isInjecting) return;
+
+                    clearTimeout(injectionTimer);
+                    injectionTimer = setTimeout(() => {
+                        const summaryPanel = document.querySelector('.editor-post-panel__section.editor-post-summary');
+                        const buttonExists = document.getElementById('snn-ai-summary-button');
+
+                        // Only inject if panel exists but button doesn't
+                        if (summaryPanel && !buttonExists) {
+                            console.log('SNN AI: Re-injecting button...');
+                            isInjecting = true;
+                            injectAIButtonIntoSummaryPanel();
+                            isInjecting = false;
+                        }
+                    }, 100);
+                };
+
+                // Initial injection
+                attemptInjection();
+
+                // Watch for DOM changes to re-inject button if needed
+                const observer = new MutationObserver((mutations) => {
+                    // Check if button is missing but panel exists
+                    const summaryPanel = document.querySelector('.editor-post-panel__section.editor-post-summary');
+                    const buttonExists = document.getElementById('snn-ai-summary-button');
+
+                    if (summaryPanel && !buttonExists) {
+                        attemptInjection();
+                    }
+                });
+
+                // Observe the sidebar area for changes
+                const observeTarget = document.querySelector('.interface-interface-skeleton__sidebar') ||
+                                     document.querySelector('.edit-post-layout') ||
+                                     document.body;
+
+                observer.observe(observeTarget, {
+                    childList: true,
+                    subtree: true
+                });
+
+                console.log('SNN AI: Button persistence observer initialized');
+
+                // Also check periodically as a fallback
+                setInterval(() => {
+                    const summaryPanel = document.querySelector('.editor-post-panel__section.editor-post-summary');
+                    const buttonExists = document.getElementById('snn-ai-summary-button');
+
+                    if (summaryPanel && !buttonExists) {
+                        console.log('SNN AI: Periodic check - button missing, re-injecting...');
+                        injectAIButtonIntoSummaryPanel();
+                    }
+                }, 2000);
+            }
+
+            // Start injection with persistence
+            setupButtonPersistence();
 
             // Initialize modal functionality
             const overlay = document.getElementById('snn-block-ai-overlay');
