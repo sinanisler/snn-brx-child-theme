@@ -100,14 +100,11 @@ function snn_add_block_editor_ai_panel() {
 
         .snn-block-ai-panel-button {
             width: 100%;
-            background-color: #2271b1;
-            color: white;
             padding: 10px 16px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             transition: background-color 0.2s ease;
             border: none;
         }
@@ -378,7 +375,7 @@ function snn_add_block_editor_ai_panel() {
                 const button = document.createElement('button');
                 button.id = 'snn-ai-summary-button';
                 button.type = 'button';
-                button.className = 'snn-block-ai-panel-button';
+                button.className = 'snn-block-ai-panel-button button';
                 button.textContent = 'Generate with AI ✨';
                 button.onclick = showModal;
 
