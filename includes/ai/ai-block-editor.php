@@ -547,20 +547,140 @@ function snn_render_block_editor_ai_overlay() {
         function extractTextFromBlock(block) {
             let text = '';
 
-            // Handle different block types
-            if (block.attributes) {
-                // Paragraph, heading, etc. with content attribute
-                if (block.attributes.content) {
-                    text = stripHtmlTags(block.attributes.content);
-                }
-                // List items
-                else if (block.attributes.values) {
-                    text = stripHtmlTags(block.attributes.values);
-                }
-                // Other text-based attributes
-                else if (typeof block.attributes.text === 'string') {
-                    text = block.attributes.text;
-                }
+            if (!block || !block.attributes) {
+                return text;
+            }
+
+            const attrs = block.attributes;
+            const blockName = block.name;
+
+            // Handle different block types based on their specific attributes
+            switch (blockName) {
+                // Text blocks with 'content' attribute
+                case 'core/paragraph':
+                case 'core/heading':
+                case 'core/verse':
+                case 'core/preformatted':
+                case 'core/code':
+                case 'core/list-item':
+                case 'core/post-title':
+                case 'core/site-title':
+                case 'core/site-tagline':
+                    text = attrs.content ? stripHtmlTags(attrs.content) : '';
+                    break;
+
+                // Quote blocks
+                case 'core/quote':
+                case 'core/pullquote':
+                    text = attrs.value ? stripHtmlTags(attrs.value) : '';
+                    if (attrs.citation) {
+                        text += '\n— ' + stripHtmlTags(attrs.citation);
+                    }
+                    break;
+
+                // List block
+                case 'core/list':
+                    text = attrs.values ? stripHtmlTags(attrs.values) : '';
+                    break;
+
+                // Button block
+                case 'core/button':
+                    text = attrs.text ? stripHtmlTags(attrs.text) : '';
+                    break;
+
+                // Cover block
+                case 'core/cover':
+                    text = attrs.alt || '';
+                    break;
+
+                // Image/Media blocks
+                case 'core/image':
+                case 'core/post-featured-image':
+                    text = attrs.alt || attrs.caption ? stripHtmlTags(attrs.caption || '') : '';
+                    break;
+
+                // Video/Audio blocks
+                case 'core/video':
+                case 'core/audio':
+                    text = attrs.caption ? stripHtmlTags(attrs.caption) : '';
+                    break;
+
+                // Table block
+                case 'core/table':
+                    if (attrs.body && Array.isArray(attrs.body)) {
+                        attrs.body.forEach(function(row) {
+                            if (row.cells && Array.isArray(row.cells)) {
+                                row.cells.forEach(function(cell) {
+                                    text += stripHtmlTags(cell.content || '') + ' | ';
+                                });
+                                text += '\n';
+                            }
+                        });
+                    }
+                    break;
+
+                // Post content blocks
+                case 'core/post-excerpt':
+                    text = attrs.excerpt || '';
+                    break;
+
+                case 'core/post-content':
+                case 'core/post-author-biography':
+                case 'core/term-description':
+                    text = attrs.content ? stripHtmlTags(attrs.content) : '';
+                    break;
+
+                // Comment blocks
+                case 'core/comment-content':
+                    text = attrs.content ? stripHtmlTags(attrs.content) : '';
+                    break;
+
+                // Search/Form blocks
+                case 'core/search':
+                    text = attrs.placeholder || attrs.buttonText || '';
+                    break;
+
+                // HTML/Shortcode blocks
+                case 'core/html':
+                case 'core/shortcode':
+                    text = attrs.content || '';
+                    break;
+
+                // Details/Accordion blocks
+                case 'core/details':
+                    text = attrs.summary ? stripHtmlTags(attrs.summary) : '';
+                    break;
+
+                case 'core/accordion-item':
+                    text = attrs.title ? stripHtmlTags(attrs.title) : '';
+                    break;
+
+                // File block
+                case 'core/file':
+                    text = attrs.fileName || '';
+                    if (attrs.textLinkTarget) {
+                        text += ' - ' + stripHtmlTags(attrs.textLinkTarget);
+                    }
+                    break;
+
+                // Navigation blocks
+                case 'core/navigation-link':
+                case 'core/navigation-submenu':
+                    text = attrs.label || '';
+                    break;
+
+                // Default: try common attributes
+                default:
+                    if (attrs.content) {
+                        text = stripHtmlTags(attrs.content);
+                    } else if (attrs.text) {
+                        text = typeof attrs.text === 'string' ? attrs.text : stripHtmlTags(attrs.text);
+                    } else if (attrs.value) {
+                        text = stripHtmlTags(attrs.value);
+                    } else if (attrs.values) {
+                        text = stripHtmlTags(attrs.values);
+                    }
+                    break;
             }
 
             // Recursively extract from inner blocks
@@ -568,7 +688,7 @@ function snn_render_block_editor_ai_overlay() {
                 block.innerBlocks.forEach(function(innerBlock) {
                     const innerText = extractTextFromBlock(innerBlock);
                     if (innerText) {
-                        text += '\n' + innerText;
+                        text += (text ? '\n' : '') + innerText;
                     }
                 });
             }
@@ -670,29 +790,156 @@ function snn_render_block_editor_ai_overlay() {
                 return;
             }
 
-            // Update the first selected block with the new content
-            const firstBlockId = selectedBlocks[0];
-            const block = editor.getBlock(firstBlockId);
+            // If multiple blocks selected, split content by lines and distribute
+            if (selectedBlocks.length > 1) {
+                const contentLines = newContent.split('\n').filter(function(line) {
+                    return line.trim();
+                });
 
-            if (block) {
-                // Update block attributes based on block type
-                const updatedAttributes = {};
-
-                if (block.attributes.content !== undefined) {
-                    // Paragraph, heading, etc.
-                    updatedAttributes.content = newContent;
-                } else if (block.attributes.text !== undefined) {
-                    updatedAttributes.text = newContent;
-                } else if (block.attributes.values !== undefined) {
-                    // List
-                    updatedAttributes.values = newContent;
-                } else {
-                    // Fallback: try content
-                    updatedAttributes.content = newContent;
+                selectedBlocks.forEach(function(blockId, index) {
+                    const block = editor.getBlock(blockId);
+                    if (block && contentLines[index]) {
+                        updateSingleBlock(dispatch, block, blockId, contentLines[index]);
+                    }
+                });
+            } else {
+                // Single block update
+                const blockId = selectedBlocks[0];
+                const block = editor.getBlock(blockId);
+                if (block) {
+                    updateSingleBlock(dispatch, block, blockId, newContent);
                 }
+            }
+        }
 
+        function updateSingleBlock(dispatch, block, blockId, content) {
+            const updatedAttributes = {};
+            const blockName = block.name;
+
+            // Handle different block types based on their specific attributes
+            switch (blockName) {
+                // Text blocks with 'content' attribute
+                case 'core/paragraph':
+                case 'core/heading':
+                case 'core/verse':
+                case 'core/preformatted':
+                case 'core/code':
+                case 'core/list-item':
+                case 'core/post-title':
+                case 'core/site-title':
+                case 'core/site-tagline':
+                case 'core/post-content':
+                case 'core/post-author-biography':
+                case 'core/term-description':
+                case 'core/comment-content':
+                    updatedAttributes.content = content;
+                    break;
+
+                // Quote blocks
+                case 'core/quote':
+                case 'core/pullquote':
+                    // Try to split citation if present
+                    const citationMatch = content.match(/\n—\s*(.+)$/);
+                    if (citationMatch) {
+                        updatedAttributes.value = content.replace(/\n—\s*.+$/, '');
+                        updatedAttributes.citation = citationMatch[1];
+                    } else {
+                        updatedAttributes.value = content;
+                    }
+                    break;
+
+                // List block
+                case 'core/list':
+                    updatedAttributes.values = content;
+                    break;
+
+                // Button block
+                case 'core/button':
+                    updatedAttributes.text = content;
+                    break;
+
+                // Cover block
+                case 'core/cover':
+                    updatedAttributes.alt = content;
+                    break;
+
+                // Image/Media blocks
+                case 'core/image':
+                case 'core/post-featured-image':
+                    if (block.attributes.caption !== undefined) {
+                        updatedAttributes.caption = content;
+                    } else {
+                        updatedAttributes.alt = content;
+                    }
+                    break;
+
+                // Video/Audio blocks
+                case 'core/video':
+                case 'core/audio':
+                    updatedAttributes.caption = content;
+                    break;
+
+                // Post content blocks
+                case 'core/post-excerpt':
+                    updatedAttributes.excerpt = content;
+                    break;
+
+                // Search/Form blocks
+                case 'core/search':
+                    if (block.attributes.placeholder !== undefined) {
+                        updatedAttributes.placeholder = content;
+                    } else {
+                        updatedAttributes.buttonText = content;
+                    }
+                    break;
+
+                // HTML/Shortcode blocks
+                case 'core/html':
+                case 'core/shortcode':
+                    updatedAttributes.content = content;
+                    break;
+
+                // Details/Accordion blocks
+                case 'core/details':
+                    updatedAttributes.summary = content;
+                    break;
+
+                case 'core/accordion-item':
+                    updatedAttributes.title = content;
+                    break;
+
+                // File block
+                case 'core/file':
+                    updatedAttributes.fileName = content;
+                    break;
+
+                // Navigation blocks
+                case 'core/navigation-link':
+                case 'core/navigation-submenu':
+                    updatedAttributes.label = content;
+                    break;
+
+                // Default: try common attributes
+                default:
+                    if (block.attributes.content !== undefined) {
+                        updatedAttributes.content = content;
+                    } else if (block.attributes.text !== undefined) {
+                        updatedAttributes.text = content;
+                    } else if (block.attributes.value !== undefined) {
+                        updatedAttributes.value = content;
+                    } else if (block.attributes.values !== undefined) {
+                        updatedAttributes.values = content;
+                    } else {
+                        // Fallback to content
+                        updatedAttributes.content = content;
+                    }
+                    break;
+            }
+
+            // Apply the update
+            if (Object.keys(updatedAttributes).length > 0) {
                 dispatch('core/block-editor').updateBlockAttributes(
-                    firstBlockId,
+                    blockId,
                     updatedAttributes
                 );
             }
