@@ -455,7 +455,7 @@ function snn_add_block_editor_ai_panel() {
                         console.log('SNN AI: Periodic check - button missing, re-injecting...');
                         injectAIButtonIntoSummaryPanel();
                     }
-                }, 2000);
+                }, 1000);
             }
 
             // Start injection with persistence
