@@ -294,7 +294,7 @@ function snn_add_block_editor_ai_panel() {
     <div class="snn-block-ai-overlay" id="snn-block-ai-overlay">
         <div class="snn-block-ai-modal">
             <div class="snn-block-ai-modal-header">
-                <h3><?php esc_html_e('AI Content Assistant', 'snn'); ?></h3>
+                <h3><?php esc_html_e('AI Content Generation', 'snn'); ?></h3>
                 <button class="snn-block-ai-close" id="snn-block-ai-close-button">×</button>
             </div>
             <div class="snn-block-ai-modal-body">
