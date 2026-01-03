@@ -322,7 +322,7 @@ function snn_add_block_editor_ai_panel() {
         // Wait for WordPress editor to be ready
         function initAIPanel() {
             if (!window.wp || !window.wp.data || !window.wp.plugins || !window.wp.element || !window.wp.editPost) {
-                console.log('SNN AI: Waiting for WordPress editor...');
+                //console.log('SNN AI: Waiting for WordPress editor...');
                 setTimeout(initAIPanel, 500);
                 return;
             }
@@ -355,13 +355,13 @@ function snn_add_block_editor_ai_panel() {
                 const summaryPanel = document.querySelector('.editor-post-panel__section.editor-post-summary');
 
                 if (!summaryPanel) {
-                    console.log('SNN AI: Summary panel not found yet');
+                    //console.log('SNN AI: Summary panel not found yet');
                     return false;
                 }
 
                 // Check if button already exists
                 if (document.getElementById('snn-ai-summary-button')) {
-                    console.log('SNN AI: Button already exists');
+                    //console.log('SNN AI: Button already exists');
                     return true;
                 }
 
@@ -386,11 +386,11 @@ function snn_add_block_editor_ai_panel() {
                 if (featuredImageSection) {
                     // Insert after featured image
                     featuredImageSection.parentNode.insertBefore(buttonContainer, featuredImageSection.nextSibling);
-                    console.log('SNN AI: Button injected into Summary panel after featured image');
+                    //console.log('SNN AI: Button injected into Summary panel after featured image');
                 } else {
                     // Fallback: insert at the beginning of the summary panel
                     summaryPanel.insertBefore(buttonContainer, summaryPanel.firstChild);
-                    console.log('SNN AI: Button injected into Summary panel at top');
+                    //console.log('SNN AI: Button injected into Summary panel at top');
                 }
 
                 return true;
@@ -412,7 +412,7 @@ function snn_add_block_editor_ai_panel() {
 
                         // Only inject if panel exists but button doesn't
                         if (summaryPanel && !buttonExists) {
-                            console.log('SNN AI: Re-injecting button...');
+                            //console.log('SNN AI: Re-injecting button...');
                             isInjecting = true;
                             injectAIButtonIntoSummaryPanel();
                             isInjecting = false;
@@ -444,7 +444,7 @@ function snn_add_block_editor_ai_panel() {
                     subtree: true
                 });
 
-                console.log('SNN AI: Button persistence observer initialized');
+                // console.log('SNN AI: Button persistence observer initialized');
 
                 // Also check periodically as a fallback
                 setInterval(() => {
@@ -452,7 +452,7 @@ function snn_add_block_editor_ai_panel() {
                     const buttonExists = document.getElementById('snn-ai-summary-button');
 
                     if (summaryPanel && !buttonExists) {
-                        console.log('SNN AI: Periodic check - button missing, re-injecting...');
+                        //console.log('SNN AI: Periodic check - button missing, re-injecting...');
                         injectAIButtonIntoSummaryPanel();
                     }
                 }, 1000);
