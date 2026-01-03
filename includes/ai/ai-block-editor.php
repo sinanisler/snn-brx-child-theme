@@ -378,10 +378,10 @@ function snn_render_block_editor_ai_overlay() {
         }
 
         function initializeBlockEditorAI() {
-            const { registerPlugin } = wp.plugins;
+            const { registerFormatType } = wp.richText;
             const { BlockControls } = wp.blockEditor;
             const { ToolbarGroup, ToolbarButton } = wp.components;
-            const { createElement, Fragment } = wp.element;
+            const { createElement } = wp.element;
 
             // Create AI icon SVG
             const aiIcon = createElement('svg', {
@@ -413,23 +413,13 @@ function snn_render_block_editor_ai_overlay() {
                 }, 'AI')
             );
 
-            // Register plugin to add toolbar button
-            registerPlugin('snn-ai-assistant', {
-                render: function() {
-                    const { useSelect } = wp.data;
-
-                    const hasSelection = useSelect(function(select) {
-                        const editor = select('core/block-editor');
-                        const selectedBlockIds = editor.getSelectedBlockClientIds();
-                        const selection = window.getSelection();
-                        return selectedBlockIds.length > 0 || (selection && selection.toString().trim());
-                    }, []);
-
-                    if (!hasSelection) {
-                        return null;
-                    }
-
-                    return createElement(BlockControls, { group: 'block' },
+            // Register format type with modern ToolbarButton
+            registerFormatType('snn/ai-assistant', {
+                title: 'AI Assistant',
+                tagName: 'span',
+                className: null,
+                edit: function(props) {
+                    return createElement(BlockControls, null,
                         createElement(ToolbarGroup, null,
                             createElement(ToolbarButton, {
                                 icon: aiIcon,
