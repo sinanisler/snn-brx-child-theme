@@ -330,9 +330,7 @@ function snn_add_block_editor_ai_panel() {
                 return;
             }
 
-            const { registerPlugin } = wp.plugins;
-            const { PluginDocumentSettingPanel } = wp.editPost;
-            const { createElement: el } = wp.element;
+            // WordPress APIs are available (we don't need to extract them since we're using DOM injection)
 
             // Get config from localized script
             const config = window.snnAiConfig || {
@@ -354,30 +352,54 @@ function snn_add_block_editor_ai_panel() {
             let isRequestPending = false;
             let currentContent = '';
 
-            // Register the plugin with document setting panel
-            registerPlugin('snn-ai-assistant', {
-                render: function() {
-                    return el(
-                        PluginDocumentSettingPanel,
-                        {
-                            name: 'snn-ai-panel',
-                            title: 'AI Assistant',
-                            className: 'snn-ai-panel-container'
-                        },
-                        el(
-                            'button',
-                            {
-                                className: 'snn-block-ai-panel-button',
-                                onClick: showModal
-                            },
-                            'Generate with AI ✨'
-                        )
-                    );
-                },
-                icon: 'admin-customizer'
-            });
+            // Inject AI button into the Summary panel
+            function injectAIButtonIntoSummaryPanel() {
+                // Find the summary panel section
+                const summaryPanel = document.querySelector('.editor-post-panel__section.editor-post-summary');
 
-            console.log('SNN AI: Panel registered successfully');
+                if (!summaryPanel) {
+                    console.log('SNN AI: Summary panel not found yet, retrying...');
+                    setTimeout(injectAIButtonIntoSummaryPanel, 500);
+                    return;
+                }
+
+                // Check if button already exists
+                if (document.getElementById('snn-ai-summary-button')) {
+                    console.log('SNN AI: Button already injected');
+                    return;
+                }
+
+                // Create button container matching WordPress styles
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'components-flex components-h-stack components-v-stack css-1i2unhf e19lxcc00';
+                buttonContainer.setAttribute('data-wp-c16t', 'true');
+                buttonContainer.setAttribute('data-wp-component', 'VStack');
+
+                const button = document.createElement('button');
+                button.id = 'snn-ai-summary-button';
+                button.type = 'button';
+                button.className = 'snn-block-ai-panel-button';
+                button.textContent = 'Generate with AI ✨';
+                button.onclick = showModal;
+
+                buttonContainer.appendChild(button);
+
+                // Find the featured image section to insert after it
+                const featuredImageSection = summaryPanel.querySelector('.editor-post-featured-image');
+
+                if (featuredImageSection) {
+                    // Insert after featured image
+                    featuredImageSection.parentNode.insertBefore(buttonContainer, featuredImageSection.nextSibling);
+                    console.log('SNN AI: Button injected into Summary panel after featured image');
+                } else {
+                    // Fallback: insert at the beginning of the summary panel
+                    summaryPanel.insertBefore(buttonContainer, summaryPanel.firstChild);
+                    console.log('SNN AI: Button injected into Summary panel at top');
+                }
+            }
+
+            // Start injection
+            injectAIButtonIntoSummaryPanel();
 
             // Initialize modal functionality
             const overlay = document.getElementById('snn-block-ai-overlay');
