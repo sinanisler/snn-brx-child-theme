@@ -44,14 +44,17 @@ require_once SNN_PATH . 'includes/activity-logs.php';
 require_once SNN_PATH . 'includes/seo.php';
 require_once SNN_PATH . 'includes/seo-bricks-setting.php';
 
+
 require_once SNN_PATH . 'includes/ai/ai-settings.php';
 require_once SNN_PATH . 'includes/ai/ai-api.php';
 require_once SNN_PATH . 'includes/ai/ai-overlay.php';
 require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
+require_once SNN_PATH . 'includes/ai/ai-block-editor.php';
 // AI Agent and Chat
 //require_once SNN_PATH . 'includes/ai/ai-agent.php';
 //require_once SNN_PATH . 'includes/ai/ai-chat-overlay.php';
 // AI Abilities (WordPress Abilities API)
+
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 require_once SNN_PATH . 'includes/wp-admin-image-opt.php';
