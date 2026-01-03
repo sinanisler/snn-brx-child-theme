@@ -52,6 +52,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: source-repo
+          fetch-depth: 0
+
+      - name: Get Source Commit Info
+        id: commit_info
+        run: |
+          cd source-repo
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          COMMIT_HASH=$(git log -1 --pretty=%h)
+          COMMIT_AUTHOR=$(git log -1 --pretty=%an)
+          echo "message=$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
 
       # Sync to sinanisler/snn-block
       - name: Checkout Destination Repo (snn-block)
@@ -81,7 +93,7 @@ jobs:
           for file_path in $FILES_TO_SYNC; do
             git add "$file_path"
           done
-          git commit -m "SNN-BRX Features Sync"
+          git commit -m "${{ steps.commit_info.outputs.message }}" -m ": ${{ steps.commit_info.outputs.hash }}"
           git push
 
  
