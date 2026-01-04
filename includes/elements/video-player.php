@@ -642,6 +642,7 @@ class SNN_Video_Player_Element extends Element {
             let isSeeking = false, inactivityTimer, lastVolume = video.volume, isPlayerInView = false;
             let chapterSections = [];
             let isDraggingThumb = false;
+            let playPromise = null;
 
             const timeToSeconds = (timeString) => {
                 if (!timeString || typeof timeString !== 'string') return 0;
@@ -698,7 +699,34 @@ class SNN_Video_Player_Element extends Element {
                 return sections.find(section => timeInSeconds >= section.startTime && timeInSeconds < section.endTime);
             };
 
-            const togglePlayPause = () => video.paused || video.ended ? video.play() : video.pause();
+            const togglePlayPause = () => {
+                if (video.paused || video.ended) {
+                    // Start playing
+                    playPromise = video.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            // Playback started successfully
+                        }).catch(error => {
+                            // Auto-play was prevented or playback failed
+                            console.warn('Video playback failed:', error);
+                        });
+                    }
+                } else {
+                    // Pause the video, but wait for any pending play promise first
+                    if (playPromise !== undefined && playPromise !== null) {
+                        playPromise.then(() => {
+                            video.pause();
+                            playPromise = null;
+                        }).catch(error => {
+                            // If play() was rejected, we don't need to pause
+                            console.warn('Play promise was rejected:', error);
+                            playPromise = null;
+                        });
+                    } else {
+                        video.pause();
+                    }
+                }
+            };
             const updatePlayPauseIcon = () => { if(playPauseBtn) playPauseBtn.innerHTML = video.paused ? ICONS.play : ICONS.pause; };
             
             const updateMuteIcon = () => { 
@@ -800,7 +828,12 @@ class SNN_Video_Player_Element extends Element {
                         const clickX = e.clientX - rect.left;
                         const percent = clickX / rect.width;
                         video.currentTime = percent * video.duration;
-                        video.play();
+                        playPromise = video.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.warn('Video playback failed:', error);
+                            });
+                        }
                     });
                     
                     defaultSection.addEventListener('mousemove', (e) => {
@@ -845,7 +878,12 @@ class SNN_Video_Player_Element extends Element {
                         const sectionPercent = clickX / rect.width;
                         const targetTime = section.startTime + (sectionPercent * (section.endTime - section.startTime));
                         video.currentTime = targetTime;
-                        video.play();
+                        playPromise = video.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.warn('Video playback failed:', error);
+                            });
+                        }
                     });
                     
                     sectionDiv.addEventListener('mousemove', (e) => {
@@ -892,7 +930,12 @@ class SNN_Video_Player_Element extends Element {
                     dot.addEventListener('click', e => {
                         e.stopPropagation();
                         video.currentTime = section.startTime;
-                        video.play();
+                        playPromise = video.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.warn('Video playback failed:', error);
+                            });
+                        }
                     });
 
                     chapterDotsContainer.appendChild(dot);
