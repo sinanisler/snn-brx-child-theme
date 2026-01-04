@@ -326,20 +326,22 @@ class SNN_Video_Player_Element extends Element {
             }
         }
         
+        // Get the queried object ID for proper context (avoids parent-child post ID issues)
+        $current_post_id = get_queried_object_id();
+
         // Check if chapter looping is enabled
         $enable_chapter_looping = ! empty( $settings['enable_chapter_looping'] );
         $chapters = [];
-        
+
         if ( $enable_chapter_looping ) {
             // Load chapters from custom fields named "chapter" or "chapters"
-            $post_id = get_the_ID();
-            if ( $post_id ) {
+            if ( $current_post_id ) {
                 // Try to get custom field data from "chapters" or "chapter"
-                $chapters_data = get_post_meta( $post_id, 'chapters', true );
+                $chapters_data = get_post_meta( $current_post_id, 'chapters', true );
                 if ( empty( $chapters_data ) ) {
-                    $chapters_data = get_post_meta( $post_id, 'chapter', true );
+                    $chapters_data = get_post_meta( $current_post_id, 'chapter', true );
                 }
-                
+
                 // Process the chapters data if it's an array
                 if ( is_array( $chapters_data ) && ! empty( $chapters_data ) ) {
                     foreach ( $chapters_data as $chapter_item ) {
@@ -591,7 +593,7 @@ class SNN_Video_Player_Element extends Element {
                 INITIAL_MUTED: <?php echo json_encode($muted); ?>,
                 DISABLE_AUTOHIDE: <?php echo json_encode($disable_autohide); ?>,
                 HAS_SUBTITLES: <?php echo json_encode( ! empty( $subtitles ) ); ?>,
-                POST_ID: <?php echo json_encode( get_the_ID() ); ?>
+                POST_ID: <?php echo json_encode( $current_post_id ); ?>
             };
 
             const ICONS = {
