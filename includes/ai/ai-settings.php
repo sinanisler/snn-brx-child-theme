@@ -131,8 +131,8 @@ function snn_render_ai_settings() {
                     </th>
                     <td>
                         <select name="snn_ai_provider" id="snn_ai_provider">
-                            <option value="openai" <?php selected($ai_provider, 'openai'); ?>>OpenAI</option>
                             <option value="openrouter" <?php selected($ai_provider, 'openrouter'); ?>>OpenRouter</option>
+                            <option value="openai" <?php selected($ai_provider, 'openai'); ?>>OpenAI (Will Be Deprecated and Removed Soon)</option>
                             <option value="custom" <?php selected($ai_provider, 'custom'); ?>>Custom</option>
                         </select>
                     </td>
