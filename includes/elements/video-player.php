@@ -590,7 +590,8 @@ class SNN_Video_Player_Element extends Element {
                 KEY_SEEK_SECONDS: 5,
                 INITIAL_MUTED: <?php echo json_encode($muted); ?>,
                 DISABLE_AUTOHIDE: <?php echo json_encode($disable_autohide); ?>,
-                HAS_SUBTITLES: <?php echo json_encode( ! empty( $subtitles ) ); ?>
+                HAS_SUBTITLES: <?php echo json_encode( ! empty( $subtitles ) ); ?>,
+                POST_ID: <?php echo json_encode( get_the_ID() ); ?>
             };
 
             const ICONS = {
@@ -1216,6 +1217,7 @@ class SNN_Video_Player_Element extends Element {
                 console.log('Page URL:', event.detail.url);
                 console.log('Video URL:', event.detail.videoUrl);
                 console.log('Player ID:', event.detail.elementId);
+                console.log('Post ID:', event.detail.post_id);
 
                 // Do whatever you want here - send analytics, track views, etc.
             });
@@ -1226,6 +1228,7 @@ class SNN_Video_Player_Element extends Element {
                 console.log('Page URL:', event.detail.url);
                 console.log('Video URL:', event.detail.videoUrl);
                 console.log('Player ID:', event.detail.elementId);
+                console.log('Post ID:', event.detail.post_id);
 
                 // Do whatever you want here - send analytics, redirect, etc.
             });
@@ -1242,7 +1245,8 @@ class SNN_Video_Player_Element extends Element {
                         detail: {
                             url: window.location.href,
                             videoUrl: video.currentSrc,
-                            elementId: '<?php echo esc_js($root_id); ?>'
+                            elementId: '<?php echo esc_js($root_id); ?>',
+                            post_id: CONFIG.POST_ID
                         },
                         bubbles: true,
                         cancelable: true
@@ -1257,7 +1261,8 @@ class SNN_Video_Player_Element extends Element {
                     detail: {
                         url: window.location.href,
                         videoUrl: video.currentSrc,
-                        elementId: '<?php echo esc_js($root_id); ?>'
+                        elementId: '<?php echo esc_js($root_id); ?>',
+                        post_id: CONFIG.POST_ID
                     },
                     bubbles: true,
                     cancelable: true
