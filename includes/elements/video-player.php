@@ -51,6 +51,14 @@ class SNN_Video_Player_Element extends Element {
             'description' => esc_html__( 'Enable this to automatically use the current post\'s featured image as the video poster.', 'snn' ),
         ];
 
+        $this->controls['enable_subtitle_looping'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Enable Subtitle Looping', 'snn' ),
+            'type'  => 'checkbox',
+            'default' => false,
+            'description' => esc_html__( 'When enabled, subtitles will be automatically loaded from the current post custom fields named "subtitle" or "subtitles". Use the Double Text custom field for this.', 'snn' ),
+        ];
+
         $this->controls['subtitles'] = [
             'tab'           => 'content',
             'label'         => esc_html__( 'Subtitles / Captions', 'snn' ),
@@ -69,12 +77,6 @@ class SNN_Video_Player_Element extends Element {
                     'placeholder' => esc_html__( 'e.g., English, Spanish, French', 'snn' ),
                     'description' => esc_html__( 'Language name shown to users. If empty, will use the filename.', 'snn' ),
                 ],
-                'srclang' => [
-                    'label' => esc_html__( 'Language Code', 'snn' ),
-                    'type'  => 'text',
-                    'placeholder' => esc_html__( 'e.g., en, es, fr', 'snn' ),
-                    'description' => esc_html__( 'ISO 639-1 language code (optional but recommended)', 'snn' ),
-                ],
                 'is_default' => [
                     'label' => esc_html__( 'Default', 'snn' ),
                     'type'  => 'checkbox',
@@ -82,6 +84,7 @@ class SNN_Video_Player_Element extends Element {
                     'description' => esc_html__( 'Set as default subtitle', 'snn' ),
                 ],
             ],
+            'required'      => ['enable_subtitle_looping', '=', false],
         ];
 
         $this->controls['autoplay'] = [
@@ -277,57 +280,96 @@ class SNN_Video_Player_Element extends Element {
             }
         }
         
-        // Process subtitles
+        // Get the queried object ID for proper context (avoids parent-child post ID issues)
+        $current_post_id = get_queried_object_id();
+
+        // Check if subtitle looping is enabled
+        $enable_subtitle_looping = ! empty( $settings['enable_subtitle_looping'] );
         $subtitles = [];
-        if ( ! empty( $settings['subtitles'] ) && is_array( $settings['subtitles'] ) ) {
-            foreach ( $settings['subtitles'] as $index => $subtitle ) {
-                if ( ! empty( $subtitle['subtitle_file'] ) ) {
-                    $file_data = $subtitle['subtitle_file'];
-                    $subtitle_url = '';
-                    $subtitle_label = '';
-                    
-                    // Get subtitle URL
-                    if ( is_array( $file_data ) && ! empty( $file_data['url'] ) ) {
-                        $subtitle_url = $file_data['url'];
-                        // Get filename from URL if no label provided
-                        if ( empty( $subtitle['label'] ) && ! empty( $file_data['filename'] ) ) {
-                            $subtitle_label = pathinfo( $file_data['filename'], PATHINFO_FILENAME );
-                        }
-                    } elseif ( is_string( $file_data ) ) {
-                        if ( is_numeric( $file_data ) ) {
-                            $subtitle_url = wp_get_attachment_url( intval( $file_data ) );
-                            // Get filename from attachment if no label provided
-                            if ( empty( $subtitle['label'] ) ) {
-                                $subtitle_label = basename( get_attached_file( intval( $file_data ) ), '.vtt' );
+
+        if ( $enable_subtitle_looping ) {
+            // Load subtitles from custom fields named "subtitle" or "subtitles"
+            if ( $current_post_id ) {
+                // Try to get custom field data from "subtitles" or "subtitle"
+                $subtitles_data = get_post_meta( $current_post_id, 'subtitles', true );
+                if ( empty( $subtitles_data ) ) {
+                    $subtitles_data = get_post_meta( $current_post_id, 'subtitle', true );
+                }
+
+                // Process the subtitles data if it's an array
+                if ( is_array( $subtitles_data ) && ! empty( $subtitles_data ) ) {
+                    foreach ( $subtitles_data as $subtitle_item ) {
+                        // Check if it's an array with at least 2 elements [url, label]
+                        if ( is_array( $subtitle_item ) && count( $subtitle_item ) >= 2 ) {
+                            $subtitle_url = $subtitle_item[0];
+                            $subtitle_label = $subtitle_item[1];
+
+                            // Check if URL is an attachment ID (numeric) or a URL
+                            if ( is_numeric( $subtitle_url ) ) {
+                                $subtitle_url = wp_get_attachment_url( intval( $subtitle_url ) );
                             }
-                        } else {
-                            $subtitle_url = $file_data;
+
+                            if ( ! empty( $subtitle_url ) && ! empty( $subtitle_label ) ) {
+                                $subtitles[] = [
+                                    'url' => $subtitle_url,
+                                    'label' => $subtitle_label,
+                                    'srclang' => 'en', // Default language code
+                                    'is_default' => false,
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Use manual subtitles from the repeater control
+            if ( ! empty( $settings['subtitles'] ) && is_array( $settings['subtitles'] ) ) {
+                foreach ( $settings['subtitles'] as $index => $subtitle ) {
+                    if ( ! empty( $subtitle['subtitle_file'] ) ) {
+                        $file_data = $subtitle['subtitle_file'];
+                        $subtitle_url = '';
+                        $subtitle_label = '';
+
+                        // Get subtitle URL
+                        if ( is_array( $file_data ) && ! empty( $file_data['url'] ) ) {
+                            $subtitle_url = $file_data['url'];
                             // Get filename from URL if no label provided
-                            if ( empty( $subtitle['label'] ) ) {
-                                $subtitle_label = basename( $file_data, '.vtt' );
+                            if ( empty( $subtitle['label'] ) && ! empty( $file_data['filename'] ) ) {
+                                $subtitle_label = pathinfo( $file_data['filename'], PATHINFO_FILENAME );
+                            }
+                        } elseif ( is_string( $file_data ) ) {
+                            if ( is_numeric( $file_data ) ) {
+                                $subtitle_url = wp_get_attachment_url( intval( $file_data ) );
+                                // Get filename from attachment if no label provided
+                                if ( empty( $subtitle['label'] ) ) {
+                                    $subtitle_label = basename( get_attached_file( intval( $file_data ) ), '.vtt' );
+                                }
+                            } else {
+                                $subtitle_url = $file_data;
+                                // Get filename from URL if no label provided
+                                if ( empty( $subtitle['label'] ) ) {
+                                    $subtitle_label = basename( $file_data, '.vtt' );
+                                }
                             }
                         }
-                    }
-                    
-                    // Use custom label if provided
-                    if ( ! empty( $subtitle['label'] ) ) {
-                        $subtitle_label = $subtitle['label'];
-                    }
-                    
-                    if ( ! empty( $subtitle_url ) && ! empty( $subtitle_label ) ) {
-                        $subtitles[] = [
-                            'url' => $subtitle_url,
-                            'label' => $subtitle_label,
-                            'srclang' => ! empty( $subtitle['srclang'] ) ? $subtitle['srclang'] : 'en',
-                            'is_default' => ! empty( $subtitle['is_default'] ),
-                        ];
+
+                        // Use custom label if provided
+                        if ( ! empty( $subtitle['label'] ) ) {
+                            $subtitle_label = $subtitle['label'];
+                        }
+
+                        if ( ! empty( $subtitle_url ) && ! empty( $subtitle_label ) ) {
+                            $subtitles[] = [
+                                'url' => $subtitle_url,
+                                'label' => $subtitle_label,
+                                'srclang' => 'en', // Default language code
+                                'is_default' => ! empty( $subtitle['is_default'] ),
+                            ];
+                        }
                     }
                 }
             }
         }
-        
-        // Get the queried object ID for proper context (avoids parent-child post ID issues)
-        $current_post_id = get_queried_object_id();
 
         // Check if chapter looping is enabled
         $enable_chapter_looping = ! empty( $settings['enable_chapter_looping'] );
