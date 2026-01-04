@@ -1065,8 +1065,14 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
 
         case 'textarea':
         case 'basic_rich_text':
+               // Handle array values for textarea (convert to string)
+               $textarea_value = $value;
+               if (is_array($textarea_value)) {
+                   // Convert array to JSON for display in textarea
+                   $textarea_value = json_encode($textarea_value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+               }
                echo '<textarea class="snn-rich-text-editor" id="' . $id_attribute_base
-                     . '" name="' . esc_attr($name_attribute) . '"' . $disabled_attr . '>' . esc_textarea($value) . '</textarea>';
+                     . '" name="' . esc_attr($name_attribute) . '"' . $disabled_attr . '>' . esc_textarea($textarea_value) . '</textarea>';
                break;
 
         case 'rich_text':
