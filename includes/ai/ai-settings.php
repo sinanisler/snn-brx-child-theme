@@ -336,7 +336,11 @@ function snn_render_ai_settings() {
                                 <?php esc_html_e('Select the OpenRouter model to use. Start typing to search.', 'snn'); ?>
                                 <a href="https://openrouter.ai/models" target="_blank"><?php esc_html_e('Prices', 'snn'); ?></a>
                             </p>
-                            <div id="openrouter-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none; max-width: 410px; height: 120px; overflow: auto;">
+                            <div id="openrouter-model-capabilities" class="model-capabilities-tags" style="margin-top: 10px; display: none;">
+                                <strong><?php esc_html_e('Model Capabilities:', 'snn'); ?></strong>
+                                <div class="capabilities-tags" style="margin-top: 5px;"></div>
+                            </div>
+                            <div id="openrouter-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none; max-width: 410px; height: 220px; overflow: auto;">
                                 <strong><?php esc_html_e('Selected Model Features:', 'snn'); ?></strong>
                                 <ul style="list-style-type: disc; margin-left: 20px;"></ul>
                             </div>
@@ -396,7 +400,7 @@ function snn_render_ai_settings() {
                 </table>
             </div>
 
-            <h2><?php esc_html_e('Action Prompts', 'snn'); ?></h2>
+            <h2><?php esc_html_e('Prompt Presets', 'snn'); ?></h2>
             <p>
                 <?php esc_html_e('Add, edit, remove, or drag-and-drop to reorder AI action prompts. These presets will be available as selectable buttons in the AI overlay.', 'snn'); ?>
             </p>
@@ -492,6 +496,20 @@ function snn_render_ai_settings() {
             .selected-model-features li {
                 margin-bottom: 3px;
             }
+            .capabilities-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .capability-tag {
+                display: inline-block;
+                padding: 4px 10px;
+                background-color: #0073aa;
+                color: #fff;
+                border-radius: 3px;
+                font-size: 12px;
+                font-weight: 500;
+            }
             </style>
 
             <?php submit_button(__('Save AI Settings', 'snn')); ?>
@@ -513,6 +531,8 @@ function snn_render_ai_settings() {
             const openrouterModelInput = document.getElementById('snn_openrouter_model');
             const openrouterFeaturesDiv = document.getElementById('openrouter-selected-model-features');
             const openrouterFeaturesList = openrouterFeaturesDiv ? openrouterFeaturesDiv.querySelector('ul') : null;
+            const openrouterCapabilitiesDiv = document.getElementById('openrouter-model-capabilities');
+            const openrouterCapabilitiesContainer = openrouterCapabilitiesDiv ? openrouterCapabilitiesDiv.querySelector('.capabilities-tags') : null;
 
             let allOpenAiModels = [];
             let allOpenRouterModels = [];
@@ -526,6 +546,7 @@ function snn_render_ai_settings() {
                 // Hide feature divs when provider changes or AI is disabled
                 if (openaiFeaturesDiv) openaiFeaturesDiv.style.display = 'none';
                 if (openrouterFeaturesDiv) openrouterFeaturesDiv.style.display = 'none';
+                if (openrouterCapabilitiesDiv) openrouterCapabilitiesDiv.style.display = 'none';
 
                 if (isEnabled) {
                     if (providerSelect.value === 'openai') {
@@ -638,13 +659,60 @@ function snn_render_ai_settings() {
                 }
             }
 
+            /**
+             * Displays architecture capabilities as simple tags
+             * @param {HTMLElement} container The container element for tags
+             * @param {Object} architecture The architecture object from model data
+             */
+            function displayCapabilityTags(container, architecture) {
+                if (!container || !architecture) return;
+                container.innerHTML = ''; // Clear previous tags
+
+                // Create tags for each architecture property
+                const createTag = (label, value) => {
+                    const tag = document.createElement('span');
+                    tag.className = 'capability-tag';
+                    if (Array.isArray(value)) {
+                        tag.textContent = `${label}: ${value.join(', ')}`;
+                    } else {
+                        tag.textContent = `${label}: ${value || 'N/A'}`;
+                    }
+                    return tag;
+                };
+
+                // Add tags for key architecture properties
+                if (architecture.modality) {
+                    container.appendChild(createTag('Modality', architecture.modality));
+                }
+                if (architecture.input_modalities && architecture.input_modalities.length > 0) {
+                    container.appendChild(createTag('Input', architecture.input_modalities));
+                }
+                if (architecture.output_modalities && architecture.output_modalities.length > 0) {
+                    container.appendChild(createTag('Output', architecture.output_modalities));
+                }
+                if (architecture.tokenizer) {
+                    container.appendChild(createTag('Tokenizer', architecture.tokenizer));
+                }
+                if (architecture.instruct_type) {
+                    container.appendChild(createTag('Instruct Type', architecture.instruct_type));
+                }
+            }
+
             function displayOpenRouterModelFeatures(modelId) {
                 if (!openrouterFeaturesList) return;
                 openrouterFeaturesDiv.style.display = 'none';
+                if (openrouterCapabilitiesDiv) openrouterCapabilitiesDiv.style.display = 'none';
 
                 const selectedModel = allOpenRouterModels.find(model => model.id === modelId);
 
                 if (selectedModel) {
+                    // Display capability tags if architecture data exists
+                    if (selectedModel.architecture && openrouterCapabilitiesContainer) {
+                        openrouterCapabilitiesDiv.style.display = 'block';
+                        displayCapabilityTags(openrouterCapabilitiesContainer, selectedModel.architecture);
+                    }
+
+                    // Display full features list
                     openrouterFeaturesDiv.style.display = 'block';
                     displayFeatures(openrouterFeaturesList, selectedModel);
                 }
