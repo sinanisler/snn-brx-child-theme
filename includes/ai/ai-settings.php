@@ -68,15 +68,7 @@ function snn_register_ai_settings() {
     register_setting('snn_ai_settings_group', 'snn_custom_api_endpoint');
     register_setting('snn_ai_settings_group', 'snn_custom_model');
 
-    // 2. Register multimodal settings
-    register_setting('snn_ai_settings_group', 'snn_ai_multimodal_enabled', [
-        'type' => 'string',
-        'default' => 'no',
-    ]);
-    register_setting('snn_ai_settings_group', 'snn_ai_image_generation_enabled', [
-        'type' => 'string',
-        'default' => 'no',
-    ]);
+    // 2. Register multimodal configuration settings
     register_setting('snn_ai_settings_group', 'snn_ai_pdf_engine', [
         'type' => 'string',
         'default' => 'native',
@@ -104,12 +96,10 @@ function snn_render_ai_settings() {
         'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Only respond with the needed content and nothing else always!'
     );
 
-    // Multimodal settings
-    $multimodal_enabled         = get_option('snn_ai_multimodal_enabled', 'no');
-    $image_generation_enabled   = get_option('snn_ai_image_generation_enabled', 'no');
-    $pdf_engine                 = get_option('snn_ai_pdf_engine', 'native');
-    $image_aspect_ratio         = get_option('snn_ai_image_aspect_ratio', '1:1');
-    $image_size                 = get_option('snn_ai_image_size', '1K');
+    // Multimodal configuration settings
+    $pdf_engine         = get_option('snn_ai_pdf_engine', 'native');
+    $image_aspect_ratio = get_option('snn_ai_image_aspect_ratio', '1:1');
+    $image_size         = get_option('snn_ai_image_size', '1K');
 
     $default_presets = [
         ['name' => 'Title',    'prompt' => 'Generate a catchy title.'],
@@ -188,46 +178,12 @@ function snn_render_ai_settings() {
                 </tr>
             </table>
 
-            <h2><?php esc_html_e('Multimodal Features', 'snn'); ?></h2>
+            <h2><?php esc_html_e('Multimodal Configuration', 'snn'); ?></h2>
             <p class="description">
-                <?php esc_html_e('Configure advanced AI capabilities including image generation, PDF processing, and audio/image inputs. These features work with compatible models only.', 'snn'); ?>
+                <?php esc_html_e('Configure settings for multimodal AI features. The frontend will automatically detect and use these settings based on the model capabilities and user actions.', 'snn'); ?>
             </p>
             <table class="form-table">
                 <tr>
-                    <th scope="row">
-                        <label for="snn_ai_multimodal_enabled"><?php esc_html_e('Enable Multimodal Input', 'snn'); ?></label>
-                    </th>
-                    <td>
-                        <input
-                            type="checkbox"
-                            name="snn_ai_multimodal_enabled"
-                            id="snn_ai_multimodal_enabled"
-                            value="yes"
-                            <?php checked($multimodal_enabled, 'yes'); ?>
-                        />
-                        <p class="description">
-                            <?php esc_html_e('Allow sending images, PDFs, and audio files to compatible AI models. Requires models with vision/audio capabilities.', 'snn'); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="snn_ai_image_generation_enabled"><?php esc_html_e('Enable Image Generation', 'snn'); ?></label>
-                    </th>
-                    <td>
-                        <input
-                            type="checkbox"
-                            name="snn_ai_image_generation_enabled"
-                            id="snn_ai_image_generation_enabled"
-                            value="yes"
-                            <?php checked($image_generation_enabled, 'yes'); ?>
-                        />
-                        <p class="description">
-                            <?php esc_html_e('Enable AI to generate images from text prompts. Requires models with image output capabilities.', 'snn'); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr id="pdf-engine-row" style="display: <?php echo ($multimodal_enabled === 'yes') ? 'table-row' : 'none'; ?>;">
                     <th scope="row">
                         <label for="snn_ai_pdf_engine"><?php esc_html_e('PDF Processing Engine', 'snn'); ?></label>
                     </th>
@@ -238,11 +194,11 @@ function snn_render_ai_settings() {
                             <option value="mistral-ocr" <?php selected($pdf_engine, 'mistral-ocr'); ?>><?php esc_html_e('Mistral OCR ($2/1000 pages - Best for scanned documents)', 'snn'); ?></option>
                         </select>
                         <p class="description">
-                            <?php esc_html_e('Choose how PDFs are processed. Native uses the model\'s built-in capabilities (charged as input tokens). Other engines parse the PDF first.', 'snn'); ?>
+                            <?php esc_html_e('Choose how PDFs are processed when sent to AI models. Native uses the model\'s built-in capabilities (charged as input tokens). Other engines parse the PDF first.', 'snn'); ?>
                         </p>
                     </td>
                 </tr>
-                <tr id="image-config-row" style="display: <?php echo ($image_generation_enabled === 'yes') ? 'table-row' : 'none'; ?>;">
+                <tr>
                     <th scope="row">
                         <label for="snn_ai_image_aspect_ratio"><?php esc_html_e('Image Generation Settings', 'snn'); ?></label>
                     </th>
@@ -268,7 +224,7 @@ function snn_render_ai_settings() {
                             <option value="4K" <?php selected($image_size, '4K'); ?>>4K (Highest Resolution)</option>
                         </select>
                         <p class="description">
-                            <?php esc_html_e('Configure default settings for image generation. Note: Image size options are currently only supported by Gemini models.', 'snn'); ?>
+                            <?php esc_html_e('Default settings for image generation. Applied when generating images with compatible models. Note: Image size options are currently only supported by Gemini models.', 'snn'); ?>
                         </p>
                     </td>
                 </tr>
@@ -558,12 +514,6 @@ function snn_render_ai_settings() {
             const openrouterFeaturesDiv = document.getElementById('openrouter-selected-model-features');
             const openrouterFeaturesList = openrouterFeaturesDiv ? openrouterFeaturesDiv.querySelector('ul') : null;
 
-            // Multimodal feature toggles
-            const multimodalEnabledCheckbox = document.getElementById('snn_ai_multimodal_enabled');
-            const imageGenEnabledCheckbox = document.getElementById('snn_ai_image_generation_enabled');
-            const pdfEngineRow = document.getElementById('pdf-engine-row');
-            const imageConfigRow = document.getElementById('image-config-row');
-
             let allOpenAiModels = [];
             let allOpenRouterModels = [];
 
@@ -831,29 +781,6 @@ function snn_render_ai_settings() {
                 openrouterModelInput.addEventListener('input', (e) => {
                     displayOpenRouterModelFeatures(e.target.value);
                 });
-            }
-
-            // Multimodal feature toggle handlers
-            function toggleMultimodalSettings() {
-                if (multimodalEnabledCheckbox && pdfEngineRow) {
-                    pdfEngineRow.style.display = multimodalEnabledCheckbox.checked ? 'table-row' : 'none';
-                }
-            }
-
-            function toggleImageGenSettings() {
-                if (imageGenEnabledCheckbox && imageConfigRow) {
-                    imageConfigRow.style.display = imageGenEnabledCheckbox.checked ? 'table-row' : 'none';
-                }
-            }
-
-            if (multimodalEnabledCheckbox) {
-                multimodalEnabledCheckbox.addEventListener('change', toggleMultimodalSettings);
-                toggleMultimodalSettings();
-            }
-
-            if (imageGenEnabledCheckbox) {
-                imageGenEnabledCheckbox.addEventListener('change', toggleImageGenSettings);
-                toggleImageGenSettings();
             }
 
 
