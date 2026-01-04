@@ -1210,17 +1210,46 @@ class SNN_Video_Player_Element extends Element {
 
             /*
 
+            // Listen for video start anywhere in your JS
+            document.addEventListener('snn_video_started', function(event) {
+                console.log('Video started!');
+                console.log('Page URL:', event.detail.url);
+                console.log('Video URL:', event.detail.videoUrl);
+                console.log('Player ID:', event.detail.elementId);
+
+                // Do whatever you want here - send analytics, track views, etc.
+            });
+
             // Listen for video completion anywhere in your JS
             document.addEventListener('snn_video_completed', function(event) {
                 console.log('Video completed!');
                 console.log('Page URL:', event.detail.url);
                 console.log('Video URL:', event.detail.videoUrl);
                 console.log('Player ID:', event.detail.elementId);
-                
+
                 // Do whatever you want here - send analytics, redirect, etc.
             });
 
             */
+
+            let hasVideoStarted = false;
+
+            // Fire custom event when video starts playing
+            video.addEventListener('play', () => {
+                if (!hasVideoStarted) {
+                    hasVideoStarted = true;
+                    const event = new CustomEvent('snn_video_started', {
+                        detail: {
+                            url: window.location.href,
+                            videoUrl: video.currentSrc,
+                            elementId: '<?php echo esc_js($root_id); ?>'
+                        },
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    document.dispatchEvent(event);
+                }
+            });
 
             // Fire custom event when video completes
             video.addEventListener('ended', () => {
