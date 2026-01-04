@@ -37,7 +37,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * This function reads the WordPress options for the AI provider, API keys, and models.
  * It then returns a structured array containing the final apiKey, model, apiEndpoint,
- * systemPrompt, actionPresets, and responseFormat to be used by the frontend JavaScript.
+ * systemPrompt, actionPresets, responseFormat, and multimodal settings to be used by
+ * the frontend JavaScript.
  *
  * @return array An associative array containing the AI configuration.
  */
@@ -52,9 +53,15 @@ function snn_get_ai_api_config() {
         'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Dont generate markdown. Only respond with the needed content and nothing else always!'
     );
 
-    // NEW: Retrieve the desired response format type from settings
-    // You would have added 'snn_ai_response_format_type' in ai-settings.php
+    // Retrieve the desired response format type from settings
     $response_format_type = get_option('snn_ai_response_format_type', 'none'); // e.g., 'none', 'json_object'
+
+    // Retrieve multimodal settings
+    $multimodal_enabled       = get_option('snn_ai_multimodal_enabled', 'no');
+    $image_generation_enabled = get_option('snn_ai_image_generation_enabled', 'no');
+    $pdf_engine               = get_option('snn_ai_pdf_engine', 'native');
+    $image_aspect_ratio       = get_option('snn_ai_image_aspect_ratio', '1:1');
+    $image_size               = get_option('snn_ai_image_size', '1K');
 
     $apiKey      = '';
     $model       = '';
@@ -84,15 +91,59 @@ function snn_get_ai_api_config() {
     if ($response_format_type === 'json_object') {
         $responseFormat = ['type' => 'json_object'];
     }
-    // You could expand this for other structured formats if needed in the future,
-    // e.g., 'json_schema' if you also store a schema definition.
 
-    return [
+    // Prepare modalities array for image generation
+    // Only include 'image' modality if image generation is enabled
+    $modalities = ['text']; // Always include text
+    if ($image_generation_enabled === 'yes') {
+        $modalities[] = 'image';
+    }
+
+    // Prepare image_config for image generation settings
+    $imageConfig = [];
+    if ($image_generation_enabled === 'yes') {
+        $imageConfig = [
+            'aspect_ratio' => $image_aspect_ratio,
+            'image_size'   => $image_size,
+        ];
+    }
+
+    // Prepare plugins configuration for PDF processing
+    $plugins = [];
+    if ($multimodal_enabled === 'yes' && $pdf_engine !== 'native') {
+        $plugins[] = [
+            'id'  => 'file-parser',
+            'pdf' => [
+                'engine' => $pdf_engine,
+            ],
+        ];
+    }
+
+    // Build the configuration array
+    $config = [
         'apiKey'          => $apiKey,
         'model'           => $model,
         'apiEndpoint'     => $apiEndpoint,
         'systemPrompt'    => $system_prompt,
         'actionPresets'   => array_values($action_presets),
-        'responseFormat'  => $responseFormat, // This is the new part passed to ai-overlay.php
+        'responseFormat'  => $responseFormat,
+        
+        // Multimodal capabilities (backward compatible - only included when enabled)
+        'multimodal' => [
+            'enabled'              => $multimodal_enabled === 'yes',
+            'imageGenerationEnabled' => $image_generation_enabled === 'yes',
+        ],
     ];
+
+    // Only add these fields when the features are enabled to maintain backward compatibility
+    if ($image_generation_enabled === 'yes') {
+        $config['modalities']  = $modalities;
+        $config['imageConfig'] = $imageConfig;
+    }
+
+    if (!empty($plugins)) {
+        $config['plugins'] = $plugins;
+    }
+
+    return $config;
 }
