@@ -57,7 +57,6 @@ function snn_get_ai_api_config() {
     $response_format_type = get_option('snn_ai_response_format_type', 'none'); // e.g., 'none', 'json_object'
 
     // Retrieve multimodal configuration settings
-    $pdf_engine         = get_option('snn_ai_pdf_engine', 'native');
     $image_aspect_ratio = get_option('snn_ai_image_aspect_ratio', '1:1');
     $image_size         = get_option('snn_ai_image_size', '1K');
 
@@ -96,17 +95,6 @@ function snn_get_ai_api_config() {
         'image_size'   => $image_size,
     ];
 
-    // Prepare plugins configuration for PDF processing
-    $plugins = [];
-    if ($pdf_engine !== 'native') {
-        $plugins[] = [
-            'id'  => 'file-parser',
-            'pdf' => [
-                'engine' => $pdf_engine,
-            ],
-        ];
-    }
-
     // Build the configuration array
     $config = [
         'apiKey'          => $apiKey,
@@ -117,11 +105,6 @@ function snn_get_ai_api_config() {
         'responseFormat'  => $responseFormat,
         'imageConfig'     => $imageConfig,
     ];
-
-    // Only add plugins if a non-native engine is selected
-    if (!empty($plugins)) {
-        $config['plugins'] = $plugins;
-    }
 
     return $config;
 }

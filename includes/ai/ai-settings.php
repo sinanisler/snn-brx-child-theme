@@ -69,10 +69,6 @@ function snn_register_ai_settings() {
     register_setting('snn_ai_settings_group', 'snn_custom_model');
 
     // 2. Register multimodal configuration settings
-    register_setting('snn_ai_settings_group', 'snn_ai_pdf_engine', [
-        'type' => 'string',
-        'default' => 'native',
-    ]);
     register_setting('snn_ai_settings_group', 'snn_ai_image_aspect_ratio', [
         'type' => 'string',
         'default' => '1:1',
@@ -97,7 +93,6 @@ function snn_render_ai_settings() {
     );
 
     // Multimodal configuration settings
-    $pdf_engine         = get_option('snn_ai_pdf_engine', 'native');
     $image_aspect_ratio = get_option('snn_ai_image_aspect_ratio', '1:1');
     $image_size         = get_option('snn_ai_image_size', '1K');
 
@@ -183,21 +178,6 @@ function snn_render_ai_settings() {
                 <?php esc_html_e('Configure settings for multimodal AI features. The frontend will automatically detect and use these settings based on the model capabilities and user actions.', 'snn'); ?>
             </p>
             <table class="form-table">
-                <tr>
-                    <th scope="row">
-                        <label for="snn_ai_pdf_engine"><?php esc_html_e('PDF Processing Engine', 'snn'); ?></label>
-                    </th>
-                    <td>
-                        <select name="snn_ai_pdf_engine" id="snn_ai_pdf_engine">
-                            <option value="native" <?php selected($pdf_engine, 'native'); ?>><?php esc_html_e('Native (Model Default)', 'snn'); ?></option>
-                            <option value="pdf-text" <?php selected($pdf_engine, 'pdf-text'); ?>><?php esc_html_e('PDF Text (Free - Best for text PDFs)', 'snn'); ?></option>
-                            <option value="mistral-ocr" <?php selected($pdf_engine, 'mistral-ocr'); ?>><?php esc_html_e('Mistral OCR ($2/1000 pages - Best for scanned documents)', 'snn'); ?></option>
-                        </select>
-                        <p class="description">
-                            <?php esc_html_e('Choose how PDFs are processed when sent to AI models. Native uses the model\'s built-in capabilities (charged as input tokens). Other engines parse the PDF first.', 'snn'); ?>
-                        </p>
-                    </td>
-                </tr>
                 <tr>
                     <th scope="row">
                         <label for="snn_ai_image_aspect_ratio"><?php esc_html_e('Image Generation Settings', 'snn'); ?></label>
