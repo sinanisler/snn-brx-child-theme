@@ -4,15 +4,20 @@
  * ----------------------------------------
  * Comment Count Current User Tag Module
  * ----------------------------------------
- * Usage: {comment_count_current_user} or {comment_count_current_user:month}
+ * Usage: {comment_count_current_user} or {comment_count_current_user:month} or {comment_count_current_user:month:post_type}
  *
  * Supported Options:
  * - (default): Returns total comment count for current user
  * - month: Returns comment count for current month only
+ * - post_type: Returns comment count for specific post type (e.g., post, page, product)
+ * - month:post_type: Combines both filters
  *
  * Examples:
  * - {comment_count_current_user} → Total comment count for current user
  * - {comment_count_current_user:month} → Comment count for current month only
+ * - {comment_count_current_user:post} → Comment count for 'post' post type only
+ * - {comment_count_current_user:month:post} → Comment count for 'post' post type in current month
+ * - {comment_count_current_user:month:product} → Comment count for 'product' post type in current month
  * ----------------------------------------
  */
 
@@ -50,14 +55,34 @@ function get_comment_count_current_user_data($option = '') {
         'status'  => 'approve', // Only approved comments
     ];
 
-    // Add date query for current month if option is 'month'
-    if ($option === 'month') {
+    // Parse options (can be 'month', 'post_type', or 'month:post_type')
+    $options = !empty($option) ? explode(':', $option) : [];
+    $use_month_filter = false;
+    $post_type = '';
+
+    foreach ($options as $opt) {
+        $opt = trim($opt);
+        if ($opt === 'month') {
+            $use_month_filter = true;
+        } elseif (!empty($opt)) {
+            // Assume it's a post type
+            $post_type = $opt;
+        }
+    }
+
+    // Add date query for current month if 'month' option is present
+    if ($use_month_filter) {
         $args['date_query'] = [
             [
                 'year'  => date('Y'),
                 'month' => date('n'),
             ],
         ];
+    }
+
+    // Add post type filter if specified
+    if (!empty($post_type)) {
+        $args['post_type'] = $post_type;
     }
 
     // Get comment count
