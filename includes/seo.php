@@ -818,91 +818,51 @@ function snn_seo_get_current_url() {
 }
 
 /**
- * Filter the document title - only override when SEO is enabled for this content type
- * Returns empty string to let our custom title output take over, or false to use WordPress default
+ * Filter the document title - return our custom title when SEO is enabled
  */
 function snn_seo_filter_document_title($title) {
     if (!get_option('snn_seo_enabled')) {
-        return $title; // SEO not enabled, use WordPress default
+        return $title;
     }
-    
-    // Check if current content type has SEO enabled
+
+    $custom_title = '';
+    $context = [];
+
+    // Single post/page/CPT
     if (is_singular()) {
-        $post_type = get_post_type();
+        global $post;
+        if (!$post || is_wp_error($post)) {
+            return $title;
+        }
+
+        $post_type = get_post_type($post);
         $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
         $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
-        
+
         if (!isset($post_types_enabled[$post_type]) || !$post_types_enabled[$post_type]) {
-            return $title; // This post type doesn't have SEO enabled, use WordPress default
+            return $title;
         }
-    }
-    elseif (is_post_type_archive()) {
-        $post_type = get_query_var('post_type');
-        if (is_array($post_type)) {
-            $post_type = reset($post_type);
-        }
-        if (empty($post_type)) {
-            global $wp_query;
-            $post_type = $wp_query->get('post_type');
-        }
-        if (empty($post_type)) {
-            $queried_object = get_queried_object();
-            if ($queried_object && isset($queried_object->name)) {
-                $post_type = $queried_object->name;
-            }
-        }
-        
-        if (!empty($post_type) && is_string($post_type)) {
-            $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
-            $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
-            
-            if (!isset($post_types_enabled[$post_type]) || !$post_types_enabled[$post_type]) {
-                return $title; // This post type archive doesn't have SEO enabled, use WordPress default
-            }
+
+        $context = ['post_id' => $post->ID];
+        $custom_meta_title = get_post_meta($post->ID, '_snn_seo_title', true);
+
+        if (!empty($custom_meta_title)) {
+            $custom_title = snn_seo_replace_tags($custom_meta_title, $context);
         } else {
-            return $title; // Can't determine post type, use WordPress default
+            $post_type_titles = get_option('snn_seo_post_type_titles', []);
+            $post_type_titles = is_array($post_type_titles) ? $post_type_titles : [];
+            $template = isset($post_type_titles[$post_type]) && !empty($post_type_titles[$post_type])
+                ? $post_type_titles[$post_type]
+                : '{post_title} - {site_title}';
+            $custom_title = snn_seo_replace_tags($template, $context);
         }
+
+        return !empty($custom_title) ? $custom_title : $title;
     }
-    elseif (is_tax() || is_category() || is_tag()) {
-        $term = get_queried_object();
-        if (!$term || is_wp_error($term) || !isset($term->taxonomy)) {
-            return $title; // Invalid term, use WordPress default
-        }
-        
-        $taxonomies_enabled = get_option('snn_seo_taxonomies_enabled', []);
-        $taxonomies_enabled = is_array($taxonomies_enabled) ? $taxonomies_enabled : [];
-        
-        if (!isset($taxonomies_enabled[$term->taxonomy]) || !$taxonomies_enabled[$term->taxonomy]) {
-            return $title; // This taxonomy doesn't have SEO enabled, use WordPress default
-        }
-    }
-    elseif (is_author()) {
-        $authors_enabled = get_option('snn_seo_authors_enabled');
-        if (!$authors_enabled) {
-            return $title; // Author archives SEO not enabled, use WordPress default
-        }
-    }
-    elseif (is_search()) {
-        $search_enabled = get_option('snn_seo_search_enabled', true);
-        if (!$search_enabled) {
-            return $title; // Search SEO not enabled, use WordPress default
-        }
-    }
-    elseif (is_date()) {
-        $date_enabled = get_option('snn_seo_date_enabled', true);
-        if (!$date_enabled) {
-            return $title; // Date archives SEO not enabled, use WordPress default
-        }
-    }
-    elseif (is_404()) {
-        $notfound_enabled = get_option('snn_seo_404_enabled', true);
-        if (!$notfound_enabled) {
-            return $title; // 404 SEO not enabled, use WordPress default
-        }
-    }
-    
-    // SEO is enabled for this content type, return empty to let our custom title output take over
-    return '';
+
+    // For all other cases (archives, taxonomy, author, etc.)
+    // Return the title as-is and let snn_seo_output_meta_tags handle it
+    return $title;
 }
 add_filter('pre_get_document_title', 'snn_seo_filter_document_title', 100);
 
@@ -1179,21 +1139,24 @@ function snn_seo_output_meta_tags() {
     $canonical_url = apply_filters('snn_seo_canonical_url', $canonical_url);
     
     // Output meta tags
-    if (!empty($title)) {
-        echo '<title>' . esc_html($title) . '</title>' . "\n";
-    }
-    
+    // Note: Title tag is handled by snn_seo_filter_document_title filter
+
     if (!empty($description)) {
         echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
     }
     
     // Robots noindex meta tag (for singular posts/pages and taxonomy terms)
     if (is_singular()) {
+        global $post;
         $post_type = get_post_type();
         $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
         $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
-        $noindex = isset($post_types_enabled[$post_type . '_noindex']) ? $post_types_enabled[$post_type . '_noindex'] : false;
-        if ($noindex) {
+
+        // Check individual post noindex first, then post type level noindex
+        $post_noindex = get_post_meta($post->ID, '_snn_seo_noindex', true);
+        $type_noindex = isset($post_types_enabled[$post_type . '_noindex']) ? $post_types_enabled[$post_type . '_noindex'] : false;
+
+        if ($post_noindex == '1' || $type_noindex) {
             echo '<meta name="robots" content="noindex, nofollow">' . "\n";
         }
     } elseif (is_tax() || is_category() || is_tag()) {
