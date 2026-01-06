@@ -73,6 +73,7 @@ function snn_custom_fields_page_callback() {
                         'repeater'      => (!$is_repeater_disabled_type && !empty($field_data['repeater'])) ? 1 : 0,
                         'author'        => !empty($field_data['author']) ? 1 : 0,
                         'options_page'  => !empty($field_data['options_page']) ? 1 : 0,
+                        'quick_edit'    => (in_array($field_data['type'], ['text', 'textarea']) && !empty($field_data['quick_edit'])) ? 1 : 0,
                         'column_width'  => isset($field_data['column_width']) && is_numeric($field_data['column_width']) ? intval($field_data['column_width']) : '',
                         'return_full_url'=> ($field_data['type'] === 'media' && !empty($field_data['return_full_url'])) ? 1 : 0,
                         'date_format'   => ($field_data['type'] === 'date' && !empty($field_data['date_format'])) ? sanitize_text_field($field_data['date_format']) : 'YYYY-MM-DD',
@@ -103,6 +104,7 @@ function snn_custom_fields_page_callback() {
                         $show_choices = in_array($field_type, ['select','checkbox','radio']);
                         $is_repeater_disabled_type = in_array($field_type, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map']);
                         $repeater_title = $is_repeater_disabled_type ? __('This field type cannot be a repeater', 'snn') : __('Allow multiple values', 'snn');
+                        $show_quick_edit = in_array($field_type, ['text', 'textarea']);
                         ?>
                         <div class="custom-field-row" data-index="<?php echo $index; ?>">
                             <div class="buttons">
@@ -206,6 +208,12 @@ function snn_custom_fields_page_callback() {
                                        <?php checked(!empty($field['repeater'])); echo $is_repeater_disabled_type ? ' disabled' : ''; ?>
                                        title="<?php echo esc_attr($repeater_title); ?>" />
                             </div>
+                            <div class="field-group quick-edit-group" style="<?php echo $show_quick_edit ? '' : 'display:none;'; ?>">
+                                <label><?php esc_html_e('Quick Edit', 'snn'); ?></label>
+                                <input type="checkbox" class="quick-edit-checkbox" name="custom_fields[<?php echo $index; ?>][quick_edit]" value="1"
+                                       <?php checked(!empty($field['quick_edit'])); ?>
+                                       title="<?php esc_attr_e('Enable Quick Edit for this field', 'snn'); ?>" />
+                            </div>
                             <?php if ($field_type === 'media') : ?>
                             <div class="field-group media-return-url-group">
                                 <label><?php esc_html_e('Return URL', 'snn'); ?></label>
@@ -285,6 +293,18 @@ function snn_custom_fields_page_callback() {
                 if (disable) {
                     authorCheckbox.checked = false;
                     optionsCheckbox.checked = false;
+                }
+            }
+
+            function toggleQuickEditCheckbox(row) {
+                const typeSelect = row.querySelector('.field-type-select');
+                const quickEditGroup = row.querySelector('.quick-edit-group');
+                if (!typeSelect || !quickEditGroup) return;
+                const showQuickEdit = ['text', 'textarea'].includes(typeSelect.value);
+                quickEditGroup.style.display = showQuickEdit ? '' : 'none';
+                if (!showQuickEdit) {
+                    const checkbox = quickEditGroup.querySelector('.quick-edit-checkbox');
+                    if (checkbox) checkbox.checked = false;
                 }
             }
 
@@ -407,9 +427,10 @@ function snn_custom_fields_page_callback() {
                             <option value="<?php echo esc_js($tax->name); ?>"><?php echo esc_js($tax->label); ?></option>
                         <?php endforeach; ?>
                     </select></div>
-                    <div class="field-group"><label><?php esc_html_e('Author', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][author]" value="1"></div>
-                    <div class="field-group"><label><?php esc_html_e('Options Page', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][options_page]" value="1"></div>
+                    <div class="field-group"><label><?php esc_html_e('Author', 'snn'); ?></label><input type="checkbox" class="author-checkbox" name="custom_fields[${newIndex}][author]" value="1"></div>
+                    <div class="field-group"><label><?php esc_html_e('Options Page', 'snn'); ?></label><input type="checkbox" class="options-page-checkbox" name="custom_fields[${newIndex}][options_page]" value="1"></div>
                     <div class="field-group"><label><?php esc_html_e('Repeater', 'snn'); ?></label><input type="checkbox" class="repeater-checkbox" name="custom_fields[${newIndex}][repeater]" value="1"></div>
+                    <div class="field-group quick-edit-group"><label><?php esc_html_e('Quick Edit', 'snn'); ?></label><input type="checkbox" class="quick-edit-checkbox" name="custom_fields[${newIndex}][quick_edit]" value="1" title="<?php esc_attr_e('Enable Quick Edit for this field', 'snn'); ?>"></div>
                     <div class="field-group media-return-url-group" style="display:none;"><label><?php esc_html_e('Return Full URL', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1"></div>
                     <div class="field-group date-format-group" style="display:none;"><label><?php esc_html_e('Date Format', 'snn'); ?></label><select name="custom_fields[${newIndex}][date_format]" style="width:140px"><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select></div>
                 `;
@@ -418,6 +439,7 @@ function snn_custom_fields_page_callback() {
                 toggleChoicesField(newRow);
                 toggleRepeaterCheckbox(newRow);
                 toggleAuthorAndOptionsCheckboxes(newRow);
+                toggleQuickEditCheckbox(newRow);
                 handleMediaReturnUrlForNewRow(newRow, newRow.querySelector('.field-type-select').value);
                 handleDateFormatForNewRow(newRow, newRow.querySelector('.field-type-select').value); 
                 updateFieldIndexes();
@@ -452,6 +474,7 @@ function snn_custom_fields_page_callback() {
                     toggleChoicesField(row);
                     toggleRepeaterCheckbox(row);
                     toggleAuthorAndOptionsCheckboxes(row);
+                    toggleQuickEditCheckbox(row);
                     handleMediaReturnUrlForNewRow(row, e.target.value);
                     handleDateFormatForNewRow(row, e.target.value);
                 }
@@ -461,6 +484,7 @@ function snn_custom_fields_page_callback() {
                 toggleChoicesField(row);
                 toggleRepeaterCheckbox(row);
                 toggleAuthorAndOptionsCheckboxes(row);
+                toggleQuickEditCheckbox(row);
                 toggleMediaReturnUrlField(row);
                 toggleDateFormatField(row);
                 attachFieldNameSanitizer(row.querySelector('.sanitize-key'));
@@ -617,6 +641,194 @@ function snn_custom_fields_page_callback() {
             }
         </style>
     </div>
+    <?php
+}
+
+// ------------------------------------------------
+// QUICK EDIT FUNCTIONALITY
+// ------------------------------------------------
+add_action('quick_edit_custom_box', 'snn_add_quick_edit_fields', 10, 2);
+function snn_add_quick_edit_fields($column_name, $post_type) {
+    $custom_fields = get_option('snn_custom_fields', []);
+    $quick_edit_fields = [];
+    
+    foreach ($custom_fields as $field) {
+        if (!empty($field['quick_edit']) && 
+            !empty($field['post_type']) && 
+            in_array($post_type, $field['post_type']) &&
+            in_array($field['type'], ['text', 'textarea'])) {
+            $quick_edit_fields[] = $field;
+        }
+    }
+    
+    if (empty($quick_edit_fields)) {
+        return;
+    }
+    
+    static $printed = false;
+    if ($printed) {
+        return;
+    }
+    $printed = true;
+    
+    ?>
+    <fieldset class="inline-edit-col-right inline-edit-snn-custom-fields">
+        <div class="inline-edit-col">
+            <h4><?php esc_html_e('Custom Fields', 'snn'); ?></h4>
+            <?php foreach ($quick_edit_fields as $field) : 
+                $field_name = $field['name'];
+                $field_label = (!empty($field['label'])) ? $field['label'] : ucwords(str_replace('_', ' ', $field_name));
+            ?>
+            <label class="inline-edit-group">
+                <span class="title"><?php echo esc_html($field_label); ?></span>
+                <?php if ($field['type'] === 'text') : ?>
+                    <span class="input-text-wrap">
+                        <input type="text" name="snn_quick_edit[<?php echo esc_attr($field_name); ?>]" 
+                               class="snn-quick-edit-field" 
+                               data-field-name="<?php echo esc_attr($field_name); ?>" 
+                               value="" />
+                    </span>
+                <?php elseif ($field['type'] === 'textarea') : ?>
+                    <textarea name="snn_quick_edit[<?php echo esc_attr($field_name); ?>]" 
+                              class="snn-quick-edit-field" 
+                              data-field-name="<?php echo esc_attr($field_name); ?>" 
+                              rows="3" 
+                              style="width: 100%;"></textarea>
+                <?php endif; ?>
+            </label>
+            <?php endforeach; ?>
+        </div>
+    </fieldset>
+    <?php
+}
+
+add_action('save_post', 'snn_save_quick_edit_fields');
+function snn_save_quick_edit_fields($post_id) {
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+    
+    if (!isset($_POST['snn_quick_edit']) || !is_array($_POST['snn_quick_edit'])) {
+        return;
+    }
+    
+    $post_type_object = get_post_type_object(get_post_type($post_id));
+    if (!$post_type_object || !current_user_can($post_type_object->cap->edit_post, $post_id)) {
+        return;
+    }
+    
+    $custom_fields = get_option('snn_custom_fields', []);
+    $current_post_type = get_post_type($post_id);
+    
+    foreach ($custom_fields as $field) {
+        if (empty($field['quick_edit']) || 
+            empty($field['post_type']) || 
+            !in_array($current_post_type, $field['post_type']) ||
+            !in_array($field['type'], ['text', 'textarea'])) {
+            continue;
+        }
+        
+        $field_name = $field['name'];
+        
+        if (isset($_POST['snn_quick_edit'][$field_name])) {
+            $value = $_POST['snn_quick_edit'][$field_name];
+            $sanitized_value = snn_sanitize_value_by_type($field['type'], $value, $field);
+            
+            if ($sanitized_value !== '' && $sanitized_value !== null) {
+                update_post_meta($post_id, $field_name, $sanitized_value);
+            } else {
+                delete_post_meta($post_id, $field_name);
+            }
+        }
+    }
+}
+
+add_action('admin_footer-edit.php', 'snn_quick_edit_javascript');
+function snn_quick_edit_javascript() {
+    global $current_screen;
+    if (!$current_screen || $current_screen->base !== 'edit') {
+        return;
+    }
+    
+    $post_type = $current_screen->post_type;
+    $custom_fields = get_option('snn_custom_fields', []);
+    $has_quick_edit_fields = false;
+    
+    foreach ($custom_fields as $field) {
+        if (!empty($field['quick_edit']) && 
+            !empty($field['post_type']) && 
+            in_array($post_type, $field['post_type']) &&
+            in_array($field['type'], ['text', 'textarea'])) {
+            $has_quick_edit_fields = true;
+            break;
+        }
+    }
+    
+    if (!$has_quick_edit_fields) {
+        return;
+    }
+    ?>
+    <script type="text/javascript">
+    (function($) {
+        var $wp_inline_edit = inlineEditPost.edit;
+        inlineEditPost.edit = function(id) {
+            $wp_inline_edit.apply(this, arguments);
+            
+            var post_id = 0;
+            if (typeof(id) == 'object') {
+                post_id = parseInt(this.getId(id));
+            }
+            
+            if (post_id > 0) {
+                var $row = $('#post-' + post_id);
+                
+                $('.snn-quick-edit-field').each(function() {
+                    var $field = $(this);
+                    var field_name = $field.data('field-name');
+                    var $hidden_input = $row.find('.snn-quick-edit-data-' + field_name);
+                    
+                    if ($hidden_input.length) {
+                        var value = $hidden_input.val();
+                        $field.val(value);
+                    } else {
+                        $field.val('');
+                    }
+                });
+            }
+        };
+    })(jQuery);
+    </script>
+    <?php
+}
+
+add_filter('manage_posts_columns', 'snn_add_quick_edit_hidden_columns', 10, 2);
+add_filter('manage_pages_columns', 'snn_add_quick_edit_hidden_columns', 10, 2);
+function snn_add_quick_edit_hidden_columns($columns, $post_type) {
+    $custom_fields = get_option('snn_custom_fields', []);
+    
+    foreach ($custom_fields as $field) {
+        if (!empty($field['quick_edit']) && 
+            !empty($field['post_type']) && 
+            in_array($post_type, $field['post_type']) &&
+            in_array($field['type'], ['text', 'textarea'])) {
+            $columns['snn_quick_edit_' . $field['name']] = '';
+        }
+    }
+    
+    return $columns;
+}
+
+add_action('manage_posts_custom_column', 'snn_populate_quick_edit_data', 10, 2);
+add_action('manage_pages_custom_column', 'snn_populate_quick_edit_data', 10, 2);
+function snn_populate_quick_edit_data($column_name, $post_id) {
+    if (strpos($column_name, 'snn_quick_edit_') !== 0) {
+        return;
+    }
+    
+    $field_name = str_replace('snn_quick_edit_', '', $column_name);
+    $value = get_post_meta($post_id, $field_name, true);
+    ?>
+    <input type="hidden" class="snn-quick-edit-data-<?php echo esc_attr($field_name); ?>" value="<?php echo esc_attr($value); ?>" />
     <?php
 }
 
