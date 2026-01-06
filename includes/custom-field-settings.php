@@ -300,8 +300,18 @@ function snn_custom_fields_page_callback() {
                 const typeSelect = row.querySelector('.field-type-select');
                 const quickEditGroup = row.querySelector('.quick-edit-group');
                 if (!typeSelect || !quickEditGroup) return;
-                const showQuickEdit = ['text', 'textarea'].includes(typeSelect.value);
+                
+                // Check if field type is text or textarea
+                const isValidType = ['text', 'textarea'].includes(typeSelect.value);
+                
+                // Check if at least one post type is selected
+                const postTypeSelect = row.querySelector('select[name*="[post_type]"]');
+                const hasPostType = postTypeSelect && postTypeSelect.selectedOptions.length > 0;
+                
+                // Show Quick Edit only if both conditions are met
+                const showQuickEdit = isValidType && hasPostType;
                 quickEditGroup.style.display = showQuickEdit ? '' : 'none';
+                
                 if (!showQuickEdit) {
                     const checkbox = quickEditGroup.querySelector('.quick-edit-checkbox');
                     if (checkbox) checkbox.checked = false;
@@ -477,6 +487,13 @@ function snn_custom_fields_page_callback() {
                     toggleQuickEditCheckbox(row);
                     handleMediaReturnUrlForNewRow(row, e.target.value);
                     handleDateFormatForNewRow(row, e.target.value);
+                }
+                // Add listener for post type selection changes
+                if (e.target.name && e.target.name.includes('[post_type]')) {
+                    const row = e.target.closest('.custom-field-row');
+                    if (row) {
+                        toggleQuickEditCheckbox(row);
+                    }
                 }
             });
 
