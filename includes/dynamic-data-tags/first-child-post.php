@@ -9,10 +9,14 @@
  * - (default): Returns the URL/permalink of the first child post (e.g., https://example.com/parent/first-child/)
  * - title: Returns the title of the first child post (e.g., "First Child Post")
  * - slug: Returns the slug/post_name of the first child post (e.g., "first-child")
+ * - first_grand_child: Returns the URL/permalink of the first grandchild (first child's first child)
+ * - first_grand_child:title: Returns the title of the first grandchild
+ * - first_grand_child:slug: Returns the slug of the first grandchild
  *
  * Logic:
  * - Gets the current post's grandparent (parent of parent)
  * - Finds the first child of that grandparent based on menu_order (ASC)
+ * - For first_grand_child properties, gets the first child of the first child
  * - Returns the requested property
  * ----------------------------------------
  */
@@ -21,9 +25,12 @@
 add_filter('bricks/dynamic_tags_list', 'add_first_child_post_tags_to_builder');
 function add_first_child_post_tags_to_builder($tags) {
     $properties = [
-        ''      => 'First Child Post URL',
-        'title' => 'First Child Post Title',
-        'slug'  => 'First Child Post Slug',
+        ''                       => 'First Child Post URL',
+        'title'                  => 'First Child Post Title',
+        'slug'                   => 'First Child Post Slug',
+        'first_grand_child'      => 'First Grand Child URL',
+        'first_grand_child:title' => 'First Grand Child Title',
+        'first_grand_child:slug'  => 'First Grand Child Slug',
     ];
 
     foreach ($properties as $property => $label) {
@@ -90,7 +97,38 @@ function get_first_child_post($property = '') {
 
     $first_child = $children[0];
 
-    // Return the requested property
+    // Handle first_grand_child properties
+    if (strpos($property, 'first_grand_child') === 0) {
+        // Get the first child of the first child (grandchild)
+        $grandchild_args = [
+            'post_type'      => $current_post->post_type,
+            'post_parent'    => $first_child->ID,
+            'posts_per_page' => 1,
+            'orderby'        => 'menu_order',
+            'order'          => 'ASC',
+            'post_status'    => 'publish',
+        ];
+
+        $grandchildren = get_posts($grandchild_args);
+
+        if (empty($grandchildren)) {
+            return '';
+        }
+
+        $first_grandchild = $grandchildren[0];
+
+        // Check for sub-property after first_grand_child
+        if ($property === 'first_grand_child:title') {
+            return get_the_title($first_grandchild->ID);
+        } elseif ($property === 'first_grand_child:slug') {
+            return $first_grandchild->post_name;
+        } else {
+            // Default: return URL/permalink of grandchild
+            return get_permalink($first_grandchild->ID);
+        }
+    }
+
+    // Return the requested property for first child
     switch ($property) {
         case 'title':
             return get_the_title($first_child->ID);
