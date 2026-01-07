@@ -818,9 +818,16 @@ function snn_quick_edit_javascript() {
     <?php
 }
 
-add_filter('manage_posts_columns', 'snn_add_quick_edit_hidden_columns', 10, 2);
-add_filter('manage_pages_columns', 'snn_add_quick_edit_hidden_columns', 10, 2);
-function snn_add_quick_edit_hidden_columns($columns, $post_type) {
+add_filter('manage_posts_columns', 'snn_add_quick_edit_hidden_columns', 10, 1);
+add_filter('manage_pages_columns', 'snn_add_quick_edit_hidden_columns', 10, 1);
+function snn_add_quick_edit_hidden_columns($columns) {
+    global $typenow;
+    $post_type = $typenow;
+    
+    if (empty($post_type)) {
+        return $columns;
+    }
+    
     $custom_fields = get_option('snn_custom_fields', []);
     
     foreach ($custom_fields as $field) {
