@@ -346,7 +346,7 @@ function snn_custom_codes_snippets_admin_styles() {
 
         /* Fatal Error Notice Styling (admin notice) */
         .snn-fatal-error-notice strong { color: #dc3232; }
-        .snn-fatal-error-notice code { background: #f9f9f9; border: 1px solid #ddd; padding: 2px 4px; font-size: 0.9em; display: block; white-space: pre-wrap; word-break: break-all;}
+        .snn-fatal-error-notice code { background: #f9f9f9; border: 1px sofully read the code lid #ddd; padding: 2px 4px; font-size: 0.9em; display: block; white-space: pre-wrap; word-break: break-all;}
 
         /* Styles for fatal error indication on the settings row itself */
         .snn-setting-row-error {
@@ -433,7 +433,9 @@ function snn_validate_php_syntax( $code ) {
         }
         
         // Check for multiple consecutive operators that don't make sense
-        if ( preg_match( '/[=!<>]{3,}|(?<!-)(?<!\+)-{2,}(?!>)|(?<!\*)\*{3,}/', $line ) ) {
+        // Allow valid operators like ===, !==, <<=, >>=, etc.
+        // Only flag truly invalid sequences like ====, =!=, etc.
+        if ( preg_match( '/={4,}|[!<>]={3,}|(?<!-)(?<!\+)-{3,}(?!>)|(?<!\*)\*{4,}/', $line ) ) {
             return array(
                 'message' => 'Syntax error: Invalid operator sequence detected',
                 'line' => $line_num + 1,
