@@ -761,7 +761,7 @@ function snn_custom_codes_snippets_page() {
 
         <div class="notice notice-warning inline snn-php-execution-warning">
             <p><strong>Warning:</strong> <?php esc_html_e( 'ATTENTION PLEASE! These settings are not for normal users! If you don’t have at least some basic knowledge of HTML, CSS, and FTP login, DO NOT USE IT!', 'snn' ); ?></p>
-            <p><strong>INFO:</strong> <?php esc_html_e( 'If needed use define( ‘SNN_CODE_DISABLE’, true ); in functions.php or wp-config.php file to disable the code snippets feature temporarly. ', 'snn' ); ?></p>
+            <p><strong>INFO:</strong> <?php esc_html_e( 'If needed use define( ‘SNN_CODE_DISABLE’, true ); in functions.php file to disable the code snippets feature temporarly. ', 'snn' ); ?></p>
         </div>
 
         <form method="post" action="admin.php?page=snn-custom-codes-snippets&tab=<?php echo esc_attr($current_tab_key); ?>">
