@@ -891,34 +891,12 @@ function snn_custom_codes_snippets_page() {
             }
 
             // Save standard snippets
+            // NO SYNTAX VALIDATION - If it runs on the user's PHP version, let it run.
+            // Only actual runtime fatal errors will trigger the safety fallback.
             $all_snippets_processed_successfully = true;
             foreach ( $snippet_defs as $key => $def ) {
                 if ( isset( $_POST[ $def['field_id'] ] ) ) {
                     $new_code_content = wp_unslash( $_POST[ $def['field_id'] ] );
-                    
-                    // Validate syntax BEFORE saving (only runs on save, not on every page load)
-                    if ( ! empty( trim( $new_code_content ) ) ) {
-                        $syntax_check = snn_validate_php_syntax( $new_code_content );
-                        if ( $syntax_check !== true ) {
-                            // Syntax error detected
-                            $error_line = is_array( $syntax_check ) ? $syntax_check['line'] : 0;
-                            $error_message = is_array( $syntax_check ) ? $syntax_check['message'] : $syntax_check;
-                            add_settings_error(
-                                'snn-custom-codes',
-                                'syntax_error_' . $key,
-                                sprintf(
-                                    __('Syntax error in "%s" at line %d: %s. Snippet NOT saved.', 'snn'),
-                                    esc_html($def['title']),
-                                    $error_line,
-                                    esc_html($error_message)
-                                ),
-                                'error'
-                            );
-                            $all_snippets_processed_successfully = false;
-                            continue; // Skip saving this snippet
-                        }
-                    }
-                    
                     $snippet_post_id = snn_get_code_snippet_id( $def['slug'] );
                     $post_data = array(
                         'post_title'   => $def['title'],
