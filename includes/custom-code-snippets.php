@@ -423,10 +423,13 @@ function snn_validate_php_syntax( $code ) {
             continue;
         }
         
-        // Check for double commas (common error)
-        if ( preg_match( '/,\s*,/', $line ) ) {
+        // Check for empty array elements (various patterns)
+        // Match: ,, or , , or ,  , (with any whitespace between commas)
+        // Also match trailing commas before closing brackets: , ] or , )
+        // Also match leading commas after opening brackets: [ , or ( ,
+        if ( preg_match( '/,\s*,|\[\s*,|\(\s*,|,\s*\]|,\s*\)/', $line ) ) {
             return array(
-                'message' => 'Syntax error: Empty array elements detected (double comma)',
+                'message' => 'Syntax error: Empty array elements detected (cannot use empty array elements)',
                 'line' => $line_num + 1,
                 'code_context' => snn_get_code_context( $code, $line_num + 1 )
             );
@@ -644,9 +647,43 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
         return ''; // Do nothing if code is empty
     }
 
-    // NOTE: Syntax validation is now done at SAVE time only, not on every execution.
-    // This prevents performance issues on high-traffic sites.
-    // Runtime errors are still caught by try/catch blocks below.
+    // CRITICAL: Validate syntax before execution to prevent fatal errors
+    // Even though this adds overhead, it's necessary to catch fatal errors that cannot be caught by try/catch
+    $validation_result = snn_validate_php_syntax( $code_to_execute );
+    if ( is_array( $validation_result ) ) {
+        // Validation failed - disable snippets and log error
+        update_option( 'snn_codes_snippets_enabled', 0 );
+        
+        snn_log_error_event(
+            'PHP Syntax Validation Error',
+            $validation_result['message'],
+            $snippet_location_slug,
+            'Pre-execution validation',
+            $validation_result['line'],
+            $validation_result['code_context'],
+            snn_get_function_context( $code_to_execute, $validation_result['line'] )
+        );
+        
+        $snippet_titles = array(
+            'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
+            'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
+            'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
+            'snn-snippet-functions-php' => 'PHP (functions.php)',
+            'snn-snippet-advanced-raw' => 'Advanced Code',
+        );
+        $snippet_title = isset( $snippet_titles[ $snippet_location_slug ] ) ? $snippet_titles[ $snippet_location_slug ] : $snippet_location_slug;
+        
+        $notice_data = [
+            'message' => $validation_result['message'],
+            'file'    => 'Tab: ' . $snippet_title . ' (Line ' . $validation_result['line'] . ')',
+            'line'    => $validation_result['line'],
+            'type'    => 'Syntax Validation Error'
+        ];
+        set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
+        
+        // Return empty string to prevent fatal error
+        return '';
+    }
 
     $error_occurred = false;
 
