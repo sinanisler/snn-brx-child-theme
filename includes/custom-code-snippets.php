@@ -644,47 +644,9 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
         return ''; // Do nothing if code is empty
     }
 
-    // PRE-VALIDATION: Check syntax before attempting execution
-    $syntax_check = snn_validate_php_syntax( $code_to_execute );
-    if ( $syntax_check !== true ) {
-        // Syntax error detected before eval()
-        $error_line = is_array( $syntax_check ) ? $syntax_check['line'] : 0;
-        $error_message = is_array( $syntax_check ) ? $syntax_check['message'] : $syntax_check;
-        $error_context = is_array( $syntax_check ) && isset( $syntax_check['code_context'] ) ? $syntax_check['code_context'] : snn_get_code_context( $code_to_execute, $error_line );
-        $function_context = snn_get_function_context( $code_to_execute, $error_line );
-        
-        snn_log_error_event(
-            'Syntax Error (Pre-validation)',
-            $error_message,
-            $snippet_location_slug,
-            'Tab: ' . $snippet_location_slug,
-            $error_line,
-            $error_context,
-            $function_context
-        );
-        
-        // Disable snippets immediately on syntax error
-        update_option( 'snn_codes_snippets_enabled', 0 );
-        
-        $snippet_titles = array(
-            'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
-            'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
-            'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
-            'snn-snippet-functions-php' => 'PHP (functions.php)',
-            'snn-snippet-advanced-raw' => 'Advanced Code',
-        );
-        $snippet_title = isset( $snippet_titles[ $snippet_location_slug ] ) ? $snippet_titles[ $snippet_location_slug ] : $snippet_location_slug;
-        
-        $notice_data = [
-            'message' => $error_message . ( $function_context ? ' [' . $function_context . ']' : '' ),
-            'file'    => 'Tab: ' . $snippet_title,
-            'line'    => $error_line,
-            'type'    => 'Syntax Error (caught before execution)'
-        ];
-        set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
-        
-        return ''; // Return empty to prevent further execution
-    }
+    // NOTE: Syntax validation is now done at SAVE time only, not on every execution.
+    // This prevents performance issues on high-traffic sites.
+    // Runtime errors are still caught by try/catch blocks below.
 
     $error_occurred = false;
 
@@ -933,6 +895,30 @@ function snn_custom_codes_snippets_page() {
             foreach ( $snippet_defs as $key => $def ) {
                 if ( isset( $_POST[ $def['field_id'] ] ) ) {
                     $new_code_content = wp_unslash( $_POST[ $def['field_id'] ] );
+                    
+                    // Validate syntax BEFORE saving (only runs on save, not on every page load)
+                    if ( ! empty( trim( $new_code_content ) ) ) {
+                        $syntax_check = snn_validate_php_syntax( $new_code_content );
+                        if ( $syntax_check !== true ) {
+                            // Syntax error detected
+                            $error_line = is_array( $syntax_check ) ? $syntax_check['line'] : 0;
+                            $error_message = is_array( $syntax_check ) ? $syntax_check['message'] : $syntax_check;
+                            add_settings_error(
+                                'snn-custom-codes',
+                                'syntax_error_' . $key,
+                                sprintf(
+                                    __('Syntax error in "%s" at line %d: %s. Snippet NOT saved.', 'snn'),
+                                    esc_html($def['title']),
+                                    $error_line,
+                                    esc_html($error_message)
+                                ),
+                                'error'
+                            );
+                            $all_snippets_processed_successfully = false;
+                            continue; // Skip saving this snippet
+                        }
+                    }
+                    
                     $snippet_post_id = snn_get_code_snippet_id( $def['slug'] );
                     $post_data = array(
                         'post_title'   => $def['title'],
