@@ -332,12 +332,17 @@ function snn_custom_codes_snippets_admin_styles() {
         .snn-manage-revisions-section { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
 
         /* Error Logs Table Styling */
-        .snn-error-logs-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .snn-error-logs-table th, .snn-error-logs-table td { border: 1px solid #ddd; padding: 8px !important; text-align: left; vertical-align: top; }
-        .snn-error-logs-table th { background-color: #f9f9f9; }
-        .snn-error-logs-table td pre { white-space: pre-wrap; word-wrap: break-word; margin: 0; font-size: 12px; }
+        .snn-error-logs-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        .snn-error-logs-table th, .snn-error-logs-table td { border: 1px solid #ddd; padding: 10px !important; text-align: left; vertical-align: top; }
+        .snn-error-logs-table th { background-color: #f0f0f1; font-weight: 600; position: sticky; top: 0; }
+        .snn-error-logs-table td pre { white-space: pre-wrap; word-wrap: break-word; margin: 0; font-size: 12px; font-family: "Courier New", Courier, monospace; }
         .snn-error-logs-table .snn-log-message { max-width: 400px; overflow-wrap: break-word; }
         .snn-error-logs-table .snn-log-actions { width: 100px; }
+        .snn-error-logs-table tr:hover { background-color: #f9f9f9; }
+        .snn-error-logs-table code { background: #fff3cd; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+        .snn-error-logs-table details { cursor: pointer; }
+        .snn-error-logs-table details summary { color: #2271b1; font-weight: 500; }
+        .snn-error-logs-table details summary:hover { color: #135e96; text-decoration: underline; }
 
         /* Fatal Error Notice Styling (admin notice) */
         .snn-fatal-error-notice strong { color: #dc3232; }
@@ -371,7 +376,7 @@ add_action( 'admin_head', 'snn_custom_codes_snippets_admin_styles' );
 
 /**
  * Helper function to validate PHP syntax before execution.
- * Returns true if syntax is valid, or an error message string if invalid.
+ * Returns true if syntax is valid, or an associative array with error details if invalid.
  */
 function snn_validate_php_syntax( $code ) {
     if ( empty( trim( $code ) ) ) {
@@ -392,41 +397,154 @@ function snn_validate_php_syntax( $code ) {
     if ( $last_error && ( $last_error['type'] === E_PARSE || $last_error['type'] === E_COMPILE_ERROR ) ) {
         // Clear the error
         @error_clear_last();
-        return $last_error['message'];
+        
+        // Try to extract line number from error message
+        $error_line = 0;
+        if ( preg_match( '/on line (\d+)/', $last_error['message'], $matches ) ) {
+            $error_line = max( 0, intval( $matches[1] ) - 1 ); // -1 because we added <?php
+        }
+        
+        return array(
+            'message' => $last_error['message'],
+            'line' => $error_line,
+            'code_context' => snn_get_code_context( $code, $error_line )
+        );
     }
+    
+    // Split code into lines for detailed checking
+    $lines = explode( "\n", $code );
     
     // Additional validation: Check for common syntax errors that token_get_all might miss
-    // Check for double commas (common error like in your case)
-    if ( preg_match( '/,\s*,/', $code ) ) {
-        return 'Syntax error: Empty array elements detected (double comma)';
-    }
-    
-    // Check for multiple consecutive operators that don't make sense
-    $code_normalized = preg_replace( '/\s+/', ' ', $code );
-    if ( preg_match( '/[=!<>]{3,}|[+\-*\/%]{2,}/', $code_normalized ) ) {
-        return 'Syntax error: Invalid operator sequence detected';
+    foreach ( $lines as $line_num => $line ) {
+        $line_trimmed = trim( $line );
+        
+        // Skip empty lines and comments
+        if ( empty( $line_trimmed ) || strpos( $line_trimmed, '//' ) === 0 || strpos( $line_trimmed, '#' ) === 0 ) {
+            continue;
+        }
+        
+        // Check for double commas (common error)
+        if ( preg_match( '/,\s*,/', $line ) ) {
+            return array(
+                'message' => 'Syntax error: Empty array elements detected (double comma)',
+                'line' => $line_num + 1,
+                'code_context' => snn_get_code_context( $code, $line_num + 1 )
+            );
+        }
+        
+        // Check for multiple consecutive operators that don't make sense
+        if ( preg_match( '/[=!<>]{3,}|(?<!-)(?<!\+)-{2,}(?!>)|(?<!\*)\*{3,}/', $line ) ) {
+            return array(
+                'message' => 'Syntax error: Invalid operator sequence detected',
+                'line' => $line_num + 1,
+                'code_context' => snn_get_code_context( $code, $line_num + 1 )
+            );
+        }
+        
+        // Check for unclosed strings (basic check)
+        $in_string = false;
+        $string_char = '';
+        $escaped = false;
+        for ( $i = 0; $i < strlen( $line ); $i++ ) {
+            $char = $line[$i];
+            if ( $escaped ) {
+                $escaped = false;
+                continue;
+            }
+            if ( $char === '\\' ) {
+                $escaped = true;
+                continue;
+            }
+            if ( ( $char === '"' || $char === "'" ) ) {
+                if ( !$in_string ) {
+                    $in_string = true;
+                    $string_char = $char;
+                } elseif ( $char === $string_char ) {
+                    $in_string = false;
+                    $string_char = '';
+                }
+            }
+        }
+        // If string is still open at end of line, might be intentional for multiline strings
+        // So we don't flag this as error here
     }
     
     return true; // Syntax appears valid
 }
 
 /**
+ * Helper function to extract code context around a specific line.
+ */
+function snn_get_code_context( $code, $error_line, $context_lines = 3 ) {
+    $lines = explode( "\n", $code );
+    $start = max( 0, $error_line - $context_lines - 1 );
+    $end = min( count( $lines ), $error_line + $context_lines );
+    
+    $context = array();
+    for ( $i = $start; $i < $end; $i++ ) {
+        $marker = ( $i === $error_line - 1 ) ? ' >>> ' : '     ';
+        $context[] = sprintf( '%s%4d: %s', $marker, $i + 1, $lines[$i] );
+    }
+    
+    return implode( "\n", $context );
+}
+
+/**
+ * Helper function to extract function names from code context.
+ */
+function snn_get_function_context( $code, $error_line ) {
+    $lines = explode( "\n", $code );
+    $function_name = '';
+    
+    // Search backwards from error line to find the function declaration
+    for ( $i = min( $error_line - 1, count( $lines ) - 1 ); $i >= 0; $i-- ) {
+        if ( preg_match( '/function\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)\s*\(/', $lines[$i], $matches ) ) {
+            $function_name = $matches[1];
+            break;
+        }
+        // Also check for class methods
+        if ( preg_match( '/(?:public|private|protected|static)?\s*function\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)\s*\(/', $lines[$i], $matches ) ) {
+            $function_name = $matches[1];
+            break;
+        }
+        // Check for hook callbacks
+        if ( preg_match( '/add_(?:action|filter)\s*\(\s*[\'"]([^\'\"]+)[\'"]/', $lines[$i], $matches ) ) {
+            return 'Hook: ' . $matches[1];
+        }
+    }
+    
+    return $function_name ? 'Function: ' . $function_name : '';
+}
+
+/**
  * Helper function to log an error event.
  */
-function snn_log_error_event( $type, $message, $snippet_slug, $file = '', $line = 0, $code_context = '' ) {
+function snn_log_error_event( $type, $message, $snippet_slug, $file = '', $line = 0, $code_context = '', $function_context = '' ) {
     $logs = get_option( SNN_CUSTOM_CODES_LOG_OPTION, array() );
     if ( ! is_array( $logs ) ) { // Ensure logs is an array
         $logs = array();
     }
 
+    // Get snippet title for better readability
+    $snippet_titles = array(
+        'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
+        'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
+        'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
+        'snn-snippet-functions-php' => 'PHP (functions.php)',
+        'snn-snippet-advanced-raw' => 'Advanced Code (functions.php)',
+    );
+    $snippet_title = isset( $snippet_titles[ $snippet_slug ] ) ? $snippet_titles[ $snippet_slug ] : $snippet_slug;
+
     $log_entry = array(
-        'timestamp'    => current_time( 'mysql' ), // WordPress current time in MySQL format
-        'type'         => sanitize_text_field( $type ),
-        'message'      => wp_strip_all_tags( $message ), // Basic sanitization for display
-        'snippet_slug' => sanitize_text_field( $snippet_slug ),
-        'file'         => sanitize_text_field( $file ),
-        'line'         => absint( $line ),
-        'code_context' => $code_context ? substr( wp_strip_all_tags( $code_context ), 0, 500 ) : '', // First 500 chars of problematic code
+        'timestamp'        => current_time( 'mysql' ), // WordPress current time in MySQL format
+        'type'             => sanitize_text_field( $type ),
+        'message'          => wp_strip_all_tags( $message ), // Basic sanitization for display
+        'snippet_slug'     => sanitize_text_field( $snippet_slug ),
+        'snippet_title'    => sanitize_text_field( $snippet_title ),
+        'file'             => sanitize_text_field( $file ),
+        'line'             => absint( $line ),
+        'code_context'     => $code_context ? substr( $code_context, 0, 2000 ) : '', // Increased to 2000 chars for better context
+        'function_context' => sanitize_text_field( $function_context ),
     );
 
     // Add new log entry to the beginning of the array
@@ -528,22 +646,37 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
     $syntax_check = snn_validate_php_syntax( $code_to_execute );
     if ( $syntax_check !== true ) {
         // Syntax error detected before eval()
+        $error_line = is_array( $syntax_check ) ? $syntax_check['line'] : 0;
+        $error_message = is_array( $syntax_check ) ? $syntax_check['message'] : $syntax_check;
+        $error_context = is_array( $syntax_check ) && isset( $syntax_check['code_context'] ) ? $syntax_check['code_context'] : snn_get_code_context( $code_to_execute, $error_line );
+        $function_context = snn_get_function_context( $code_to_execute, $error_line );
+        
         snn_log_error_event(
-            'PHP Syntax Error (Pre-validation)',
-            $syntax_check,
+            'Syntax Error (Pre-validation)',
+            $error_message,
             $snippet_location_slug,
-            'pre-execution validation',
-            0,
-            $code_to_execute
+            'Tab: ' . $snippet_location_slug,
+            $error_line,
+            $error_context,
+            $function_context
         );
         
         // Disable snippets immediately on syntax error
         update_option( 'snn_codes_snippets_enabled', 0 );
         
+        $snippet_titles = array(
+            'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
+            'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
+            'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
+            'snn-snippet-functions-php' => 'PHP (functions.php)',
+            'snn-snippet-advanced-raw' => 'Advanced Code',
+        );
+        $snippet_title = isset( $snippet_titles[ $snippet_location_slug ] ) ? $snippet_titles[ $snippet_location_slug ] : $snippet_location_slug;
+        
         $notice_data = [
-            'message' => $syntax_check,
-            'file'    => 'Snippet: ' . $snippet_location_slug,
-            'line'    => 0,
+            'message' => $error_message . ( $function_context ? ' [' . $function_context . ']' : '' ),
+            'file'    => 'Tab: ' . $snippet_title,
+            'line'    => $error_line,
             'type'    => 'Syntax Error (caught before execution)'
         ];
         set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
@@ -554,7 +687,7 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
     $error_occurred = false;
 
     // Custom error handler for non-fatal errors (Warnings, Notices, etc.)
-    set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$error_occurred, $snippet_location_slug) {
+    set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$error_occurred, $snippet_location_slug, $code_to_execute) {
         if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
             if ( $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED || $errno === E_STRICT ) {
                 return true; // Don't log or treat as an error unless WP_DEBUG is on
@@ -570,7 +703,10 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
             case E_STRICT: $error_type_str = 'PHP Strict'; break;
         }
 
-        snn_log_error_event($error_type_str, $errstr, $snippet_location_slug, 'eval()\'d code (runtime)', $errline, '');
+        $code_context = snn_get_code_context( $code_to_execute, $errline );
+        $function_context = snn_get_function_context( $code_to_execute, $errline );
+        
+        snn_log_error_event($error_type_str, $errstr, $snippet_location_slug, 'eval()\'d code (runtime)', $errline, $code_context, $function_context);
         return true; // Prevent default PHP error handler from running
     });
 
@@ -581,43 +717,73 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
         @eval( "?>" . $code_to_execute );
     } catch (ParseError $e) { // Specifically catch ParseError (syntax errors)
         $error_occurred = true;
+        $error_line = $e->getLine();
+        $code_context = snn_get_code_context( $code_to_execute, $error_line );
+        $function_context = snn_get_function_context( $code_to_execute, $error_line );
+        
         snn_log_error_event(
-            'PHP Parse Error (eval)',
+            'PHP Parse Error',
             $e->getMessage(),
             $snippet_location_slug,
-            'eval()\'d code (parse)',
-            $e->getLine(),
-            $code_to_execute
+            'eval()\'d code',
+            $error_line,
+            $code_context,
+            $function_context
         );
         
         // Auto-disable on parse errors
         update_option( 'snn_codes_snippets_enabled', 0 );
+        
+        $snippet_titles = array(
+            'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
+            'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
+            'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
+            'snn-snippet-functions-php' => 'PHP (functions.php)',
+            'snn-snippet-advanced-raw' => 'Advanced Code',
+        );
+        $snippet_title = isset( $snippet_titles[ $snippet_location_slug ] ) ? $snippet_titles[ $snippet_location_slug ] : $snippet_location_slug;
+        
         $notice_data = [
-            'message' => $e->getMessage(),
-            'file'    => 'Snippet: ' . $snippet_location_slug,
-            'line'    => $e->getLine(),
+            'message' => $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
+            'file'    => 'Tab: ' . $snippet_title,
+            'line'    => $error_line,
             'type'    => 'Parse Error'
         ];
         set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
         
     } catch (Throwable $e) { // Catch other Throwables (like Error, Exception)
         $error_occurred = true;
+        $error_line = $e->getLine();
+        $code_context = snn_get_code_context( $code_to_execute, $error_line );
+        $function_context = snn_get_function_context( $code_to_execute, $error_line );
+        
         snn_log_error_event(
-            'PHP Exception/Error (' . get_class($e) . ')',
+            get_class($e),
             $e->getMessage(),
             $snippet_location_slug,
-            'eval()\'d code (throwable)',
+            'eval()\'d code',
             $e->getLine(),
-            $code_to_execute
+            $code_context,
+            $function_context
         );
         
         // Auto-disable on fatal throwables
         if ( $e instanceof Error ) {
             update_option( 'snn_codes_snippets_enabled', 0 );
+            
+            $snippet_titles = array(
+                'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
+                'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
+                'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
+                'snn-snippet-functions-php' => 'PHP (functions.php)',
+                'snn-snippet-advanced-raw' => 'Advanced Code',
+            );
+            $snippet_title = isset( $snippet_titles[ $snippet_location_slug ] ) ? $snippet_titles[ $snippet_location_slug ] : $snippet_location_slug;
+            
             $notice_data = [
-                'message' => $e->getMessage(),
-                'file'    => 'Snippet: ' . $snippet_location_slug,
-                'line'    => $e->getLine(),
+                'message' => $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
+                'file'    => 'Tab: ' . $snippet_title,
+                'line'    => $error_line,
                 'type'    => get_class($e)
             ];
             set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
@@ -939,25 +1105,29 @@ function snn_custom_codes_snippets_page() {
                             <tr>
                                 <th><?php esc_html_e( 'Timestamp', 'snn' ); ?></th>
                                 <th><?php esc_html_e( 'Type', 'snn' ); ?></th>
-                                <th><?php esc_html_e( 'Snippet Location', 'snn' ); ?></th>
-                                <th class="snn-log-message"><?php esc_html_e( 'Message', 'snn' ); ?></th>
-                                <th><?php esc_html_e( 'File', 'snn' ); ?></th>
+                                <th><?php esc_html_e( 'Tab/Snippet', 'snn' ); ?></th>
                                 <th><?php esc_html_e( 'Line', 'snn' ); ?></th>
+                                <th><?php esc_html_e( 'Function/Context', 'snn' ); ?></th>
+                                <th class="snn-log-message"><?php esc_html_e( 'Error Message', 'snn' ); ?></th>
                                 <th><?php esc_html_e( 'Code Context', 'snn' ); ?></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ( $error_logs as $log_entry ) : ?>
+                            <?php foreach ( $error_logs as $log_entry ) : 
+                                $snippet_title = isset( $log_entry['snippet_title'] ) ? $log_entry['snippet_title'] : ( isset( $log_entry['snippet_slug'] ) ? $log_entry['snippet_slug'] : 'Unknown' );
+                                $function_context = isset( $log_entry['function_context'] ) ? $log_entry['function_context'] : '';
+                                $line_number = isset( $log_entry['line'] ) ? absint( $log_entry['line'] ) : 0;
+                            ?>
                             <tr>
-                                <td><?php echo esc_html( date_i18n( get_option('date_format') . ' ' . get_option('time_format'), strtotime( $log_entry['timestamp'] ) ) ); ?></td>
-                                <td><?php echo esc_html( $log_entry['type'] ); ?></td>
-                                <td><?php echo esc_html( $log_entry['snippet_slug'] ); ?></td>
-                                <td class="snn-log-message"><pre><?php echo esc_html( $log_entry['message'] ); ?></pre></td>
-                                <td><?php echo esc_html( $log_entry['file'] ); ?></td>
-                                <td><?php echo esc_html( $log_entry['line'] ); ?></td>
+                                <td style="white-space: nowrap;"><?php echo esc_html( date_i18n( get_option('date_format') . ' ' . get_option('time_format'), strtotime( $log_entry['timestamp'] ) ) ); ?></td>
+                                <td><strong><?php echo esc_html( $log_entry['type'] ); ?></strong></td>
+                                <td><strong><?php echo esc_html( $snippet_title ); ?></strong></td>
+                                <td style="text-align: center;"><?php echo $line_number > 0 ? '<strong>' . esc_html( $line_number ) . '</strong>' : '<em>N/A</em>'; ?></td>
+                                <td><?php echo $function_context ? '<code>' . esc_html( $function_context ) . '</code>' : '<em>' . esc_html__('Top-level', 'snn') . '</em>'; ?></td>
+                                <td class="snn-log-message"><pre style="max-width: 400px; overflow-x: auto;"><?php echo esc_html( $log_entry['message'] ); ?></pre></td>
                                 <td class="snn-log-message"><?php 
                                     if ( ! empty( $log_entry['code_context'] ) ) {
-                                        echo '<details><summary>' . esc_html__('Show code', 'snn') . '</summary><pre>' . esc_html( $log_entry['code_context'] ) . '</pre></details>';
+                                        echo '<details><summary>' . esc_html__('View Code', 'snn') . '</summary><pre style="background: #f9f9f9; padding: 10px; border: 1px solid #ddd; font-size: 11px; line-height: 1.4; overflow-x: auto;">' . esc_html( $log_entry['code_context'] ) . '</pre></details>';
                                     } else {
                                         echo '<em>' . esc_html__('N/A', 'snn') . '</em>';
                                     }
