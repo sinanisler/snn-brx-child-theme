@@ -81,6 +81,7 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/total-video-duration.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/single-video-duration.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/average-comment-rating.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/comment-count-current-user.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/child-post-count.php';
 
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
