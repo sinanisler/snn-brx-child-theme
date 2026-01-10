@@ -87,16 +87,28 @@ function count_children_recursive($parent_id, $post_type, $max_depth = null, $cu
     ];
 
     $children = get_posts($args);
-    $count = count($children);
+    $count = 0;
 
-    // If max_depth is set and we've reached it, don't go deeper
-    if ($max_depth !== null && $current_depth >= $max_depth) {
+    // If max_depth is null, count ALL descendants (cumulative)
+    if ($max_depth === null) {
+        $count = count($children);
+        foreach ($children as $child_id) {
+            $count += count_children_recursive($child_id, $post_type, null, $current_depth + 1);
+        }
         return $count;
     }
 
-    // Count grandchildren recursively
-    foreach ($children as $child_id) {
-        $count += count_children_recursive($child_id, $post_type, $max_depth, $current_depth + 1);
+    // If max_depth is set, only count children AT that specific depth (not cumulative)
+    if ($current_depth === $max_depth) {
+        // We're at the target depth, count these children
+        return count($children);
+    }
+
+    // We're not at the target depth yet, keep going deeper
+    if ($current_depth < $max_depth) {
+        foreach ($children as $child_id) {
+            $count += count_children_recursive($child_id, $post_type, $max_depth, $current_depth + 1);
+        }
     }
 
     return $count;
