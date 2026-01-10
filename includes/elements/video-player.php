@@ -1056,6 +1056,68 @@ class SNN_Video_Player_Element extends Element {
                 localStorage.setItem(key, value);
             };
 
+            // Load subtitle language preference from localStorage
+            const loadSubtitleLanguagePreference = () => {
+                return localStorage.getItem('snn-cc-preferred-language');
+            };
+
+            const saveSubtitleLanguagePreference = (label) => {
+                if (label === null || label === 'off') {
+                    localStorage.setItem('snn-cc-preferred-language', 'off');
+                } else {
+                    localStorage.setItem('snn-cc-preferred-language', label);
+                }
+            };
+
+            // Apply saved subtitle language preference
+            const applySavedSubtitlePreference = () => {
+                if (!CONFIG.HAS_SUBTITLES) return;
+
+                const preferredLanguage = loadSubtitleLanguagePreference();
+                if (!preferredLanguage) return;
+
+                // If preference is "off", disable all tracks
+                if (preferredLanguage === 'off') {
+                    for (let i = 0; i < video.textTracks.length; i++) {
+                        video.textTracks[i].mode = 'disabled';
+                    }
+                    return;
+                }
+
+                // Try to find and enable the preferred language
+                for (let i = 0; i < video.textTracks.length; i++) {
+                    const track = video.textTracks[i];
+                    if (track.label === preferredLanguage) {
+                        track.mode = 'showing';
+
+                        // Update UI to show active state
+                        ccMenuItems.forEach(menuItem => {
+                            if (menuItem.classList.contains('snn-cc-settings-btn') || menuItem.classList.contains('snn-cc-back-btn')) {
+                                return;
+                            }
+
+                            const trackIndex = parseInt(menuItem.dataset.track);
+                            if (trackIndex === i) {
+                                menuItem.classList.add('snn-active');
+                                const existingCheck = menuItem.querySelector('svg');
+                                if (!existingCheck) {
+                                    const checkmark = document.createElement('div');
+                                    checkmark.innerHTML = ICONS.check;
+                                    menuItem.insertBefore(checkmark.firstChild, menuItem.firstChild);
+                                }
+                            } else {
+                                menuItem.classList.remove('snn-active');
+                                const existingCheck = menuItem.querySelector('svg');
+                                if (existingCheck) {
+                                    existingCheck.remove();
+                                }
+                            }
+                        });
+                        return;
+                    }
+                }
+            };
+
             // Load playback speed from localStorage
             const loadPlaybackSpeed = () => {
                 return parseFloat(localStorage.getItem('snn-playback-speed')) || 1.0;
@@ -1200,31 +1262,31 @@ class SNN_Video_Player_Element extends Element {
                     if (item.classList.contains('snn-cc-settings-btn') || item.classList.contains('snn-cc-back-btn')) {
                         return;
                     }
-                    
+
                     item.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        
+
                         const trackIndex = parseInt(item.dataset.track);
-                        
+
                         // Remove all active classes and checkmarks from track items only
                         ccMenuItems.forEach(menuItem => {
                             // Skip Settings and Back buttons when removing active states
                             if (menuItem.classList.contains('snn-cc-settings-btn') || menuItem.classList.contains('snn-cc-back-btn')) {
                                 return;
                             }
-                            
+
                             menuItem.classList.remove('snn-active');
                             const existingCheck = menuItem.querySelector('svg');
                             if (existingCheck) {
                                 existingCheck.remove();
                             }
                         });
-                        
+
                         // Disable all text tracks
                         for (let i = 0; i < video.textTracks.length; i++) {
                             video.textTracks[i].mode = 'disabled';
                         }
-                        
+
                         // Enable selected track or turn off
                         if (trackIndex >= 0 && trackIndex < video.textTracks.length) {
                             video.textTracks[trackIndex].mode = 'showing';
@@ -1233,14 +1295,21 @@ class SNN_Video_Player_Element extends Element {
                             const checkmark = document.createElement('div');
                             checkmark.innerHTML = ICONS.check;
                             item.insertBefore(checkmark.firstChild, item.firstChild);
+
+                            // Save the language label preference
+                            const selectedLabel = video.textTracks[trackIndex].label;
+                            saveSubtitleLanguagePreference(selectedLabel);
                         } else {
                             // "Off" was selected
                             item.classList.add('snn-active');
                             const checkmark = document.createElement('div');
                             checkmark.innerHTML = ICONS.check;
                             item.insertBefore(checkmark.firstChild, item.firstChild);
+
+                            // Save "off" preference
+                            saveSubtitleLanguagePreference('off');
                         }
-                        
+
                         ccMenu.classList.remove('snn-show');
                     });
                 });
@@ -1294,6 +1363,9 @@ class SNN_Video_Player_Element extends Element {
                 }
                 updateMuteIcon();
                 updateProgressBarFill(volumeSlider);
+
+                // Apply saved subtitle language preference after tracks are loaded
+                applySavedSubtitlePreference();
             });
 
             /*
