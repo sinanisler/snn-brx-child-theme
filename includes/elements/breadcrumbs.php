@@ -5,15 +5,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Bricks\Element;
 
-class Breadcrumbs_Element extends Element {
+class SNN_Breadcrumbs_Element extends Element {
     public $category     = 'snn';
-    public $name         = 'breadcrumbs';
+    public $name         = 'snn-breadcrumbs';
     public $icon         = 'ti-angle-double-right';
-    public $css_selector = '.brxe-breadcrumbs';
+    public $css_selector = '.brxe-snn-breadcrumbs';
     public $scripts      = [];
 
     public function get_label() {
-        return esc_html__( 'Breadcrumbs', 'snn' );
+        return esc_html__( 'SNN Breadcrumbs', 'snn' );
     }
 
     public function set_controls() {
