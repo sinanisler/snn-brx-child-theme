@@ -122,6 +122,7 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/dynamic-pdf.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gallery-and-thumbnails.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/cursor.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/breadcrumbs.php');
 
 
 // if GSAP setting is enabled Register Elements
