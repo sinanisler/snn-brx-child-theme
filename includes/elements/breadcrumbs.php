@@ -644,9 +644,7 @@ class SNN_Breadcrumbs_Element extends Element {
         $separator_html = '<span class="breadcrumb-separator">';
 
         if ( ! empty( $this->settings['separator_icon'] ) ) {
-            ob_start();
-            echo \Bricks\Helpers::render_control_icon( $this->settings['separator_icon'], [] );
-            $separator_html .= ob_get_clean();
+            $separator_html .= self::render_icon( $this->settings['separator_icon'], [] );
         } elseif ( ! empty( $this->settings['separator'] ) ) {
             $separator_html .= esc_html( $this->settings['separator'] );
         } else {
@@ -710,9 +708,7 @@ class SNN_Breadcrumbs_Element extends Element {
                 // Add icon if enabled
                 if ( ! empty( $item['show_icon'] ) && ! empty( $item['icon'] ) ) {
                     $item_html .= '<span class="breadcrumb-icon">';
-                    ob_start();
-                    echo \Bricks\Helpers::render_control_icon( $item['icon'], [] );
-                    $item_html .= ob_get_clean();
+                    $item_html .= self::render_icon( $item['icon'], [] );
                     $item_html .= '</span>';
                 }
 
