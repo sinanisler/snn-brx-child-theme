@@ -792,11 +792,10 @@ class SNN_Breadcrumbs_Element extends Element {
 
                 $item_html = '<span ' . $item_wrapper_attrs . '>';
 
-                // Add icon if enabled
+                // Prepare icon HTML
+                $icon_html = '';
                 if ( ! empty( $item['show_icon'] ) && ! empty( $item['icon'] ) ) {
-                    $item_html .= '<span class="breadcrumb-icon">';
-                    $item_html .= self::render_icon( $item['icon'], [] );
-                    $item_html .= '</span>';
+                    $icon_html = '<span class="breadcrumb-icon">' . self::render_icon( $item['icon'], [] ) . '</span>';
                 }
 
                 // Add schema markup to content
@@ -806,12 +805,14 @@ class SNN_Breadcrumbs_Element extends Element {
                     $name = $content_item['name'] ?? '';
 
                     if ( ! $is_current && ! empty( $url ) ) {
-                        // Replace <a> tag with schema markup
+                        // Wrap both icon and text in link with schema markup
                         $item_html .= '<a href="' . esc_url( $url ) . '" itemprop="item">';
+                        $item_html .= $icon_html;
                         $item_html .= '<span itemprop="name">' . esc_html( $name ) . '</span>';
                         $item_html .= '</a>';
                     } else {
-                        // Current item or text-only
+                        // Current item or text-only - icon outside of span
+                        $item_html .= $icon_html;
                         $item_html .= '<span itemprop="name">' . esc_html( $name ) . '</span>';
                     }
 
