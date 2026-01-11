@@ -34,6 +34,13 @@ class SNN_Element_Comment_List extends Element {
             'default' => 'DESC',
             'inline'  => true,
         ];
+        $this->controls['number'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Number of comments', 'snn' ),
+            'type'    => 'number',
+            'min'     => 1,
+            'placeholder' => esc_html__( 'WordPress default', 'snn' ),
+        ];
         $this->controls['inline_edit'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Enable inline edit', 'snn' ),
@@ -73,6 +80,7 @@ class SNN_Element_Comment_List extends Element {
 
         $avatar  = intval( $this->settings['avatar'] ?? 48 );
         $order   = $this->settings['order'] ?? 'ASC';
+        $number  = isset( $this->settings['number'] ) && $this->settings['number'] !== '' ? intval( $this->settings['number'] ) : '';
         $enable  = ! empty( $this->settings['inline_edit'] );
         $show_ratings = ! empty( $this->settings['show_ratings'] );
 
@@ -153,11 +161,15 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
             }
         }
 
-        $comments = get_comments( [
+        $comment_args = [
             'post_id' => get_the_ID(),
             'status'  => 'approve',
             'order'   => $order,
-        ] );
+        ];
+        if ( $number !== '' ) {
+            $comment_args['number'] = $number;
+        }
+        $comments = get_comments( $comment_args );
 
         // Add user role check (for admin/editor)
         function snn_user_can_delete_comment() {
