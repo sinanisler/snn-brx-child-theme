@@ -264,12 +264,78 @@ class SNN_Breadcrumbs_Element extends Element {
         return $title;
     }
 
+    /**
+     * Get the current context with post ID, author ID, and queried object.
+     * Works both inside and outside the loop, and on all WordPress template hierarchy pages.
+     */
+    private function get_context() {
+        static $context = null;
+
+        if ( $context !== null ) {
+            return $context;
+        }
+
+        $context = [
+            'post_id'         => 0,
+            'author_id'       => 0,
+            'post_type'       => null,
+            'queried_object'  => null,
+            'is_singular'     => is_singular(),
+            'is_archive'      => is_archive(),
+            'is_tax'          => is_tax(),
+            'is_category'     => is_category(),
+            'is_tag'          => is_tag(),
+            'is_author'       => is_author(),
+            'is_date'         => is_date(),
+            'is_search'       => is_search(),
+            'is_404'          => is_404(),
+        ];
+
+        // Get queried object (for archives, terms, authors)
+        $context['queried_object'] = get_queried_object();
+
+        // Get post ID - try multiple methods for maximum compatibility
+        $post_id = get_the_ID();
+        if ( ! $post_id ) {
+            global $post;
+            if ( isset( $post->ID ) ) {
+                $post_id = $post->ID;
+            }
+        }
+
+        // On author archives, get post ID from query
+        if ( ! $post_id && is_author() && isset( $context['queried_object']->ID ) ) {
+            $context['author_id'] = $context['queried_object']->ID;
+        }
+
+        $context['post_id'] = $post_id;
+
+        // Get author ID from post
+        if ( $post_id ) {
+            $context['author_id'] = get_post_field( 'post_author', $post_id );
+        }
+
+        // Get post type
+        if ( $post_id ) {
+            $context['post_type'] = get_post_type( $post_id );
+        } elseif ( is_post_type_archive() ) {
+            $context['post_type'] = get_query_var( 'post_type' );
+        } elseif ( isset( $context['queried_object']->post_type ) ) {
+            $context['post_type'] = $context['queried_object']->post_type;
+        }
+
+        return $context;
+    }
+
     private function get_item_content( $item ) {
         $item_type      = $item['item_type'] ?? 'current_post';
         $custom_text    = $item['custom_text'] ?? '';
         $custom_url     = $item['custom_url'] ?? '';
         $home_text      = $item['home_text'] ?? '';
         $taxonomy_name  = $item['taxonomy_name'] ?? '';
+
+        // Get context once for all cases
+        $ctx = $this->get_context();
 
         switch ( $item_type ) {
             case 'home':
@@ -282,62 +348,67 @@ class SNN_Breadcrumbs_Element extends Element {
                 ];
 
             case 'current_post':
-                $title = $this->truncate_title( get_the_title() );
-                return [
-                    'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $title ) . '</span>',
-                    'url'     => get_permalink(),
-                    'name'    => $title,
-                    'current' => true,
-                ];
-
-            case 'all_post_ancestors':
-                $post = get_post();
-                if ( ! $post || ! $post->post_parent ) {
-                    return [];
-                }
-                $ancestors = get_post_ancestors( $post->ID );
-                $ancestors = array_reverse( $ancestors );
-                $items = [];
-                foreach ( $ancestors as $ancestor_id ) {
-                    $ancestor_title = $this->truncate_title( get_the_title( $ancestor_id ) );
-                    $items[] = [
-                        'html' => '<a href="' . esc_url( get_permalink( $ancestor_id ) ) . '">' . esc_html( $ancestor_title ) . '</a>',
-                        'url'  => get_permalink( $ancestor_id ),
-                        'name' => $ancestor_title,
-                    ];
-                }
-                return $items;
-
-            case 'post_type_archive':
-            case 'post_type_archive_current':
-                $post_type = get_post_type();
-                $post_type_obj = get_post_type_object( $post_type );
-                if ( $post_type_obj && $post_type_obj->has_archive ) {
-                    $archive_link = get_post_type_archive_link( $post_type );
-                    $archive_title = $post_type_obj->labels->name;
-                    if ( $item_type === 'post_type_archive_current' ) {
-                        return [
-                            'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $archive_title ) . '</span>',
-                            'url'     => $archive_link,
-                            'name'    => $archive_title,
-                            'current' => true,
-                        ];
-                    }
+                if ( $ctx['post_id'] ) {
+                    $title = $this->truncate_title( get_the_title( $ctx['post_id'] ) );
                     return [
-                        'html' => '<a href="' . esc_url( $archive_link ) . '">' . esc_html( $archive_title ) . '</a>',
-                        'url'  => $archive_link,
-                        'name' => $archive_title,
+                        'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $title ) . '</span>',
+                        'url'     => get_permalink( $ctx['post_id'] ),
+                        'name'    => $title,
+                        'current' => true,
                     ];
                 }
                 return [];
 
+            case 'all_post_ancestors':
+                if ( $ctx['post_id'] ) {
+                    $post = get_post( $ctx['post_id'] );
+                    if ( $post && $post->post_parent ) {
+                        $ancestors = get_post_ancestors( $ctx['post_id'] );
+                        $ancestors = array_reverse( $ancestors );
+                        $items = [];
+                        foreach ( $ancestors as $ancestor_id ) {
+                            $ancestor_title = $this->truncate_title( get_the_title( $ancestor_id ) );
+                            $items[] = [
+                                'html' => '<a href="' . esc_url( get_permalink( $ancestor_id ) ) . '">' . esc_html( $ancestor_title ) . '</a>',
+                                'url'  => get_permalink( $ancestor_id ),
+                                'name' => $ancestor_title,
+                            ];
+                        }
+                        return $items;
+                    }
+                }
+                return [];
+
+            case 'post_type_archive':
+            case 'post_type_archive_current':
+                if ( $ctx['post_type'] ) {
+                    $post_type_obj = get_post_type_object( $ctx['post_type'] );
+                    if ( $post_type_obj && $post_type_obj->has_archive ) {
+                        $archive_link = get_post_type_archive_link( $ctx['post_type'] );
+                        $archive_title = $post_type_obj->labels->name;
+                        if ( $item_type === 'post_type_archive_current' ) {
+                            return [
+                                'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $archive_title ) . '</span>',
+                                'url'     => $archive_link,
+                                'name'    => $archive_title,
+                                'current' => true,
+                            ];
+                        }
+                        return [
+                            'html' => '<a href="' . esc_url( $archive_link ) . '">' . esc_html( $archive_title ) . '</a>',
+                            'url'  => $archive_link,
+                            'name' => $archive_title,
+                        ];
+                    }
+                }
+                return [];
+
             case 'current_term':
-                $queried_object = get_queried_object();
-                if ( $queried_object && isset( $queried_object->term_id ) ) {
-                    $term_name = $this->truncate_title( $queried_object->name );
+                if ( ( $ctx['is_category'] || $ctx['is_tag'] || $ctx['is_tax'] ) && $ctx['queried_object'] && isset( $ctx['queried_object']->term_id ) ) {
+                    $term_name = $this->truncate_title( $ctx['queried_object']->name );
                     return [
                         'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $term_name ) . '</span>',
-                        'url'     => get_term_link( $queried_object ),
+                        'url'     => get_term_link( $ctx['queried_object'] ),
                         'name'    => $term_name,
                         'current' => true,
                     ];
@@ -345,13 +416,12 @@ class SNN_Breadcrumbs_Element extends Element {
                 return [];
 
             case 'all_term_ancestors':
-                $queried_object = get_queried_object();
-                if ( $queried_object && isset( $queried_object->term_id ) && $queried_object->parent ) {
-                    $ancestors = get_ancestors( $queried_object->term_id, $queried_object->taxonomy, 'taxonomy' );
+                if ( ( $ctx['is_category'] || $ctx['is_tag'] || $ctx['is_tax'] ) && $ctx['queried_object'] && isset( $ctx['queried_object']->term_id ) && $ctx['queried_object']->parent ) {
+                    $ancestors = get_ancestors( $ctx['queried_object']->term_id, $ctx['queried_object']->taxonomy, 'taxonomy' );
                     $ancestors = array_reverse( $ancestors );
                     $items = [];
                     foreach ( $ancestors as $ancestor_id ) {
-                        $ancestor_term = get_term( $ancestor_id, $queried_object->taxonomy );
+                        $ancestor_term = get_term( $ancestor_id, $ctx['queried_object']->taxonomy );
                         if ( $ancestor_term && ! is_wp_error( $ancestor_term ) ) {
                             $ancestor_name = $this->truncate_title( $ancestor_term->name );
                             $items[] = [
@@ -366,63 +436,69 @@ class SNN_Breadcrumbs_Element extends Element {
                 return [];
 
             case 'category':
-                $categories = get_the_category();
-                if ( ! empty( $categories ) ) {
-                    $category = $categories[0];
-                    $cat_name = $this->truncate_title( $category->name );
-                    return [
-                        'html' => '<a href="' . esc_url( get_category_link( $category->term_id ) ) . '">' . esc_html( $cat_name ) . '</a>',
-                        'url'  => get_category_link( $category->term_id ),
-                        'name' => $cat_name,
-                    ];
+                if ( $ctx['post_id'] ) {
+                    $categories = get_the_category( $ctx['post_id'] );
+                    if ( ! empty( $categories ) ) {
+                        $category = $categories[0];
+                        $cat_name = $this->truncate_title( $category->name );
+                        return [
+                            'html' => '<a href="' . esc_url( get_category_link( $category->term_id ) ) . '">' . esc_html( $cat_name ) . '</a>',
+                            'url'  => get_category_link( $category->term_id ),
+                            'name' => $cat_name,
+                        ];
+                    }
                 }
                 return [];
 
             case 'all_category_ancestors':
-                $categories = get_the_category();
-                if ( ! empty( $categories ) ) {
-                    $category = $categories[0];
-                    $items = [];
-                    $ancestors = get_ancestors( $category->term_id, 'category', 'taxonomy' );
-                    $ancestors = array_reverse( $ancestors );
-                    foreach ( $ancestors as $ancestor_id ) {
-                        $ancestor_cat = get_category( $ancestor_id );
-                        if ( $ancestor_cat ) {
-                            $ancestor_name = $this->truncate_title( $ancestor_cat->name );
-                            $items[] = [
-                                'html' => '<a href="' . esc_url( get_category_link( $ancestor_cat->term_id ) ) . '">' . esc_html( $ancestor_name ) . '</a>',
-                                'url'  => get_category_link( $ancestor_cat->term_id ),
-                                'name' => $ancestor_name,
-                            ];
+                if ( $ctx['post_id'] ) {
+                    $categories = get_the_category( $ctx['post_id'] );
+                    if ( ! empty( $categories ) ) {
+                        $category = $categories[0];
+                        $items = [];
+                        $ancestors = get_ancestors( $category->term_id, 'category', 'taxonomy' );
+                        $ancestors = array_reverse( $ancestors );
+                        foreach ( $ancestors as $ancestor_id ) {
+                            $ancestor_cat = get_category( $ancestor_id );
+                            if ( $ancestor_cat ) {
+                                $ancestor_name = $this->truncate_title( $ancestor_cat->name );
+                                $items[] = [
+                                    'html' => '<a href="' . esc_url( get_category_link( $ancestor_cat->term_id ) ) . '">' . esc_html( $ancestor_name ) . '</a>',
+                                    'url'  => get_category_link( $ancestor_cat->term_id ),
+                                    'name' => $ancestor_name,
+                                ];
+                            }
                         }
+                        // Add current category
+                        $cat_name = $this->truncate_title( $category->name );
+                        $items[] = [
+                            'html' => '<a href="' . esc_url( get_category_link( $category->term_id ) ) . '">' . esc_html( $cat_name ) . '</a>',
+                            'url'  => get_category_link( $category->term_id ),
+                            'name' => $cat_name,
+                        ];
+                        return $items;
                     }
-                    // Add current category
-                    $cat_name = $this->truncate_title( $category->name );
-                    $items[] = [
-                        'html' => '<a href="' . esc_url( get_category_link( $category->term_id ) ) . '">' . esc_html( $cat_name ) . '</a>',
-                        'url'  => get_category_link( $category->term_id ),
-                        'name' => $cat_name,
-                    ];
-                    return $items;
                 }
                 return [];
 
             case 'tag':
-                $tags = get_the_tags();
-                if ( ! empty( $tags ) ) {
-                    $tag = $tags[0];
-                    $tag_name = $this->truncate_title( $tag->name );
-                    return [
-                        'html' => '<a href="' . esc_url( get_tag_link( $tag->term_id ) ) . '">' . esc_html( $tag_name ) . '</a>',
-                        'url'  => get_tag_link( $tag->term_id ),
-                        'name' => $tag_name,
-                    ];
+                if ( $ctx['post_id'] ) {
+                    $tags = get_the_tags( $ctx['post_id'] );
+                    if ( ! empty( $tags ) ) {
+                        $tag = $tags[0];
+                        $tag_name = $this->truncate_title( $tag->name );
+                        return [
+                            'html' => '<a href="' . esc_url( get_tag_link( $tag->term_id ) ) . '">' . esc_html( $tag_name ) . '</a>',
+                            'url'  => get_tag_link( $tag->term_id ),
+                            'name' => $tag_name,
+                        ];
+                    }
                 }
                 return [];
 
             case 'custom_taxonomy':
-                if ( ! empty( $taxonomy_name ) ) {
-                    $terms = get_the_terms( get_the_ID(), $taxonomy_name );
+                if ( ! empty( $taxonomy_name ) && $ctx['post_id'] ) {
+                    $terms = get_the_terms( $ctx['post_id'], $taxonomy_name );
                     if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
                         $term = $terms[0];
                         $term_name = $this->truncate_title( $term->name );
@@ -436,26 +512,35 @@ class SNN_Breadcrumbs_Element extends Element {
                 return [];
 
             case 'author':
-                $author_name = get_the_author();
-                return [
-                    'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $author_name ) . '</span>',
-                    'url'     => get_author_posts_url( get_the_author_meta( 'ID' ) ),
-                    'name'    => $author_name,
-                    'current' => true,
-                ];
+                if ( $ctx['author_id'] ) {
+                    $author_name = get_the_author_meta( 'display_name', $ctx['author_id'] );
+                    return [
+                        'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $author_name ) . '</span>',
+                        'url'     => get_author_posts_url( $ctx['author_id'] ),
+                        'name'    => $author_name,
+                        'current' => true,
+                    ];
+                }
+                return [];
 
             case 'author_archive':
-                $author_name = get_the_author();
-                $author_url = get_author_posts_url( get_the_author_meta( 'ID' ) );
-                return [
-                    'html' => '<a href="' . esc_url( $author_url ) . '">' . esc_html( $author_name ) . '</a>',
-                    'url'  => $author_url,
-                    'name' => $author_name,
-                ];
+                if ( $ctx['author_id'] ) {
+                    $author_name = get_the_author_meta( 'display_name', $ctx['author_id'] );
+                    $author_url = get_author_posts_url( $ctx['author_id'] );
+                    return [
+                        'html' => '<a href="' . esc_url( $author_url ) . '">' . esc_html( $author_name ) . '</a>',
+                        'url'  => $author_url,
+                        'name' => $author_name,
+                    ];
+                }
+                return [];
 
             case 'date_year':
-                if ( is_date() || is_singular() ) {
-                    $year = get_the_date( 'Y' );
+                if ( $ctx['post_id'] || $ctx['is_date'] ) {
+                    $year = $ctx['post_id'] ? get_the_date( 'Y', $ctx['post_id'] ) : get_query_var( 'year' );
+                    if ( ! $year && $ctx['is_date'] ) {
+                        $year = get_the_date( 'Y' );
+                    }
                     $year_link = get_year_link( $year );
                     return [
                         'html' => '<a href="' . esc_url( $year_link ) . '">' . esc_html( $year ) . '</a>',
@@ -466,9 +551,11 @@ class SNN_Breadcrumbs_Element extends Element {
                 return [];
 
             case 'date_month':
-                if ( is_date() || is_singular() ) {
-                    $month = get_the_date( 'F Y' );
-                    $month_link = get_month_link( get_the_date( 'Y' ), get_the_date( 'm' ) );
+                if ( $ctx['post_id'] || $ctx['is_date'] ) {
+                    $month = $ctx['post_id'] ? get_the_date( 'F Y', $ctx['post_id'] ) : get_the_date( 'F Y' );
+                    $year = $ctx['post_id'] ? get_the_date( 'Y', $ctx['post_id'] ) : get_query_var( 'year' );
+                    $month_num = $ctx['post_id'] ? get_the_date( 'm', $ctx['post_id'] ) : get_query_var( 'monthnum' );
+                    $month_link = get_month_link( $year, $month_num );
                     return [
                         'html' => '<a href="' . esc_url( $month_link ) . '">' . esc_html( $month ) . '</a>',
                         'url'  => $month_link,
@@ -478,8 +565,8 @@ class SNN_Breadcrumbs_Element extends Element {
                 return [];
 
             case 'date_day':
-                if ( is_date() || is_singular() ) {
-                    $day = get_the_date();
+                if ( $ctx['post_id'] || $ctx['is_date'] ) {
+                    $day = $ctx['post_id'] ? get_the_date( '', $ctx['post_id'] ) : get_the_date();
                     return [
                         'html'    => '<span class="breadcrumb-current" aria-current="page">' . esc_html( $day ) . '</span>',
                         'url'     => '',
