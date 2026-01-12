@@ -27,18 +27,33 @@ function snn_register_comment_count_post_tag($tags) {
 
 // Step 2: Get comment count data for current post
 function snn_get_comment_count_post_data() {
-    // Get current post ID
-    $post_id = get_the_ID();
+    // Get current post ID - use get_queried_object_id() as primary method
+    $post_id = get_queried_object_id();
+
+    // Fallback methods if queried object doesn't work
+    if (!$post_id) {
+        $post_id = get_the_ID();
+    }
+
+    if (!$post_id) {
+        global $post;
+        if (isset($post->ID)) {
+            $post_id = $post->ID;
+        }
+    }
 
     if (!$post_id) {
         return 0;
     }
 
-    // Get comment count for the post
-    $comment_count = wp_count_comments($post_id);
+    // Get comments using get_comments for accurate count
+    $comments = get_comments(array(
+        'post_id' => $post_id,
+        'status'  => 'approve',
+        'count'   => true,
+    ));
 
-    // Return approved comments count
-    return absint($comment_count->approved);
+    return absint($comments);
 }
 
 // Step 3: Render the dynamic tag in Bricks Builder.
