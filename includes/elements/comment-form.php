@@ -317,7 +317,7 @@ class SNN_Element_Comment_Form extends Element {
 					<textarea id="comment" name="comment" cols="45" rows="8" required style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></textarea>
 				</p>' . $rating_field,
 			'fields'        => apply_filters( 'comment_form_default_fields', $fields, $post_id ),
-		] );
+		], $post_id );
 		?>
 		<script>
 		/* === helper: robust inline style application === */
@@ -672,5 +672,26 @@ if ( ! function_exists( 'snn_save_comment_rating' ) ) {
 		}
 	}
 	add_action( 'comment_post', 'snn_save_comment_rating' );
+}
+
+/* ---------- FIX COMMENT REDIRECT TO CURRENT POST ------------------------------- */
+if ( ! function_exists( 'snn_fix_comment_redirect' ) ) {
+	function snn_fix_comment_redirect( $location, $comment ) {
+		// Get the comment's post ID to ensure we redirect to the correct post
+		$comment_post_id = $comment->comment_post_ID;
+
+		if ( $comment_post_id ) {
+			// Get the permalink of the actual post the comment belongs to
+			$post_permalink = get_permalink( $comment_post_id );
+
+			if ( $post_permalink ) {
+				// Build the redirect URL with the comment anchor
+				$location = $post_permalink . '#comment-' . $comment->comment_ID;
+			}
+		}
+
+		return $location;
+	}
+	add_filter( 'comment_post_redirect', 'snn_fix_comment_redirect', 10, 2 );
 }
 ?>
