@@ -31,9 +31,35 @@ function add_average_comment_rating_tag_to_builder($tags) {
 }
 
 // Step 2: Calculate average rating from comments
-function get_average_comment_rating() {
-    // Get current post ID
-    $post_id = get_the_ID();
+function get_average_comment_rating($post = null) {
+    // Get current post ID from multiple sources for reliability
+    $post_id = 0;
+
+    // Try to get from passed parameter first
+    if ($post && is_numeric($post)) {
+        $post_id = intval($post);
+    } elseif ($post && is_object($post) && isset($post->ID)) {
+        $post_id = $post->ID;
+    }
+
+    // Fallback to get_the_ID()
+    if (!$post_id) {
+        $post_id = get_the_ID();
+    }
+
+    // Fallback to global $post
+    if (!$post_id) {
+        global $post;
+        if ($post && isset($post->ID)) {
+            $post_id = $post->ID;
+        }
+    }
+
+    // Last resort: check query var
+    if (!$post_id) {
+        $post_id = get_query_var('post_id');
+    }
+
     if (!$post_id) {
         return '0';
     }
@@ -88,7 +114,7 @@ function render_average_comment_rating_tag($tag, $post, $context = 'text') {
     if (is_string($tag)) {
         // Match {average_comment_rating}
         if ($tag === '{average_comment_rating}') {
-            return get_average_comment_rating();
+            return get_average_comment_rating($post);
         }
     }
 
@@ -96,7 +122,7 @@ function render_average_comment_rating_tag($tag, $post, $context = 'text') {
     if (is_array($tag)) {
         foreach ($tag as $key => $value) {
             if (is_string($value) && $value === '{average_comment_rating}') {
-                $tag[$key] = get_average_comment_rating();
+                $tag[$key] = get_average_comment_rating($post);
             }
         }
         return $tag;
@@ -116,7 +142,7 @@ function replace_average_comment_rating_in_content($content, $post, $context = '
 
     // Match all {average_comment_rating} tags
     if (strpos($content, '{average_comment_rating}') !== false) {
-        $value = get_average_comment_rating();
+        $value = get_average_comment_rating($post);
         $content = str_replace('{average_comment_rating}', $value, $content);
     }
 
