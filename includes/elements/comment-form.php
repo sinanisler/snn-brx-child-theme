@@ -194,9 +194,14 @@ class SNN_Element_Comment_Form extends Element {
 		$commenter = wp_get_current_commenter();
 		$req       = get_option( 'require_name_email' );
 
-		// Get the correct post ID - handle both loop and single post contexts
-		global $post;
-		$post_id = $post ? $post->ID : get_the_ID();
+		// Get the correct post ID - ALWAYS use queried object on singular pages
+		// This prevents loops (like child posts) from polluting the post ID
+		if ( is_singular() ) {
+			$post_id = get_queried_object_id();
+		} else {
+			global $post;
+			$post_id = $post ? $post->ID : get_the_ID();
+		}
 
 		// Ensure we have a valid post ID
 		if ( ! $post_id ) {
