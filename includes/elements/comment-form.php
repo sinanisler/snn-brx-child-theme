@@ -193,7 +193,16 @@ class SNN_Element_Comment_Form extends Element {
 
 		$commenter = wp_get_current_commenter();
 		$req       = get_option( 'require_name_email' );
-		$post_id   = get_the_ID();
+
+		// Get the correct post ID - handle both loop and single post contexts
+		global $post;
+		$post_id = $post ? $post->ID : get_the_ID();
+
+		// Ensure we have a valid post ID
+		if ( ! $post_id ) {
+			echo '<p>' . esc_html__( 'Error: Unable to determine post ID.', 'snn' ) . '</p>';
+			return;
+		}
 
 		// Check if rating is enabled and user already commented
 		if ( $enable_rating ) {
@@ -307,17 +316,22 @@ class SNN_Element_Comment_Form extends Element {
 				</div>';
 		}
 
-		comment_form( [
-			'class_form'    => 'snn-comment-form',
-			'class_submit'  => 'snn-comment-submit',
-			'label_submit'  => $label,
-			'title_reply'   => $reply_title,
-			'comment_field' => '
+		// Store post ID in a data attribute to ensure JavaScript can access it if needed
+		$form_args = [
+			'class_form'           => 'snn-comment-form',
+			'class_submit'         => 'snn-comment-submit',
+			'label_submit'         => $label,
+			'title_reply'          => $reply_title,
+			'comment_field'        => '
 				<p class="snn-comment-form-comment">
 					<textarea id="comment" name="comment" cols="45" rows="8" required style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></textarea>
 				</p>' . $rating_field,
-			'fields'        => apply_filters( 'comment_form_default_fields', $fields, $post_id ),
-		], $post_id );
+			'fields'               => apply_filters( 'comment_form_default_fields', $fields, $post_id ),
+			'comment_notes_before' => '',
+			'comment_notes_after'  => '',
+		];
+
+		comment_form( $form_args, $post_id );
 		?>
 		<script>
 		/* === helper: robust inline style application === */
@@ -367,6 +381,19 @@ class SNN_Element_Comment_Form extends Element {
 
 			const ajaxurl  = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>';
 			const snnNonce = '<?php echo esc_js( $nonce ); ?>';
+			const correctPostId = '<?php echo esc_js( $post_id ); ?>';
+
+			// Verify and fix comment_post_ID if needed
+			const commentPostIdInput = document.getElementById('comment_post_ID');
+			if (commentPostIdInput) {
+				console.log('Current comment_post_ID:', commentPostIdInput.value, 'Expected:', correctPostId);
+				if (commentPostIdInput.value !== correctPostId) {
+					console.warn('Fixing incorrect comment_post_ID from', commentPostIdInput.value, 'to', correctPostId);
+					commentPostIdInput.value = correctPostId;
+				}
+			} else {
+				console.error('comment_post_ID hidden field not found!');
+			}
 
 			/* Build editor */
 			const container = document.createElement('div');
