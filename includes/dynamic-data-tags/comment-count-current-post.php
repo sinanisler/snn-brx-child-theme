@@ -46,14 +46,15 @@ function snn_get_comment_count_post_data() {
         return 0;
     }
 
-    // Get comments using get_comments for accurate count
-    $comments = get_comments(array(
-        'post_id' => $post_id,
-        'status'  => 'approve',
-        'count'   => true,
-    ));
+    // Use get_post to ensure we have the post object
+    $post_obj = get_post($post_id);
 
-    return absint($comments);
+    if (!$post_obj) {
+        return 0;
+    }
+
+    // Return the comment count directly from the post object
+    return (int) $post_obj->comment_count;
 }
 
 // Step 3: Render the dynamic tag in Bricks Builder.
