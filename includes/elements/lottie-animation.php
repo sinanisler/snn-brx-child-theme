@@ -258,7 +258,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             });
 
             // Set the initial speed
-            lottieAnimation.setSpeed(<?php echo esc_js($animation_speed); ?>);
+            lottieAnimation.setSpeed(<?php echo floatval($animation_speed); ?>);
 
             // Handle Autoplay on Viewport Entry
             if (autoplayOnViewport && shouldAutoplay) {
