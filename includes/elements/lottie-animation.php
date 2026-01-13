@@ -193,6 +193,9 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 
     public function render() {
 
+        // Enqueue Lottie library
+        wp_enqueue_script('lottie-js', SNN_URL_ASSETS . 'js/lottie.min.js', array(), null, array('in_footer' => true));
+
         // Existing Settings Retrieval
         $lottie_json      = isset($this->settings['lottie_json']['url']) ? esc_url($this->settings['lottie_json']['url']) : '';
         $loop             = ! empty($this->settings['loop']) ? 'true' : 'false';
