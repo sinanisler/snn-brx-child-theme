@@ -125,52 +125,56 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'step'    => 10,
         ];
 
-        // Scroll Trigger Option
-        $this->controls['scroll_trigger'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Enable Scroll Trigger', 'snn' ),
-            'type'    => 'checkbox',
-            'inline'  => true,
-            'small'   => true,
-            'default' => false,
-            'description' => "",
-        ];
+        // GSAP Scroll Trigger Controls - Only show if GSAP is enabled
+        $options = get_option('snn_other_settings');
+        if ( ! empty( $options['enqueue_gsap'] ) ) {
+            // Scroll Trigger Option
+            $this->controls['scroll_trigger'] = [
+                'tab'     => 'content',
+                'label'   => esc_html__( 'Enable Scroll Trigger', 'snn' ),
+                'type'    => 'checkbox',
+                'inline'  => true,
+                'small'   => true,
+                'default' => false,
+                'description' => "",
+            ];
 
-        // Scroll Trigger Start
-        $this->controls['scroll_trigger_start'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Scroll Trigger Start', 'snn' ),
-            'type'    => 'text',
-            'default' => 'top center',
-            'description' => "
-                Examples: <br>top 50%<br>top 90%
-            ",
-        ];
+            // Scroll Trigger Start
+            $this->controls['scroll_trigger_start'] = [
+                'tab'     => 'content',
+                'label'   => esc_html__( 'Scroll Trigger Start', 'snn' ),
+                'type'    => 'text',
+                'default' => 'top center',
+                'description' => "
+                    Examples: <br>top 50%<br>top 90%
+                ",
+            ];
 
-        // Scroll Trigger End
-        $this->controls['scroll_trigger_end'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Scroll Trigger End', 'snn' ),
-            'type'    => 'text',
-            'default' => 'bottom center',
-            'description' => "
-                Examples: <br>bottom 50%<br>bottom 90%
-                <p data-control='info'>
-                    Scroll Start and Stop can be counter-intuitive.
-                    Enable markers and test it out.
-                </p>
-            ",
-        ];
+            // Scroll Trigger End
+            $this->controls['scroll_trigger_end'] = [
+                'tab'     => 'content',
+                'label'   => esc_html__( 'Scroll Trigger End', 'snn' ),
+                'type'    => 'text',
+                'default' => 'bottom center',
+                'description' => "
+                    Examples: <br>bottom 50%<br>bottom 90%
+                    <p data-control='info'>
+                        Scroll Start and Stop can be counter-intuitive.
+                        Enable markers and test it out.
+                    </p>
+                ",
+            ];
 
-        // Scroll Trigger Markers
-        $this->controls['scroll_trigger_markers'] = [
-            'tab'     => 'content',
-            'label'   => esc_html__( 'Show Scroll Trigger Markers', 'snn' ),
-            'type'    => 'checkbox',
-            'inline'  => true,
-            'small'   => true,
-            'default' => false,
-        ];
+            // Scroll Trigger Markers
+            $this->controls['scroll_trigger_markers'] = [
+                'tab'     => 'content',
+                'label'   => esc_html__( 'Show Scroll Trigger Markers', 'snn' ),
+                'type'    => 'checkbox',
+                'inline'  => true,
+                'small'   => true,
+                'default' => false,
+            ];
+        }
 
         /**
          * **New Link Control Added Below**
