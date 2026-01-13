@@ -3,9 +3,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-$options = get_option('snn_other_settings');
-if ( isset($options['enqueue_gsap']) && $options['enqueue_gsap'] ) {
-
 class Custom_Element_LottieAnimation extends \Bricks\Element {
 
     public $category     = 'snn';
@@ -384,6 +381,4 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 add_action( 'bricks_register_elements', function() {
     \Bricks\Element::register_element( 'Custom_Element_LottieAnimation', 'lottieanimation' );
 } );
-
-} // end if enqueue_gsap
 ?>
