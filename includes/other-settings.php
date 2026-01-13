@@ -45,7 +45,7 @@ function snn_register_other_settings() {
 
     add_settings_field(
         'enqueue_gsap',
-        __('Enable GSAP and Lottie Element', 'snn'),
+        __('Enable GSAP and GSAP Elements', 'snn'),
         'snn_enqueue_gsap_callback',
         'snn-other-settings',
         'snn_other_settings_section'
@@ -167,7 +167,6 @@ function snn_enqueue_gsap_callback() {
         - <?php _e('gsap.min.php: The core GSAP library.', 'snn'); ?><br>
         - <?php _e('ScrollTrigger.min.php: A GSAP plugin that enables scroll-based animations.', 'snn'); ?><br>
         - <?php _e('gsap-data-animate.php: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.', 'snn'); ?><br>
-        - <?php _e('lottie.min.php and Lottie Element', 'snn'); ?><br><br>
     </p>
     <?php
 }
@@ -271,7 +270,6 @@ function snn_enqueue_gsap_scripts() {
         wp_enqueue_script('gsap-js', SNN_URL_ASSETS . 'js/gsap.min.js', array(), null, true);
         wp_enqueue_script('gsap-st-js', SNN_URL_ASSETS . 'js/ScrollTrigger.min.js', array('gsap-js'), null, true);
         wp_enqueue_script('gsap-data-js', SNN_URL_ASSETS . 'js/gsap-data-animate.js?v0.05', array(), null, true);
-        wp_enqueue_script('lottie-js', SNN_URL_ASSETS . 'js/lottie.min.js', array(), null, true);
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_gsap_scripts');
