@@ -92,10 +92,11 @@ class SNN_Custom_Cursor_Element extends Element {
 				'cursor_speed' => [
 					'label'   => esc_html__( 'Cursor Speed', 'snn' ),
 					'type'    => 'number',
-					'default' => 0.125,
+					'default' => 0,
 					'min'     => 0.01,
 					'max'     => 1,
 					'step'    => 0.01,
+					'placeholder' => 3,
 				],
 				'cursor_x_position' => [
 					'label'       => esc_html__( 'Cursor X Position', 'snn' ),
@@ -103,6 +104,7 @@ class SNN_Custom_Cursor_Element extends Element {
 					'units'       => true,
 					'default'     => 0,
 					'description' => esc_html__( 'Horizontal offset from center in pixels', 'snn' ),
+					'placeholder' => 0,
 				],
 				'cursor_y_position' => [
 					'label'       => esc_html__( 'Cursor Y Position', 'snn' ),
@@ -110,6 +112,7 @@ class SNN_Custom_Cursor_Element extends Element {
 					'units'       => true,
 					'default'     => 0,
 					'description' => esc_html__( 'Vertical offset from center in pixels', 'snn' ),
+					'placeholder' => 0,
 				],
 			],
 		];
