@@ -818,16 +818,14 @@ function snn_quick_edit_javascript() {
     <?php
 }
 
-add_filter('manage_posts_columns', 'snn_add_quick_edit_hidden_columns', 10, 1);
-add_filter('manage_pages_columns', 'snn_add_quick_edit_hidden_columns', 10, 1);
-function snn_add_quick_edit_hidden_columns($columns) {
-    global $typenow;
-    $post_type = $typenow;
-    
-    if (empty($post_type)) {
-        return $columns;
-    }
-    
+// Note: We don't register columns for quick edit fields.
+// The hidden data is injected directly via manage_posts_custom_column hooks.
+
+// Inject hidden data for quick edit into each row
+add_action('post_row_actions', 'snn_inject_quick_edit_data', 10, 2);
+add_action('page_row_actions', 'snn_inject_quick_edit_data', 10, 2);
+function snn_inject_quick_edit_data($actions, $post) {
+    $post_type = get_post_type($post->ID);
     $custom_fields = get_option('snn_custom_fields', []);
     
     foreach ($custom_fields as $field) {
@@ -835,25 +833,13 @@ function snn_add_quick_edit_hidden_columns($columns) {
             !empty($field['post_type']) && 
             in_array($post_type, $field['post_type']) &&
             in_array($field['type'], ['text', 'textarea'])) {
-            $columns['snn_quick_edit_' . $field['name']] = '';
+            $field_name = $field['name'];
+            $value = get_post_meta($post->ID, $field_name, true);
+            echo '<input type="hidden" class="snn-quick-edit-data-' . esc_attr($field_name) . '" value="' . esc_attr($value) . '" />';
         }
     }
     
-    return $columns;
-}
-
-add_action('manage_posts_custom_column', 'snn_populate_quick_edit_data', 10, 2);
-add_action('manage_pages_custom_column', 'snn_populate_quick_edit_data', 10, 2);
-function snn_populate_quick_edit_data($column_name, $post_id) {
-    if (strpos($column_name, 'snn_quick_edit_') !== 0) {
-        return;
-    }
-    
-    $field_name = str_replace('snn_quick_edit_', '', $column_name);
-    $value = get_post_meta($post_id, $field_name, true);
-    ?>
-    <input type="hidden" class="snn-quick-edit-data-<?php echo esc_attr($field_name); ?>" value="<?php echo esc_attr($value); ?>" />
-    <?php
+    return $actions;
 }
 
 // ------------------------------------------------
