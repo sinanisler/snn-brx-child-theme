@@ -8,7 +8,7 @@ use Bricks\Element;
 class SNN_Custom_Cursor_Element extends Element {
 	public $category       = 'snn';
 	public $name           = 'snn-custom-cursor';
-	public $icon           = 'ti-cursor';
+	public $icon           = 'ti-hand-point-up';
 	public $css_selector   = '.snn-custom-cursor-wrapper';
 	public $scripts        = [];
 	public $nestable       = false;
