@@ -1426,7 +1426,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-8px); opacity: 1; } }
-.snn-chat-state-text { display: none; padding: 8px 16px; background: #fff; font-size: 14px; color: #000; text-align: left; }
+.snn-chat-state-text { display: none; padding: 2px 16px; background: #fff; font-size: 14px; color: #000; text-align: left; }
 .snn-chat-quick-actions { padding: 8px 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 6px; flex-wrap: wrap; }
 .snn-quick-action-btn { padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; color: #333; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
 .snn-quick-action-btn:hover { background: #1d2327; color: #fff; border-color: #1d2327; }
