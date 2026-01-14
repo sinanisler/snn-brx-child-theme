@@ -33,9 +33,10 @@ function snn_register_get_media_ability() {
                 'properties' => array(
                     'posts_per_page' => array(
                         'type'        => 'integer',
-                        'description' => 'Number of media items to retrieve.',
+                        'description' => 'Number of media items to retrieve (max 100 for performance). Omit parameter or use default to get first 10.',
                         'default'     => 10,
                         'minimum'     => 1,
+                        'maximum'     => 100,
                     ),
                     'mime_type' => array(
                         'type'        => 'string',
@@ -59,10 +60,12 @@ function snn_register_get_media_ability() {
                 ),
             ),
             'execute_callback' => function( $input ) {
+                $posts_per_page = isset( $input['posts_per_page'] ) ? absint( $input['posts_per_page'] ) : 10;
                 $args = array(
                     'post_type'      => 'attachment',
                     'post_status'    => 'inherit',
-                    'posts_per_page' => isset( $input['posts_per_page'] ) ? absint( $input['posts_per_page'] ) : 10,
+                    // Cap at 100 for performance on large sites
+                    'posts_per_page' => min( $posts_per_page, 100 ),
                 );
 
                 if ( ! empty( $input['mime_type'] ) ) {

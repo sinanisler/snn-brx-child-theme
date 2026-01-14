@@ -33,9 +33,10 @@ function snn_register_get_users_ability() {
                 'properties' => array(
                     'number' => array(
                         'type'        => 'integer',
-                        'description' => 'Number of users to retrieve.',
+                        'description' => 'Number of users to retrieve (max 100 for performance). Omit parameter or use default to get first 10.',
                         'default'     => 10,
                         'minimum'     => 1,
+                        'maximum'     => 100,
                     ),
                     'role' => array(
                         'type'        => 'string',
@@ -59,8 +60,10 @@ function snn_register_get_users_ability() {
                 ),
             ),
             'execute_callback' => function( $input ) {
+                $number = isset( $input['number'] ) ? absint( $input['number'] ) : 10;
+                // Cap at 100 for performance on large sites
                 $args = array(
-                    'number' => isset( $input['number'] ) ? absint( $input['number'] ) : 10,
+                    'number' => min( $number, 100 ),
                 );
 
                 if ( ! empty( $input['role'] ) ) {

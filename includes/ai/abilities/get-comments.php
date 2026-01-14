@@ -37,9 +37,10 @@ function snn_register_get_comments_ability() {
                     ),
                     'number' => array(
                         'type'        => 'integer',
-                        'description' => 'Number of comments to retrieve.',
+                        'description' => 'Number of comments to retrieve (max 100 for performance). Omit parameter or use default to get first 10.',
                         'default'     => 10,
                         'minimum'     => 1,
+                        'maximum'     => 100,
                     ),
                     'status' => array(
                         'type'        => 'string',
@@ -64,8 +65,10 @@ function snn_register_get_comments_ability() {
                 ),
             ),
             'execute_callback' => function( $input ) {
+                $number = isset( $input['number'] ) ? absint( $input['number'] ) : 10;
                 $args = array(
-                    'number' => isset( $input['number'] ) ? absint( $input['number'] ) : 10,
+                    // Cap at 100 for performance on large sites
+                    'number' => min( $number, 100 ),
                     'status' => isset( $input['status'] ) ? sanitize_text_field( $input['status'] ) : 'approve',
                 );
 

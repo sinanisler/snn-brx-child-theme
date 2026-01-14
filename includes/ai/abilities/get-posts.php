@@ -38,9 +38,10 @@ function snn_register_get_posts_ability() {
                     ),
                     'posts_per_page' => array(
                         'type'        => 'integer',
-                        'description' => 'Number of posts to retrieve. Use -1 for all.',
+                        'description' => 'Number of posts to retrieve (max 100 for performance). Omit parameter or use default to get first 10.',
                         'default'     => 10,
-                        'minimum'     => -1,
+                        'minimum'     => 1,
+                        'maximum'     => 100,
                     ),
                     'category' => array(
                         'type'        => 'string',
@@ -93,9 +94,11 @@ function snn_register_get_posts_ability() {
                 ),
             ),
             'execute_callback' => function( $input ) {
+                $posts_per_page = isset( $input['posts_per_page'] ) ? absint( $input['posts_per_page'] ) : 10;
                 $args = array(
                     'post_type'      => $input['post_type'] ?? 'post',
-                    'posts_per_page' => $input['posts_per_page'] ?? 10,
+                    // Cap at 100 for performance on large sites
+                    'posts_per_page' => min( $posts_per_page, 100 ),
                     'post_status'    => 'publish',
                     'orderby'        => $input['orderby'] ?? 'date',
                     'order'          => $input['order'] ?? 'DESC',

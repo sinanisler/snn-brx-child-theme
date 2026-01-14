@@ -357,9 +357,13 @@ class SNN_Chat_Overlay {
                 THINKING: 'thinking',
                 EXECUTING: 'executing',
                 INTERPRETING: 'interpreting',
+                RETRYING: 'retrying',
                 DONE: 'done',
                 ERROR: 'error'
             };
+
+            // Configuration
+            const MAX_RETRIES = 2; // Maximum retry attempts per ability
 
             // Chat state
             const ChatState = {
@@ -741,26 +745,60 @@ VALIDATION REQUIREMENTS:
                 const totalAbilities = abilities.length;
 
                 for (let i = 0; i < abilities.length; i++) {
-                    const ability = abilities[i];
+                    let ability = abilities[i];
                     const current = i + 1;
+                    let retryCount = 0;
+                    let result = null;
 
-                    // Show thinking state before execution
-                    showTyping();
-                    setAgentState(AgentState.THINKING);
-                    await sleep(300); // Brief pause for UX
+                    // Retry loop for this ability
+                    while (retryCount <= MAX_RETRIES) {
+                        // Show thinking state before execution
+                        showTyping();
+                        setAgentState(retryCount > 0 ? AgentState.RETRYING : AgentState.THINKING,
+                            retryCount > 0 ? { attempt: retryCount + 1, maxAttempts: MAX_RETRIES + 1 } : null
+                        );
+                        await sleep(300); // Brief pause for UX
 
-                    // Update state to executing
-                    setAgentState(AgentState.EXECUTING, {
-                        abilityName: ability.name,
-                        current: current,
-                        total: totalAbilities
-                    });
+                        // Update state to executing
+                        setAgentState(AgentState.EXECUTING, {
+                            abilityName: ability.name,
+                            current: current,
+                            total: totalAbilities,
+                            retry: retryCount > 0 ? retryCount : null
+                        });
 
-                    console.log(`Executing: ${ability.name} (${current}/${totalAbilities})`, ability.input);
-                    const result = await executeAbility(ability.name, ability.input || {});
-                    console.log(`Result for ${ability.name}:`, result);
+                        console.log(`Executing: ${ability.name} (${current}/${totalAbilities})${retryCount > 0 ? ` [Retry ${retryCount}]` : ''}`, ability.input);
+                        result = await executeAbility(ability.name, ability.input || {});
+                        console.log(`Result for ${ability.name}:`, result);
 
-                    hideTyping();
+                        hideTyping();
+
+                        // If successful, break out of retry loop
+                        if (result.success) {
+                            break;
+                        }
+
+                        // If failed and we have retries left, ask AI to fix
+                        if (retryCount < MAX_RETRIES) {
+                            console.log(`Ability ${ability.name} failed, attempting retry ${retryCount + 1}/${MAX_RETRIES}`);
+
+                            // Ask AI to correct the input
+                            const correctedAbility = await retryWithAI(conversationMessages, ability, result.error);
+
+                            if (correctedAbility) {
+                                ability = correctedAbility;
+                                retryCount++;
+                                continue;
+                            } else {
+                                // AI couldn't provide correction, break out
+                                console.log('AI could not provide a corrected input, giving up');
+                                break;
+                            }
+                        } else {
+                            // Max retries reached
+                            break;
+                        }
+                    }
 
                     // Format and display this task's result
                     const resultHtml = formatSingleAbilityResult({
@@ -773,8 +811,10 @@ VALIDATION REQUIREMENTS:
                     if (result.success) {
                         await interpretSingleResult(conversationMessages, ability.name, result, current, totalAbilities);
                     } else {
-                        // Show error interpretation
-                        const errorMsg = `Task ${current}/${totalAbilities} (${ability.name}) failed: ${result.error || 'Unknown error'}`;
+                        // Show error interpretation after all retries exhausted
+                        const errorMsg = retryCount > 0
+                            ? `Task ${current}/${totalAbilities} (${ability.name}) failed after ${retryCount + 1} attempts: ${result.error || 'Unknown error'}`
+                            : `Task ${current}/${totalAbilities} (${ability.name}) failed: ${result.error || 'Unknown error'}`;
                         addMessage('assistant', errorMsg);
                     }
 
@@ -782,6 +822,76 @@ VALIDATION REQUIREMENTS:
                     if (i < abilities.length - 1) {
                         await sleep(500);
                     }
+                }
+            }
+
+            /**
+             * Ask AI to retry with corrected input after an error
+             */
+            async function retryWithAI(conversationMessages, failedAbility, errorMessage) {
+                try {
+                    showTyping();
+                    setAgentState(AgentState.RETRYING, { abilityName: failedAbility.name });
+
+                    // Find ability info for schema details
+                    const abilityInfo = ChatState.abilities.find(a => a.name === failedAbility.name);
+                    let schemaHint = '';
+                    if (abilityInfo && abilityInfo.input_schema && abilityInfo.input_schema.properties) {
+                        schemaHint = '\n\nValid parameters for this ability:\n' +
+                            Object.entries(abilityInfo.input_schema.properties).map(([key, val]) => {
+                                let hint = `- ${key} (${val.type})`;
+                                if (val.minimum !== undefined) hint += `, min: ${val.minimum}`;
+                                if (val.maximum !== undefined) hint += `, max: ${val.maximum}`;
+                                if (val.default !== undefined) hint += `, default: ${val.default}`;
+                                if (val.description) hint += ` - ${val.description}`;
+                                return hint;
+                            }).join('\n');
+                    }
+
+                    const retryMessages = [
+                        ...conversationMessages,
+                        {
+                            role: 'user',
+                            content: `The ability "${failedAbility.name}" failed with error: "${errorMessage}"
+
+The input you provided was: ${JSON.stringify(failedAbility.input)}
+${schemaHint}
+
+Please provide a CORRECTED input that fixes this error. Respond ONLY with a JSON code block containing the corrected ability call, like this:
+\`\`\`json
+{
+  "abilities": [
+    {"name": "${failedAbility.name}", "input": {<corrected parameters>}}
+  ]
+}
+\`\`\`
+
+If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
+                        }
+                    ];
+
+                    const aiResponse = await callAI(retryMessages);
+                    hideTyping();
+
+                    // Check if AI gave up
+                    if (aiResponse.includes('CANNOT_FIX')) {
+                        console.log('AI indicated it cannot fix the error:', aiResponse);
+                        return null;
+                    }
+
+                    // Extract corrected ability from response
+                    const correctedAbilities = extractAbilitiesFromResponse(aiResponse);
+
+                    if (correctedAbilities.length > 0) {
+                        console.log('AI provided corrected input:', correctedAbilities[0]);
+                        return correctedAbilities[0];
+                    }
+
+                    return null;
+                } catch (error) {
+                    console.error('Failed to get retry correction from AI:', error);
+                    hideTyping();
+                    return null;
                 }
             }
 
@@ -1194,6 +1304,16 @@ VALIDATION REQUIREMENTS:
                         stateMessage = 'Interpreting results...';
                         break;
 
+                    case AgentState.RETRYING:
+                        if (metadata && metadata.abilityName) {
+                            stateMessage = `Retrying ${metadata.abilityName}...`;
+                        } else if (metadata && metadata.attempt) {
+                            stateMessage = `Retrying (attempt ${metadata.attempt}/${metadata.maxAttempts})...`;
+                        } else {
+                            stateMessage = 'Retrying with corrected input...';
+                        }
+                        break;
+
                     case AgentState.DONE:
                         stateMessage = '';
                         break;
@@ -1264,6 +1384,7 @@ VALIDATION REQUIREMENTS:
 .snn-agent-state-badge.badge-interpreting { background: rgba(255, 255, 255, 0.95); color: #388e3c; animation: badgePulse 1.5s ease-in-out infinite; }
 .snn-agent-state-badge.badge-done { background: rgba(255, 255, 255, 0.95); color: #2e7d32; }
 .snn-agent-state-badge.badge-error { background: rgba(255, 255, 255, 0.95); color: #c62828; animation: badgeShake 0.5s ease-in-out; }
+.snn-agent-state-badge.badge-retrying { background: rgba(255, 255, 255, 0.95); color: #ff9800; animation: badgePulse 1s ease-in-out infinite; }
 @keyframes badgePulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
 @keyframes badgeShake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
 .snn-chat-controls { display: flex; gap: 4px; }
@@ -1288,6 +1409,7 @@ VALIDATION REQUIREMENTS:
 .snn-chat-state-message.state-interpreting { background: linear-gradient(90deg, #e8f5e9, #c8e6c9); color: #388e3c; border: 1px solid #a5d6a7; }
 .snn-chat-state-message.state-done { background: linear-gradient(90deg, #e8f5e9, #c8e6c9); color: #2e7d32; border: 1px solid #81c784; }
 .snn-chat-state-message.state-error { background: linear-gradient(90deg, #ffebee, #ffcdd2); color: #c62828; border: 1px solid #ef9a9a; }
+.snn-chat-state-message.state-retrying { background: linear-gradient(90deg, #fff8e1, #ffecb3); color: #ff8f00; border: 1px solid #ffd54f; }
 @keyframes fadeInScale { from { opacity: 0; transform: scale(0.9) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .ability-results { margin-top: 0px; padding-top: 0px; }
 .ability-result { padding: 6px 10px; margin: 4px 0; border-radius: 6px; font-size: 14px; line-height: 1.4; }
