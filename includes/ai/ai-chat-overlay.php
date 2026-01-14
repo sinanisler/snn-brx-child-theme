@@ -940,6 +940,8 @@ VALIDATION REQUIREMENTS:
                 
                 if ($welcome.length) {
                     $welcome.remove();
+                    // Hide quick actions when chat starts
+                    $('.snn-chat-quick-actions').hide();
                 }
 
                 const $message = $('<div>')
@@ -1055,6 +1057,8 @@ VALIDATION REQUIREMENTS:
                         <p>Start a new conversation by typing a message.</p>
                     </div>
                 `);
+                // Show quick actions again
+                $('.snn-chat-quick-actions').show();
             }
 
         })(jQuery);
