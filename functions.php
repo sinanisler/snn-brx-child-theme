@@ -58,7 +58,16 @@ require_once SNN_PATH . 'includes/ai/abilities/test-ability.php';
 require_once SNN_PATH . 'includes/ai/abilities/create-posts.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-posts.php';
 require_once SNN_PATH . 'includes/ai/abilities/get-posts.php';
+require_once SNN_PATH . 'includes/ai/abilities/get-post-by-id.php';
+require_once SNN_PATH . 'includes/ai/abilities/get-post-meta.php';
 require_once SNN_PATH . 'includes/ai/abilities/search-content.php';
+require_once SNN_PATH . 'includes/ai/abilities/get-categories.php';
+require_once SNN_PATH . 'includes/ai/abilities/get-tags.php';
+require_once SNN_PATH . 'includes/ai/abilities/create-category.php';
+require_once SNN_PATH . 'includes/ai/abilities/get-media.php';
+require_once SNN_PATH . 'includes/ai/abilities/get-users.php';
+require_once SNN_PATH . 'includes/ai/abilities/get-comments.php';
+require_once SNN_PATH . 'includes/ai/abilities/get-site-info.php';
 
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
