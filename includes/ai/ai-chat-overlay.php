@@ -391,7 +391,13 @@ ${params}`;
 
 IMPORTANT: You are an AI assistant with the ability to execute WordPress actions through registered abilities.
 
-=== AVAILABLE ABILITIES ===
+=== YOUR CAPABILITIES ===
+
+You have ${ChatState.abilities.length} abilities available. When users ask "what can you do" or similar questions, list ALL of these abilities with their descriptions:
+
+${abilitiesDesc}
+
+=== AVAILABLE ABILITIES (DETAILED) ===
 
 ${abilitiesDesc}
 
@@ -610,13 +616,24 @@ IMPORTANT RULES:
              */
             function formatDataPreview(data) {
                 if (Array.isArray(data)) {
+                    if (data.length === 0) return 'Empty array';
                     return `Found ${data.length} item${data.length !== 1 ? 's' : ''}`;
-                } else if (typeof data === 'object') {
+                } else if (typeof data === 'object' && data !== null) {
                     const keys = Object.keys(data);
-                    if (keys.length <= 3) {
-                        return keys.map(k => `${k}: ${String(data[k]).substring(0, 50)}`).join(', ');
-                    }
-                    return `Object with ${keys.length} properties`;
+                    if (keys.length === 0) return 'Empty object';
+                    
+                    // Format object properties nicely
+                    const formatted = keys.map(k => {
+                        let value = data[k];
+                        if (typeof value === 'string') {
+                            value = value.length > 50 ? value.substring(0, 50) + '...' : value;
+                        } else if (typeof value === 'object') {
+                            value = Array.isArray(value) ? `[${value.length} items]` : '[object]';
+                        }
+                        return `<div><strong>${k}:</strong> ${value}</div>`;
+                    }).join('');
+                    
+                    return formatted;
                 }
                 return String(data).substring(0, 100);
             }
@@ -990,9 +1007,18 @@ IMPORTANT RULES:
         .result-data {
             color: #666;
             font-size: 12px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-break: break-word;
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+
+        .result-data div {
+            padding: 3px 0;
+        }
+
+        .result-data strong {
+            color: #444;
+            font-weight: 600;
+            margin-right: 4px;
         }
 
         .result-error {
