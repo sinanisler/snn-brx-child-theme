@@ -62,7 +62,7 @@ class SNN_Chat_Overlay {
 
         $wp_admin_bar->add_node( array(
             'id'     => 'snn-ai-chat',
-            'title'  => '<span style="font-size:18px; background: linear-gradient(45deg, #f3ec78, #af4261); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✦</span>',
+            'title'  => '<span style="font-size: 25px; background: linear-gradient(45deg, #2271b1, #e4dadd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; position: relative;  line-height: 1.2;">✦</span>',
             'href'   => '#',
             'parent' => 'top-secondary',
             'meta'   => array(
