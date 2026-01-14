@@ -602,7 +602,9 @@ class SNN_Abilities_REST_Controller {
                     'id' => array(
                         'required'          => true,
                         'type'              => 'string',
-                        'sanitize_callback' => 'sanitize_text_field',
+                        'validate_callback' => function( $param ) {
+                            return is_string( $param );
+                        },
                     ),
                 ),
             )
@@ -620,7 +622,9 @@ class SNN_Abilities_REST_Controller {
                     'id' => array(
                         'required'          => true,
                         'type'              => 'string',
-                        'sanitize_callback' => 'sanitize_text_field',
+                        'validate_callback' => function( $param ) {
+                            return is_string( $param );
+                        },
                     ),
                 ),
             )

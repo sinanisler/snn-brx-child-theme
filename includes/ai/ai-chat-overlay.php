@@ -523,11 +523,15 @@ IMPORTANT RULES:
              */
             async function executeAbility(abilityName, input) {
                 try {
-                    console.log(`Calling API: ${snnChatConfig.restUrl}abilities/${abilityName}/run`);
+                    // Encode the ability name but keep forward slashes as-is for WordPress REST API
+                    const encodedName = abilityName.split('/').map(part => encodeURIComponent(part)).join('/');
+                    const apiUrl = snnChatConfig.restUrl + 'abilities/' + encodedName + '/run';
+                    
+                    console.log(`Calling API: ${apiUrl}`);
                     console.log('Input:', input);
                     
                     const response = await fetch(
-                        snnChatConfig.restUrl + 'abilities/' + encodeURIComponent(abilityName) + '/run',
+                        apiUrl,
                         {
                             method: 'POST',
                             headers: {
