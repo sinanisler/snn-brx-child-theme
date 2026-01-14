@@ -152,9 +152,9 @@ class SNN_Chat_Overlay {
 
                 <!-- Input -->
                 <div class="snn-chat-input-container">
-                    <textarea 
-                        id="snn-chat-input" 
-                        class="snn-chat-input" 
+                    <textarea
+                        id="snn-chat-input"
+                        class="snn-chat-input"
                         placeholder="Ask me anything..."
                         rows="1"
                     ></textarea>
@@ -162,9 +162,6 @@ class SNN_Chat_Overlay {
                         <span class="dashicons dashicons-arrow-up-alt2"></span>
                     </button>
                 </div>
-
-                <!-- Status -->
-                <div class="snn-chat-status" id="snn-chat-status"></div>
             </div>
         </div>
 
@@ -862,12 +859,6 @@ IMPORTANT RULES:
                 scrollToBottom();
             }
 
-            /**
-             * Set status message (backward compatibility wrapper)
-             */
-            function setStatus(message) {
-                $('#snn-chat-status').text(message);
-            }
 
             /**
              * Scroll to bottom
@@ -956,7 +947,7 @@ IMPORTANT RULES:
 
         .snn-chat-container {
             width: 420px;
-            height: 600px;
+            height: 900px;
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
@@ -971,7 +962,6 @@ IMPORTANT RULES:
 
         .snn-chat-overlay.minimized .snn-chat-messages,
         .snn-chat-overlay.minimized .snn-chat-input-container,
-        .snn-chat-overlay.minimized .snn-chat-status,
         .snn-chat-overlay.minimized .snn-chat-typing {
             display: none !important;
         }
@@ -1368,20 +1358,6 @@ IMPORTANT RULES:
             font-size: 20px;
             width: 20px;
             height: 20px;
-        }
-
-        .snn-chat-status {
-            padding: 8px 20px;
-            background: #f0f0f0;
-            font-size: 11px;
-            color: #999;
-            border-top: 1px solid #e0e0e0;
-            min-height: 32px;
-            transition: all 0.3s ease;
-            font-weight: 400;
-            display: flex;
-            align-items: center;
-            font-style: italic;
         }
 
         #wpadminbar #wp-admin-bar-snn-ai-chat .ab-icon:before {
