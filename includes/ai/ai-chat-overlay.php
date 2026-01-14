@@ -252,7 +252,10 @@ class SNN_Chat_Overlay {
                     
                     if (response.ok) {
                         ChatState.abilities = await response.json();
-                        console.log('Loaded abilities:', ChatState.abilities.length);
+                        console.log('✓ Loaded abilities:', ChatState.abilities.length);
+                        console.log('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
+                    } else {
+                        console.error('Failed to load abilities:', response.status);
                     }
                 } catch (error) {
                     console.error('Failed to load abilities:', error);
@@ -287,17 +290,37 @@ class SNN_Chat_Overlay {
                 setStatus('Thinking...');
 
                 try {
-                    // Prepare conversation context
-                    const context = ChatState.messages.slice(-10); // Last 10 messages
+                    // Prepare conversation context (include last execution results)
+                    const context = ChatState.messages.slice(-10).map(m => {
+                        let content = m.content;
+                        
+                        // If this message had ability executions, include results in context
+                        if (m.metadata && m.metadata.length > 0) {
+                            const resultsText = m.metadata.map(r => {
+                                if (r.result.success && r.result.data) {
+                                    return `[Executed ${r.ability}: ${JSON.stringify(r.result.data).substring(0, 200)}]`;
+                                } else if (!r.result.success) {
+                                    return `[Failed ${r.ability}: ${r.result.error || 'Unknown error'}]`;
+                                }
+                                return '';
+                            }).filter(Boolean).join(' ');
+                            
+                            if (resultsText) {
+                                content = content + '\n\nExecution results: ' + resultsText;
+                            }
+                        }
+                        
+                        return {
+                            role: m.role === 'user' ? 'user' : 'assistant',
+                            content: content
+                        };
+                    });
                     
                     // Build AI prompt with abilities
                     const systemPrompt = buildSystemPrompt();
                     const messages = [
                         { role: 'system', content: systemPrompt },
-                        ...context.map(m => ({
-                            role: m.role === 'user' ? 'user' : 'assistant',
-                            content: m.content
-                        }))
+                        ...context
                     ];
 
                     // Call AI API
@@ -308,13 +331,29 @@ class SNN_Chat_Overlay {
                     // Check if AI wants to execute abilities
                     const abilityResults = await executeAbilitiesFromResponse(aiResponse);
                     
-                    // Add AI response
+                    // Build response with results
+                    let displayResponse = aiResponse;
+                    let responseMetadata = null;
+                    
                     if (abilityResults.length > 0) {
-                        const summary = summarizeAbilityResults(abilityResults);
-                        addMessage('assistant', aiResponse + '\n\n' + summary, abilityResults);
-                    } else {
-                        addMessage('assistant', aiResponse);
+                        responseMetadata = abilityResults;
+                        
+                        // Remove JSON block from display
+                        displayResponse = displayResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                        
+                        // Add formatted results
+                        const resultsHtml = formatAbilityResults(abilityResults);
+                        displayResponse += '\n\n' + resultsHtml;
+                        
+                        // Send results back to AI for interpretation if any succeeded
+                        const hasSuccessful = abilityResults.some(r => r.result.success);
+                        if (hasSuccessful) {
+                            await interpretResults(messages, aiResponse, abilityResults);
+                        }
                     }
+                    
+                    // Add AI response to chat
+                    addMessage('assistant', displayResponse, responseMetadata);
 
                     setStatus('');
                 } catch (error) {
@@ -337,24 +376,69 @@ class SNN_Chat_Overlay {
                 }
 
                 const abilitiesDesc = ChatState.abilities.map(ability => {
-                    return `- ${ability.name}: ${ability.description}`;
-                }).join('\n');
+                    const params = ability.input_schema?.properties ? 
+                        Object.entries(ability.input_schema.properties).map(([key, val]) => 
+                            `    - ${key} (${val.type}${ability.input_schema.required?.includes(key) ? ', required' : ''}): ${val.description || ''}`
+                        ).join('\n') : '    No parameters';
+                    
+                    return `**${ability.name}** - ${ability.description}
+  Category: ${ability.category}
+  Parameters:
+${params}`;
+                }).join('\n\n');
 
                 return `${basePrompt}
 
-You have access to the following WordPress abilities:
+IMPORTANT: You are an AI assistant with the ability to execute WordPress actions through registered abilities.
+
+=== AVAILABLE ABILITIES ===
+
 ${abilitiesDesc}
 
-When the user asks you to perform tasks, you can use these abilities. To execute an ability, respond with a JSON block like this:
+=== HOW TO USE ABILITIES ===
+
+When the user asks you to perform a task that matches one of these abilities:
+
+1. FIRST: Explain to the user in natural language what you're about to do
+2. THEN: Include a JSON code block with the abilities to execute
+3. AFTER: I will execute the abilities and show you the results
+
+Example response format:
+"I'll get the site information for you.
+
 \`\`\`json
 {
   "abilities": [
-    {"name": "ability-name", "input": {"param": "value"}}
+    {"name": "snn/site-info", "input": {}}
+  ]
+}
+\`\`\`"
+
+For abilities with parameters, include them in the input:
+\`\`\`json
+{
+  "abilities": [
+    {"name": "snn/get-posts", "input": {"post_type": "post", "posts_per_page": 5}}
   ]
 }
 \`\`\`
 
-You can execute multiple abilities in sequence. Always explain what you're doing in plain language along with the JSON.`;
+You can chain multiple abilities:
+\`\`\`json
+{
+  "abilities": [
+    {"name": "snn/site-info", "input": {}},
+    {"name": "snn/get-posts", "input": {"posts_per_page": 3}}
+  ]
+}
+\`\`\`
+
+IMPORTANT RULES:
+- Always explain what you're doing before the JSON block
+- Match parameter types exactly (string, integer, boolean, etc.)
+- Include all required parameters
+- After execution, I'll provide results - interpret them for the user
+- If you're not sure, ask the user for clarification instead of guessing`;
             }
 
             /**
@@ -401,25 +485,34 @@ You can execute multiple abilities in sequence. Always explain what you're doing
                 // Look for JSON code blocks
                 const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/);
                 if (!jsonMatch) {
+                    console.log('No JSON block found in response');
                     return results;
                 }
 
+                console.log('Found JSON block:', jsonMatch[1]);
+
                 try {
                     const parsed = JSON.parse(jsonMatch[1]);
+                    console.log('Parsed JSON:', parsed);
                     
                     if (parsed.abilities && Array.isArray(parsed.abilities)) {
-                        setStatus('Executing abilities...');
+                        setStatus(`Executing ${parsed.abilities.length} ability/abilities...`);
                         
                         for (const ability of parsed.abilities) {
+                            console.log(`Executing: ${ability.name}`, ability.input);
                             const result = await executeAbility(ability.name, ability.input || {});
+                            console.log(`Result for ${ability.name}:`, result);
                             results.push({
                                 ability: ability.name,
                                 result: result
                             });
                         }
+                    } else {
+                        console.warn('JSON does not contain abilities array');
                     }
                 } catch (error) {
                     console.error('Failed to parse ability execution:', error);
+                    addMessage('error', 'Failed to parse ability execution: ' + error.message);
                 }
 
                 return results;
@@ -430,6 +523,9 @@ You can execute multiple abilities in sequence. Always explain what you're doing
              */
             async function executeAbility(abilityName, input) {
                 try {
+                    console.log(`Calling API: ${snnChatConfig.restUrl}abilities/${abilityName}/run`);
+                    console.log('Input:', input);
+                    
                     const response = await fetch(
                         snnChatConfig.restUrl + 'abilities/' + encodeURIComponent(abilityName) + '/run',
                         {
@@ -443,12 +539,24 @@ You can execute multiple abilities in sequence. Always explain what you're doing
                     );
 
                     if (!response.ok) {
-                        const error = await response.json();
-                        return { success: false, error: error.message || 'Failed to execute' };
+                        const errorText = await response.text();
+                        console.error(`API error ${response.status}:`, errorText);
+                        
+                        let error;
+                        try {
+                            error = JSON.parse(errorText);
+                        } catch (e) {
+                            error = { message: errorText };
+                        }
+                        
+                        return { success: false, error: error.message || `HTTP ${response.status}` };
                     }
 
-                    return await response.json();
+                    const result = await response.json();
+                    console.log('API response:', result);
+                    return result;
                 } catch (error) {
+                    console.error('Execution error:', error);
                     return { success: false, error: error.message };
                 }
             }
@@ -463,6 +571,79 @@ You can execute multiple abilities in sequence. Always explain what you're doing
                 }).join('\n');
 
                 return `**Executed:**\n${summary}`;
+            }
+
+            /**
+             * Format ability execution results as HTML
+             */
+            function formatAbilityResults(results) {
+                let html = '<div class="ability-results">';
+                
+                results.forEach(r => {
+                    const status = r.result.success ? '✅' : '❌';
+                    const statusClass = r.result.success ? 'success' : 'error';
+                    
+                    html += `<div class="ability-result ${statusClass}">`;
+                    html += `<strong>${status} ${r.ability}</strong>`;
+                    
+                    if (r.result.success && r.result.data) {
+                        // Show a preview of the data
+                        const preview = formatDataPreview(r.result.data);
+                        html += `<div class="result-data">${preview}</div>`;
+                    } else if (!r.result.success) {
+                        html += `<div class="result-error">${r.result.error || 'Unknown error'}</div>`;
+                    }
+                    
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+                return html;
+            }
+
+            /**
+             * Format data preview for display
+             */
+            function formatDataPreview(data) {
+                if (Array.isArray(data)) {
+                    return `Found ${data.length} item${data.length !== 1 ? 's' : ''}`;
+                } else if (typeof data === 'object') {
+                    const keys = Object.keys(data);
+                    if (keys.length <= 3) {
+                        return keys.map(k => `${k}: ${String(data[k]).substring(0, 50)}`).join(', ');
+                    }
+                    return `Object with ${keys.length} properties`;
+                }
+                return String(data).substring(0, 100);
+            }
+
+            /**
+             * Send results back to AI for interpretation
+             */
+            async function interpretResults(previousMessages, aiResponse, results) {
+                try {
+                    const resultsText = results.map(r => {
+                        return `Ability: ${r.ability}\nSuccess: ${r.result.success}\nData: ${JSON.stringify(r.result.data || r.result.error, null, 2)}`;
+                    }).join('\n\n');
+                    
+                    const interpretMessages = [
+                        ...previousMessages,
+                        { role: 'assistant', content: aiResponse },
+                        { 
+                            role: 'user', 
+                            content: `The abilities were executed. Here are the results:\n\n${resultsText}\n\nPlease provide a brief, natural summary of these results for the user.` 
+                        }
+                    ];
+                    
+                    setStatus('Interpreting results...');
+                    const interpretation = await callAI(interpretMessages);
+                    
+                    // Add interpretation as a follow-up message
+                    addMessage('assistant', interpretation);
+                    
+                } catch (error) {
+                    console.error('Failed to interpret results:', error);
+                }
             }
 
             /**
@@ -499,8 +680,9 @@ You can execute multiple abilities in sequence. Always explain what you're doing
              */
             function formatMessage(content) {
                 return content
-                    .replace(/```json\n?[\s\S]*?\n?```/g, '') // Remove JSON blocks
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/`(.*?)`/g, '<code>$1</code>')
                     .replace(/\n/g, '<br>');
             }
 
@@ -771,6 +953,54 @@ You can execute multiple abilities in sequence. Always explain what you're doing
             color: #c33;
             border: 1px solid #fcc;
             margin-right: auto;
+        }
+
+        .ability-results {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .ability-result {
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .ability-result.success {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+        }
+
+        .ability-result.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+
+        .ability-result strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .result-data {
+            color: #666;
+            font-size: 12px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .result-error {
+            color: #dc2626;
+            font-size: 12px;
+        }
+
+        .snn-chat-message code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
         }
 
         .snn-chat-typing {
