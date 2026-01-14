@@ -1505,8 +1505,11 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     const interpretation = await callAI(interpretMessages);
                     hideTyping();
 
-                    // Strip any JSON blocks from interpretation (AI shouldn't include them, but just in case)
-                    const cleanInterpretation = interpretation.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                    // Strip any JSON blocks and execution results from interpretation
+                    const cleanInterpretation = interpretation
+                        .replace(/```json\n?[\s\S]*?\n?```/g, '')
+                        .replace(/Execution results?:\s*\[.*?\]/gi, '')
+                        .trim();
 
                     // Add interpretation as a follow-up message
                     addMessage('assistant', cleanInterpretation);
@@ -1544,8 +1547,11 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     const summary = await callAI(summaryMessages);
                     hideTyping();
 
-                    // Strip any JSON blocks from summary (AI shouldn't include them, but just in case)
-                    const cleanSummary = summary.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                    // Strip any JSON blocks and execution results from summary
+                    const cleanSummary = summary
+                        .replace(/```json\n?[\s\S]*?\n?```/g, '')
+                        .replace(/Execution results?:\s*\[.*?\]/gi, '')
+                        .trim();
 
                     // Add summary message
                     addMessage('assistant', '✅ ' + cleanSummary);
