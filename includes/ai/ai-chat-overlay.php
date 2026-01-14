@@ -60,6 +60,11 @@ class SNN_Chat_Overlay {
             return;
         }
 
+        // Only show in wp-admin area
+        if ( ! is_admin() ) {
+            return;
+        }
+
         $wp_admin_bar->add_node( array(
             'id'     => 'snn-ai-chat',
             'title'  => '<span style="font-size: 25px; background: linear-gradient(45deg, #2271b1, #e4dadd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; position: relative;  line-height: 1.2;">✦</span>',
