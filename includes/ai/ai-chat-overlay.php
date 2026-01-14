@@ -621,7 +621,35 @@ IMPORTANT RULES:
 
                     const result = await response.json();
                     console.log('API response:', result);
-                    return result;
+                    
+                    // Normalize the response - WordPress Abilities API might return different formats
+                    // Check if it already has success property
+                    if (typeof result.success !== 'undefined') {
+                        // Already in expected format
+                        return result;
+                    }
+                    
+                    // If it has data property, it's likely successful
+                    if (result.data !== undefined) {
+                        return {
+                            success: true,
+                            data: result.data
+                        };
+                    }
+                    
+                    // If it has an error or message property indicating failure
+                    if (result.error || result.message) {
+                        return {
+                            success: false,
+                            error: result.error || result.message
+                        };
+                    }
+                    
+                    // Otherwise, treat the entire result as data (successful)
+                    return {
+                        success: true,
+                        data: result
+                    };
                 } catch (error) {
                     console.error('Execution error:', error);
                     return { success: false, error: error.message };
@@ -647,18 +675,24 @@ IMPORTANT RULES:
                 let html = '<div class="ability-results">';
                 
                 results.forEach(r => {
-                    const status = r.result.success ? '✅' : '❌';
-                    const statusClass = r.result.success ? 'success' : 'error';
+                    const success = r.result.success === true || (r.result.success !== false && !r.result.error);
+                    const status = success ? '✅' : '❌';
+                    const statusClass = success ? 'success' : 'error';
                     
                     html += `<div class="ability-result ${statusClass}">`;
                     html += `<strong>${status} ${r.ability}</strong>`;
                     
-                    if (r.result.success && r.result.data) {
-                        // Show a preview of the data
-                        const preview = formatDataPreview(r.result.data);
-                        html += `<div class="result-data">${preview}</div>`;
-                    } else if (!r.result.success) {
-                        html += `<div class="result-error">${r.result.error || 'Unknown error'}</div>`;
+                    if (success) {
+                        if (r.result.data) {
+                            // Show a preview of the data
+                            const preview = formatDataPreview(r.result.data);
+                            html += `<div class="result-data">${preview}</div>`;
+                        } else {
+                            html += `<div class="result-data">Completed successfully</div>`;
+                        }
+                    } else {
+                        const errorMsg = r.result.error || r.result.message || 'Unknown error';
+                        html += `<div class="result-error">${errorMsg}</div>`;
                     }
                     
                     html += '</div>';
@@ -679,8 +713,28 @@ IMPORTANT RULES:
                     const keys = Object.keys(data);
                     if (keys.length === 0) return 'Empty object';
                     
-                    // Format object properties nicely
-                    const formatted = keys.map(k => {
+                    // Special handling for WordPress post objects
+                    if (data.ID || data.id) {
+                        let preview = '';
+                        const id = data.ID || data.id;
+                        const title = data.post_title || data.title || 'Untitled';
+                        const status = data.post_status || data.status || 'unknown';
+                        
+                        preview += `<div><strong>ID:</strong> ${id}</div>`;
+                        if (title) preview += `<div><strong>Title:</strong> ${title}</div>`;
+                        if (status) preview += `<div><strong>Status:</strong> ${status}</div>`;
+                        
+                        // Add edit link if we have an ID
+                        if (id) {
+                            const editUrl = `<?php echo admin_url('post.php?action=edit&post='); ?>${id}`;
+                            preview += `<div><a href="${editUrl}" target="_blank" style="color: #667eea;">View/Edit Post →</a></div>`;
+                        }
+                        
+                        return preview;
+                    }
+                    
+                    // Generic object formatting - show first few properties
+                    const formatted = keys.slice(0, 5).map(k => {
                         let value = data[k];
                         if (typeof value === 'string') {
                             value = value.length > 50 ? value.substring(0, 50) + '...' : value;
@@ -689,6 +743,10 @@ IMPORTANT RULES:
                         }
                         return `<div><strong>${k}:</strong> ${value}</div>`;
                     }).join('');
+                    
+                    if (keys.length > 5) {
+                        return formatted + `<div><em>...and ${keys.length - 5} more properties</em></div>`;
+                    }
                     
                     return formatted;
                 }
@@ -793,7 +851,6 @@ IMPORTANT RULES:
                 console.log('🔄 Agent State:', state, metadata || '');
 
                 const $badge = $('#snn-agent-state-badge');
-                let statusText = '';
                 let badgeText = '';
                 let badgeClass = '';
 
@@ -807,38 +864,27 @@ IMPORTANT RULES:
                         break;
 
                     case AgentState.THINKING:
-                        statusText = '🤔 Thinking...';
                         badgeText = 'Thinking';
                         badgeClass = 'badge-thinking';
-                        addStateMessage(statusText, 'thinking');
+                        // Don't add state message to chat - just show in badge
                         break;
 
                     case AgentState.EXECUTING:
-                        if (metadata && metadata.abilityName) {
-                            statusText = `⚡ Executing: ${metadata.abilityName}`;
-                            if (metadata.current && metadata.total) {
-                                statusText += ` (${metadata.current}/${metadata.total})`;
-                            }
-                        } else {
-                            statusText = '⚡ Executing Ability...';
-                        }
                         badgeText = 'Executing';
                         badgeClass = 'badge-executing';
-                        addStateMessage(statusText, 'executing');
+                        // Don't add state message to chat - just show in badge
                         break;
 
                     case AgentState.INTERPRETING:
-                        statusText = '📊 Interpreting Results...';
                         badgeText = 'Interpreting';
                         badgeClass = 'badge-interpreting';
-                        addStateMessage(statusText, 'interpreting');
+                        // Don't add state message to chat - just show in badge
                         break;
 
                     case AgentState.DONE:
-                        statusText = '✅ Done';
                         badgeText = 'Done';
                         badgeClass = 'badge-done';
-                        addStateMessage(statusText, 'done');
+                        // Don't add state message to chat - completion is implied
                         // Auto-clear badge after 2 seconds
                         setTimeout(() => {
                             if (ChatState.currentState === AgentState.DONE) {
@@ -848,10 +894,9 @@ IMPORTANT RULES:
                         break;
 
                     case AgentState.ERROR:
-                        statusText = metadata && metadata.error ? `❌ Error: ${metadata.error}` : '❌ Error';
                         badgeText = 'Error';
                         badgeClass = 'badge-error';
-                        addStateMessage(statusText, 'error');
+                        // Only show error in badge, detailed error will be in ability results
                         // Auto-clear badge after 3 seconds
                         setTimeout(() => {
                             if (ChatState.currentState === AgentState.ERROR) {
@@ -870,27 +915,6 @@ IMPORTANT RULES:
                     $badge.hide();
                 }
             }
-
-            /**
-             * Add state message to chat history
-             */
-            function addStateMessage(text, stateClass) {
-                const $messages = $('#snn-chat-messages');
-                const $welcome = $messages.find('.snn-chat-welcome');
-
-                if ($welcome.length) {
-                    $welcome.remove();
-                }
-
-                const $stateMessage = $('<div>')
-                    .addClass('snn-chat-state-message')
-                    .addClass('state-' + stateClass)
-                    .text(text);
-
-                $messages.append($stateMessage);
-                scrollToBottom();
-            }
-
 
             /**
              * Scroll to bottom
