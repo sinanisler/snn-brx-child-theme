@@ -17,8 +17,6 @@
  * - Client-side context and state management
  * - Draggable, resizable interface
  *
- * @package SNN_AI_Chat
- * @version 1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
