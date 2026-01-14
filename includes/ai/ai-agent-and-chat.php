@@ -627,47 +627,42 @@ When the user asks you to perform a task that matches one of these abilities:
 2. THEN: Include a JSON code block with the abilities to execute
 3. AFTER: I will execute the abilities and show you the results
 
-Example response format:
-"I'll create a draft post for you.
+Example response format (using the first available ability as example):
+"I'll get the site information for you.
 
 \`\`\`json
 {
   "abilities": [
-    {"name": "core/create-post", "input": {"title": "My Post", "content": "Post content here", "status": "draft"}}
+    {"name": "${ChatState.abilities[0]?.name || 'ability-name'}", "input": {}}
   ]
 }
 \`\`\`"
 
-For abilities with parameters, include them in the input object:
-\`\`\`json
-{
-  "abilities": [
-    {"name": "core/get-posts", "input": {"post_type": "post", "posts_per_page": 5}}
-  ]
-}
-\`\`\`
+For abilities with parameters, include them in the input object. ALWAYS use the exact name from the list above.
 
-You can chain multiple abilities:
+You can chain multiple abilities (use exact names from the list):
 \`\`\`json
 {
   "abilities": [
-    {"name": "core/get-posts", "input": {"posts_per_page": 10}},
-    {"name": "core/search-content", "input": {"query": "WordPress", "limit": 5}}
+    {"name": "exact-ability-name-from-list", "input": {}},
+    {"name": "another-exact-ability-name", "input": {"param": "value"}}
   ]
 }
 \`\`\`
 
 IMPORTANT RULES:
 - Always explain what you're doing before the JSON block
-- Use the exact ability names as listed above (e.g., "${ChatState.abilities[0]?.name || 'core/get-posts'}")
+- CRITICAL: You MUST use the EXACT ability names as listed above - copy them exactly character by character
+- The ability names include their namespace prefix (like "snn/" or "core/") - NEVER change or guess the prefix
+- If you see "snn/get-site-info" in the list, use EXACTLY "snn/get-site-info" - NOT "core/get-site-info"
 - Match parameter types exactly (string, integer, boolean, array, etc.)
 - Include all required parameters
 - After execution, I'll provide results - interpret them for the user in a friendly way
 - If you're not sure about parameters, ask the user for clarification instead of guessing
-- Only use abilities that are listed above - don't make up ability names
+- ONLY use abilities that are listed above - NEVER make up or modify ability names
 
 VALIDATION REQUIREMENTS:
-- For core/create-post and core/update-post: The "content" field MUST contain at least 1 character. If the user doesn't specify content, use a placeholder like " " (single space) or "Draft content" instead of empty string ""
+- For any create-post or update-post abilities: The "content" field MUST contain at least 1 character. If the user doesn't specify content, use a placeholder like " " (single space) or "Draft content" instead of empty string ""
 - Never send empty strings ("") for required text fields - always provide at least a minimal value`;
             }
 
@@ -880,22 +875,38 @@ VALIDATION REQUIREMENTS:
                 try {
                     // Encode the ability name but keep forward slashes as-is for WordPress REST API
                     const encodedName = abilityName.split('/').map(part => encodeURIComponent(part)).join('/');
-                    const apiUrl = snnChatConfig.restUrl + 'abilities/' + encodedName + '/run';
-                    
-                    console.log(`Calling API: ${apiUrl}`);
-                    console.log('Input:', input);
-                    
-                    const response = await fetch(
-                        apiUrl,
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-WP-Nonce': snnChatConfig.nonce
-                            },
-                            body: JSON.stringify({ input: input })
+
+                    // Check if this ability is read-only
+                    const abilityInfo = ChatState.abilities.find(a => a.name === abilityName);
+                    const isReadOnly = abilityInfo?.meta?.readonly === true;
+
+                    let apiUrl = snnChatConfig.restUrl + 'abilities/' + encodedName + '/run';
+                    let fetchOptions = {
+                        headers: {
+                            'X-WP-Nonce': snnChatConfig.nonce
                         }
-                    );
+                    };
+
+                    if (isReadOnly) {
+                        // Read-only abilities use GET with input as query params
+                        fetchOptions.method = 'GET';
+                        if (input && Object.keys(input).length > 0) {
+                            const params = new URLSearchParams();
+                            params.append('input', JSON.stringify(input));
+                            apiUrl += '?' + params.toString();
+                        }
+                        console.log(`Calling API (GET - readonly): ${apiUrl}`);
+                    } else {
+                        // Non-readonly abilities use POST with JSON body
+                        fetchOptions.method = 'POST';
+                        fetchOptions.headers['Content-Type'] = 'application/json';
+                        fetchOptions.body = JSON.stringify({ input: input });
+                        console.log(`Calling API (POST): ${apiUrl}`);
+                    }
+
+                    console.log('Input:', input);
+
+                    const response = await fetch(apiUrl, fetchOptions);
 
                     if (!response.ok) {
                         const errorText = await response.text();
