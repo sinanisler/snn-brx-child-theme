@@ -43,6 +43,14 @@ class SNN_Chat_Overlay {
         // Add admin menu page
         add_action( 'admin_menu', array( $this, 'add_settings_submenu' ) );
         
+        // Add settings save handler
+        add_action( 'admin_init', array( $this, 'register_settings' ) );
+        
+        // Check if feature is enabled
+        if ( ! $this->is_enabled() ) {
+            return;
+        }
+        
         // Add admin bar button
         add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_button' ), 999 );
         
@@ -53,6 +61,20 @@ class SNN_Chat_Overlay {
         // Render overlay HTML
         add_action( 'wp_footer', array( $this, 'render_overlay' ), 999 );
         add_action( 'admin_footer', array( $this, 'render_overlay' ), 999 );
+    }
+
+    /**
+     * Check if AI Agent is enabled
+     */
+    public function is_enabled() {
+        return get_option( 'snn_ai_agent_enabled', false );
+    }
+
+    /**
+     * Get custom system prompt
+     */
+    public function get_system_prompt() {
+        return get_option( 'snn_ai_agent_system_prompt', 'You are a helpful WordPress assistant.' );
     }
 
     /**
@@ -70,16 +92,275 @@ class SNN_Chat_Overlay {
     }
 
     /**
+     * Register settings
+     */
+    public function register_settings() {
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_enabled' );
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_system_prompt' );
+    }
+
+    /**
      * Render AI Agent Settings page
      */
     public function render_settings_page() {
+        // Handle form submission
+        if ( isset( $_POST['snn_ai_agent_settings_submit'] ) && check_admin_referer( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ) ) {
+            update_option( 'snn_ai_agent_enabled', isset( $_POST['snn_ai_agent_enabled'] ) ? true : false );
+            update_option( 'snn_ai_agent_system_prompt', sanitize_textarea_field( $_POST['snn_ai_agent_system_prompt'] ) );
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'snn' ) . '</p></div>';
+        }
+
+        $enabled = $this->is_enabled();
+        $system_prompt = $this->get_system_prompt();
+        $default_prompt = 'You are a helpful WordPress assistant.';
+
+        // Try to fetch abilities
+        $abilities = $this->get_abilities();
         ?>
         <div class="wrap">
-            <h1><?php echo esc_html__('AI Agent Settings', 'snn'); ?></h1>
-            <p><?php echo esc_html__('Configure AI Agent chat overlay settings here.', 'snn'); ?></p>
-            <!-- Add your settings form here -->
+            <h1><?php echo esc_html__('AI Agent & Chat Overlay Settings', 'snn'); ?></h1>
+            <p><?php echo esc_html__('Configure the AI-powered chat assistant that helps you manage WordPress through natural conversation.', 'snn'); ?></p>
+            
+            <form method="post" action="">
+                <?php wp_nonce_field( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ); ?>
+                
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <!-- Enable/Disable Toggle -->
+                        <tr>
+                            <th scope="row">
+                                <label for="snn_ai_agent_enabled"><?php echo esc_html__('Enable AI Agent & Chat Overlay', 'snn'); ?></label>
+                            </th>
+                            <td>
+                                <label class="snn-toggle-switch">
+                                    <input type="checkbox" 
+                                           id="snn_ai_agent_enabled" 
+                                           name="snn_ai_agent_enabled" 
+                                           value="1" 
+                                           <?php checked( $enabled, true ); ?>>
+                                    <span class="snn-toggle-slider"></span>
+                                </label>
+                                <p class="description">
+                                    <?php echo esc_html__('Enable the AI chat assistant accessible from the admin bar.', 'snn'); ?><br>
+                                    <?php 
+                                    printf(
+                                        __('To set up AI API key and model selection, go to <a href="%s">AI Settings</a>.', 'snn'),
+                                        admin_url('admin.php?page=snn-ai-settings')
+                                    );
+                                    ?>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- System Prompt -->
+                        <tr>
+                            <th scope="row">
+                                <label for="snn_ai_agent_system_prompt"><?php echo esc_html__('System Prompt', 'snn'); ?></label>
+                            </th>
+                            <td>
+                                <textarea 
+                                    id="snn_ai_agent_system_prompt" 
+                                    name="snn_ai_agent_system_prompt" 
+                                    rows="6" 
+                                    class="large-text code"
+                                    placeholder="<?php echo esc_attr( $default_prompt ); ?>"
+                                ><?php echo esc_textarea( $system_prompt ); ?></textarea>
+                                <p class="description">
+                                    <?php echo esc_html__('Customize the AI assistant\'s behavior and personality. This is the base instruction that guides how the AI responds.', 'snn'); ?><br>
+                                    <strong><?php echo esc_html__('Default:', 'snn'); ?></strong> <?php echo esc_html( $default_prompt ); ?>
+                                </p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <?php submit_button( __('Save Settings', 'snn'), 'primary', 'snn_ai_agent_settings_submit' ); ?>
+            </form>
+
+            <hr style="margin: 40px 0;">
+
+            <!-- Available Abilities -->
+            <h2><?php echo esc_html__('Available WordPress Abilities', 'snn'); ?></h2>
+            <p><?php echo esc_html__('These are the actions the AI agent can perform on your WordPress site. The list is automatically generated from registered WordPress Core Abilities.', 'snn'); ?></p>
+            
+            <?php if ( ! empty( $abilities ) && is_array( $abilities ) ) : ?>
+                <div class="snn-abilities-list">
+                    <?php 
+                    // Group abilities by category
+                    $grouped = array();
+                    foreach ( $abilities as $ability ) {
+                        $category = isset( $ability['category'] ) ? $ability['category'] : 'uncategorized';
+                        if ( ! isset( $grouped[$category] ) ) {
+                            $grouped[$category] = array();
+                        }
+                        $grouped[$category][] = $ability;
+                    }
+                    
+                    ksort( $grouped );
+                    
+                    foreach ( $grouped as $category => $cat_abilities ) :
+                    ?>
+                        <div class="snn-ability-category">
+                            <h3><?php echo esc_html( ucfirst( $category ) ); ?> <span class="count">(<?php echo count( $cat_abilities ); ?>)</span></h3>
+                            <ul class="snn-ability-items">
+                                <?php foreach ( $cat_abilities as $ability ) : ?>
+                                    <li class="snn-ability-item">
+                                        <div class="ability-header">
+                                            <strong class="ability-name"><?php echo esc_html( $ability['name'] ); ?></strong>
+                                        </div>
+                                        <div class="ability-description">
+                                            <?php echo esc_html( $ability['description'] ?? $ability['label'] ?? 'No description available' ); ?>
+                                        </div>
+                                        <?php if ( ! empty( $ability['input_schema'] ) ) : ?>
+                                            <div class="ability-parameters">
+                                                <small><em><?php echo esc_html__('Parameters:', 'snn'); ?></em> 
+                                                    <?php 
+                                                    if ( isset( $ability['input_schema']['properties'] ) ) {
+                                                        $params = array_keys( $ability['input_schema']['properties'] );
+                                                        echo esc_html( implode( ', ', $params ) );
+                                                    } elseif ( isset( $ability['input_schema']['type'] ) ) {
+                                                        echo esc_html( $ability['input_schema']['type'] );
+                                                    } else {
+                                                        echo esc_html__('None', 'snn');
+                                                    }
+                                                    ?>
+                                                </small>
+                                            </div>
+                                        <?php endif; ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else : ?>
+                <div class="notice notice-warning inline">
+                    <p>
+                        <strong><?php echo esc_html__('No abilities found.', 'snn'); ?></strong><br>
+                        <?php echo esc_html__('Make sure WordPress 6.9+ is installed and abilities are registered with show_in_rest enabled.', 'snn'); ?>
+                    </p>
+                </div>
+            <?php endif; ?>
         </div>
+
+        <style>
+            .snn-toggle-switch {
+                position: relative;
+                display: inline-block;
+                width: 50px;
+                height: 26px;
+                vertical-align: middle;
+            }
+            .snn-toggle-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .snn-toggle-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                transition: .4s;
+                border-radius: 26px;
+            }
+            .snn-toggle-slider:before {
+                position: absolute;
+                content: "";
+                height: 20px;
+                width: 20px;
+                left: 3px;
+                bottom: 3px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+            input:checked + .snn-toggle-slider {
+                background-color: #2271b1;
+            }
+            input:checked + .snn-toggle-slider:before {
+                transform: translateX(24px);
+            }
+            .snn-abilities-list {
+                margin-top: 20px;
+            }
+            .snn-ability-category {
+                margin-bottom: 30px;
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 20px;
+            }
+            .snn-ability-category h3 {
+                margin: 0 0 15px 0;
+                padding: 0;
+                font-size: 16px;
+                color: #1d2327;
+            }
+            .snn-ability-category h3 .count {
+                color: #666;
+                font-weight: normal;
+                font-size: 14px;
+            }
+            .snn-ability-items {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+            .snn-ability-item {
+                padding: 12px 15px;
+                margin-bottom: 8px;
+                background: #f9f9f9;
+                border-left: 3px solid #2271b1;
+                border-radius: 3px;
+            }
+            .snn-ability-item:last-child {
+                margin-bottom: 0;
+            }
+            .ability-header {
+                margin-bottom: 5px;
+            }
+            .ability-name {
+                color: #2271b1;
+                font-size: 14px;
+                font-family: 'Courier New', monospace;
+            }
+            .ability-description {
+                color: #555;
+                font-size: 13px;
+                line-height: 1.5;
+                margin-bottom: 5px;
+            }
+            .ability-parameters {
+                color: #666;
+                font-size: 12px;
+            }
+        </style>
         <?php
+    }
+
+    /**
+     * Get available abilities from WordPress Core Abilities API
+     */
+    private function get_abilities() {
+        $abilities = array();
+        
+        try {
+            // Make internal REST API request
+            $request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+            $response = rest_do_request( $request );
+            
+            if ( ! is_wp_error( $response ) && $response->get_status() === 200 ) {
+                $abilities = $response->get_data();
+            }
+        } catch ( Exception $e ) {
+            // Silently fail
+        }
+        
+        return $abilities;
     }
 
     /**
@@ -120,6 +401,9 @@ class SNN_Chat_Overlay {
 
         // Pass configuration to JavaScript
         $ai_config = function_exists( 'snn_get_ai_api_config' ) ? snn_get_ai_api_config() : array();
+        
+        // Add custom system prompt to config
+        $ai_config['systemPrompt'] = $this->get_system_prompt();
         
         wp_localize_script( 'jquery', 'snnChatConfig', array(
             'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
