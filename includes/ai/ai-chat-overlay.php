@@ -40,6 +40,9 @@ class SNN_Chat_Overlay {
     }
 
     private function __construct() {
+        // Add admin menu page
+        add_action( 'admin_menu', array( $this, 'add_settings_submenu' ) );
+        
         // Add admin bar button
         add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_button' ), 999 );
         
@@ -50,6 +53,33 @@ class SNN_Chat_Overlay {
         // Render overlay HTML
         add_action( 'wp_footer', array( $this, 'render_overlay' ), 999 );
         add_action( 'admin_footer', array( $this, 'render_overlay' ), 999 );
+    }
+
+    /**
+     * Add AI Agent Settings submenu page
+     */
+    public function add_settings_submenu() {
+        add_submenu_page(
+            'snn-settings',
+            __('AI Agent Settings', 'snn'),
+            __('AI Agent Settings', 'snn'),
+            'manage_options',
+            'snn-ai-agent-settings',
+            array( $this, 'render_settings_page' )
+        );
+    }
+
+    /**
+     * Render AI Agent Settings page
+     */
+    public function render_settings_page() {
+        ?>
+        <div class="wrap">
+            <h1><?php echo esc_html__('AI Agent Settings', 'snn'); ?></h1>
+            <p><?php echo esc_html__('Configure AI Agent chat overlay settings here.', 'snn'); ?></p>
+            <!-- Add your settings form here -->
+        </div>
+        <?php
     }
 
     /**
@@ -121,9 +151,6 @@ class SNN_Chat_Overlay {
                     <div class="snn-chat-controls">
                         <button class="snn-chat-btn snn-chat-clear" title="Clear conversation">
                             <span class="dashicons dashicons-trash"></span>
-                        </button>
-                        <button class="snn-chat-btn snn-chat-minimize" title="Minimize">
-                            <span class="dashicons dashicons-minus"></span>
                         </button>
                         <button class="snn-chat-btn snn-chat-close" title="Close">
                             <span class="dashicons dashicons-no-alt"></span>
@@ -211,11 +238,6 @@ class SNN_Chat_Overlay {
                     toggleChat();
                 });
 
-                // Minimize
-                $('.snn-chat-minimize').on('click', function() {
-                    $('#snn-chat-overlay').toggleClass('minimized');
-                });
-
                 // Clear chat
                 $('.snn-chat-clear').on('click', function() {
                     if (confirm('Clear conversation history?')) {
@@ -239,9 +261,6 @@ class SNN_Chat_Overlay {
                     this.style.height = 'auto';
                     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
                 });
-
-                // Make draggable
-                makeDraggable();
             }
 
             /**
@@ -1027,49 +1046,6 @@ VALIDATION REQUIREMENTS:
                 `);
             }
 
-            /**
-             * Make overlay draggable
-             */
-            function makeDraggable() {
-                const $overlay = $('#snn-chat-overlay');
-                const $header = $('.snn-chat-header');
-                let isDragging = false;
-                let currentX, currentY, initialX, initialY;
-
-                $header.on('mousedown', function(e) {
-                    if ($(e.target).closest('button').length) {
-                        return;
-                    }
-
-                    isDragging = true;
-                    initialX = e.clientX - $overlay.offset().left;
-                    initialY = e.clientY - $overlay.offset().top;
-                    $overlay.addClass('dragging');
-                });
-
-                $(document).on('mousemove', function(e) {
-                    if (!isDragging) return;
-
-                    e.preventDefault();
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-
-                    $overlay.css({
-                        left: currentX + 'px',
-                        top: currentY + 'px',
-                        right: 'auto',
-                        bottom: 'auto'
-                    });
-                });
-
-                $(document).on('mouseup', function() {
-                    if (isDragging) {
-                        isDragging = false;
-                        $overlay.removeClass('dragging');
-                    }
-                });
-            }
-
         })(jQuery);
         </script>
         <?php
@@ -1082,35 +1058,21 @@ VALIDATION REQUIREMENTS:
         return '
         .snn-chat-overlay {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            top: 32px;
+            right: 0;
+            bottom: 0;
             z-index: 999999;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
         }
 
         .snn-chat-container {
-            width: 420px;
-            height: 94vh;
+            width: 400px;
+            height: 100%;
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-        }
-
-        .snn-chat-overlay.minimized .snn-chat-container {
-            height: auto;
-        }
-
-        .snn-chat-overlay.minimized .snn-chat-messages,
-        .snn-chat-overlay.minimized .snn-chat-input-container,
-        .snn-chat-overlay.minimized .snn-chat-typing {
-            display: none !important;
-        }
-
-        .snn-chat-overlay.dragging {
-            cursor: move;
         }
 
         .snn-chat-header {
@@ -1120,7 +1082,6 @@ VALIDATION REQUIREMENTS:
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: move;
             user-select: none;
         }
 
@@ -1271,6 +1232,7 @@ VALIDATION REQUIREMENTS:
         .snn-chat-welcome li {
             margin: 8px 0;
             line-height: 1.5;
+            text-align: center;
         }
 
         .snn-chat-message {
@@ -1506,6 +1468,7 @@ VALIDATION REQUIREMENTS:
             font-size: 20px;
             width: 20px;
             height: 20px;
+            rotate:90deg;
         }
 
         #wpadminbar #wp-admin-bar-snn-ai-chat .ab-icon:before {
@@ -1516,12 +1479,11 @@ VALIDATION REQUIREMENTS:
         @media (max-width: 768px) {
             .snn-chat-container {
                 width: 100vw;
-                height: 100vh;
-                border-radius: 0;
+                height: 100%;
             }
             
             .snn-chat-overlay {
-                bottom: 0;
+                top: 0;
                 right: 0;
             }
         }
