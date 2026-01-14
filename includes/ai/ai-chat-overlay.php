@@ -763,30 +763,25 @@ IMPORTANT RULES:
                 // Log state transition
                 console.log('🔄 Agent State:', state, metadata || '');
 
-                const $status = $('#snn-chat-status');
                 const $badge = $('#snn-agent-state-badge');
                 let statusText = '';
-                let statusClass = '';
                 let badgeText = '';
                 let badgeClass = '';
 
                 // Clear existing state classes
-                $status.removeClass('state-idle state-thinking state-executing state-interpreting state-done state-error');
                 $badge.removeClass('badge-idle badge-thinking badge-executing badge-interpreting badge-done badge-error');
 
                 switch(state) {
                     case AgentState.IDLE:
-                        statusText = '';
-                        statusClass = 'state-idle';
                         badgeText = '';
                         badgeClass = 'badge-idle';
                         break;
 
                     case AgentState.THINKING:
                         statusText = '🤔 Thinking...';
-                        statusClass = 'state-thinking';
                         badgeText = 'Thinking';
                         badgeClass = 'badge-thinking';
+                        addStateMessage(statusText, 'thinking');
                         break;
 
                     case AgentState.EXECUTING:
@@ -798,24 +793,24 @@ IMPORTANT RULES:
                         } else {
                             statusText = '⚡ Executing Ability...';
                         }
-                        statusClass = 'state-executing';
                         badgeText = 'Executing';
                         badgeClass = 'badge-executing';
+                        addStateMessage(statusText, 'executing');
                         break;
 
                     case AgentState.INTERPRETING:
                         statusText = '📊 Interpreting Results...';
-                        statusClass = 'state-interpreting';
                         badgeText = 'Interpreting';
                         badgeClass = 'badge-interpreting';
+                        addStateMessage(statusText, 'interpreting');
                         break;
 
                     case AgentState.DONE:
                         statusText = '✅ Done';
-                        statusClass = 'state-done';
                         badgeText = 'Done';
                         badgeClass = 'badge-done';
-                        // Auto-clear after 2 seconds
+                        addStateMessage(statusText, 'done');
+                        // Auto-clear badge after 2 seconds
                         setTimeout(() => {
                             if (ChatState.currentState === AgentState.DONE) {
                                 setAgentState(AgentState.IDLE);
@@ -825,10 +820,10 @@ IMPORTANT RULES:
 
                     case AgentState.ERROR:
                         statusText = metadata && metadata.error ? `❌ Error: ${metadata.error}` : '❌ Error';
-                        statusClass = 'state-error';
                         badgeText = 'Error';
                         badgeClass = 'badge-error';
-                        // Auto-clear after 3 seconds
+                        addStateMessage(statusText, 'error');
+                        // Auto-clear badge after 3 seconds
                         setTimeout(() => {
                             if (ChatState.currentState === AgentState.ERROR) {
                                 setAgentState(AgentState.IDLE);
@@ -837,7 +832,6 @@ IMPORTANT RULES:
                         break;
                 }
 
-                $status.addClass(statusClass).text(statusText);
                 $badge.addClass(badgeClass).text(badgeText);
 
                 // Show/hide badge based on state
@@ -846,6 +840,26 @@ IMPORTANT RULES:
                 } else {
                     $badge.hide();
                 }
+            }
+
+            /**
+             * Add state message to chat history
+             */
+            function addStateMessage(text, stateClass) {
+                const $messages = $('#snn-chat-messages');
+                const $welcome = $messages.find('.snn-chat-welcome');
+
+                if ($welcome.length) {
+                    $welcome.remove();
+                }
+
+                const $stateMessage = $('<div>')
+                    .addClass('snn-chat-state-message')
+                    .addClass('state-' + stateClass)
+                    .text(text);
+
+                $messages.append($stateMessage);
+                scrollToBottom();
             }
 
             /**
@@ -1157,6 +1171,58 @@ IMPORTANT RULES:
             margin-right: auto;
         }
 
+        .snn-chat-state-message {
+            padding: 8px 14px;
+            margin: 8px auto;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            max-width: 80%;
+            animation: fadeInScale 0.3s ease-out;
+        }
+
+        .snn-chat-state-message.state-thinking {
+            background: linear-gradient(90deg, #e3f2fd, #f3e5f5);
+            color: #667eea;
+            border: 1px solid #bbdefb;
+        }
+
+        .snn-chat-state-message.state-executing {
+            background: linear-gradient(90deg, #fff3e0, #ffe0b2);
+            color: #f57c00;
+            border: 1px solid #ffcc80;
+        }
+
+        .snn-chat-state-message.state-interpreting {
+            background: linear-gradient(90deg, #e8f5e9, #c8e6c9);
+            color: #388e3c;
+            border: 1px solid #a5d6a7;
+        }
+
+        .snn-chat-state-message.state-done {
+            background: linear-gradient(90deg, #e8f5e9, #c8e6c9);
+            color: #2e7d32;
+            border: 1px solid #81c784;
+        }
+
+        .snn-chat-state-message.state-error {
+            background: linear-gradient(90deg, #ffebee, #ffcdd2);
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
         .ability-results {
             margin-top: 12px;
             padding-top: 12px;
@@ -1307,65 +1373,15 @@ IMPORTANT RULES:
         .snn-chat-status {
             padding: 8px 20px;
             background: #f0f0f0;
-            font-size: 12px;
-            color: #666;
+            font-size: 11px;
+            color: #999;
             border-top: 1px solid #e0e0e0;
             min-height: 32px;
             transition: all 0.3s ease;
-            font-weight: 500;
+            font-weight: 400;
             display: flex;
             align-items: center;
-        }
-
-        .snn-chat-status.state-thinking {
-            background: linear-gradient(90deg, #e3f2fd, #f3e5f5);
-            color: #667eea;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        .snn-chat-status.state-executing {
-            background: linear-gradient(90deg, #fff3e0, #ffe0b2);
-            color: #f57c00;
-            animation: pulse 1.2s ease-in-out infinite;
-        }
-
-        .snn-chat-status.state-interpreting {
-            background: linear-gradient(90deg, #e8f5e9, #c8e6c9);
-            color: #388e3c;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        .snn-chat-status.state-done {
-            background: linear-gradient(90deg, #e8f5e9, #c8e6c9);
-            color: #2e7d32;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        .snn-chat-status.state-error {
-            background: linear-gradient(90deg, #ffebee, #ffcdd2);
-            color: #c62828;
-            animation: shake 0.5s ease-in-out;
-        }
-
-        .snn-chat-status.state-idle {
-            background: #f0f0f0;
-            color: #666;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            font-style: italic;
         }
 
         #wpadminbar #wp-admin-bar-snn-ai-chat .ab-icon:before {
