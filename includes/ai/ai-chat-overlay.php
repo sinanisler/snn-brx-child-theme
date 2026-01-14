@@ -62,7 +62,7 @@ class SNN_Chat_Overlay {
 
         $wp_admin_bar->add_node( array(
             'id'     => 'snn-ai-chat',
-            'title'  => '<span class="ab-icon dashicons dashicons-admin-comments"></span><span class="ab-label">AI Assistant</span>',
+            'title'  => '<span style="background: linear-gradient(45deg, #f3ec78, #af4261); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✨</span>',
             'href'   => '#',
             'parent' => 'top-secondary',
             'meta'   => array(
