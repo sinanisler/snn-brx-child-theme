@@ -36,8 +36,11 @@ function snn_register_create_post_summaries_ability() {
                         'description' => 'Specific post ID to summarize. If not provided, analyzes recent posts.',
                     ),
                     'post_type' => array(
-                        'type'        => 'string',
-                        'description' => 'Post type to analyze (default: post).',
+                        'oneOf'       => array(
+                            array( 'type' => 'string' ),
+                            array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+                        ),
+                        'description' => 'Post type(s) to analyze. Can be a single post type string (e.g., "post", "page", "product") or an array of post types (e.g., ["post", "page"]). Supports any registered post type. Default: "post".',
                         'default'     => 'post',
                     ),
                     'min_word_count' => array(
@@ -67,7 +70,16 @@ function snn_register_create_post_summaries_ability() {
                 ),
             ),
             'execute_callback' => function( $input ) {
-                $post_type = isset( $input['post_type'] ) ? sanitize_text_field( $input['post_type'] ) : 'post';
+                // Handle post_type as string or array
+                if ( isset( $input['post_type'] ) ) {
+                    if ( is_array( $input['post_type'] ) ) {
+                        $post_type = array_map( 'sanitize_text_field', $input['post_type'] );
+                    } else {
+                        $post_type = sanitize_text_field( $input['post_type'] );
+                    }
+                } else {
+                    $post_type = 'post';
+                }
                 $min_words = isset( $input['min_word_count'] ) ? absint( $input['min_word_count'] ) : 500;
                 $summary_length = isset( $input['summary_length'] ) ? sanitize_text_field( $input['summary_length'] ) : 'medium';
                 $limit = isset( $input['limit'] ) ? absint( $input['limit'] ) : 10;
@@ -99,6 +111,7 @@ function snn_register_create_post_summaries_ability() {
                     $post_data = array(
                         'id'           => $post->ID,
                         'title'        => $post->post_title,
+                        'post_type'    => $post->post_type,
                         'url'          => get_permalink( $post->ID ),
                         'word_count'   => $word_count,
                         'is_long_post' => $word_count >= $min_words,
