@@ -52,7 +52,7 @@ require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
 require_once SNN_PATH . 'includes/ai/ai-block-editor.php';
 
 // AI Agent and Chat and AI Abilities (WordPress Abilities API)
-require_once SNN_PATH . 'includes/ai/ai-chat-overlay.php';
+require_once SNN_PATH . 'includes/ai/ai-agent-and-chat.php';
 require_once SNN_PATH . 'includes/ai/abilities/create-posts.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-posts.php';
 require_once SNN_PATH . 'includes/ai/abilities/get-posts.php';
@@ -66,6 +66,11 @@ require_once SNN_PATH . 'includes/ai/abilities/get-media.php';
 require_once SNN_PATH . 'includes/ai/abilities/get-users.php';
 require_once SNN_PATH . 'includes/ai/abilities/get-comments.php';
 require_once SNN_PATH . 'includes/ai/abilities/get-site-info.php';
+require_once SNN_PATH . 'includes/ai/abilities/suggest-content-ideas.php';
+require_once SNN_PATH . 'includes/ai/abilities/create-post-summaries.php';
+require_once SNN_PATH . 'includes/ai/abilities/check-seo-quality-title-and-content.php';
+require_once SNN_PATH . 'includes/ai/abilities/installed-plugin-list-and-infos.php';
+require_once SNN_PATH . 'includes/ai/abilities/active-theme-info.php';
 
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
