@@ -26,7 +26,7 @@ function snn_register_create_terms_ability() {
         'snn/create-terms',
         array(
             'label'       => __( 'Create Terms', 'wp-abilities' ),
-            'description' => __( 'Creates new terms in any taxonomy (categories, tags, custom taxonomies).', 'wp-abilities' ),
+            'description' => __( 'Creates a new term in a specific taxonomy. IMPORTANT: You must provide a valid taxonomy slug (e.g., "category", "post_tag"). If you do not know the available taxonomies, call list-taxonomies first to discover them. Common taxonomies: "category" for post categories, "post_tag" for post tags. Custom taxonomies vary by site.', 'wp-abilities' ),
             'category'    => 'taxonomy',
             'input_schema' => array(
                 'type'       => 'object',
@@ -39,7 +39,7 @@ function snn_register_create_terms_ability() {
                     ),
                     'taxonomy' => array(
                         'type'        => 'string',
-                        'description' => 'Taxonomy slug (e.g., "category", "post_tag", or any custom taxonomy).',
+                        'description' => 'The taxonomy slug to create the term in. REQUIRED. Use "category" for post categories, "post_tag" for tags. For custom taxonomies (e.g., courses, products), call list-taxonomies first to get the exact slug. Do NOT guess taxonomy slugs.',
                         'minLength'   => 1,
                     ),
                     'slug' => array(
@@ -72,9 +72,19 @@ function snn_register_create_terms_ability() {
 
                 // Validate taxonomy exists
                 if ( ! taxonomy_exists( $taxonomy ) ) {
+                    // Get list of available public taxonomies to help the agent
+                    $available_taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
+                    $taxonomy_list = array();
+                    foreach ( $available_taxonomies as $tax ) {
+                        $taxonomy_list[] = sprintf( '"%s" (%s)', $tax->name, $tax->label );
+                    }
                     return new WP_Error(
                         'invalid_taxonomy',
-                        sprintf( __( 'Taxonomy "%s" does not exist.', 'snn' ), $taxonomy )
+                        sprintf(
+                            'The taxonomy "%s" does not exist. Available taxonomies: %s. Use list-taxonomies ability to get full details.',
+                            $taxonomy,
+                            implode( ', ', $taxonomy_list )
+                        )
                     );
                 }
 
