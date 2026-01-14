@@ -138,11 +138,8 @@ class SNN_Chat_Overlay {
                             <span class="dashicons dashicons-admin-comments"></span>
                         </div>
                         <h3>Hello, <?php echo esc_html( wp_get_current_user()->display_name ); ?>!</h3>
-                        <p>I'm your AI assistant powered by WordPress Core Abilities API. I can help you with:</p>
                         <ul>
-                            <li>Getting site and environment information</li>
-                            <li>Viewing user profile details</li>
-                            <li>And more WordPress core capabilities</li>
+                            <li>List Abilities</li>
                         </ul>
                         <p><small>Type a message to get started.</small></p>
                     </div>
