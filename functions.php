@@ -50,10 +50,10 @@ require_once SNN_PATH . 'includes/ai/ai-api.php';
 require_once SNN_PATH . 'includes/ai/ai-overlay.php';
 require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
 require_once SNN_PATH . 'includes/ai/ai-block-editor.php';
-// AI Agent and Chat
-//require_once SNN_PATH . 'includes/ai/ai-agent.php';
-//require_once SNN_PATH . 'includes/ai/ai-chat-overlay.php';
-// AI Abilities (WordPress Abilities API)
+
+// AI Agent and Chat and AI Abilities (WordPress Abilities API)
+require_once SNN_PATH . 'includes/ai/ai-snn-abilities-api.php';
+require_once SNN_PATH . 'includes/ai/ai-chat-overlay.php';
 
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
