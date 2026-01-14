@@ -42,6 +42,7 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-accessibility-settings', 'label' => __('Accessibility Settings', 'snn'),           'dashicon' => 'dashicons-universal-access'),
                 array('slug' => 'snn-search-logs',            'label' => __('Search Logs', 'snn'),                      'dashicon' => 'dashicons-search'),
                 array('slug' => 'snn-ai-settings',            'label' => __('AI Settings', 'snn'),                      'dashicon' => 'dashicons-nametag'),
+                array('slug' => 'snn-ai-agent-settings',      'label' => __('AI Agent Settings', 'snn'),                'dashicon' => 'dashicons-nametag'),
                 array('slug' => 'snn-media-settings',         'label' => __('Media Settings', 'snn'),                   'dashicon' => 'dashicons-format-image'),
                 array('slug' => 'snn-activity-log',           'label' => __('Activity Logs', 'snn'),                    'dashicon' => 'dashicons-text'),
                 array('slug' => 'snn-custom-codes-snippets',  'label' => __('Code Snippets', 'snn'),                    'dashicon' => 'dashicons-editor-code'),
@@ -95,7 +96,7 @@ function snn_settings_page_callback() {
         .snn-dashboard-buttons {
             max-width:1000px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 10px;
             margin-bottom: 40px;
         }
