@@ -149,6 +149,9 @@ class SNN_Chat_Overlay {
                     </div>
                 </div>
 
+                <!-- State Indicator -->
+                <div class="snn-chat-state-text" id="snn-chat-state-text"></div>
+
                 <!-- Input -->
                 <div class="snn-chat-input-container">
                     <textarea
@@ -850,54 +853,40 @@ IMPORTANT RULES:
                 // Log state transition
                 console.log('🔄 Agent State:', state, metadata || '');
 
-                const $badge = $('#snn-agent-state-badge');
-                let badgeText = '';
-                let badgeClass = '';
-
-                // Clear existing state classes
-                $badge.removeClass('badge-idle badge-thinking badge-executing badge-interpreting badge-done badge-error');
+                const $stateText = $('#snn-chat-state-text');
+                let stateMessage = '';
 
                 switch(state) {
                     case AgentState.IDLE:
-                        badgeText = '';
-                        badgeClass = 'badge-idle';
+                        stateMessage = '';
                         break;
 
                     case AgentState.THINKING:
-                        badgeText = 'Thinking';
-                        badgeClass = 'badge-thinking';
-                        // Don't add state message to chat - just show in badge
+                        stateMessage = 'Thinking...';
                         break;
 
                     case AgentState.EXECUTING:
-                        badgeText = 'Executing';
-                        badgeClass = 'badge-executing';
-                        // Don't add state message to chat - just show in badge
+                        if (metadata && metadata.abilityName) {
+                            stateMessage = `Executing ${metadata.abilityName}...`;
+                            if (metadata.current && metadata.total) {
+                                stateMessage = `Executing ${metadata.abilityName} (${metadata.current}/${metadata.total})...`;
+                            }
+                        } else {
+                            stateMessage = 'Executing...';
+                        }
                         break;
 
                     case AgentState.INTERPRETING:
-                        badgeText = 'Interpreting';
-                        badgeClass = 'badge-interpreting';
-                        // Don't add state message to chat - just show in badge
+                        stateMessage = 'Interpreting results...';
                         break;
 
                     case AgentState.DONE:
-                        badgeText = 'Done';
-                        badgeClass = 'badge-done';
-                        // Don't add state message to chat - completion is implied
-                        // Auto-clear badge after 2 seconds
-                        setTimeout(() => {
-                            if (ChatState.currentState === AgentState.DONE) {
-                                setAgentState(AgentState.IDLE);
-                            }
-                        }, 2000);
+                        stateMessage = '';
                         break;
 
                     case AgentState.ERROR:
-                        badgeText = 'Error';
-                        badgeClass = 'badge-error';
-                        // Only show error in badge, detailed error will be in ability results
-                        // Auto-clear badge after 3 seconds
+                        stateMessage = metadata && metadata.error ? `Error: ${metadata.error}` : 'Error occurred';
+                        // Auto-clear after 3 seconds
                         setTimeout(() => {
                             if (ChatState.currentState === AgentState.ERROR) {
                                 setAgentState(AgentState.IDLE);
@@ -906,13 +895,11 @@ IMPORTANT RULES:
                         break;
                 }
 
-                $badge.addClass(badgeClass).text(badgeText);
-
-                // Show/hide badge based on state
-                if (badgeText) {
-                    $badge.show();
+                // Update state text display
+                if (stateMessage) {
+                    $stateText.text(stateMessage).show();
                 } else {
-                    $badge.hide();
+                    $stateText.hide();
                 }
             }
 
@@ -1359,6 +1346,15 @@ IMPORTANT RULES:
         @keyframes typing {
             0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
             30% { transform: translateY(-8px); opacity: 1; }
+        }
+
+        .snn-chat-state-text {
+            display: none;
+            padding: 8px 16px;
+            background: #fff;
+            font-size: 14px;
+            color: #000;
+            text-align: left;
         }
 
         .snn-chat-input-container {
