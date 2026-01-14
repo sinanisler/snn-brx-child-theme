@@ -262,14 +262,25 @@ class SNN_Chat_Overlay {
                     });
                     
                     if (response.ok) {
-                        ChatState.abilities = await response.json();
+                        const data = await response.json();
+                        
+                        // WordPress Abilities API returns an array of ability objects
+                        // Each ability has properties: name, label, description, category, input_schema, output_schema, etc.
+                        ChatState.abilities = Array.isArray(data) ? data : [];
+                        
                         console.log('✓ Loaded abilities:', ChatState.abilities.length);
-                        console.log('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
+                        if (ChatState.abilities.length > 0) {
+                            console.log('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
+                            console.log('Full abilities data:', ChatState.abilities);
+                        } else {
+                            console.warn('No abilities found. Make sure abilities are registered with show_in_rest => true');
+                        }
                     } else {
-                        console.error('Failed to load abilities:', response.status);
+                        console.error('Failed to load abilities:', response.status, await response.text());
                     }
                 } catch (error) {
                     console.error('Failed to load abilities:', error);
+                    console.error('Make sure WordPress 6.9+ is installed and Abilities API is available');
                 }
             }
 
@@ -384,17 +395,35 @@ class SNN_Chat_Overlay {
                 const basePrompt = snnChatConfig.ai.systemPrompt || 'You are a helpful WordPress assistant.';
                 
                 if (ChatState.abilities.length === 0) {
-                    return basePrompt;
+                    return `${basePrompt}\n\nNote: No WordPress abilities are currently available. Make sure abilities are registered with show_in_rest enabled.`;
                 }
 
+                // Generate a list of abilities with descriptions
+                const abilitiesList = ChatState.abilities.map(ability => {
+                    return `- **${ability.name}**: ${ability.description || ability.label || 'No description'} (Category: ${ability.category || 'uncategorized'})`;
+                }).join('\n');
+
+                // Generate detailed ability descriptions with parameters
                 const abilitiesDesc = ChatState.abilities.map(ability => {
-                    const params = ability.input_schema?.properties ? 
-                        Object.entries(ability.input_schema.properties).map(([key, val]) => 
-                            `    - ${key} (${val.type}${ability.input_schema.required?.includes(key) ? ', required' : ''}): ${val.description || ''}`
-                        ).join('\n') : '    No parameters';
+                    let params = '    (No parameters)';
                     
-                    return `**${ability.name}** - ${ability.description}
-  Category: ${ability.category}
+                    if (ability.input_schema) {
+                        if (ability.input_schema.properties) {
+                            // Object type with properties
+                            params = Object.entries(ability.input_schema.properties).map(([key, val]) => {
+                                const isRequired = ability.input_schema.required?.includes(key) ? ' (required)' : '';
+                                const defaultVal = val.default !== undefined ? ` [default: ${JSON.stringify(val.default)}]` : '';
+                                const enumVals = val.enum ? ` [options: ${val.enum.join(', ')}]` : '';
+                                return `    - ${key} (${val.type}${isRequired}): ${val.description || ''}${defaultVal}${enumVals}`;
+                            }).join('\n');
+                        } else if (ability.input_schema.type) {
+                            // Simple type (string, integer, etc.)
+                            params = `    Type: ${ability.input_schema.type}${ability.input_schema.description ? ' - ' + ability.input_schema.description : ''}`;
+                        }
+                    }
+                    
+                    return `**${ability.name}** - ${ability.description || ability.label || 'No description'}
+  Category: ${ability.category || 'uncategorized'}
   Parameters:
 ${params}`;
                 }).join('\n\n');
@@ -405,9 +434,11 @@ IMPORTANT: You are an AI assistant with the ability to execute WordPress actions
 
 === YOUR CAPABILITIES ===
 
-You have ${ChatState.abilities.length} WordPress Core abilities available. When users ask "what can you do" or similar questions, list ALL of these abilities with their descriptions:
+You have ${ChatState.abilities.length} WordPress Core abilities available:
 
-${abilitiesDesc}
+${abilitiesList}
+
+When users ask "what can you do" or "what are your capabilities", list these abilities and explain what each one does.
 
 === AVAILABLE ABILITIES (DETAILED) ===
 
@@ -422,21 +453,21 @@ When the user asks you to perform a task that matches one of these abilities:
 3. AFTER: I will execute the abilities and show you the results
 
 Example response format:
-"I'll get the site information for you.
+"I'll create a draft post for you.
 
 \`\`\`json
 {
   "abilities": [
-    {"name": "core/get-site-info", "input": {}}
+    {"name": "core/create-post", "input": {"title": "My Post", "content": "Post content here", "status": "draft"}}
   ]
 }
 \`\`\`"
 
-For abilities with parameters (if available), include them in the input:
+For abilities with parameters, include them in the input object:
 \`\`\`json
 {
   "abilities": [
-    {"name": "core/get-site-info", "input": {"fields": ["name", "url", "version"]}}
+    {"name": "core/get-posts", "input": {"post_type": "post", "posts_per_page": 5}}
   ]
 }
 \`\`\`
@@ -445,20 +476,20 @@ You can chain multiple abilities:
 \`\`\`json
 {
   "abilities": [
-    {"name": "core/get-site-info", "input": {}},
-    {"name": "core/get-user-info", "input": {}},
-    {"name": "core/get-environment-info", "input": {}}
+    {"name": "core/get-posts", "input": {"posts_per_page": 10}},
+    {"name": "core/search-content", "input": {"query": "WordPress", "limit": 5}}
   ]
 }
 \`\`\`
 
 IMPORTANT RULES:
 - Always explain what you're doing before the JSON block
-- Use WordPress Core ability names (e.g., "core/get-site-info", "core/get-user-info", "core/get-environment-info")
-- Match parameter types exactly (string, integer, boolean, etc.)
+- Use the exact ability names as listed above (e.g., "${ChatState.abilities[0]?.name || 'core/get-posts'}")
+- Match parameter types exactly (string, integer, boolean, array, etc.)
 - Include all required parameters
-- After execution, I'll provide results - interpret them for the user
-- If you're not sure, ask the user for clarification instead of guessing`;
+- After execution, I'll provide results - interpret them for the user in a friendly way
+- If you're not sure about parameters, ask the user for clarification instead of guessing
+- Only use abilities that are listed above - don't make up ability names`;
             }
 
             /**
@@ -570,7 +601,7 @@ IMPORTANT RULES:
                                 'Content-Type': 'application/json',
                                 'X-WP-Nonce': snnChatConfig.nonce
                             },
-                            body: JSON.stringify(input)
+                            body: JSON.stringify({ input: input })
                         }
                     );
 
