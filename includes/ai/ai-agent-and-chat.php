@@ -38,11 +38,20 @@ class SNN_Chat_Overlay {
     }
 
     private function __construct() {
+        // Register custom post type for chat history
+        add_action( 'init', array( $this, 'register_history_post_type' ) );
+        
         // Add admin menu page
         add_action( 'admin_menu', array( $this, 'add_settings_submenu' ) );
         
         // Add settings save handler
         add_action( 'admin_init', array( $this, 'register_settings' ) );
+        
+        // Add AJAX handler for history management
+        add_action( 'wp_ajax_snn_delete_old_chats', array( $this, 'ajax_delete_old_chats' ) );
+        add_action( 'wp_ajax_snn_save_chat_history', array( $this, 'ajax_save_chat_history' ) );
+        add_action( 'wp_ajax_snn_load_chat_history', array( $this, 'ajax_load_chat_history' ) );
+        add_action( 'wp_ajax_snn_get_chat_histories', array( $this, 'ajax_get_chat_histories' ) );
         
         // Check if feature is enabled
         if ( ! $this->is_enabled() ) {
@@ -76,6 +85,245 @@ class SNN_Chat_Overlay {
     }
 
     /**
+     * Get token count setting
+     */
+    public function get_token_count() {
+        return absint( get_option( 'snn_ai_agent_token_count', 4000 ) );
+    }
+
+    /**
+     * Get enabled abilities
+     */
+    public function get_enabled_abilities() {
+        $enabled = get_option( 'snn_ai_agent_enabled_abilities', array() );
+        // If empty (first time), return all abilities as enabled
+        if ( empty( $enabled ) ) {
+            $all_abilities = $this->get_abilities();
+            return wp_list_pluck( $all_abilities, 'name' );
+        }
+        return is_array( $enabled ) ? $enabled : array();
+    }
+
+    /**
+     * Check if debug mode is enabled
+     */
+    public function is_debug_enabled() {
+        return get_option( 'snn_ai_agent_debug_mode', false );
+    }
+
+    /**
+     * Get max retry attempts
+     */
+    public function get_max_retries() {
+        return absint( get_option( 'snn_ai_agent_max_retries', 3 ) );
+    }
+
+    /**
+     * Get max conversation history
+     */
+    public function get_max_history() {
+        return absint( get_option( 'snn_ai_agent_max_history', 20 ) );
+    }
+
+    /**
+     * Register custom post type for chat history
+     */
+    public function register_history_post_type() {
+        register_post_type( 'snn-agent-history', array(
+            'labels' => array(
+                'name' => __( 'AI Chat History', 'snn' ),
+                'singular_name' => __( 'Chat History', 'snn' ),
+            ),
+            'public' => false,
+            'show_ui' => false,
+            'show_in_menu' => false,
+            'capability_type' => 'post',
+            'supports' => array( 'title', 'custom-fields' ),
+            'rewrite' => false,
+        ) );
+    }
+
+    /**
+     * Save chat history to database
+     */
+    public function save_chat_history( $messages, $session_id = null ) {
+        if ( ! $session_id ) {
+            $session_id = uniqid( 'chat_', true );
+        }
+
+        $post_id = null;
+        
+        // Check if session already exists
+        $existing = get_posts( array(
+            'post_type' => 'snn-agent-history',
+            'meta_key' => 'session_id',
+            'meta_value' => $session_id,
+            'posts_per_page' => 1,
+            'post_status' => 'private',
+        ) );
+
+        if ( ! empty( $existing ) ) {
+            $post_id = $existing[0]->ID;
+        }
+
+        $title = date( 'Y-m-d H:i:s' ) . ' - ' . wp_get_current_user()->display_name;
+        if ( ! empty( $messages ) && isset( $messages[0]['content'] ) ) {
+            $first_message = wp_trim_words( $messages[0]['content'], 5, '...' );
+            $title = $first_message;
+        }
+
+        $post_data = array(
+            'post_title' => $title,
+            'post_type' => 'snn-agent-history',
+            'post_status' => 'private',
+            'post_author' => get_current_user_id(),
+        );
+
+        if ( $post_id ) {
+            $post_data['ID'] = $post_id;
+            wp_update_post( $post_data );
+        } else {
+            $post_id = wp_insert_post( $post_data );
+        }
+
+        if ( $post_id ) {
+            update_post_meta( $post_id, 'session_id', $session_id );
+            update_post_meta( $post_id, 'messages', $messages );
+            update_post_meta( $post_id, 'last_updated', current_time( 'mysql' ) );
+        }
+
+        return $session_id;
+    }
+
+    /**
+     * Load chat history from database
+     */
+    public function load_chat_history( $session_id ) {
+        $posts = get_posts( array(
+            'post_type' => 'snn-agent-history',
+            'meta_key' => 'session_id',
+            'meta_value' => $session_id,
+            'posts_per_page' => 1,
+            'post_status' => 'private',
+        ) );
+
+        if ( empty( $posts ) ) {
+            return array();
+        }
+
+        return get_post_meta( $posts[0]->ID, 'messages', true );
+    }
+
+    /**
+     * Get all chat histories for current user
+     */
+    public function get_chat_histories() {
+        $posts = get_posts( array(
+            'post_type' => 'snn-agent-history',
+            'author' => get_current_user_id(),
+            'posts_per_page' => 50,
+            'post_status' => 'private',
+            'orderby' => 'modified',
+            'order' => 'DESC',
+        ) );
+
+        $histories = array();
+        foreach ( $posts as $post ) {
+            $session_id = get_post_meta( $post->ID, 'session_id', true );
+            $messages = get_post_meta( $post->ID, 'messages', true );
+            $message_count = is_array( $messages ) ? count( $messages ) : 0;
+            
+            $histories[] = array(
+                'session_id' => $session_id,
+                'title' => $post->post_title,
+                'date' => $post->post_modified,
+                'message_count' => $message_count,
+            );
+        }
+
+        return $histories;
+    }
+
+    /**
+     * Delete all chat histories
+     */
+    public function delete_all_histories() {
+        $posts = get_posts( array(
+            'post_type' => 'snn-agent-history',
+            'author' => get_current_user_id(),
+            'posts_per_page' => -1,
+            'post_status' => 'private',
+        ) );
+
+        foreach ( $posts as $post ) {
+            wp_delete_post( $post->ID, true );
+        }
+
+        return count( $posts );
+    }
+
+    /**
+     * AJAX: Delete old chats
+     */
+    public function ajax_delete_old_chats() {
+        check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+        
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( 'Insufficient permissions' );
+        }
+
+        $deleted = $this->delete_all_histories();
+        wp_send_json_success( array( 'deleted' => $deleted ) );
+    }
+
+    /**
+     * AJAX: Save chat history
+     */
+    public function ajax_save_chat_history() {
+        check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+        
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Insufficient permissions' );
+        }
+
+        $messages = isset( $_POST['messages'] ) ? json_decode( stripslashes( $_POST['messages'] ), true ) : array();
+        $session_id = isset( $_POST['session_id'] ) ? sanitize_text_field( $_POST['session_id'] ) : null;
+
+        $session_id = $this->save_chat_history( $messages, $session_id );
+        wp_send_json_success( array( 'session_id' => $session_id ) );
+    }
+
+    /**
+     * AJAX: Load chat history
+     */
+    public function ajax_load_chat_history() {
+        check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+        
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Insufficient permissions' );
+        }
+
+        $session_id = isset( $_POST['session_id'] ) ? sanitize_text_field( $_POST['session_id'] ) : '';
+        $messages = $this->load_chat_history( $session_id );
+        
+        wp_send_json_success( array( 'messages' => $messages ) );
+    }
+
+    /**
+     * AJAX: Get all chat histories
+     */
+    public function ajax_get_chat_histories() {
+        check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+        
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Insufficient permissions' );
+        }
+
+        $histories = $this->get_chat_histories();
+        wp_send_json_success( array( 'histories' => $histories ) );
+    }
+
+    /**
      * Add AI Agent Settings submenu page
      */
     public function add_settings_submenu() {
@@ -95,6 +343,11 @@ class SNN_Chat_Overlay {
     public function register_settings() {
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_enabled' );
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_system_prompt' );
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_token_count' );
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_enabled_abilities' );
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_debug_mode' );
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_max_retries' );
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_max_history' );
     }
 
     /**
@@ -105,12 +358,22 @@ class SNN_Chat_Overlay {
         if ( isset( $_POST['snn_ai_agent_settings_submit'] ) && check_admin_referer( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ) ) {
             update_option( 'snn_ai_agent_enabled', isset( $_POST['snn_ai_agent_enabled'] ) ? true : false );
             update_option( 'snn_ai_agent_system_prompt', sanitize_textarea_field( $_POST['snn_ai_agent_system_prompt'] ) );
+            update_option( 'snn_ai_agent_token_count', absint( $_POST['snn_ai_agent_token_count'] ) );
+            update_option( 'snn_ai_agent_enabled_abilities', isset( $_POST['snn_ai_agent_enabled_abilities'] ) ? array_map( 'sanitize_text_field', $_POST['snn_ai_agent_enabled_abilities'] ) : array() );
+            update_option( 'snn_ai_agent_debug_mode', isset( $_POST['snn_ai_agent_debug_mode'] ) ? true : false );
+            update_option( 'snn_ai_agent_max_retries', absint( $_POST['snn_ai_agent_max_retries'] ) );
+            update_option( 'snn_ai_agent_max_history', absint( $_POST['snn_ai_agent_max_history'] ) );
             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'snn' ) . '</p></div>';
         }
 
         $enabled = $this->is_enabled();
         $system_prompt = $this->get_system_prompt();
         $default_prompt = 'You are a helpful WordPress assistant.';
+        $token_count = $this->get_token_count();
+        $enabled_abilities = $this->get_enabled_abilities();
+        $debug_mode = $this->is_debug_enabled();
+        $max_retries = $this->get_max_retries();
+        $max_history = $this->get_max_history();
 
         // Try to fetch abilities
         $abilities = $this->get_abilities();
@@ -166,6 +429,86 @@ class SNN_Chat_Overlay {
                                 </p>
                             </td>
                         </tr>
+
+                        <!-- Token Count -->
+                        <tr>
+                            <th scope="row">
+                                <label for="snn_ai_agent_token_count"><?php echo esc_html__('Max Token Count', 'snn'); ?></label>
+                            </th>
+                            <td>
+                                <input type="number" 
+                                       id="snn_ai_agent_token_count" 
+                                       name="snn_ai_agent_token_count" 
+                                       value="<?php echo esc_attr( $token_count ); ?>"
+                                       min="100"
+                                       max="128000"
+                                       step="100"
+                                       class="regular-text">
+                                <p class="description">
+                                    <?php echo esc_html__('Maximum number of tokens for AI responses. Higher values allow longer responses but cost more.', 'snn'); ?><br>
+                                    <strong><?php echo esc_html__('Default:', 'snn'); ?></strong> 4000 | <strong><?php echo esc_html__('Recommended range:', 'snn'); ?></strong> 1000-8000
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- Max Retry Attempts -->
+                        <tr>
+                            <th scope="row">
+                                <label for="snn_ai_agent_max_retries"><?php echo esc_html__('Max Retry Attempts', 'snn'); ?></label>
+                            </th>
+                            <td>
+                                <input type="number" 
+                                       id="snn_ai_agent_max_retries" 
+                                       name="snn_ai_agent_max_retries" 
+                                       value="<?php echo esc_attr( $max_retries ); ?>"
+                                       min="0"
+                                       max="10"
+                                       step="1"
+                                       class="small-text">
+                                <p class="description">
+                                    <?php echo esc_html__('Number of times the AI will retry a failed ability execution with corrected input.', 'snn'); ?><br>
+                                    <strong><?php echo esc_html__('Default:', 'snn'); ?></strong> 3
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- Max Conversation History -->
+                        <tr>
+                            <th scope="row">
+                                <label for="snn_ai_agent_max_history"><?php echo esc_html__('Max Conversation History', 'snn'); ?></label>
+                            </th>
+                            <td>
+                                <input type="number" 
+                                       id="snn_ai_agent_max_history" 
+                                       name="snn_ai_agent_max_history" 
+                                       value="<?php echo esc_attr( $max_history ); ?>"
+                                       min="5"
+                                       max="100"
+                                       step="5"
+                                       class="small-text">
+                                <p class="description">
+                                    <?php echo esc_html__('Number of recent messages to include in AI context. Higher values provide more context but use more tokens.', 'snn'); ?><br>
+                                    <strong><?php echo esc_html__('Default:', 'snn'); ?></strong> 20
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- Debug Mode -->
+                        <tr>
+                            <th scope="row">
+                                <label for="snn_ai_agent_debug_mode"><?php echo esc_html__('Enable Debug Mode', 'snn'); ?></label>
+                            </th>
+                            <td>
+                                <input type="checkbox" 
+                                       id="snn_ai_agent_debug_mode" 
+                                       name="snn_ai_agent_debug_mode" 
+                                       value="1" 
+                                       <?php checked( $debug_mode, true ); ?>>
+                                <p class="description">
+                                    <?php echo esc_html__('Enable console.log debugging messages in browser console. Useful for troubleshooting.', 'snn'); ?>
+                                </p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
 
@@ -176,16 +519,67 @@ class SNN_Chat_Overlay {
 
             <!-- Available Abilities -->
             <h2><?php echo esc_html__('Available WordPress Abilities', 'snn'); ?></h2>
-            <p><?php echo esc_html__('These are the actions the AI agent can perform on your WordPress site. The list is automatically generated from registered WordPress Core Abilities.', 'snn'); ?></p>
+            <p><?php echo esc_html__('Select which abilities the AI agent can use. All abilities are enabled by default.', 'snn'); ?></p>
             
             <?php if ( ! empty( $abilities ) && is_array( $abilities ) ) : ?>
-                <ul>
-                    <?php foreach ( $abilities as $ability ) : ?>
-                        <li>
-                            <strong><?php echo esc_html( $ability['name'] ); ?></strong> - <?php echo esc_html( $ability['description'] ?? $ability['label'] ?? 'No description available' ); ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+                <form method="post" action="">
+                    <?php wp_nonce_field( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ); ?>
+                    
+                    <!-- Hidden fields to preserve other settings -->
+                    <input type="hidden" name="snn_ai_agent_enabled" value="<?php echo $enabled ? '1' : '0'; ?>">
+                    <input type="hidden" name="snn_ai_agent_system_prompt" value="<?php echo esc_attr( $system_prompt ); ?>">
+                    <input type="hidden" name="snn_ai_agent_token_count" value="<?php echo esc_attr( $token_count ); ?>">
+                    <input type="hidden" name="snn_ai_agent_debug_mode" value="<?php echo $debug_mode ? '1' : '0'; ?>">
+                    <input type="hidden" name="snn_ai_agent_max_retries" value="<?php echo esc_attr( $max_retries ); ?>">
+                    <input type="hidden" name="snn_ai_agent_max_history" value="<?php echo esc_attr( $max_history ); ?>">
+                    
+                    <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 4px; max-width: 800px;">
+                        <p style="margin-top: 0;">
+                            <button type="button" id="snn-select-all-abilities" class="button" style="margin-right: 10px;">
+                                <?php echo esc_html__('Select All', 'snn'); ?>
+                            </button>
+                            <button type="button" id="snn-deselect-all-abilities" class="button">
+                                <?php echo esc_html__('Deselect All', 'snn'); ?>
+                            </button>
+                        </p>
+                        
+                        <div style="max-height: 400px; overflow-y: auto; padding: 10px; border: 1px solid #e0e0e0; border-radius: 3px;">
+                            <?php foreach ( $abilities as $ability ) : 
+                                $ability_name = $ability['name'];
+                                $is_checked = in_array( $ability_name, $enabled_abilities );
+                                $category = isset( $ability['category'] ) ? $ability['category'] : 'uncategorized';
+                            ?>
+                                <label style="display: block; padding: 8px 10px; margin: 0; border-bottom: 1px solid #f0f0f0;">
+                                    <input type="checkbox" 
+                                           name="snn_ai_agent_enabled_abilities[]" 
+                                           value="<?php echo esc_attr( $ability_name ); ?>"
+                                           <?php checked( $is_checked, true ); ?>
+                                           class="snn-ability-checkbox">
+                                    <strong><?php echo esc_html( $ability_name ); ?></strong>
+                                    <span style="color: #666; font-size: 12px; margin-left: 8px;">(<?php echo esc_html( $category ); ?>)</span>
+                                    <br>
+                                    <span style="color: #666; font-size: 13px; margin-left: 24px;">
+                                        <?php echo esc_html( $ability['description'] ?? $ability['label'] ?? 'No description available' ); ?>
+                                    </span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    
+                    <?php submit_button( __('Save Ability Settings', 'snn'), 'primary', 'snn_ai_agent_settings_submit', true, array( 'style' => 'margin-top: 20px;' ) ); ?>
+                </form>
+
+                <script>
+                jQuery(document).ready(function($) {
+                    $('#snn-select-all-abilities').on('click', function() {
+                        $('.snn-ability-checkbox').prop('checked', true);
+                    });
+                    
+                    $('#snn-deselect-all-abilities').on('click', function() {
+                        $('.snn-ability-checkbox').prop('checked', false);
+                    });
+                });
+                </script>
             <?php else : ?>
                 <div class="notice notice-warning inline">
                     <p>
@@ -194,6 +588,86 @@ class SNN_Chat_Overlay {
                     </p>
                 </div>
             <?php endif; ?>
+
+            <hr style="margin: 40px 0;">
+
+            <!-- Chat History Management -->
+            <h2><?php echo esc_html__('Chat History Management', 'snn'); ?></h2>
+            <p><?php echo esc_html__('Manage saved chat conversations. Chat history is automatically saved and can be accessed from the chat interface.', 'snn'); ?></p>
+            
+            <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 4px; max-width: 800px;">
+                <?php
+                $histories = $this->get_chat_histories();
+                $history_count = count( $histories );
+                ?>
+                
+                <p>
+                    <strong><?php echo esc_html__('Total saved conversations:', 'snn'); ?></strong> <?php echo esc_html( $history_count ); ?>
+                </p>
+                
+                <button type="button" id="snn-delete-old-chats" class="button button-secondary" 
+                        <?php echo $history_count === 0 ? 'disabled' : ''; ?>>
+                    <span class="dashicons dashicons-trash" style="margin-top: 3px;"></span>
+                    <?php echo esc_html__('Delete All Chat History', 'snn'); ?>
+                </button>
+                
+                <p class="description" style="margin-top: 10px;">
+                    <?php echo esc_html__('This will permanently delete all saved chat conversations for your account. This action cannot be undone.', 'snn'); ?>
+                </p>
+
+                <?php if ( $history_count > 0 ) : ?>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                        <h4 style="margin-top: 0;"><?php echo esc_html__('Recent Conversations', 'snn'); ?></h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <?php foreach ( array_slice( $histories, 0, 10 ) as $history ) : ?>
+                                <li style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                    <strong><?php echo esc_html( $history['title'] ); ?></strong>
+                                    <br>
+                                    <small style="color: #666;">
+                                        <?php echo esc_html( $history['message_count'] ); ?> messages • 
+                                        <?php echo esc_html( human_time_diff( strtotime( $history['date'] ), current_time( 'timestamp' ) ) ); ?> ago
+                                    </small>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <script>
+            jQuery(document).ready(function($) {
+                $('#snn-delete-old-chats').on('click', function() {
+                    if (!confirm('<?php echo esc_js( __('Are you sure you want to delete all chat history? This action cannot be undone.', 'snn') ); ?>')) {
+                        return;
+                    }
+                    
+                    var $button = $(this);
+                    $button.prop('disabled', true).text('<?php echo esc_js( __('Deleting...', 'snn') ); ?>');
+                    
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'snn_delete_old_chats',
+                            nonce: '<?php echo wp_create_nonce( 'snn_ai_agent_nonce' ); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert('<?php echo esc_js( __('Successfully deleted', 'snn') ); ?> ' + response.data.deleted + ' <?php echo esc_js( __('chat histories.', 'snn') ); ?>');
+                                location.reload();
+                            } else {
+                                alert('<?php echo esc_js( __('Error:', 'snn') ); ?> ' + response.data);
+                                $button.prop('disabled', false).html('<span class="dashicons dashicons-trash"></span> <?php echo esc_js( __('Delete All Chat History', 'snn') ); ?>');
+                            }
+                        },
+                        error: function() {
+                            alert('<?php echo esc_js( __('An error occurred. Please try again.', 'snn') ); ?>');
+                            $button.prop('disabled', false).html('<span class="dashicons dashicons-trash"></span> <?php echo esc_js( __('Delete All Chat History', 'snn') ); ?>');
+                        }
+                    });
+                });
+            });
+            </script>
         </div>
 
         <style>
@@ -262,16 +736,24 @@ class SNN_Chat_Overlay {
         // Pass configuration to JavaScript
         $ai_config = function_exists( 'snn_get_ai_api_config' ) ? snn_get_ai_api_config() : array();
         
-        // Add custom system prompt to config
+        // Add custom system prompt and token count to config
         $ai_config['systemPrompt'] = $this->get_system_prompt();
+        $ai_config['maxTokens'] = $this->get_token_count();
         
         wp_localize_script( 'jquery', 'snnChatConfig', array(
             'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
             'restUrl'       => rest_url( 'wp-abilities/v1/' ),
             'nonce'         => wp_create_nonce( 'wp_rest' ),
+            'agentNonce'    => wp_create_nonce( 'snn_ai_agent_nonce' ),
             'currentUserId' => get_current_user_id(),
             'userName'      => wp_get_current_user()->display_name,
             'ai'            => $ai_config,
+            'settings'      => array(
+                'enabledAbilities'  => $this->get_enabled_abilities(),
+                'debugMode'         => $this->is_debug_enabled(),
+                'maxRetries'        => $this->get_max_retries(),
+                'maxHistory'        => $this->get_max_history(),
+            ),
         ) );
     }
 
@@ -293,12 +775,26 @@ class SNN_Chat_Overlay {
                         <span class="snn-agent-state-badge" id="snn-agent-state-badge"></span>
                     </div>
                     <div class="snn-chat-controls">
+                        <button class="snn-chat-btn snn-chat-history" title="Chat history" id="snn-chat-history-btn">
+                            <span class="dashicons dashicons-backup"></span>
+                        </button>
                         <button class="snn-chat-btn snn-chat-clear" title="Clear conversation">
                             <span class="dashicons dashicons-trash"></span>
                         </button>
                         <button class="snn-chat-btn snn-chat-close" title="Close">
                             <span class="dashicons dashicons-no-alt"></span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- History Dropdown -->
+                <div class="snn-chat-history-dropdown" id="snn-chat-history-dropdown" style="display: none;">
+                    <div class="snn-history-header">
+                        <strong><?php echo esc_html__('Chat History', 'snn'); ?></strong>
+                        <button class="snn-history-close" id="snn-history-close">×</button>
+                    </div>
+                    <div class="snn-history-list" id="snn-history-list">
+                        <div class="snn-history-loading"><?php echo esc_html__('Loading...', 'snn'); ?></div>
                     </div>
                 </div>
 
@@ -360,8 +856,18 @@ class SNN_Chat_Overlay {
                 ERROR: 'error'
             };
 
-            // Configuration
-            const MAX_RETRIES = 2; // Maximum retry attempts per ability
+            // Configuration from settings
+            const MAX_RETRIES = snnChatConfig.settings.maxRetries || 3;
+            const MAX_HISTORY = snnChatConfig.settings.maxHistory || 20;
+            const DEBUG_MODE = snnChatConfig.settings.debugMode || false;
+            const ENABLED_ABILITIES = snnChatConfig.settings.enabledAbilities || [];
+
+            // Debug console wrapper
+            const debugLog = function(...args) {
+                if (DEBUG_MODE) {
+                    console.log(...args);
+                }
+            };
 
             // Chat state
             const ChatState = {
@@ -371,7 +877,9 @@ class SNN_Chat_Overlay {
                 isProcessing: false,
                 abortController: null,
                 currentState: AgentState.IDLE,
-                currentAbility: null
+                currentAbility: null,
+                currentSessionId: null,
+                autoSaveTimer: null
             };
 
             // Initialize
@@ -397,6 +905,15 @@ class SNN_Chat_Overlay {
                     }
                 });
 
+                // History button
+                $('#snn-chat-history-btn').on('click', function() {
+                    toggleHistoryDropdown();
+                });
+
+                $('#snn-history-close').on('click', function() {
+                    $('#snn-chat-history-dropdown').hide();
+                });
+
                 // Send message
                 $('#snn-chat-send').on('click', sendMessage);
                 
@@ -420,6 +937,9 @@ class SNN_Chat_Overlay {
                     $('#snn-chat-input').val(message);
                     sendMessage();
                 });
+
+                // Auto-save conversation periodically
+                setInterval(autoSaveConversation, 30000); // Every 30 seconds
             }
 
             /**
@@ -449,15 +969,16 @@ class SNN_Chat_Overlay {
                         const data = await response.json();
                         
                         // WordPress Abilities API returns an array of ability objects
-                        // Each ability has properties: name, label, description, category, input_schema, output_schema, etc.
-                        ChatState.abilities = Array.isArray(data) ? data : [];
+                        // Filter by enabled abilities from settings
+                        const allAbilities = Array.isArray(data) ? data : [];
+                        ChatState.abilities = allAbilities.filter(a => ENABLED_ABILITIES.includes(a.name));
                         
-                        console.log('✓ Loaded abilities:', ChatState.abilities.length);
+                        debugLog('✓ Loaded abilities:', ChatState.abilities.length);
                         if (ChatState.abilities.length > 0) {
-                            console.log('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
-                            console.log('Full abilities data:', ChatState.abilities);
+                            debugLog('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
+                            debugLog('Full abilities data:', ChatState.abilities);
                         } else {
-                            console.warn('No abilities found. Make sure abilities are registered with show_in_rest => true');
+                            console.warn('No abilities enabled or found. Check AI Agent settings.');
                         }
                     } else {
                         console.error('Failed to load abilities:', response.status, await response.text());
@@ -496,8 +1017,8 @@ class SNN_Chat_Overlay {
                 setAgentState(AgentState.THINKING);
 
                 try {
-                    // Prepare conversation context (include last execution results)
-                    const context = ChatState.messages.slice(-10).map(m => {
+                    // Prepare conversation context (use MAX_HISTORY setting)
+                    const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
                         let content = m.content;
 
                         // If this message had ability executions, include results in context
@@ -556,6 +1077,9 @@ class SNN_Chat_Overlay {
 
                     // Mark as done
                     setAgentState(AgentState.DONE);
+                    
+                    // Auto-save conversation
+                    autoSaveConversation();
                 } catch (error) {
                     hideTyping();
                     addMessage('error', 'Sorry, something went wrong: ' + error.message);
@@ -690,7 +1214,7 @@ VALIDATION REQUIREMENTS:
                         model: config.model,
                         messages: messages,
                         temperature: 0.7,
-                        max_tokens: 4000
+                        max_tokens: config.maxTokens || 4000
                     }),
                     signal: ChatState.abortController.signal
                 });
@@ -712,15 +1236,15 @@ VALIDATION REQUIREMENTS:
                 // Look for JSON code blocks
                 const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/);
                 if (!jsonMatch) {
-                    console.log('No JSON block found in response');
+                    debugLog('No JSON block found in response');
                     return abilities;
                 }
 
-                console.log('Found JSON block:', jsonMatch[1]);
+                debugLog('Found JSON block:', jsonMatch[1]);
 
                 try {
                     const parsed = JSON.parse(jsonMatch[1]);
-                    console.log('Parsed JSON:', parsed);
+                    debugLog('Parsed JSON:', parsed);
 
                     if (parsed.abilities && Array.isArray(parsed.abilities)) {
                         return parsed.abilities;
@@ -765,9 +1289,9 @@ VALIDATION REQUIREMENTS:
                             retry: retryCount > 0 ? retryCount : null
                         });
 
-                        console.log(`Executing: ${ability.name} (${current}/${totalAbilities})${retryCount > 0 ? ` [Retry ${retryCount}]` : ''}`, ability.input);
+                        debugLog(`Executing: ${ability.name} (${current}/${totalAbilities})${retryCount > 0 ? ` [Retry ${retryCount}]` : ''}`, ability.input);
                         result = await executeAbility(ability.name, ability.input || {});
-                        console.log(`Result for ${ability.name}:`, result);
+                        debugLog(`Result for ${ability.name}:`, result);
 
                         hideTyping();
 
@@ -778,7 +1302,7 @@ VALIDATION REQUIREMENTS:
 
                         // If failed and we have retries left, ask AI to fix
                         if (retryCount < MAX_RETRIES) {
-                            console.log(`Ability ${ability.name} failed, attempting retry ${retryCount + 1}/${MAX_RETRIES}`);
+                            debugLog(`Ability ${ability.name} failed, attempting retry ${retryCount + 1}/${MAX_RETRIES}`);
 
                             // Ask AI to correct the input
                             const correctedAbility = await retryWithAI(conversationMessages, ability, result.error);
@@ -789,7 +1313,7 @@ VALIDATION REQUIREMENTS:
                                 continue;
                             } else {
                                 // AI couldn't provide correction, break out
-                                console.log('AI could not provide a corrected input, giving up');
+                                debugLog('AI could not provide a corrected input, giving up');
                                 break;
                             }
                         } else {
@@ -873,7 +1397,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 
                     // Check if AI gave up
                     if (aiResponse.includes('CANNOT_FIX')) {
-                        console.log('AI indicated it cannot fix the error:', aiResponse);
+                        debugLog('AI indicated it cannot fix the error:', aiResponse);
                         return null;
                     }
 
@@ -881,7 +1405,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     const correctedAbilities = extractAbilitiesFromResponse(aiResponse);
 
                     if (correctedAbilities.length > 0) {
-                        console.log('AI provided corrected input:', correctedAbilities[0]);
+                        debugLog('AI provided corrected input:', correctedAbilities[0]);
                         return correctedAbilities[0];
                     }
 
@@ -990,7 +1514,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         const suffix = abilityName.split('/').pop(); // Get part after last /
                         abilityInfo = ChatState.abilities.find(a => a.name.endsWith('/' + suffix));
                         if (abilityInfo) {
-                            console.log(`Correcting ability name: ${abilityName} -> ${abilityInfo.name}`);
+                            debugLog(`Correcting ability name: ${abilityName} -> ${abilityInfo.name}`);
                             actualAbilityName = abilityInfo.name;
                         }
                     }
@@ -1019,15 +1543,15 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                                 params.append('input', JSON.stringify(input));
                                 url += '?' + params.toString();
                             }
-                            console.log(`Calling API (GET): ${url}`);
+                            debugLog(`Calling API (GET): ${url}`);
                         } else {
                             fetchOptions.method = 'POST';
                             fetchOptions.headers['Content-Type'] = 'application/json';
                             fetchOptions.body = JSON.stringify({ input: input });
-                            console.log(`Calling API (POST): ${url}`);
+                            debugLog(`Calling API (POST): ${url}`);
                         }
 
-                        console.log('Input:', input);
+                        debugLog('Input:', input);
                         return fetch(url, fetchOptions);
                     };
 
@@ -1037,7 +1561,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     // If we get 405 (Method Not Allowed), retry with the opposite method
                     if (response.status === 405) {
                         const retryMethod = isReadOnly ? 'POST' : 'GET';
-                        console.log(`Got 405, retrying with ${retryMethod}...`);
+                        debugLog(`Got 405, retrying with ${retryMethod}...`);
                         response = await makeRequest(retryMethod);
                     }
 
@@ -1056,7 +1580,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     }
 
                     const result = await response.json();
-                    console.log('API response:', result);
+                    debugLog('API response:', result);
                     
                     // Normalize the response - WordPress Abilities API might return different formats
                     // Check if it already has success property
@@ -1273,7 +1797,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                 ChatState.currentState = state;
 
                 // Log state transition
-                console.log('🔄 Agent State:', state, metadata || '');
+                debugLog('🔄 Agent State:', state, metadata || '');
 
                 const $stateText = $('#snn-chat-state-text');
                 let stateMessage = '';
@@ -1348,6 +1872,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
              */
             function clearChat() {
                 ChatState.messages = [];
+                ChatState.currentSessionId = null;
                 $('#snn-chat-messages').html(`
                     <div class="snn-chat-welcome">
                         <div class="snn-chat-welcome-icon">
@@ -1359,6 +1884,146 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                 `);
                 // Show quick actions again
                 $('.snn-chat-quick-actions').show();
+            }
+
+            /**
+             * Auto-save conversation to database
+             */
+            function autoSaveConversation() {
+                if (ChatState.messages.length === 0) {
+                    return;
+                }
+
+                $.ajax({
+                    url: snnChatConfig.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'snn_save_chat_history',
+                        nonce: snnChatConfig.agentNonce,
+                        messages: JSON.stringify(ChatState.messages),
+                        session_id: ChatState.currentSessionId
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            ChatState.currentSessionId = response.data.session_id;
+                            debugLog('✓ Chat history saved:', ChatState.currentSessionId);
+                        }
+                    }
+                });
+            }
+
+            /**
+             * Toggle history dropdown
+             */
+            function toggleHistoryDropdown() {
+                const $dropdown = $('#snn-chat-history-dropdown');
+                
+                if ($dropdown.is(':visible')) {
+                    $dropdown.hide();
+                    return;
+                }
+
+                // Load histories
+                loadChatHistories();
+                $dropdown.show();
+            }
+
+            /**
+             * Load chat histories from server
+             */
+            function loadChatHistories() {
+                const $list = $('#snn-history-list');
+                $list.html('<div class="snn-history-loading">Loading...</div>');
+
+                $.ajax({
+                    url: snnChatConfig.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'snn_get_chat_histories',
+                        nonce: snnChatConfig.agentNonce
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            renderHistoryList(response.data.histories);
+                        } else {
+                            $list.html('<div class="snn-history-empty">Failed to load histories</div>');
+                        }
+                    },
+                    error: function() {
+                        $list.html('<div class="snn-history-empty">Error loading histories</div>');
+                    }
+                });
+            }
+
+            /**
+             * Render history list
+             */
+            function renderHistoryList(histories) {
+                const $list = $('#snn-history-list');
+                
+                if (histories.length === 0) {
+                    $list.html('<div class="snn-history-empty">No chat history yet</div>');
+                    return;
+                }
+
+                let html = '';
+                histories.forEach(function(history) {
+                    const date = new Date(history.date);
+                    const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                    const isActive = history.session_id === ChatState.currentSessionId;
+                    
+                    html += `<div class="snn-history-item ${isActive ? 'active' : ''}" data-session-id="${history.session_id}">
+                        <div class="snn-history-title">${history.title}</div>
+                        <div class="snn-history-meta">${history.message_count} messages • ${dateStr}</div>
+                    </div>`;
+                });
+
+                $list.html(html);
+
+                // Add click handlers
+                $('.snn-history-item').on('click', function() {
+                    const sessionId = $(this).data('session-id');
+                    loadChatSession(sessionId);
+                    $('#snn-chat-history-dropdown').hide();
+                });
+            }
+
+            /**
+             * Load a specific chat session
+             */
+            function loadChatSession(sessionId) {
+                $.ajax({
+                    url: snnChatConfig.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'snn_load_chat_history',
+                        nonce: snnChatConfig.agentNonce,
+                        session_id: sessionId
+                    },
+                    success: function(response) {
+                        if (response.success && response.data.messages) {
+                            // Clear current chat
+                            $('#snn-chat-messages').empty();
+                            $('.snn-chat-quick-actions').hide();
+                            
+                            // Load messages
+                            ChatState.messages = response.data.messages;
+                            ChatState.currentSessionId = sessionId;
+                            
+                            // Render all messages
+                            response.data.messages.forEach(function(msg) {
+                                const $message = $('<div>')
+                                    .addClass('snn-chat-message')
+                                    .addClass('snn-chat-message-' + msg.role)
+                                    .html(formatMessage(msg.content));
+                                $('#snn-chat-messages').append($message);
+                            });
+                            
+                            scrollToBottom();
+                            debugLog('✓ Loaded chat session:', sessionId);
+                        }
+                    }
+                });
             }
 
         })(jQuery);
@@ -1389,6 +2054,18 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .snn-chat-btn:hover { background: rgba(255, 255, 255, 0.3); }
 .snn-chat-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
+.snn-chat-history-dropdown { position: absolute; top: 60px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #ddd; max-height: 300px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 10; }
+.snn-history-header { padding: 12px 16px; background: #f5f5f5; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+.snn-history-header strong { font-size: 14px; color: #333; }
+.snn-history-close { background: none; border: none; font-size: 24px; color: #666; cursor: pointer; padding: 0; line-height: 1; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+.snn-history-close:hover { color: #000; }
+.snn-history-list { padding: 8px 0; }
+.snn-history-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; }
+.snn-history-item:hover { background: #f9f9f9; }
+.snn-history-item.active { background: #e3f2fd; border-left: 3px solid #2196f3; }
+.snn-history-title { font-weight: 600; color: #333; font-size: 14px; margin-bottom: 4px; }
+.snn-history-meta { font-size: 12px; color: #666; }
+.snn-history-loading, .snn-history-empty { padding: 20px; text-align: center; color: #999; font-size: 14px; }
 .snn-chat-messages { flex: 1; overflow-y: auto; padding: 10px; background: #f9f9f9; }
 .snn-chat-welcome { text-align: center; padding: 40px 20px; color: #666; }
 .snn-chat-welcome-icon { width: 64px; height: 64px; margin: 0 auto 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
