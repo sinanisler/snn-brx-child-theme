@@ -26,7 +26,7 @@ function snn_register_get_users_ability() {
         'snn/get-users',
         array(
             'label'       => __( 'Get Users', 'wp-abilities' ),
-            'description' => __( 'Retrieves a list of users.', 'wp-abilities' ),
+            'description' => __( 'Retrieves a list of users with full details including: ID, username, display name, email address, roles, registration date, and post count. Use this to get user information, emails, roles, or any user data.', 'wp-abilities' ),
             'category'    => 'users',
             'input_schema' => array(
                 'type'       => 'object',
@@ -45,17 +45,39 @@ function snn_register_get_users_ability() {
                 ),
             ),
             'output_schema' => array(
-                'type'  => 'array',
-                'items' => array(
+                'type'        => 'array',
+                'description' => 'Array of user objects with complete user information.',
+                'items'       => array(
                     'type'       => 'object',
                     'properties' => array(
-                        'id'           => array( 'type' => 'integer' ),
-                        'username'     => array( 'type' => 'string' ),
-                        'display_name' => array( 'type' => 'string' ),
-                        'email'        => array( 'type' => 'string' ),
-                        'roles'        => array( 'type' => 'array' ),
-                        'registered'   => array( 'type' => 'string' ),
-                        'post_count'   => array( 'type' => 'integer' ),
+                        'id' => array(
+                            'type'        => 'integer',
+                            'description' => 'The user ID.',
+                        ),
+                        'username' => array(
+                            'type'        => 'string',
+                            'description' => 'The user login/username.',
+                        ),
+                        'display_name' => array(
+                            'type'        => 'string',
+                            'description' => 'The user display name.',
+                        ),
+                        'email' => array(
+                            'type'        => 'string',
+                            'description' => 'The user email address.',
+                        ),
+                        'roles' => array(
+                            'type'        => 'array',
+                            'description' => 'Array of user roles (e.g., administrator, editor, author, subscriber).',
+                        ),
+                        'registered' => array(
+                            'type'        => 'string',
+                            'description' => 'The date and time the user registered.',
+                        ),
+                        'post_count' => array(
+                            'type'        => 'integer',
+                            'description' => 'Total number of posts authored by the user.',
+                        ),
                     ),
                 ),
             ),
