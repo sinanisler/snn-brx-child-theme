@@ -1210,7 +1210,6 @@ VALIDATION REQUIREMENTS:
             align-items: center;
             justify-content: center;
             transition: background 0.2s;
-            display:none
         }
 
         .snn-chat-btn:hover {
