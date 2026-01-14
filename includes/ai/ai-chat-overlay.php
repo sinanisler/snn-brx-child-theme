@@ -41,7 +41,7 @@ class SNN_Chat_Overlay {
 
     private function __construct() {
         // Add admin bar button
-        add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_button' ), 999 );
+        add_action( 'wp_before_admin_bar_render', array( $this, 'add_admin_bar_button' ), 999 );
         
         // Enqueue scripts and styles
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
