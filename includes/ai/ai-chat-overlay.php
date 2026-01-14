@@ -165,10 +165,7 @@ class SNN_Chat_Overlay {
                             <span class="dashicons dashicons-admin-comments"></span>
                         </div>
                         <h3>Hello, <?php echo esc_html( wp_get_current_user()->display_name ); ?>!</h3>
-                        <ul>
-                            <li>List Abilities</li>
-                        </ul>
-                        <p><small>Type a message to get started.</small></p>
+                        <br><p><small>Type a message to get started.</small></p>
                     </div>
                 </div>
 
@@ -181,6 +178,13 @@ class SNN_Chat_Overlay {
 
                 <!-- State Indicator -->
                 <div class="snn-chat-state-text" id="snn-chat-state-text"></div>
+
+                <!-- Quick Actions -->
+                <div class="snn-chat-quick-actions">
+                    <button class="snn-quick-action-btn" data-message="List all available abilities">List Abilities</button>
+                    <button class="snn-quick-action-btn" data-message="List all users">List Users</button>
+                    <button class="snn-quick-action-btn" data-message="Show site details">See Site Details</button>
+                </div>
 
                 <!-- Input -->
                 <div class="snn-chat-input-container">
@@ -260,6 +264,13 @@ class SNN_Chat_Overlay {
                 $('#snn-chat-input').on('input', function() {
                     this.style.height = 'auto';
                     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                });
+
+                // Quick action buttons
+                $('.snn-quick-action-btn').on('click', function() {
+                    const message = $(this).data('message');
+                    $('#snn-chat-input').val(message);
+                    sendMessage();
                 });
             }
 
@@ -1108,6 +1119,9 @@ VALIDATION REQUIREMENTS:
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-8px); opacity: 1; } }
 .snn-chat-state-text { display: none; padding: 8px 16px; background: #fff; font-size: 14px; color: #000; text-align: left; }
+.snn-chat-quick-actions { padding: 8px 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 6px; flex-wrap: wrap; }
+.snn-quick-action-btn { padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; color: #333; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.snn-quick-action-btn:hover { background: #1d2327; color: #fff; border-color: #1d2327; }
 .snn-chat-input-container { padding: 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 12px; align-items: flex-end; }
 .snn-chat-input { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; min-height: 42px; max-height: 120px; }
 .snn-chat-input:focus { border-color: #667eea; }
