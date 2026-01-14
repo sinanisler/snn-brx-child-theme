@@ -1,11 +1,11 @@
 <?php
 /**
- * SNN Abilities - Example Implementations
- * 
- * Collection of example abilities demonstrating various use cases
- * for the SNN Abilities API.
- * 
- * @package SNN_Abilities_Examples
+ * WordPress Core Abilities - Extended Implementations
+ *
+ * Collection of additional abilities that extend WordPress Core Abilities API
+ * with content management, search, and other WordPress-specific functionality.
+ *
+ * @package WP_Core_Abilities_Extended
  * @version 1.0.0
  */
 
@@ -14,68 +14,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Register all example abilities on API initialization
+ * Register extended abilities on WordPress Abilities API initialization
+ *
+ * Note: WordPress Core 6.9+ includes three built-in abilities:
+ * - core/get-site-info
+ * - core/get-user-info
+ * - core/get-environment-info
+ *
+ * This file registers additional abilities to extend the core functionality.
  */
-add_action( 'snn_abilities_api_init', 'snn_register_example_abilities' );
-
-function snn_register_example_abilities(): void {
+add_action( 'wp_abilities_api_init', function() {
 
     // =========================================================================
-    // ABILITY 1: Site Information
+    // ABILITY 1: Get Posts
     // =========================================================================
-    snn_register_ability(
-        'snn/site-info',
+    wp_register_ability(
+        'core/get-posts',
         array(
-            'label'       => __( 'Get Site Info', 'snn-abilities' ),
-            'description' => __( 'Retrieves basic information about the WordPress site.', 'snn-abilities' ),
-            'category'    => 'site',
-            'output_schema' => array(
-                'type'       => 'object',
-                'properties' => array(
-                    'name'        => array( 
-                        'type'        => 'string',
-                        'description' => 'Site name/title',
-                    ),
-                    'description' => array( 
-                        'type'        => 'string',
-                        'description' => 'Site tagline/description',
-                    ),
-                    'url'         => array( 
-                        'type'        => 'string',
-                        'description' => 'Site home URL',
-                    ),
-                    'admin_email' => array( 
-                        'type'        => 'string',
-                        'description' => 'Administrator email address',
-                    ),
-                ),
-            ),
-            'execute_callback' => function( $input ) {
-                return array(
-                    'name'        => get_bloginfo( 'name' ),
-                    'description' => get_bloginfo( 'description' ),
-                    'url'         => get_bloginfo( 'url' ),
-                    'admin_email' => get_bloginfo( 'admin_email' ),
-                );
-            },
-            'permission_callback' => '__return_true',
-            'meta' => array(
-                'show_in_rest' => true,
-                'readonly'     => true,
-                'destructive'  => false,
-                'idempotent'   => true,
-            ),
-        )
-    );
-
-    // =========================================================================
-    // ABILITY 2: Get Posts
-    // =========================================================================
-    snn_register_ability(
-        'snn/get-posts',
-        array(
-            'label'       => __( 'Get Posts', 'snn-abilities' ),
-            'description' => __( 'Retrieves a list of posts with optional filtering.', 'snn-abilities' ),
+            'label'       => __( 'Get Posts', 'wp-abilities' ),
+            'description' => __( 'Retrieves a list of posts with optional filtering.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -114,27 +71,27 @@ function snn_register_example_abilities(): void {
                 'items' => array(
                     'type'       => 'object',
                     'properties' => array(
-                        'id'      => array( 
+                        'id'      => array(
                             'type'        => 'integer',
                             'description' => 'Post ID',
                         ),
-                        'title'   => array( 
+                        'title'   => array(
                             'type'        => 'string',
                             'description' => 'Post title',
                         ),
-                        'url'     => array( 
+                        'url'     => array(
                             'type'        => 'string',
                             'description' => 'Post permalink',
                         ),
-                        'excerpt' => array( 
+                        'excerpt' => array(
                             'type'        => 'string',
                             'description' => 'Post excerpt (first 30 words)',
                         ),
-                        'date'    => array( 
+                        'date'    => array(
                             'type'        => 'string',
                             'description' => 'Post publication date',
                         ),
-                        'author'  => array( 
+                        'author'  => array(
                             'type'        => 'string',
                             'description' => 'Post author display name',
                         ),
@@ -159,7 +116,7 @@ function snn_register_example_abilities(): void {
 
                 foreach ( $posts as $post ) {
                     $author = get_userdata( $post->post_author );
-                    
+
                     $result[] = array(
                         'id'      => $post->ID,
                         'title'   => $post->post_title,
@@ -183,13 +140,13 @@ function snn_register_example_abilities(): void {
     );
 
     // =========================================================================
-    // ABILITY 3: Create Post
+    // ABILITY 2: Create Post
     // =========================================================================
-    snn_register_ability(
-        'snn/create-post',
+    wp_register_ability(
+        'core/create-post',
         array(
-            'label'       => __( 'Create Post', 'snn-abilities' ),
-            'description' => __( 'Creates a new post with the provided title and content.', 'snn-abilities' ),
+            'label'       => __( 'Create Post', 'wp-abilities' ),
+            'description' => __( 'Creates a new post with the provided title and content.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -237,19 +194,19 @@ function snn_register_example_abilities(): void {
             'output_schema' => array(
                 'type'       => 'object',
                 'properties' => array(
-                    'id'  => array( 
+                    'id'  => array(
                         'type'        => 'integer',
                         'description' => 'Created post ID',
                     ),
-                    'url' => array( 
+                    'url' => array(
                         'type'        => 'string',
                         'description' => 'Post permalink',
                     ),
-                    'edit_url' => array( 
+                    'edit_url' => array(
                         'type'        => 'string',
                         'description' => 'Edit URL in admin',
                     ),
-                    'status' => array( 
+                    'status' => array(
                         'type'        => 'string',
                         'description' => 'Post status',
                     ),
@@ -306,13 +263,13 @@ function snn_register_example_abilities(): void {
     );
 
     // =========================================================================
-    // ABILITY 4: Search Content
+    // ABILITY 3: Search Content
     // =========================================================================
-    snn_register_ability(
-        'snn/search',
+    wp_register_ability(
+        'core/search-content',
         array(
-            'label'       => __( 'Search Content', 'snn-abilities' ),
-            'description' => __( 'Searches posts, pages, and custom post types.', 'snn-abilities' ),
+            'label'       => __( 'Search Content', 'wp-abilities' ),
+            'description' => __( 'Searches posts, pages, and custom post types.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -410,92 +367,13 @@ function snn_register_example_abilities(): void {
     );
 
     // =========================================================================
-    // ABILITY 5: Get Current User
+    // ABILITY 4: Update Post
     // =========================================================================
-    snn_register_ability(
-        'snn/current-user',
+    wp_register_ability(
+        'core/update-post',
         array(
-            'label'       => __( 'Get Current User', 'snn-abilities' ),
-            'description' => __( 'Retrieves information about the currently logged-in user.', 'snn-abilities' ),
-            'category'    => 'users',
-            'output_schema' => array(
-                'type'       => 'object',
-                'properties' => array(
-                    'id'           => array( 
-                        'type'        => 'integer',
-                        'description' => 'User ID',
-                    ),
-                    'username'     => array( 
-                        'type'        => 'string',
-                        'description' => 'Login username',
-                    ),
-                    'email'        => array( 
-                        'type'        => 'string',
-                        'description' => 'User email address',
-                    ),
-                    'display_name' => array( 
-                        'type'        => 'string',
-                        'description' => 'Display name',
-                    ),
-                    'first_name'   => array( 
-                        'type'        => 'string',
-                        'description' => 'First name',
-                    ),
-                    'last_name'    => array( 
-                        'type'        => 'string',
-                        'description' => 'Last name',
-                    ),
-                    'roles'        => array( 
-                        'type'        => 'array',
-                        'description' => 'User roles',
-                        'items'       => array( 'type' => 'string' ),
-                    ),
-                    'capabilities' => array( 
-                        'type'        => 'object',
-                        'description' => 'User capabilities',
-                    ),
-                ),
-            ),
-            'execute_callback' => function( $input ) {
-                $user = wp_get_current_user();
-
-                if ( 0 === $user->ID ) {
-                    return new WP_Error(
-                        'not_logged_in',
-                        'No user is currently logged in.',
-                        array( 'status' => 401 )
-                    );
-                }
-
-                return array(
-                    'id'           => $user->ID,
-                    'username'     => $user->user_login,
-                    'email'        => $user->user_email,
-                    'display_name' => $user->display_name,
-                    'first_name'   => $user->first_name,
-                    'last_name'    => $user->last_name,
-                    'roles'        => $user->roles,
-                    'capabilities' => $user->allcaps,
-                );
-            },
-            'permission_callback' => 'is_user_logged_in',
-            'meta' => array(
-                'show_in_rest' => true,
-                'readonly'     => true,
-                'destructive'  => false,
-                'idempotent'   => true,
-            ),
-        )
-    );
-
-    // =========================================================================
-    // ABILITY 6: Update Post
-    // =========================================================================
-    snn_register_ability(
-        'snn/update-post',
-        array(
-            'label'       => __( 'Update Post', 'snn-abilities' ),
-            'description' => __( 'Updates an existing post with new content.', 'snn-abilities' ),
+            'label'       => __( 'Update Post', 'wp-abilities' ),
+            'description' => __( 'Updates an existing post with new content.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -535,7 +413,7 @@ function snn_register_example_abilities(): void {
             ),
             'execute_callback' => function( $input ) {
                 $post_id = absint( $input['post_id'] );
-                
+
                 // Check if post exists
                 if ( ! get_post( $post_id ) ) {
                     return new WP_Error(
@@ -591,13 +469,13 @@ function snn_register_example_abilities(): void {
     );
 
     // =========================================================================
-    // ABILITY 7: Delete Post
+    // ABILITY 5: Delete Post
     // =========================================================================
-    snn_register_ability(
-        'snn/delete-post',
+    wp_register_ability(
+        'core/delete-post',
         array(
-            'label'       => __( 'Delete Post', 'snn-abilities' ),
-            'description' => __( 'Deletes a post (moves to trash or permanently deletes).', 'snn-abilities' ),
+            'label'       => __( 'Delete Post', 'wp-abilities' ),
+            'description' => __( 'Deletes a post (moves to trash or permanently deletes).', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -625,7 +503,7 @@ function snn_register_example_abilities(): void {
             'execute_callback' => function( $input ) {
                 $post_id      = absint( $input['post_id'] );
                 $force_delete = $input['force_delete'] ?? false;
-                
+
                 // Check if post exists
                 if ( ! get_post( $post_id ) ) {
                     return new WP_Error(
@@ -664,13 +542,13 @@ function snn_register_example_abilities(): void {
     );
 
     // =========================================================================
-    // ABILITY 8: Get Categories
+    // ABILITY 6: Get Categories
     // =========================================================================
-    snn_register_ability(
-        'snn/get-categories',
+    wp_register_ability(
+        'core/get-categories',
         array(
-            'label'       => __( 'Get Categories', 'snn-abilities' ),
-            'description' => __( 'Retrieves all post categories.', 'snn-abilities' ),
+            'label'       => __( 'Get Categories', 'wp-abilities' ),
+            'description' => __( 'Retrieves all post categories.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -740,88 +618,13 @@ function snn_register_example_abilities(): void {
     );
 
     // =========================================================================
-    // ABILITY 9: Calculate
+    // ABILITY 7: Get Media
     // =========================================================================
-    snn_register_ability(
-        'snn/calculate',
+    wp_register_ability(
+        'core/get-media',
         array(
-            'label'       => __( 'Calculate', 'snn-abilities' ),
-            'description' => __( 'Performs basic mathematical operations.', 'snn-abilities' ),
-            'category'    => 'general',
-            'input_schema' => array(
-                'type'       => 'object',
-                'required'   => array( 'operation', 'a', 'b' ),
-                'properties' => array(
-                    'operation' => array(
-                        'type'        => 'string',
-                        'description' => 'Mathematical operation to perform.',
-                        'enum'        => array( 'add', 'subtract', 'multiply', 'divide' ),
-                    ),
-                    'a' => array(
-                        'type'        => 'number',
-                        'description' => 'First number.',
-                    ),
-                    'b' => array(
-                        'type'        => 'number',
-                        'description' => 'Second number.',
-                    ),
-                ),
-            ),
-            'output_schema' => array(
-                'type'       => 'object',
-                'properties' => array(
-                    'operation' => array( 'type' => 'string' ),
-                    'a'         => array( 'type' => 'number' ),
-                    'b'         => array( 'type' => 'number' ),
-                    'result'    => array( 'type' => 'number' ),
-                ),
-            ),
-            'execute_callback' => function( $input ) {
-                $a = floatval( $input['a'] );
-                $b = floatval( $input['b'] );
-                $operation = $input['operation'];
-
-                $result = match ( $operation ) {
-                    'add'      => $a + $b,
-                    'subtract' => $a - $b,
-                    'multiply' => $a * $b,
-                    'divide'   => $b != 0 ? $a / $b : null,
-                    default    => null,
-                };
-
-                if ( null === $result && $operation === 'divide' ) {
-                    return new WP_Error(
-                        'division_by_zero',
-                        'Cannot divide by zero.',
-                        array( 'status' => 400 )
-                    );
-                }
-
-                return array(
-                    'operation' => $operation,
-                    'a'         => $a,
-                    'b'         => $b,
-                    'result'    => $result,
-                );
-            },
-            'permission_callback' => '__return_true',
-            'meta' => array(
-                'show_in_rest' => true,
-                'readonly'     => true,
-                'destructive'  => false,
-                'idempotent'   => true,
-            ),
-        )
-    );
-
-    // =========================================================================
-    // ABILITY 10: Get Media
-    // =========================================================================
-    snn_register_ability(
-        'snn/get-media',
-        array(
-            'label'       => __( 'Get Media', 'snn-abilities' ),
-            'description' => __( 'Retrieves media items from the media library.', 'snn-abilities' ),
+            'label'       => __( 'Get Media', 'wp-abilities' ),
+            'description' => __( 'Retrieves media items from the media library.', 'wp-abilities' ),
             'category'    => 'media',
             'input_schema' => array(
                 'type'       => 'object',
@@ -870,7 +673,7 @@ function snn_register_example_abilities(): void {
 
                 foreach ( $attachments as $attachment ) {
                     $metadata = wp_get_attachment_metadata( $attachment->ID );
-                    
+
                     $result[] = array(
                         'id'        => $attachment->ID,
                         'title'     => $attachment->post_title,
@@ -895,4 +698,4 @@ function snn_register_example_abilities(): void {
             ),
         )
     );
-}
+} );
