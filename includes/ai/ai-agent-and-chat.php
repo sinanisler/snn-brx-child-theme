@@ -873,52 +873,77 @@ VALIDATION REQUIREMENTS:
              */
             async function executeAbility(abilityName, input) {
                 try {
+                    // Try to find the correct ability name (AI might use wrong prefix)
+                    let actualAbilityName = abilityName;
+                    let abilityInfo = ChatState.abilities.find(a => a.name === abilityName);
+
+                    // If not found, try to match by suffix (e.g., "core/get-site-info" -> "snn/get-site-info")
+                    if (!abilityInfo) {
+                        const suffix = abilityName.split('/').pop(); // Get part after last /
+                        abilityInfo = ChatState.abilities.find(a => a.name.endsWith('/' + suffix));
+                        if (abilityInfo) {
+                            console.log(`Correcting ability name: ${abilityName} -> ${abilityInfo.name}`);
+                            actualAbilityName = abilityInfo.name;
+                        }
+                    }
+
                     // Encode the ability name but keep forward slashes as-is for WordPress REST API
-                    const encodedName = abilityName.split('/').map(part => encodeURIComponent(part)).join('/');
+                    const encodedName = actualAbilityName.split('/').map(part => encodeURIComponent(part)).join('/');
 
                     // Check if this ability is read-only
-                    const abilityInfo = ChatState.abilities.find(a => a.name === abilityName);
                     const isReadOnly = abilityInfo?.meta?.readonly === true;
 
                     let apiUrl = snnChatConfig.restUrl + 'abilities/' + encodedName + '/run';
-                    let fetchOptions = {
-                        headers: {
-                            'X-WP-Nonce': snnChatConfig.nonce
+
+                    // Helper function to make the actual request
+                    const makeRequest = async (method) => {
+                        let fetchOptions = {
+                            headers: {
+                                'X-WP-Nonce': snnChatConfig.nonce
+                            }
+                        };
+                        let url = apiUrl;
+
+                        if (method === 'GET') {
+                            fetchOptions.method = 'GET';
+                            if (input && Object.keys(input).length > 0) {
+                                const params = new URLSearchParams();
+                                params.append('input', JSON.stringify(input));
+                                url += '?' + params.toString();
+                            }
+                            console.log(`Calling API (GET): ${url}`);
+                        } else {
+                            fetchOptions.method = 'POST';
+                            fetchOptions.headers['Content-Type'] = 'application/json';
+                            fetchOptions.body = JSON.stringify({ input: input });
+                            console.log(`Calling API (POST): ${url}`);
                         }
+
+                        console.log('Input:', input);
+                        return fetch(url, fetchOptions);
                     };
 
-                    if (isReadOnly) {
-                        // Read-only abilities use GET with input as query params
-                        fetchOptions.method = 'GET';
-                        if (input && Object.keys(input).length > 0) {
-                            const params = new URLSearchParams();
-                            params.append('input', JSON.stringify(input));
-                            apiUrl += '?' + params.toString();
-                        }
-                        console.log(`Calling API (GET - readonly): ${apiUrl}`);
-                    } else {
-                        // Non-readonly abilities use POST with JSON body
-                        fetchOptions.method = 'POST';
-                        fetchOptions.headers['Content-Type'] = 'application/json';
-                        fetchOptions.body = JSON.stringify({ input: input });
-                        console.log(`Calling API (POST): ${apiUrl}`);
+                    // Try with the appropriate method based on readonly flag
+                    let response = await makeRequest(isReadOnly ? 'GET' : 'POST');
+
+                    // If we get 405 (Method Not Allowed), retry with the opposite method
+                    if (response.status === 405) {
+                        const retryMethod = isReadOnly ? 'POST' : 'GET';
+                        console.log(`Got 405, retrying with ${retryMethod}...`);
+                        response = await makeRequest(retryMethod);
                     }
-
-                    console.log('Input:', input);
-
-                    const response = await fetch(apiUrl, fetchOptions);
 
                     if (!response.ok) {
                         const errorText = await response.text();
                         console.error(`API error ${response.status}:`, errorText);
-                        
+
                         let error;
                         try {
                             error = JSON.parse(errorText);
                         } catch (e) {
                             error = { message: errorText };
                         }
-                        
+
                         return { success: false, error: error.message || `HTTP ${response.status}` };
                     }
 
