@@ -354,37 +354,30 @@ class SNN_Chat_Overlay {
                         ...context
                     ];
 
-                    // Call AI API
+                    // Call AI API for initial planning
                     const aiResponse = await callAI(messages);
 
                     hideTyping();
 
-                    // Check if AI wants to execute abilities
-                    const abilityResults = await executeAbilitiesFromResponse(aiResponse);
+                    // Extract abilities from response
+                    const abilities = extractAbilitiesFromResponse(aiResponse);
 
-                    // Build response with results
-                    let displayResponse = aiResponse;
-                    let responseMetadata = null;
-
-                    if (abilityResults.length > 0) {
-                        responseMetadata = abilityResults;
-
-                        // Remove JSON block from display
-                        displayResponse = displayResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
-
-                        // Add formatted results
-                        const resultsHtml = formatAbilityResults(abilityResults);
-                        displayResponse += '\n\n' + resultsHtml;
-
-                        // Send results back to AI for interpretation if any succeeded
-                        const hasSuccessful = abilityResults.some(r => r.result.success);
-                        if (hasSuccessful) {
-                            await interpretResults(messages, aiResponse, abilityResults);
+                    if (abilities.length > 0) {
+                        // Show initial AI message (without JSON block)
+                        let initialMessage = aiResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                        if (initialMessage) {
+                            addMessage('assistant', initialMessage);
                         }
-                    }
 
-                    // Add AI response to chat
-                    addMessage('assistant', displayResponse, responseMetadata);
+                        // Execute abilities sequentially with AI interpretation after each
+                        await executeAbilitiesSequentially(messages, abilities);
+
+                        // After all tasks complete, get final summary from AI
+                        await provideFinalSummary(messages, abilities);
+                    } else {
+                        // No abilities to execute, just show AI response
+                        addMessage('assistant', aiResponse);
+                    }
 
                     // Mark as done
                     setAgentState(AgentState.DONE);
@@ -537,16 +530,16 @@ IMPORTANT RULES:
             }
 
             /**
-             * Extract and execute abilities from AI response
+             * Extract abilities from AI response (without executing)
              */
-            async function executeAbilitiesFromResponse(response) {
-                const results = [];
+            function extractAbilitiesFromResponse(response) {
+                const abilities = [];
 
                 // Look for JSON code blocks
                 const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/);
                 if (!jsonMatch) {
                     console.log('No JSON block found in response');
-                    return results;
+                    return abilities;
                 }
 
                 console.log('Found JSON block:', jsonMatch[1]);
@@ -556,38 +549,145 @@ IMPORTANT RULES:
                     console.log('Parsed JSON:', parsed);
 
                     if (parsed.abilities && Array.isArray(parsed.abilities)) {
-                        const totalAbilities = parsed.abilities.length;
-
-                        for (let i = 0; i < parsed.abilities.length; i++) {
-                            const ability = parsed.abilities[i];
-                            const current = i + 1;
-
-                            // Update state with current ability being executed
-                            setAgentState(AgentState.EXECUTING, {
-                                abilityName: ability.name,
-                                current: current,
-                                total: totalAbilities
-                            });
-
-                            console.log(`Executing: ${ability.name} (${current}/${totalAbilities})`, ability.input);
-                            const result = await executeAbility(ability.name, ability.input || {});
-                            console.log(`Result for ${ability.name}:`, result);
-
-                            results.push({
-                                ability: ability.name,
-                                result: result
-                            });
-                        }
+                        return parsed.abilities;
                     } else {
                         console.warn('JSON does not contain abilities array');
                     }
                 } catch (error) {
-                    console.error('Failed to parse ability execution:', error);
-                    addMessage('error', 'Failed to parse ability execution: ' + error.message);
+                    console.error('Failed to parse abilities:', error);
+                    addMessage('error', 'Failed to parse abilities: ' + error.message);
                     setAgentState(AgentState.ERROR, { error: error.message });
                 }
 
-                return results;
+                return abilities;
+            }
+
+            /**
+             * Execute abilities one by one with AI interpretation after each
+             */
+            async function executeAbilitiesSequentially(conversationMessages, abilities) {
+                const totalAbilities = abilities.length;
+
+                for (let i = 0; i < abilities.length; i++) {
+                    const ability = abilities[i];
+                    const current = i + 1;
+
+                    // Show thinking state before execution
+                    showTyping();
+                    setAgentState(AgentState.THINKING);
+                    await sleep(300); // Brief pause for UX
+
+                    // Update state to executing
+                    setAgentState(AgentState.EXECUTING, {
+                        abilityName: ability.name,
+                        current: current,
+                        total: totalAbilities
+                    });
+
+                    console.log(`Executing: ${ability.name} (${current}/${totalAbilities})`, ability.input);
+                    const result = await executeAbility(ability.name, ability.input || {});
+                    console.log(`Result for ${ability.name}:`, result);
+
+                    hideTyping();
+
+                    // Format and display this task's result
+                    const resultHtml = formatSingleAbilityResult({
+                        ability: ability.name,
+                        result: result
+                    });
+                    addMessage('assistant', resultHtml, [{ ability: ability.name, result: result }]);
+
+                    // Get AI interpretation for this specific result
+                    if (result.success) {
+                        await interpretSingleResult(conversationMessages, ability.name, result, current, totalAbilities);
+                    } else {
+                        // Show error interpretation
+                        const errorMsg = `Task ${current}/${totalAbilities} (${ability.name}) failed: ${result.error || 'Unknown error'}`;
+                        addMessage('assistant', errorMsg);
+                    }
+
+                    // Small delay between tasks for better UX
+                    if (i < abilities.length - 1) {
+                        await sleep(500);
+                    }
+                }
+            }
+
+            /**
+             * Interpret a single ability result with AI
+             */
+            async function interpretSingleResult(conversationMessages, abilityName, result, current, total) {
+                try {
+                    showTyping();
+                    setAgentState(AgentState.INTERPRETING);
+
+                    const resultText = `Ability: ${abilityName}\nSuccess: ${result.success}\nData: ${JSON.stringify(result.data, null, 2)}`;
+
+                    const interpretMessages = [
+                        ...conversationMessages,
+                        ...ChatState.messages.slice(-5).map(m => ({
+                            role: m.role === 'user' ? 'user' : 'assistant',
+                            content: m.content
+                        })),
+                        {
+                            role: 'user',
+                            content: `Task ${current} of ${total} completed successfully.\n\nResult:\n${resultText}\n\nProvide a brief, natural response about this result. ${total > 1 ? 'Note: This is one of multiple tasks being executed.' : ''}`
+                        }
+                    ];
+
+                    const interpretation = await callAI(interpretMessages);
+                    hideTyping();
+
+                    // Add interpretation as a follow-up message
+                    addMessage('assistant', interpretation);
+
+                } catch (error) {
+                    console.error('Failed to interpret result:', error);
+                    hideTyping();
+                }
+            }
+
+            /**
+             * Provide final summary after all tasks complete
+             */
+            async function provideFinalSummary(conversationMessages, abilities) {
+                if (abilities.length <= 1) {
+                    return; // No need for summary if only one task
+                }
+
+                try {
+                    showTyping();
+                    setAgentState(AgentState.THINKING);
+
+                    const summaryMessages = [
+                        ...conversationMessages,
+                        ...ChatState.messages.slice(-15).map(m => ({
+                            role: m.role === 'user' ? 'user' : 'assistant',
+                            content: m.content
+                        })),
+                        {
+                            role: 'user',
+                            content: `All ${abilities.length} tasks have been completed. Provide a brief final summary of what was accomplished. Be conversational and context-aware.`
+                        }
+                    ];
+
+                    const summary = await callAI(summaryMessages);
+                    hideTyping();
+
+                    // Add summary message
+                    addMessage('assistant', '✅ ' + summary);
+
+                } catch (error) {
+                    console.error('Failed to provide final summary:', error);
+                    hideTyping();
+                }
+            }
+
+            /**
+             * Sleep utility for UX timing
+             */
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
             }
 
             /**
@@ -712,6 +812,36 @@ IMPORTANT RULES:
             }
 
             /**
+             * Format single ability result as HTML
+             */
+            function formatSingleAbilityResult(r) {
+                const success = r.result.success === true || (r.result.success !== false && !r.result.error);
+                const status = success ? '✅' : '❌';
+                const statusClass = success ? 'success' : 'error';
+                
+                let html = '<div class="ability-results">';
+                html += `<div class="ability-result ${statusClass}">`;
+                html += `<strong>${status} ${r.ability}</strong>`;
+                
+                if (success) {
+                    if (r.result.data) {
+                        // Show a preview of the data
+                        const preview = formatDataPreview(r.result.data);
+                        html += `<div class="result-data">${preview}</div>`;
+                    } else {
+                        html += `<div class="result-data">Completed successfully</div>`;
+                    }
+                } else {
+                    const errorMsg = r.result.error || r.result.message || 'Unknown error';
+                    html += `<div class="result-error">${errorMsg}</div>`;
+                }
+                
+                html += '</div>';
+                html += '</div>';
+                return html;
+            }
+
+            /**
              * Format data preview for display
              */
             function formatDataPreview(data) {
@@ -762,41 +892,7 @@ IMPORTANT RULES:
                 return String(data).substring(0, 100);
             }
 
-            /**
-             * Send results back to AI for interpretation
-             */
-            async function interpretResults(previousMessages, aiResponse, results) {
-                try {
-                    // Update state to interpreting
-                    setAgentState(AgentState.INTERPRETING);
-                    showTyping();
 
-                    const resultsText = results.map(r => {
-                        return `Ability: ${r.ability}\nSuccess: ${r.result.success}\nData: ${JSON.stringify(r.result.data || r.result.error, null, 2)}`;
-                    }).join('\n\n');
-
-                    const interpretMessages = [
-                        ...previousMessages,
-                        { role: 'assistant', content: aiResponse },
-                        {
-                            role: 'user',
-                            content: `The abilities were executed. Here are the results:\n\n${resultsText}\n\nPlease provide a brief, natural summary of these results for the user.`
-                        }
-                    ];
-
-                    const interpretation = await callAI(interpretMessages);
-
-                    hideTyping();
-
-                    // Add interpretation as a follow-up message
-                    addMessage('assistant', interpretation);
-
-                } catch (error) {
-                    console.error('Failed to interpret results:', error);
-                    hideTyping();
-                    setAgentState(AgentState.ERROR, { error: 'Failed to interpret results' });
-                }
-            }
 
             /**
              * Add message to chat
