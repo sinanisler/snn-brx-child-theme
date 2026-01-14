@@ -1761,7 +1761,12 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
             function formatDataPreview(data) {
                 if (Array.isArray(data)) {
                     if (data.length === 0) return 'Empty array';
-                    return `Found ${data.length} item${data.length !== 1 ? 's' : ''}`;
+                    
+                    // Show count and formatted JSON
+                    const countText = `Found ${data.length} item${data.length !== 1 ? 's' : ''}`;
+                    const jsonHtml = formatJsonWithSyntaxHighlighting(data);
+                    return `${countText}<div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div>`;
+                    
                 } else if (typeof data === 'object' && data !== null) {
                     const keys = Object.keys(data);
                     if (keys.length === 0) return 'Empty object';
@@ -1777,24 +1782,33 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         return `<strong>ID:</strong> ${id} | <strong>Title:</strong> ${title} | <strong>Status:</strong> ${status} | <a href="${editUrl}" target="_blank" style="color: #667eea;">Edit →</a>`;
                     }
                     
-                    // Generic object formatting - compact inline format
-                    const formatted = keys.slice(0, 3).map(k => {
-                        let value = data[k];
-                        if (typeof value === 'string') {
-                            value = value.length > 30 ? value.substring(0, 30) + '...' : value;
-                        } else if (typeof value === 'object') {
-                            value = Array.isArray(value) ? `[${value.length} items]` : '[object]';
-                        }
-                        return `<strong>${k}:</strong> ${value}`;
-                    }).join(' | ');
-                    
-                    if (keys.length > 3) {
-                        return formatted + ` <em>(+${keys.length - 3} more)</em>`;
-                    }
-                    
-                    return formatted;
+                    // For objects, show formatted JSON
+                    const jsonHtml = formatJsonWithSyntaxHighlighting(data);
+                    return `<div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div>`;
                 }
                 return String(data).substring(0, 100);
+            }
+
+            /**
+             * Format JSON with syntax highlighting
+             */
+            function formatJsonWithSyntaxHighlighting(data) {
+                try {
+                    const jsonStr = JSON.stringify(data, null, 2);
+                    
+                    // Simple syntax highlighting
+                    return jsonStr
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:') // Keys
+                        .replace(/: "([^"]*)"/g, ': <span class="json-string">"$1"</span>') // String values
+                        .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>') // Booleans
+                        .replace(/: (null)/g, ': <span class="json-null">$1</span>') // Null
+                        .replace(/: (\d+)/g, ': <span class="json-number">$1</span>'); // Numbers
+                } catch(e) {
+                    return String(data);
+                }
             }
 
 
@@ -2208,6 +2222,13 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .result-data { color: #666; font-size: 14px; margin-top: 3px; line-height: 1.5; display: inline; }
 .result-data strong { color: #444; font-weight: 600; margin-right: 2px; }
 .result-error { color: #dc2626; font-size: 12px; }
+.json-result-container { margin-top: 8px; max-height: 200px; overflow-y: auto; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; }
+.json-result { margin: 0; padding: 10px; font-family: Courier, monospace; font-size: 14px; line-height: 1.5; white-space: pre; overflow-x: auto; color: #333; }
+.json-key { color: #0066cc; font-weight: 600; }
+.json-string { color: #22863a; }
+.json-number { color: #005cc5; }
+.json-boolean { color: #d73a49; font-weight: 600; }
+.json-null { color: #6f42c1; font-style: italic; }
 .snn-chat-message code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
 .snn-chat-typing { padding: 5px 20px; background: #f9f9f9; display: flex; align-items: center; gap: 8px; }
 .typing-dots { display: flex; gap: 4px; }
