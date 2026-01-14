@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Categories Ability
- * Registers the core/get-categories ability for the WordPress Abilities API
+ * Registers the snn/get-categories ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_taxonomy_category() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_categories_ability' );
 function snn_register_get_categories_ability() {
     wp_register_ability(
-        'core/get-categories',
+        'snn/get-categories',
         array(
             'label'       => __( 'Get Categories', 'wp-abilities' ),
             'description' => __( 'Retrieves a list of categories.', 'wp-abilities' ),

@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Post By ID Ability
- * Registers the core/get-post-by-id ability for the WordPress Abilities API
+ * Registers the snn/get-post-by-id ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_content_category_get_by_id() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_post_by_id_ability' );
 function snn_register_get_post_by_id_ability() {
     wp_register_ability(
-        'core/get-post-by-id',
+        'snn/get-post-by-id',
         array(
             'label'       => __( 'Get Post By ID', 'wp-abilities' ),
             'description' => __( 'Retrieves detailed information about a specific post.', 'wp-abilities' ),

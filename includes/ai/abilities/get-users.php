@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Users Ability
- * Registers the core/get-users ability for the WordPress Abilities API
+ * Registers the snn/get-users ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_users_category() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_users_ability' );
 function snn_register_get_users_ability() {
     wp_register_ability(
-        'core/get-users',
+        'snn/get-users',
         array(
             'label'       => __( 'Get Users', 'wp-abilities' ),
             'description' => __( 'Retrieves a list of users.', 'wp-abilities' ),

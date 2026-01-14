@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Comments Ability
- * Registers the core/get-comments ability for the WordPress Abilities API
+ * Registers the snn/get-comments ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_comments_category() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_comments_ability' );
 function snn_register_get_comments_ability() {
     wp_register_ability(
-        'core/get-comments',
+        'snn/get-comments',
         array(
             'label'       => __( 'Get Comments', 'wp-abilities' ),
             'description' => __( 'Retrieves comments for a specific post or all comments.', 'wp-abilities' ),

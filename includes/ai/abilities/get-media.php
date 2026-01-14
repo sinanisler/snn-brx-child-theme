@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Media Ability
- * Registers the core/get-media ability for the WordPress Abilities API
+ * Registers the snn/get-media ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_media_category() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_media_ability' );
 function snn_register_get_media_ability() {
     wp_register_ability(
-        'core/get-media',
+        'snn/get-media',
         array(
             'label'       => __( 'Get Media', 'wp-abilities' ),
             'description' => __( 'Retrieves a list of media attachments.', 'wp-abilities' ),

@@ -1,7 +1,7 @@
 <?php 
 /**
  * Update Post Ability
- * Registers the core/update-post ability for the WordPress Abilities API
+ * Registers the snn/update-post ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_content_category_update() {
 add_action( 'wp_abilities_api_init', 'snn_register_update_post_ability' );
 function snn_register_update_post_ability() {
     wp_register_ability(
-        'core/update-post',
+        'snn/update-post',
         array(
             'label'       => __( 'Update Post', 'wp-abilities' ),
             'description' => __( 'Updates an existing post with new content.', 'wp-abilities' ),

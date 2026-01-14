@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Tags Ability
- * Registers the core/get-tags ability for the WordPress Abilities API
+ * Registers the snn/get-tags ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_taxonomy_category_tags() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_tags_ability' );
 function snn_register_get_tags_ability() {
     wp_register_ability(
-        'core/get-tags',
+        'snn/get-tags',
         array(
             'label'       => __( 'Get Tags', 'wp-abilities' ),
             'description' => __( 'Retrieves a list of tags.', 'wp-abilities' ),

@@ -53,8 +53,6 @@ require_once SNN_PATH . 'includes/ai/ai-block-editor.php';
 
 // AI Agent and Chat and AI Abilities (WordPress Abilities API)
 require_once SNN_PATH . 'includes/ai/ai-chat-overlay.php';
-require_once SNN_PATH . 'includes/ai/abilities-debug.php';
-require_once SNN_PATH . 'includes/ai/abilities/test-ability.php';
 require_once SNN_PATH . 'includes/ai/abilities/create-posts.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-posts.php';
 require_once SNN_PATH . 'includes/ai/abilities/get-posts.php';

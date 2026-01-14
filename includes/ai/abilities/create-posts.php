@@ -1,7 +1,7 @@
 <?php 
 /**
  * Create Post Ability
- * Registers the core/create-post ability for the WordPress Abilities API
+ * Registers the snn/create-post ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_content_category() {
 add_action( 'wp_abilities_api_init', 'snn_register_create_post_ability' );
 function snn_register_create_post_ability() {
     wp_register_ability(
-        'core/create-post',
+        'snn/create-post',
         array(
             'label'       => __( 'Create Post', 'wp-abilities' ),
             'description' => __( 'Creates a new post with the provided title and content.', 'wp-abilities' ),

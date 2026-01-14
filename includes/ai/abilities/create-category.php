@@ -1,7 +1,7 @@
 <?php 
 /**
  * Create Category Ability
- * Registers the core/create-category ability for the WordPress Abilities API
+ * Registers the snn/create-category ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_taxonomy_category_create() {
 add_action( 'wp_abilities_api_init', 'snn_register_create_category_ability' );
 function snn_register_create_category_ability() {
     wp_register_ability(
-        'core/create-category',
+        'snn/create-category',
         array(
             'label'       => __( 'Create Category', 'wp-abilities' ),
             'description' => __( 'Creates a new category.', 'wp-abilities' ),

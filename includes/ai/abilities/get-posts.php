@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Posts Ability
- * Registers the core/get-posts ability for the WordPress Abilities API
+ * Registers the snn/get-posts ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_content_category_get_posts() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_posts_ability' );
 function snn_register_get_posts_ability() {
     wp_register_ability(
-        'core/get-posts',
+        'snn/get-posts',
         array(
             'label'       => __( 'Get Posts', 'wp-abilities' ),
             'description' => __( 'Retrieves a list of posts with optional filtering.', 'wp-abilities' ),

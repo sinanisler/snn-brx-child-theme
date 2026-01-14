@@ -1,7 +1,7 @@
 <?php 
 /**
  * Search Content Ability
- * Registers the core/search-content ability for the WordPress Abilities API
+ * Registers the snn/search-content ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_content_category_search() {
 add_action( 'wp_abilities_api_init', 'snn_register_search_content_ability' );
 function snn_register_search_content_ability() {
     wp_register_ability(
-        'core/search-content',
+        'snn/search-content',
         array(
             'label'       => __( 'Search Content', 'wp-abilities' ),
             'description' => __( 'Searches posts, pages, and custom post types.', 'wp-abilities' ),
@@ -90,7 +90,7 @@ function snn_register_search_content_ability() {
                     'post_type'      => $input['post_type'] ?? 'any',
                     'posts_per_page' => $input['limit'] ?? 10,
                     'offset'         => $input['offset'] ?? 0,
-                    'post_status'    => 'publish',
+                    'post_status'    => 'any',
                 );
 
                 $query   = new WP_Query( $args );

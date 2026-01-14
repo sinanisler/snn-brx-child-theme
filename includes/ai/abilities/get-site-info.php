@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Site Info Ability
- * Registers the core/get-site-info ability for the WordPress Abilities API
+ * Registers the snn/get-site-info ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_system_category() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_site_info_ability' );
 function snn_register_get_site_info_ability() {
     wp_register_ability(
-        'core/get-site-info',
+        'snn/get-site-info',
         array(
             'label'       => __( 'Get Site Info', 'wp-abilities' ),
             'description' => __( 'Retrieves basic information about the WordPress site.', 'wp-abilities' ),

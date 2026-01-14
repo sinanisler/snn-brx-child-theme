@@ -1,7 +1,7 @@
 <?php 
 /**
  * Get Post Meta Ability
- * Registers the core/get-post-meta ability for the WordPress Abilities API
+ * Registers the snn/get-post-meta ability for the WordPress Abilities API
  */
 
 // Register category
@@ -23,7 +23,7 @@ function snn_register_content_category_meta() {
 add_action( 'wp_abilities_api_init', 'snn_register_get_post_meta_ability' );
 function snn_register_get_post_meta_ability() {
     wp_register_ability(
-        'core/get-post-meta',
+        'snn/get-post-meta',
         array(
             'label'       => __( 'Get Post Meta', 'wp-abilities' ),
             'description' => __( 'Retrieves custom fields (meta data) for a specific post.', 'wp-abilities' ),
