@@ -638,8 +638,11 @@ IMPORTANT RULES:
                     const interpretation = await callAI(interpretMessages);
                     hideTyping();
 
+                    // Strip any JSON blocks from interpretation (AI shouldn't include them, but just in case)
+                    const cleanInterpretation = interpretation.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+
                     // Add interpretation as a follow-up message
-                    addMessage('assistant', interpretation);
+                    addMessage('assistant', cleanInterpretation);
 
                 } catch (error) {
                     console.error('Failed to interpret result:', error);
@@ -674,8 +677,11 @@ IMPORTANT RULES:
                     const summary = await callAI(summaryMessages);
                     hideTyping();
 
+                    // Strip any JSON blocks from summary (AI shouldn't include them, but just in case)
+                    const cleanSummary = summary.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+
                     // Add summary message
-                    addMessage('assistant', '✅ ' + summary);
+                    addMessage('assistant', '✅ ' + cleanSummary);
 
                 } catch (error) {
                     console.error('Failed to provide final summary:', error);
@@ -854,37 +860,28 @@ IMPORTANT RULES:
                     
                     // Special handling for WordPress post objects
                     if (data.ID || data.id) {
-                        let preview = '';
                         const id = data.ID || data.id;
                         const title = data.post_title || data.title || 'Untitled';
                         const status = data.post_status || data.status || 'unknown';
+                        const editUrl = `<?php echo admin_url('post.php?action=edit&post='); ?>${id}`;
                         
-                        preview += `<div><strong>ID:</strong> ${id}</div>`;
-                        if (title) preview += `<div><strong>Title:</strong> ${title}</div>`;
-                        if (status) preview += `<div><strong>Status:</strong> ${status}</div>`;
-                        
-                        // Add edit link if we have an ID
-                        if (id) {
-                            const editUrl = `<?php echo admin_url('post.php?action=edit&post='); ?>${id}`;
-                            preview += `<div><a href="${editUrl}" target="_blank" style="color: #667eea;">View/Edit Post →</a></div>`;
-                        }
-                        
-                        return preview;
+                        // Compact inline format
+                        return `<strong>ID:</strong> ${id} | <strong>Title:</strong> ${title} | <strong>Status:</strong> ${status} | <a href="${editUrl}" target="_blank" style="color: #667eea;">Edit →</a>`;
                     }
                     
-                    // Generic object formatting - show first few properties
-                    const formatted = keys.slice(0, 5).map(k => {
+                    // Generic object formatting - compact inline format
+                    const formatted = keys.slice(0, 3).map(k => {
                         let value = data[k];
                         if (typeof value === 'string') {
-                            value = value.length > 50 ? value.substring(0, 50) + '...' : value;
+                            value = value.length > 30 ? value.substring(0, 30) + '...' : value;
                         } else if (typeof value === 'object') {
                             value = Array.isArray(value) ? `[${value.length} items]` : '[object]';
                         }
-                        return `<div><strong>${k}:</strong> ${value}</div>`;
-                    }).join('');
+                        return `<strong>${k}:</strong> ${value}`;
+                    }).join(' | ');
                     
-                    if (keys.length > 5) {
-                        return formatted + `<div><em>...and ${keys.length - 5} more properties</em></div>`;
+                    if (keys.length > 3) {
+                        return formatted + ` <em>(+${keys.length - 3} more)</em>`;
                     }
                     
                     return formatted;
@@ -1224,7 +1221,7 @@ IMPORTANT RULES:
         .snn-chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 10px;
             background: #f9f9f9;
         }
 
@@ -1276,11 +1273,11 @@ IMPORTANT RULES:
         }
 
         .snn-chat-message {
-            margin-bottom: 16px;
-            padding: 12px 16px;
+            margin-bottom: 5px;
+            padding: 8px;
             border-radius: 12px;
             line-height: 1.5;
-            max-width: 85%;
+            max-width: 95%;
             word-wrap: break-word;
         }
 
@@ -1359,21 +1356,20 @@ IMPORTANT RULES:
         }
 
         .ability-results {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #e0e0e0;
+            margin-top: 0px;
+            padding-top: 0px;
         }
 
         .ability-result {
-            padding: 8px 12px;
-            margin: 8px 0;
+            padding: 6px 10px;
+            margin: 4px 0;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 14px;
+            line-height: 1.4;
         }
 
         .ability-result.success {
             background: #f0f9ff;
-            border: 1px solid #bae6fd;
         }
 
         .ability-result.error {
@@ -1382,25 +1378,22 @@ IMPORTANT RULES:
         }
 
         .ability-result strong {
-            display: block;
-            margin-bottom: 4px;
+            display: inline;
+            margin-right: 6px;
         }
 
         .result-data {
             color: #666;
-            font-size: 12px;
-            margin-top: 6px;
-            line-height: 1.6;
-        }
-
-        .result-data div {
-            padding: 3px 0;
+            font-size: 11px;
+            margin-top: 3px;
+            line-height: 1.5;
+            display: inline;
         }
 
         .result-data strong {
             color: #444;
             font-weight: 600;
-            margin-right: 4px;
+            margin-right: 2px;
         }
 
         .result-error {
