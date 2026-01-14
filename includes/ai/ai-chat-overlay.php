@@ -274,8 +274,6 @@ class SNN_Chat_Overlay {
                 margin-bottom: 4px;
             }
             .ability-description {
-                color: #666;
-                font-size: 12px;
                 line-height: 1.4;
             }
         </style>
