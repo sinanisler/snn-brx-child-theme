@@ -1508,7 +1508,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     // Strip any JSON blocks and execution results from interpretation
                     const cleanInterpretation = interpretation
                         .replace(/```json\n?[\s\S]*?\n?```/g, '')
-                        .replace(/Execution results?:[\s\S]*$/gi, '')
+                        .replace(/\n*Execution results?:\s*\[Executed[\s\S]*?\]\]\n*/gi, '')
                         .trim();
 
                     // Add interpretation as a follow-up message
@@ -1550,7 +1550,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     // Strip any JSON blocks and execution results from summary
                     const cleanSummary = summary
                         .replace(/```json\n?[\s\S]*?\n?```/g, '')
-                        .replace(/Execution results?:[\s\S]*$/gi, '')
+                        .replace(/\n*Execution results?:\s*\[Executed[\s\S]*?\]\]\n*/gi, '')
                         .trim();
 
                     // Add summary message
