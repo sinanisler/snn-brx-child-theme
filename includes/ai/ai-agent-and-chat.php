@@ -329,7 +329,7 @@ class SNN_Chat_Overlay {
                 <div class="snn-chat-quick-actions">
                     <button class="snn-quick-action-btn" data-message="List all available abilities">List Abilities</button>
                     <button class="snn-quick-action-btn" data-message="List all users">List Users</button>
-                    <button class="snn-quick-action-btn" data-message="Show site details">See Site Details</button>
+                    <button class="snn-quick-action-btn" data-message="Show detailed site health report including PHP, server, database, and security info">Site Health Report</button>
                 </div>
 
                 <!-- Input -->

@@ -26,8 +26,8 @@ function snn_register_get_site_info_ability() {
     wp_register_ability(
         'snn/get-site-info',
         array(
-            'label'       => __( 'Get Site Info', 'wp-abilities' ),
-            'description' => __( 'Retrieves comprehensive information about the WordPress site, server, and PHP environment.', 'wp-abilities' ),
+            'label'       => __( 'Get Detailed Site Info (Enhanced)', 'wp-abilities' ),
+            'description' => __( 'PREFERRED: Retrieves comprehensive WordPress health report including PHP version, server info, database details, security settings, performance metrics, disk space, active plugins, and content statistics. Use this instead of core/get-site-info for detailed information.', 'wp-abilities' ),
             'category'    => 'system',
             'input_schema' => array(
                 'type'       => 'object',
