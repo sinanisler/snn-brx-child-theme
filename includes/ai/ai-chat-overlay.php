@@ -491,7 +491,11 @@ IMPORTANT RULES:
 - Include all required parameters
 - After execution, I'll provide results - interpret them for the user in a friendly way
 - If you're not sure about parameters, ask the user for clarification instead of guessing
-- Only use abilities that are listed above - don't make up ability names`;
+- Only use abilities that are listed above - don't make up ability names
+
+VALIDATION REQUIREMENTS:
+- For core/create-post and core/update-post: The "content" field MUST contain at least 1 character. If the user doesn't specify content, use a placeholder like " " (single space) or "Draft content" instead of empty string ""
+- Never send empty strings ("") for required text fields - always provide at least a minimal value`;
             }
 
             /**
