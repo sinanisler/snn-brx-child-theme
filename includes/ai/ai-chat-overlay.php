@@ -41,7 +41,7 @@ class SNN_Chat_Overlay {
 
     private function __construct() {
         // Add admin bar button
-        add_action( 'wp_before_admin_bar_render', array( $this, 'add_admin_bar_button' ), 999 );
+        add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_button' ), 999 );
         
         // Enqueue scripts and styles
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
@@ -61,10 +61,11 @@ class SNN_Chat_Overlay {
         }
 
         $wp_admin_bar->add_node( array(
-            'id'    => 'snn-ai-chat',
-            'title' => '<span class="ab-icon dashicons dashicons-admin-comments"></span><span class="ab-label">AI Assistant</span>',
-            'href'  => '#',
-            'meta'  => array(
+            'id'     => 'snn-ai-chat',
+            'title'  => '<span class="ab-icon dashicons dashicons-admin-comments"></span><span class="ab-label">AI Assistant</span>',
+            'href'   => '#',
+            'parent' => 'top-secondary',
+            'meta'   => array(
                 'class' => 'snn-chat-toggle',
                 'title' => 'Open AI Assistant',
             ),
