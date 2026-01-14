@@ -185,53 +185,14 @@ class SNN_Chat_Overlay {
             
             <?php if ( ! empty( $abilities ) && is_array( $abilities ) ) : ?>
                 <div class="snn-abilities-list">
-                    <?php 
-                    // Group abilities by category
-                    $grouped = array();
-                    foreach ( $abilities as $ability ) {
-                        $category = isset( $ability['category'] ) ? $ability['category'] : 'uncategorized';
-                        if ( ! isset( $grouped[$category] ) ) {
-                            $grouped[$category] = array();
-                        }
-                        $grouped[$category][] = $ability;
-                    }
-                    
-                    ksort( $grouped );
-                    
-                    foreach ( $grouped as $category => $cat_abilities ) :
-                    ?>
-                        <div class="snn-ability-category">
-                            <h3><?php echo esc_html( ucfirst( $category ) ); ?> <span class="count">(<?php echo count( $cat_abilities ); ?>)</span></h3>
-                            <ul class="snn-ability-items">
-                                <?php foreach ( $cat_abilities as $ability ) : ?>
-                                    <li class="snn-ability-item">
-                                        <div class="ability-header">
-                                            <strong class="ability-name"><?php echo esc_html( $ability['name'] ); ?></strong>
-                                        </div>
-                                        <div class="ability-description">
-                                            <?php echo esc_html( $ability['description'] ?? $ability['label'] ?? 'No description available' ); ?>
-                                        </div>
-                                        <?php if ( ! empty( $ability['input_schema'] ) ) : ?>
-                                            <div class="ability-parameters">
-                                                <small><em><?php echo esc_html__('Parameters:', 'snn'); ?></em> 
-                                                    <?php 
-                                                    if ( isset( $ability['input_schema']['properties'] ) ) {
-                                                        $params = array_keys( $ability['input_schema']['properties'] );
-                                                        echo esc_html( implode( ', ', $params ) );
-                                                    } elseif ( isset( $ability['input_schema']['type'] ) ) {
-                                                        echo esc_html( $ability['input_schema']['type'] );
-                                                    } else {
-                                                        echo esc_html__('None', 'snn');
-                                                    }
-                                                    ?>
-                                                </small>
-                                            </div>
-                                        <?php endif; ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    <?php endforeach; ?>
+                    <ul class="snn-ability-items">
+                        <?php foreach ( $abilities as $ability ) : ?>
+                            <li class="snn-ability-item">
+                                <strong class="ability-name"><?php echo esc_html( $ability['name'] ); ?></strong>
+                                <span class="ability-description"><?php echo esc_html( $ability['description'] ?? $ability['label'] ?? 'No description available' ); ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
                 </div>
             <?php else : ?>
                 <div class="notice notice-warning inline">
@@ -286,57 +247,36 @@ class SNN_Chat_Overlay {
             }
             .snn-abilities-list {
                 margin-top: 20px;
-            }
-            .snn-ability-category {
-                margin-bottom: 30px;
                 background: #fff;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 padding: 20px;
             }
-            .snn-ability-category h3 {
-                margin: 0 0 15px 0;
-                padding: 0;
-                font-size: 16px;
-                color: #1d2327;
-            }
-            .snn-ability-category h3 .count {
-                color: #666;
-                font-weight: normal;
-                font-size: 14px;
-            }
             .snn-ability-items {
                 list-style: none;
                 margin: 0;
                 padding: 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 10px;
             }
             .snn-ability-item {
-                padding: 12px 15px;
-                margin-bottom: 8px;
+                padding: 10px 12px;
                 background: #f9f9f9;
                 border-left: 3px solid #2271b1;
                 border-radius: 3px;
             }
-            .snn-ability-item:last-child {
-                margin-bottom: 0;
-            }
-            .ability-header {
-                margin-bottom: 5px;
-            }
             .ability-name {
                 color: #2271b1;
-                font-size: 14px;
+                font-size: 13px;
                 font-family: 'Courier New', monospace;
+                display: block;
+                margin-bottom: 4px;
             }
             .ability-description {
-                color: #555;
-                font-size: 13px;
-                line-height: 1.5;
-                margin-bottom: 5px;
-            }
-            .ability-parameters {
                 color: #666;
                 font-size: 12px;
+                line-height: 1.4;
             }
         </style>
         <?php
