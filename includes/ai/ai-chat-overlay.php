@@ -110,6 +110,7 @@ class SNN_Chat_Overlay {
                     <div class="snn-chat-title">
                         <span class="dashicons dashicons-admin-comments"></span>
                         <span>AI Assistant</span>
+                        <span class="snn-agent-state-badge" id="snn-agent-state-badge"></span>
                     </div>
                     <div class="snn-chat-controls">
                         <button class="snn-chat-btn snn-chat-clear" title="Clear conversation">
@@ -144,7 +145,9 @@ class SNN_Chat_Overlay {
 
                 <!-- Typing Indicator -->
                 <div class="snn-chat-typing" style="display: none;">
-                    <span></span><span></span><span></span>
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
                 </div>
 
                 <!-- Input -->
@@ -169,13 +172,25 @@ class SNN_Chat_Overlay {
         (function($) {
             'use strict';
 
+            // Agent states enum
+            const AgentState = {
+                IDLE: 'idle',
+                THINKING: 'thinking',
+                EXECUTING: 'executing',
+                INTERPRETING: 'interpreting',
+                DONE: 'done',
+                ERROR: 'error'
+            };
+
             // Chat state
             const ChatState = {
                 messages: [],
                 abilities: [],
                 isOpen: false,
                 isProcessing: false,
-                abortController: null
+                abortController: null,
+                currentState: AgentState.IDLE,
+                currentAbility: null
             };
 
             // Initialize
@@ -287,13 +302,13 @@ class SNN_Chat_Overlay {
             async function processWithAI(userMessage) {
                 ChatState.isProcessing = true;
                 showTyping();
-                setStatus('Thinking...');
+                setAgentState(AgentState.THINKING);
 
                 try {
                     // Prepare conversation context (include last execution results)
                     const context = ChatState.messages.slice(-10).map(m => {
                         let content = m.content;
-                        
+
                         // If this message had ability executions, include results in context
                         if (m.metadata && m.metadata.length > 0) {
                             const resultsText = m.metadata.map(r => {
@@ -304,18 +319,18 @@ class SNN_Chat_Overlay {
                                 }
                                 return '';
                             }).filter(Boolean).join(' ');
-                            
+
                             if (resultsText) {
                                 content = content + '\n\nExecution results: ' + resultsText;
                             }
                         }
-                        
+
                         return {
                             role: m.role === 'user' ? 'user' : 'assistant',
                             content: content
                         };
                     });
-                    
+
                     // Build AI prompt with abilities
                     const systemPrompt = buildSystemPrompt();
                     const messages = [
@@ -325,41 +340,42 @@ class SNN_Chat_Overlay {
 
                     // Call AI API
                     const aiResponse = await callAI(messages);
-                    
+
                     hideTyping();
 
                     // Check if AI wants to execute abilities
                     const abilityResults = await executeAbilitiesFromResponse(aiResponse);
-                    
+
                     // Build response with results
                     let displayResponse = aiResponse;
                     let responseMetadata = null;
-                    
+
                     if (abilityResults.length > 0) {
                         responseMetadata = abilityResults;
-                        
+
                         // Remove JSON block from display
                         displayResponse = displayResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
-                        
+
                         // Add formatted results
                         const resultsHtml = formatAbilityResults(abilityResults);
                         displayResponse += '\n\n' + resultsHtml;
-                        
+
                         // Send results back to AI for interpretation if any succeeded
                         const hasSuccessful = abilityResults.some(r => r.result.success);
                         if (hasSuccessful) {
                             await interpretResults(messages, aiResponse, abilityResults);
                         }
                     }
-                    
+
                     // Add AI response to chat
                     addMessage('assistant', displayResponse, responseMetadata);
 
-                    setStatus('');
+                    // Mark as done
+                    setAgentState(AgentState.DONE);
                 } catch (error) {
                     hideTyping();
                     addMessage('error', 'Sorry, something went wrong: ' + error.message);
-                    setStatus('');
+                    setAgentState(AgentState.ERROR, { error: error.message });
                 } finally {
                     ChatState.isProcessing = false;
                 }
@@ -487,7 +503,7 @@ IMPORTANT RULES:
              */
             async function executeAbilitiesFromResponse(response) {
                 const results = [];
-                
+
                 // Look for JSON code blocks
                 const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/);
                 if (!jsonMatch) {
@@ -500,14 +516,25 @@ IMPORTANT RULES:
                 try {
                     const parsed = JSON.parse(jsonMatch[1]);
                     console.log('Parsed JSON:', parsed);
-                    
+
                     if (parsed.abilities && Array.isArray(parsed.abilities)) {
-                        setStatus(`Executing ${parsed.abilities.length} ability/abilities...`);
-                        
-                        for (const ability of parsed.abilities) {
-                            console.log(`Executing: ${ability.name}`, ability.input);
+                        const totalAbilities = parsed.abilities.length;
+
+                        for (let i = 0; i < parsed.abilities.length; i++) {
+                            const ability = parsed.abilities[i];
+                            const current = i + 1;
+
+                            // Update state with current ability being executed
+                            setAgentState(AgentState.EXECUTING, {
+                                abilityName: ability.name,
+                                current: current,
+                                total: totalAbilities
+                            });
+
+                            console.log(`Executing: ${ability.name} (${current}/${totalAbilities})`, ability.input);
                             const result = await executeAbility(ability.name, ability.input || {});
                             console.log(`Result for ${ability.name}:`, result);
+
                             results.push({
                                 ability: ability.name,
                                 result: result
@@ -519,6 +546,7 @@ IMPORTANT RULES:
                 } catch (error) {
                     console.error('Failed to parse ability execution:', error);
                     addMessage('error', 'Failed to parse ability execution: ' + error.message);
+                    setAgentState(AgentState.ERROR, { error: error.message });
                 }
 
                 return results;
@@ -643,27 +671,34 @@ IMPORTANT RULES:
              */
             async function interpretResults(previousMessages, aiResponse, results) {
                 try {
+                    // Update state to interpreting
+                    setAgentState(AgentState.INTERPRETING);
+                    showTyping();
+
                     const resultsText = results.map(r => {
                         return `Ability: ${r.ability}\nSuccess: ${r.result.success}\nData: ${JSON.stringify(r.result.data || r.result.error, null, 2)}`;
                     }).join('\n\n');
-                    
+
                     const interpretMessages = [
                         ...previousMessages,
                         { role: 'assistant', content: aiResponse },
-                        { 
-                            role: 'user', 
-                            content: `The abilities were executed. Here are the results:\n\n${resultsText}\n\nPlease provide a brief, natural summary of these results for the user.` 
+                        {
+                            role: 'user',
+                            content: `The abilities were executed. Here are the results:\n\n${resultsText}\n\nPlease provide a brief, natural summary of these results for the user.`
                         }
                     ];
-                    
-                    setStatus('Interpreting results...');
+
                     const interpretation = await callAI(interpretMessages);
-                    
+
+                    hideTyping();
+
                     // Add interpretation as a follow-up message
                     addMessage('assistant', interpretation);
-                    
+
                 } catch (error) {
                     console.error('Failed to interpret results:', error);
+                    hideTyping();
+                    setAgentState(AgentState.ERROR, { error: 'Failed to interpret results' });
                 }
             }
 
@@ -720,7 +755,101 @@ IMPORTANT RULES:
             }
 
             /**
-             * Set status message
+             * Set agent state and update UI
+             */
+            function setAgentState(state, metadata = null) {
+                ChatState.currentState = state;
+
+                // Log state transition
+                console.log('🔄 Agent State:', state, metadata || '');
+
+                const $status = $('#snn-chat-status');
+                const $badge = $('#snn-agent-state-badge');
+                let statusText = '';
+                let statusClass = '';
+                let badgeText = '';
+                let badgeClass = '';
+
+                // Clear existing state classes
+                $status.removeClass('state-idle state-thinking state-executing state-interpreting state-done state-error');
+                $badge.removeClass('badge-idle badge-thinking badge-executing badge-interpreting badge-done badge-error');
+
+                switch(state) {
+                    case AgentState.IDLE:
+                        statusText = '';
+                        statusClass = 'state-idle';
+                        badgeText = '';
+                        badgeClass = 'badge-idle';
+                        break;
+
+                    case AgentState.THINKING:
+                        statusText = '🤔 Thinking...';
+                        statusClass = 'state-thinking';
+                        badgeText = 'Thinking';
+                        badgeClass = 'badge-thinking';
+                        break;
+
+                    case AgentState.EXECUTING:
+                        if (metadata && metadata.abilityName) {
+                            statusText = `⚡ Executing: ${metadata.abilityName}`;
+                            if (metadata.current && metadata.total) {
+                                statusText += ` (${metadata.current}/${metadata.total})`;
+                            }
+                        } else {
+                            statusText = '⚡ Executing Ability...';
+                        }
+                        statusClass = 'state-executing';
+                        badgeText = 'Executing';
+                        badgeClass = 'badge-executing';
+                        break;
+
+                    case AgentState.INTERPRETING:
+                        statusText = '📊 Interpreting Results...';
+                        statusClass = 'state-interpreting';
+                        badgeText = 'Interpreting';
+                        badgeClass = 'badge-interpreting';
+                        break;
+
+                    case AgentState.DONE:
+                        statusText = '✅ Done';
+                        statusClass = 'state-done';
+                        badgeText = 'Done';
+                        badgeClass = 'badge-done';
+                        // Auto-clear after 2 seconds
+                        setTimeout(() => {
+                            if (ChatState.currentState === AgentState.DONE) {
+                                setAgentState(AgentState.IDLE);
+                            }
+                        }, 2000);
+                        break;
+
+                    case AgentState.ERROR:
+                        statusText = metadata && metadata.error ? `❌ Error: ${metadata.error}` : '❌ Error';
+                        statusClass = 'state-error';
+                        badgeText = 'Error';
+                        badgeClass = 'badge-error';
+                        // Auto-clear after 3 seconds
+                        setTimeout(() => {
+                            if (ChatState.currentState === AgentState.ERROR) {
+                                setAgentState(AgentState.IDLE);
+                            }
+                        }, 3000);
+                        break;
+                }
+
+                $status.addClass(statusClass).text(statusText);
+                $badge.addClass(badgeClass).text(badgeText);
+
+                // Show/hide badge based on state
+                if (badgeText) {
+                    $badge.show();
+                } else {
+                    $badge.hide();
+                }
+            }
+
+            /**
+             * Set status message (backward compatibility wrapper)
              */
             function setStatus(message) {
                 $('#snn-chat-status').text(message);
@@ -860,6 +989,58 @@ IMPORTANT RULES:
             font-size: 20px;
             width: 20px;
             height: 20px;
+        }
+
+        .snn-agent-state-badge {
+            display: none;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .snn-agent-state-badge.badge-thinking {
+            background: rgba(255, 255, 255, 0.95);
+            color: #667eea;
+            animation: badgePulse 1.5s ease-in-out infinite;
+        }
+
+        .snn-agent-state-badge.badge-executing {
+            background: rgba(255, 255, 255, 0.95);
+            color: #f57c00;
+            animation: badgePulse 1.2s ease-in-out infinite;
+        }
+
+        .snn-agent-state-badge.badge-interpreting {
+            background: rgba(255, 255, 255, 0.95);
+            color: #388e3c;
+            animation: badgePulse 1.5s ease-in-out infinite;
+        }
+
+        .snn-agent-state-badge.badge-done {
+            background: rgba(255, 255, 255, 0.95);
+            color: #2e7d32;
+        }
+
+        .snn-agent-state-badge.badge-error {
+            background: rgba(255, 255, 255, 0.95);
+            color: #c62828;
+            animation: badgeShake 0.5s ease-in-out;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        @keyframes badgeShake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
         }
 
         .snn-chat-controls {
@@ -1036,23 +1217,30 @@ IMPORTANT RULES:
         .snn-chat-typing {
             padding: 12px 20px;
             background: #f9f9f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .snn-chat-typing span {
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
             display: inline-block;
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: #999;
-            margin-right: 4px;
             animation: typing 1.4s infinite;
         }
 
-        .snn-chat-typing span:nth-child(2) {
+        .typing-dots span:nth-child(2) {
             animation-delay: 0.2s;
         }
 
-        .snn-chat-typing span:nth-child(3) {
+        .typing-dots span:nth-child(3) {
             animation-delay: 0.4s;
         }
 
@@ -1123,6 +1311,61 @@ IMPORTANT RULES:
             color: #666;
             border-top: 1px solid #e0e0e0;
             min-height: 32px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .snn-chat-status.state-thinking {
+            background: linear-gradient(90deg, #e3f2fd, #f3e5f5);
+            color: #667eea;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .snn-chat-status.state-executing {
+            background: linear-gradient(90deg, #fff3e0, #ffe0b2);
+            color: #f57c00;
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        .snn-chat-status.state-interpreting {
+            background: linear-gradient(90deg, #e8f5e9, #c8e6c9);
+            color: #388e3c;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .snn-chat-status.state-done {
+            background: linear-gradient(90deg, #e8f5e9, #c8e6c9);
+            color: #2e7d32;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .snn-chat-status.state-error {
+            background: linear-gradient(90deg, #ffebee, #ffcdd2);
+            color: #c62828;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .snn-chat-status.state-idle {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         #wpadminbar #wp-admin-bar-snn-ai-chat .ab-icon:before {
