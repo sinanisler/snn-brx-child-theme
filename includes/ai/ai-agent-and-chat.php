@@ -52,6 +52,7 @@ class SNN_Chat_Overlay {
         add_action( 'wp_ajax_snn_save_chat_history', array( $this, 'ajax_save_chat_history' ) );
         add_action( 'wp_ajax_snn_load_chat_history', array( $this, 'ajax_load_chat_history' ) );
         add_action( 'wp_ajax_snn_get_chat_histories', array( $this, 'ajax_get_chat_histories' ) );
+        add_action( 'wp_ajax_snn_delete_chat_history', array( $this, 'ajax_delete_chat_history' ) );
         
         // Check if feature is enabled
         if ( ! $this->is_enabled() ) {
@@ -321,6 +322,39 @@ class SNN_Chat_Overlay {
 
         $histories = $this->get_chat_histories();
         wp_send_json_success( array( 'histories' => $histories ) );
+    }
+
+    /**
+     * AJAX: Delete individual chat history
+     */
+    public function ajax_delete_chat_history() {
+        check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+        
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( 'Insufficient permissions' );
+        }
+
+        $session_id = isset( $_POST['session_id'] ) ? sanitize_text_field( $_POST['session_id'] ) : '';
+        
+        if ( empty( $session_id ) ) {
+            wp_send_json_error( 'Invalid session ID' );
+        }
+
+        $posts = get_posts( array(
+            'post_type' => 'snn-agent-history',
+            'meta_key' => 'session_id',
+            'meta_value' => $session_id,
+            'author' => get_current_user_id(),
+            'posts_per_page' => 1,
+            'post_status' => 'private',
+        ) );
+
+        if ( ! empty( $posts ) ) {
+            wp_delete_post( $posts[0]->ID, true );
+            wp_send_json_success( array( 'deleted' => true ) );
+        } else {
+            wp_send_json_error( 'Chat history not found' );
+        }
     }
 
     /**
@@ -775,11 +809,11 @@ class SNN_Chat_Overlay {
                         <span class="snn-agent-state-badge" id="snn-agent-state-badge"></span>
                     </div>
                     <div class="snn-chat-controls">
+                        <button class="snn-chat-btn snn-chat-new" title="New chat" id="snn-chat-new-btn">
+                            <span class="snn-chat-plus">+</span>
+                        </button>
                         <button class="snn-chat-btn snn-chat-history" title="Chat history" id="snn-chat-history-btn">
                             <span class="dashicons dashicons-backup"></span>
-                        </button>
-                        <button class="snn-chat-btn snn-chat-clear" title="Clear conversation">
-                            <span class="dashicons dashicons-trash"></span>
                         </button>
                         <button class="snn-chat-btn snn-chat-close" title="Close">
                             <span class="dashicons dashicons-no-alt"></span>
@@ -898,11 +932,9 @@ class SNN_Chat_Overlay {
                     toggleChat();
                 });
 
-                // Clear chat
-                $('.snn-chat-clear').on('click', function() {
-                    if (confirm('Clear conversation history?')) {
-                        clearChat();
-                    }
+                // New chat button
+                $('#snn-chat-new-btn').on('click', function() {
+                    clearChat();
                 });
 
                 // History button
@@ -1973,18 +2005,65 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     const isActive = history.session_id === ChatState.currentSessionId;
                     
                     html += `<div class="snn-history-item ${isActive ? 'active' : ''}" data-session-id="${history.session_id}">
-                        <div class="snn-history-title">${history.title}</div>
-                        <div class="snn-history-meta">${history.message_count} messages • ${dateStr}</div>
+                        <div class="snn-history-content">
+                            <div class="snn-history-title">${history.title}</div>
+                            <div class="snn-history-meta">${history.message_count} messages • ${dateStr}</div>
+                        </div>
+                        <button class="snn-history-delete" data-session-id="${history.session_id}" title="Delete this chat">×</button>
                     </div>`;
                 });
 
                 $list.html(html);
 
                 // Add click handlers
-                $('.snn-history-item').on('click', function() {
+                $('.snn-history-item').on('click', function(e) {
+                    // Don't load chat if clicking delete button
+                    if ($(e.target).hasClass('snn-history-delete')) {
+                        return;
+                    }
                     const sessionId = $(this).data('session-id');
                     loadChatSession(sessionId);
                     $('#snn-chat-history-dropdown').hide();
+                });
+
+                // Delete button handler
+                $('.snn-history-delete').on('click', function(e) {
+                    e.stopPropagation();
+                    const sessionId = $(this).data('session-id');
+                    if (confirm('Delete this chat history?')) {
+                        deleteChatSession(sessionId);
+                    }
+                });
+            }
+
+            /**
+             * Delete a specific chat session
+             */
+            function deleteChatSession(sessionId) {
+                $.ajax({
+                    url: snnChatConfig.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action: 'snn_delete_chat_history',
+                        nonce: snnChatConfig.agentNonce,
+                        session_id: sessionId
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            debugLog('✓ Deleted chat session:', sessionId);
+                            // If the deleted session is the current one, clear the chat
+                            if (ChatState.currentSessionId === sessionId) {
+                                clearChat();
+                            }
+                            // Reload the history list
+                            loadChatHistories();
+                        } else {
+                            alert('Failed to delete chat history.');
+                        }
+                    },
+                    error: function() {
+                        alert('Error deleting chat history.');
+                    }
                 });
             }
 
@@ -2054,17 +2133,21 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .snn-chat-btn:hover { background: rgba(255, 255, 255, 0.3); }
 .snn-chat-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
+.snn-chat-plus { font-size: 24px; line-height: 1; font-weight: 300; }
 .snn-chat-history-dropdown { position: absolute; top: 60px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #ddd; max-height: 300px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 10; }
 .snn-history-header { padding: 12px 16px; background: #f5f5f5; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
 .snn-history-header strong { font-size: 14px; color: #333; }
 .snn-history-close { background: none; border: none; font-size: 24px; color: #666; cursor: pointer; padding: 0; line-height: 1; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
 .snn-history-close:hover { color: #000; }
 .snn-history-list { padding: 8px 0; }
-.snn-history-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; }
+.snn-history-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .snn-history-item:hover { background: #f9f9f9; }
 .snn-history-item.active { background: #e3f2fd; border-left: 3px solid #2196f3; }
-.snn-history-title { font-weight: 600; color: #333; font-size: 14px; margin-bottom: 4px; }
+.snn-history-content { flex: 1; min-width: 0; }
+.snn-history-title { font-weight: 600; color: #333; font-size: 14px; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .snn-history-meta { font-size: 12px; color: #666; }
+.snn-history-delete { background: none; border: none; font-size: 20px; color: #999; cursor: pointer; padding: 0 4px; line-height: 1; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.2s; flex-shrink: 0; }
+.snn-history-delete:hover { background: #fee; color: #c33; }
 .snn-history-loading, .snn-history-empty { padding: 20px; text-align: center; color: #999; font-size: 14px; }
 .snn-chat-messages { flex: 1; overflow-y: auto; padding: 10px; background: #f9f9f9; }
 .snn-chat-welcome { text-align: center; padding: 40px 20px; color: #666; }
