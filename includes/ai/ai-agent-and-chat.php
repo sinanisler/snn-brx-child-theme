@@ -1420,7 +1420,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .result-data strong { color: #444; font-weight: 600; margin-right: 2px; }
 .result-error { color: #dc2626; font-size: 12px; }
 .snn-chat-message code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
-.snn-chat-typing { padding: 12px 20px; background: #f9f9f9; display: flex; align-items: center; gap: 8px; }
+.snn-chat-typing { padding: 5px 20px; background: #f9f9f9; display: flex; align-items: center; gap: 8px; }
 .typing-dots { display: flex; gap: 4px; }
 .typing-dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #999; animation: typing 1.4s infinite; }
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
