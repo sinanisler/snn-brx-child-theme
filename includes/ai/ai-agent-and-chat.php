@@ -82,7 +82,7 @@ class SNN_Chat_Overlay {
      * Get custom system prompt
      */
     public function get_system_prompt() {
-        return get_option( 'snn_ai_agent_system_prompt', 'You are a helpful WordPress assistant.' );
+        return get_option( 'snn_ai_agent_system_prompt', 'You are a helpful WordPress assistant. Be proactive and execute actions directly when the user\'s intent is clear. Only ask clarifying questions when genuinely necessary - prefer using sensible defaults instead.' );
     }
 
     /**
@@ -402,7 +402,7 @@ class SNN_Chat_Overlay {
 
         $enabled = $this->is_enabled();
         $system_prompt = $this->get_system_prompt();
-        $default_prompt = 'You are a helpful WordPress assistant.';
+        $default_prompt = 'You are a helpful WordPress assistant. Be proactive and execute actions directly when the user\'s intent is clear. Only ask clarifying questions when genuinely necessary - prefer using sensible defaults instead.';
         $token_count = $this->get_token_count();
         $enabled_abilities = $this->get_enabled_abilities();
         $debug_mode = $this->is_debug_enabled();
@@ -1177,11 +1177,42 @@ When users ask "what can you do" or "what are your capabilities", list these abi
 
 ${abilitiesDesc}
 
+=== EXECUTION PHILOSOPHY: BE PROACTIVE, NOT INQUISITIVE ===
+
+**CRITICAL BEHAVIOR RULES:**
+
+1. **EXECUTE DIRECTLY when the user's intent is clear** - Don't ask clarifying questions if you already have an appropriate ability match
+   - "List all users" → Execute immediately (use default parameters like limit=100)
+   - "Show site info" → Execute immediately 
+   - "Who is [user]" → Execute get user ability with that username
+   - "Give me site info" → Execute immediately, choose the most comprehensive option
+
+2. **ONLY ASK QUESTIONS when genuinely necessary:**
+   - Required parameters are missing AND cannot be reasonably defaulted
+   - Multiple significantly different interpretations are possible
+   - The action would be destructive without confirmation
+
+3. **Use sensible defaults:**
+   - When listing items, default to reasonable limits (e.g., 100 for users)
+   - When getting info, prefer comprehensive/detailed reports over basic ones
+   - When filtering is optional, assume "all" unless specifically asked to filter
+
+4. **Examples of CORRECT behavior:**
+   - User: "list all users" → Execute immediately with limit=100 or whatever maximum is reasonable
+   - User: "who is sinan" → Execute immediately with username/search for "sinan"
+   - User: "give me some site info" → Execute the MOST comprehensive site info ability available (e.g., detailed health report)
+   - User: "show me posts" → Execute immediately with sensible defaults (e.g., 10 most recent posts)
+
+5. **Examples of INCORRECT behavior (DON'T DO THIS):**
+   - User: "list all users" → ❌ "Would you like all users or specific number?" (WRONG - just execute with sensible default)
+   - User: "who is sinan" → ❌ "What info do you want?" (WRONG - just get all available info about user sinan)
+   - User: "give me site info" → ❌ "General or detailed report?" (WRONG - prefer the more comprehensive option)
+
 === HOW TO USE ABILITIES ===
 
 When the user asks you to perform a task that matches one of these abilities:
 
-1. FIRST: Explain to the user in natural language what you're about to do
+1. FIRST: Brief single-line acknowledgment (e.g., "I'll get the users for you.")
 2. THEN: Include a JSON code block with the abilities to execute
 3. AFTER: I will execute the abilities and show you the results
 
@@ -1209,14 +1240,14 @@ You can chain multiple abilities (use exact names from the list):
 \`\`\`
 
 IMPORTANT RULES:
-- Always explain what you're doing before the JSON block
+- Keep pre-execution acknowledgments brief (one line)
 - CRITICAL: You MUST use the EXACT ability names as listed above - copy them exactly character by character
 - The ability names include their namespace prefix (like "snn/" or "core/") - NEVER change or guess the prefix
 - If you see "snn/get-site-info" in the list, use EXACTLY "snn/get-site-info" - NOT "core/get-site-info"
 - Match parameter types exactly (string, integer, boolean, array, etc.)
-- Include all required parameters
+- Use sensible defaults for optional parameters rather than asking
 - After execution, I'll provide results - interpret them for the user in a friendly way
-- If you're not sure about parameters, ask the user for clarification instead of guessing
+- ONLY ask clarifying questions when absolutely necessary
 - ONLY use abilities that are listed above - NEVER make up or modify ability names
 
 VALIDATION REQUIREMENTS:
