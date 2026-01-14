@@ -132,14 +132,11 @@ class SNN_Chat_Overlay {
                                 <label for="snn_ai_agent_enabled"><?php echo esc_html__('Enable AI Agent & Chat Overlay', 'snn'); ?></label>
                             </th>
                             <td>
-                                <label class="snn-toggle-switch">
-                                    <input type="checkbox" 
-                                           id="snn_ai_agent_enabled" 
-                                           name="snn_ai_agent_enabled" 
-                                           value="1" 
-                                           <?php checked( $enabled, true ); ?>>
-                                    <span class="snn-toggle-slider"></span>
-                                </label>
+                                <input type="checkbox" 
+                                       id="snn_ai_agent_enabled" 
+                                       name="snn_ai_agent_enabled" 
+                                       value="1" 
+                                       <?php checked( $enabled, true ); ?>>
                                 <p class="description">
                                     <?php echo esc_html__('Enable the AI chat assistant accessible from the admin bar.', 'snn'); ?><br>
                                     <?php 
@@ -184,16 +181,13 @@ class SNN_Chat_Overlay {
             <p><?php echo esc_html__('These are the actions the AI agent can perform on your WordPress site. The list is automatically generated from registered WordPress Core Abilities.', 'snn'); ?></p>
             
             <?php if ( ! empty( $abilities ) && is_array( $abilities ) ) : ?>
-                <div class="snn-abilities-list">
-                    <ul class="snn-ability-items">
-                        <?php foreach ( $abilities as $ability ) : ?>
-                            <li class="snn-ability-item">
-                                <strong class="ability-name"><?php echo esc_html( $ability['name'] ); ?></strong>
-                                <span class="ability-description"><?php echo esc_html( $ability['description'] ?? $ability['label'] ?? 'No description available' ); ?></span>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
+                <ul>
+                    <?php foreach ( $abilities as $ability ) : ?>
+                        <li>
+                            <strong><?php echo esc_html( $ability['name'] ); ?></strong> - <?php echo esc_html( $ability['description'] ?? $ability['label'] ?? 'No description available' ); ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
             <?php else : ?>
                 <div class="notice notice-warning inline">
                     <p>
@@ -205,77 +199,7 @@ class SNN_Chat_Overlay {
         </div>
 
         <style>
-            .snn-toggle-switch {
-                position: relative;
-                display: inline-block;
-                width: 50px;
-                height: 26px;
-                vertical-align: middle;
-            }
-            .snn-toggle-switch input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
-            .snn-toggle-slider {
-                position: absolute;
-                cursor: pointer;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: #ccc;
-                transition: .4s;
-                border-radius: 26px;
-            }
-            .snn-toggle-slider:before {
-                position: absolute;
-                content: "";
-                height: 20px;
-                width: 20px;
-                left: 3px;
-                bottom: 3px;
-                background-color: white;
-                transition: .4s;
-                border-radius: 50%;
-            }
-            input:checked + .snn-toggle-slider {
-                background-color: #2271b1;
-            }
-            input:checked + .snn-toggle-slider:before {
-                transform: translateX(24px);
-            }
-            .snn-abilities-list {
-                margin-top: 20px;
-                background: #fff;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                padding: 20px;
-            }
-            .snn-ability-items {
-                list-style: none;
-                margin: 0;
-                padding: 0;
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-                gap: 10px;
-            }
-            .snn-ability-item {
-                padding: 10px 12px;
-                background: #f9f9f9;
-                border-left: 3px solid #2271b1;
-                border-radius: 3px;
-            }
-            .ability-name {
-                color: #2271b1;
-                font-size: 13px;
-                font-family: 'Courier New', monospace;
-                display: block;
-                margin-bottom: 4px;
-            }
-            .ability-description {
-                line-height: 1.4;
-            }
+            /* Removed fancy toggle and abilities styling - using native elements */
         </style>
         <?php
     }
