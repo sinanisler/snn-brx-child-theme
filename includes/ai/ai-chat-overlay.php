@@ -1056,437 +1056,67 @@ VALIDATION REQUIREMENTS:
      */
     private function get_inline_css() {
         return '
-        .snn-chat-overlay {
-            position: fixed;
-            top: 32px;
-            right: 0;
-            bottom: 0;
-            z-index: 999999;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-        }
-
-        .snn-chat-container {
-            width: 400px;
-            height: 100%;
-            background: #fff;
-            box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .snn-chat-header {
-            background: #1d2327;
-            color: #fff;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-
-        .snn-chat-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .snn-chat-title .dashicons {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-        }
-
-        .snn-agent-state-badge {
-            display: none;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .snn-agent-state-badge.badge-thinking {
-            background: rgba(255, 255, 255, 0.95);
-            color: #667eea;
-            animation: badgePulse 1.5s ease-in-out infinite;
-        }
-
-        .snn-agent-state-badge.badge-executing {
-            background: rgba(255, 255, 255, 0.95);
-            color: #f57c00;
-            animation: badgePulse 1.2s ease-in-out infinite;
-        }
-
-        .snn-agent-state-badge.badge-interpreting {
-            background: rgba(255, 255, 255, 0.95);
-            color: #388e3c;
-            animation: badgePulse 1.5s ease-in-out infinite;
-        }
-
-        .snn-agent-state-badge.badge-done {
-            background: rgba(255, 255, 255, 0.95);
-            color: #2e7d32;
-        }
-
-        .snn-agent-state-badge.badge-error {
-            background: rgba(255, 255, 255, 0.95);
-            color: #c62828;
-            animation: badgeShake 0.5s ease-in-out;
-        }
-
-        @keyframes badgePulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.9; }
-        }
-
-        @keyframes badgeShake {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-3deg); }
-            75% { transform: rotate(3deg); }
-        }
-
-        .snn-chat-controls {
-            display: flex;
-            gap: 4px;
-        }
-
-        .snn-chat-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: #fff;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-
-        .snn-chat-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .snn-chat-btn .dashicons {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-        }
-
-        .snn-chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            background: #f9f9f9;
-        }
-
-        .snn-chat-welcome {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-        }
-
-        .snn-chat-welcome-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .snn-chat-welcome-icon .dashicons {
-            color: #fff;
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
-        }
-
-        .snn-chat-welcome h3 {
-            margin: 0 0 12px;
-            font-size: 20px;
-            color: #333;
-        }
-
-        .snn-chat-welcome p {
-            margin: 12px 0;
-            line-height: 1.6;
-        }
-
-        .snn-chat-welcome ul {
-            text-align: left;
-            max-width: 280px;
-            margin: 16px auto;
-            padding-left: 20px;
-        }
-
-        .snn-chat-welcome li {
-            margin: 8px 0;
-            line-height: 1.5;
-            text-align: center;
-        }
-
-        .snn-chat-message {
-            margin-bottom: 5px;
-            padding: 8px;
-            border-radius: 12px;
-            line-height: 1.5;
-            max-width: 95%;
-            word-wrap: break-word;
-        }
-
-        .snn-chat-message-user {
-            background: #1d2327;
-            color: #fff;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
-
-        .snn-chat-message-assistant {
-            background: #fff;
-            color: #333;
-            border: 1px solid #e0e0e0;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-        }
-
-        .snn-chat-message-error {
-            background: #fee;
-            color: #c33;
-            border: 1px solid #fcc;
-            margin-right: auto;
-        }
-
-        .snn-chat-state-message {
-            padding: 8px 14px;
-            margin: 8px auto;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 500;
-            text-align: center;
-            max-width: 80%;
-            animation: fadeInScale 0.3s ease-out;
-        }
-
-        .snn-chat-state-message.state-thinking {
-            background: linear-gradient(90deg, #e3f2fd, #f3e5f5);
-            color: #667eea;
-            border: 1px solid #bbdefb;
-        }
-
-        .snn-chat-state-message.state-executing {
-            background: linear-gradient(90deg, #fff3e0, #ffe0b2);
-            color: #f57c00;
-            border: 1px solid #ffcc80;
-        }
-
-        .snn-chat-state-message.state-interpreting {
-            background: linear-gradient(90deg, #e8f5e9, #c8e6c9);
-            color: #388e3c;
-            border: 1px solid #a5d6a7;
-        }
-
-        .snn-chat-state-message.state-done {
-            background: linear-gradient(90deg, #e8f5e9, #c8e6c9);
-            color: #2e7d32;
-            border: 1px solid #81c784;
-        }
-
-        .snn-chat-state-message.state-error {
-            background: linear-gradient(90deg, #ffebee, #ffcdd2);
-            color: #c62828;
-            border: 1px solid #ef9a9a;
-        }
-
-        @keyframes fadeInScale {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .ability-results {
-            margin-top: 0px;
-            padding-top: 0px;
-        }
-
-        .ability-result {
-            padding: 6px 10px;
-            margin: 4px 0;
-            border-radius: 6px;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .ability-result.success {
-            background: #f0f9ff;
-        }
-
-        .ability-result.error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-        }
-
-        .ability-result strong {
-            display: inline;
-            margin-right: 6px;
-        }
-
-        .result-data {
-            color: #666;
-            font-size: 14px;
-            margin-top: 3px;
-            line-height: 1.5;
-            display: inline;
-        }
-
-        .result-data strong {
-            color: #444;
-            font-weight: 600;
-            margin-right: 2px;
-        }
-
-        .result-error {
-            color: #dc2626;
-            font-size: 12px;
-        }
-
-        .snn-chat-message code {
-            background: #f5f5f5;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 12px;
-        }
-
-        .snn-chat-typing {
-            padding: 12px 20px;
-            background: #f9f9f9;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .typing-dots span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #999;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
-            30% { transform: translateY(-8px); opacity: 1; }
-        }
-
-        .snn-chat-state-text {
-            display: none;
-            padding: 8px 16px;
-            background: #fff;
-            font-size: 14px;
-            color: #000;
-            text-align: left;
-        }
-
-        .snn-chat-input-container {
-            padding: 10px;
-            background: #fff;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-        }
-
-        .snn-chat-input {
-            flex: 1;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px 12px;
-            font-size: 14px;
-            resize: none;
-            outline: none;
-            font-family: inherit;
-            min-height: 42px;
-            max-height: 120px;
-        }
-
-        .snn-chat-input:focus {
-            border-color: #667eea;
-        }
-
-        .snn-chat-send {
-            width: 42px;
-            height: 42px;
-            background: #1d2327;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-            flex-shrink: 0;
-        }
-
-        .snn-chat-send:hover {
-            transform: scale(1.05);
-        }
-
-        .snn-chat-send:active {
-            transform: scale(0.95);
-        }
-
-        .snn-chat-send .dashicons {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-            rotate:90deg;
-        }
-
-        #wpadminbar #wp-admin-bar-snn-ai-chat .ab-icon:before {
-            content: "\f125";
-            top: 2px;
-        }
-
-        @media (max-width: 768px) {
-            .snn-chat-container {
-                width: 100vw;
-                height: 100%;
-            }
-            
-            .snn-chat-overlay {
-                top: 0;
-                right: 0;
-            }
-        }
+.snn-chat-overlay { position: fixed; top: 32px; right: 0; bottom: 0; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }
+.snn-chat-container { width: 400px; height: 100%; background: #fff; box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; }
+.snn-chat-header { background: #1d2327; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+.snn-chat-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+.snn-chat-title .dashicons { font-size: 20px; width: 20px; height: 20px; }
+.snn-agent-state-badge { display: none; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.3); transition: all 0.3s ease; }
+.snn-agent-state-badge.badge-thinking { background: rgba(255, 255, 255, 0.95); color: #667eea; animation: badgePulse 1.5s ease-in-out infinite; }
+.snn-agent-state-badge.badge-executing { background: rgba(255, 255, 255, 0.95); color: #f57c00; animation: badgePulse 1.2s ease-in-out infinite; }
+.snn-agent-state-badge.badge-interpreting { background: rgba(255, 255, 255, 0.95); color: #388e3c; animation: badgePulse 1.5s ease-in-out infinite; }
+.snn-agent-state-badge.badge-done { background: rgba(255, 255, 255, 0.95); color: #2e7d32; }
+.snn-agent-state-badge.badge-error { background: rgba(255, 255, 255, 0.95); color: #c62828; animation: badgeShake 0.5s ease-in-out; }
+@keyframes badgePulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
+@keyframes badgeShake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+.snn-chat-controls { display: flex; gap: 4px; }
+.snn-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.snn-chat-btn:hover { background: rgba(255, 255, 255, 0.3); }
+.snn-chat-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
+.snn-chat-messages { flex: 1; overflow-y: auto; padding: 10px; background: #f9f9f9; }
+.snn-chat-welcome { text-align: center; padding: 40px 20px; color: #666; }
+.snn-chat-welcome-icon { width: 64px; height: 64px; margin: 0 auto 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.snn-chat-welcome-icon .dashicons { color: #fff; font-size: 32px; width: 32px; height: 32px; }
+.snn-chat-welcome h3 { margin: 0 0 12px; font-size: 20px; color: #333; }
+.snn-chat-welcome p { margin: 12px 0; line-height: 1.6; }
+.snn-chat-welcome ul { text-align: left; max-width: 280px; margin: 16px auto; padding-left: 20px; }
+.snn-chat-welcome li { margin: 8px 0; line-height: 1.5; text-align: center; }
+.snn-chat-message { margin-bottom: 5px; padding: 8px; border-radius: 12px; line-height: 1.5; max-width: 95%; word-wrap: break-word; }
+.snn-chat-message-user { background: #1d2327; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
+.snn-chat-message-assistant { background: #fff; color: #333; border: 1px solid #e0e0e0; margin-right: auto; border-bottom-left-radius: 4px; }
+.snn-chat-message-error { background: #fee; color: #c33; border: 1px solid #fcc; margin-right: auto; }
+.snn-chat-state-message { padding: 8px 14px; margin: 8px auto; border-radius: 16px; font-size: 12px; font-weight: 500; text-align: center; max-width: 80%; animation: fadeInScale 0.3s ease-out; }
+.snn-chat-state-message.state-thinking { background: linear-gradient(90deg, #e3f2fd, #f3e5f5); color: #667eea; border: 1px solid #bbdefb; }
+.snn-chat-state-message.state-executing { background: linear-gradient(90deg, #fff3e0, #ffe0b2); color: #f57c00; border: 1px solid #ffcc80; }
+.snn-chat-state-message.state-interpreting { background: linear-gradient(90deg, #e8f5e9, #c8e6c9); color: #388e3c; border: 1px solid #a5d6a7; }
+.snn-chat-state-message.state-done { background: linear-gradient(90deg, #e8f5e9, #c8e6c9); color: #2e7d32; border: 1px solid #81c784; }
+.snn-chat-state-message.state-error { background: linear-gradient(90deg, #ffebee, #ffcdd2); color: #c62828; border: 1px solid #ef9a9a; }
+@keyframes fadeInScale { from { opacity: 0; transform: scale(0.9) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.ability-results { margin-top: 0px; padding-top: 0px; }
+.ability-result { padding: 6px 10px; margin: 4px 0; border-radius: 6px; font-size: 14px; line-height: 1.4; }
+.ability-result.success { background: #f0f9ff; }
+.ability-result.error { background: #fef2f2; border: 1px solid #fecaca; }
+.ability-result strong { display: inline; margin-right: 6px; }
+.result-data { color: #666; font-size: 14px; margin-top: 3px; line-height: 1.5; display: inline; }
+.result-data strong { color: #444; font-weight: 600; margin-right: 2px; }
+.result-error { color: #dc2626; font-size: 12px; }
+.snn-chat-message code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+.snn-chat-typing { padding: 12px 20px; background: #f9f9f9; display: flex; align-items: center; gap: 8px; }
+.typing-dots { display: flex; gap: 4px; }
+.typing-dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #999; animation: typing 1.4s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-8px); opacity: 1; } }
+.snn-chat-state-text { display: none; padding: 8px 16px; background: #fff; font-size: 14px; color: #000; text-align: left; }
+.snn-chat-input-container { padding: 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 12px; align-items: flex-end; }
+.snn-chat-input { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; min-height: 42px; max-height: 120px; }
+.snn-chat-input:focus { border-color: #667eea; }
+.snn-chat-send { width: 42px; height: 42px; background: #1d2327; border: none; border-radius: 8px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; }
+.snn-chat-send:hover { transform: scale(1.05); }
+.snn-chat-send:active { transform: scale(0.95); }
+.snn-chat-send .dashicons { font-size: 20px; width: 20px; height: 20px; rotate: 90deg; }
+#wpadminbar #wp-admin-bar-snn-ai-chat .ab-icon:before { content: "\f125"; top: 2px; }
+@media (max-width: 768px) { .snn-chat-container { width: 100vw; height: 100%; } .snn-chat-overlay { top: 0; right: 0; } }
         ';
     }
 }
