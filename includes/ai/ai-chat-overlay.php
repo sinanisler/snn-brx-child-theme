@@ -7,7 +7,7 @@
  * Purpose: Provides an AI-powered chat interface accessible from anywhere in WordPress (admin and frontend).
  * Adds a button to the admin bar and displays a floating overlay that can execute WordPress abilities
  * through AI agent conversations. Uses the existing AI API configuration and integrates with the
- * SNN Abilities API for autonomous task execution.
+ * WordPress Core Abilities API for autonomous task execution.
  *
  * Features:
  * - Admin bar button for quick access
@@ -87,7 +87,7 @@ class SNN_Chat_Overlay {
         
         wp_localize_script( 'jquery', 'snnChatConfig', array(
             'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
-            'restUrl'       => rest_url( 'snn-abilities/v1/' ),
+            'restUrl'       => rest_url( 'wp-abilities/v1/' ),
             'nonce'         => wp_create_nonce( 'wp_rest' ),
             'currentUserId' => get_current_user_id(),
             'userName'      => wp_get_current_user()->display_name,
@@ -132,12 +132,11 @@ class SNN_Chat_Overlay {
                             <span class="dashicons dashicons-admin-comments"></span>
                         </div>
                         <h3>Hello, <?php echo esc_html( wp_get_current_user()->display_name ); ?>!</h3>
-                        <p>I'm your AI assistant. I can help you with WordPress tasks like:</p>
+                        <p>I'm your AI assistant powered by WordPress Core Abilities API. I can help you with:</p>
                         <ul>
-                            <li>Creating and editing posts</li>
-                            <li>Managing content</li>
-                            <li>Searching and finding information</li>
-                            <li>Site configuration</li>
+                            <li>Getting site and environment information</li>
+                            <li>Viewing user profile details</li>
+                            <li>And more WordPress core capabilities</li>
                         </ul>
                         <p><small>Type a message to get started.</small></p>
                     </div>
@@ -402,11 +401,11 @@ ${params}`;
 
                 return `${basePrompt}
 
-IMPORTANT: You are an AI assistant with the ability to execute WordPress actions through registered abilities.
+IMPORTANT: You are an AI assistant with the ability to execute WordPress actions through the WordPress Core Abilities API.
 
 === YOUR CAPABILITIES ===
 
-You have ${ChatState.abilities.length} abilities available. When users ask "what can you do" or similar questions, list ALL of these abilities with their descriptions:
+You have ${ChatState.abilities.length} WordPress Core abilities available. When users ask "what can you do" or similar questions, list ALL of these abilities with their descriptions:
 
 ${abilitiesDesc}
 
@@ -428,16 +427,16 @@ Example response format:
 \`\`\`json
 {
   "abilities": [
-    {"name": "snn/site-info", "input": {}}
+    {"name": "core/get-site-info", "input": {}}
   ]
 }
 \`\`\`"
 
-For abilities with parameters, include them in the input:
+For abilities with parameters (if available), include them in the input:
 \`\`\`json
 {
   "abilities": [
-    {"name": "snn/get-posts", "input": {"post_type": "post", "posts_per_page": 5}}
+    {"name": "core/get-site-info", "input": {"fields": ["name", "url", "version"]}}
   ]
 }
 \`\`\`
@@ -446,14 +445,16 @@ You can chain multiple abilities:
 \`\`\`json
 {
   "abilities": [
-    {"name": "snn/site-info", "input": {}},
-    {"name": "snn/get-posts", "input": {"posts_per_page": 3}}
+    {"name": "core/get-site-info", "input": {}},
+    {"name": "core/get-user-info", "input": {}},
+    {"name": "core/get-environment-info", "input": {}}
   ]
 }
 \`\`\`
 
 IMPORTANT RULES:
 - Always explain what you're doing before the JSON block
+- Use WordPress Core ability names (e.g., "core/get-site-info", "core/get-user-info", "core/get-environment-info")
 - Match parameter types exactly (string, integer, boolean, etc.)
 - Include all required parameters
 - After execution, I'll provide results - interpret them for the user
