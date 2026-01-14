@@ -1117,7 +1117,7 @@ VALIDATION REQUIREMENTS:
         }
 
         .snn-chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1d2327;
             color: #fff;
             padding: 16px 20px;
             display: flex;
@@ -1210,6 +1210,7 @@ VALIDATION REQUIREMENTS:
             align-items: center;
             justify-content: center;
             transition: background 0.2s;
+            display:none
         }
 
         .snn-chat-btn:hover {
@@ -1286,7 +1287,7 @@ VALIDATION REQUIREMENTS:
         }
 
         .snn-chat-message-user {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1d2327;
             color: #fff;
             margin-left: auto;
             border-bottom-right-radius: 4px;
@@ -1388,7 +1389,7 @@ VALIDATION REQUIREMENTS:
 
         .result-data {
             color: #666;
-            font-size: 11px;
+            font-size: 14px;
             margin-top: 3px;
             line-height: 1.5;
             display: inline;
@@ -1457,7 +1458,7 @@ VALIDATION REQUIREMENTS:
         }
 
         .snn-chat-input-container {
-            padding: 16px;
+            padding: 10px;
             background: #fff;
             border-top: 1px solid #e0e0e0;
             display: flex;
@@ -1485,7 +1486,7 @@ VALIDATION REQUIREMENTS:
         .snn-chat-send {
             width: 42px;
             height: 42px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1d2327;
             border: none;
             border-radius: 8px;
             color: #fff;
