@@ -815,7 +815,7 @@ class SNN_Chat_Overlay {
                 <div class="snn-chat-header">
                     <div class="snn-chat-title">
                         <span class="dashicons dashicons-admin-comments"></span>
-                        <span>AI Assistant</span>
+                        <span>SNN AI Agent</span>
                         <span class="snn-agent-state-badge" id="snn-agent-state-badge"></span>
                     </div>
                     <div class="snn-chat-controls">
