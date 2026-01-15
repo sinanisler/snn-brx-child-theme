@@ -127,6 +127,13 @@ class SNN_Chat_Overlay {
     }
 
     /**
+     * Get chat overlay width
+     */
+    public function get_chat_width() {
+        return absint( get_option( 'snn_ai_agent_chat_width', 400 ) );
+    }
+
+    /**
      * Register custom post type for chat history
      */
     public function register_history_post_type() {
@@ -382,6 +389,7 @@ class SNN_Chat_Overlay {
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_debug_mode' );
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_max_retries' );
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_max_history' );
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_chat_width' );
     }
 
     /**
@@ -391,12 +399,13 @@ class SNN_Chat_Overlay {
         // Handle form submission
         if ( isset( $_POST['snn_ai_agent_settings_submit'] ) && check_admin_referer( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ) ) {
             update_option( 'snn_ai_agent_enabled', isset( $_POST['snn_ai_agent_enabled'] ) ? true : false );
-            update_option( 'snn_ai_agent_system_prompt', sanitize_textarea_field( $_POST['snn_ai_agent_system_prompt'] ) );
+            update_option( 'snn_ai_agent_system_prompt', sanitize_textarea_field( wp_unslash( $_POST['snn_ai_agent_system_prompt'] ) ) );
             update_option( 'snn_ai_agent_token_count', absint( $_POST['snn_ai_agent_token_count'] ) );
             update_option( 'snn_ai_agent_enabled_abilities', isset( $_POST['snn_ai_agent_enabled_abilities'] ) ? array_map( 'sanitize_text_field', $_POST['snn_ai_agent_enabled_abilities'] ) : array() );
             update_option( 'snn_ai_agent_debug_mode', isset( $_POST['snn_ai_agent_debug_mode'] ) ? true : false );
             update_option( 'snn_ai_agent_max_retries', absint( $_POST['snn_ai_agent_max_retries'] ) );
             update_option( 'snn_ai_agent_max_history', absint( $_POST['snn_ai_agent_max_history'] ) );
+            update_option( 'snn_ai_agent_chat_width', absint( $_POST['snn_ai_agent_chat_width'] ) );
             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved successfully!', 'snn' ) . '</p></div>';
         }
 
@@ -408,6 +417,7 @@ class SNN_Chat_Overlay {
         $debug_mode = $this->is_debug_enabled();
         $max_retries = $this->get_max_retries();
         $max_history = $this->get_max_history();
+        $chat_width = $this->get_chat_width();
 
         // Try to fetch abilities
         $abilities = $this->get_abilities();
@@ -528,16 +538,38 @@ class SNN_Chat_Overlay {
                             </td>
                         </tr>
 
+                        <!-- Chat Overlay Width -->
+                        <tr>
+                            <th scope="row">
+                                <label for="snn_ai_agent_chat_width"><?php echo esc_html__('Chat Overlay Width', 'snn'); ?></label>
+                            </th>
+                            <td>
+                                <input type="number"
+                                       id="snn_ai_agent_chat_width"
+                                       name="snn_ai_agent_chat_width"
+                                       value="<?php echo esc_attr( $chat_width ); ?>"
+                                       min="300"
+                                       max="800"
+                                       step="10"
+                                       class="small-text">
+                                <span style="margin-left: 5px;">px</span>
+                                <p class="description">
+                                    <?php echo esc_html__('Width of the chat overlay panel in pixels.', 'snn'); ?><br>
+                                    <strong><?php echo esc_html__('Default:', 'snn'); ?></strong> 400px | <strong><?php echo esc_html__('Range:', 'snn'); ?></strong> 300-800px
+                                </p>
+                            </td>
+                        </tr>
+
                         <!-- Debug Mode -->
                         <tr>
                             <th scope="row">
                                 <label for="snn_ai_agent_debug_mode"><?php echo esc_html__('Enable Debug Mode', 'snn'); ?></label>
                             </th>
                             <td>
-                                <input type="checkbox" 
-                                       id="snn_ai_agent_debug_mode" 
-                                       name="snn_ai_agent_debug_mode" 
-                                       value="1" 
+                                <input type="checkbox"
+                                       id="snn_ai_agent_debug_mode"
+                                       name="snn_ai_agent_debug_mode"
+                                       value="1"
                                        <?php checked( $debug_mode, true ); ?>>
                                 <p class="description">
                                     <?php echo esc_html__('Enable console.log debugging messages in browser console. Useful for troubleshooting.', 'snn'); ?>
@@ -567,6 +599,7 @@ class SNN_Chat_Overlay {
                     <input type="hidden" name="snn_ai_agent_debug_mode" value="<?php echo $debug_mode ? '1' : '0'; ?>">
                     <input type="hidden" name="snn_ai_agent_max_retries" value="<?php echo esc_attr( $max_retries ); ?>">
                     <input type="hidden" name="snn_ai_agent_max_history" value="<?php echo esc_attr( $max_history ); ?>">
+                    <input type="hidden" name="snn_ai_agent_chat_width" value="<?php echo esc_attr( $chat_width ); ?>">
                     
                     <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 4px; max-width: 800px;">
                         <p style="margin-top: 0;">
@@ -2199,9 +2232,10 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
      * Get inline CSS
      */
     private function get_inline_css() {
+        $chat_width = $this->get_chat_width();
         return '
 .snn-chat-overlay { position: fixed; top: 32px; right: 0; bottom: 0; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }
-.snn-chat-container { width: 400px; height: 100%; background: #fff; box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; }
+.snn-chat-container { width: ' . intval( $chat_width ) . 'px; height: 100%; background: #fff; box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; }
 .snn-chat-header { background: #1d2327; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; user-select: none; }
 .snn-chat-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
 .snn-chat-title .dashicons { font-size: 20px; width: 20px; height: 20px; }
@@ -2300,7 +2334,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-8px); opacity: 1; } }
-.snn-chat-state-text { display: none; padding: 2px 16px; background: #fff; font-size: 14px; color: #000; text-align: left; }
+.snn-chat-state-text { display: none; padding: 2px 16px; background: #ffffff73; font-size: 14px; color: #000; text-align: left; }
 .snn-chat-quick-actions { padding: 8px 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 6px; flex-wrap: wrap; }
 .snn-quick-action-btn { padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; color: #333; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
 .snn-quick-action-btn:hover { background: #1d2327; color: #fff; border-color: #1d2327; }
