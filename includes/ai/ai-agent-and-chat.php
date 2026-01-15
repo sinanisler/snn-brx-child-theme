@@ -878,9 +878,6 @@ class SNN_Chat_Overlay {
                 <!-- Messages -->
                 <div class="snn-chat-messages" id="snn-chat-messages">
                     <div class="snn-chat-welcome">
-                        <div class="snn-chat-welcome-icon">
-                            <span class="dashicons dashicons-admin-comments"></span>
-                        </div>
                         <h3>Hello, <?php echo esc_html( wp_get_current_user()->display_name ); ?>!</h3>
                         <br><p><small>Type a message to get started.</small></p>
                     </div>
@@ -2025,9 +2022,6 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                 ChatState.currentSessionId = null;
                 $('#snn-chat-messages').html(`
                     <div class="snn-chat-welcome">
-                        <div class="snn-chat-welcome-icon">
-                            <span class="dashicons dashicons-admin-comments"></span>
-                        </div>
                         <h3>Conversation cleared</h3>
                         <p>Start a new conversation by typing a message.</p>
                     </div>
