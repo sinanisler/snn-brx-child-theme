@@ -684,7 +684,7 @@ class SNN_Chat_Overlay {
                 </p>
 
                 <?php if ( $history_count > 0 ) : ?>
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;overflow: scroll; max-height: 400px;">
                         <h4 style="margin-top: 0;"><?php echo esc_html__('Recent Conversations', 'snn'); ?></h4>
                         <ul style="list-style: none; padding: 0; margin: 0;">
                             <?php foreach ( array_slice( $histories, 0, 10 ) as $history ) : ?>
