@@ -865,6 +865,9 @@ class SNN_Chat_Overlay {
                         <button class="snn-chat-btn snn-chat-history" title="Chat history" id="snn-chat-history-btn">
                             <span class="dashicons dashicons-backup"></span>
                         </button>
+                        <button class="snn-chat-btn snn-chat-expand" title="Toggle width" id="snn-chat-expand-btn">
+                            <span class="snn-expand-icon">&#x27F7;</span>
+                        </button>
                         <button class="snn-chat-btn snn-chat-close" title="Close">
                             <span class="dashicons dashicons-no-alt"></span>
                         </button>
@@ -983,6 +986,7 @@ class SNN_Chat_Overlay {
                 messages: [],
                 abilities: [],
                 isOpen: false,
+                isExpanded: false,
                 isProcessing: false,
                 abortController: null,
                 currentState: AgentState.IDLE,
@@ -1021,6 +1025,11 @@ class SNN_Chat_Overlay {
                     $('#snn-chat-history-dropdown').hide();
                 });
 
+                // Expand/collapse width toggle button
+                $('#snn-chat-expand-btn').on('click', function() {
+                    toggleChatWidth();
+                });
+
                 // Send message
                 $('#snn-chat-send').on('click', sendMessage);
                 
@@ -1055,9 +1064,23 @@ class SNN_Chat_Overlay {
             function toggleChat() {
                 ChatState.isOpen = !ChatState.isOpen;
                 $('#snn-chat-overlay').toggle();
-                
+
                 if (ChatState.isOpen) {
                     $('#snn-chat-input').focus();
+                }
+            }
+
+            /**
+             * Toggle chat width between normal and expanded
+             */
+            function toggleChatWidth() {
+                ChatState.isExpanded = !ChatState.isExpanded;
+                const $container = $('.snn-chat-container');
+
+                if (ChatState.isExpanded) {
+                    $container.addClass('snn-chat-expanded');
+                } else {
+                    $container.removeClass('snn-chat-expanded');
                 }
             }
 
@@ -2271,7 +2294,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
     private function get_inline_css() {
         $chat_width = $this->get_chat_width();
         return '
-.snn-chat-overlay { position: fixed; top: 32px; right: 0; bottom: 0; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }
+.snn-chat-overlay { position: fixed; top: 32px; right: 0; bottom: 0; z-index: 999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; }
 .snn-chat-container { width: ' . intval( $chat_width ) . 'px; height: 100%; background: #fff; box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; overflow: hidden; }
 .snn-chat-header { background: #1d2327; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; user-select: none; }
 .snn-chat-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
@@ -2290,6 +2313,9 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-chat-btn:hover { background: rgba(255, 255, 255, 0.3); }
 .snn-chat-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
 .snn-chat-plus { font-size: 24px; line-height: 1; font-weight: 300; position:relative; top:-3px; }
+.snn-expand-icon { font-size: 18px; line-height: 1; }
+.snn-chat-container.snn-chat-expanded { width: calc(100vw - 175px); transition: width 0.3s ease; }
+.snn-chat-container { transition: width 0.3s ease; }
 .snn-chat-history-dropdown { position: absolute; top: 60px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #ddd; max-height: 300px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 10; }
 .snn-history-header { padding: 12px 16px; background: #f5f5f5; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
 .snn-history-header strong { font-size: 14px; color: #333; }
