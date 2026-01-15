@@ -1,23 +1,8 @@
-<?php 
+<?php
 /**
  * Get Posts Ability
  * Registers the snn/get-posts ability for the WordPress Abilities API
  */
-
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_content_category_get_posts' );
-function snn_register_content_category_get_posts() {
-    // Only register if not already registered
-    if ( ! wp_has_ability_category( 'content' ) ) {
-        wp_register_ability_category(
-            'content',
-            array(
-                'label'       => __( 'Content Management', 'snn' ),
-                'description' => __( 'Abilities for managing posts, pages, and content.', 'snn' ),
-            )
-        );
-    }
-}
 
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_get_posts_ability' );

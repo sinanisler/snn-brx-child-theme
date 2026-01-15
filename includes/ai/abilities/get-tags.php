@@ -1,23 +1,8 @@
-<?php 
+<?php
 /**
  * Get Tags Ability
  * Registers the snn/get-tags ability for the WordPress Abilities API
  */
-
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_taxonomy_category_tags' );
-function snn_register_taxonomy_category_tags() {
-    // Only register if not already registered
-    if ( ! wp_has_ability_category( 'taxonomy' ) ) {
-        wp_register_ability_category(
-            'taxonomy',
-            array(
-                'label'       => __( 'Taxonomy Management', 'snn' ),
-                'description' => __( 'Abilities for managing categories, tags, and taxonomies.', 'snn' ),
-            )
-        );
-    }
-}
 
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_get_tags_ability' );

@@ -5,20 +5,6 @@
  * Returns detailed information about the active theme
  */
 
-// Register category (reuse system-info if already registered)
-add_action( 'wp_abilities_api_categories_init', 'snn_register_theme_info_category' );
-function snn_register_theme_info_category() {
-    if ( ! wp_has_ability_category( 'system-info' ) ) {
-        wp_register_ability_category(
-            'system-info',
-            array(
-                'label'       => __( 'System Information', 'snn' ),
-                'description' => __( 'Abilities for retrieving WordPress system information.', 'snn' ),
-            )
-        );
-    }
-}
-
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_active_theme_info_ability' );
 function snn_register_active_theme_info_ability() {

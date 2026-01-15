@@ -4,21 +4,6 @@
  * Registers the snn/get-terms ability for the WordPress Abilities API
  */
 
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_taxonomy_category' );
-function snn_register_taxonomy_category() {
-    // Only register if not already registered
-    if ( ! wp_has_ability_category( 'taxonomy' ) ) {
-        wp_register_ability_category(
-            'taxonomy',
-            array(
-                'label'       => __( 'Taxonomy Management', 'snn' ),
-                'description' => __( 'Abilities for managing categories, tags, and taxonomies.', 'snn' ),
-            )
-        );
-    }
-}
-
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_get_terms_ability' );
 function snn_register_get_terms_ability() {

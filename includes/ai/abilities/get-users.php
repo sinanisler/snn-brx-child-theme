@@ -1,23 +1,8 @@
-<?php 
+<?php
 /**
  * Get Users Ability
  * Registers the snn/get-users ability for the WordPress Abilities API
  */
-
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_users_category' );
-function snn_register_users_category() {
-    // Only register if not already registered
-    if ( ! wp_has_ability_category( 'users' ) ) {
-        wp_register_ability_category(
-            'users',
-            array(
-                'label'       => __( 'User Management', 'snn' ),
-                'description' => __( 'Abilities for managing users and user data.', 'snn' ),
-            )
-        );
-    }
-}
 
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_get_users_ability' );

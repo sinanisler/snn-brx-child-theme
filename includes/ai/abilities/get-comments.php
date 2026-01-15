@@ -1,23 +1,8 @@
-<?php 
+<?php
 /**
  * Get Comments Ability
  * Registers the snn/get-comments ability for the WordPress Abilities API
  */
-
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_comments_category' );
-function snn_register_comments_category() {
-    // Only register if not already registered
-    if ( ! wp_has_ability_category( 'comments' ) ) {
-        wp_register_ability_category(
-            'comments',
-            array(
-                'label'       => __( 'Comments Management', 'snn' ),
-                'description' => __( 'Abilities for managing comments.', 'snn' ),
-            )
-        );
-    }
-}
 
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_get_comments_ability' );

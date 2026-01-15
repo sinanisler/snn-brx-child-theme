@@ -5,21 +5,6 @@
  * Provides comprehensive WordPress, PHP, and server health information
  */
 
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_system_category' );
-function snn_register_system_category() {
-    // Only register if not already registered
-    if ( ! wp_has_ability_category( 'system' ) ) {
-        wp_register_ability_category(
-            'system',
-            array(
-                'label'       => __( 'System Information', 'snn' ),
-                'description' => __( 'Abilities for retrieving system and site information.', 'snn' ),
-            )
-        );
-    }
-}
-
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_get_site_info_ability' );
 function snn_register_get_site_info_ability() {

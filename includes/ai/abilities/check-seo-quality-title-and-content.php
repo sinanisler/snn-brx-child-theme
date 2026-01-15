@@ -5,20 +5,6 @@
  * Analyzes titles and content for SEO quality issues
  */
 
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_seo_quality_category' );
-function snn_register_seo_quality_category() {
-    if ( ! wp_has_ability_category( 'seo-analysis' ) ) {
-        wp_register_ability_category(
-            'seo-analysis',
-            array(
-                'label'       => __( 'SEO Analysis', 'snn' ),
-                'description' => __( 'Abilities for analyzing and improving SEO quality.', 'snn' ),
-            )
-        );
-    }
-}
-
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_check_seo_quality_ability' );
 function snn_register_check_seo_quality_ability() {

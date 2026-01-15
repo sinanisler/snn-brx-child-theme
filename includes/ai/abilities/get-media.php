@@ -1,23 +1,8 @@
-<?php 
+<?php
 /**
  * Get Media Ability
  * Registers the snn/get-media ability for the WordPress Abilities API
  */
-
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_media_category' );
-function snn_register_media_category() {
-    // Only register if not already registered
-    if ( ! wp_has_ability_category( 'media' ) ) {
-        wp_register_ability_category(
-            'media',
-            array(
-                'label'       => __( 'Media Management', 'snn' ),
-                'description' => __( 'Abilities for managing media and attachments.', 'snn' ),
-            )
-        );
-    }
-}
 
 // Register ability
 add_action( 'wp_abilities_api_init', 'snn_register_get_media_ability' );
