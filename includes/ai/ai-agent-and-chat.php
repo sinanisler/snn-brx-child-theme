@@ -455,6 +455,7 @@ class SNN_Chat_Overlay {
                                     name="snn_ai_agent_system_prompt" 
                                     rows="6" 
                                     class="large-text code"
+                                    style="max-width: 660px;"
                                     placeholder="<?php echo esc_attr( $default_prompt ); ?>"
                                 ><?php echo esc_textarea( $system_prompt ); ?></textarea>
                                 <p class="description">
