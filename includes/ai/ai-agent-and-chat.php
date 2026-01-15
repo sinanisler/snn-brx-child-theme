@@ -2314,7 +2314,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-chat-welcome ul { text-align: left; max-width: 280px; margin: 16px auto; padding-left: 20px; }
 .snn-chat-welcome li { margin: 8px 0; line-height: 1.5; text-align: center; }
 .snn-chat-ai-disabled-warning { text-align: center; padding: 60px 30px; color: #666; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-.snn-chat-ai-disabled-warning .snn-warning-icon { font-size: 48px; margin-bottom: 16px; }
+.snn-chat-ai-disabled-warning .snn-warning-icon { font-size: 48px; margin-bottom: 30px; }
 .snn-chat-ai-disabled-warning h3 { margin: 0 0 12px; font-size: 18px; color: #d63638; font-weight: 600; }
 .snn-chat-ai-disabled-warning p { margin: 0 0 20px; line-height: 1.6; color: #666; font-size: 14px; }
 .snn-enable-ai-btn { display: inline-block; padding: 10px 20px; background: #2271b1; color: #fff; text-decoration: none; border-radius: 4px; font-weight: 500; transition: background 0.2s; }
