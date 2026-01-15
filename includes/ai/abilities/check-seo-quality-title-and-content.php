@@ -26,7 +26,7 @@ function snn_register_check_seo_quality_ability() {
         'snn/check-seo-quality-title-and-content',
         array(
             'label'       => __( 'Check SEO Quality', 'snn' ),
-            'description' => __( 'Analyzes post titles and content for SEO quality, identifying titles that are too long or short and content issues.', 'snn' ),
+            'description' => __( 'Performs comprehensive SEO analysis on posts including title length validation (optimal 30-60 chars), content word count assessment, duplicate title detection, missing meta descriptions/excerpts, featured image presence, and overall SEO scoring. Identifies titles that are too long/short for search results, thin content below recommended word count, and provides actionable recommendations. Returns detailed SEO scores and prioritized list of posts needing optimization. Use this to audit content quality, find SEO issues, and improve search engine visibility.', 'snn' ),
             'category'    => 'seo-analysis',
             'input_schema' => array(
                 'type'       => 'object',

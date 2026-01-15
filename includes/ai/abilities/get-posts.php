@@ -26,7 +26,7 @@ function snn_register_get_posts_ability() {
         'snn/get-posts',
         array(
             'label'       => __( 'Get Posts', 'wp-abilities' ),
-            'description' => __( 'Retrieves a list of posts with optional filtering.', 'wp-abilities' ),
+            'description' => __( 'Retrieves a list of published posts with filtering and sorting options. Returns post ID, title, permalink, excerpt (30 words), publication date, and author display name. Supports filtering by post type (post/page/custom), category slug, ordering (date/title/modified/random), sort direction (ASC/DESC), and limiting results (max 100 for performance). Returns summarized data - use get-post-by-id for full content. Use this to list recent posts, browse by category, get post overviews, create content listings, or analyze publication patterns.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',

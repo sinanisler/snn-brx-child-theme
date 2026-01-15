@@ -26,7 +26,7 @@ function snn_register_search_content_ability() {
         'snn/search-content',
         array(
             'label'       => __( 'Search Content', 'wp-abilities' ),
-            'description' => __( 'Searches posts, pages, and custom post types.', 'wp-abilities' ),
+            'description' => __( 'Performs full-text search across WordPress content (posts, pages, custom post types) matching query against titles and content. Returns post ID, title, post type, permalink, excerpt (20 words), publication date, plus total found count and returned count. Can limit to specific post type or search all ("any"), supports pagination with limit/offset (max 100 per request), searches any post status. Use this to find posts by keyword, locate specific content, search across all content types, or build search functionality. Returns relevance-ordered results matching WordPress default search behavior.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',

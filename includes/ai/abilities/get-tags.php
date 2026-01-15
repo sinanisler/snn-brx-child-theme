@@ -26,7 +26,7 @@ function snn_register_get_tags_ability() {
         'snn/get-tags',
         array(
             'label'       => __( 'Get Tags', 'wp-abilities' ),
-            'description' => __( 'Retrieves a list of tags.', 'wp-abilities' ),
+            'description' => __( 'Retrieves post tags (post_tag taxonomy) with ID, name, slug, post count, tag archive URL, and description. Can show/hide empty tags and limit result count. Returns flat list of all tags. This is a convenience wrapper for get-terms with taxonomy="post_tag". Use this for quick tag listings, tag clouds, or when you specifically need post tags. For more advanced filtering, custom taxonomies, or hierarchical terms, use get-terms or list-taxonomies instead.', 'wp-abilities' ),
             'category'    => 'taxonomy',
             'input_schema' => array(
                 'type'       => 'object',

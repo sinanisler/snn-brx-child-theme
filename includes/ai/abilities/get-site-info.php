@@ -27,7 +27,7 @@ function snn_register_get_site_info_ability() {
         'snn/get-site-info',
         array(
             'label'       => __( 'Get Detailed Site Info (Enhanced)', 'wp-abilities' ),
-            'description' => __( 'PREFERRED: Retrieves comprehensive WordPress health report including PHP version, server info, database details, security settings, performance metrics, disk space, active plugins, and content statistics. Use this instead of core/get-site-info for detailed information.', 'wp-abilities' ),
+            'description' => __( 'PREFERRED SYSTEM INFO TOOL: Retrieves comprehensive WordPress site health report including: WordPress version/config/theme, server details (software/OS/hostname/IP), PHP version/settings/memory limits/extensions/opcache status, database version/charset/table count, complete content statistics (posts/pages/media/comments/users by type and status), active plugin list with versions, security settings (SSL/file editing/auto-updates/user registration), performance metrics (object cache/cron/disk space/writable directories), and important WordPress constants. Use this as your FIRST call for system diagnostics, troubleshooting, compatibility checks, or getting a complete site overview. Most comprehensive system information available.', 'wp-abilities' ),
             'category'    => 'system',
             'input_schema' => array(
                 'type'       => 'object',

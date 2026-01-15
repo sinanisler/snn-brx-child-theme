@@ -26,7 +26,7 @@ function snn_register_active_theme_info_ability() {
         'snn/active-theme-info',
         array(
             'label'       => __( 'Active Theme Info', 'snn' ),
-            'description' => __( 'Returns detailed information about the currently active theme and parent theme if applicable.', 'snn' ),
+            'description' => __( 'Retrieves comprehensive information about the active WordPress theme including version, author, requirements, template files, theme modifications, and supported features. Returns child theme and parent theme data if applicable. Can optionally include all installed themes, template file list, and theme customizer settings. Use this when you need to understand the current theme setup, check compatibility, analyze theme structure, or investigate theme-related issues.', 'snn' ),
             'category'    => 'system-info',
             'input_schema' => array(
                 'type'       => 'object',

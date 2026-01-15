@@ -26,7 +26,7 @@ function snn_register_create_post_ability() {
         'snn/create-post',
         array(
             'label'       => __( 'Create Post', 'wp-abilities' ),
-            'description' => __( 'Creates a new post with the provided title and content.', 'wp-abilities' ),
+            'description' => __( 'Creates a new WordPress post or page with specified title, content (HTML supported), excerpt, status (draft/publish/pending/private), categories, and tags. Automatically sanitizes input and sets the current user as author. Returns the new post ID, permalink, and edit URL. Use this when you need to programmatically create content, import posts, generate articles, or add new pages to the site. Always create as draft first unless explicitly instructed to publish immediately.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',

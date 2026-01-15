@@ -26,7 +26,7 @@ function snn_register_installed_plugin_list_ability() {
         'snn/installed-plugin-list-and-infos',
         array(
             'label'       => __( 'Installed Plugin List', 'snn' ),
-            'description' => __( 'Returns a list of all installed plugins with their information and status.', 'snn' ),
+            'description' => __( 'Retrieves comprehensive information about all installed plugins including: plugin file path, name, version, description, author, URIs, text domain, WordPress/PHP requirements, active/inactive status, and available updates with version numbers. Can filter by status (all/active/inactive/update_available), search by name/description, and optionally include must-use plugins and drop-ins. Returns counts, update information, and sorted lists (active first). Use this to audit plugins, check for updates, find inactive plugins, troubleshoot conflicts, document site setup, or analyze plugin requirements.', 'snn' ),
             'category'    => 'system-info',
             'input_schema' => array(
                 'type'       => 'object',

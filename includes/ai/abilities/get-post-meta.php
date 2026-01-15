@@ -26,7 +26,7 @@ function snn_register_get_post_meta_ability() {
         'snn/get-post-meta',
         array(
             'label'       => __( 'Get Post Meta', 'wp-abilities' ),
-            'description' => __( 'Retrieves custom fields (meta data) for a specific post.', 'wp-abilities' ),
+            'description' => __( 'Retrieves custom fields and metadata for a specific post by ID. Can fetch a specific meta key value or all metadata at once. Automatically filters out WordPress internal/protected fields (those starting with underscore) when retrieving all meta. Returns clean key-value pairs of post metadata. Use this to access custom field values, ACF fields, post metadata added by plugins, custom post settings, or any data stored in the postmeta table. Essential for reading custom data attached to posts.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',

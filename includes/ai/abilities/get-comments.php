@@ -26,7 +26,7 @@ function snn_register_get_comments_ability() {
         'snn/get-comments',
         array(
             'label'       => __( 'Get Comments', 'wp-abilities' ),
-            'description' => __( 'Retrieves comments for a specific post or all comments.', 'wp-abilities' ),
+            'description' => __( 'Retrieves comments with full details including comment ID, post ID, author name, email, content, date, and approval status. Can filter by specific post ID to get post-specific comments or retrieve site-wide comments. Supports filtering by status (approved, pending, spam) and limiting results (max 100 for performance). Returns array of comment objects. Use this to moderate comments, analyze engagement, find spam comments, check specific post discussions, or export comment data.', 'wp-abilities' ),
             'category'    => 'comments',
             'input_schema' => array(
                 'type'       => 'object',

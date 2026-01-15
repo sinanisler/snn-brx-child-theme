@@ -26,7 +26,7 @@ function snn_register_create_terms_ability() {
         'snn/create-terms',
         array(
             'label'       => __( 'Create Terms', 'wp-abilities' ),
-            'description' => __( 'Creates a new term in a specific taxonomy. IMPORTANT: You must provide a valid taxonomy slug (e.g., "category", "post_tag"). If you do not know the available taxonomies, call list-taxonomies first to discover them. Common taxonomies: "category" for post categories, "post_tag" for post tags. Custom taxonomies vary by site.', 'wp-abilities' ),
+            'description' => __( 'Creates a new term (category, tag, or custom taxonomy term) with name, slug, description, and optional parent (for hierarchical taxonomies). CRITICAL: You MUST provide a valid taxonomy slug. Call list-taxonomies FIRST if you don\'t know the exact taxonomy slugs available on this site. Common built-in taxonomies: "category" (hierarchical post categories), "post_tag" (flat post tags). Custom taxonomies vary by site (e.g., "product_cat", "course_category"). Returns the new term ID, slug, and URL. Validates taxonomy exists before creation and provides helpful error messages with available taxonomies if invalid slug provided.', 'wp-abilities' ),
             'category'    => 'taxonomy',
             'input_schema' => array(
                 'type'       => 'object',

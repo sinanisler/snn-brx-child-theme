@@ -26,7 +26,7 @@ function snn_register_suggest_content_ideas_ability() {
         'snn/suggest-content-ideas',
         array(
             'label'       => __( 'Suggest Content Ideas', 'snn' ),
-            'description' => __( 'Analyzes existing categories and tags to identify content gaps and suggest new content ideas.', 'snn' ),
+            'description' => __( 'Analyzes existing categories and tags to identify content gaps and generate strategic content suggestions. Finds empty or underutilized categories/tags (below threshold), identifies popular topics, suggests cross-referencing popular categories with underused tags, and prioritizes opportunities. Returns gap analysis (empty vs underutilized), suggestion list with priority levels (high/medium), popular topics rankings, and analysis summary. Use this for content strategy planning, editorial calendar ideas, identifying neglected topics, balancing content coverage, or finding new angles by combining popular and underused topics.', 'wp-abilities' ),
             'category'    => 'content-analysis',
             'input_schema' => array(
                 'type'       => 'object',

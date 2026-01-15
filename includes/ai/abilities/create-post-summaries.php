@@ -26,7 +26,7 @@ function snn_register_create_post_summaries_ability() {
         'snn/create-post-summaries',
         array(
             'label'       => __( 'Create Post Summaries', 'snn' ),
-            'description' => __( 'Analyzes post content and generates TL;DR summaries for long posts.', 'snn' ),
+            'description' => __( 'Analyzes long-form content and automatically generates TL;DR summaries by extracting key sentences, identifying main points, and creating concise overviews. Detects posts exceeding minimum word count threshold (default 500 words), extracts first paragraph and key sentences, calculates reading time, and suggests summary lengths (short/medium/long). Returns posts needing summaries with suggested content for excerpts. Use this to identify posts missing meta descriptions, generate excerpt suggestions for long articles, improve content accessibility, and help readers quickly understand post topics.', 'snn' ),
             'category'    => 'content-analysis',
             'input_schema' => array(
                 'type'       => 'object',
