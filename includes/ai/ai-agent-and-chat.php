@@ -765,6 +765,15 @@ class SNN_Chat_Overlay {
             return;
         }
 
+        // Load markdown.js library for chat message rendering
+        wp_enqueue_script(
+            'markdown-js',
+            get_stylesheet_directory_uri() . '/assets/js/markdown.min.js',
+            array(),
+            '0.5.0',
+            true
+        );
+
         // Inline styles
         wp_add_inline_style( 'dashicons', $this->get_inline_css() );
 
@@ -1852,9 +1861,33 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
             }
 
             /**
-             * Format message content (basic markdown)
+             * Format message content using markdown library
              */
             function formatMessage(content) {
+                // Check if content contains HTML (ability results) - don't process with markdown
+                if (content.includes('<div class="ability-results">') || content.includes('<div class="ability-result')) {
+                    return content;
+                }
+
+                // Use markdown.js library if available
+                if (typeof markdown !== 'undefined' && markdown.toHTML) {
+                    try {
+                        return markdown.toHTML(content);
+                    } catch (e) {
+                        console.error('Markdown parsing error:', e);
+                        // Fall back to basic formatting
+                        return basicFormatMessage(content);
+                    }
+                }
+
+                // Fallback to basic formatting if markdown library not loaded
+                return basicFormatMessage(content);
+            }
+
+            /**
+             * Basic message formatting fallback
+             */
+            function basicFormatMessage(content) {
                 return content
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -2211,6 +2244,10 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-chat-welcome li { margin: 8px 0; line-height: 1.5; text-align: center; }
 .snn-chat-message { margin-bottom: 5px; padding: 8px; border-radius: 12px; line-height: 1.5; max-width: 95%; word-wrap: break-word; }
 .snn-chat-message-user { background: #1d2327; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
+.snn-chat-message-user code { background: rgba(255,255,255,0.2); color: #fff; }
+.snn-chat-message-user pre { background: rgba(0,0,0,0.3); }
+.snn-chat-message-user a { color: #a8d4ff; }
+.snn-chat-message-user blockquote { border-left-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
 .snn-chat-message-assistant { background: #fff; color: #333; border: 1px solid #e0e0e0; margin-right: auto; border-bottom-left-radius: 4px; }
 .snn-chat-message-error { background: #fee; color: #c33; border: 1px solid #fcc; margin-right: auto; }
 .snn-chat-state-message { padding: 8px 14px; margin: 8px auto; border-radius: 16px; font-size: 12px; font-weight: 500; text-align: center; max-width: 80%; animation: fadeInScale 0.3s ease-out; }
@@ -2236,7 +2273,27 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .json-number { color: #005cc5; }
 .json-boolean { color: #d73a49; font-weight: 600; }
 .json-null { color: #6f42c1; font-style: italic; }
-.snn-chat-message code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+.snn-chat-message code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-family: Consolas, Monaco, "Courier New", monospace; }
+.snn-chat-message pre { background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 8px 0; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 13px; line-height: 1.4; }
+.snn-chat-message pre code { background: transparent; padding: 0; color: inherit; font-size: inherit; }
+.snn-chat-message h1, .snn-chat-message h2, .snn-chat-message h3, .snn-chat-message h4, .snn-chat-message h5, .snn-chat-message h6 { margin: 12px 0 8px 0; font-weight: 600; line-height: 1.3; }
+.snn-chat-message h1 { font-size: 1.4em; }
+.snn-chat-message h2 { font-size: 1.25em; }
+.snn-chat-message h3 { font-size: 1.1em; }
+.snn-chat-message h4, .snn-chat-message h5, .snn-chat-message h6 { font-size: 1em; }
+.snn-chat-message ul, .snn-chat-message ol { margin: 8px 0; padding-left: 20px; }
+.snn-chat-message li { margin: 4px 0; line-height: 1.5; }
+.snn-chat-message blockquote { margin: 8px 0; padding: 8px 12px; border-left: 3px solid #667eea; background: #f8f9fa; color: #555; }
+.snn-chat-message a { color: #667eea; text-decoration: none; }
+.snn-chat-message a:hover { text-decoration: underline; }
+.snn-chat-message p { margin: 8px 0; }
+.snn-chat-message p:first-child { margin-top: 0; }
+.snn-chat-message p:last-child { margin-bottom: 0; }
+.snn-chat-message hr { border: none; border-top: 1px solid #e0e0e0; margin: 12px 0; }
+.snn-chat-message table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 13px; }
+.snn-chat-message th, .snn-chat-message td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+.snn-chat-message th { background: #f5f5f5; font-weight: 600; }
+.snn-chat-message img { max-width: 100%; height: auto; border-radius: 4px; }
 .snn-chat-typing { padding: 5px 20px; background: #f9f9f9; display: flex; align-items: center; gap: 8px; }
 .typing-dots { display: flex; gap: 4px; }
 .typing-dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #999; animation: typing 1.4s infinite; }
