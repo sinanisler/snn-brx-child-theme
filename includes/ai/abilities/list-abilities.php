@@ -4,22 +4,7 @@
  * Registers the snn/list-abilities ability for the WordPress Abilities API
  */
 
-// Register category
-add_action( 'wp_abilities_api_categories_init', 'snn_register_system_category' );
-function snn_register_system_category() {
-    // Only register if not already registered
-    if ( ! wp_has_ability_category( 'system' ) ) {
-        wp_register_ability_category(
-            'system',
-            array(
-                'label'       => __( 'System Information', 'snn' ),
-                'description' => __( 'Abilities for retrieving system and WordPress information.', 'snn' ),
-            )
-        );
-    }
-}
-
-// Register ability
+// Register ability (category 'system' is already registered in get-site-info.php)
 add_action( 'wp_abilities_api_init', 'snn_register_list_abilities_ability' );
 function snn_register_list_abilities_ability() {
     wp_register_ability(
