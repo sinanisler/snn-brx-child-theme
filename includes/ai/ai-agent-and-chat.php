@@ -2246,7 +2246,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
 .snn-chat-btn:hover { background: rgba(255, 255, 255, 0.3); }
 .snn-chat-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
-.snn-chat-plus { font-size: 24px; line-height: 1; font-weight: 300; }
+.snn-chat-plus { font-size: 24px; line-height: 1; font-weight: 300; position:relative; top:-3px; }
 .snn-chat-history-dropdown { position: absolute; top: 60px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #ddd; max-height: 300px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 10; }
 .snn-history-header { padding: 12px 16px; background: #f5f5f5; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
 .snn-history-header strong { font-size: 14px; color: #333; }
@@ -2294,8 +2294,8 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .result-data { color: #666; font-size: 14px; margin-top: 3px; line-height: 1.5; display: inline; }
 .result-data strong { color: #444; font-weight: 600; margin-right: 2px; }
 .result-error { color: #dc2626; font-size: 12px; }
-.json-result-container { margin-top: 8px; max-height: 200px; overflow-y: auto; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; }
-.json-result { margin: 0; padding: 10px; font-family: Courier, monospace; font-size: 14px; line-height: 1.5; white-space: pre; overflow-x: auto; color: #333; }
+.json-result-container { margin-top: 8px; max-height: 120px; overflow-y: auto; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; }
+.json-result { margin: 0; padding: 10px; font-family: Courier, monospace; font-size: 14px; line-height: 1.2; white-space: pre; overflow-x: auto; color: #333; }
 .json-key { color: #0066cc; font-weight: 600; }
 .json-string { color: #22863a; }
 .json-number { color: #005cc5; }
