@@ -2294,7 +2294,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-chat-message th, .snn-chat-message td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
 .snn-chat-message th { background: #f5f5f5; font-weight: 600; }
 .snn-chat-message img { max-width: 100%; height: auto; border-radius: 4px; }
-.snn-chat-typing { padding: 5px 20px; background: #f9f9f9; display: flex; align-items: center; gap: 8px; }
+.snn-chat-typing { padding: 5px 20px; background: #f9f9f900; display: flex; align-items: center; gap: 8px; }
 .typing-dots { display: flex; gap: 4px; }
 .typing-dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #999; animation: typing 1.4s infinite; }
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
