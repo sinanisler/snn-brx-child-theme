@@ -79,6 +79,13 @@ class SNN_Chat_Overlay {
     }
 
     /**
+     * Check if global AI Features are enabled (from AI Settings page)
+     */
+    public function is_ai_globally_enabled() {
+        return get_option( 'snn_ai_enabled', 'no' ) === 'yes';
+    }
+
+    /**
      * Get custom system prompt
      */
     public function get_system_prompt() {
@@ -875,6 +882,33 @@ class SNN_Chat_Overlay {
                     </div>
                 </div>
 
+                <?php if ( ! $this->is_ai_globally_enabled() ) : ?>
+                <!-- AI Features Disabled Warning -->
+                <div class="snn-chat-messages" id="snn-chat-messages">
+                    <div class="snn-chat-ai-disabled-warning">
+                        <div class="snn-warning-icon">⚠️</div>
+                        <h3><?php echo esc_html__( 'AI Features Disabled', 'snn' ); ?></h3>
+                        <p><?php echo esc_html__( 'The global AI Features setting is currently disabled. Please enable it to use the AI chat assistant.', 'snn' ); ?></p>
+                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=snn-ai-settings' ) ); ?>" class="snn-enable-ai-btn">
+                            <?php echo esc_html__( 'Go to AI Settings', 'snn' ); ?> →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Input (disabled) -->
+                <div class="snn-chat-input-container">
+                    <textarea
+                        id="snn-chat-input"
+                        class="snn-chat-input"
+                        placeholder="<?php echo esc_attr__( 'AI features are disabled...', 'snn' ); ?>"
+                        rows="1"
+                        disabled
+                    ></textarea>
+                    <button id="snn-chat-send" class="snn-chat-send" title="Send message" disabled>
+                        <span class="dashicons dashicons-arrow-up-alt2"></span>
+                    </button>
+                </div>
+                <?php else : ?>
                 <!-- Messages -->
                 <div class="snn-chat-messages" id="snn-chat-messages">
                     <div class="snn-chat-welcome">
@@ -912,6 +946,7 @@ class SNN_Chat_Overlay {
                         <span class="dashicons dashicons-arrow-up-alt2"></span>
                     </button>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -1217,36 +1252,44 @@ When users ask "what can you do" or "what are your capabilities", list these abi
 
 ${abilitiesDesc}
 
-=== EXECUTION PHILOSOPHY: BE PROACTIVE, NOT INQUISITIVE ===
+=== EXECUTION PHILOSOPHY: DO EXACTLY WHAT IS ASKED ===
 
 **CRITICAL BEHAVIOR RULES:**
 
-1. **EXECUTE DIRECTLY when the user's intent is clear** - Don't ask clarifying questions if you already have an appropriate ability match
-   - "List all users" → Execute immediately (use default parameters like limit=100)
-   - "Show site info" → Execute immediately 
-   - "Who is [user]" → Execute get user ability with that username
-   - "Give me site info" → Execute immediately, choose the most comprehensive option
+1. **DO EXACTLY WHAT THE USER ASKS - NO MORE, NO LESS**
+   - If user asks to "list abilities" or "what can you do" → Just describe them in text, DO NOT execute any abilities
+   - If user asks to "get site info" → Execute ONE appropriate ability, not multiple
+   - If user asks to "do X and Y" → Do both X and Y, but nothing extra
+   - NEVER chain additional abilities beyond what was explicitly requested
+   - NEVER "demonstrate" abilities by executing them when user just asked about them
 
-2. **ONLY ASK QUESTIONS when genuinely necessary:**
+2. **DISTINGUISH between INFORMATIONAL requests and ACTION requests:**
+   - "What can you do?" / "List abilities" / "Show capabilities" → INFORMATIONAL - respond with text description only, NO ability execution
+   - "Get site info" / "List users" / "Create a post" → ACTION - execute the appropriate ability
+   - When in doubt, treat it as informational
+
+3. **ONLY ASK QUESTIONS when genuinely necessary:**
    - Required parameters are missing AND cannot be reasonably defaulted
    - Multiple significantly different interpretations are possible
    - The action would be destructive without confirmation
 
-3. **Use sensible defaults:**
+4. **Use sensible defaults when executing (but ONLY when user explicitly requests an action):**
    - When listing items, default to reasonable limits (e.g., 100 for users)
-   - When getting info, prefer comprehensive/detailed reports over basic ones
+   - When getting info, use ONE appropriate ability (not multiple)
    - When filtering is optional, assume "all" unless specifically asked to filter
 
-4. **Examples of CORRECT behavior:**
-   - User: "list all users" → Execute immediately with limit=100 or whatever maximum is reasonable
-   - User: "who is sinan" → Execute immediately with username/search for "sinan"
-   - User: "give me some site info" → Execute the MOST comprehensive site info ability available (e.g., detailed health report)
-   - User: "show me posts" → Execute immediately with sensible defaults (e.g., 10 most recent posts)
+5. **Examples of CORRECT behavior:**
+   - User: "list all abilities" → Respond with text list of abilities, NO JSON block, NO execution
+   - User: "what can you do" → Describe capabilities in plain text, NO JSON block
+   - User: "get site info" → Execute ONE site info ability only
+   - User: "list users" → Execute user listing ability only
+   - User: "get site info and list users" → Execute both (because user asked for both)
 
-5. **Examples of INCORRECT behavior (DON'T DO THIS):**
-   - User: "list all users" → ❌ "Would you like all users or specific number?" (WRONG - just execute with sensible default)
-   - User: "who is sinan" → ❌ "What info do you want?" (WRONG - just get all available info about user sinan)
-   - User: "give me site info" → ❌ "General or detailed report?" (WRONG - prefer the more comprehensive option)
+6. **Examples of INCORRECT behavior (DON'T DO THIS):**
+   - User: "list abilities" → ❌ Including a JSON block to execute abilities (WRONG)
+   - User: "what can you do" → ❌ Executing abilities to demonstrate (WRONG)
+   - User: "get site info" → ❌ Running multiple info abilities (WRONG - run ONE)
+   - User: "list users" → ❌ Also getting site info "for context" (WRONG - only do what was asked)
 
 === HOW TO USE ABILITIES ===
 
@@ -2270,6 +2313,13 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-chat-welcome p { margin: 12px 0; line-height: 1.6; }
 .snn-chat-welcome ul { text-align: left; max-width: 280px; margin: 16px auto; padding-left: 20px; }
 .snn-chat-welcome li { margin: 8px 0; line-height: 1.5; text-align: center; }
+.snn-chat-ai-disabled-warning { text-align: center; padding: 60px 30px; color: #666; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+.snn-chat-ai-disabled-warning .snn-warning-icon { font-size: 48px; margin-bottom: 16px; }
+.snn-chat-ai-disabled-warning h3 { margin: 0 0 12px; font-size: 18px; color: #d63638; font-weight: 600; }
+.snn-chat-ai-disabled-warning p { margin: 0 0 20px; line-height: 1.6; color: #666; font-size: 14px; }
+.snn-enable-ai-btn { display: inline-block; padding: 10px 20px; background: #2271b1; color: #fff; text-decoration: none; border-radius: 4px; font-weight: 500; transition: background 0.2s; }
+.snn-enable-ai-btn:hover { background: #135e96; color: #fff; text-decoration: none; }
+.snn-chat-input:disabled, .snn-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
 .snn-chat-message { margin-bottom: 5px; padding: 8px; border-radius: 12px; line-height: 1.5; max-width: 95%; word-wrap: break-word; }
 .snn-chat-message-user { background: #1d2327; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
 .snn-chat-message-user code { background: rgba(255,255,255,0.2); color: #fff; }
