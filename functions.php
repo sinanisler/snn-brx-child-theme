@@ -72,6 +72,7 @@ require_once SNN_PATH . 'includes/ai/abilities/check-seo-quality-title-and-conte
 require_once SNN_PATH . 'includes/ai/abilities/installed-plugin-list-and-infos.php';
 require_once SNN_PATH . 'includes/ai/abilities/active-theme-info.php';
 require_once SNN_PATH . 'includes/ai/abilities/list-taxonomies.php';
+require_once SNN_PATH . 'includes/ai/abilities/list-abilities.php';
 
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
