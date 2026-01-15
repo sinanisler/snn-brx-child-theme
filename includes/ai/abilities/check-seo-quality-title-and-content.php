@@ -84,14 +84,15 @@ function snn_register_check_seo_quality_ability() {
             'output_schema' => array(
                 'type'       => 'object',
                 'properties' => array(
-                    'items_analyzed'     => array( 'type' => 'integer' ),
-                    'analysis_type'      => array( 'type' => 'string' ),
-                    'post_type'          => array( 'type' => 'string' ),
-                    'taxonomy'           => array( 'type' => 'string' ),
-                    'issues_found'       => array( 'type' => 'integer' ),
-                    'items_with_issues'  => array( 'type' => 'array' ),
-                    'seo_summary'        => array( 'type' => 'object' ),
-                    'category_scores'    => array( 'type' => 'object' ),
+                    'items_analyzed'       => array( 'type' => 'integer' ),
+                    'analysis_type'        => array( 'type' => 'string' ),
+                    'post_type'            => array( 'type' => 'string' ),
+                    'taxonomy'             => array( 'type' => 'string' ),
+                    'taxonomy_label'       => array( 'type' => 'string' ),
+                    'issues_found'         => array( 'type' => 'integer' ),
+                    'items_with_issues'    => array( 'type' => 'array' ),
+                    'seo_summary'          => array( 'type' => 'object' ),
+                    'category_scores'      => array( 'type' => 'object' ),
                     'available_post_types' => array( 'type' => 'array' ),
                     'available_taxonomies' => array( 'type' => 'array' ),
                 ),
@@ -256,7 +257,8 @@ function snn_execute_seo_quality_check( $input ) {
         'items_analyzed'       => count( $posts ),
         'analysis_type'        => 'posts',
         'post_type'            => $analyzed_post_type,
-        'taxonomy'             => null,
+        'taxonomy'             => '',
+        'taxonomy_label'       => '',
         'issues_found'         => $total_issues,
         'items_with_issues'    => $posts_results,
         'seo_summary'          => array_merge( $summary, array(
@@ -1304,8 +1306,19 @@ function snn_analyze_taxonomy_terms( $taxonomy, $term_id, $limit, $title_min, $t
     // Validate taxonomy exists
     if ( ! taxonomy_exists( $taxonomy ) ) {
         return array(
-            'error'                => true,
-            'message'              => sprintf( 'Taxonomy "%s" does not exist.', $taxonomy ),
+            'items_analyzed'       => 0,
+            'analysis_type'        => 'taxonomy_terms',
+            'post_type'            => '',
+            'taxonomy'             => $taxonomy,
+            'taxonomy_label'       => '',
+            'issues_found'         => 0,
+            'items_with_issues'    => array(),
+            'seo_summary'          => array(
+                'error'   => true,
+                'message' => sprintf( 'Taxonomy "%s" does not exist.', $taxonomy ),
+            ),
+            'category_scores'      => array(),
+            'available_post_types' => $available_post_types,
             'available_taxonomies' => $available_taxonomies,
         );
     }
@@ -1325,8 +1338,20 @@ function snn_analyze_taxonomy_terms( $taxonomy, $term_id, $limit, $title_min, $t
 
     if ( is_wp_error( $terms ) ) {
         return array(
-            'error'   => true,
-            'message' => $terms->get_error_message(),
+            'items_analyzed'       => 0,
+            'analysis_type'        => 'taxonomy_terms',
+            'post_type'            => '',
+            'taxonomy'             => $taxonomy,
+            'taxonomy_label'       => isset( $available_taxonomies[ $taxonomy ] ) ? $available_taxonomies[ $taxonomy ]['label'] : $taxonomy,
+            'issues_found'         => 0,
+            'items_with_issues'    => array(),
+            'seo_summary'          => array(
+                'error'   => true,
+                'message' => $terms->get_error_message(),
+            ),
+            'category_scores'      => array(),
+            'available_post_types' => $available_post_types,
+            'available_taxonomies' => $available_taxonomies,
         );
     }
 
@@ -1392,7 +1417,7 @@ function snn_analyze_taxonomy_terms( $taxonomy, $term_id, $limit, $title_min, $t
     return array(
         'items_analyzed'       => count( $terms ),
         'analysis_type'        => 'taxonomy_terms',
-        'post_type'            => null,
+        'post_type'            => '',
         'taxonomy'             => $taxonomy,
         'taxonomy_label'       => isset( $available_taxonomies[ $taxonomy ] ) ? $available_taxonomies[ $taxonomy ]['label'] : $taxonomy,
         'issues_found'         => $total_issues,
@@ -1406,6 +1431,7 @@ function snn_analyze_taxonomy_terms( $taxonomy, $term_id, $limit, $title_min, $t
                 'description_max_length' => $desc_max,
             ),
         ) ),
+        'category_scores'      => array(),
         'available_post_types' => $available_post_types,
         'available_taxonomies' => $available_taxonomies,
     );
