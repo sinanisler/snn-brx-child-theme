@@ -222,7 +222,6 @@ function snn_get_logging_options() {
             'core_updated'          => __( 'WordPress Core Updates', 'snn' ),
             'widget_updated'        => __( 'Widget Changes', 'snn' ),
             'menu_updated'          => __( 'Menu Updates', 'snn' ),
-            'option_updated'        => __( 'Settings Changes', 'snn' ),
             'permalink_changed'     => __( 'Permalink Structure Changes', 'snn' ),
             'customizer_saved'      => __( 'Customizer Changes', 'snn' ),
             'export_performed'      => __( 'Data Exports', 'snn' ),
