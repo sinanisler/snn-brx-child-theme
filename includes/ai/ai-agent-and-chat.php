@@ -773,6 +773,201 @@ class SNN_Chat_Overlay {
     }
 
     /**
+     * Get current page context for AI agent
+     * Detects what page/screen the user is currently on
+     */
+    private function get_page_context() {
+        global $pagenow, $post, $typenow;
+        
+        $context = array(
+            'type' => 'unknown',
+            'details' => array()
+        );
+
+        // Dashboard
+        if ( $pagenow === 'index.php' ) {
+            $context['type'] = 'dashboard';
+            $context['details']['description'] = 'WordPress Dashboard home page';
+            return $context;
+        }
+
+        // Post Editor - Single post being edited
+        if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
+            $action = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : '';
+            $post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+            
+            if ( $pagenow === 'post-new.php' || $action === 'edit' ) {
+                $context['type'] = 'post_editor';
+                
+                if ( $post_id && $action === 'edit' ) {
+                    // Editing existing post
+                    $the_post = get_post( $post_id );
+                    if ( $the_post ) {
+                        $context['details'] = array(
+                            'post_id' => $post_id,
+                            'post_type' => $the_post->post_type,
+                            'post_title' => $the_post->post_title,
+                            'post_status' => $the_post->post_status,
+                            'post_author' => get_the_author_meta( 'display_name', $the_post->post_author ),
+                            'post_date' => $the_post->post_date,
+                            'post_modified' => $the_post->post_modified,
+                            'edit_url' => admin_url( 'post.php?action=edit&post=' . $post_id ),
+                            'description' => sprintf( 'Editing %s: "%s" (ID: %d)', $the_post->post_type, $the_post->post_title, $post_id )
+                        );
+                    }
+                } else {
+                    // Creating new post
+                    $post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : 'post';
+                    $context['details'] = array(
+                        'post_type' => $post_type,
+                        'description' => sprintf( 'Creating new %s', $post_type )
+                    );
+                }
+                
+                return $context;
+            }
+        }
+
+        // Post List - Viewing list of posts
+        if ( $pagenow === 'edit.php' ) {
+            $post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : 'post';
+            $post_type_object = get_post_type_object( $post_type );
+            
+            $context['type'] = 'post_list';
+            $context['details'] = array(
+                'post_type' => $post_type,
+                'post_type_label' => $post_type_object ? $post_type_object->labels->name : $post_type,
+                'post_type_singular' => $post_type_object ? $post_type_object->labels->singular_name : $post_type,
+                'total_posts' => wp_count_posts( $post_type )->publish,
+                'description' => sprintf( 'Viewing list of %s', $post_type_object ? $post_type_object->labels->name : $post_type )
+            );
+            
+            // Add filter information if any
+            if ( isset( $_GET['post_status'] ) ) {
+                $context['details']['filtered_by_status'] = sanitize_text_field( $_GET['post_status'] );
+            }
+            if ( isset( $_GET['author'] ) ) {
+                $author_id = absint( $_GET['author'] );
+                $context['details']['filtered_by_author'] = get_the_author_meta( 'display_name', $author_id );
+                $context['details']['filtered_by_author_id'] = $author_id;
+            }
+            
+            return $context;
+        }
+
+        // Pages List
+        if ( $pagenow === 'edit.php' && isset( $_GET['post_type'] ) && $_GET['post_type'] === 'page' ) {
+            $context['type'] = 'page_list';
+            $context['details'] = array(
+                'post_type' => 'page',
+                'total_pages' => wp_count_posts( 'page' )->publish,
+                'description' => 'Viewing list of Pages'
+            );
+            return $context;
+        }
+
+        // Media Library
+        if ( $pagenow === 'upload.php' ) {
+            $context['type'] = 'media_library';
+            $context['details'] = array(
+                'description' => 'Media Library - managing files and images'
+            );
+            return $context;
+        }
+
+        // Comments
+        if ( $pagenow === 'edit-comments.php' ) {
+            $context['type'] = 'comments_list';
+            $context['details'] = array(
+                'description' => 'Comments management page'
+            );
+            return $context;
+        }
+
+        // Users
+        if ( $pagenow === 'users.php' ) {
+            $context['type'] = 'users_list';
+            $context['details'] = array(
+                'description' => 'Users management page'
+            );
+            return $context;
+        }
+
+        // User Profile
+        if ( in_array( $pagenow, array( 'profile.php', 'user-edit.php' ) ) ) {
+            $user_id = isset( $_GET['user_id'] ) ? absint( $_GET['user_id'] ) : get_current_user_id();
+            $user = get_userdata( $user_id );
+            
+            $context['type'] = 'user_profile';
+            $context['details'] = array(
+                'user_id' => $user_id,
+                'user_login' => $user ? $user->user_login : '',
+                'display_name' => $user ? $user->display_name : '',
+                'description' => $user ? sprintf( 'Editing user profile: %s (ID: %d)', $user->display_name, $user_id ) : 'Editing user profile'
+            );
+            return $context;
+        }
+
+        // Themes
+        if ( $pagenow === 'themes.php' ) {
+            $context['type'] = 'themes';
+            $context['details'] = array(
+                'description' => 'Themes management page'
+            );
+            return $context;
+        }
+
+        // Plugins
+        if ( $pagenow === 'plugins.php' ) {
+            $context['type'] = 'plugins';
+            $context['details'] = array(
+                'description' => 'Plugins management page'
+            );
+            return $context;
+        }
+
+        // Settings Pages
+        if ( $pagenow === 'options-general.php' ) {
+            $context['type'] = 'settings_general';
+            $context['details'] = array(
+                'description' => 'General Settings page'
+            );
+            return $context;
+        }
+
+        // Taxonomies (Categories, Tags, etc.)
+        if ( in_array( $pagenow, array( 'edit-tags.php', 'term.php' ) ) ) {
+            $taxonomy = isset( $_GET['taxonomy'] ) ? sanitize_text_field( $_GET['taxonomy'] ) : 'category';
+            $tax_object = get_taxonomy( $taxonomy );
+            
+            $context['type'] = 'taxonomy_list';
+            $context['details'] = array(
+                'taxonomy' => $taxonomy,
+                'taxonomy_label' => $tax_object ? $tax_object->labels->name : $taxonomy,
+                'description' => sprintf( 'Managing %s', $tax_object ? $tax_object->labels->name : $taxonomy )
+            );
+            return $context;
+        }
+
+        // Custom admin pages (SNN Settings, etc.)
+        if ( isset( $_GET['page'] ) ) {
+            $page_slug = sanitize_text_field( $_GET['page'] );
+            $context['type'] = 'admin_page';
+            $context['details'] = array(
+                'page_slug' => $page_slug,
+                'description' => sprintf( 'Admin page: %s', $page_slug )
+            );
+            return $context;
+        }
+
+        // Default fallback
+        $context['details']['description'] = 'WordPress Admin Area';
+        $context['details']['page'] = $pagenow;
+        
+        return $context;
+    }
+
+    /**
      * Add button to WordPress admin bar
      */
     public function add_admin_bar_button( $wp_admin_bar ) {
@@ -824,6 +1019,9 @@ class SNN_Chat_Overlay {
         $ai_config['systemPrompt'] = $this->get_system_prompt();
         $ai_config['maxTokens'] = $this->get_token_count();
         
+        // Get current page context
+        $page_context = $this->get_page_context();
+        
         wp_localize_script( 'jquery', 'snnChatConfig', array(
             'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
             'restUrl'       => rest_url( 'wp-abilities/v1/' ),
@@ -831,6 +1029,7 @@ class SNN_Chat_Overlay {
             'agentNonce'    => wp_create_nonce( 'snn_ai_agent_nonce' ),
             'currentUserId' => get_current_user_id(),
             'userName'      => wp_get_current_user()->display_name,
+            'pageContext'   => $page_context,
             'ai'            => $ai_config,
             'settings'      => array(
                 'enabledAbilities'  => $this->get_enabled_abilities(),
@@ -1225,8 +1424,50 @@ class SNN_Chat_Overlay {
             function buildSystemPrompt() {
                 const basePrompt = snnChatConfig.ai.systemPrompt || 'You are a helpful WordPress assistant.';
                 
+                // Build page context information
+                let pageContextInfo = '';
+                if (snnChatConfig.pageContext && snnChatConfig.pageContext.type !== 'unknown') {
+                    const ctx = snnChatConfig.pageContext;
+                    pageContextInfo = `\n\n=== CURRENT PAGE CONTEXT ===\n\n`;
+                    pageContextInfo += `The user is currently on: ${ctx.details.description || ctx.type}\n`;
+                    pageContextInfo += `Page Type: ${ctx.type}\n`;
+                    
+                    // Add specific details based on context type
+                    if (ctx.type === 'post_editor' && ctx.details.post_id) {
+                        pageContextInfo += `\n**Currently Editing Post:**\n`;
+                        pageContextInfo += `- Post ID: ${ctx.details.post_id}\n`;
+                        pageContextInfo += `- Post Type: ${ctx.details.post_type}\n`;
+                        pageContextInfo += `- Title: "${ctx.details.post_title}"\n`;
+                        pageContextInfo += `- Status: ${ctx.details.post_status}\n`;
+                        pageContextInfo += `- Author: ${ctx.details.post_author}\n`;
+                        pageContextInfo += `\n**IMPORTANT:** When the user asks about "this post", "the post", "current post", "my content", etc., they are referring to Post ID ${ctx.details.post_id} ("${ctx.details.post_title}"). Use this exact Post ID without asking for clarification.\n`;
+                    } else if (ctx.type === 'post_list' && ctx.details.post_type) {
+                        pageContextInfo += `\n**Currently Viewing Post List:**\n`;
+                        pageContextInfo += `- Post Type: ${ctx.details.post_type}\n`;
+                        pageContextInfo += `- Post Type Label: ${ctx.details.post_type_label}\n`;
+                        pageContextInfo += `- Total Posts: ${ctx.details.total_posts}\n`;
+                        if (ctx.details.filtered_by_status) {
+                            pageContextInfo += `- Filtered by Status: ${ctx.details.filtered_by_status}\n`;
+                        }
+                        if (ctx.details.filtered_by_author) {
+                            pageContextInfo += `- Filtered by Author: ${ctx.details.filtered_by_author} (ID: ${ctx.details.filtered_by_author_id})\n`;
+                        }
+                        pageContextInfo += `\n**IMPORTANT:** When the user asks about "posts", "these posts", "my posts", "SEO", "content", etc., they are referring to the "${ctx.details.post_type}" post type. Use this exact post type without asking for clarification. Do NOT analyze all post types - focus only on "${ctx.details.post_type}".\n`;
+                    } else if (ctx.type === 'user_profile' && ctx.details.user_id) {
+                        pageContextInfo += `\n**Currently Editing User:**\n`;
+                        pageContextInfo += `- User ID: ${ctx.details.user_id}\n`;
+                        pageContextInfo += `- Username: ${ctx.details.user_login}\n`;
+                        pageContextInfo += `- Display Name: ${ctx.details.display_name}\n`;
+                        pageContextInfo += `\n**IMPORTANT:** When the user asks about "this user", "the user", "their profile", etc., they are referring to User ID ${ctx.details.user_id} (${ctx.details.display_name}).\n`;
+                    } else if (ctx.details.post_type) {
+                        pageContextInfo += `- Related Post Type: ${ctx.details.post_type}\n`;
+                    }
+                    
+                    pageContextInfo += `\nUse this context to provide more relevant and specific assistance without asking unnecessary questions. If the user's request is clearly related to the current page context, use that information directly.\n`;
+                }
+                
                 if (ChatState.abilities.length === 0) {
-                    return `${basePrompt}\n\nNote: No WordPress abilities are currently available. Make sure abilities are registered with show_in_rest enabled.`;
+                    return `${basePrompt}${pageContextInfo}\n\nNote: No WordPress abilities are currently available. Make sure abilities are registered with show_in_rest enabled.`;
                 }
 
                 // Generate a list of abilities with descriptions
@@ -1259,7 +1500,7 @@ class SNN_Chat_Overlay {
 ${params}`;
                 }).join('\n\n');
 
-                return `${basePrompt}
+                return `${basePrompt}${pageContextInfo}
 
 IMPORTANT: You are an AI assistant with the ability to execute WordPress actions through the WordPress Core Abilities API.
 
