@@ -787,6 +787,7 @@ class SNN_Video_Player_Element extends Element {
                 } else {
                     video.volume = lastVolume > 0 ? lastVolume : 1;
                 }
+                saveVolume(video.volume, video.muted);
             };
 
             const toggleFullscreen = () => {
@@ -1127,6 +1128,21 @@ class SNN_Video_Player_Element extends Element {
                 localStorage.setItem('snn-playback-speed', speed);
             };
 
+            // Load volume from localStorage
+            const loadVolume = () => {
+                const savedVolume = localStorage.getItem('snn-volume');
+                const savedMuted = localStorage.getItem('snn-muted');
+                return {
+                    volume: savedVolume !== null ? parseFloat(savedVolume) : 1.0,
+                    muted: savedMuted === 'true'
+                };
+            };
+
+            const saveVolume = (volume, muted) => {
+                localStorage.setItem('snn-volume', volume);
+                localStorage.setItem('snn-muted', muted);
+            };
+
             const applySubtitleStyles = (settings) => {
                 const styleId = 'snn-subtitle-styles-' + '<?php echo esc_js($root_id); ?>';
                 let styleEl = document.getElementById(styleId);
@@ -1356,10 +1372,19 @@ class SNN_Video_Player_Element extends Element {
                 updateProgress();
                 generateChapterSections();
                 generateChapters();
+
+                // Apply volume settings: element setting takes priority, then user preference
                 if (CONFIG.INITIAL_MUTED) {
                     video.muted = true;
                     video.volume = 0;
                     if (volumeSlider) volumeSlider.value = 0;
+                } else {
+                    // Load saved volume preference from localStorage
+                    const savedVolumeSettings = loadVolume();
+                    video.volume = savedVolumeSettings.volume;
+                    video.muted = savedVolumeSettings.muted;
+                    lastVolume = savedVolumeSettings.volume > 0 ? savedVolumeSettings.volume : 1;
+                    if (volumeSlider) volumeSlider.value = video.muted ? 0 : video.volume;
                 }
                 updateMuteIcon();
                 updateProgressBarFill(volumeSlider);
@@ -1449,6 +1474,8 @@ class SNN_Video_Player_Element extends Element {
             volumeSlider?.addEventListener('input', () => {
                 video.muted = false;
                 video.volume = volumeSlider.value;
+                lastVolume = video.volume;
+                saveVolume(video.volume, video.muted);
             });
 
             progressBar?.addEventListener('input', e => {
