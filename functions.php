@@ -102,6 +102,7 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/average-comment-rating.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/comment-count-current-user.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/child-post-count.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/comment-count-current-post.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/get-parent-and-child-posts-list.php';
 
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
