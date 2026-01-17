@@ -84,6 +84,8 @@ function snn_seo_ai_enqueue_admin_scripts($hook) {
                 'seoDescription' => __('SEO Description', 'snn'),
                 'excerpt' => __('Excerpt', 'snn'),
                 'taxonomyDescription' => __('Taxonomy Description', 'snn'),
+                'postTitle' => __('Post Title', 'snn'),
+                'termName' => __('Term Name', 'snn'),
                 'processing' => __('Processing item', 'snn'),
                 'of' => __('of', 'snn'),
             )
@@ -153,6 +155,14 @@ function snn_seo_ai_render_overlay() {
                     </div>
                 </div>
                 
+                <!-- Title Mode -->
+                <div class="snn-seo-ai-mode">
+                    <label class="snn-checkbox-label">
+                        <input type="checkbox" id="snn-generate-title-mode" />
+                        <span id="snn-title-mode-label"><?php _e('Generate Post Title instead of Meta Title', 'snn'); ?></span>
+                    </label>
+                </div>
+
                 <!-- Excerpt/Description Mode -->
                 <div class="snn-seo-ai-mode">
                     <label class="snn-checkbox-label">
@@ -680,6 +690,8 @@ function snn_seo_ai_render_overlay() {
         const customPrompt = document.getElementById('snn-seo-custom-prompt');
         const generateTitle = document.getElementById('snn-generate-title');
         const generateDesc = document.getElementById('snn-generate-description');
+        const titleModeCheckbox = document.getElementById('snn-generate-title-mode');
+        const titleModeLabel = document.getElementById('snn-title-mode-label');
         const excerptModeCheckbox = document.getElementById('snn-generate-excerpt-mode');
         const excerptModeLabel = document.getElementById('snn-excerpt-mode-label');
         const descriptionLabel = document.getElementById('snn-description-label');
@@ -701,20 +713,49 @@ function snn_seo_ai_render_overlay() {
         let selectedPresets = [];
         let bulkGeneratedData = []; // Store generated results for bulk
         
-        // Update labels based on excerpt mode and current mode
+        // Update labels based on title mode, excerpt mode and current mode
         function updateLabels() {
-            const isExcerptMode = excerptModeCheckbox.checked;
+            const isTitleMode = titleModeCheckbox && titleModeCheckbox.checked;
+            const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
             // Check if we're dealing with terms (either single term mode or bulk term mode)
             const isTerm = currentMode === 'term' || (currentMode === 'bulk' && currentData.itemType === 'term');
-            
-            // Set checkbox label based on mode (post type vs taxonomy)
-            if (isTerm) {
-                excerptModeLabel.textContent = '<?php _e('Generate Term Description instead of Meta Description', 'snn'); ?>';
-            } else {
-                excerptModeLabel.textContent = '<?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?>';
+
+            // Set title mode checkbox label based on mode (post type vs taxonomy)
+            if (titleModeLabel) {
+                if (isTerm) {
+                    titleModeLabel.textContent = '<?php _e('Generate Term Name instead of Meta Title', 'snn'); ?>';
+                } else {
+                    titleModeLabel.textContent = '<?php _e('Generate Post Title instead of Meta Title', 'snn'); ?>';
+                }
             }
-            
-            // Update the "Generate" checkbox label based on excerpt mode
+
+            // Set excerpt mode checkbox label based on mode (post type vs taxonomy)
+            if (excerptModeLabel) {
+                if (isTerm) {
+                    excerptModeLabel.textContent = '<?php _e('Generate Term Description instead of Meta Description', 'snn'); ?>';
+                } else {
+                    excerptModeLabel.textContent = '<?php _e('Generate Excerpt instead of Meta Description', 'snn'); ?>';
+                }
+            }
+
+            // Update the "Generate" title checkbox label based on title mode
+            const titleLabel = document.querySelector('#snn-generate-title').parentElement;
+            if (titleLabel) {
+                const labelText = titleLabel.childNodes[titleLabel.childNodes.length - 1];
+                if (labelText && labelText.nodeType === Node.TEXT_NODE) {
+                    if (isTitleMode) {
+                        if (isTerm) {
+                            labelText.textContent = ' ' + config.strings.termName;
+                        } else {
+                            labelText.textContent = ' ' + config.strings.postTitle;
+                        }
+                    } else {
+                        labelText.textContent = ' ' + config.strings.seoTitle;
+                    }
+                }
+            }
+
+            // Update the "Generate" description checkbox label based on excerpt mode
             if (isExcerptMode) {
                 if (isTerm) {
                     descriptionLabel.textContent = config.strings.taxonomyDescription;
@@ -724,20 +765,41 @@ function snn_seo_ai_render_overlay() {
             } else {
                 descriptionLabel.textContent = config.strings.seoDescription;
             }
-            
-            // Update result field labels
-            const resultDescLabel = document.querySelector('.snn-seo-result-item:last-child label');
-            if (resultDescLabel && isExcerptMode) {
-                if (isTerm) {
-                    resultDescLabel.textContent = config.strings.taxonomyDescription + ':';
+
+            // Update result title field label
+            const resultTitleLabel = document.querySelector('.snn-seo-result-item:first-child label');
+            if (resultTitleLabel) {
+                if (isTitleMode) {
+                    if (isTerm) {
+                        resultTitleLabel.textContent = config.strings.termName + ':';
+                    } else {
+                        resultTitleLabel.textContent = config.strings.postTitle + ':';
+                    }
                 } else {
-                    resultDescLabel.textContent = config.strings.excerpt + ':';
+                    resultTitleLabel.textContent = config.strings.seoTitle + ':';
                 }
-            } else if (resultDescLabel) {
-                resultDescLabel.textContent = config.strings.seoDescription + ':';
+            }
+
+            // Update result description field label
+            const resultDescLabel = document.querySelector('.snn-seo-result-item:last-child label');
+            if (resultDescLabel) {
+                if (isExcerptMode) {
+                    if (isTerm) {
+                        resultDescLabel.textContent = config.strings.taxonomyDescription + ':';
+                    } else {
+                        resultDescLabel.textContent = config.strings.excerpt + ':';
+                    }
+                } else {
+                    resultDescLabel.textContent = config.strings.seoDescription + ':';
+                }
             }
         }
-        
+
+        // Listen to title mode changes
+        if (titleModeCheckbox) {
+            titleModeCheckbox.addEventListener('change', updateLabels);
+        }
+
         // Listen to excerpt mode changes
         if (excerptModeCheckbox) {
             excerptModeCheckbox.addEventListener('change', updateLabels);
@@ -1053,6 +1115,20 @@ function snn_seo_ai_render_overlay() {
 
             const showTitle = generateTitle.checked;
             const showDesc = generateDesc.checked;
+            const isTitleMode = titleModeCheckbox && titleModeCheckbox.checked;
+            const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
+            const isTerm = currentData.itemType === 'term';
+
+            // Determine labels
+            let titleLabel = config.strings.seoTitle;
+            if (isTitleMode) {
+                titleLabel = isTerm ? config.strings.termName : config.strings.postTitle;
+            }
+
+            let descLabel = config.strings.seoDescription;
+            if (isExcerptMode) {
+                descLabel = isTerm ? config.strings.taxonomyDescription : config.strings.excerpt;
+            }
 
             bulkGeneratedData.forEach((item, index) => {
                 let titleField = '';
@@ -1062,7 +1138,7 @@ function snn_seo_ai_render_overlay() {
                     titleField = `
                         <div class="snn-bulk-field">
                             <label>
-                                ${config.strings.seoTitle}
+                                ${titleLabel}
                                 <span class="snn-bulk-field-count">
                                     <span class="title-count">${item.title.length}</span>/60
                                 </span>
@@ -1076,7 +1152,7 @@ function snn_seo_ai_render_overlay() {
                     descField = `
                         <div class="snn-bulk-field">
                             <label>
-                                ${config.strings.seoDescription}
+                                ${descLabel}
                                 <span class="snn-bulk-field-count">
                                     <span class="desc-count">${item.description.length}</span>/160
                                 </span>
@@ -1214,7 +1290,12 @@ function snn_seo_ai_render_overlay() {
                     if (generateDesc.checked) {
                         formData.append('description', item.description);
                     }
-                    
+
+                    const isTitleMode = titleModeCheckbox && titleModeCheckbox.checked;
+                    if (isTitleMode) {
+                        formData.append('title_mode', '1');
+                    }
+
                     const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
                     if (isExcerptMode) {
                         formData.append('excerpt_mode', '1');
@@ -1258,32 +1339,43 @@ function snn_seo_ai_render_overlay() {
             const genTitle = generateTitle.checked;
             const genDesc = generateDesc.checked;
 
+            const isTitleMode = titleModeCheckbox && titleModeCheckbox.checked;
             const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
             const isTerm = data.name !== undefined || currentMode === 'term';
-            
+
             let whatToGenerate = '';
+            let titleType = '';
+            let descType = '';
+
+            // Determine title type
+            if (isTitleMode) {
+                if (isTerm) {
+                    titleType = 'term name (concise, descriptive)';
+                } else {
+                    titleType = 'post title (concise, engaging)';
+                }
+            } else {
+                titleType = 'SEO title (max 60 chars)';
+            }
+
+            // Determine description type
+            if (isExcerptMode) {
+                if (isTerm) {
+                    descType = 'taxonomy description (max 160 chars)';
+                } else {
+                    descType = 'post excerpt (max 160 chars)';
+                }
+            } else {
+                descType = 'meta description (max 160 chars)';
+            }
+
+            // Build the whatToGenerate string
             if (genTitle && genDesc) {
-                if (isExcerptMode) {
-                    if (isTerm) {
-                        whatToGenerate = 'Generate SEO title (max 60 chars) and taxonomy description (max 160 chars)';
-                    } else {
-                        whatToGenerate = 'Generate SEO title (max 60 chars) and post excerpt (max 160 chars)';
-                    }
-                } else {
-                    whatToGenerate = 'Generate SEO title (max 60 chars) and meta description (max 160 chars)';
-                }
+                whatToGenerate = `Generate ${titleType} and ${descType}`;
             } else if (genTitle) {
-                whatToGenerate = 'Generate SEO title (max 60 chars)';
+                whatToGenerate = `Generate ${titleType}`;
             } else if (genDesc) {
-                if (isExcerptMode) {
-                    if (isTerm) {
-                        whatToGenerate = 'Generate taxonomy description (max 160 chars)';
-                    } else {
-                        whatToGenerate = 'Generate post excerpt (max 160 chars)';
-                    }
-                } else {
-                    whatToGenerate = 'Generate SEO meta description (max 160 chars)';
-                }
+                whatToGenerate = `Generate ${descType}`;
             }
 
             // Check if this is term data or post data
@@ -1367,7 +1459,12 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
             if (generateDesc.checked) {
                 formData.append('description', resultDesc.value);
             }
-            
+
+            const isTitleMode = titleModeCheckbox && titleModeCheckbox.checked;
+            if (isTitleMode) {
+                formData.append('title_mode', '1');
+            }
+
             const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
             if (isExcerptMode) {
                 formData.append('excerpt_mode', '1');
@@ -1399,7 +1496,12 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
                 const termDescField = document.getElementById('snn_seo_term_description');
                 if (termDescField) termDescField.value = resultDesc.value;
             }
-            
+
+            const isTitleMode = titleModeCheckbox && titleModeCheckbox.checked;
+            if (isTitleMode) {
+                formData.append('title_mode', '1');
+            }
+
             const isExcerptMode = excerptModeCheckbox && excerptModeCheckbox.checked;
             if (isExcerptMode) {
                 formData.append('excerpt_mode', '1');
@@ -1548,24 +1650,34 @@ add_action('wp_ajax_snn_seo_ai_get_term_data', 'snn_seo_ai_get_term_data_handler
  */
 function snn_seo_ai_save_post_handler() {
     check_ajax_referer('snn_seo_ai_nonce', 'nonce');
-    
+
     if (!current_user_can('edit_posts')) {
         wp_send_json_error('Insufficient permissions');
     }
-    
+
     $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
     $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
     $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
+    $title_mode = isset($_POST['title_mode']) && $_POST['title_mode'] === '1';
     $excerpt_mode = isset($_POST['excerpt_mode']) && $_POST['excerpt_mode'] === '1';
-    
+
     if (!$post_id) {
         wp_send_json_error('Invalid post ID');
     }
-    
+
     if ($title) {
-        update_post_meta($post_id, '_snn_seo_title', $title);
+        if ($title_mode) {
+            // Save to post title instead of meta title
+            wp_update_post(array(
+                'ID' => $post_id,
+                'post_title' => $title
+            ));
+        } else {
+            // Save to meta title
+            update_post_meta($post_id, '_snn_seo_title', $title);
+        }
     }
-    
+
     if ($description) {
         if ($excerpt_mode) {
             // Save to post excerpt instead of meta description
@@ -1578,7 +1690,7 @@ function snn_seo_ai_save_post_handler() {
             update_post_meta($post_id, '_snn_seo_description', $description);
         }
     }
-    
+
     wp_send_json_success();
 }
 add_action('wp_ajax_snn_seo_ai_save_post', 'snn_seo_ai_save_post_handler');
@@ -1588,29 +1700,38 @@ add_action('wp_ajax_snn_seo_ai_save_post', 'snn_seo_ai_save_post_handler');
  */
 function snn_seo_ai_save_term_handler() {
     check_ajax_referer('snn_seo_ai_nonce', 'nonce');
-    
+
     if (!current_user_can('manage_categories')) {
         wp_send_json_error('Insufficient permissions');
     }
-    
+
     $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
     $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
     $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
+    $title_mode = isset($_POST['title_mode']) && $_POST['title_mode'] === '1';
     $excerpt_mode = isset($_POST['excerpt_mode']) && $_POST['excerpt_mode'] === '1';
-    
+
     if (!$term_id) {
         wp_send_json_error('Invalid term ID');
     }
-    
+
     $term = get_term($term_id);
     if (!$term || is_wp_error($term)) {
         wp_send_json_error('Term not found');
     }
-    
+
     if ($title) {
-        update_term_meta($term_id, '_snn_seo_title', $title);
+        if ($title_mode) {
+            // Save to term name instead of meta title
+            wp_update_term($term_id, $term->taxonomy, array(
+                'name' => $title
+            ));
+        } else {
+            // Save to meta title
+            update_term_meta($term_id, '_snn_seo_title', $title);
+        }
     }
-    
+
     if ($description) {
         if ($excerpt_mode) {
             // Save to taxonomy description instead of meta description
@@ -1622,7 +1743,7 @@ function snn_seo_ai_save_term_handler() {
             update_term_meta($term_id, '_snn_seo_description', $description);
         }
     }
-    
+
     wp_send_json_success();
 }
 add_action('wp_ajax_snn_seo_ai_save_term', 'snn_seo_ai_save_term_handler');
