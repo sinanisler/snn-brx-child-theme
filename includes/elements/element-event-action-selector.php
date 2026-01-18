@@ -12,6 +12,9 @@ class Snn_Event_Action_Selector extends Element {
     public $scripts      = [];
     public $nestable     = false;
 
+    private static $instances = [];
+    private static $footer_script_added = false;
+
     public function get_label() {
         return esc_html__( 'Event ⇄ Action', 'snn' );
     }
@@ -247,250 +250,259 @@ class Snn_Event_Action_Selector extends Element {
             'actions'     => $actions,
         ];
 
-        // Add script to footer
-        add_action( 'wp_footer', function() use ( $script_data ) {
-            ?>
-            <script>
-            (function(){
-                const uid        = <?php echo json_encode( $script_data['uid'] ); ?>;
-                const root       = document.querySelector('.' + uid);
-                if (!root) return;
+        // Collect instance data
+        self::$instances[] = $script_data;
 
-                const triggerSel = <?php echo json_encode( $script_data['triggerSel'] ); ?>;
-                const evType     = <?php echo json_encode( $script_data['evType'] ); ?>;
-                const actions    = <?php echo json_encode( $script_data['actions'] ); ?>;
+        // Add footer script only once
+        if ( ! self::$footer_script_added ) {
+            self::$footer_script_added = true;
+            
+            add_action( 'wp_footer', function() {
+                if ( empty( self::$instances ) ) return;
+                ?>
+                <script>
+                (function(){
+                    const allInstances = <?php echo json_encode( self::$instances ); ?>;
 
-                function performAction(actionConfig, targets, e) {
-                    const {
-                        action,
-                        class_name = 'active',
-                        attribute_name = '',
-                        attribute_value = '',
-                        replace_html = '',
-                        append_html = '',
-                        prepend_html = '',
-                        style_property = '',
-                        style_value = '',
-                        custom_event_name = '',
-                        custom_js_function = '',
-                        text_value = '',
-                        download_url = '',
-                        copy_value = '',
-                        scroll_behavior = 'smooth',
-                        scroll_block = 'center'
-                    } = actionConfig;
+                    function performAction(actionConfig, targets, e) {
+                        const {
+                            action,
+                            class_name = 'active',
+                            attribute_name = '',
+                            attribute_value = '',
+                            replace_html = '',
+                            append_html = '',
+                            prepend_html = '',
+                            style_property = '',
+                            style_value = '',
+                            custom_event_name = '',
+                            custom_js_function = '',
+                            text_value = '',
+                            download_url = '',
+                            copy_value = '',
+                            scroll_behavior = 'smooth',
+                            scroll_block = 'center'
+                        } = actionConfig;
 
-                    targets.forEach(el => {
-                        switch(action) {
-                            case 'Show/Hide Element':
-                                el.style.display = (el.style.display === 'none' ? '' : 'none');
-                                break;
-                            case 'Add Class':
-                                if(class_name) el.classList.add(class_name);
-                                break;
-                            case 'Remove Class':
-                                if(class_name) el.classList.remove(class_name);
-                                break;
-                            case 'Toggle Class':
-                                if(class_name) el.classList.toggle(class_name);
-                                break;
-                            case 'Remove Element':
-                                el.remove();
-                                break;
-                            case 'Enable/Disable Element':
-                                el.disabled = !el.disabled;
-                                break;
-                            case 'Prevent Default':
-                                if(e) e.preventDefault();
-                                break;
-                            case 'Stop Propagation':
-                                if(e) e.stopPropagation();
-                                break;
-                            case 'Scroll Into View':
-                                el.scrollIntoView({ behavior: scroll_behavior, block: scroll_block });
-                                break;
-                            case 'Focus Element':
-                                el.focus({ preventScroll: false });
-                                break;
-                            case 'Blur Element':
-                                el.blur();
-                                break;
-                            case 'Toggle Fullscreen':
-                                if (!document.fullscreenElement) { el.requestFullscreen().catch(()=>{}); }
-                                else { document.exitFullscreen(); }
-                                break;
-                            case 'Clone Element':
-                                el.parentNode && el.parentNode.insertBefore(el.cloneNode(true), el.nextSibling);
-                                break;
-                            case 'Replace HTML':
-                                el.innerHTML = replace_html || '';
-                                break;
-                            case 'Set Attribute':
-                                if(attribute_name) el.setAttribute(attribute_name, attribute_value || '');
-                                break;
-                            case 'Remove Attribute':
-                                if(attribute_name) el.removeAttribute(attribute_name);
-                                break;
-                            case 'Toggle Attribute':
-                                if(attribute_name) {
-                                    if(el.hasAttribute(attribute_name)) el.removeAttribute(attribute_name);
-                                    else el.setAttribute(attribute_name, attribute_value || '');
-                                }
-                                break;
-                            case 'Dispatch Custom Event':
-                                if(custom_event_name) el.dispatchEvent(new CustomEvent(custom_event_name, { bubbles: true }));
-                                break;
-                            case 'Download File':
-                                if(download_url) {
-                                    const a = document.createElement('a');
-                                    a.href = download_url;
-                                    a.download = '';
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                }
-                                break;
-                            case 'Change Text':
-                                el.textContent = text_value || '';
-                                break;
-                            case 'Append HTML':
-                                el.insertAdjacentHTML('beforeend', append_html || '');
-                                break;
-                            case 'Prepend HTML':
-                                el.insertAdjacentHTML('afterbegin', prepend_html || '');
-                                break;
-                            case 'Toggle Style Property':
-                                if(style_property) {
-                                    if(el.style[style_property]) el.style[style_property] = '';
-                                    else el.style[style_property] = style_value || '';
-                                }
-                                break;
-                            case 'Play/Pause Media':
-                                if(el.paused !== undefined) {
-                                    if(el.paused) el.play();
-                                    else el.pause();
-                                }
-                                break;
-                            case 'Capture Screenshot':
-                                if(window.html2canvas) {
-                                    html2canvas(el).then(canvas => {
+                        targets.forEach(el => {
+                            switch(action) {
+                                case 'Show/Hide Element':
+                                    el.style.display = (el.style.display === 'none' ? '' : 'none');
+                                    break;
+                                case 'Add Class':
+                                    if(class_name) el.classList.add(class_name);
+                                    break;
+                                case 'Remove Class':
+                                    if(class_name) el.classList.remove(class_name);
+                                    break;
+                                case 'Toggle Class':
+                                    if(class_name) el.classList.toggle(class_name);
+                                    break;
+                                case 'Remove Element':
+                                    el.remove();
+                                    break;
+                                case 'Enable/Disable Element':
+                                    el.disabled = !el.disabled;
+                                    break;
+                                case 'Prevent Default':
+                                    if(e) e.preventDefault();
+                                    break;
+                                case 'Stop Propagation':
+                                    if(e) e.stopPropagation();
+                                    break;
+                                case 'Scroll Into View':
+                                    el.scrollIntoView({ behavior: scroll_behavior, block: scroll_block });
+                                    break;
+                                case 'Focus Element':
+                                    el.focus({ preventScroll: false });
+                                    break;
+                                case 'Blur Element':
+                                    el.blur();
+                                    break;
+                                case 'Toggle Fullscreen':
+                                    if (!document.fullscreenElement) { el.requestFullscreen().catch(()=>{}); }
+                                    else { document.exitFullscreen(); }
+                                    break;
+                                case 'Clone Element':
+                                    el.parentNode && el.parentNode.insertBefore(el.cloneNode(true), el.nextSibling);
+                                    break;
+                                case 'Replace HTML':
+                                    el.innerHTML = replace_html || '';
+                                    break;
+                                case 'Set Attribute':
+                                    if(attribute_name) el.setAttribute(attribute_name, attribute_value || '');
+                                    break;
+                                case 'Remove Attribute':
+                                    if(attribute_name) el.removeAttribute(attribute_name);
+                                    break;
+                                case 'Toggle Attribute':
+                                    if(attribute_name) {
+                                        if(el.hasAttribute(attribute_name)) el.removeAttribute(attribute_name);
+                                        else el.setAttribute(attribute_name, attribute_value || '');
+                                    }
+                                    break;
+                                case 'Dispatch Custom Event':
+                                    if(custom_event_name) el.dispatchEvent(new CustomEvent(custom_event_name, { bubbles: true }));
+                                    break;
+                                case 'Download File':
+                                    if(download_url) {
                                         const a = document.createElement('a');
-                                        a.href = canvas.toDataURL();
-                                        a.download = 'screenshot.png';
+                                        a.href = download_url;
+                                        a.download = '';
+                                        document.body.appendChild(a);
                                         a.click();
-                                    });
-                                } else {
-                                    console.warn('html2canvas.js library is required for this action.');
-                                }
-                                break;
-                            case 'Copy To Clipboard':
-                                if(copy_value && navigator.clipboard) {
-                                    navigator.clipboard.writeText(copy_value).catch(err => console.warn('Copy to clipboard failed:', err));
-                                }
-                                break;
-                            case 'Set Value':
-                                if('value' in el) el.value = text_value || '';
-                                break;
-                            case 'Log To Console':
-                                console.log('[Event⇄Action]', { target: el, event: e, config: actionConfig });
-                                break;
-                            case 'Custom JS Function':
-                                try {
-                                    const fn = new Function('targets', 'event', custom_js_function || '');
-                                    fn([el], e);
-                                } catch(err) {
-                                    console.warn('Error in custom JS function:', err);
-                                }
-                                break;
-                            default:
-                                console.warn('Action "' + action + '" not implemented.');
-                        }
-                    });
-                }
-
-                // Check if this is a Bricks custom event
-                const isBricksEvent = evType.startsWith('bricks/');
-
-                if (isBricksEvent) {
-                    // Handle Bricks custom events with document.addEventListener
-                    document.addEventListener(evType, function(e) {
-                        actions.forEach(actionConfig => {
-                            const targetSel = actionConfig.target_selector;
-                            const targets = targetSel ? document.querySelectorAll(targetSel) : [];
-                            if(targets.length) {
-                                performAction(actionConfig, Array.from(targets), e);
-                            } else if (!targetSel) {
-                                console.warn('[Event⇄Action] Target selector required for Bricks events');
-                            } else {
-                                console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
+                                        document.body.removeChild(a);
+                                    }
+                                    break;
+                                case 'Change Text':
+                                    el.textContent = text_value || '';
+                                    break;
+                                case 'Append HTML':
+                                    el.insertAdjacentHTML('beforeend', append_html || '');
+                                    break;
+                                case 'Prepend HTML':
+                                    el.insertAdjacentHTML('afterbegin', prepend_html || '');
+                                    break;
+                                case 'Toggle Style Property':
+                                    if(style_property) {
+                                        if(el.style[style_property]) el.style[style_property] = '';
+                                        else el.style[style_property] = style_value || '';
+                                    }
+                                    break;
+                                case 'Play/Pause Media':
+                                    if(el.paused !== undefined) {
+                                        if(el.paused) el.play();
+                                        else el.pause();
+                                    }
+                                    break;
+                                case 'Capture Screenshot':
+                                    if(window.html2canvas) {
+                                        html2canvas(el).then(canvas => {
+                                            const a = document.createElement('a');
+                                            a.href = canvas.toDataURL();
+                                            a.download = 'screenshot.png';
+                                            a.click();
+                                        });
+                                    } else {
+                                        console.warn('html2canvas.js library is required for this action.');
+                                    }
+                                    break;
+                                case 'Copy To Clipboard':
+                                    if(copy_value && navigator.clipboard) {
+                                        navigator.clipboard.writeText(copy_value).catch(err => console.warn('Copy to clipboard failed:', err));
+                                    }
+                                    break;
+                                case 'Set Value':
+                                    if('value' in el) el.value = text_value || '';
+                                    break;
+                                case 'Log To Console':
+                                    console.log('[Event⇄Action]', { target: el, event: e, config: actionConfig });
+                                    break;
+                                case 'Custom JS Function':
+                                    try {
+                                        const fn = new Function('targets', 'event', custom_js_function || '');
+                                        fn([el], e);
+                                    } catch(err) {
+                                        console.warn('Error in custom JS function:', err);
+                                    }
+                                    break;
+                                default:
+                                    console.warn('Action "' + action + '" not implemented.');
                             }
                         });
-                    });
-                } else {
-                    // Handle regular DOM events
-                    const triggers = document.querySelectorAll(triggerSel);
-                    if(!triggers.length) {
-                        console.warn('[Event⇄Action] No elements match trigger selector: "' + triggerSel + '"');
-                        return;
                     }
 
-                    // Check if this is a paired event (e.g., "focus / blur")
-                    const isPairedEvent = evType.includes(' / ');
-                    const eventTypes = isPairedEvent ? evType.split(' / ').map(e => e.trim()) : [evType];
+                    // Process each instance
+                    allInstances.forEach(instance => {
+                        const { uid, triggerSel, evType, actions } = instance;
+                        const root = document.querySelector('.' + uid);
+                        if (!root) return;
 
-                    triggers.forEach(tr => {
-                        // Add listener for each event in the pair (or single event)
-                        eventTypes.forEach(eventType => {
-                            tr.addEventListener(eventType, function(e) {
-                                // Special handling for events that can fire when interacting with child elements
-                                if (eventType === 'blur' || eventType === 'mouseout' || eventType === 'mouseleave' || eventType === 'pointerleave') {
-                                    setTimeout(() => {
-                                        actions.forEach(actionConfig => {
-                                            const targetSel = actionConfig.target_selector;
-                                            const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+                        // Check if this is a Bricks custom event
+                        const isBricksEvent = evType.startsWith('bricks/');
 
-                                            let isStillInTargets = false;
+                        if (isBricksEvent) {
+                            // Handle Bricks custom events with document.addEventListener
+                            document.addEventListener(evType, function(e) {
+                                actions.forEach(actionConfig => {
+                                    const targetSel = actionConfig.target_selector;
+                                    const targets = targetSel ? document.querySelectorAll(targetSel) : [];
+                                    if(targets.length) {
+                                        performAction(actionConfig, Array.from(targets), e);
+                                    } else if (!targetSel) {
+                                        console.warn('[Event⇄Action] Target selector required for Bricks events');
+                                    } else {
+                                        console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
+                                    }
+                                });
+                            });
+                        } else {
+                            // Handle regular DOM events
+                            const triggers = document.querySelectorAll(triggerSel);
+                            if(!triggers.length) {
+                                console.warn('[Event⇄Action] No elements match trigger selector: "' + triggerSel + '"');
+                                return;
+                            }
 
-                                            if (eventType === 'blur') {
-                                                // Check if focus is still within action targets
-                                                const newFocus = document.activeElement;
-                                                isStillInTargets = Array.from(targets).some(t =>
-                                                    t.contains(newFocus) || t === newFocus
-                                                );
-                                            } else {
-                                                // For mouse/pointer events, check if mouse is still hovering over targets
-                                                const hoveredElements = document.querySelectorAll(':hover');
-                                                isStillInTargets = Array.from(targets).some(t =>
-                                                    Array.from(hoveredElements).some(h => h === t || t.contains(h))
-                                                );
-                                            }
+                            // Check if this is a paired event (e.g., "focus / blur")
+                            const isPairedEvent = evType.includes(' / ');
+                            const eventTypes = isPairedEvent ? evType.split(' / ').map(e => e.trim()) : [evType];
 
-                                            // Only perform action if interaction moved outside all targets
-                                            if (!isStillInTargets && targets.length) {
-                                                performAction(actionConfig, Array.from(targets), e);
-                                            }
-                                        });
-                                    }, 150);
-                                } else {
-                                    // Normal handling for other events
-                                    actions.forEach(actionConfig => {
-                                        const targetSel = actionConfig.target_selector;
-                                        const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
-                                        if(targets.length) {
-                                            performAction(actionConfig, Array.from(targets), e);
+                            triggers.forEach(tr => {
+                                // Add listener for each event in the pair (or single event)
+                                eventTypes.forEach(eventType => {
+                                    tr.addEventListener(eventType, function(e) {
+                                        // Special handling for events that can fire when interacting with child elements
+                                        if (eventType === 'blur' || eventType === 'mouseout' || eventType === 'mouseleave' || eventType === 'pointerleave') {
+                                            setTimeout(() => {
+                                                actions.forEach(actionConfig => {
+                                                    const targetSel = actionConfig.target_selector;
+                                                    const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+
+                                                    let isStillInTargets = false;
+
+                                                    if (eventType === 'blur') {
+                                                        // Check if focus is still within action targets
+                                                        const newFocus = document.activeElement;
+                                                        isStillInTargets = Array.from(targets).some(t =>
+                                                            t.contains(newFocus) || t === newFocus
+                                                        );
+                                                    } else {
+                                                        // For mouse/pointer events, check if mouse is still hovering over targets
+                                                        const hoveredElements = document.querySelectorAll(':hover');
+                                                        isStillInTargets = Array.from(targets).some(t =>
+                                                            Array.from(hoveredElements).some(h => h === t || t.contains(h))
+                                                        );
+                                                    }
+
+                                                    // Only perform action if interaction moved outside all targets
+                                                    if (!isStillInTargets && targets.length) {
+                                                        performAction(actionConfig, Array.from(targets), e);
+                                                    }
+                                                });
+                                            }, 150);
                                         } else {
-                                            console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
+                                            // Normal handling for other events
+                                            actions.forEach(actionConfig => {
+                                                const targetSel = actionConfig.target_selector;
+                                                const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
+                                                if(targets.length) {
+                                                    performAction(actionConfig, Array.from(targets), e);
+                                                } else {
+                                                    console.warn('[Event⇄Action] No elements match target selector: "' + targetSel + '"');
+                                                }
+                                            });
                                         }
                                     });
-                                }
+                                });
                             });
-                        });
+                        }
                     });
-                }
-            })();
-            </script>
-            <?php
-        }, 99 );
+                })();
+                </script>
+                <?php
+            }, 99 );
+        }
     }
 }
 ?>
