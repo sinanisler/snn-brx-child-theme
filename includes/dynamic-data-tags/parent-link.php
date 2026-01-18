@@ -15,6 +15,7 @@
  * - (default): Returns the full HTML link
  * - title: Returns only the title text
  * - url: Returns only the permalink URL
+ * - link: Returns only the permalink URL (alias for url)
  * - slug: Returns only the post slug
  *
  * Examples:
@@ -38,6 +39,7 @@ function register_parent_link_tag($tags) {
         ''      => '',
         'title' => ' - Title',
         'url'   => ' - URL',
+        'link'  => ' - Link (URL)',
         'slug'  => ' - Slug',
     ];
 
@@ -113,6 +115,7 @@ function get_parent_link_data($option = '', $property = '') {
             return get_the_title($parent_post->ID);
 
         case 'url':
+        case 'link':
             return get_permalink($parent_post->ID);
 
         case 'slug':
