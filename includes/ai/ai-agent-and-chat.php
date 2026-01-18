@@ -4,7 +4,7 @@
  *
  * File: snn-chat-overlay.php
  *
- * Purpose: Provides an AI-powered chat interface accessible from anywhere in WordPress (admin and frontend).
+ * Purpose: Provides an AI-powered chat interface accessible ONLY in wp-admin area for logged-in users.
  * Adds a button to the admin bar and displays a floating overlay that can execute WordPress abilities
  * through AI agent conversations. Uses the existing AI API configuration and integrates with the
  * WordPress Core Abilities API for autonomous task execution.
@@ -59,15 +59,13 @@ class SNN_Chat_Overlay {
             return;
         }
         
-        // Add admin bar button
+        // Add admin bar button (wp-admin only)
         add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_button' ), 999 );
         
-        // Enqueue scripts and styles
-        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+        // Enqueue scripts and styles (wp-admin only)
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
         
-        // Render overlay HTML
-        add_action( 'wp_footer', array( $this, 'render_overlay' ), 999 );
+        // Render overlay HTML (wp-admin only)
         add_action( 'admin_footer', array( $this, 'render_overlay' ), 999 );
     }
 
@@ -968,15 +966,11 @@ class SNN_Chat_Overlay {
     }
 
     /**
-     * Add button to WordPress admin bar
+     * Add button to WordPress admin bar (wp-admin only)
      */
     public function add_admin_bar_button( $wp_admin_bar ) {
-        if ( ! current_user_can( 'edit_posts' ) ) {
-            return;
-        }
-
-        // Only show in wp-admin area
-        if ( ! is_admin() ) {
+        // Only show in wp-admin area for logged-in users with edit_posts capability
+        if ( ! is_admin() || ! current_user_can( 'edit_posts' ) ) {
             return;
         }
 
@@ -993,10 +987,11 @@ class SNN_Chat_Overlay {
     }
 
     /**
-     * Enqueue styles and scripts
+     * Enqueue styles and scripts (wp-admin only)
      */
     public function enqueue_assets() {
-        if ( ! current_user_can( 'edit_posts' ) ) {
+        // Double check we're in admin area with proper permissions
+        if ( ! is_admin() || ! current_user_can( 'edit_posts' ) ) {
             return;
         }
 
@@ -1041,10 +1036,11 @@ class SNN_Chat_Overlay {
     }
 
     /**
-     * Render overlay HTML
+     * Render overlay HTML (wp-admin only)
      */
     public function render_overlay() {
-        if ( ! current_user_can( 'edit_posts' ) ) {
+        // Double check we're in admin area with proper permissions
+        if ( ! is_admin() || ! current_user_can( 'edit_posts' ) ) {
             return;
         }
         ?>
