@@ -239,17 +239,26 @@ class Snn_Event_Action_Selector extends Element {
         $this->set_attribute( '_root', 'class', [ 'snn-event-action-selector', $uid ] );
         echo '<div ' . $this->render_attributes( '_root' ) . '></div>'; // logic only element
 
-        ?>
-        <script>
-        (function(){
-            document.addEventListener('DOMContentLoaded', function() {
-                const uid        = <?php echo json_encode( $uid ); ?>;
+        // Prepare script data
+        $script_data = [
+            'uid'         => $uid,
+            'triggerSel'  => $trigger_sel,
+            'evType'      => $event,
+            'actions'     => $actions,
+        ];
+
+        // Add script to footer
+        add_action( 'wp_footer', function() use ( $script_data ) {
+            ?>
+            <script>
+            (function(){
+                const uid        = <?php echo json_encode( $script_data['uid'] ); ?>;
                 const root       = document.querySelector('.' + uid);
                 if (!root) return;
 
-                const triggerSel = <?php echo json_encode( $trigger_sel ); ?>;
-                const evType     = <?php echo json_encode( $event ); ?>;
-                const actions    = <?php echo json_encode( $actions ); ?>;
+                const triggerSel = <?php echo json_encode( $script_data['triggerSel'] ); ?>;
+                const evType     = <?php echo json_encode( $script_data['evType'] ); ?>;
+                const actions    = <?php echo json_encode( $script_data['actions'] ); ?>;
 
                 function performAction(actionConfig, targets, e) {
                     const {
@@ -439,23 +448,23 @@ class Snn_Event_Action_Selector extends Element {
                                         actions.forEach(actionConfig => {
                                             const targetSel = actionConfig.target_selector;
                                             const targets = targetSel ? document.querySelectorAll(targetSel) : [tr];
-                                            
+
                                             let isStillInTargets = false;
-                                            
+
                                             if (eventType === 'blur') {
                                                 // Check if focus is still within action targets
                                                 const newFocus = document.activeElement;
-                                                isStillInTargets = Array.from(targets).some(t => 
+                                                isStillInTargets = Array.from(targets).some(t =>
                                                     t.contains(newFocus) || t === newFocus
                                                 );
                                             } else {
                                                 // For mouse/pointer events, check if mouse is still hovering over targets
                                                 const hoveredElements = document.querySelectorAll(':hover');
-                                                isStillInTargets = Array.from(targets).some(t => 
+                                                isStillInTargets = Array.from(targets).some(t =>
                                                     Array.from(hoveredElements).some(h => h === t || t.contains(h))
                                                 );
                                             }
-                                            
+
                                             // Only perform action if interaction moved outside all targets
                                             if (!isStillInTargets && targets.length) {
                                                 performAction(actionConfig, Array.from(targets), e);
@@ -478,10 +487,10 @@ class Snn_Event_Action_Selector extends Element {
                         });
                     });
                 }
-            });
-        })();
-        </script>
-        <?php
+            })();
+            </script>
+            <?php
+        }, 99 );
     }
 }
 ?>
