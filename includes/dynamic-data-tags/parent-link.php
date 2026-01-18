@@ -147,9 +147,13 @@ function render_parent_link_tag($tag, $post, $context = 'text') {
                 $property = trim($matches[2]);
                 return get_parent_link_data($option, $property);
             } elseif (preg_match('/{parent_link:([^}]+)}/', $tag, $matches)) {
-                // {parent_link:option}
-                $option = trim($matches[1]);
-                return get_parent_link_data($option);
+                // {parent_link:option} or {parent_link:property}
+                $value = trim($matches[1]);
+                // Check if it's a property (title, url, link, slug) or an option (first_parent)
+                if (in_array($value, ['title', 'url', 'link', 'slug'], true)) {
+                    return get_parent_link_data('', $value);
+                }
+                return get_parent_link_data($value);
             } elseif ($tag === '{parent_link}') {
                 // {parent_link}
                 return get_parent_link_data();
@@ -166,8 +170,12 @@ function render_parent_link_tag($tag, $post, $context = 'text') {
                     $property = trim($matches[2]);
                     $tag[$key] = get_parent_link_data($option, $property);
                 } elseif (preg_match('/{parent_link:([^}]+)}/', $value, $matches)) {
-                    $option = trim($matches[1]);
-                    $tag[$key] = get_parent_link_data($option);
+                    $val = trim($matches[1]);
+                    if (in_array($val, ['title', 'url', 'link', 'slug'], true)) {
+                        $tag[$key] = get_parent_link_data('', $val);
+                    } else {
+                        $tag[$key] = get_parent_link_data($val);
+                    }
                 } elseif ($value === '{parent_link}') {
                     $tag[$key] = get_parent_link_data();
                 }
@@ -193,9 +201,15 @@ function render_parent_link_tag_in_content($content, $post, $context = 'text') {
 
     if (!empty($matches[0])) {
         foreach ($matches[0] as $index => $full_match) {
-            $option = isset($matches[1][$index]) && $matches[1][$index] ? $matches[1][$index] : '';
-            $property = isset($matches[2][$index]) && $matches[2][$index] ? $matches[2][$index] : '';
-            $value = get_parent_link_data($option, $property);
+            $first_param = isset($matches[1][$index]) && $matches[1][$index] ? $matches[1][$index] : '';
+            $second_param = isset($matches[2][$index]) && $matches[2][$index] ? $matches[2][$index] : '';
+
+            // If only first param exists and it's a property, treat it as property not option
+            if ($first_param && !$second_param && in_array($first_param, ['title', 'url', 'link', 'slug'], true)) {
+                $value = get_parent_link_data('', $first_param);
+            } else {
+                $value = get_parent_link_data($first_param, $second_param);
+            }
             $content = str_replace($full_match, $value, $content);
         }
     }
