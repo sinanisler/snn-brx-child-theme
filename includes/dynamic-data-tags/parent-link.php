@@ -20,10 +20,13 @@
  *
  * Examples:
  * - {parent_link} → Link to top-level parent
+ * - {parent_link:title} → Title of top-level parent
+ * - {parent_link:url} → URL of top-level parent
+ * - {parent_link:link} → URL of top-level parent (alias)
+ * - {parent_link:slug} → Slug of top-level parent
  * - {parent_link:first_parent} → Link to immediate parent
  * - {parent_link:first_parent:title} → Title of immediate parent
  * - {parent_link:first_parent:url} → URL of immediate parent
- * - {parent_link::title} → Title of top-level parent (note double colon)
  * ----------------------------------------
  */
 
@@ -50,7 +53,8 @@ function register_parent_link_tag($tags) {
             } elseif ($option) {
                 $tag_name = "{parent_link:$option}";
             } elseif ($property) {
-                $tag_name = "{parent_link::$property}";
+                // Register {parent_link:property} for top-level parent with property
+                $tag_name = "{parent_link:$property}";
             } else {
                 $tag_name = '{parent_link}';
             }
