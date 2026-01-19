@@ -16,6 +16,7 @@
  * - author_url: Current post author website URL
  * - date: Current post publish date
  * - modified: Current post last modified date
+ * - modified_with_children: Latest modified date (checks current post and all children)
  * - featured_image: Current post featured image URL
  * - permalink: Current post permalink
  * - slug: Current post slug
@@ -53,6 +54,7 @@ function add_get_contextual_content_tags_to_builder($tags) {
         'author_url'      => 'Current Post Author URL',
         'date'            => 'Current Post Date',
         'modified'        => 'Current Post Modified Date',
+        'modified_with_children' => 'Latest Modified Date (with Children)',
         'featured_image'  => 'Current Post Featured Image URL',
         'permalink'       => 'Current Post Permalink',
         'slug'            => 'Current Post Slug',
@@ -103,6 +105,75 @@ function get_contextual_content_post_id() {
     }
     
     return $post_id;
+}
+
+// Helper: Get the latest modified date from current post and all its children
+function get_contextual_content_latest_modified_with_children($post_id) {
+    if (!$post_id) {
+        return '';
+    }
+
+    // Start with the current post's modified date
+    $current_post = get_post($post_id);
+    if (!$current_post) {
+        return '';
+    }
+
+    $latest_modified = strtotime($current_post->post_modified);
+
+    // Get all child posts (recursively)
+    $children = get_posts([
+        'post_parent' => $post_id,
+        'post_type'   => 'any',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+        'fields'      => 'ids',
+    ]);
+
+    // Check each child's modified date
+    foreach ($children as $child_id) {
+        $child_modified = strtotime(get_post_field('post_modified', $child_id));
+        if ($child_modified > $latest_modified) {
+            $latest_modified = $child_modified;
+        }
+
+        // Recursively check grandchildren
+        $grandchildren_latest = get_contextual_content_latest_modified_with_children_recursive($child_id, $latest_modified);
+        if ($grandchildren_latest > $latest_modified) {
+            $latest_modified = $grandchildren_latest;
+        }
+    }
+
+    // Return formatted date using WordPress default date format
+    return date_i18n(get_option('date_format'), $latest_modified);
+}
+
+// Recursive helper to get latest modified from children
+function get_contextual_content_latest_modified_with_children_recursive($post_id, $current_latest) {
+    $children = get_posts([
+        'post_parent' => $post_id,
+        'post_type'   => 'any',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+        'fields'      => 'ids',
+    ]);
+
+    $latest = $current_latest;
+
+    foreach ($children as $child_id) {
+        $child_modified = strtotime(get_post_field('post_modified', $child_id));
+        if ($child_modified > $latest) {
+            $latest = $child_modified;
+        }
+
+        // Continue recursively
+        $grandchildren_latest = get_contextual_content_latest_modified_with_children_recursive($child_id, $latest);
+        if ($grandchildren_latest > $latest) {
+            $latest = $grandchildren_latest;
+        }
+    }
+
+    return $latest;
 }
 
 // Step 3: Fetch the appropriate content based on the type.
@@ -158,6 +229,9 @@ function get_contextual_content($params) {
             
         case 'modified':
             return get_the_modified_date('', $post_id);
+
+        case 'modified_with_children':
+            return get_contextual_content_latest_modified_with_children($post_id);
             
         case 'featured_image':
             return get_the_post_thumbnail_url($post_id, 'full');
