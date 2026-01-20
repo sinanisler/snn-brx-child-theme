@@ -276,6 +276,7 @@ class SNN_Element_Profile_Settings extends Element {
 		.snn-profile-avatar-preview{margin-top:10px}
 		.snn-profile-avatar-preview img{max-width:150px;height:auto;border-radius:50%;border:3px solid #ddd}
 		.snn-profile-password-hint{color:#666;margin-top:5px}
+		.snn-profile-avatar-hint{color:#666;font-size:12px;margin-top:5px}
 		.snn-profile-field-group{background:#f9f9f9;padding:15px;border-radius:4px;margin-top:10px; gap: 10px;display: flex;flex-direction: column;}
 		.snn-profile-field-group-title{font-weight:600;font-size:16px;margin-bottom:15px;color:#333}
 		.snn-profile-field input[type="checkbox"]{width:auto;margin-right:8px;cursor:pointer}
@@ -300,6 +301,7 @@ class SNN_Element_Profile_Settings extends Element {
 						<div class="snn-profile-field">
 							<label for="snn-avatar"><?php esc_html_e( 'Profile Avatar', 'snn' ); ?></label>
 							<input type="file" id="snn-avatar" name="snn_avatar" accept="image/*">
+							<div class="snn-profile-avatar-hint"><?php esc_html_e( 'Max file size: 5MB. Allowed formats: JPG, PNG, GIF, WebP.', 'snn' ); ?></div>
 							<div class="snn-profile-avatar-preview">
 								<?php echo get_avatar( $current_user_id, 150 ); ?>
 							</div>
