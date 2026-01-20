@@ -49,20 +49,24 @@ function get_raw_all_custom_fields( $post ) {
 }
 
 function get_raw_all_author_fields( $post ) {
-    // Get author ID from current context
+    // Get author ID using the same logic as get_contextual_id
     $author_id = null;
 
-    // Try to get the queried object first (works for author pages with custom permalinks)
-    $queried_object = get_queried_object();
-
-    if ( $queried_object && isset( $queried_object->ID ) && get_class( $queried_object ) === 'WP_User' ) {
-        $author_id = $queried_object->ID;
-    } elseif ( is_author() ) {
+    // On author archive pages, return the queried author ID
+    if ( is_author() ) {
         $author_id = get_queried_object_id();
-    } elseif ( $post && isset( $post->post_author ) ) {
+    }
+    // On singular posts/pages, return the post author
+    elseif ( is_singular() ) {
+        $author_id = get_post_field( 'post_author', get_the_ID() );
+    }
+    // In the loop, return current post's author
+    elseif ( in_the_loop() && get_the_ID() ) {
+        $author_id = get_post_field( 'post_author', get_the_ID() );
+    }
+    // Fallback to post object if provided
+    elseif ( $post && isset( $post->post_author ) ) {
         $author_id = $post->post_author;
-    } elseif ( is_singular() ) {
-        $author_id = get_the_author_meta( 'ID' );
     }
 
     if ( $author_id ) {
