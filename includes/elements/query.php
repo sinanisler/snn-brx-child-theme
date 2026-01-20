@@ -451,7 +451,7 @@ class SNN_Query_Nestable extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Custom Args (PHP)', 'snn' ),
             'type'    => 'code',
-            'mode' => 'php',
+            'mode' => 'html',
             'placeholder' => "array(\n    'posts_per_page' => 5,\n    'orderby' => 'rand',\n    'tax_query' => array(\n        'relation' => 'OR',\n        array(\n            'taxonomy' => 'category',\n            'field' => 'slug',\n            'terms' => array('quotes'),\n        ),\n    ),\n)",
             'description' => esc_html__( 'Advanced: Enter valid PHP array syntax for WP_Query arguments. These will be merged with (and can override) other control settings. Example: array(\'posts_per_page\' => 5, \'orderby\' => \'rand\')', 'snn' ),
         ];
