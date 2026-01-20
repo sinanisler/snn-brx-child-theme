@@ -586,18 +586,23 @@ class SNN_Query_Nestable extends Element {
             while ( $posts_query->have_posts() ) {
                 $posts_query->the_post();
                 $current_post_id = get_the_ID();
-                
+
                 // CRITICAL: Push current post ID onto context stack BEFORE rendering children
                 // This ensures nested queries can access the correct parent post ID via {post_id}
                 self::$post_context_stack[] = $current_post_id;
-                
+
                 // Set up postdata for dynamic data
                 setup_postdata( $current_post_id );
-                
+
+                // DEBUG: Show if children are being rendered
+                if ( $debug_mode ) {
+                    echo '<div style="background: #ff0; padding: 10px; margin: 10px 0; border: 2px solid #000;">RENDERING CHILDREN FOR POST ID: ' . $current_post_id . '</div>';
+                }
+
                 // Render nested children for each post
                 // Any nested query elements will now have access to the correct post context
                 echo Frontend::render_children( $this );
-                
+
                 // CRITICAL: Pop post ID from context stack AFTER rendering children
                 // This restores the correct context for any parent query
                 array_pop( self::$post_context_stack );
