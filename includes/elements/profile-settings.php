@@ -93,6 +93,7 @@ class SNN_Element_Profile_Settings extends Element {
 						'url'      => esc_html__( 'URL', 'snn' ),
 						'email'    => esc_html__( 'Email', 'snn' ),
 						'number'   => esc_html__( 'Number', 'snn' ),
+						'checkbox' => esc_html__( 'Checkbox (Boolean)', 'snn' ),
 					],
 					'default' => 'text',
 					'inline'  => true,
@@ -281,6 +282,8 @@ class SNN_Element_Profile_Settings extends Element {
 		.snn-profile-password-hint{font-size:12px;color:#666;margin-top:5px}
 		.snn-profile-field-group{background:#f9f9f9;padding:15px;border-radius:4px;margin-top:10px}
 		.snn-profile-field-group-title{font-weight:600;font-size:16px;margin-bottom:15px;color:#333}
+		.snn-profile-field input[type="checkbox"]{width:auto;margin-right:8px;cursor:pointer}
+		.snn-profile-field label:has(input[type="checkbox"]){flex-direction:row;align-items:center;cursor:pointer}
 		</style>
 
 		<form class="snn-profile-form" id="snn-profile-form" method="post" enctype="multipart/form-data">
@@ -377,22 +380,36 @@ class SNN_Element_Profile_Settings extends Element {
 					$field_value = get_user_meta( $current_user_id, $field_key, true );
 				?>
 				<div class="snn-profile-field">
-					<label for="snn-custom-<?php echo esc_attr( $field_key ); ?>"><?php echo $field_label; ?></label>
-					<?php if ( $field_type === 'textarea' ) : ?>
-						<textarea 
-							id="snn-custom-<?php echo esc_attr( $field_key ); ?>" 
-							name="snn_custom_fields[<?php echo esc_attr( $field_key ); ?>]"
-							placeholder="<?php echo $field_placeholder; ?>"
-							rows="4"
-						><?php echo esc_textarea( $field_value ); ?></textarea>
+					<?php if ( $field_type === 'checkbox' ) : ?>
+						<input type="hidden" name="snn_checkbox_fields[]" value="<?php echo esc_attr( $field_key ); ?>">
+						<label for="snn-custom-<?php echo esc_attr( $field_key ); ?>">
+							<input
+								type="checkbox"
+								id="snn-custom-<?php echo esc_attr( $field_key ); ?>"
+								name="snn_custom_fields[<?php echo esc_attr( $field_key ); ?>]"
+								value="1"
+								<?php checked( $field_value, '1' ); ?>
+							>
+							<?php echo $field_label; ?>
+						</label>
 					<?php else : ?>
-						<input 
-							type="<?php echo esc_attr( $field_type ); ?>" 
-							id="snn-custom-<?php echo esc_attr( $field_key ); ?>" 
-							name="snn_custom_fields[<?php echo esc_attr( $field_key ); ?>]"
-							value="<?php echo esc_attr( $field_value ); ?>"
-							placeholder="<?php echo $field_placeholder; ?>"
-						>
+						<label for="snn-custom-<?php echo esc_attr( $field_key ); ?>"><?php echo $field_label; ?></label>
+						<?php if ( $field_type === 'textarea' ) : ?>
+							<textarea
+								id="snn-custom-<?php echo esc_attr( $field_key ); ?>"
+								name="snn_custom_fields[<?php echo esc_attr( $field_key ); ?>]"
+								placeholder="<?php echo $field_placeholder; ?>"
+								rows="4"
+							><?php echo esc_textarea( $field_value ); ?></textarea>
+						<?php else : ?>
+							<input
+								type="<?php echo esc_attr( $field_type ); ?>"
+								id="snn-custom-<?php echo esc_attr( $field_key ); ?>"
+								name="snn_custom_fields[<?php echo esc_attr( $field_key ); ?>]"
+								value="<?php echo esc_attr( $field_value ); ?>"
+								placeholder="<?php echo $field_placeholder; ?>"
+							>
+						<?php endif; ?>
 					<?php endif; ?>
 				</div>
 				<?php endforeach; ?>
@@ -669,9 +686,12 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 		if ( isset( $_POST['snn_custom_fields'] ) && is_array( $_POST['snn_custom_fields'] ) ) {
 			foreach ( $_POST['snn_custom_fields'] as $key => $value ) {
 				$sanitized_key = sanitize_key( $key );
-				
+
 				// Sanitize based on expected type
-				if ( filter_var( $value, FILTER_VALIDATE_URL ) ) {
+				if ( $value === '1' ) {
+					// Checkbox field (boolean true)
+					$sanitized_value = '1';
+				} elseif ( filter_var( $value, FILTER_VALIDATE_URL ) ) {
 					$sanitized_value = esc_url_raw( $value );
 				} elseif ( filter_var( $value, FILTER_VALIDATE_EMAIL ) ) {
 					$sanitized_value = sanitize_email( $value );
@@ -682,6 +702,17 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 				}
 
 				update_user_meta( $current_user_id, $sanitized_key, $sanitized_value );
+			}
+		}
+
+		/* === Handle unchecked checkboxes (they don't get submitted in form) === */
+		if ( isset( $_POST['snn_checkbox_fields'] ) && is_array( $_POST['snn_checkbox_fields'] ) ) {
+			foreach ( $_POST['snn_checkbox_fields'] as $checkbox_key ) {
+				$sanitized_key = sanitize_key( $checkbox_key );
+				// If checkbox wasn't in snn_custom_fields, it means it was unchecked
+				if ( ! isset( $_POST['snn_custom_fields'][ $checkbox_key ] ) ) {
+					update_user_meta( $current_user_id, $sanitized_key, '' );
+				}
 			}
 		}
 
