@@ -240,7 +240,7 @@ class SNN_Element_Profile_Settings extends Element {
 		?>
 		<style>
 		/* Base form styles */
-		.snn-profile-settings-wrapper{width:100%;max-width:800px;margin:0 auto}
+		.snn-profile-settings-wrapper{width:100%; margin:0 auto}
 		.snn-profile-form{display:flex;flex-direction:column;gap:20px}
 		.snn-profile-field{display:flex;flex-direction:column;gap:8px}
 		.snn-profile-field label{font-weight:600;font-size:14px}
