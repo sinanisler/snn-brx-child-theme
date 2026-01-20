@@ -44,7 +44,20 @@ function add_dynamic_post_custom_field_tags_to_builder($tags) {
 function get_dynamic_post_custom_field($field, $post_id = null) {
     // Get the current post ID if not provided.
     if (!$post_id) {
+        // Try multiple methods to get the post ID for maximum compatibility
+        // 1. Try get_the_ID() - works in the loop
         $post_id = get_the_ID();
+
+        // 2. If still no ID, try get_queried_object_id() - works on singular pages, archives, etc.
+        if (!$post_id) {
+            $post_id = get_queried_object_id();
+        }
+
+        // 3. If still no ID, try global $post
+        if (!$post_id) {
+            global $post;
+            $post_id = isset($post->ID) ? $post->ID : 0;
+        }
     }
 
     // Return empty if no valid post ID.
@@ -81,8 +94,8 @@ function render_dynamic_post_custom_field_tag($tag, $post, $context = 'text') {
             // Extract the field name from the tag.
             $field = str_replace(['{snn_custom_field_current_post_output:', '}'], '', $tag_name);
 
-            // Get post ID from context if available
-            $post_id = is_object($post) && isset($post->ID) ? $post->ID : get_the_ID();
+            // Get post ID from context if available, otherwise let the helper function determine it
+            $post_id = is_object($post) && isset($post->ID) ? $post->ID : null;
 
             return get_dynamic_post_custom_field($field, $post_id);
         }
