@@ -144,6 +144,7 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gallery-and-thumbnails.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/cursor.php');
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/breadcrumbs.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/profile-settings.php');
 
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/lottie-animation.php');
 
