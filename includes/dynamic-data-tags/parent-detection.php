@@ -28,17 +28,30 @@ function register_parent_detection_tag( $tags ) {
 
 add_filter( 'bricks/dynamic_data/render_tag', 'render_parent_detection_tag', 10, 3 );
 function render_parent_detection_tag( $tag, $post, $context = 'text' ) {
-    // Check if the current post has any ancestors
-    $ancestors = get_post_ancestors( $post );
-
     if ( $tag === '{parent_detection}' ) {
-        // If there are no ancestors, this is a top-level post (grandparent)
-        // Otherwise, it's a child (regardless of depth)
+        // If it's an author archive, output "author"
+        if ( is_author() ) {
+            return 'author';
+        }
+
+        // If it's any other archive, output "archive"
+        if ( is_archive() ) {
+            return 'archive';
+        }
+
+        // For singular posts/pages, check hierarchy
+        $ancestors = get_post_ancestors( $post );
         return empty( $ancestors ) ? 'grandparent' : 'child';
     }
 
     if ( $tag === '{parent_detection:depth}' ) {
+        // Archives don't have depth
+        if ( is_archive() ) {
+            return 'depth_0';
+        }
+
         // Return depth_N where N is the number of ancestors
+        $ancestors = get_post_ancestors( $post );
         $depth = count( $ancestors );
         return 'depth_' . $depth;
     }
