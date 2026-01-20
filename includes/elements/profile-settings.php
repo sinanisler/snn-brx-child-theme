@@ -711,7 +711,7 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 				$sanitized_key = sanitize_key( $checkbox_key );
 				// If checkbox wasn't in snn_custom_fields, it means it was unchecked
 				if ( ! isset( $_POST['snn_custom_fields'][ $checkbox_key ] ) ) {
-					update_user_meta( $current_user_id, $sanitized_key, '' );
+					update_user_meta( $current_user_id, $sanitized_key, '0' );
 				}
 			}
 		}
