@@ -49,13 +49,18 @@ function get_raw_all_custom_fields( $post ) {
 }
 
 function get_raw_all_author_fields( $post ) {
-    // Get author ID from post or current author
+    // Get author ID from current context
     $author_id = null;
 
-    if ( $post && isset( $post->post_author ) ) {
-        $author_id = $post->post_author;
+    // Try to get the queried object first (works for author pages with custom permalinks)
+    $queried_object = get_queried_object();
+
+    if ( $queried_object && isset( $queried_object->ID ) && get_class( $queried_object ) === 'WP_User' ) {
+        $author_id = $queried_object->ID;
     } elseif ( is_author() ) {
         $author_id = get_queried_object_id();
+    } elseif ( $post && isset( $post->post_author ) ) {
+        $author_id = $post->post_author;
     } elseif ( is_singular() ) {
         $author_id = get_the_author_meta( 'ID' );
     }
