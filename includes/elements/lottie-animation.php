@@ -209,6 +209,11 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         // Check for external URL first, then fall back to uploaded file
         $lottie_json_url_raw = isset($this->settings['lottie_json_url']) ? $this->settings['lottie_json_url'] : '';
 
+        // Render dynamic tags if present (e.g., {snn_custom_field_current_post_output:badge})
+        if ( ! empty($lottie_json_url_raw) ) {
+            $lottie_json_url_raw = bricks_render_dynamic_data($lottie_json_url_raw);
+        }
+
         // If the value is numeric, treat it as an attachment ID
         if ( is_numeric($lottie_json_url_raw) && ! empty($lottie_json_url_raw) ) {
             $lottie_json_url = wp_get_attachment_url(intval($lottie_json_url_raw));
