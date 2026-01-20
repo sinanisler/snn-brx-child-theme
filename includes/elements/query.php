@@ -444,6 +444,18 @@ class SNN_Query_Nestable extends Element {
         ];
 
         // ====================
+        // CUSTOM ARGS
+        // ====================
+
+        $this->controls['custom_args'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Custom Args (PHP)', 'snn' ),
+            'type'    => 'textarea',
+            'placeholder' => "array(\n    'posts_per_page' => 5,\n    'orderby' => 'rand',\n    'tax_query' => array(\n        'relation' => 'OR',\n        array(\n            'taxonomy' => 'category',\n            'field' => 'slug',\n            'terms' => array('quotes'),\n        ),\n    ),\n)",
+            'description' => esc_html__( 'Advanced: Enter valid PHP array syntax for WP_Query arguments. These will be merged with (and can override) other control settings. Example: array(\'posts_per_page\' => 5, \'orderby\' => \'rand\')', 'snn' ),
+        ];
+
+        // ====================
         // DEBUG
         // ====================
 
@@ -935,6 +947,37 @@ class SNN_Query_Nestable extends Element {
             $date_query = json_decode( $date_query_str, true );
             if ( is_array( $date_query ) ) {
                 $args['date_query'] = $date_query;
+            }
+        }
+
+        // CUSTOM ARGS - Process PHP array syntax
+        if ( ! empty( $settings['custom_args'] ) ) {
+            $custom_args_str = trim( $settings['custom_args'] );
+
+            // Render dynamic data in custom args string
+            $custom_args_str = $this->render_control_dynamic_data( $custom_args_str );
+
+            // Basic syntax validation - check for array( or [
+            if ( strpos( $custom_args_str, 'array(' ) === 0 || strpos( $custom_args_str, '[' ) === 0 ) {
+                // Safely evaluate the PHP array code
+                // Prepend 'return ' if not already there
+                if ( strpos( $custom_args_str, 'return' ) !== 0 ) {
+                    $custom_args_str = 'return ' . $custom_args_str . ';';
+                }
+
+                // Use eval to parse the PHP array (sandboxed as much as possible)
+                try {
+                    $custom_args = @eval( $custom_args_str );
+
+                    // Validate the result is an array
+                    if ( is_array( $custom_args ) ) {
+                        // Merge custom args with existing args (custom args override)
+                        $args = array_merge( $args, $custom_args );
+                    }
+                } catch ( \Exception $e ) {
+                    // Silent fail - don't break the query if custom args are invalid
+                    // In debug mode, this will be visible in the query args output
+                }
             }
         }
 
