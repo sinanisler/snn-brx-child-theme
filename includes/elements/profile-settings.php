@@ -241,9 +241,9 @@ class SNN_Element_Profile_Settings extends Element {
 		<style>
 		/* Base form styles */
 		.snn-profile-settings-wrapper{width:100%; margin:0 auto}
-		.snn-profile-form{display:flex;flex-direction:column;gap:20px}
-		.snn-profile-field{display:flex;flex-direction:column;gap:8px}
-		.snn-profile-field label{font-weight:600;font-size:14px}
+		.snn-profile-form{display:flex;flex-direction:column;gap:10px}
+		.snn-profile-field{display:flex;flex-direction:column;}
+		.snn-profile-field label{font-weight:600;font-size:14px; line-height:1}
 		.snn-profile-field input[type="text"],
 		.snn-profile-field input[type="email"],
 		.snn-profile-field input[type="password"],
@@ -279,8 +279,8 @@ class SNN_Element_Profile_Settings extends Element {
 		.snn-profile-error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
 		.snn-profile-avatar-preview{margin-top:10px}
 		.snn-profile-avatar-preview img{max-width:150px;height:auto;border-radius:50%;border:3px solid #ddd}
-		.snn-profile-password-hint{font-size:12px;color:#666;margin-top:5px}
-		.snn-profile-field-group{background:#f9f9f9;padding:15px;border-radius:4px;margin-top:10px}
+		.snn-profile-password-hint{color:#666;margin-top:5px}
+		.snn-profile-field-group{background:#f9f9f9;padding:15px;border-radius:4px;margin-top:10px; gap: 10px;display: flex;flex-direction: column;}
 		.snn-profile-field-group-title{font-weight:600;font-size:16px;margin-bottom:15px;color:#333}
 		.snn-profile-field input[type="checkbox"]{width:auto;margin-right:8px;cursor:pointer}
 		.snn-profile-field label:has(input[type="checkbox"]){flex-direction:row;align-items:center;cursor:pointer}
