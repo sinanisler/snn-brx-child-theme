@@ -378,6 +378,14 @@ class SNN_Query_Nestable extends Element {
             'description' => esc_html__( 'Improves performance if pagination not needed', 'snn' ),
         ];
 
+        // NEW: Suppress Filters
+        $this->controls['suppress_filters'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Suppress Filters', 'snn' ),
+            'type'    => 'checkbox',
+            'description' => esc_html__( 'Useful for archives: prevents themes/plugins from hijacking the query.', 'snn' ),
+        ];
+
         $this->controls['cache_results'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'cache_results', 'snn' ),
@@ -591,8 +599,8 @@ class SNN_Query_Nestable extends Element {
                 // This ensures nested queries can access the correct parent post ID via {post_id}
                 self::$post_context_stack[] = $current_post_id;
 
-                // Set up postdata for dynamic data
-                setup_postdata( $current_post_id );
+                // REMOVED: setup_postdata( $current_post_id ); 
+                // Reason: the_post() already does this. Calling it again with ID causes issues.
 
                 // DEBUG: Show if children are being rendered
                 if ( $debug_mode ) {
@@ -638,8 +646,7 @@ class SNN_Query_Nestable extends Element {
     /**
      * Render dynamic data tags in control values
      * COMPLETELY REWRITTEN: Bypass Bricks and use native WordPress global $post
-     * 
-     * For nested queries, we use the CURRENT global $post (set by setup_postdata)
+     * * For nested queries, we use the CURRENT global $post (set by setup_postdata)
      * NOT Bricks' dynamic data system which processes tags too early
      */
     private function render_control_dynamic_data( $value, $post_id = null ) {
@@ -705,8 +712,7 @@ class SNN_Query_Nestable extends Element {
 
     /**
      * Build WP_Query arguments from individual control values
-     * 
-     * IMPORTANT: In nested queries, this is called INSIDE the parent query loop,
+     * * IMPORTANT: In nested queries, this is called INSIDE the parent query loop,
      * AFTER setup_postdata() has been called, so dynamic data like {post_id}
      * will resolve to the correct parent post ID via the context stack.
      */
@@ -917,6 +923,11 @@ class SNN_Query_Nestable extends Element {
         // PERFORMANCE
         if ( ! empty( $settings['no_found_rows'] ) ) {
             $args['no_found_rows'] = true;
+        }
+
+        // ADDED: Suppress filters
+        if ( ! empty( $settings['suppress_filters'] ) ) {
+            $args['suppress_filters'] = true;
         }
 
         if ( isset( $settings['cache_results'] ) ) {
