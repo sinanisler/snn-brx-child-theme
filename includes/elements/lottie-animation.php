@@ -32,7 +32,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'label'       => esc_html__( 'Or External JSON URL', 'snn' ),
             'type'        => 'text',
             'placeholder' => esc_html__( 'https://example.com/animation.json', 'snn' ),
-            'description' => "Paste an external Lottie JSON URL here (overrides uploaded file)",
+            'description' => "Paste an external Lottie JSON URL or attachment ID here (overrides uploaded file)",
         ];
 
         // Loop Option
@@ -207,7 +207,15 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 
         // Existing Settings Retrieval
         // Check for external URL first, then fall back to uploaded file
-        $lottie_json_url  = isset($this->settings['lottie_json_url']) ? esc_url($this->settings['lottie_json_url']) : '';
+        $lottie_json_url_raw = isset($this->settings['lottie_json_url']) ? $this->settings['lottie_json_url'] : '';
+
+        // If the value is numeric, treat it as an attachment ID
+        if ( is_numeric($lottie_json_url_raw) && ! empty($lottie_json_url_raw) ) {
+            $lottie_json_url = wp_get_attachment_url(intval($lottie_json_url_raw));
+        } else {
+            $lottie_json_url = ! empty($lottie_json_url_raw) ? esc_url($lottie_json_url_raw) : '';
+        }
+
         $lottie_json_file = isset($this->settings['lottie_json']['url']) ? esc_url($this->settings['lottie_json']['url']) : '';
         $lottie_json      = ! empty($lottie_json_url) ? $lottie_json_url : $lottie_json_file;
 
