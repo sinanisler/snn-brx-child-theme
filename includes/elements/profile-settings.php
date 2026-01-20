@@ -183,18 +183,6 @@ class SNN_Element_Profile_Settings extends Element {
 				],
 			],
 		];
-
-		$this->controls['button_padding'] = [
-			'tab'   => 'content',
-			'label' => esc_html__( 'Button Padding', 'snn' ),
-			'type'  => 'dimensions',
-			'css'   => [
-				[
-					'property' => 'padding',
-					'selector' => '.snn-profile-submit',
-				],
-			],
-		];
 	}
 
 	public function render() {
@@ -272,7 +260,7 @@ class SNN_Element_Profile_Settings extends Element {
 		.snn-profile-field input:focus,
 		.snn-profile-field textarea:focus{outline:2px solid #0073aa;outline-offset:2px}
 		.snn-profile-submit{
-			padding:12px 30px;
+			padding:10px 30px;
 			background:#0073aa;
 			color:#fff;
 			border:none;
@@ -285,7 +273,7 @@ class SNN_Element_Profile_Settings extends Element {
 		}
 		.snn-profile-submit:hover{background:#005a87}
 		.snn-profile-submit:disabled{background:#ccc;cursor:not-allowed}
-		.snn-profile-message{padding:15px;margin-bottom:20px;border-radius:4px}
+		.snn-profile-message{padding:15px;margin-top:20px;border-radius:4px}
 		.snn-profile-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
 		.snn-profile-error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
 		.snn-profile-avatar-preview{margin-top:10px}
@@ -301,10 +289,7 @@ class SNN_Element_Profile_Settings extends Element {
 			<input type="hidden" name="snn_profile_action" value="update_profile">
 			<input type="hidden" name="snn_current_user_id" value="<?php echo esc_attr( $current_user_id ); ?>">
 
-			<!-- Message container -->
-			<div id="snn-profile-message" style="display:none;"></div>
-
-			<?php 
+			<?php
 			/* === Render fields in the order specified by repeater === */
 			foreach ( $profile_fields as $field ) :
 				if ( empty( $field['enabled'] ) || empty( $field['field_type'] ) ) continue;
@@ -415,6 +400,9 @@ class SNN_Element_Profile_Settings extends Element {
 			<?php endif; ?>
 
 			<button type="submit" class="snn-profile-submit"><?php echo esc_html( $submit_text ); ?></button>
+
+			<!-- Message container -->
+			<div id="snn-profile-message" style="display:none;"></div>
 		</form>
 
 		<script>
