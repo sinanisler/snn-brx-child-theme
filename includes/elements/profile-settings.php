@@ -22,62 +22,45 @@ class SNN_Element_Profile_Settings extends Element {
 
 	public function set_controls() {
 
-		/* ---------- CONTENT TAB - Field Enable/Disable Controls ------------------------------------------------ */
+		/* ---------- CONTENT TAB - Profile Fields (Repeater for ordering) ------------------------------------------------ */
 
-		$this->controls['enable_avatar'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable Avatar Upload', 'snn' ),
-			'type'    => 'checkbox',
-			'default' => true,
-			'inline'  => true,
-		];
-
-		$this->controls['enable_first_name'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable First Name', 'snn' ),
-			'type'    => 'checkbox',
-			'default' => true,
-			'inline'  => true,
-		];
-
-		$this->controls['enable_last_name'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable Last Name', 'snn' ),
-			'type'    => 'checkbox',
-			'default' => true,
-			'inline'  => true,
-		];
-
-		$this->controls['enable_email'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable Email', 'snn' ),
-			'type'    => 'checkbox',
-			'default' => true,
-			'inline'  => true,
-		];
-
-		$this->controls['enable_description'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable Description/Bio', 'snn' ),
-			'type'    => 'checkbox',
-			'default' => true,
-			'inline'  => true,
-		];
-
-		$this->controls['enable_password'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable Password Change', 'snn' ),
-			'type'    => 'checkbox',
-			'default' => true,
-			'inline'  => true,
-		];
-
-		$this->controls['enable_website'] = [
-			'tab'     => 'content',
-			'label'   => esc_html__( 'Enable Website URL', 'snn' ),
-			'type'    => 'checkbox',
-			'default' => false,
-			'inline'  => true,
+		$this->controls['profile_fields'] = [
+			'tab'           => 'content',
+			'label'         => esc_html__( 'Profile Fields (Drag to Reorder)', 'snn' ),
+			'type'          => 'repeater',
+			'titleProperty' => 'field_type',
+			'fields'        => [
+				'field_type' => [
+					'label'   => esc_html__( 'Field Type', 'snn' ),
+					'type'    => 'select',
+					'options' => [
+						'avatar'      => esc_html__( 'Avatar Upload', 'snn' ),
+						'first_name'  => esc_html__( 'First Name', 'snn' ),
+						'last_name'   => esc_html__( 'Last Name', 'snn' ),
+						'email'       => esc_html__( 'Email', 'snn' ),
+						'description' => esc_html__( 'Description/Bio', 'snn' ),
+						'password'    => esc_html__( 'Password Change', 'snn' ),
+						'website'     => esc_html__( 'Website URL', 'snn' ),
+					],
+					'default' => 'avatar',
+					'inline'  => true,
+				],
+				'enabled' => [
+					'label'   => esc_html__( 'Enable', 'snn' ),
+					'type'    => 'checkbox',
+					'default' => true,
+					'inline'  => true,
+				],
+			],
+			'default' => [
+				[ 'field_type' => 'avatar', 'enabled' => true ],
+				[ 'field_type' => 'first_name', 'enabled' => true ],
+				[ 'field_type' => 'last_name', 'enabled' => true ],
+				[ 'field_type' => 'email', 'enabled' => true ],
+				[ 'field_type' => 'description', 'enabled' => true ],
+				[ 'field_type' => 'password', 'enabled' => true ],
+				[ 'field_type' => 'website', 'enabled' => false ],
+			],
 		];
 
 		/* ---------- Custom Meta Fields Repeater ------------------------------------------------ */
@@ -236,16 +219,18 @@ class SNN_Element_Profile_Settings extends Element {
 		}
 
 		/* === Get Settings === */
-		$enable_avatar      = ! empty( $this->settings['enable_avatar'] );
-		$enable_first_name  = ! empty( $this->settings['enable_first_name'] );
-		$enable_last_name   = ! empty( $this->settings['enable_last_name'] );
-		$enable_email       = ! empty( $this->settings['enable_email'] );
-		$enable_description = ! empty( $this->settings['enable_description'] );
-		$enable_password    = ! empty( $this->settings['enable_password'] );
-		$enable_website     = ! empty( $this->settings['enable_website'] );
+		$profile_fields     = isset( $this->settings['profile_fields'] ) ? $this->settings['profile_fields'] : [];
 		$custom_fields      = isset( $this->settings['custom_fields'] ) ? $this->settings['custom_fields'] : [];
 		$submit_text        = $this->settings['submit_button_text'] ?? esc_html__( 'Update Profile', 'snn' );
 		$success_message    = $this->settings['success_message'] ?? esc_html__( 'Profile updated successfully!', 'snn' );
+
+		/* === Create field type lookup for easy checking === */
+		$enabled_fields = [];
+		foreach ( $profile_fields as $field ) {
+			if ( ! empty( $field['enabled'] ) && ! empty( $field['field_type'] ) ) {
+				$enabled_fields[] = $field['field_type'];
+			}
+		}
 
 		/* === Get current user data === */
 		$user_data = get_userdata( $current_user_id );
@@ -266,7 +251,7 @@ class SNN_Element_Profile_Settings extends Element {
 		?>
 		<style>
 		/* Base form styles */
-		.snn-profile-settings-wrapper{max-width:800px;margin:0 auto}
+		.snn-profile-settings-wrapper{width:100%;max-width:800px;margin:0 auto}
 		.snn-profile-form{display:flex;flex-direction:column;gap:20px}
 		.snn-profile-field{display:flex;flex-direction:column;gap:8px}
 		.snn-profile-field label{font-weight:600;font-size:14px}
@@ -319,67 +304,79 @@ class SNN_Element_Profile_Settings extends Element {
 			<!-- Message container -->
 			<div id="snn-profile-message" style="display:none;"></div>
 
-			<?php if ( $enable_avatar ) : ?>
-			<div class="snn-profile-field">
-				<label for="snn-avatar"><?php esc_html_e( 'Profile Avatar', 'snn' ); ?></label>
-				<input type="file" id="snn-avatar" name="snn_avatar" accept="image/*">
-				<div class="snn-profile-avatar-preview">
-					<?php echo get_avatar( $current_user_id, 150 ); ?>
-				</div>
-			</div>
-			<?php endif; ?>
-
-			<?php if ( $enable_first_name ) : ?>
-			<div class="snn-profile-field">
-				<label for="snn-first-name"><?php esc_html_e( 'First Name', 'snn' ); ?></label>
-				<input type="text" id="snn-first-name" name="snn_first_name" value="<?php echo esc_attr( $first_name ); ?>">
-			</div>
-			<?php endif; ?>
-
-			<?php if ( $enable_last_name ) : ?>
-			<div class="snn-profile-field">
-				<label for="snn-last-name"><?php esc_html_e( 'Last Name', 'snn' ); ?></label>
-				<input type="text" id="snn-last-name" name="snn_last_name" value="<?php echo esc_attr( $last_name ); ?>">
-			</div>
-			<?php endif; ?>
-
-			<?php if ( $enable_email ) : ?>
-			<div class="snn-profile-field">
-				<label for="snn-email"><?php esc_html_e( 'Email Address', 'snn' ); ?></label>
-				<input type="email" id="snn-email" name="snn_email" value="<?php echo esc_attr( $user_email ); ?>" required>
-			</div>
-			<?php endif; ?>
-
-			<?php if ( $enable_website ) : ?>
-			<div class="snn-profile-field">
-				<label for="snn-website"><?php esc_html_e( 'Website URL', 'snn' ); ?></label>
-				<input type="url" id="snn-website" name="snn_website" value="<?php echo esc_url( $user_website ); ?>" placeholder="https://example.com">
-			</div>
-			<?php endif; ?>
-
-			<?php if ( $enable_description ) : ?>
-			<div class="snn-profile-field">
-				<label for="snn-description"><?php esc_html_e( 'Bio / Description', 'snn' ); ?></label>
-				<textarea id="snn-description" name="snn_description" rows="5"><?php echo esc_textarea( $description ); ?></textarea>
-			</div>
-			<?php endif; ?>
-
-			<?php if ( $enable_password ) : ?>
-			<div class="snn-profile-field-group">
-				<div class="snn-profile-field-group-title"><?php esc_html_e( 'Change Password', 'snn' ); ?></div>
+			<?php 
+			/* === Render fields in the order specified by repeater === */
+			foreach ( $profile_fields as $field ) :
+				if ( empty( $field['enabled'] ) || empty( $field['field_type'] ) ) continue;
 				
-				<div class="snn-profile-field">
-					<label for="snn-password-new"><?php esc_html_e( 'New Password', 'snn' ); ?></label>
-					<input type="password" id="snn-password-new" name="snn_password_new" autocomplete="new-password">
-					<div class="snn-profile-password-hint"><?php esc_html_e( 'Leave blank to keep current password', 'snn' ); ?></div>
-				</div>
+				$field_type = $field['field_type'];
+				
+				switch ( $field_type ) :
+					case 'avatar': ?>
+						<div class="snn-profile-field">
+							<label for="snn-avatar"><?php esc_html_e( 'Profile Avatar', 'snn' ); ?></label>
+							<input type="file" id="snn-avatar" name="snn_avatar" accept="image/*">
+							<div class="snn-profile-avatar-preview">
+								<?php echo get_avatar( $current_user_id, 150 ); ?>
+							</div>
+						</div>
+						<?php break;
+					
+					case 'first_name': ?>
+						<div class="snn-profile-field">
+							<label for="snn-first-name"><?php esc_html_e( 'First Name', 'snn' ); ?></label>
+							<input type="text" id="snn-first-name" name="snn_first_name" value="<?php echo esc_attr( $first_name ); ?>">
+						</div>
+						<?php break;
+					
+					case 'last_name': ?>
+						<div class="snn-profile-field">
+							<label for="snn-last-name"><?php esc_html_e( 'Last Name', 'snn' ); ?></label>
+							<input type="text" id="snn-last-name" name="snn_last_name" value="<?php echo esc_attr( $last_name ); ?>">
+						</div>
+						<?php break;
+					
+					case 'email': ?>
+						<div class="snn-profile-field">
+							<label for="snn-email"><?php esc_html_e( 'Email Address', 'snn' ); ?></label>
+							<input type="email" id="snn-email" name="snn_email" value="<?php echo esc_attr( $user_email ); ?>" required>
+						</div>
+						<?php break;
+					
+					case 'website': ?>
+						<div class="snn-profile-field">
+							<label for="snn-website"><?php esc_html_e( 'Website URL', 'snn' ); ?></label>
+							<input type="url" id="snn-website" name="snn_website" value="<?php echo esc_url( $user_website ); ?>" placeholder="https://example.com">
+						</div>
+						<?php break;
+					
+					case 'description': ?>
+						<div class="snn-profile-field">
+							<label for="snn-description"><?php esc_html_e( 'Bio / Description', 'snn' ); ?></label>
+							<textarea id="snn-description" name="snn_description" rows="5"><?php echo esc_textarea( $description ); ?></textarea>
+						</div>
+						<?php break;
+					
+					case 'password': ?>
+						<div class="snn-profile-field-group">
+							<div class="snn-profile-field-group-title"><?php esc_html_e( 'Change Password', 'snn' ); ?></div>
+							
+							<div class="snn-profile-field">
+								<label for="snn-password-new"><?php esc_html_e( 'New Password', 'snn' ); ?></label>
+								<input type="password" id="snn-password-new" name="snn_password_new" autocomplete="new-password">
+								<div class="snn-profile-password-hint"><?php esc_html_e( 'Leave blank to keep current password', 'snn' ); ?></div>
+							</div>
 
-				<div class="snn-profile-field">
-					<label for="snn-password-confirm"><?php esc_html_e( 'Confirm New Password', 'snn' ); ?></label>
-					<input type="password" id="snn-password-confirm" name="snn_password_confirm" autocomplete="new-password">
-				</div>
-			</div>
-			<?php endif; ?>
+							<div class="snn-profile-field">
+								<label for="snn-password-confirm"><?php esc_html_e( 'Confirm New Password', 'snn' ); ?></label>
+								<input type="password" id="snn-password-confirm" name="snn_password_confirm" autocomplete="new-password">
+							</div>
+						</div>
+						<?php break;
+					
+				endswitch;
+			endforeach;
+			?>
 
 			<?php if ( ! empty( $custom_fields ) ) : ?>
 			<div class="snn-profile-field-group">
