@@ -189,10 +189,8 @@ class SNN_Element_Profile_Settings extends Element {
 	public function render() {
 
 		/* === MULTI-LAYER SECURITY CHECK #1: User must be logged in === */
+		/* Output absolutely nothing for non-logged-in users */
 		if ( ! is_user_logged_in() ) {
-			echo '<div class="snn-profile-error">';
-			echo '<p>' . esc_html__( 'You must be logged in to edit your profile.', 'snn' ) . '</p>';
-			echo '</div>';
 			return;
 		}
 
@@ -200,10 +198,8 @@ class SNN_Element_Profile_Settings extends Element {
 		$current_user_id = $current_user->ID;
 
 		/* === MULTI-LAYER SECURITY CHECK #2: Verify current user ID is valid === */
+		/* Output absolutely nothing for invalid user sessions */
 		if ( ! $current_user_id || $current_user_id < 1 ) {
-			echo '<div class="snn-profile-error">';
-			echo '<p>' . esc_html__( 'Invalid user session. Please log in again.', 'snn' ) . '</p>';
-			echo '</div>';
 			return;
 		}
 
