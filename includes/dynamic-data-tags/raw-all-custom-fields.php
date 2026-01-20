@@ -51,42 +51,27 @@ function get_raw_all_custom_fields( $post ) {
 function get_raw_all_author_fields( $post ) {
     // Get author ID using the same logic as get_contextual_id
     $author_id = null;
-    $debug_info = [];
-
-    // Debug: Check what context we're in
-    $debug_info['is_author'] = is_author();
-    $debug_info['is_singular'] = is_singular();
-    $debug_info['in_the_loop'] = in_the_loop();
-    $debug_info['get_the_ID'] = get_the_ID();
-    $debug_info['queried_object_id'] = get_queried_object_id();
 
     // On author archive pages, return the queried author ID
     if ( is_author() ) {
         $author_id = get_queried_object_id();
-        $debug_info['method'] = 'is_author';
     }
     // On singular posts/pages, return the post author
     elseif ( is_singular() ) {
         $author_id = get_post_field( 'post_author', get_the_ID() );
-        $debug_info['method'] = 'is_singular';
     }
     // In the loop, return current post's author
     elseif ( in_the_loop() && get_the_ID() ) {
         $author_id = get_post_field( 'post_author', get_the_ID() );
-        $debug_info['method'] = 'in_the_loop';
     }
     // Fallback to post object if provided
     elseif ( $post && isset( $post->post_author ) ) {
         $author_id = $post->post_author;
-        $debug_info['method'] = 'post_object';
     }
-
-    $debug_info['detected_author_id'] = $author_id;
 
     if ( $author_id ) {
         // Get all user meta for the author
         $all_meta = get_user_meta( $author_id );
-        $debug_info['meta_count'] = count( $all_meta );
 
         // Process the meta to get single values where appropriate
         $processed_meta = [];
@@ -99,18 +84,10 @@ function get_raw_all_author_fields( $post ) {
             }
         }
 
-        // Add debug info at the top
-        $output = [
-            '_debug' => $debug_info,
-            'user_meta' => $processed_meta
-        ];
-
         // Return as JSON
-        return wp_json_encode( $output, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+        return wp_json_encode( $processed_meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
     }
-
-    // Return debug info even if no author found
-    return wp_json_encode( [ '_debug' => $debug_info ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+    return '{}';
 }
 
 add_filter( 'bricks/dynamic_data/render_tag', 'render_raw_all_custom_fields_tag', 10, 3 );
