@@ -951,34 +951,48 @@ class SNN_Query_Nestable extends Element {
             }
         }
 
-        // CUSTOM ARGS - Process PHP array syntax
+        // CUSTOM ARGS - Process PHP code that defines query args
         if ( ! empty( $settings['custom_args'] ) ) {
             $custom_args_str = trim( $settings['custom_args'] );
 
             // Render dynamic data in custom args string
             $custom_args_str = $this->render_control_dynamic_data( $custom_args_str );
 
-            // Basic syntax validation - check for array( or [
-            if ( strpos( $custom_args_str, 'array(' ) === 0 || strpos( $custom_args_str, '[' ) === 0 ) {
-                // Safely evaluate the PHP array code
-                // Prepend 'return ' if not already there
-                if ( strpos( $custom_args_str, 'return' ) !== 0 ) {
-                    $custom_args_str = 'return ' . $custom_args_str . ';';
-                }
+            // Use eval to execute the PHP code
+            try {
+                $custom_args = null;
 
-                // Use eval to parse the PHP array (sandboxed as much as possible)
-                try {
-                    $custom_args = @eval( $custom_args_str );
-
-                    // Validate the result is an array
-                    if ( is_array( $custom_args ) ) {
-                        // Merge custom args with existing args (custom args override)
-                        $args = array_merge( $args, $custom_args );
+                // Check if code starts with 'array(' or '[' - simple array definition
+                if ( strpos( $custom_args_str, 'array(' ) === 0 || strpos( $custom_args_str, '[' ) === 0 ) {
+                    // Prepend 'return ' if not already there
+                    if ( strpos( $custom_args_str, 'return' ) !== 0 ) {
+                        $custom_args_str = 'return ' . $custom_args_str . ';';
                     }
-                } catch ( \Exception $e ) {
-                    // Silent fail - don't break the query if custom args are invalid
-                    // In debug mode, this will be visible in the query args output
+
+                    $custom_args = @eval( $custom_args_str );
+                } else {
+                    // Multi-line PHP code with logic
+                    // Wrap code to capture $args variable
+                    $wrapped_code = '
+                        $custom_args = null;
+                        ' . $custom_args_str . '
+                        if (isset($args) && is_array($args)) {
+                            return $args;
+                        }
+                        return null;
+                    ';
+
+                    $custom_args = @eval( $wrapped_code );
                 }
+
+                // Validate the result is an array and merge
+                if ( is_array( $custom_args ) ) {
+                    // Merge custom args with existing args (custom args override)
+                    $args = array_merge( $args, $custom_args );
+                }
+            } catch ( \Exception $e ) {
+                // Silent fail - don't break the query if custom args are invalid
+                // In debug mode, this will be visible in the query args output
             }
         }
 
