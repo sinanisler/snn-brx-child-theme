@@ -26,6 +26,15 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'description' => "Upload your Lottie JSON file here",
         ];
 
+        // Lottie JSON URL
+        $this->controls['lottie_json_url'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Or External JSON URL', 'snn' ),
+            'type'        => 'text',
+            'placeholder' => esc_html__( 'https://example.com/animation.json', 'snn' ),
+            'description' => "Paste an external Lottie JSON URL here (overrides uploaded file)",
+        ];
+
         // Loop Option
         $this->controls['loop'] = [
             'tab'     => 'content',
@@ -197,7 +206,11 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         wp_enqueue_script('lottie-js', SNN_URL_ASSETS . 'js/lottie.min.js', array(), null, array('in_footer' => true));
 
         // Existing Settings Retrieval
-        $lottie_json      = isset($this->settings['lottie_json']['url']) ? esc_url($this->settings['lottie_json']['url']) : '';
+        // Check for external URL first, then fall back to uploaded file
+        $lottie_json_url  = isset($this->settings['lottie_json_url']) ? esc_url($this->settings['lottie_json_url']) : '';
+        $lottie_json_file = isset($this->settings['lottie_json']['url']) ? esc_url($this->settings['lottie_json']['url']) : '';
+        $lottie_json      = ! empty($lottie_json_url) ? $lottie_json_url : $lottie_json_file;
+
         $loop             = ! empty($this->settings['loop']) ? 'true' : 'false';
         $autoplay         = ! empty($this->settings['autoplay']) ? 'true' : 'false';
         $autoplay_on_viewport = ! empty($this->settings['autoplay_on_viewport']) ? 'true' : 'false';
@@ -222,7 +235,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         $link_nofollow  = isset($animation_link['rel']) && strpos($animation_link['rel'], 'nofollow') !== false ? ' rel="nofollow"' : '';
 
         if ( empty( $lottie_json ) ) {
-            echo '<p>' . esc_html__( 'Please upload a Lottie JSON file.', 'snn' ) . '</p>';
+            echo '<p>' . esc_html__( 'Please upload a Lottie JSON file or provide an external JSON URL.', 'snn' ) . '</p>';
             return;
         }
 
