@@ -115,8 +115,8 @@ function replace_dynamic_post_custom_field_in_content($content, $post, $context 
             // $match[1] => Field name, e.g., 'product_price'
             $field = sanitize_key($match[1]);
 
-            // Get post ID from context if available
-            $post_id = is_object($post) && isset($post->ID) ? $post->ID : get_the_ID();
+            // Get post ID from context if available, otherwise let the helper function determine it
+            $post_id = is_object($post) && isset($post->ID) ? $post->ID : null;
 
             $field_value = get_dynamic_post_custom_field($field, $post_id);
             $content = str_replace($match[0], $field_value, $content);
