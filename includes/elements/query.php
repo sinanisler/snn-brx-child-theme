@@ -462,6 +462,27 @@ class SNN_Query_Nestable extends Element {
             'mode' => 'generic',
             'placeholder' => "array(\n    'posts_per_page' => 5,\n    'orderby' => 'rand',\n    'tax_query' => array(\n        'relation' => 'OR',\n        array(\n            'taxonomy' => 'category',\n            'field' => 'slug',\n            'terms' => array('quotes'),\n        ),\n    ),\n)",
             'description' => esc_html__( 'Advanced: Enter valid PHP array syntax for WP_Query arguments. These will be merged with (and can override) other control settings. Example: array(\'posts_per_page\' => 5, \'orderby\' => \'rand\')', 'snn' ),
+            'default'   => 'array(
+    "posts_per_page" => 10,
+    "orderby" => "date",
+    "order" => "DESC",
+    "tax_query" => array(
+        "relation" => "AND",
+        array(
+            "taxonomy" => "category",
+            "field" => "slug",
+            "terms" => array("news", "updates"),
+        ),
+    ),
+    "meta_query" => array(
+        "relation" => "OR",
+        array(
+            "key" => "featured",
+            "value" => "1",
+            "compare" => "=",
+        ),
+    ),
+)',
         ];
 
         // ====================
