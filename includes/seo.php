@@ -95,8 +95,9 @@ add_action('admin_menu', 'snn_seo_add_submenu_page');
  * Enqueue media scripts for SEO settings page
  */
 function snn_seo_enqueue_admin_scripts($hook) {
-    // Only load on our SEO settings page
-    if ($hook !== 'snn-settings_page_snn-seo-settings') {
+    // Check if we're on the SEO settings page
+    // Use $_GET['page'] as a reliable check since hook suffix can vary
+    if (!isset($_GET['page']) || $_GET['page'] !== 'snn-seo-settings') {
         return;
     }
 
