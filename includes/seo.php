@@ -92,6 +92,20 @@ function snn_seo_add_submenu_page() {
 add_action('admin_menu', 'snn_seo_add_submenu_page');
 
 /**
+ * Enqueue media scripts for SEO settings page
+ */
+function snn_seo_enqueue_admin_scripts($hook) {
+    // Only load on our SEO settings page
+    if ($hook !== 'snn-settings_page_snn-seo-settings') {
+        return;
+    }
+
+    // Enqueue WordPress media scripts
+    wp_enqueue_media();
+}
+add_action('admin_enqueue_scripts', 'snn_seo_enqueue_admin_scripts');
+
+/**
  * Register SEO settings
  */
 function snn_seo_register_settings() {
@@ -122,6 +136,7 @@ function snn_seo_register_settings() {
     register_setting('snn_seo_settings_group', 'snn_seo_sitemap_post_types', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
     register_setting('snn_seo_settings_group', 'snn_seo_sitemap_taxonomies', ['type' => 'array', 'default' => [], 'sanitize_callback' => $sanitize_array]);
     register_setting('snn_seo_settings_group', 'snn_seo_opengraph_enabled', ['type' => 'boolean', 'default' => true, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_opengraph_default_image', ['type' => 'integer', 'default' => 0, 'sanitize_callback' => 'absint']);
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_titles');
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_descriptions');
 }
@@ -134,6 +149,7 @@ function snn_seo_handle_reset() {
     if (isset($_POST['snn_seo_reset_settings']) && check_admin_referer('snn_seo_reset', 'snn_seo_reset_nonce')) {
         // Delete all SEO settings
         delete_option('snn_seo_enabled');
+        delete_option('snn_seo_ai_enabled');
         delete_option('snn_seo_post_types_enabled');
         delete_option('snn_seo_taxonomies_enabled');
         delete_option('snn_seo_authors_enabled');
@@ -158,6 +174,7 @@ function snn_seo_handle_reset() {
         delete_option('snn_seo_sitemap_post_types');
         delete_option('snn_seo_sitemap_taxonomies');
         delete_option('snn_seo_opengraph_enabled');
+        delete_option('snn_seo_opengraph_default_image');
         delete_option('snn_seo_post_meta_titles');
         delete_option('snn_seo_post_meta_descriptions');
         
@@ -202,7 +219,8 @@ function snn_seo_settings_page_callback() {
     $sitemap_post_types = get_option('snn_seo_sitemap_post_types', []);
     $sitemap_taxonomies = get_option('snn_seo_sitemap_taxonomies', []);
     $opengraph_enabled = get_option('snn_seo_opengraph_enabled', true);
-    
+    $opengraph_default_image = get_option('snn_seo_opengraph_default_image', 0);
+
     // Ensure arrays are actually arrays (fix for string/serialization issues)
     $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
     $taxonomies_enabled = is_array($taxonomies_enabled) ? $taxonomies_enabled : [];
@@ -535,8 +553,46 @@ function snn_seo_settings_page_callback() {
                 <p class="description">
                     <?php _e('Adds Open Graph meta tags for better social media sharing (Facebook, Twitter, LinkedIn, etc.)', 'snn'); ?>
                 </p>
-                
+
                 <?php if ($opengraph_enabled): ?>
+
+                <!-- Default OG Image -->
+                <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                    <h3 style="font-size: 14px; font-weight: 600; margin-top: 0;"><?php _e('Default Social Media Image', 'snn'); ?></h3>
+                    <p class="description" style="margin-bottom: 15px;">
+                        <?php _e('This image will be used as a fallback when posts/pages don\'t have a featured image. Recommended size: 1200x630px (Facebook/LinkedIn) or larger.', 'snn'); ?>
+                    </p>
+
+                    <input type="hidden" id="snn_seo_opengraph_default_image" name="snn_seo_opengraph_default_image" value="<?php echo esc_attr($opengraph_default_image); ?>">
+
+                    <div id="snn-og-image-preview" style="margin-bottom: 15px;">
+                        <?php if ($opengraph_default_image):
+                            $image_url = wp_get_attachment_image_url($opengraph_default_image, 'medium');
+                            $image_full = wp_get_attachment_image_url($opengraph_default_image, 'full');
+                            if ($image_url):
+                        ?>
+                            <div style="position: relative; display: inline-block;">
+                                <img src="<?php echo esc_url($image_url); ?>" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px; display: block;">
+                                <button type="button" class="button" id="snn-og-remove-image" style="position: absolute; top: 5px; right: 5px; background: rgba(220, 50, 50, 0.9); color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                                    <?php _e('Remove', 'snn'); ?>
+                                </button>
+                                <div style="margin-top: 5px; font-size: 11px; color: #666;">
+                                    <?php
+                                    $metadata = wp_get_attachment_metadata($opengraph_default_image);
+                                    if ($metadata && isset($metadata['width']) && isset($metadata['height'])) {
+                                        printf(__('Dimensions: %dx%d pixels', 'snn'), $metadata['width'], $metadata['height']);
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        <?php endif; endif; ?>
+                    </div>
+
+                    <button type="button" class="button" id="snn-og-upload-image">
+                        <?php echo $opengraph_default_image ? __('Change Image', 'snn') : __('Select/Upload Image', 'snn'); ?>
+                    </button>
+                </div>
+
                 <div style="margin-top: 20px;">
                     <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 15px;"><?php _e('Social Media Preview Examples', 'snn'); ?></h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
@@ -651,12 +707,70 @@ function snn_seo_settings_page_callback() {
             e.preventDefault();
             var $item = $(this).closest('.snn-accordion-item');
             var $content = $item.find('.snn-accordion-content');
-            
+
             // Toggle active class
             $item.toggleClass('active');
-            
+
             // Slide toggle content
             $content.slideToggle(50);
+        });
+
+        // Media Library Picker for OG Default Image
+        var ogImageFrame;
+
+        $('#snn-og-upload-image').on('click', function(e) {
+            e.preventDefault();
+
+            // If the media frame already exists, reopen it
+            if (ogImageFrame) {
+                ogImageFrame.open();
+                return;
+            }
+
+            // Create new media frame
+            ogImageFrame = wp.media({
+                title: '<?php _e('Select Default Social Media Image', 'snn'); ?>',
+                button: {
+                    text: '<?php _e('Use This Image', 'snn'); ?>'
+                },
+                library: {
+                    type: 'image'
+                },
+                multiple: false
+            });
+
+            // When an image is selected
+            ogImageFrame.on('select', function() {
+                var attachment = ogImageFrame.state().get('selection').first().toJSON();
+
+                // Set the hidden input value
+                $('#snn_seo_opengraph_default_image').val(attachment.id);
+
+                // Update preview
+                var imageHtml = '<div style="position: relative; display: inline-block;">' +
+                    '<img src="' + (attachment.sizes.medium ? attachment.sizes.medium.url : attachment.url) + '" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px; display: block;">' +
+                    '<button type="button" class="button" id="snn-og-remove-image" style="position: absolute; top: 5px; right: 5px; background: rgba(220, 50, 50, 0.9); color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;">' +
+                    '<?php _e('Remove', 'snn'); ?>' +
+                    '</button>' +
+                    '<div style="margin-top: 5px; font-size: 11px; color: #666;">' +
+                    '<?php _e('Dimensions:', 'snn'); ?> ' + attachment.width + 'x' + attachment.height + ' <?php _e('pixels', 'snn'); ?>' +
+                    '</div>' +
+                    '</div>';
+
+                $('#snn-og-image-preview').html(imageHtml);
+                $('#snn-og-upload-image').text('<?php _e('Change Image', 'snn'); ?>');
+            });
+
+            // Open the modal
+            ogImageFrame.open();
+        });
+
+        // Remove image
+        $(document).on('click', '#snn-og-remove-image', function(e) {
+            e.preventDefault();
+            $('#snn_seo_opengraph_default_image').val('');
+            $('#snn-og-image-preview').html('');
+            $('#snn-og-upload-image').text('<?php _e('Select/Upload Image', 'snn'); ?>');
         });
     });
     </script>
@@ -1205,15 +1319,27 @@ function snn_seo_output_opengraph_tags($title = '', $description = '', $url = ''
     
     // Image
     $image_url = '';
+    $image_id = 0;
+
+    // Try to get featured image first
     if (is_singular() && has_post_thumbnail()) {
         $image_url = get_the_post_thumbnail_url(get_the_ID(), 'large');
+        $image_id = get_post_thumbnail_id();
     }
-    
+
+    // Fallback to default OG image if no featured image
+    if (empty($image_url)) {
+        $default_image_id = get_option('snn_seo_opengraph_default_image', 0);
+        if ($default_image_id) {
+            $image_url = wp_get_attachment_image_url($default_image_id, 'large');
+            $image_id = $default_image_id;
+        }
+    }
+
     if (!empty($image_url)) {
         echo '<meta property="og:image" content="' . esc_url($image_url) . '">' . "\n";
-        
+
         // Get image dimensions
-        $image_id = get_post_thumbnail_id();
         if ($image_id) {
             $image_data = wp_get_attachment_image_src($image_id, 'large');
             if ($image_data) {
