@@ -72,7 +72,6 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
             'type'        => 'checkbox',
             'inline'      => true,
             'small'       => true,
-            'default'     => false,
             'description' => "",
         ];
 
