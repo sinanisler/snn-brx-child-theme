@@ -11,12 +11,14 @@ jobs:
 
     env:
       FILES_TO_SYNC: |
+        includes/301-redirect.php
+        includes/404-logging.php
+        includes/accessibility-settings.php
+        includes/activity-logs.php
         includes/block-editor-settings.php
         includes/custom-field-settings.php
         includes/taxonomy-settings.php
         includes/post-types-settings.php
-        includes/301-redirect.php
-        includes/404-logging.php
         includes/security-page.php
         includes/security-page.php
         includes/disable-emojis.php
@@ -36,16 +38,28 @@ jobs:
         includes/role-manager.php
         includes/custom-code-snippets.php
         includes/cookie-banner.php
-        includes/accessibility-settings.php
         includes/other-settings.php
-        includes/activity-logs.php
         includes/seo.php
+
         assets/js/gsap.min.js
         assets/js/ScrollTrigger.min.js
         assets/js/gsap-data-animate.js
         assets/js/lottie.min.js
         assets/js/snn-rich-text-editor.js
+        assets/js/accessibility.min.js
+        assets/js/canvas-to-blob.min.js
+        assets/js/FileSaver.min.js
+        assets/js/jszip.min.js
+        assets/js/leaflet.js
+        assets/js/lottie.min.js
+        assets/js/markdown.min.js
+        assets/js/pdf.min.js
+        assets/js/pdf.worker.min.js
+        assets/js/snn-accessibility.js
+        assets/js/wavesurfer.esm.js
+
         assets/css/snn-rich-text-editor.css
+        assets/css/leaflet.css
 
     steps:
       - name: Checkout Source Repo
