@@ -68,7 +68,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'tab'     => 'content',
             'label'   => esc_html__( 'Submit button label', 'snn' ),
             'type'    => 'text',
-            'default' => esc_html__( 'Post', 'snn' ),
+            'default' => esc_html__( 'Save Post', 'snn' ),
             'inline'  => true,
         ];
 
@@ -149,6 +149,12 @@ class SNN_Element_Frontend_Post_Form extends Element {
                     'default'  => false,
                     'required' => [['field_type', '=', 'checkbox']],
                 ],
+                'field_width' => [
+                    'label'       => esc_html__( 'Field Width', 'snn' ),
+                    'type'        => 'text',
+                    'placeholder' => esc_html__( '100% (e.g., 50%, 300px)', 'snn' ),
+                    'default'     => '100%',
+                ],
             ],
         ];
 
@@ -171,19 +177,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'css'   => [
                 [
                     'property'  => 'background-color',
-                    'selector'  => '.snn-post-submit',
-                    'important' => true,
-                ],
-            ],
-        ];
-
-        $this->controls['button_padding'] = [
-            'tab'   => 'content',
-            'label' => esc_html__( 'Button padding', 'snn' ),
-            'type'  => 'dimensions',
-            'css'   => [
-                [
-                    'property'  => 'padding',
                     'selector'  => '.snn-post-submit',
                     'important' => true,
                 ],
@@ -321,6 +314,32 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 <input type="hidden" name="action" value="snn_frontend_post"/>
                 <input type="text" name="post_title" placeholder="Title" required class="snn-post-title-input" />
 
+                <div class="snn-flex-form-row">
+                    <?php if($enable_feat): ?>
+                    <div class="snn-featured-image-col">
+                        <div class="snn-featured-image-box">
+                            <div class="snn-featured-image-preview"></div>
+                            <button type="button" class="snn-featured-image-btn">Select Featured Image</button>
+                            <button type="button" class="snn-featured-image-remove">Remove</button>
+                            <input type="file" class="snn-featured-image-input" accept="image/*" style="display:none">
+                            <input type="hidden" name="featured_image_id" value="">
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    <?php if($taxonomy && !empty($tax_terms) && !is_wp_error($tax_terms)): ?>
+                    <div class="snn-taxonomy-col">
+                        <div class="snn-taxonomy-box">
+                            <select class="snn-taxonomy-select" name="snn_tax_terms[]" multiple="multiple" data-placeholder="Select <?php echo esc_attr(get_taxonomy($taxonomy)->labels->singular_name); ?>">
+                                <?php foreach($tax_terms as $term): ?>
+                                    <option value="<?php echo esc_attr($term->term_id); ?>"><?php echo esc_html($term->name); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <div class="snn-post-editor-parent"></div>
+
                 <?php if(!empty($custom_fields)): ?>
                 <div class="snn-custom-fields-wrapper">
                     <?php foreach($custom_fields as $field):
@@ -330,10 +349,11 @@ class SNN_Element_Frontend_Post_Form extends Element {
                         $field_placeholder = isset($field['field_placeholder']) ? esc_attr($field['field_placeholder']) : '';
                         $field_required = !empty($field['field_required']);
                         $default_checked = !empty($field['default_checked']);
+                        $field_width = isset($field['field_width']) ? esc_attr($field['field_width']) : '100%';
 
                         if(empty($field_name)) continue;
                     ?>
-                    <div class="snn-custom-field snn-custom-field-<?php echo esc_attr($field_type); ?>">
+                    <div class="snn-custom-field snn-custom-field-<?php echo esc_attr($field_type); ?>" style="width:<?php echo $field_width; ?>;">
                         <?php if($field_type === 'checkbox'): ?>
                             <label class="snn-custom-field-checkbox-label">
                                 <input type="checkbox"
@@ -367,31 +387,6 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 </div>
                 <?php endif; ?>
 
-                <div class="snn-flex-form-row">
-                    <?php if($enable_feat): ?>
-                    <div class="snn-featured-image-col">
-                        <div class="snn-featured-image-box">
-                            <div class="snn-featured-image-preview"></div>
-                            <button type="button" class="snn-featured-image-btn">Select Featured Image</button>
-                            <button type="button" class="snn-featured-image-remove">Remove</button>
-                            <input type="file" class="snn-featured-image-input" accept="image/*" style="display:none">
-                            <input type="hidden" name="featured_image_id" value="">
-                        </div>
-                    </div>
-                    <?php endif; ?>
-                    <?php if($taxonomy && !empty($tax_terms) && !is_wp_error($tax_terms)): ?>
-                    <div class="snn-taxonomy-col">
-                        <div class="snn-taxonomy-box">
-                            <select class="snn-taxonomy-select" name="snn_tax_terms[]" multiple="multiple" data-placeholder="Select <?php echo esc_attr(get_taxonomy($taxonomy)->labels->singular_name); ?>">
-                                <?php foreach($tax_terms as $term): ?>
-                                    <option value="<?php echo esc_attr($term->term_id); ?>"><?php echo esc_html($term->name); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-                </div>
-                <div class="snn-post-editor-parent"></div>
                 <button type="submit" class="snn-post-submit"><?php echo $label; ?></button>
                 <div class="snn-form-msg"></div>
                 <input type="hidden" name="snn_nonce" value="<?php echo $nonce; ?>"/>
@@ -406,8 +401,8 @@ class SNN_Element_Frontend_Post_Form extends Element {
         <style>
             .snn-frontend-post-form-wrapper { width:100%; }
             .snn-post-title-input { width:100%; padding:10px; margin-bottom:10px; font-size:18px; border:1px solid #ccc; border-radius:6px; }
-            .snn-custom-fields-wrapper { margin-bottom:15px; }
-            .snn-custom-field { margin-bottom:12px; }
+            .snn-custom-fields-wrapper { margin-bottom:15px; display:flex; flex-wrap:wrap; gap:10px; }
+            .snn-custom-field { margin-bottom:0; box-sizing:border-box; }
             .snn-custom-field-label { display:block; margin-bottom:5px; font-weight:500; font-size:15px; color:#333; }
             .snn-custom-field-input { width:100%; padding:10px; font-size:15px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
             .snn-custom-textarea-input { min-height:100px; resize:vertical; font-family:inherit; }
