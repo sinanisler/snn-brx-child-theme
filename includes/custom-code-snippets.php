@@ -411,68 +411,7 @@ function snn_validate_php_syntax( $code ) {
         );
     }
     
-    // Split code into lines for detailed checking
-    $lines = explode( "\n", $code );
-    
-    // Additional validation: Check for common syntax errors that token_get_all might miss
-    foreach ( $lines as $line_num => $line ) {
-        $line_trimmed = trim( $line );
-        
-        // Skip empty lines and comments
-        if ( empty( $line_trimmed ) || strpos( $line_trimmed, '//' ) === 0 || strpos( $line_trimmed, '#' ) === 0 ) {
-            continue;
-        }
-        
-        // Check for empty array elements (various patterns)
-        // Match: ,, or , , or ,  , (with any whitespace between commas)
-        // Also match trailing commas before closing brackets: , ] or , )
-        // Also match leading commas after opening brackets: [ , or ( ,
-        if ( preg_match( '/,\s*,|\[\s*,|\(\s*,|,\s*\]|,\s*\)/', $line ) ) {
-            return array(
-                'message' => 'Syntax error: Empty array elements detected (cannot use empty array elements)',
-                'line' => $line_num + 1,
-                'code_context' => snn_get_code_context( $code, $line_num + 1 )
-            );
-        }
-        
-        // Check for multiple consecutive operators that don't make sense
-        // Allow valid operators like ===, !==, <<=, >>=, etc.
-        // Only flag truly invalid sequences like ====, =!=, etc.
-        if ( preg_match( '/={4,}|[!<>]={3,}|(?<!-)(?<!\+)-{3,}(?!>)|(?<!\*)\*{4,}/', $line ) ) {
-            return array(
-                'message' => 'Syntax error: Invalid operator sequence detected',
-                'line' => $line_num + 1,
-                'code_context' => snn_get_code_context( $code, $line_num + 1 )
-            );
-        }
-        
-        // Check for unclosed strings (basic check)
-        $in_string = false;
-        $string_char = '';
-        $escaped = false;
-        for ( $i = 0; $i < strlen( $line ); $i++ ) {
-            $char = $line[$i];
-            if ( $escaped ) {
-                $escaped = false;
-                continue;
-            }
-            if ( $char === '\\' ) {
-                $escaped = true;
-                continue;
-            }
-            if ( ( $char === '"' || $char === "'" ) ) {
-                if ( !$in_string ) {
-                    $in_string = true;
-                    $string_char = $char;
-                } elseif ( $char === $string_char ) {
-                    $in_string = false;
-                    $string_char = '';
-                }
-            }
-        }
-        // If string is still open at end of line, might be intentional for multiline strings
-        // So we don't flag this as error here
-    }
+    // token_get_all() already validates PHP syntax properly.
     
     return true; // Syntax appears valid
 }
