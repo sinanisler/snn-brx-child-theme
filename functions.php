@@ -76,7 +76,7 @@ require_once SNN_PATH . 'includes/ai/abilities/list-taxonomies.php';
 
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
-require_once SNN_PATH . 'includes/wp-admin-image-opt.php';
+require_once SNN_PATH . 'includes/media-image-opt.php';
 require_once SNN_PATH . 'includes/wp-admin-dashboard-widgets.php';
 
 // Register Custom Dynamic Data Tags

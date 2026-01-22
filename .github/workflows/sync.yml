@@ -15,11 +15,11 @@ jobs:
         includes/404-logging.php
         includes/accessibility-settings.php
         includes/activity-logs.php
-        includes/block-editor-settings.php
+        includes/cookie-banner.php
+        includes/custom-code-snippets.php
         includes/custom-field-settings.php
         includes/taxonomy-settings.php
         includes/post-types-settings.php
-        includes/security-page.php
         includes/security-page.php
         includes/disable-emojis.php
         includes/disable-gravatar.php
@@ -30,16 +30,18 @@ jobs:
         includes/remove-rss.php
         includes/remove-wp-version.php
         includes/login-math-captcha.php
+        includes/login-logo-change-url-change.php
         includes/login-settings.php
-        includes/media-settings.php
-        includes/smtp-settings.php
         includes/mail-logging.php
+        includes/media-settings.php
+        includes/media-image-opt.php
+        includes/smtp-settings.php
         includes/search-loggins.php
         includes/role-manager.php
-        includes/custom-code-snippets.php
-        includes/cookie-banner.php
         includes/other-settings.php
         includes/seo.php
+        includes/block-editor-settings.php
+        includes/wp-admin-dashboard-widgets.php  
 
         assets/js/gsap.min.js
         assets/js/ScrollTrigger.min.js
@@ -60,6 +62,35 @@ jobs:
 
         assets/css/snn-rich-text-editor.css
         assets/css/leaflet.css
+
+        includes/ai/ai-settings.php
+        includes/ai/ai-api.php
+        includes/ai/ai-overlay.php
+        includes/ai/ai-seo-generation.php
+        includes/ai/ai-block-editor.php
+        includes/ai/ai-agent-and-chat.php
+
+        includes/ai/abilities/ability-categories.php
+        includes/ai/abilities/create-posts.php
+        includes/ai/abilities/update-posts.php
+        includes/ai/abilities/get-posts.php
+        includes/ai/abilities/get-post-by-id.php
+        includes/ai/abilities/get-post-meta.php
+        includes/ai/abilities/search-content.php
+        includes/ai/abilities/get-terms.php
+        includes/ai/abilities/get-tags.php
+        includes/ai/abilities/create-terms.php
+        includes/ai/abilities/get-media.php
+        includes/ai/abilities/get-users.php
+        includes/ai/abilities/get-comments.php
+        includes/ai/abilities/get-site-info.php
+        includes/ai/abilities/suggest-content-ideas.php
+        includes/ai/abilities/create-post-summaries.php
+        includes/ai/abilities/check-seo-quality-title-and-content.php
+        includes/ai/abilities/installed-plugin-list-and-infos.php
+        includes/ai/abilities/active-theme-info.php
+        includes/ai/abilities/list-taxonomies.php
+
 
     steps:
       - name: Checkout Source Repo
