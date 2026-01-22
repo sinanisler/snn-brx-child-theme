@@ -392,6 +392,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
                 <input type="hidden" name="snn_nonce" value="<?php echo $nonce; ?>"/>
                 <input type="hidden" name="snn_post_status" value="<?php echo $post_status; ?>"/>
                 <input type="hidden" name="snn_post_type" value="<?php echo $post_type; ?>"/>
+                <input type="hidden" name="snn_allowed_roles" value="<?php echo esc_attr(json_encode($allowed_roles)); ?>"/>
                 <?php if($taxonomy): ?>
                     <input type="hidden" name="snn_taxonomy" value="<?php echo esc_attr($taxonomy); ?>"/>
                 <?php endif; ?>
@@ -1065,6 +1066,36 @@ function snn_frontend_post_handler(){
     $term_ids = [];
 
     if(!$title || !$content) wp_send_json_error('Title and content required.');
+
+    // Verify allowed user roles
+    if(!empty($_POST['snn_allowed_roles'])) {
+        $allowed_roles = json_decode(stripslashes($_POST['snn_allowed_roles']), true);
+        if(is_array($allowed_roles)) {
+            $current_user = wp_get_current_user();
+            $user_has_role = false;
+            foreach($current_user->roles as $role) {
+                if(in_array($role, $allowed_roles)) {
+                    $user_has_role = true;
+                    break;
+                }
+            }
+            if(!$user_has_role) {
+                wp_send_json_error('You do not have permission to submit posts.');
+            }
+        }
+    }
+
+    // Verify featured image ownership and accessibility
+    if ($feat_id) {
+        $attachment = get_post($feat_id);
+        if (!$attachment || $attachment->post_type !== 'attachment') {
+            wp_send_json_error('Invalid featured image.');
+        }
+        // Check if user owns the attachment or has capability to use others' uploads
+        if ($attachment->post_author != get_current_user_id() && !current_user_can('edit_others_posts')) {
+            wp_send_json_error('You do not have permission to use this image.');
+        }
+    }
     
     // Check if user has capability to create this post type
     $post_type_obj = get_post_type_object($type);
@@ -1101,13 +1132,31 @@ function snn_frontend_post_handler(){
     // Save custom fields as post meta
     if(!empty($_POST['snn_custom_field']) && is_array($_POST['snn_custom_field'])) {
         foreach($_POST['snn_custom_field'] as $meta_key => $meta_value) {
+            // Sanitize and validate meta key (only alphanumeric and underscores)
             $meta_key = sanitize_key($meta_key);
+            if(empty($meta_key) || !preg_match('/^[a-z0-9_]+$/', $meta_key)) {
+                continue; // Skip invalid meta keys
+            }
+
+            // Sanitize meta value based on type
             if(is_array($meta_value)) {
                 $meta_value = array_map('sanitize_text_field', $meta_value);
             } else {
-                $meta_value = sanitize_text_field($meta_value);
+                // For checkbox fields, ensure value is only '1' or empty
+                if($meta_value === '1') {
+                    $meta_value = '1';
+                } else {
+                    // For text fields, limit length and sanitize
+                    $meta_value = sanitize_text_field($meta_value);
+                    // Limit to 5000 characters to prevent excessive data
+                    $meta_value = mb_substr($meta_value, 0, 5000);
+                }
             }
-            update_post_meta($post_id, $meta_key, $meta_value);
+
+            // Only save non-empty values
+            if(!empty($meta_value)) {
+                update_post_meta($post_id, $meta_key, $meta_value);
+            }
         }
     }
 
@@ -1122,6 +1171,12 @@ add_action('wp_ajax_snn_post_media_upload', function(){
     if(!is_user_logged_in() || !check_ajax_referer('snn_frontend_post','_wpnonce',false)){
         wp_send_json_error('Unauthorized');
     }
+
+    // Verify user has upload_files capability
+    if(!current_user_can('upload_files')){
+        wp_send_json_error('You do not have permission to upload files.');
+    }
+
     if (empty($_FILES['file'])) wp_send_json_error('No file');
     $file = $_FILES['file'];
     if($file['error'] !== 0) wp_send_json_error('Upload error');
