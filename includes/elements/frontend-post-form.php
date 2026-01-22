@@ -102,6 +102,56 @@ class SNN_Element_Frontend_Post_Form extends Element {
             'inline'  => true,
         ];
 
+        $this->controls['custom_fields'] = [
+            'tab'           => 'content',
+            'label'         => esc_html__( 'Custom Fields', 'snn' ),
+            'type'          => 'repeater',
+            'titleProperty' => 'field_label',
+            'placeholder'   => esc_html__( 'Add Custom Field', 'snn' ),
+            'fields'        => [
+                'field_type' => [
+                    'label'      => esc_html__( 'Field Type', 'snn' ),
+                    'type'       => 'select',
+                    'options'    => [
+                        'text'     => esc_html__( 'Text', 'snn' ),
+                        'textarea' => esc_html__( 'Textarea', 'snn' ),
+                        'checkbox' => esc_html__( 'Checkbox', 'snn' ),
+                    ],
+                    'default'    => 'text',
+                ],
+                'field_label' => [
+                    'label'       => esc_html__( 'Field Label', 'snn' ),
+                    'type'        => 'text',
+                    'placeholder' => esc_html__( 'Enter field label', 'snn' ),
+                    'default'     => '',
+                ],
+                'field_name' => [
+                    'label'       => esc_html__( 'Field Name (meta key)', 'snn' ),
+                    'type'        => 'text',
+                    'placeholder' => esc_html__( 'custom_field_name', 'snn' ),
+                    'default'     => '',
+                ],
+                'field_placeholder' => [
+                    'label'       => esc_html__( 'Placeholder', 'snn' ),
+                    'type'        => 'text',
+                    'placeholder' => esc_html__( 'Enter placeholder text', 'snn' ),
+                    'default'     => '',
+                    'required'    => [['field_type', '=', ['text', 'textarea']]],
+                ],
+                'field_required' => [
+                    'label'   => esc_html__( 'Required Field', 'snn' ),
+                    'type'    => 'checkbox',
+                    'default' => false,
+                ],
+                'default_checked' => [
+                    'label'    => esc_html__( 'Default Checked', 'snn' ),
+                    'type'     => 'checkbox',
+                    'default'  => false,
+                    'required' => [['field_type', '=', 'checkbox']],
+                ],
+            ],
+        ];
+
         $this->controls['button_typography'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Button typography', 'snn' ),
@@ -254,6 +304,7 @@ class SNN_Element_Frontend_Post_Form extends Element {
         $can_upload  = current_user_can('upload_files');
         $enable_feat = !empty($this->settings['enable_featured_image']);
         $taxonomy    = isset($this->settings['taxonomy']) ? sanitize_key($this->settings['taxonomy']) : '';
+        $custom_fields = isset($this->settings['custom_fields']) ? $this->settings['custom_fields'] : [];
 
         // Fetch taxonomy terms if taxonomy is selected
         $tax_terms = [];
@@ -269,6 +320,53 @@ class SNN_Element_Frontend_Post_Form extends Element {
             <form class="snn-frontend-post-form" autocomplete="off">
                 <input type="hidden" name="action" value="snn_frontend_post"/>
                 <input type="text" name="post_title" placeholder="Title" required class="snn-post-title-input" />
+
+                <?php if(!empty($custom_fields)): ?>
+                <div class="snn-custom-fields-wrapper">
+                    <?php foreach($custom_fields as $field):
+                        $field_type = isset($field['field_type']) ? $field['field_type'] : 'text';
+                        $field_label = isset($field['field_label']) ? esc_html($field['field_label']) : '';
+                        $field_name = isset($field['field_name']) ? sanitize_key($field['field_name']) : '';
+                        $field_placeholder = isset($field['field_placeholder']) ? esc_attr($field['field_placeholder']) : '';
+                        $field_required = !empty($field['field_required']);
+                        $default_checked = !empty($field['default_checked']);
+
+                        if(empty($field_name)) continue;
+                    ?>
+                    <div class="snn-custom-field snn-custom-field-<?php echo esc_attr($field_type); ?>">
+                        <?php if($field_type === 'checkbox'): ?>
+                            <label class="snn-custom-field-checkbox-label">
+                                <input type="checkbox"
+                                       name="snn_custom_field[<?php echo esc_attr($field_name); ?>]"
+                                       value="1"
+                                       <?php checked($default_checked, true); ?>
+                                       <?php if($default_checked) echo 'data-default-checked="true"'; ?>
+                                       <?php if($field_required) echo 'required'; ?>
+                                       class="snn-custom-field-input snn-custom-checkbox-input" />
+                                <span><?php echo $field_label; ?></span>
+                            </label>
+                        <?php else: ?>
+                            <?php if($field_label): ?>
+                            <label class="snn-custom-field-label"><?php echo $field_label; ?></label>
+                            <?php endif; ?>
+                            <?php if($field_type === 'textarea'): ?>
+                                <textarea name="snn_custom_field[<?php echo esc_attr($field_name); ?>]"
+                                          placeholder="<?php echo $field_placeholder; ?>"
+                                          <?php if($field_required) echo 'required'; ?>
+                                          class="snn-custom-field-input snn-custom-textarea-input"></textarea>
+                            <?php else: ?>
+                                <input type="text"
+                                       name="snn_custom_field[<?php echo esc_attr($field_name); ?>]"
+                                       placeholder="<?php echo $field_placeholder; ?>"
+                                       <?php if($field_required) echo 'required'; ?>
+                                       class="snn-custom-field-input snn-custom-text-input" />
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+
                 <div class="snn-flex-form-row">
                     <?php if($enable_feat): ?>
                     <div class="snn-featured-image-col">
@@ -308,6 +406,13 @@ class SNN_Element_Frontend_Post_Form extends Element {
         <style>
             .snn-frontend-post-form-wrapper { width:100%; }
             .snn-post-title-input { width:100%; padding:10px; margin-bottom:10px; font-size:18px; border:1px solid #ccc; border-radius:6px; }
+            .snn-custom-fields-wrapper { margin-bottom:15px; }
+            .snn-custom-field { margin-bottom:12px; }
+            .snn-custom-field-label { display:block; margin-bottom:5px; font-weight:500; font-size:15px; color:#333; }
+            .snn-custom-field-input { width:100%; padding:10px; font-size:15px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+            .snn-custom-textarea-input { min-height:100px; resize:vertical; font-family:inherit; }
+            .snn-custom-field-checkbox-label { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:15px; }
+            .snn-custom-checkbox-input { width:auto; margin:0; cursor:pointer; }
             .snn-flex-form-row { display:flex; gap:25px; align-items:flex-start; justify-content:space-between; }
             .snn-featured-image-col { flex:1 1 180px; min-width:180px; max-width:220px; }
             .snn-featured-image-box { margin-bottom:15px; }
@@ -846,6 +951,14 @@ class SNN_Element_Frontend_Post_Form extends Element {
                                 featHidden.value = '';
                             }
                             <?php endif; ?>
+                            // Reset custom fields
+                            form.querySelectorAll('.snn-custom-field-input').forEach(function(input) {
+                                if(input.type === 'checkbox') {
+                                    input.checked = input.hasAttribute('data-default-checked');
+                                } else {
+                                    input.value = '';
+                                }
+                            });
                         }
                     } else {
                         msg.textContent = res.data || 'Error';
@@ -989,6 +1102,20 @@ function snn_frontend_post_handler(){
     if ($taxonomy && taxonomy_exists($taxonomy) && !empty($term_ids)) {
         wp_set_object_terms($post_id, $term_ids, $taxonomy, false);
     }
+
+    // Save custom fields as post meta
+    if(!empty($_POST['snn_custom_field']) && is_array($_POST['snn_custom_field'])) {
+        foreach($_POST['snn_custom_field'] as $meta_key => $meta_value) {
+            $meta_key = sanitize_key($meta_key);
+            if(is_array($meta_value)) {
+                $meta_value = array_map('sanitize_text_field', $meta_value);
+            } else {
+                $meta_value = sanitize_text_field($meta_value);
+            }
+            update_post_meta($post_id, $meta_key, $meta_value);
+        }
+    }
+
     wp_send_json_success([
         'status' => $status,
         'url'    => get_permalink($post_id),
