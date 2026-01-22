@@ -60,14 +60,6 @@ function snn_register_other_settings() {
     );
 
     add_settings_field(
-        'auto_update_bricks',
-        __('Auto Update Bricks Theme (Main Theme Only)', 'snn'),
-        'snn_auto_update_bricks_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
-
-    add_settings_field(
         'move_bricks_menu',
         __('Move Bricks Menu to End', 'snn'),
         'snn_move_bricks_menu_callback',
@@ -128,7 +120,6 @@ function snn_sanitize_other_settings($input) {
         $sanitized['revisions_limit'] = '';
     }
 
-    $sanitized['auto_update_bricks'] = isset($input['auto_update_bricks']) && $input['auto_update_bricks'] ? 1 : 0;
     $sanitized['move_bricks_menu'] = isset($input['move_bricks_menu']) && $input['move_bricks_menu'] ? 1 : 0;
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
     $sanitized['disable_comments_completely'] = isset($input['disable_comments_completely']) && $input['disable_comments_completely'] ? 1 : 0;
@@ -178,13 +169,6 @@ function snn_revisions_limit_callback() {
              : '';
     ?>
     <input type="number" name="snn_other_settings[revisions_limit]" value="<?php echo esc_attr($value); ?>" placeholder="<?php echo esc_attr__( '9999', 'snn' ); ?>">
-    <?php
-}
-
-function snn_auto_update_bricks_callback() {
-    $options = get_option('snn_other_settings');
-    ?>
-    <input type="checkbox" name="snn_other_settings[auto_update_bricks]" value="1" <?php checked(1, isset($options['auto_update_bricks']) ? $options['auto_update_bricks'] : 0); ?>>
     <?php
 }
 
@@ -283,15 +267,6 @@ function snn_limit_post_revisions($num, $post) {
     return $num;
 }
 add_filter('wp_revisions_to_keep', 'snn_limit_post_revisions', 10, 2);
-
-function snn_auto_update_bricks_theme($update, $item) {
-    $options = get_option('snn_other_settings');
-    if (isset($options['auto_update_bricks']) && $options['auto_update_bricks'] && isset($item->theme) && $item->theme === 'bricks') {
-        return true;
-    }
-    return $update;
-}
-add_filter('auto_update_theme', 'snn_auto_update_bricks_theme', 10, 2);
 
 function snn_custom_menu_order($menu_ord) {
     $options = get_option('snn_other_settings');
