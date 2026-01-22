@@ -18,28 +18,29 @@ jobs:
         includes/cookie-banner.php
         includes/custom-code-snippets.php
         includes/custom-field-settings.php
-        includes/taxonomy-settings.php
         includes/post-types-settings.php
-        includes/security-page.php
         includes/disable-emojis.php
         includes/disable-gravatar.php
         includes/disable-xmlrpc.php
         includes/disable-wp-json-if-not-logged-in.php
         includes/disable-bundled-theme-install.php
         includes/disable-file-editing.php
-        includes/remove-rss.php
-        includes/remove-wp-version.php
+        includes/file-size-column-media.php
         includes/login-math-captcha.php
         includes/login-logo-change-url-change.php
         includes/login-settings.php
         includes/mail-logging.php
         includes/media-settings.php
         includes/media-image-opt.php
-        includes/smtp-settings.php
-        includes/search-loggins.php
         includes/role-manager.php
-        includes/other-settings.php
+        includes/search-loggins.php
+        includes/smtp-settings.php
+        includes/security-page.php
         includes/seo.php
+        includes/taxonomy-settings.php
+        includes/other-settings.php
+        includes/remove-rss.php
+        includes/remove-wp-version.php
         includes/block-editor-settings.php
         includes/wp-admin-dashboard-widgets.php  
 
