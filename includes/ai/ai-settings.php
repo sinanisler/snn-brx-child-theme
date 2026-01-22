@@ -82,9 +82,9 @@ add_action('admin_init', 'snn_register_ai_settings');
 
 function snn_render_ai_settings() {
     $ai_enabled           = get_option('snn_ai_enabled', 'no');
-    $ai_provider          = get_option('snn_ai_provider', 'openai');
+    $ai_provider          = get_option('snn_ai_provider', 'openrouter');
     $openai_api_key       = get_option('snn_openai_api_key', '');
-    $openai_model         = get_option('snn_openai_model', 'gpt-4o-mini'); // Updated model name
+    $openai_model         = get_option('snn_openai_model', 'google/gemini-2.5-flash-lite');
     $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
     $openrouter_model     = get_option('snn_openrouter_model', '');
     $system_prompt        = get_option(
