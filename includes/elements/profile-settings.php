@@ -554,7 +554,7 @@ if ( ! function_exists( 'snn_ajax_update_profile' ) ) {
 			] );
 		}
 		// Set transient for 10 seconds
-		set_transient( $rate_limit_key, time(), 10 );
+		set_transient( $rate_limit_key, time(), 5 );
 
 		$response_data = [];
 
