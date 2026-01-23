@@ -39,6 +39,9 @@ function snn_render_custom_post_types_page() {
         'show_ui'           => __( 'Show UI', 'snn' ),
         'show_in_nav_menus' => __( 'Show in Nav Menus', 'snn' ),
         'show_order'        => __( 'Show Order', 'snn' ),
+        'has_archive'       => __( 'Has Archive', 'snn' ),
+        'show_in_rest'      => __( 'Show in REST', 'snn' ),
+        'hierarchical'      => __( 'Hierarchical', 'snn' ),
     );
 
     if ( isset( $_POST['snn_custom_post_types_nonce'] ) && wp_verify_nonce( $_POST['snn_custom_post_types_nonce'], 'snn_save_custom_post_types' ) ) {
@@ -54,6 +57,9 @@ function snn_render_custom_post_types_page() {
                     $show_ui           = isset( $post_type['show_ui'] ) ? 1 : 0;
                     $show_in_nav_menus = isset( $post_type['show_in_nav_menus'] ) ? 1 : 0;
                     $show_order        = isset( $post_type['show_order'] ) ? 1 : 0;
+                    $has_archive       = isset( $post_type['has_archive'] ) ? 1 : 0;
+                    $show_in_rest      = isset( $post_type['show_in_rest'] ) ? 1 : 0;
+                    $hierarchical      = isset( $post_type['hierarchical'] ) ? 1 : 0;
                     $private           = isset( $post_type['private'] ) ? 1 : 0;
 
                     $custom_post_types[] = array(
@@ -66,6 +72,9 @@ function snn_render_custom_post_types_page() {
                         'show_ui'            => $show_ui,
                         'show_in_nav_menus'  => $show_in_nav_menus,
                         'show_order'         => $show_order,
+                        'has_archive'        => $has_archive,
+                        'show_in_rest'       => $show_in_rest,
+                        'hierarchical'       => $hierarchical,
                     );
                 }
             }
@@ -93,6 +102,9 @@ function snn_render_custom_post_types_page() {
         $post_type['show_ui']           = ( isset( $post_type['show_ui'] ) && $post_type['show_ui'] !== '' ) ? $post_type['show_ui'] : 1;
         $post_type['show_in_nav_menus'] = ( isset( $post_type['show_in_nav_menus'] ) && $post_type['show_in_nav_menus'] !== '' ) ? $post_type['show_in_nav_menus'] : 1;
         $post_type['show_order']        = isset( $post_type['show_order'] ) ? $post_type['show_order'] : 0;
+        $post_type['has_archive']       = ( isset( $post_type['has_archive'] ) && $post_type['has_archive'] !== '' ) ? $post_type['has_archive'] : 1;
+        $post_type['show_in_rest']      = ( isset( $post_type['show_in_rest'] ) && $post_type['show_in_rest'] !== '' ) ? $post_type['show_in_rest'] : 1;
+        $post_type['hierarchical']      = ( isset( $post_type['hierarchical'] ) && $post_type['hierarchical'] !== '' ) ? $post_type['hierarchical'] : 1;
         $post_type['private']           = isset( $post_type['private'] ) ? $post_type['private'] : 0;
     }
     unset( $post_type );
@@ -174,7 +186,10 @@ function snn_render_custom_post_types_page() {
                 'show_in_menu': '<?php echo esc_js( __( 'Show in Menu', 'snn' ) ); ?>',
                 'show_ui': '<?php echo esc_js( __( 'Show UI', 'snn' ) ); ?>',
                 'show_in_nav_menus': '<?php echo esc_js( __( 'Show in Nav Menus', 'snn' ) ); ?>',
-                'show_order': '<?php echo esc_js( __( 'Show Order', 'snn' ) ); ?>'
+                'show_order': '<?php echo esc_js( __( 'Show Order', 'snn' ) ); ?>',
+                'has_archive': '<?php echo esc_js( __( 'Has Archive', 'snn' ) ); ?>',
+                'show_in_rest': '<?php echo esc_js( __( 'Show in REST', 'snn' ) ); ?>',
+                'hierarchical': '<?php echo esc_js( __( 'Hierarchical', 'snn' ) ); ?>'
             };
 
             function slugify(value) {
@@ -395,12 +410,12 @@ function snn_register_custom_post_types() {
         $args = array(
             'label'             => $post_type['name'],
             'public'            => ! (bool) $post_type['private'],
-            'has_archive'       => true,
+            'has_archive'       => ( isset($post_type['has_archive']) && $post_type['has_archive'] !== '' ) ? (bool)$post_type['has_archive'] : true,
             'supports'          => ! empty( $supports ) ? $supports : $default_supports,
-            'show_in_rest'      => true,
+            'show_in_rest'      => ( isset($post_type['show_in_rest']) && $post_type['show_in_rest'] !== '' ) ? (bool)$post_type['show_in_rest'] : true,
             'menu_position'     => 20,
             'menu_icon'         => ! empty( $post_type['dashicon'] ) ? $post_type['dashicon'] : 'dashicons-admin-page',
-            'hierarchical'      => true,
+            'hierarchical'      => ( isset($post_type['hierarchical']) && $post_type['hierarchical'] !== '' ) ? (bool)$post_type['hierarchical'] : true,
             'show_in_menu'      => ( isset($post_type['show_in_menu']) && $post_type['show_in_menu'] !== '' ) ? (bool)$post_type['show_in_menu'] : true,
             'show_ui'           => ( isset($post_type['show_ui']) && $post_type['show_ui'] !== '' ) ? (bool)$post_type['show_ui'] : true,
             'show_in_nav_menus' => ( isset($post_type['show_in_nav_menus']) && $post_type['show_in_nav_menus'] !== '' ) ? (bool)$post_type['show_in_nav_menus'] : true,
