@@ -860,7 +860,9 @@ function snn_seo_replace_tags($template, $context = []) {
     // Author tags
     if (isset($context['author_id']) && !empty($context['author_id'])) {
         $author_id = $context['author_id'];
-        $template = str_replace('{author_name}', get_the_author_meta('display_name', $author_id), $template);
+        $first_name = get_the_author_meta('first_name', $author_id);
+        $author_name = !empty($first_name) ? $first_name : '';
+        $template = str_replace('{author_name}', $author_name, $template);
         
         // Author custom fields - replace {author_customfield_fieldname}
         preg_match_all('/{author_customfield_([a-zA-Z0-9_-]+)}/', $template, $author_cf_matches);
