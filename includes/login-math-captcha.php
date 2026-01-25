@@ -120,14 +120,17 @@ function snn_validate_math_captcha( $result, $username, $password ) {
     $options = get_option( 'snn_security_options' );
 
     if ( ! empty( $options['enable_math_captcha'] ) ) {
-        $current_action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
+        // Only validate captcha during actual form submissions (POST requests)
+        if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+            $current_action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
 
-        if ( $current_action === 'login' || ! isset( $_REQUEST['action'] ) ) {
-            if ( ! snn_check_captcha() ) {
-                $result = new WP_Error(
-                    'captcha_error',
-                    __("<strong>ERROR</strong>: " . __("Incorrect or empty math captcha.", "snn"), "snn")
-                );
+            if ( $current_action === 'login' || ! isset( $_REQUEST['action'] ) ) {
+                if ( ! snn_check_captcha() ) {
+                    $result = new WP_Error(
+                        'captcha_error',
+                        __("<strong>ERROR</strong>: " . __("Incorrect or empty math captcha.", "snn"), "snn")
+                    );
+                }
             }
         }
     }
