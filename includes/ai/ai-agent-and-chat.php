@@ -2891,13 +2891,17 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
              * Recursively find a block and its parent list
              * Returns: { block, index, parentList } or null
              */
-            function findBlockRecursively(blocks, predicate) {
+            function findBlockRecursively(blocks, predicate, depth = 0) {
+                const indent = '  '.repeat(depth);
                 for (let i = 0; i < blocks.length; i++) {
+                    debugLog(`${indent}Checking block [${i}]: ${blocks[i].name}`);
                     if (predicate(blocks[i])) {
+                        debugLog(`${indent}✅ Found matching block at depth ${depth}, index ${i}`);
                         return { block: blocks[i], index: i, parentList: blocks };
                     }
                     if (blocks[i].innerBlocks && blocks[i].innerBlocks.length > 0) {
-                        const found = findBlockRecursively(blocks[i].innerBlocks, predicate);
+                        debugLog(`${indent}↳ Diving into ${blocks[i].innerBlocks.length} innerBlocks...`);
+                        const found = findBlockRecursively(blocks[i].innerBlocks, predicate, depth + 1);
                         if (found) return found;
                     }
                 }
@@ -3058,13 +3062,23 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                             }
 
                             const identifier = command.section_identifier.toLowerCase();
+                            debugLog(`🔍 Searching for section: "${identifier}"`);
+                            debugLog(`📄 Total top-level blocks: ${blocks.length}`);
 
                             // Use recursive finder to search all blocks, including nested ones
                             const foundData = findBlockRecursively(blocks, (block) => {
                                 if (block.name === 'core/heading' || block.name === 'core/paragraph') {
                                     const blockContent = block.attributes.content || '';
                                     const plainText = blockContent.replace(/<[^>]*>/g, '').trim().toLowerCase();
-                                    return plainText.includes(identifier) || identifier.includes(plainText);
+                                    const isMatch = plainText.includes(identifier) || identifier.includes(plainText);
+                                    
+                                    if (isMatch) {
+                                        debugLog(`✅ MATCH FOUND: "${plainText}" matches "${identifier}"`);
+                                    } else {
+                                        debugLog(`❌ No match: "${plainText}" vs "${identifier}"`);
+                                    }
+                                    
+                                    return isMatch;
                                 }
                                 return false;
                             });
