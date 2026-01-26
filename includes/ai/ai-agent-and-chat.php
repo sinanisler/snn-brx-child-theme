@@ -1990,6 +1990,11 @@ ${ChatState.pageContext && ChatState.pageContext.type === 'post_editor' ? `
    - User asks: "add a hero section", "create a services grid", "generate a testimonials section"
    - Creates from scratch with styling, spacing, and structure
    - Actions: replace (all content), append (to end), prepend (to start)
+   - **CRITICAL USAGE:** ONE ability call generates ONE complete section/pattern
+     * "create a homepage" → Execute 3-5 SEPARATE calls (hero, services, about, testimonials, CTA) with action_type:"append"
+     * "add more sections" → Execute 2-3 SEPARATE calls for additional sections with action_type:"append"
+     * Each pattern_type (hero, services, cta, etc.) should be a SEPARATE ability execution
+     * NEVER try to describe multiple sections in one content_description
 
 2. **"snn/edit-block-content"** - Use for SPECIFIC/SURGICAL modifications:
    - User asks: "update the About Us section", "change the pricing table", "remove the third FAQ"
@@ -2488,6 +2493,13 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
              */
             async function interpretSingleResult(conversationMessages, abilityName, result, current, total) {
                 try {
+                    // Skip individual interpretations when executing multiple tasks
+                    // Only provide final summary to reduce noise and prevent context pollution
+                    if (total > 1) {
+                        debugLog(`Skipping interpretation for task ${current}/${total} - will provide final summary instead`);
+                        return;
+                    }
+
                     showTyping();
                     setAgentState(AgentState.INTERPRETING);
 
@@ -2501,7 +2513,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         })),
                         {
                             role: 'user',
-                            content: `Task ${current} of ${total} completed successfully.\n\nResult:\n${resultText}\n\nProvide a brief, natural response about this result. CRITICAL: Keep it conversational and factual. ${total > 1 ? 'Note: This is one of multiple tasks being executed.' : ''}`
+                            content: `Task completed successfully.\n\nResult:\n${resultText}\n\nProvide a brief, natural response about this result. CRITICAL: Keep it conversational and factual.`
                         }
                     ];
 
@@ -2527,6 +2539,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
              * Provide final summary after all tasks complete
              */
             async function provideFinalSummary(conversationMessages, abilities) {
+                // Always provide summary for multi-task executions
                 if (abilities.length <= 1) {
                     return; // No need for summary if only one task
                 }
@@ -2535,15 +2548,21 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     showTyping();
                     setAgentState(AgentState.THINKING);
 
+                    // Build a clear list of what was executed
+                    const executedList = abilities.map((a, i) => {
+                        const desc = a.input?.pattern_type || a.input?.content_description?.substring(0, 50) || a.name;
+                        return `${i + 1}. ${a.name} (${desc})`;
+                    }).join('\n');
+
                     const summaryMessages = [
                         ...conversationMessages,
-                        ...ChatState.messages.slice(-15).map(m => ({
+                        ...ChatState.messages.slice(-10).map(m => ({
                             role: m.role === 'user' ? 'user' : 'assistant',
                             content: m.content
                         })),
                         {
                             role: 'user',
-                            content: `All ${abilities.length} tasks have been completed. Provide a brief final summary of what was accomplished. Be conversational and context-aware.`
+                            content: `All ${abilities.length} tasks have been completed successfully:\n\n${executedList}\n\nProvide a brief, enthusiastic final summary (2-3 sentences max) of what was accomplished. Focus on the outcome, not the individual steps. Be conversational and encouraging.`
                         }
                     ];
 
@@ -2556,8 +2575,8 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         .replace(/\n*Execution results?:\s*\[Executed[\s\S]*?\]\]\n*/gi, '')
                         .trim();
 
-                    // Add summary message
-                    addMessage('assistant', '✅ ' + cleanSummary);
+                    // Add summary message with interpretation metadata
+                    addMessage('assistant', '✅ ' + cleanSummary, [{ type: 'interpretation', phase: 'final_summary' }]);
 
                 } catch (error) {
                     console.error('Failed to provide final summary:', error);
