@@ -2888,6 +2888,23 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
             }
 
             /**
+             * Recursively find a block and its parent list
+             * Returns: { block, index, parentList } or null
+             */
+            function findBlockRecursively(blocks, predicate) {
+                for (let i = 0; i < blocks.length; i++) {
+                    if (predicate(blocks[i])) {
+                        return { block: blocks[i], index: i, parentList: blocks };
+                    }
+                    if (blocks[i].innerBlocks && blocks[i].innerBlocks.length > 0) {
+                        const found = findBlockRecursively(blocks[i].innerBlocks, predicate);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            }
+
+            /**
              * Edit block content with surgical precision
              */
             async function editBlockEditorContent(command) {
@@ -3040,44 +3057,35 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                                 return { success: false, error: 'content and section_identifier are required for find_and_replace_section' };
                             }
 
-                            let sectionFound = false;
-                            let blocksToReplace = [];
-                            let startIndex = -1;
+                            const identifier = command.section_identifier.toLowerCase();
 
-                            // Find the section by searching for heading blocks matching the identifier
-                            for (let i = 0; i < blocks.length; i++) {
-                                const block = blocks[i];
-
-                                // Check if this is a heading block that matches our section identifier
+                            // Use recursive finder to search all blocks, including nested ones
+                            const foundData = findBlockRecursively(blocks, (block) => {
                                 if (block.name === 'core/heading' || block.name === 'core/paragraph') {
                                     const blockContent = block.attributes.content || '';
                                     const plainText = blockContent.replace(/<[^>]*>/g, '').trim().toLowerCase();
-                                    const identifier = command.section_identifier.toLowerCase();
-
-                                    // Check if this heading matches our section
-                                    if (plainText.includes(identifier) || identifier.includes(plainText)) {
-                                        sectionFound = true;
-                                        startIndex = i;
-                                        blocksToReplace.push(block.clientId);
-
-                                        // Find all blocks that belong to this section (until next heading or end)
-                                        for (let j = i + 1; j < blocks.length; j++) {
-                                            const nextBlock = blocks[j];
-                                            // Stop at next heading of same or higher level
-                                            if (nextBlock.name === 'core/heading') {
-                                                if (block.name === 'core/heading' &&
-                                                    nextBlock.attributes.level <= block.attributes.level) {
-                                                    break;
-                                                }
-                                            }
-                                            blocksToReplace.push(nextBlock.clientId);
-                                        }
-                                        break;
-                                    }
+                                    return plainText.includes(identifier) || identifier.includes(plainText);
                                 }
-                            }
+                                return false;
+                            });
 
-                            if (sectionFound && blocksToReplace.length > 0) {
+                            if (foundData) {
+                                const { block, index, parentList } = foundData;
+                                const blocksToReplace = [block.clientId];
+
+                                // Find all sibling blocks that belong to this section (until next heading or end)
+                                for (let j = index + 1; j < parentList.length; j++) {
+                                    const nextBlock = parentList[j];
+                                    // Stop at next heading of same or higher level
+                                    if (nextBlock.name === 'core/heading') {
+                                        if (block.name === 'core/heading' &&
+                                            nextBlock.attributes.level <= block.attributes.level) {
+                                            break;
+                                        }
+                                    }
+                                    blocksToReplace.push(nextBlock.clientId);
+                                }
+
                                 // Parse the new content as blocks
                                 const newBlocks = wp.blocks.parse(command.content);
 
@@ -3096,8 +3104,9 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                                 debugLog(`⚠️ Section "${command.section_identifier}" not found. Appended ${newBlocks.length} blocks to end.`);
 
                                 return {
-                                    success: true,
-                                    message: `Section "${command.section_identifier}" not found. Added new content to the end. Remember to save your changes.`
+                                    success: false,
+                                    message: `Section "${command.section_identifier}" not found. Added new content to the end instead. Remember to save your changes.`,
+                                    warning: 'Section identifier not matched - content appended to end'
                                 };
                             }
                         }
