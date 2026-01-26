@@ -1630,7 +1630,7 @@ class SNN_Chat_Overlay {
 
                         // If this message had ability executions, include results in context
                         if (m.metadata && m.metadata.length > 0) {
-                            // Check if this is just an interpretation message (no actual execution)
+                            // Check if this is an interpretation message
                             const isInterpretation = m.metadata.some(md => md.type === 'interpretation');
                             
                             if (!isInterpretation) {
@@ -1648,8 +1648,14 @@ class SNN_Chat_Overlay {
                                     content = content + '\n\nExecution results: ' + resultsText;
                                 }
                             } else {
-                                // Skip interpretation-only messages from context to prevent confusion
-                                return null;
+                                // Keep final summaries (they provide valuable context about what was done)
+                                // Skip only individual task interpretations
+                                const isFinalSummary = m.metadata.some(md => md.phase === 'final_summary');
+                                if (!isFinalSummary) {
+                                    // Skip individual interpretation messages
+                                    return null;
+                                }
+                                // Final summaries are kept as-is for context
                             }
                         }
 
@@ -1771,7 +1777,7 @@ class SNN_Chat_Overlay {
                         const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
                             let content = m.content;
                             if (m.metadata && m.metadata.length > 0) {
-                                // Check if this is just an interpretation message (no actual execution)
+                                // Check if this is an interpretation message
                                 const isInterpretation = m.metadata.some(md => md.type === 'interpretation');
                                 
                                 if (!isInterpretation) {
@@ -1787,8 +1793,11 @@ class SNN_Chat_Overlay {
                                         content = content + '\n\nExecution results: ' + resultsText;
                                     }
                                 } else {
-                                    // Skip interpretation-only messages
-                                    return null;
+                                    // Keep final summaries, skip individual interpretations
+                                    const isFinalSummary = m.metadata.some(md => md.phase === 'final_summary');
+                                    if (!isFinalSummary) {
+                                        return null;
+                                    }
                                 }
                             }
                             return {
@@ -2088,28 +2097,33 @@ WordPress uses wp.blocks.parse() to convert your HTML to blocks. Invalid HTML = 
    - CRITICAL: If the user asks you to DO something, you MUST include a JSON code block with abilities to execute
    - A conversational response without a JSON block means NOTHING WAS ACTUALLY DONE
 
-4. **ONLY ASK QUESTIONS when genuinely necessary:**
-   - Required parameters are missing AND cannot be reasonably defaulted
-   - Multiple significantly different interpretations are possible
-   - The action would be destructive without confirmation
+4. **NEVER ASK CLARIFYING QUESTIONS FOR CONTENT GENERATION - JUST DO IT:**
+   - User: "create a homepage" → Execute immediately with hero, services, about, testimonials, CTA sections
+   - User: "add more sections" → Execute immediately with 2-3 additional relevant sections (gallery, team, faq, stats, etc.)
+   - User: "create a blog post about X" → Execute immediately with reasonable content
+   - User: "make it better" → Execute improvements immediately
+   - ONLY ask questions if literally impossible to proceed (e.g., "create a post" with no topic given)
+   - For content/design work, USE YOUR CREATIVITY - don't ask permission
+   - Default to comprehensive solutions: if asked for "a homepage", include 4-6 sections automatically
 
-4. **Use sensible defaults when executing (but ONLY when user explicitly requests an action):**
+5. **Use sensible defaults when executing:**
+   - Content generation: Create rich, complete content automatically
+   - Multiple sections: Default to 3-5 sections for homepages, 2-3 for "add more"
+   - Styling: Use modern, professional defaults
    - When listing items, default to reasonable limits (e.g., 100 for users)
-   - When getting info, use ONE appropriate ability (not multiple)
    - When filtering is optional, assume "all" unless specifically asked to filter
 
-5. **Examples of CORRECT behavior:**
-   - User: "list all abilities" → Respond with text list of abilities, NO JSON block, NO execution
-   - User: "what can you do" → Describe capabilities in plain text, NO JSON block
-   - User: "get site info" → Execute ONE site info ability only
-   - User: "list users" → Execute user listing ability only
-   - User: "get site info and list users" → Execute both (because user asked for both)
+6. **Examples of CORRECT behavior:**
+   - User: "create a homepage for flower shop" → Execute 4-5 section patterns immediately (hero, services, about, testimonials, cta)
+   - User: "add more sections" → Execute 2-3 additional patterns immediately (gallery, team, faq)
+   - User: "list all abilities" → Respond with text list, NO execution
+   - User: "get site info and list users" → Execute both abilities
 
-6. **Examples of INCORRECT behavior (DON'T DO THIS):**
-   - User: "list abilities" → ❌ Including a JSON block to execute abilities (WRONG)
-   - User: "what can you do" → ❌ Executing abilities to demonstrate (WRONG)
-   - User: "get site info" → ❌ Running multiple info abilities (WRONG - run ONE)
-   - User: "list users" → ❌ Also getting site info "for context" (WRONG - only do what was asked)
+7. **Examples of INCORRECT behavior (DON'T DO THIS):**
+   - User: "create a homepage" → ❌ Asking "what sections would you like?" (WRONG - just do it!)
+   - User: "add more sections" → ❌ Asking "what kind of sections?" (WRONG - pick good ones and execute!)
+   - User: "make a blog post" → ❌ Asking "what should it be about?" (WRONG - only if topic completely unclear)
+   - User: "list abilities" → ❌ Executing abilities to demonstrate (WRONG)
 
 === HOW TO USE ABILITIES ===
 
