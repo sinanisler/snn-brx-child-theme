@@ -427,8 +427,9 @@ function snn_generate_hero_pattern( $args ) {
 <!-- /wp:group -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $bg_color, $text_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['block'],
         $text_color, $text_color, $text_color,
         'Your Compelling Hero Heading Goes Here',
@@ -484,8 +485,9 @@ function snn_generate_about_pattern( $args ) {
 <!-- /wp:columns -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $spacing['block'], $bg_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['block'], $spacing['block'],
         $spacing['element'], $spacing['element'],
         $spacing['element'], $spacing['element']
@@ -544,8 +546,9 @@ function snn_generate_services_pattern( $args ) {
 <!-- /wp:columns -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $spacing['block'], $bg_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['block'], $spacing['block'], $spacing['block'], $spacing['block'],
         $column_blocks
     );
@@ -581,8 +584,9 @@ function snn_generate_cta_pattern( $args ) {
 <!-- /wp:buttons -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $spacing['block'], $bg_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['element'], $spacing['element'],
         $spacing['block'], $spacing['block'],
         $accent_color, $accent_color
@@ -632,8 +636,9 @@ function snn_generate_testimonials_pattern( $args ) {
 <!-- /wp:columns -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $spacing['block'], $bg_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['block'], $spacing['block'], $spacing['block'], $spacing['block'],
         $spacing['block'], $spacing['block'], $spacing['block'], $spacing['block'],
         $spacing['block'], $spacing['block'], $spacing['block'], $spacing['block'],
@@ -693,8 +698,9 @@ function snn_generate_team_pattern( $args ) {
 <!-- /wp:columns -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $spacing['block'], $bg_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['block'], $spacing['block'], $spacing['block'], $spacing['block'],
         $column_blocks
     );
@@ -753,8 +759,9 @@ function snn_generate_stats_pattern( $args ) {
 <!-- /wp:columns -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $spacing['block'], $bg_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['block'], $spacing['block'],
         $spacing['element'], $spacing['element'],
         $spacing['element'], $spacing['element'],
@@ -810,8 +817,9 @@ function snn_generate_faq_pattern( $args ) {
 <!-- /wp:group -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $spacing['block'], $bg_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['block'], $spacing['element'], $spacing['block'],
         $spacing['block'], $spacing['block'], $spacing['block'], $spacing['block'],
         $spacing['block'], $spacing['block'], $spacing['block'], $spacing['block'],
@@ -843,8 +851,9 @@ function snn_generate_generic_pattern( $args ) {
 <!-- /wp:paragraph -->
 </div>
 <!-- /wp:group -->',
+        $semantic_class,
         $spacing['section'], $spacing['section'], $spacing['block'], $bg_color, $text_color,
-        $text_color, $bg_color, $spacing['section'], $spacing['section'],
+        $semantic_class, $text_color, $bg_color, $spacing['section'], $spacing['section'],
         $spacing['element'], $spacing['element']
     );
 }
