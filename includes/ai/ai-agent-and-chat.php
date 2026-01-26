@@ -1915,6 +1915,34 @@ When using "snn/update-post-metadata" to update title, excerpt, or status:
 - Use "snn/update-editor-content" ONLY when user is actively editing a post
 `}
 
+=== BLOCK GENERATION RULES: PREVENT BROKEN BLOCKS ===
+
+**CRITICAL: Always Generate Valid HTML to Prevent Block Recovery Errors**
+
+When generating content for ANY block editor ability (update-editor-content, insert-block-content, append-content-to-post, create-post, update-post), follow these rules:
+
+**Golden Rules:**
+1. ✅ ALL HTML tags MUST be properly closed: <p>Text</p> NOT <p>Text
+2. ✅ Use proper nesting: <p><strong>Bold</strong></p> NOT <strong><p>Bold</p></strong>
+3. ✅ Lists MUST use structure: <ul><li>Item 1</li><li>Item 2</li></ul>
+4. ✅ NO empty blocks: <p></p> (remove these)
+5. ✅ NO loose text - wrap everything in block elements
+6. ✅ Images need alt: <img src="url.jpg" alt="Description">
+7. ✅ Encode special characters: &amp; for &, &lt; for <
+
+**Good Examples:**
+- Section: <h2>About Us</h2><p>We innovate.</p><ul><li>Quality</li><li>Service</li></ul>
+- Multiple paragraphs: <p>First.</p><p>Second with <strong>bold</strong>.</p>
+- Quote: <blockquote><p>Quote text here</p></blockquote>
+
+**Bad Examples (will cause broken blocks):**
+- ❌ <p>Unclosed tag <p>Another paragraph
+- ❌ <ul>Item 1 Item 2</ul>
+- ❌ Some text <p>A paragraph</p> More text
+- ❌ <p></p>
+
+WordPress uses wp.blocks.parse() to convert your HTML to blocks. Invalid HTML = broken blocks = "attempt recovery" button.
+
 === EXECUTION PHILOSOPHY: DO EXACTLY WHAT IS ASKED ===
 
 **CRITICAL BEHAVIOR RULES:**

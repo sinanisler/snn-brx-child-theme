@@ -11,7 +11,15 @@ function snn_register_insert_block_content_ability() {
         'snn/insert-block-content',
         array(
             'label'       => __( 'Insert Block Content', 'snn' ),
-            'description' => __( 'Inserts new content as blocks into the WordPress block editor (Gutenberg). Supports inserting paragraphs, headings, lists, and other block types. Use this to add content to the current post being edited in the block editor. The block will be inserted at the end of the post or at a specific position if specified.', 'snn' ),
+            'description' => __( 'Inserts new content as blocks into the WordPress block editor (Gutenberg). Supports inserting paragraphs, headings, lists, and other block types. Use this to add content to the current post being edited in the block editor. The block will be inserted at the end of the post or at a specific position if specified.
+
+IMPORTANT: Generate valid HTML to prevent broken blocks. Examples:
+- Paragraph: <p>Your text content here</p>
+- Heading: <h2>Section Heading</h2>
+- List: <ul><li>Item 1</li><li>Item 2</li></ul>
+- Quote: <blockquote><p>Quote text</p></blockquote>
+
+Avoid: unclosed tags, empty blocks, loose text without wrapper tags. See includes/ai/docs/block-generation-rules.md', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -23,7 +31,7 @@ function snn_register_insert_block_content_ability() {
                     ),
                     'content' => array(
                         'type'        => 'string',
-                        'description' => 'Content to insert (plain text or HTML).',
+                        'description' => 'Content to insert (plain text or valid HTML with ALL tags properly closed). For lists use: <ul><li>Item</li></ul>. For headings: <h2>Title</h2>. Avoid empty tags or unclosed elements.',
                         'minLength'   => 1,
                     ),
                     'block_type' => array(

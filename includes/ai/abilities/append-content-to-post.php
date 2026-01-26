@@ -11,7 +11,13 @@ function snn_register_append_content_to_post_ability() {
         'snn/append-content-to-post',
         array(
             'label'       => __( 'Append Content to Post', 'snn' ),
-            'description' => __( 'Appends new content to the end of an existing WordPress post or page. Supports HTML and automatically creates appropriate block markup for the block editor. Use this to add additional paragraphs, sections, or any content to the bottom of a post without replacing existing content. Perfect for adding conclusions, updates, or follow-up information.', 'snn' ),
+            'description' => __( 'Appends new content to the end of an existing WordPress post or page. Supports HTML and automatically creates appropriate block markup for the block editor. Use this to add additional paragraphs, sections, or any content to the bottom of a post without replacing existing content. Perfect for adding conclusions, updates, or follow-up information.
+
+CRITICAL: Generate valid HTML with properly closed tags. Examples:
+- Good: <h3>Update</h3><p>New information here.</p><ul><li>Point 1</li><li>Point 2</li></ul>
+- Bad: <p>Unclosed paragraph <p>Another paragraph (causes broken blocks)
+
+See includes/ai/docs/block-generation-rules.md for full guidelines.', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -23,7 +29,7 @@ function snn_register_append_content_to_post_ability() {
                     ),
                     'content' => array(
                         'type'        => 'string',
-                        'description' => 'Content to append (HTML supported).',
+                        'description' => 'Content to append (valid HTML with ALL tags properly closed). Must use proper structure: <p>Text</p>, <ul><li>Item</li></ul>, <h2>Heading</h2>. Avoid unclosed tags, empty blocks, or loose text.',
                         'minLength'   => 1,
                     ),
                     'separator' => array(

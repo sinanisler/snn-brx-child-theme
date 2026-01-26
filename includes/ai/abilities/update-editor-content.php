@@ -16,7 +16,28 @@ function snn_register_update_editor_content_ability() {
         'snn/update-editor-content',
         array(
             'label'       => __( 'Update Editor Content (Real-time)', 'snn' ),
-            'description' => __( 'Updates the block editor content in real-time without page refresh. USE THIS when the user is actively editing a post in the block editor. This provides immediate visual feedback and allows iteration. For posts not currently being edited, use snn/replace-post-content instead. Use the snn/replace-post-content if user asks about editing a section not the all content itself. Supports smart section updates to find and replace existing content sections.', 'snn' ),
+            'description' => __( 'Updates the block editor content in real-time without page refresh. USE THIS when the user is actively editing a post in the block editor. This provides immediate visual feedback and allows iteration. For posts not currently being edited, use snn/replace-post-content instead. Use the snn/replace-post-content if user asks about editing a section not the all content itself. Supports smart section updates to find and replace existing content sections.
+
+CRITICAL: Generate clean, valid HTML to prevent broken blocks. Follow these rules:
+1. ALWAYS close all HTML tags properly (e.g., <p>Text</p> not <p>Text)
+2. Use proper nesting (e.g., <p><strong>Bold</strong></p> not <strong><p>Bold</p></strong>)
+3. Lists MUST use <ul> or <ol> with <li> children: <ul><li>Item 1</li><li>Item 2</li></ul>
+4. NO empty tags or loose text - wrap everything in block elements
+5. Encode special characters (&amp; for &, &lt; for <, etc.)
+6. Images need alt attributes: <img src="url.jpg" alt="Description">
+
+GOOD Examples:
+- Simple section: <h2>About Us</h2><p>We are a company focused on innovation.</p>
+- With list: <h3>Benefits</h3><ul><li>Quality</li><li>Service</li><li>Value</li></ul>
+- Multiple paragraphs: <p>First paragraph.</p><p>Second paragraph with <strong>bold text</strong>.</p>
+
+BAD Examples (will cause broken blocks):
+- Unclosed tag: <p>Text<p>Another paragraph</p>
+- Invalid list: <ul>Item 1 Item 2</ul>
+- Loose text: Some text <p>A paragraph</p> More text
+- Empty blocks: <p></p>
+
+See full documentation at: includes/ai/docs/block-generation-rules.md', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -24,7 +45,7 @@ function snn_register_update_editor_content_ability() {
                 'properties' => array(
                     'content' => array(
                         'type'        => 'string',
-                        'description' => 'The new content (HTML or plain text). Will be converted to blocks automatically.',
+                        'description' => 'The new content (clean HTML or plain text). Will be converted to blocks automatically using wp.blocks.parse(). MUST be valid HTML with ALL tags properly closed. Example: <h2>Section Title</h2><p>Paragraph text with <strong>bold</strong> content.</p><ul><li>List item 1</li><li>List item 2</li></ul>',
                         'minLength'   => 1,
                     ),
                     'action' => array(

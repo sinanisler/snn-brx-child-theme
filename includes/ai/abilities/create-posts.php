@@ -11,7 +11,15 @@ function snn_register_create_post_ability() {
         'snn/create-post',
         array(
             'label'       => __( 'Create Post', 'wp-abilities' ),
-            'description' => __( 'Creates a new WordPress post or page with specified title, content (HTML supported), excerpt, status (draft/publish/pending/private), categories, and tags. Automatically sanitizes input and sets the current user as author. Returns the new post ID, permalink, and edit URL. Use this when you need to programmatically create content, import posts, generate articles, or add new pages to the site. Always create as draft first unless explicitly instructed to publish immediately.', 'wp-abilities' ),
+            'description' => __( 'Creates a new WordPress post or page with specified title, content (HTML supported), excerpt, status (draft/publish/pending/private), categories, and tags. Automatically sanitizes input and sets the current user as author. Returns the new post ID, permalink, and edit URL. Use this when you need to programmatically create content, import posts, generate articles, or add new pages to the site. Always create as draft first unless explicitly instructed to publish immediately.
+
+CRITICAL: Content must be valid HTML with ALL tags properly closed to prevent broken blocks:
+- Good: <h2>Title</h2><p>Introduction text.</p><ul><li>Point 1</li><li>Point 2</li></ul><p>Conclusion.</p>
+- Bad: <p>Text without closing <h2>Title</h2> More loose text (will break)
+- Lists must use: <ul><li>Item</li></ul> or <ol><li>Item</li></ol>
+- No empty blocks: <p></p> (remove these)
+
+See includes/ai/docs/block-generation-rules.md for complete guidelines.', 'wp-abilities' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -25,7 +33,7 @@ function snn_register_create_post_ability() {
                     ),
                     'content' => array(
                         'type'        => 'string',
-                        'description' => 'Post content (HTML allowed).',
+                        'description' => 'Post content (clean, valid HTML with ALL tags properly closed). WordPress will parse this into blocks. Use proper structure: <h2>Heading</h2><p>Paragraph</p><ul><li>List item</li></ul>. Avoid unclosed tags, empty blocks, or loose text.',
                         'minLength'   => 1,
                     ),
                     'status' => array(
