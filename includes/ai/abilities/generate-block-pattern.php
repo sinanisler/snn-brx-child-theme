@@ -72,9 +72,10 @@ CRITICAL WORDPRESS BLOCK RULES (prevent broken blocks):
 
 4. CSS CLASSES (WordPress conventions):
    - Color classes: has-text-color, has-background, has-link-color, has-{slug}-color
+   - Typography: has-custom-font-size (required when using inline font-size styles)
    - Border: has-border-color
    - Alignment: has-text-align-center, aligncenter, alignleft, alignright
-   - Always include semantic classes when using colors/backgrounds
+   - Always include semantic classes when using colors/backgrounds/typography
 
 5. INLINE STYLES (format strictly):
    - Format: style="property:value;property:value"
@@ -107,6 +108,8 @@ CRITICAL WORDPRESS BLOCK RULES (prevent broken blocks):
    - Always wrap button in buttons: <!-- wp:buttons --> with <!-- wp:button -->
    - Structure: <div class="wp-block-button"><a class="wp-block-button__link">Text</a></div>
    - Include wp-element-button class on link
+   - CRITICAL: When using custom font size, add has-custom-font-size class
+   - Example: class="wp-block-button__link has-text-color has-background has-custom-font-size wp-element-button"
    - Colors: {"style":{"color":{"background":"#000","text":"#fff"}}}
 
 10. SPACING CONSISTENCY:
@@ -392,7 +395,7 @@ function snn_generate_hero_pattern( $args ) {
 <!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"},"style":{"spacing":{"margin":{"top":"%s"}}}} -->
 <div class="wp-block-buttons" style="margin-top:%s">
 <!-- wp:button {"style":{"color":{"background":"%s","text":"#ffffff"},"elements":{"link":{"color":{"text":"#ffffff"}}},"typography":{"fontSize":"18px"}}} -->
-<div class="wp-block-button"><a class="wp-block-button__link has-text-color has-background has-link-color wp-element-button" style="color:#ffffff;background-color:%s;font-size:18px">Get Started</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link has-text-color has-background has-link-color has-custom-font-size wp-element-button" style="color:#ffffff;background-color:%s;font-size:18px">Get Started</a></div>
 <!-- /wp:button -->
 </div>
 <!-- /wp:buttons -->
@@ -545,7 +548,7 @@ function snn_generate_cta_pattern( $args ) {
 <!-- wp:buttons {"layout":{"type":"flex","justifyContent":"center"},"style":{"spacing":{"margin":{"top":"%s"}}}} -->
 <div class="wp-block-buttons" style="margin-top:%s">
 <!-- wp:button {"style":{"color":{"background":"%s","text":"#ffffff"},"typography":{"fontSize":"18px"}}} -->
-<div class="wp-block-button"><a class="wp-block-button__link has-text-color has-background wp-element-button" style="color:#ffffff;background-color:%s;font-size:18px">Start Now</a></div>
+<div class="wp-block-button"><a class="wp-block-button__link has-text-color has-background has-custom-font-size wp-element-button" style="color:#ffffff;background-color:%s;font-size:18px">Start Now</a></div>
 <!-- /wp:button -->
 </div>
 <!-- /wp:buttons -->
