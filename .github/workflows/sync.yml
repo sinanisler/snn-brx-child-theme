@@ -75,7 +75,7 @@ jobs:
           echo "hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
           echo "author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
 
-      # Sync to sinanisler/snn-block
+      # Sync to sinanisler/snn-block 
       - name: Checkout Destination Repo (snn-block)
         uses: actions/checkout@v4
         with:
