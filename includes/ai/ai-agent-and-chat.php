@@ -1865,10 +1865,9 @@ class SNN_Chat_Overlay {
 
                             pageContextInfo += `\n**BLOCK EDITOR CAPABILITIES:**\n`;
                             pageContextInfo += `You can interact with the block editor using these abilities:\n`;
-                            pageContextInfo += `- snn/insert-block-content: Insert new blocks into the post\n`;
-                            pageContextInfo += `- snn/append-content-to-post: Add content to the end of the post\n`;
+                            pageContextInfo += `- snn/generate-block-pattern: Insert new block patterns into the post\n`;
+                            pageContextInfo += `- snn/generate-block-pattern: Add content to the end of the post\n`;
                             pageContextInfo += `- snn/get-post-content: Read the current post content\n`;
-                            pageContextInfo += `- snn/replace-post-content: Replace entire post content\n`;
                             pageContextInfo += `- snn/update-post-metadata: Update title, excerpt, status, categories, tags\n`;
                             pageContextInfo += `- snn/analyze-post-seo: Analyze SEO quality of the current post\n`;
                             pageContextInfo += `\nWhen the user asks to "add content", "insert text", "write about", etc., use the insert or append abilities with the post_id ${ctx.details.post_id}.\n`;
