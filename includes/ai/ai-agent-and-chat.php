@@ -1163,6 +1163,7 @@ class SNN_Chat_Overlay {
                 EXECUTING: 'executing',
                 INTERPRETING: 'interpreting',
                 RETRYING: 'retrying',
+                RECOVERING: 'recovering',
                 DONE: 'done',
                 ERROR: 'error'
             };
@@ -1172,6 +1173,14 @@ class SNN_Chat_Overlay {
             const MAX_HISTORY = snnChatConfig.settings.maxHistory || 20;
             const DEBUG_MODE = snnChatConfig.settings.debugMode || false;
             const ENABLED_ABILITIES = snnChatConfig.settings.enabledAbilities || [];
+            
+            // Error recovery configuration
+            const RECOVERY_CONFIG = {
+                maxRecoveryAttempts: 3,
+                baseDelay: 2000, // 2 seconds base delay
+                maxDelay: 30000, // 30 seconds max delay
+                rateLimitDelay: 5000 // 5 seconds for 429 errors
+            };
 
             // Debug console wrapper
             const debugLog = function(...args) {
@@ -1192,7 +1201,10 @@ class SNN_Chat_Overlay {
                 currentAbility: null,
                 currentSessionId: null,
                 autoSaveTimer: null,
-                pageContext: snnChatConfig && snnChatConfig.pageContext ? snnChatConfig.pageContext : { type: 'unknown', details: {} }
+                pageContext: snnChatConfig && snnChatConfig.pageContext ? snnChatConfig.pageContext : { type: 'unknown', details: {} },
+                recoveryAttempts: 0,
+                lastError: null,
+                pendingOperation: null
             };
 
             // Block Editor Integration
@@ -1510,14 +1522,22 @@ class SNN_Chat_Overlay {
             }
 
             /**
-             * Process message with AI agent
+             * Process message with AI agent with error recovery
              */
             async function processWithAI(userMessage) {
                 ChatState.isProcessing = true;
+                ChatState.recoveryAttempts = 0;
                 showTyping();
                 setAgentState(AgentState.THINKING);
 
                 try {
+                    // Store pending operation for recovery
+                    ChatState.pendingOperation = {
+                        type: 'processMessage',
+                        message: userMessage,
+                        timestamp: Date.now()
+                    };
+                    
                     // Prepare conversation context (use MAX_HISTORY setting)
                     const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
                         let content = m.content;
@@ -1579,15 +1599,140 @@ class SNN_Chat_Overlay {
                     // Mark as done
                     setAgentState(AgentState.DONE);
                     
+                    // Clear pending operation on success
+                    ChatState.pendingOperation = null;
+                    
                     // Auto-save conversation
                     autoSaveConversation();
                 } catch (error) {
                     hideTyping();
-                    addMessage('error', 'Sorry, something went wrong: ' + error.message);
-                    setAgentState(AgentState.ERROR, { error: error.message });
+                    
+                    // Try to recover from the error
+                    const recovered = await attemptRecovery(error, userMessage);
+                    
+                    if (!recovered) {
+                        // Recovery failed, show error to user
+                        let errorMessage = 'Sorry, something went wrong: ' + error.message;
+                        
+                        // Add helpful suggestions based on error type
+                        if (error.message.includes('429') || error.message.includes('Rate limit')) {
+                            errorMessage += '\n\n💡 **Tip:** The AI service is currently rate-limited. Please wait a moment before trying again.';
+                        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                            errorMessage += '\n\n💡 **Tip:** Check your internet connection and try again.';
+                        } else if (error.message.includes('API not configured')) {
+                            errorMessage += '\n\n💡 **Tip:** Please configure your AI API settings first.';
+                        }
+                        
+                        addMessage('error', errorMessage);
+                        setAgentState(AgentState.ERROR, { error: error.message });
+                    }
                 } finally {
                     ChatState.isProcessing = false;
                 }
+            }
+            
+            /**
+             * Attempt to recover from an error
+             */
+            async function attemptRecovery(error, userMessage) {
+                ChatState.recoveryAttempts++;
+                
+                if (ChatState.recoveryAttempts > RECOVERY_CONFIG.maxRecoveryAttempts) {
+                    debugLog('❌ Max recovery attempts reached, giving up');
+                    return false;
+                }
+                
+                debugLog(`🔄 Attempting recovery (${ChatState.recoveryAttempts}/${RECOVERY_CONFIG.maxRecoveryAttempts})...`);
+                
+                // Calculate delay based on error type
+                let delay = RECOVERY_CONFIG.baseDelay;
+                
+                if (error.message.includes('429') || error.message.includes('Rate limit')) {
+                    delay = RECOVERY_CONFIG.rateLimitDelay * Math.pow(2, ChatState.recoveryAttempts - 1);
+                } else if (error.message.includes('500') || error.message.includes('503')) {
+                    delay = RECOVERY_CONFIG.baseDelay * Math.pow(2, ChatState.recoveryAttempts - 1);
+                }
+                
+                delay = Math.min(delay, RECOVERY_CONFIG.maxDelay);
+                
+                setAgentState(AgentState.RECOVERING, {
+                    reason: error.message,
+                    delay: delay,
+                    attempt: ChatState.recoveryAttempts,
+                    maxAttempts: RECOVERY_CONFIG.maxRecoveryAttempts
+                });
+                
+                showTyping();
+                await sleep(delay);
+                
+                try {
+                    // Retry the operation
+                    if (ChatState.pendingOperation && ChatState.pendingOperation.type === 'processMessage') {
+                        debugLog('🔄 Retrying message processing...');
+                        
+                        // Don't call processWithAI recursively, just retry the core logic
+                        setAgentState(AgentState.THINKING);
+                        
+                        const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
+                            let content = m.content;
+                            if (m.metadata && m.metadata.length > 0) {
+                                const resultsText = m.metadata.map(r => {
+                                    if (r.result.success && r.result.data) {
+                                        return `[Executed ${r.ability}: ${JSON.stringify(r.result.data).substring(0, 200)}]`;
+                                    } else if (!r.result.success) {
+                                        return `[Failed ${r.ability}: ${r.result.error || 'Unknown error'}]`;
+                                    }
+                                    return '';
+                                }).filter(Boolean).join(' ');
+                                if (resultsText) {
+                                    content = content + '\n\nExecution results: ' + resultsText;
+                                }
+                            }
+                            return {
+                                role: m.role === 'user' ? 'user' : 'assistant',
+                                content: content
+                            };
+                        });
+                        
+                        const systemPrompt = buildSystemPrompt();
+                        const messages = [
+                            { role: 'system', content: systemPrompt },
+                            ...context
+                        ];
+                        
+                        const aiResponse = await callAI(messages);
+                        hideTyping();
+                        
+                        const abilities = extractAbilitiesFromResponse(aiResponse);
+                        
+                        if (abilities.length > 0) {
+                            let initialMessage = aiResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                            if (initialMessage) {
+                                addMessage('assistant', initialMessage);
+                            }
+                            await executeAbilitiesSequentially(messages, abilities);
+                            await provideFinalSummary(messages, abilities);
+                        } else {
+                            addMessage('assistant', aiResponse);
+                        }
+                        
+                        setAgentState(AgentState.DONE);
+                        ChatState.pendingOperation = null;
+                        ChatState.recoveryAttempts = 0;
+                        autoSaveConversation();
+                        
+                        debugLog('✅ Recovery successful!');
+                        return true;
+                    }
+                } catch (retryError) {
+                    debugLog('❌ Recovery attempt failed:', retryError.message);
+                    ChatState.lastError = retryError;
+                    
+                    // Recursive recovery attempt
+                    return await attemptRecovery(retryError, userMessage);
+                }
+                
+                return false;
             }
 
             /**
@@ -1827,38 +1972,125 @@ VALIDATION REQUIREMENTS:
             }
 
             /**
-             * Call AI API
+             * Call AI API with automatic recovery
              */
-            async function callAI(messages) {
+            async function callAI(messages, retryCount = 0) {
                 const config = snnChatConfig.ai;
                 
                 if (!config.apiKey || !config.apiEndpoint) {
                     throw new Error('AI API not configured. Please check settings.');
                 }
 
-                ChatState.abortController = new AbortController();
+                try {
+                    ChatState.abortController = new AbortController();
 
-                const response = await fetch(config.apiEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: config.model,
-                        messages: messages,
-                        temperature: 0.7,
-                        max_tokens: config.maxTokens || 4000
-                    }),
-                    signal: ChatState.abortController.signal
-                });
+                    const response = await fetch(config.apiEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${config.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: config.model,
+                            messages: messages,
+                            temperature: 0.7,
+                            max_tokens: config.maxTokens || 4000
+                        }),
+                        signal: ChatState.abortController.signal
+                    });
 
-                if (!response.ok) {
-                    throw new Error(`AI API error: ${response.status}`);
+                    // Handle rate limiting (429) with exponential backoff
+                    if (response.status === 429) {
+                        if (retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {
+                            const delay = Math.min(
+                                RECOVERY_CONFIG.rateLimitDelay * Math.pow(2, retryCount),
+                                RECOVERY_CONFIG.maxDelay
+                            );
+                            
+                            debugLog(`⚠️ Rate limited (429), retrying in ${delay/1000}s... (attempt ${retryCount + 1}/${RECOVERY_CONFIG.maxRecoveryAttempts})`);
+                            
+                            setAgentState(AgentState.RECOVERING, {
+                                reason: 'Rate limit exceeded',
+                                delay: delay,
+                                attempt: retryCount + 1,
+                                maxAttempts: RECOVERY_CONFIG.maxRecoveryAttempts
+                            });
+                            
+                            await sleep(delay);
+                            return await callAI(messages, retryCount + 1);
+                        } else {
+                            throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+                        }
+                    }
+
+                    // Handle other HTTP errors
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: { message: `HTTP ${response.status}` } }));
+                        const errorMessage = errorData.error?.message || `AI API error: ${response.status}`;
+                        
+                        // For 5xx errors, retry with exponential backoff
+                        if (response.status >= 500 && response.status < 600 && retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {
+                            const delay = Math.min(
+                                RECOVERY_CONFIG.baseDelay * Math.pow(2, retryCount),
+                                RECOVERY_CONFIG.maxDelay
+                            );
+                            
+                            debugLog(`⚠️ Server error (${response.status}), retrying in ${delay/1000}s...`);
+                            
+                            setAgentState(AgentState.RECOVERING, {
+                                reason: `Server error (${response.status})`,
+                                delay: delay,
+                                attempt: retryCount + 1,
+                                maxAttempts: RECOVERY_CONFIG.maxRecoveryAttempts
+                            });
+                            
+                            await sleep(delay);
+                            return await callAI(messages, retryCount + 1);
+                        }
+                        
+                        throw new Error(errorMessage);
+                    }
+
+                    const data = await response.json();
+                    
+                    // Reset recovery attempts on success
+                    ChatState.recoveryAttempts = 0;
+                    ChatState.lastError = null;
+                    
+                    return data.choices[0].message.content;
+                    
+                } catch (error) {
+                    // Don't retry on abort
+                    if (error.name === 'AbortError') {
+                        throw error;
+                    }
+                    
+                    // Store error for potential recovery
+                    ChatState.lastError = error;
+                    
+                    // Network errors - retry with exponential backoff
+                    if ((error.message.includes('fetch') || error.message.includes('network')) && 
+                        retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {
+                        const delay = Math.min(
+                            RECOVERY_CONFIG.baseDelay * Math.pow(2, retryCount),
+                            RECOVERY_CONFIG.maxDelay
+                        );
+                        
+                        debugLog(`⚠️ Network error, retrying in ${delay/1000}s...`);
+                        
+                        setAgentState(AgentState.RECOVERING, {
+                            reason: 'Network error',
+                            delay: delay,
+                            attempt: retryCount + 1,
+                            maxAttempts: RECOVERY_CONFIG.maxRecoveryAttempts
+                        });
+                        
+                        await sleep(delay);
+                        return await callAI(messages, retryCount + 1);
+                    }
+                    
+                    throw error;
                 }
-
-                const data = await response.json();
-                return data.choices[0].message.content;
             }
 
             /**
@@ -2646,6 +2878,23 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                             stateMessage = 'Retrying with corrected input...';
                         }
                         break;
+                    
+                    case AgentState.RECOVERING:
+                        if (metadata) {
+                            const waitTime = metadata.delay ? Math.ceil(metadata.delay / 1000) : 0;
+                            const attemptInfo = metadata.attempt ? ` (${metadata.attempt}/${metadata.maxAttempts})` : '';
+                            if (metadata.reason) {
+                                stateMessage = `⚠️ ${metadata.reason} - Recovering${attemptInfo}...`;
+                                if (waitTime > 0) {
+                                    stateMessage += ` (waiting ${waitTime}s)`;
+                                }
+                            } else {
+                                stateMessage = `Recovering${attemptInfo}...`;
+                            }
+                        } else {
+                            stateMessage = 'Recovering from error...';
+                        }
+                        break;
 
                     case AgentState.DONE:
                         stateMessage = '';
@@ -2904,6 +3153,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-agent-state-badge.badge-done { background: rgba(255, 255, 255, 0.95); color: #2e7d32; }
 .snn-agent-state-badge.badge-error { background: rgba(255, 255, 255, 0.95); color: #c62828; animation: badgeShake 0.5s ease-in-out; }
 .snn-agent-state-badge.badge-retrying { background: rgba(255, 255, 255, 0.95); color: #ff9800; animation: badgePulse 1s ease-in-out infinite; }
+.snn-agent-state-badge.badge-recovering { background: rgba(255, 255, 255, 0.95); color: #ff6f00; animation: badgePulse 1.3s ease-in-out infinite; }
 @keyframes badgePulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
 @keyframes badgeShake { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
 .snn-chat-controls { display: flex; gap: 4px; }
