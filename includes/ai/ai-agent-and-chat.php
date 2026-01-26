@@ -1630,17 +1630,26 @@ class SNN_Chat_Overlay {
 
                         // If this message had ability executions, include results in context
                         if (m.metadata && m.metadata.length > 0) {
-                            const resultsText = m.metadata.map(r => {
-                                if (r.result.success && r.result.data) {
-                                    return `[Executed ${r.ability}: ${JSON.stringify(r.result.data).substring(0, 200)}]`;
-                                } else if (!r.result.success) {
-                                    return `[Failed ${r.ability}: ${r.result.error || 'Unknown error'}]`;
-                                }
-                                return '';
-                            }).filter(Boolean).join(' ');
+                            // Check if this is just an interpretation message (no actual execution)
+                            const isInterpretation = m.metadata.some(md => md.type === 'interpretation');
+                            
+                            if (!isInterpretation) {
+                                // This message has actual execution results
+                                const resultsText = m.metadata.map(r => {
+                                    if (r.result && r.result.success && r.result.data) {
+                                        return `[Executed ${r.ability}: ${JSON.stringify(r.result.data).substring(0, 200)}]`;
+                                    } else if (r.result && !r.result.success) {
+                                        return `[Failed ${r.ability}: ${r.result.error || 'Unknown error'}]`;
+                                    }
+                                    return '';
+                                }).filter(Boolean).join(' ');
 
-                            if (resultsText) {
-                                content = content + '\n\nExecution results: ' + resultsText;
+                                if (resultsText) {
+                                    content = content + '\n\nExecution results: ' + resultsText;
+                                }
+                            } else {
+                                // Skip interpretation-only messages from context to prevent confusion
+                                return null;
                             }
                         }
 
@@ -1648,7 +1657,7 @@ class SNN_Chat_Overlay {
                             role: m.role === 'user' ? 'user' : 'assistant',
                             content: content
                         };
-                    });
+                    }).filter(msg => msg !== null); // Remove null entries (skipped interpretations)
 
                     // Build AI prompt with abilities
                     const systemPrompt = buildSystemPrompt();
@@ -1762,23 +1771,31 @@ class SNN_Chat_Overlay {
                         const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
                             let content = m.content;
                             if (m.metadata && m.metadata.length > 0) {
-                                const resultsText = m.metadata.map(r => {
-                                    if (r.result.success && r.result.data) {
-                                        return `[Executed ${r.ability}: ${JSON.stringify(r.result.data).substring(0, 200)}]`;
-                                    } else if (!r.result.success) {
-                                        return `[Failed ${r.ability}: ${r.result.error || 'Unknown error'}]`;
+                                // Check if this is just an interpretation message (no actual execution)
+                                const isInterpretation = m.metadata.some(md => md.type === 'interpretation');
+                                
+                                if (!isInterpretation) {
+                                    const resultsText = m.metadata.map(r => {
+                                        if (r.result && r.result.success && r.result.data) {
+                                            return `[Executed ${r.ability}: ${JSON.stringify(r.result.data).substring(0, 200)}]`;
+                                        } else if (r.result && !r.result.success) {
+                                            return `[Failed ${r.ability}: ${r.result.error || 'Unknown error'}]`;
+                                        }
+                                        return '';
+                                    }).filter(Boolean).join(' ');
+                                    if (resultsText) {
+                                        content = content + '\n\nExecution results: ' + resultsText;
                                     }
-                                    return '';
-                                }).filter(Boolean).join(' ');
-                                if (resultsText) {
-                                    content = content + '\n\nExecution results: ' + resultsText;
+                                } else {
+                                    // Skip interpretation-only messages
+                                    return null;
                                 }
                             }
                             return {
                                 role: m.role === 'user' ? 'user' : 'assistant',
                                 content: content
                             };
-                        });
+                        }).filter(msg => msg !== null);
                         
                         const systemPrompt = buildSystemPrompt();
                         const messages = [
@@ -2058,7 +2075,15 @@ WordPress uses wp.blocks.parse() to convert your HTML to blocks. Invalid HTML = 
    - "Get site info" / "List users" / "Create a post" → ACTION - execute the appropriate ability
    - When in doubt, treat it as informational
 
-3. **ONLY ASK QUESTIONS when genuinely necessary:**
+3. **NEVER ASSUME WORK IS ALREADY DONE - ALWAYS EXECUTE WHEN ASKED:**
+   - Even if previous messages mention completing similar tasks, ALWAYS execute new requests
+   - "Add more sections" → EXECUTE snn/generate-block-pattern with NEW content, don't just acknowledge
+   - "Create another post" → EXECUTE the ability, don't assume it's done
+   - Your previous acknowledgments are NOT the same as actual execution
+   - CRITICAL: If the user asks you to DO something, you MUST include a JSON code block with abilities to execute
+   - A conversational response without a JSON block means NOTHING WAS ACTUALLY DONE
+
+4. **ONLY ASK QUESTIONS when genuinely necessary:**
    - Required parameters are missing AND cannot be reasonably defaulted
    - Multiple significantly different interpretations are possible
    - The action would be destructive without confirmation
@@ -2476,7 +2501,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         })),
                         {
                             role: 'user',
-                            content: `Task ${current} of ${total} completed successfully.\n\nResult:\n${resultText}\n\nProvide a brief, natural response about this result. ${total > 1 ? 'Note: This is one of multiple tasks being executed.' : ''}`
+                            content: `Task ${current} of ${total} completed successfully.\n\nResult:\n${resultText}\n\nProvide a brief, natural response about this result. CRITICAL: Keep it conversational and factual. ${total > 1 ? 'Note: This is one of multiple tasks being executed.' : ''}`
                         }
                     ];
 
@@ -2489,8 +2514,8 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         .replace(/\n*Execution results?:\s*\[Executed[\s\S]*?\]\]\n*/gi, '')
                         .trim();
 
-                    // Add interpretation as a follow-up message
-                    addMessage('assistant', cleanInterpretation);
+                    // Add interpretation as a follow-up message with special metadata to distinguish it from actual execution
+                    addMessage('assistant', cleanInterpretation, [{ type: 'interpretation', ability: abilityName }]);
 
                 } catch (error) {
                     console.error('Failed to interpret result:', error);
