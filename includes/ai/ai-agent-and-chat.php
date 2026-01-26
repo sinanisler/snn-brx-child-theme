@@ -1879,6 +1879,36 @@ ${ChatState.pageContext && ChatState.pageContext.type === 'post_editor' ? `
 **When to use each ability:**
 - "snn/update-editor-content" → When user is IN the block editor (NOW) - provides real-time updates
 - "snn/replace-post-content" → When editing posts NOT currently open in editor
+
+**IMPORTANT: Smart Section Updates**
+When updating EXISTING content sections (e.g., "update the Who We Are section"):
+- The "snn/update-editor-content" ability supports an "update_section" action
+- This will FIND and REPLACE existing sections instead of creating duplicates
+- Example: When the ability returns a client_command, include:
+  {
+    "type": "update_editor_content",
+    "action": "update_section",
+    "section_identifier": "Who We Are",
+    "content": "<new HTML content for the section>",
+    "post_id": ${ChatState.pageContext.details.post_id || 'POST_ID'}
+  }
+- The section_identifier should be the heading text (e.g., "Who We Are", "About Us")
+- This will find the heading block and replace it and all blocks until the next heading
+- If the section is not found, it will append to the end
+
+**IMPORTANT: Real-Time Metadata Updates**
+When using "snn/update-post-metadata" to update title, excerpt, or status:
+- The ability should return a client_command to update the editor state in real-time
+- Example client_command format:
+  {
+    "type": "update_post_metadata",
+    "post_id": ${ChatState.pageContext.details.post_id || 'POST_ID'},
+    "title": "New Title",
+    "excerpt": "New excerpt",
+    "status": "publish"
+  }
+- This ensures the user sees the changes immediately without needing to save/refresh
+- Include ONLY the fields that were updated (title, excerpt, status, featured_media)
 ` : `
 ⚪ **YOU ARE NOT IN THE BLOCK EDITOR**
 - Use "snn/replace-post-content" for editing posts (updates database directly)
@@ -2416,6 +2446,10 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         return await updateBlockEditorContent(command);
                     }
 
+                    if (command.type === 'update_post_metadata') {
+                        return await updatePostMetadataInEditor(command);
+                    }
+
                     return {
                         success: false,
                         error: `Unknown client command type: ${command.type}`
@@ -2430,9 +2464,9 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
             }
 
             /**
-             * Update block editor content in real-time
+             * Update post metadata in the editor (title, excerpt, status, etc.) in real-time
              */
-            async function updateBlockEditorContent(command) {
+            async function updatePostMetadataInEditor(command) {
                 try {
                     // Check if we're in the block editor
                     if (typeof wp === 'undefined' || !wp.data || !wp.data.select('core/editor')) {
@@ -2457,7 +2491,148 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         };
                     }
 
-                    // Get current content for append/prepend operations
+                    // Build the updates object
+                    const updates = {};
+                    const updatedFields = [];
+
+                    if (command.title !== undefined) {
+                        updates.title = command.title;
+                        updatedFields.push('title');
+                    }
+
+                    if (command.excerpt !== undefined) {
+                        updates.excerpt = command.excerpt;
+                        updatedFields.push('excerpt');
+                    }
+
+                    if (command.status !== undefined) {
+                        updates.status = command.status;
+                        updatedFields.push('status');
+                    }
+
+                    if (command.featured_media !== undefined) {
+                        updates.featured_media = command.featured_media;
+                        updatedFields.push('featured image');
+                    }
+
+                    // Apply the updates to the editor
+                    if (Object.keys(updates).length > 0) {
+                        editorDispatch.editPost(updates);
+
+                        return {
+                            success: true,
+                            message: `Updated ${updatedFields.join(', ')} in editor. Remember to save your changes.`
+                        };
+                    } else {
+                        return {
+                            success: false,
+                            error: 'No metadata fields to update'
+                        };
+                    }
+
+                } catch (error) {
+                    console.error('Post metadata update error:', error);
+                    return {
+                        success: false,
+                        error: `Failed to update metadata: ${error.message}`
+                    };
+                }
+            }
+
+            /**
+             * Update block editor content in real-time
+             */
+            async function updateBlockEditorContent(command) {
+                try {
+                    // Check if we're in the block editor
+                    if (typeof wp === 'undefined' || !wp.data || !wp.data.select('core/editor')) {
+                        return {
+                            success: false,
+                            error: 'Block editor not detected. This command only works when editing a post.'
+                        };
+                    }
+
+                    const { select, dispatch } = wp.data;
+                    const editor = select('core/editor');
+                    const editorDispatch = dispatch('core/editor');
+                    const blockEditor = select('core/block-editor');
+                    const blockEditorDispatch = dispatch('core/block-editor');
+
+                    // Get current post ID
+                    const currentPostId = editor.getCurrentPostId();
+
+                    // Verify post ID if provided
+                    if (command.post_id && command.post_id !== currentPostId) {
+                        return {
+                            success: false,
+                            error: `Post ID mismatch. Expected ${command.post_id}, but currently editing ${currentPostId}`
+                        };
+                    }
+
+                    // Handle update_section action - find and replace existing sections
+                    if (command.action === 'update_section' && command.section_identifier) {
+                        const blocks = blockEditor.getBlocks();
+                        let sectionFound = false;
+                        let blocksToReplace = [];
+                        let startIndex = -1;
+
+                        // Find the section by searching for heading blocks matching the identifier
+                        for (let i = 0; i < blocks.length; i++) {
+                            const block = blocks[i];
+
+                            // Check if this is a heading block that matches our section identifier
+                            if (block.name === 'core/heading' || block.name === 'core/paragraph') {
+                                const blockContent = block.attributes.content || '';
+                                const plainText = blockContent.replace(/<[^>]*>/g, '').trim().toLowerCase();
+                                const identifier = command.section_identifier.toLowerCase();
+
+                                // Check if this heading matches our section
+                                if (plainText.includes(identifier) || identifier.includes(plainText)) {
+                                    sectionFound = true;
+                                    startIndex = i;
+                                    blocksToReplace.push(block.clientId);
+
+                                    // Find all blocks that belong to this section (until next heading or end)
+                                    for (let j = i + 1; j < blocks.length; j++) {
+                                        const nextBlock = blocks[j];
+                                        // Stop at next heading of same or higher level
+                                        if (nextBlock.name === 'core/heading') {
+                                            if (block.name === 'core/heading' &&
+                                                nextBlock.attributes.level <= block.attributes.level) {
+                                                break;
+                                            }
+                                        }
+                                        blocksToReplace.push(nextBlock.clientId);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (sectionFound && blocksToReplace.length > 0) {
+                            // Parse the new content as blocks
+                            const newBlocks = wp.blocks.parse(command.content);
+
+                            // Replace the old section blocks with new ones
+                            blockEditorDispatch.replaceBlocks(blocksToReplace, newBlocks);
+
+                            return {
+                                success: true,
+                                message: `Updated "${command.section_identifier}" section with ${newBlocks.length} block(s). Remember to save your changes.`
+                            };
+                        } else {
+                            // Section not found, append to end instead
+                            const newBlocks = wp.blocks.parse(command.content);
+                            blockEditorDispatch.insertBlocks(newBlocks);
+
+                            return {
+                                success: true,
+                                message: `Section "${command.section_identifier}" not found. Added new content to the end. Remember to save your changes.`
+                            };
+                        }
+                    }
+
+                    // Get current content for append/prepend/replace operations
                     let newContent = command.content;
                     if (command.action === 'append' || command.action === 'prepend') {
                         const currentContent = editor.getEditedPostAttribute('content');
