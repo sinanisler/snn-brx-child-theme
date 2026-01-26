@@ -2034,7 +2034,7 @@ VALIDATION REQUIREMENTS:
              */
             async function callAI(messages, retryCount = 0) {
                 const config = snnChatConfig.ai;
-                
+
                 if (!config.apiKey || !config.apiEndpoint) {
                     throw new Error('AI API not configured. Please check settings.');
                 }
@@ -2660,43 +2660,61 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         }
                     }
 
-                    // Get current content for append/prepend/replace operations
-                    let newContent = command.content;
-                    if (command.action === 'append' || command.action === 'prepend') {
-                        const currentContent = editor.getEditedPostAttribute('content');
-                        if (command.action === 'append') {
-                            newContent = currentContent + '\n\n' + command.content;
-                        } else {
-                            newContent = command.content + '\n\n' + currentContent;
-                        }
-                    }
-
                     // For preview mode, don't actually update
                     if (command.action === 'preview') {
-                        // Could show a modal or notification here
-                        console.log('Preview content:', newContent);
+                        console.log('Preview content:', command.content);
                         return {
                             success: true,
                             message: 'Preview mode - content not applied',
-                            preview: newContent.substring(0, 200)
+                            preview: command.content.substring(0, 200)
                         };
                     }
 
-                    // Update the editor content
-                    editorDispatch.editPost({ content: newContent });
+                    // Parse content as blocks
+                    debugLog('Parsing content as blocks...');
+                    const newBlocks = wp.blocks.parse(command.content);
+                    debugLog(`Parsed ${newBlocks.length} blocks from content`);
+
+                    // Handle different actions
+                    if (command.action === 'replace') {
+                        // Replace all content
+                        debugLog('Replacing all blocks...');
+                        const allBlocks = blockEditor.getBlocks();
+                        const allBlockIds = allBlocks.map(b => b.clientId);
+
+                        if (allBlockIds.length > 0) {
+                            blockEditorDispatch.replaceBlocks(allBlockIds, newBlocks);
+                        } else {
+                            blockEditorDispatch.insertBlocks(newBlocks);
+                        }
+
+                        debugLog('✅ Blocks replaced successfully');
+
+                    } else if (command.action === 'append') {
+                        // Append to end
+                        debugLog('Appending blocks to end...');
+                        blockEditorDispatch.insertBlocks(newBlocks);
+                        debugLog('✅ Blocks appended successfully');
+
+                    } else if (command.action === 'prepend') {
+                        // Insert at beginning
+                        debugLog('Prepending blocks to beginning...');
+                        blockEditorDispatch.insertBlocks(newBlocks, 0);
+                        debugLog('✅ Blocks prepended successfully');
+                    }
 
                     // Auto-save if requested
                     if (command.save_immediately) {
                         await editorDispatch.savePost();
                         return {
                             success: true,
-                            message: `Content ${command.action}ed and saved (${command.word_count} words)`
+                            message: `Content ${command.action}ed and saved (${newBlocks.length} blocks)`
                         };
                     }
 
                     return {
                         success: true,
-                        message: `Content ${command.action}ed in editor (${command.word_count} words). Remember to save your changes.`
+                        message: `Content ${command.action}ed in editor (${newBlocks.length} blocks). Remember to save your changes.`
                     };
 
                 } catch (error) {
