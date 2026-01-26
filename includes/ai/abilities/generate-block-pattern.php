@@ -45,23 +45,103 @@ USAGE EXAMPLES:
 4. Team: {pattern_type: "team", content_description: "4 leadership members", layout_columns: 4, include_images: true}
 
 AVAILABLE CORE BLOCKS:
-Layout: group, columns, column, cover, media-text, spacer, separator | Content: paragraph, heading, list, list-item, quote, pullquote, table | Media: image, gallery, video, audio | Interactive: button, buttons, accordion, details
+Layout: group, columns, column, cover, media-text, spacer, separator | Content: paragraph, heading, list, list-item, quote, pullquote, table | Media: image, gallery, video, audio | Interactive: button, buttons, accordion, details, social-links
 
-CRITICAL HTML RULES (prevent broken blocks):
-1. Close ALL tags: <p>Text</p> NOT <p>Text
-2. Proper nesting: <p><strong>Bold</strong></p> NOT <strong><p>Bold</p></strong>
-3. Lists need containers: <ul><li>Item 1</li><li>Item 2</li></ul> NOT <ul>Item 1 Item 2</ul>
-4. No loose text - wrap in blocks
-5. Block markup: <!-- wp:block-name {"attributes"} -->content<!-- /wp:block-name -->
-6. Include style attributes for colors, spacing, typography
-7. Use metadata: {"categories":["type"],"patternName":"name"}
+CRITICAL WORDPRESS BLOCK RULES (prevent broken blocks):
+
+1. HTML STRUCTURE:
+   - Close ALL tags: <p>Text</p> NOT <p>Text
+   - Proper nesting: <p><strong>Bold</strong></p> NOT <strong><p>Bold</p></strong>
+   - Lists need containers: <ul><li>Item 1</li><li>Item 2</li></ul>
+   - No loose text outside block elements
+   - Escape % symbols in inline styles: 50%% NOT 50%
+
+2. BLOCK COMMENT SYNTAX:
+   - Opening: <!-- wp:block-name {JSON_attributes} -->
+   - Closing: <!-- /wp:block-name -->
+   - Self-closing NOT allowed - always use opening/closing pair
+   - JSON must be valid: {"key":"value"} with proper quotes
+   - No trailing commas in JSON objects
+
+3. BLOCK ATTRIBUTES (JSON structure):
+   - metadata: {"categories":["category"],"patternName":"name","name":"Display Name"}
+   - style: {"spacing":{},"color":{},"typography":{},"border":{},"elements":{}}
+   - layout: {"type":"constrained|flex","contentSize":"1180px","justifyContent":"left|center|right"}
+   - Spacing: {"padding":{"top":"80px","right":"26px","bottom":"80px","left":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"24px"}
+   - Border: Individual sides {"top":{"color":"#e0e0e0","width":"1px","style":"solid"},"radius":"24px"}
+
+4. CSS CLASSES (WordPress conventions):
+   - Color classes: has-text-color, has-background, has-link-color, has-{slug}-color
+   - Border: has-border-color
+   - Alignment: has-text-align-center, aligncenter, alignleft, alignright
+   - Always include semantic classes when using colors/backgrounds
+
+5. INLINE STYLES (format strictly):
+   - Format: style="property:value;property:value"
+   - Colors: color:#000000;background-color:#ffffff
+   - Spacing: margin-top:24px;padding-top:80px (include units)
+   - Typography: font-size:48px;line-height:1.2;font-weight:500
+   - Borders: border-radius:24px;border-color:#e0e0e0;border-width:1px
+   - No spaces around colons/semicolons
+
+6. COLUMN LAYOUTS:
+   - Parent: <!-- wp:columns {"style":{}} -->
+   - Child: <!-- wp:column {"width":"50%%"} --> (escape % as %%)
+   - Use flex-basis in inline style: style="flex-basis:50%%"
+   - Equal columns: omit width attribute
+   - Column gaps: blockGap:{"top":"34px","left":"24px"}
+
+7. COLOR INHERITANCE:
+   - Elements for link colors: "elements":{"link":{"color":{"text":"#000"}}}
+   - Apply to parent groups to cascade to children
+   - Use both class and inline style for reliability
+
+8. IMAGE BLOCKS:
+   - Structure: <!-- wp:image {"sizeSlug":"large","align":"center"} -->
+   - Wrap in <figure>: <figure class="wp-block-image"><img src="" alt=""/></figure>
+   - Always include alt text (can be empty: alt="")
+   - Include size classes: size-large, aligncenter
+   - For sized images: {"width":"161px","height":"auto"}
+
+9. BUTTON BLOCKS:
+   - Always wrap button in buttons: <!-- wp:buttons --> with <!-- wp:button -->
+   - Structure: <div class="wp-block-button"><a class="wp-block-button__link">Text</a></div>
+   - Include wp-element-button class on link
+   - Colors: {"style":{"color":{"background":"#000","text":"#fff"}}}
+
+10. SPACING CONSISTENCY:
+    - Section padding: 80px (normal), 40px (compact), 120px (spacious)
+    - Block gaps: 24px (normal), 16px (compact), 40px (spacious)
+    - Element margins: 12px (normal), 8px (compact), 20px (spacious)
+    - Always use margin:{top:"0",bottom:"0"} on containers to prevent double spacing
+
+11. METADATA REQUIREMENTS:
+    - Root group must have: {"metadata":{"categories":["type"],"patternName":"unique-slug","name":"Display Name"}}
+    - Categories match pattern type: hero, about, services, cta, testimonials, team, stats, faq
+    - patternName should be unique and descriptive
+
+12. VALIDATION CHECKLIST:
+    - Every opening block comment has matching closing comment
+    - All HTML tags are properly closed and nested
+    - JSON attributes are valid (no trailing commas, proper quotes)
+    - All % symbols in styles are escaped as %%
+    - Color values are valid hex codes (#000000 not #000)
+    - Spacing values include units (24px not 24)
+    - Classes match WordPress conventions
 
 BEST PRACTICES:
 - Be descriptive in content_description (specific headings, exact text, structure details)
-- Match colors to brand (use color_scheme with hex codes)
+- Match colors to brand (use color_scheme with hex codes, always 6 digits: #000000 not #000)
 - Choose appropriate spacing (compact for dense info, spacious for emphasis)
 - Layer patterns with action_type: "append" to build complete pages
-- Use layout_columns based on content: 1 (detailed), 2 (balanced), 3 (standard grid), 4 (dense grid)', 'snn' ),
+- Use layout_columns based on content: 1 (detailed), 2 (balanced), 3 (standard grid), 4 (dense grid)
+- Maintain consistent contentSize: 1180px for full width, 900px for centered content, 800px for narrow (CTA/FAQ)
+- Apply margin:{top:"0",bottom:"0"} to container groups to prevent unwanted spacing
+- Use semantic heading levels: h2 for section titles, h3 for subsection titles
+- Include both CSS classes AND inline styles for maximum compatibility
+- Test color contrast: ensure text is readable against backgrounds (WCAG AA minimum)
+- Use blockGap instead of individual margins where possible for consistency
+- Group related elements in nested groups for better structure and maintainability', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
