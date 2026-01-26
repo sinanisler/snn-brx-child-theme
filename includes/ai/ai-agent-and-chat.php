@@ -21,7 +21,8 @@
  * - Uses inverted storage logic: stores DISABLED abilities instead of enabled
  * - This makes it future-proof: newly added abilities are automatically enabled by default
  * - Includes automatic migration from old 'enabled' format to new 'disabled' format
- * - Database option: snn_ai_agent_disabled_abilities (array of ability names to disable)
+ * - Database option: snn_ai_agent_disabled_abilities (associative array: ['ability-name' => true])
+ * - Associative array format avoids JSON encoding issues with array indexes
  *
  */
 
@@ -106,44 +107,53 @@ class SNN_Chat_Overlay {
     /**
      * Get enabled abilities
      *
-     * Future-proof approach: Stores DISABLED abilities instead of enabled.
+     * Future-proof approach: Stores DISABLED abilities as associative array (ability_name => true).
      * This way, newly added abilities are automatically enabled by default.
+     * No array index issues - ability name is the key!
      */
     public function get_enabled_abilities() {
         $all_abilities = $this->get_abilities();
         $all_ability_names = wp_list_pluck( $all_abilities, 'name' );
 
-        // Get disabled abilities list (new approach - stores what's disabled)
+        // Get disabled abilities (stored as ['ability-name' => true])
         $disabled = get_option( 'snn_ai_agent_disabled_abilities', array() );
 
-        // Backward compatibility: migrate from old 'enabled' approach to new 'disabled' approach
+        // Backward compatibility: migrate from old formats
         $old_enabled = get_option( 'snn_ai_agent_enabled_abilities', null );
         if ( $old_enabled !== null ) {
-            // Convert: anything NOT in old enabled list becomes disabled
-            if ( is_array( $old_enabled ) && ! empty( $old_enabled ) ) {
-                $disabled = array_diff( $all_ability_names, $old_enabled );
-            } else {
-                // Old enabled was empty, means nothing was selected - disable everything
-                $disabled = $all_ability_names;
+            // Convert old format to new associative array format
+            $disabled = array();
+            foreach ( $all_ability_names as $ability_name ) {
+                if ( ! in_array( $ability_name, (array) $old_enabled, true ) ) {
+                    $disabled[ $ability_name ] = true; // Mark as disabled
+                }
             }
-            // Save in new format and remove old option
             update_option( 'snn_ai_agent_disabled_abilities', $disabled );
             delete_option( 'snn_ai_agent_enabled_abilities' );
         }
 
         // Ensure disabled is always an array
-        $disabled = is_array( $disabled ) ? $disabled : array();
+        if ( ! is_array( $disabled ) ) {
+            $disabled = array();
+        }
 
-        // Return all abilities EXCEPT the disabled ones
-        return array_diff( $all_ability_names, $disabled );
+        // Return all abilities that are NOT in the disabled list
+        $enabled = array();
+        foreach ( $all_ability_names as $ability_name ) {
+            if ( ! isset( $disabled[ $ability_name ] ) ) {
+                $enabled[] = $ability_name;
+            }
+        }
+
+        return $enabled;
     }
 
     /**
      * Check if a specific ability is enabled
      */
     public function is_ability_enabled( $ability_name ) {
-        $enabled = $this->get_enabled_abilities();
-        return in_array( $ability_name, $enabled, true );
+        $disabled = get_option( 'snn_ai_agent_disabled_abilities', array() );
+        return ! isset( $disabled[ $ability_name ] );
     }
 
     /**
@@ -443,11 +453,18 @@ class SNN_Chat_Overlay {
             update_option( 'snn_ai_agent_system_prompt', sanitize_textarea_field( wp_unslash( $_POST['snn_ai_agent_system_prompt'] ) ) );
             update_option( 'snn_ai_agent_token_count', absint( $_POST['snn_ai_agent_token_count'] ) );
 
-            // New approach: Save DISABLED abilities (inverted logic for future-proofing)
+            // New approach: Save DISABLED abilities as associative array (ability_name => true)
             $all_abilities = $this->get_abilities();
             $all_ability_names = wp_list_pluck( $all_abilities, 'name' );
             $enabled_from_form = isset( $_POST['snn_ai_agent_enabled_abilities'] ) ? array_map( 'sanitize_text_field', $_POST['snn_ai_agent_enabled_abilities'] ) : array();
-            $disabled_abilities = array_diff( $all_ability_names, $enabled_from_form );
+
+            // Build disabled array with ability names as keys
+            $disabled_abilities = array();
+            foreach ( $all_ability_names as $ability_name ) {
+                if ( ! in_array( $ability_name, $enabled_from_form, true ) ) {
+                    $disabled_abilities[ $ability_name ] = true;
+                }
+            }
             update_option( 'snn_ai_agent_disabled_abilities', $disabled_abilities );
 
             update_option( 'snn_ai_agent_debug_mode', isset( $_POST['snn_ai_agent_debug_mode'] ) ? true : false );
