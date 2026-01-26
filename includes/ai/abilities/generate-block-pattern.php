@@ -18,15 +18,21 @@ function snn_register_generate_block_pattern_ability() {
             'description' => __( 'Generates rich, detailed block patterns using WordPress core blocks. Creates complete sections from scratch with professional styling. Use for rapid prototyping and structured layouts.
 
 PATTERN TYPES (pattern_type):
-- hero: Hero banners with headings, descriptions, CTAs (large text, centered, buttons)
-- about: About sections with text + imagery (2-column, lists, professional)
-- services: Service grids (1-4 columns, titles, descriptions)
-- cta: Call-to-action sections (centered, prominent buttons, conversion-focused)
-- testimonials: Customer reviews (quotes in columns, attribution)
-- team: Team member grids (images, names, positions, configurable columns)
-- stats: Statistics showcase (large numbers, labels, multi-column)
-- faq: FAQ sections (accordion/details blocks, expandable Q&A)
-- custom: Generic flexible pattern
+- hero: Hero banners with headings, descriptions, CTAs (large text, centered, buttons) [ALIGN: full]
+- about: About sections with text + imagery (2-column, lists, professional) [ALIGN: wide]
+- services: Service grids (1-4 columns, titles, descriptions) [ALIGN: wide]
+- cta: Call-to-action sections (centered, prominent buttons, conversion-focused) [ALIGN: full]
+- testimonials: Customer reviews (quotes in columns, attribution) [ALIGN: wide]
+- team: Team member grids (images, names, positions, configurable columns) [ALIGN: wide]
+- stats: Statistics showcase (large numbers, labels, multi-column) [ALIGN: wide]
+- faq: FAQ sections (accordion/details blocks, expandable Q&A) [ALIGN: wide]
+- custom: Generic flexible pattern [ALIGN: none]
+
+ALIGNMENT BEHAVIOR:
+Patterns automatically apply appropriate alignment based on type:
+- "full" (alignfull): Full-width edge-to-edge sections for maximum impact (hero, cta)
+- "wide" (alignwide): Wide but contained sections for most content (services, about, team, testimonials, stats, faq)
+- "none": Default constrained width for generic content
 
 STYLE OPTIONS (style_preference):
 modern (clean/contemporary), minimal (essential only), bold (attention-grabbing), elegant (refined), playful (creative/fun), professional (corporate), creative (artistic/unique)
@@ -380,8 +386,8 @@ function snn_generate_hero_pattern( $args ) {
     $accent_color = $args['accent_color'];
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["hero"],"patternName":"generated-hero"},"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"0"},"color":{"background":"%s","text":"%s"},"elements":{"link":{"color":{"text":"%s"}}}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group has-text-color has-background has-link-color" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["hero"],"patternName":"generated-hero"},"align":"full","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"0"},"color":{"background":"%s","text":"%s"},"elements":{"link":{"color":{"text":"%s"}}}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignfull has-text-color has-background has-link-color" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:group {"style":{"spacing":{"blockGap":"%s"}},"layout":{"type":"constrained","contentSize":"900px"}} -->
 <div class="wp-block-group">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"72px","lineHeight":"1.1"},"color":{"text":"%s"},"elements":{"link":{"color":{"text":"%s"}}}}} -->
@@ -424,8 +430,8 @@ function snn_generate_about_pattern( $args ) {
     $text_color = $args['text_color'];
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["about"],"patternName":"generated-about"},"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["about"],"patternName":"generated-about"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:columns {"style":{"spacing":{"blockGap":{"top":"%s","left":"%s"}}}} -->
 <div class="wp-block-columns">
 <!-- wp:column {"width":"50%%"} -->
@@ -505,8 +511,8 @@ function snn_generate_services_pattern( $args ) {
     }
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["services"],"patternName":"generated-services"},"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["services"],"patternName":"generated-services"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px">Our Services</h2>
 <!-- /wp:heading -->
@@ -535,8 +541,8 @@ function snn_generate_cta_pattern( $args ) {
     $accent_color = $args['accent_color'];
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["cta"],"patternName":"generated-cta"},"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"800px"}} -->
-<div class="wp-block-group has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["cta"],"patternName":"generated-cta"},"align":"full","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"800px"}} -->
+<div class="wp-block-group alignfull has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px","lineHeight":"1.2"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px;line-height:1.2">Ready to Get Started?</h2>
 <!-- /wp:heading -->
@@ -571,8 +577,8 @@ function snn_generate_testimonials_pattern( $args ) {
     $text_color = $args['text_color'];
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["testimonials"],"patternName":"generated-testimonials"},"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["testimonials"],"patternName":"generated-testimonials"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px">What Our Clients Say</h2>
 <!-- /wp:heading -->
@@ -651,8 +657,8 @@ function snn_generate_team_pattern( $args ) {
     }
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["team"],"patternName":"generated-team"},"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["team"],"patternName":"generated-team"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px">Meet Our Team</h2>
 <!-- /wp:heading -->
@@ -680,8 +686,8 @@ function snn_generate_stats_pattern( $args ) {
     $text_color = $args['text_color'];
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["stats"],"patternName":"generated-stats"},"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["stats"],"patternName":"generated-stats"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:columns {"style":{"spacing":{"blockGap":{"top":"%s","left":"%s"}}}} -->
 <div class="wp-block-columns">
 <!-- wp:column {"style":{"spacing":{"blockGap":"0"}}} -->
@@ -741,8 +747,8 @@ function snn_generate_faq_pattern( $args ) {
     $text_color = $args['text_color'];
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["faq"],"patternName":"generated-faq"},"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"900px"}} -->
-<div class="wp-block-group has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["faq"],"patternName":"generated-faq"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"900px"}} -->
+<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px">Frequently Asked Questions</h2>
 <!-- /wp:heading -->
