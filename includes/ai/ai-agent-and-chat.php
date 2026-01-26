@@ -1191,7 +1191,8 @@ class SNN_Chat_Overlay {
                 currentState: AgentState.IDLE,
                 currentAbility: null,
                 currentSessionId: null,
-                autoSaveTimer: null
+                autoSaveTimer: null,
+                pageContext: snnChatConfig && snnChatConfig.pageContext ? snnChatConfig.pageContext : { type: 'unknown', details: {} }
             };
 
             // Block Editor Integration
@@ -1340,7 +1341,7 @@ class SNN_Chat_Overlay {
 
             // Enhance page context with block editor info
             function enhancePageContext() {
-                if (snnChatConfig.pageContext && snnChatConfig.pageContext.details.has_block_editor) {
+                if (snnChatConfig.pageContext && snnChatConfig.pageContext.details && snnChatConfig.pageContext.details.has_block_editor) {
                     const content = BlockEditorHelper.getCurrentContent();
                     if (content) {
                         snnChatConfig.pageContext.details.current_content = content.raw.substring(0, 500); // Preview
@@ -1597,7 +1598,7 @@ class SNN_Chat_Overlay {
                 
                 // Build page context information
                 let pageContextInfo = '';
-                if (snnChatConfig.pageContext && snnChatConfig.pageContext.type !== 'unknown') {
+                if (snnChatConfig && snnChatConfig.pageContext && snnChatConfig.pageContext.type && snnChatConfig.pageContext.type !== 'unknown') {
                     const ctx = snnChatConfig.pageContext;
                     pageContextInfo = `\n\n=== CURRENT PAGE CONTEXT ===\n\n`;
                     pageContextInfo += `The user is currently on: ${ctx.details.description || ctx.type}\n`;
@@ -1722,7 +1723,7 @@ ${abilitiesDesc}
 
 **CRITICAL: Choose the RIGHT ability based on context:**
 
-${ChatState.pageContext.type === 'post_editor' ? `
+${ChatState.pageContext && ChatState.pageContext.type === 'post_editor' ? `
 🟢 **YOU ARE CURRENTLY IN THE BLOCK EDITOR**
 - User is editing: "${ChatState.pageContext.details.description || 'a post'}"
 - Post ID: ${ChatState.pageContext.details.post_id || 'unknown'}
@@ -2163,7 +2164,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
             async function executeClientCommand(command) {
                 try {
                     // Validate command object
-                    if (!command || typeof command !== 'object') {
+                    if (!command || typeof command !== 'object' || command === null) {
                         return {
                             success: false,
                             error: 'Invalid client command: command is not an object'
