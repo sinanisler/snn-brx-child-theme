@@ -16,7 +16,7 @@ function snn_register_update_editor_content_ability() {
         'snn/update-editor-content',
         array(
             'label'       => __( 'Update Editor Content (Real-time)', 'snn' ),
-            'description' => __( 'Updates the block editor content in real-time without page refresh. USE THIS when the user is actively editing a post in the block editor. This provides immediate visual feedback and allows iteration. For posts not currently being edited, use snn/replace-post-content instead. Supports smart section updates to find and replace existing content sections.', 'snn' ),
+            'description' => __( 'Updates the block editor content in real-time without page refresh. USE THIS when the user is actively editing a post in the block editor. This provides immediate visual feedback and allows iteration. For posts not currently being edited, use snn/replace-post-content instead. Use the snn/replace-post-content if user asks about editing a section not the all content itself. Supports smart section updates to find and replace existing content sections.', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
