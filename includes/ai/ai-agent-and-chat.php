@@ -1958,7 +1958,7 @@ VALIDATION REQUIREMENTS:
                     // Check if this ability requires client-side execution
                     // Handle both result.client_command and result.data.client_command
                     const clientCommand = result.client_command || (result.data && result.data.client_command);
-                    if (result.success && clientCommand) {
+                    if (result.success && clientCommand && typeof clientCommand === 'object' && clientCommand !== null) {
                         debugLog('Executing client-side command:', clientCommand);
                         try {
                             const clientResult = await executeClientCommand(clientCommand);
