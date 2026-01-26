@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * List Taxonomies Ability
  * Registers the snn/list-taxonomies ability for the WordPress Abilities API

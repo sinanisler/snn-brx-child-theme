@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Suggest Content Ideas Ability
  * Registers the snn/suggest-content-ideas ability for the WordPress Abilities API

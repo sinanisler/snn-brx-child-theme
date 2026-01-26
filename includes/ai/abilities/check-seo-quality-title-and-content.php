@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Check SEO Quality Title and Content Ability
  * Registers the snn/check-seo-quality-title-and-content ability for the WordPress Abilities API

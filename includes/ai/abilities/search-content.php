@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Search Content Ability
  * Registers the snn/search-content ability for the WordPress Abilities API

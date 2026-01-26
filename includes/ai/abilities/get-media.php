@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Media Ability
  * Registers the snn/get-media ability for the WordPress Abilities API

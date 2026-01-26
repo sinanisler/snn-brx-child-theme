@@ -1,5 +1,5 @@
 <?php
-/**
+/** 
  * Active Theme Info Ability
  * Registers the snn/active-theme-info ability for the WordPress Abilities API
  * Returns detailed information about the active theme

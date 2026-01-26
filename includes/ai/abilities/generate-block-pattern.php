@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Generate Block Pattern Ability
  *

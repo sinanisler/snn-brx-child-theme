@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Users Ability
  * Registers the snn/get-users ability for the WordPress Abilities API

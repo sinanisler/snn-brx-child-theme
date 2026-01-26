@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Comments Ability
  * Registers the snn/get-comments ability for the WordPress Abilities API

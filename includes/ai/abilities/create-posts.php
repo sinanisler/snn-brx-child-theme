@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Create Post Ability
  * Registers the snn/create-post ability for the WordPress Abilities API

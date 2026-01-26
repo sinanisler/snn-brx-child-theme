@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Terms Ability
  * Registers the snn/get-terms ability for the WordPress Abilities API

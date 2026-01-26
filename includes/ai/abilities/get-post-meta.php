@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Post Meta Ability
  * Registers the snn/get-post-meta ability for the WordPress Abilities API

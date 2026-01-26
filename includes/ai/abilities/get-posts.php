@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Posts Ability
  * Registers the snn/get-posts ability for the WordPress Abilities API

@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Update Post Ability
  * Registers the snn/update-post ability for the WordPress Abilities API

@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Site Info Ability
  * Registers the snn/get-site-info ability for the WordPress Abilities API

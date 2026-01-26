@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * SNN AI Chat Overlay
  *

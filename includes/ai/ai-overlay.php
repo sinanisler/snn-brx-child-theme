@@ -1,5 +1,5 @@
 <?php
-/**
+/** 
  * SNN AI Overlay & Frontend Logic
  *
  * File: ai-overlay.php

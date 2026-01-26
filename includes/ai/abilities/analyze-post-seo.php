@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Analyze Post SEO Ability
  * Registers the snn/analyze-post-seo ability for the WordPress Abilities API

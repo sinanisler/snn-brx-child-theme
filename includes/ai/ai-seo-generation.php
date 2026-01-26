@@ -1,7 +1,7 @@
 <?php
 /**
  * SNN AI SEO Generation
- *
+ * 
  * File: ai-seo-generation.php
  *
  * Purpose: This file handles AI-powered SEO title and description generation for posts, pages,

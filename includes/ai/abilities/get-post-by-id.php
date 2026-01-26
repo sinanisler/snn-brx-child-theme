@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Post By ID Ability
  * Registers the snn/get-post-by-id ability for the WordPress Abilities API

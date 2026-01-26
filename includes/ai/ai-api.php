@@ -1,6 +1,6 @@
 <?php
 /**
- * SNN AI API Helper
+ * SNN AI API Helper 
  *
  * File: ai-api.php
  *

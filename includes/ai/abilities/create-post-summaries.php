@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Create Post Summaries Ability
  * Registers the snn/create-post-summaries ability for the WordPress Abilities API

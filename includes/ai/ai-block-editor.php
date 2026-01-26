@@ -1,6 +1,6 @@
 <?php
 /**
- * SNN AI Block Editor Integration
+ * SNN AI Block Editor Integration 
  *
  * File: ai-block-editor.php
  *

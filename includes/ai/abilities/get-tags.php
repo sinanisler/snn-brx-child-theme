@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Get Tags Ability
  * Registers the snn/get-tags ability for the WordPress Abilities API

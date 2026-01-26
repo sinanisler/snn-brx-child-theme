@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Ability Categories Registration
  *

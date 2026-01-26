@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Create Terms Ability
  * Registers the snn/create-terms ability for the WordPress Abilities API

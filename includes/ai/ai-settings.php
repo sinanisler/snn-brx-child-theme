@@ -1,7 +1,7 @@
 <?php
 /**
  * SNN AI Settings
- *
+ * 
  * File: ai-settings.php
  *
  * Purpose: This file manages the administrative settings for the AI features. It is responsible for creating the

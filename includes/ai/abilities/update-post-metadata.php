@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Update Post Metadata Ability
  * Registers the snn/update-post-metadata ability for the WordPress Abilities API

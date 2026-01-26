@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * Installed Plugin List and Infos Ability
  * Registers the snn/installed-plugin-list-and-infos ability for the WordPress Abilities API
