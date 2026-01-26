@@ -75,6 +75,7 @@ require_once SNN_PATH . 'includes/ai/abilities/list-taxonomies.php';
 // block editor and content manipulation abilities
 require_once SNN_PATH . 'includes/ai/abilities/get-post-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/generate-block-pattern.php';
+require_once SNN_PATH . 'includes/ai/abilities/edit-block-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-post-metadata.php';
 require_once SNN_PATH . 'includes/ai/abilities/analyze-post-seo.php';
 

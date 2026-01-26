@@ -75,6 +75,7 @@ jobs:
         includes/ai/abilities/create-posts.php
         includes/ai/abilities/update-posts.php
         includes/ai/abilities/generate-block-pattern.php
+        includes/ai/abilities/edit-block-content.php
 
         assets/js/FileSaver.min.js
         assets/js/ScrollTrigger.min.js

@@ -1962,24 +1962,38 @@ ${ChatState.pageContext && ChatState.pageContext.type === 'post_editor' ? `
 - NEVER use "snn/replace-post-content" when user is actively editing in the block editor
 
 **When to use each ability:**
-- "snn/update-editor-content" → When user is IN the block editor (NOW) - provides real-time updates
+- "snn/update-editor-content" → For FULL content operations (replace all, append, prepend)
+- "snn/edit-block-content" → For SURGICAL edits (update specific blocks, insert between blocks, delete specific sections)
+- "snn/generate-block-pattern" → For CREATING complete new sections and designs from scratch (hero, services, CTA, etc.)
 - "snn/replace-post-content" → When editing posts NOT currently open in editor
 
-**IMPORTANT: Smart Section Updates**
-When updating EXISTING content sections (e.g., "update the Who We Are section"):
-- The "snn/update-editor-content" ability supports an "update_section" action
-- This will FIND and REPLACE existing sections instead of creating duplicates
-- Example: When the ability returns a client_command, include:
-  {
-    "type": "update_editor_content",
-    "action": "update_section",
-    "section_identifier": "Who We Are",
-    "content": "<new HTML content for the section>",
-    "post_id": ${ChatState.pageContext.details.post_id || 'POST_ID'}
-  }
-- The section_identifier should be the heading text (e.g., "Who We Are", "About Us")
-- This will find the heading block and replace it and all blocks until the next heading
-- If the section is not found, it will append to the end
+**CRITICAL: Choose the RIGHT content editing ability:**
+
+1. **"snn/generate-block-pattern"** - Use when CREATING NEW complete sections:
+   - User asks: "add a hero section", "create a services grid", "generate a testimonials section"
+   - Creates from scratch with styling, spacing, and structure
+   - Actions: replace (all content), append (to end), prepend (to start)
+
+2. **"snn/edit-block-content"** - Use for SPECIFIC/SURGICAL modifications:
+   - User asks: "update the About Us section", "change the pricing table", "remove the third FAQ"
+   - User asks: "insert testimonial after services", "add a CTA between hero and about"
+   - User asks: "replace all Read More with Learn More", "delete blocks 5-7"
+   - Actions: insert_at_index, replace_block_range, delete_blocks, find_and_replace_section, find_and_replace_text
+   - Examples:
+     * "update the Who We Are section" → use find_and_replace_section action
+     * "add testimonial after hero" → use insert_at_index action
+     * "remove third item" → use delete_blocks action
+     * "change button text from X to Y" → use find_and_replace_text action
+
+3. **"snn/update-editor-content"** - Use for FULL content operations:
+   - User asks: "replace all content", "clear everything and add...", "add to the end"
+   - Actions: replace (all), append (to end), prepend (to start), update_section (legacy - prefer snn/edit-block-content)
+   - Note: update_section action still works but prefer snn/edit-block-content for surgical edits
+
+**Decision Tree:**
+- Creating NEW complete section (hero/services/CTA)? → snn/generate-block-pattern
+- Modifying EXISTING specific content? → snn/edit-block-content
+- Replacing/appending ALL content? → snn/update-editor-content
 
 **IMPORTANT: Real-Time Metadata Updates**
 When using "snn/update-post-metadata" to update title, excerpt, or status:
@@ -2563,6 +2577,10 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         return await updatePostMetadataInEditor(command);
                     }
 
+                    if (command.type === 'edit_block_content') {
+                        return await editBlockEditorContent(command);
+                    }
+
                     return {
                         success: false,
                         error: `Unknown client command type: ${command.type}`
@@ -2807,6 +2825,289 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     return {
                         success: false,
                         error: `Failed to update editor: ${error.message}`
+                    };
+                }
+            }
+
+            /**
+             * Edit block content with surgical precision
+             */
+            async function editBlockEditorContent(command) {
+                try {
+                    // Check if we're in the block editor
+                    if (typeof wp === 'undefined' || !wp.data || !wp.data.select('core/editor')) {
+                        return {
+                            success: false,
+                            error: 'Block editor not detected. This command only works when editing a post.'
+                        };
+                    }
+
+                    const { select, dispatch } = wp.data;
+                    const editor = select('core/editor');
+                    const editorDispatch = dispatch('core/editor');
+                    const blockEditor = select('core/block-editor');
+                    const blockEditorDispatch = dispatch('core/block-editor');
+
+                    // Get current post ID
+                    const currentPostId = editor.getCurrentPostId();
+
+                    // Verify post ID if provided
+                    if (command.post_id && command.post_id !== currentPostId) {
+                        return {
+                            success: false,
+                            error: `Post ID mismatch. Expected ${command.post_id}, but currently editing ${currentPostId}`
+                        };
+                    }
+
+                    const blocks = blockEditor.getBlocks();
+                    debugLog(`Current block count: ${blocks.length}`);
+                    debugLog(`Edit action: ${command.action}`);
+
+                    // Handle different edit actions
+                    switch (command.action) {
+                        case 'insert_at_index': {
+                            if (!command.content) {
+                                return { success: false, error: 'content is required for insert_at_index' };
+                            }
+                            if (command.insert_index === undefined) {
+                                return { success: false, error: 'insert_index is required for insert_at_index' };
+                            }
+
+                            const newBlocks = wp.blocks.parse(command.content);
+                            let insertIndex = command.insert_index;
+
+                            // Handle -1 as "end of document"
+                            if (insertIndex === -1) {
+                                insertIndex = blocks.length;
+                            }
+
+                            // Validate index
+                            if (insertIndex < 0 || insertIndex > blocks.length) {
+                                return {
+                                    success: false,
+                                    error: `Invalid insert_index: ${command.insert_index}. Valid range: 0-${blocks.length} or -1 for end`
+                                };
+                            }
+
+                            blockEditorDispatch.insertBlocks(newBlocks, insertIndex);
+                            debugLog(`✅ Inserted ${newBlocks.length} blocks at index ${insertIndex}`);
+
+                            return {
+                                success: true,
+                                message: `Inserted ${newBlocks.length} block(s) at position ${insertIndex}. Remember to save your changes.`
+                            };
+                        }
+
+                        case 'replace_block_range': {
+                            if (!command.content) {
+                                return { success: false, error: 'content is required for replace_block_range' };
+                            }
+                            if (command.start_index === undefined || command.end_index === undefined) {
+                                return { success: false, error: 'start_index and end_index are required for replace_block_range' };
+                            }
+
+                            const startIndex = command.start_index;
+                            const endIndex = command.end_index;
+
+                            // Validate indices
+                            if (startIndex < 0 || startIndex >= blocks.length) {
+                                return {
+                                    success: false,
+                                    error: `Invalid start_index: ${startIndex}. Valid range: 0-${blocks.length - 1}`
+                                };
+                            }
+                            if (endIndex < startIndex || endIndex >= blocks.length) {
+                                return {
+                                    success: false,
+                                    error: `Invalid end_index: ${endIndex}. Must be >= start_index and < ${blocks.length}`
+                                };
+                            }
+
+                            // Get block IDs to replace
+                            const blocksToReplace = [];
+                            for (let i = startIndex; i <= endIndex; i++) {
+                                blocksToReplace.push(blocks[i].clientId);
+                            }
+
+                            const newBlocks = wp.blocks.parse(command.content);
+                            blockEditorDispatch.replaceBlocks(blocksToReplace, newBlocks);
+                            debugLog(`✅ Replaced blocks ${startIndex}-${endIndex} with ${newBlocks.length} new blocks`);
+
+                            return {
+                                success: true,
+                                message: `Replaced blocks ${startIndex}-${endIndex} with ${newBlocks.length} new block(s). Remember to save your changes.`
+                            };
+                        }
+
+                        case 'delete_blocks': {
+                            if (command.start_index === undefined) {
+                                return { success: false, error: 'start_index is required for delete_blocks' };
+                            }
+
+                            const startIndex = command.start_index;
+                            const endIndex = command.end_index !== undefined ? command.end_index : startIndex;
+
+                            // Validate indices
+                            if (startIndex < 0 || startIndex >= blocks.length) {
+                                return {
+                                    success: false,
+                                    error: `Invalid start_index: ${startIndex}. Valid range: 0-${blocks.length - 1}`
+                                };
+                            }
+                            if (endIndex < startIndex || endIndex >= blocks.length) {
+                                return {
+                                    success: false,
+                                    error: `Invalid end_index: ${endIndex}. Must be >= start_index and < ${blocks.length}`
+                                };
+                            }
+
+                            // Get block IDs to delete
+                            const blocksToDelete = [];
+                            for (let i = startIndex; i <= endIndex; i++) {
+                                blocksToDelete.push(blocks[i].clientId);
+                            }
+
+                            blockEditorDispatch.removeBlocks(blocksToDelete);
+                            const deletedCount = blocksToDelete.length;
+                            debugLog(`✅ Deleted ${deletedCount} block(s) from index ${startIndex} to ${endIndex}`);
+
+                            return {
+                                success: true,
+                                message: `Deleted ${deletedCount} block(s). Remember to save your changes.`
+                            };
+                        }
+
+                        case 'find_and_replace_section': {
+                            if (!command.content || !command.section_identifier) {
+                                return { success: false, error: 'content and section_identifier are required for find_and_replace_section' };
+                            }
+
+                            let sectionFound = false;
+                            let blocksToReplace = [];
+                            let startIndex = -1;
+
+                            // Find the section by searching for heading blocks matching the identifier
+                            for (let i = 0; i < blocks.length; i++) {
+                                const block = blocks[i];
+
+                                // Check if this is a heading block that matches our section identifier
+                                if (block.name === 'core/heading' || block.name === 'core/paragraph') {
+                                    const blockContent = block.attributes.content || '';
+                                    const plainText = blockContent.replace(/<[^>]*>/g, '').trim().toLowerCase();
+                                    const identifier = command.section_identifier.toLowerCase();
+
+                                    // Check if this heading matches our section
+                                    if (plainText.includes(identifier) || identifier.includes(plainText)) {
+                                        sectionFound = true;
+                                        startIndex = i;
+                                        blocksToReplace.push(block.clientId);
+
+                                        // Find all blocks that belong to this section (until next heading or end)
+                                        for (let j = i + 1; j < blocks.length; j++) {
+                                            const nextBlock = blocks[j];
+                                            // Stop at next heading of same or higher level
+                                            if (nextBlock.name === 'core/heading') {
+                                                if (block.name === 'core/heading' &&
+                                                    nextBlock.attributes.level <= block.attributes.level) {
+                                                    break;
+                                                }
+                                            }
+                                            blocksToReplace.push(nextBlock.clientId);
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (sectionFound && blocksToReplace.length > 0) {
+                                // Parse the new content as blocks
+                                const newBlocks = wp.blocks.parse(command.content);
+
+                                // Replace the old section blocks with new ones
+                                blockEditorDispatch.replaceBlocks(blocksToReplace, newBlocks);
+                                debugLog(`✅ Replaced section "${command.section_identifier}" (${blocksToReplace.length} blocks) with ${newBlocks.length} new blocks`);
+
+                                return {
+                                    success: true,
+                                    message: `Updated "${command.section_identifier}" section with ${newBlocks.length} block(s). Remember to save your changes.`
+                                };
+                            } else {
+                                // Section not found, append to end instead
+                                const newBlocks = wp.blocks.parse(command.content);
+                                blockEditorDispatch.insertBlocks(newBlocks);
+                                debugLog(`⚠️ Section "${command.section_identifier}" not found. Appended ${newBlocks.length} blocks to end.`);
+
+                                return {
+                                    success: true,
+                                    message: `Section "${command.section_identifier}" not found. Added new content to the end. Remember to save your changes.`
+                                };
+                            }
+                        }
+
+                        case 'find_and_replace_text': {
+                            if (!command.find_text || !command.replace_text) {
+                                return { success: false, error: 'find_text and replace_text are required for find_and_replace_text' };
+                            }
+
+                            const findText = command.find_text;
+                            const replaceText = command.replace_text;
+                            const blockTypes = command.block_types || null; // null means all blocks
+                            let replacementCount = 0;
+
+                            // Iterate through all blocks and replace text
+                            blocks.forEach(block => {
+                                // Filter by block type if specified
+                                if (blockTypes && !blockTypes.includes(block.name)) {
+                                    return;
+                                }
+
+                                // Check if block has content attribute
+                                if (block.attributes && block.attributes.content) {
+                                    const originalContent = block.attributes.content;
+                                    const newContent = originalContent.replace(new RegExp(findText, 'g'), replaceText);
+
+                                    if (newContent !== originalContent) {
+                                        blockEditorDispatch.updateBlockAttributes(block.clientId, {
+                                            content: newContent
+                                        });
+                                        replacementCount++;
+                                    }
+                                }
+
+                                // Check other common text attributes
+                                if (block.attributes && block.attributes.text) {
+                                    const originalText = block.attributes.text;
+                                    const newText = originalText.replace(new RegExp(findText, 'g'), replaceText);
+
+                                    if (newText !== originalText) {
+                                        blockEditorDispatch.updateBlockAttributes(block.clientId, {
+                                            text: newText
+                                        });
+                                        replacementCount++;
+                                    }
+                                }
+                            });
+
+                            debugLog(`✅ Replaced "${findText}" with "${replaceText}" in ${replacementCount} block(s)`);
+
+                            return {
+                                success: true,
+                                message: `Replaced "${findText}" with "${replaceText}" in ${replacementCount} block(s). Remember to save your changes.`
+                            };
+                        }
+
+                        default:
+                            return {
+                                success: false,
+                                error: `Unknown edit action: ${command.action}`
+                            };
+                    }
+
+                } catch (error) {
+                    console.error('Block editor edit error:', error);
+                    return {
+                        success: false,
+                        error: `Failed to edit blocks: ${error.message}`
                     };
                 }
             }
