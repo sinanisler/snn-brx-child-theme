@@ -1995,9 +1995,12 @@ ${ChatState.pageContext && ChatState.pageContext.type === 'post_editor' ? `
 
 **CRITICAL: Choose the RIGHT content editing ability:**
 
-1. **"snn/generate-block-pattern"** - Use when CREATING NEW complete sections:
-   - User asks: "add a hero section", "create a services grid", "generate a testimonials section"
-   - Creates from scratch with styling, spacing, and structure
+1. **"snn/generate-block-pattern"** - Use ONLY when CREATING NEW sections from scratch:
+   - ✅ User asks: "add a hero section", "create a services grid", "add more sections"
+   - ✅ User asks: "create a homepage", "build a landing page"
+   - ❌ User asks: "update the hero section", "change the about section", "modify the testimonials"
+   - ❌ User asks: "update existing content", "change the heading", "fix the text"
+   - Creates NEW content from scratch with styling, spacing, and structure
    - Actions: replace (all content), append (to end), prepend (to start)
    - **CRITICAL USAGE:** ONE ability call generates ONE complete section/pattern
      * "create a homepage" → Execute 3-5 SEPARATE calls (hero, services, about, testimonials, CTA) with action_type:"append"
@@ -2005,21 +2008,48 @@ ${ChatState.pageContext && ChatState.pageContext.type === 'post_editor' ? `
      * Each pattern_type (hero, services, cta, etc.) should be a SEPARATE ability execution
      * NEVER try to describe multiple sections in one content_description
 
-2. **"snn/edit-block-content"** - Use for SPECIFIC/SURGICAL modifications:
-   - User asks: "update the About Us section", "change the pricing table", "remove the third FAQ"
-   - User asks: "insert testimonial after services", "add a CTA between hero and about"
-   - User asks: "replace all Read More with Learn More", "delete blocks 5-7"
+2. **"snn/edit-block-content"** - Use ONLY when MODIFYING/UPDATING existing content:
+   - ✅ User asks: "update the About Us section", "change the hero text", "modify the pricing"
+   - ✅ User asks: "remove the third FAQ", "delete the testimonials section"
+   - ✅ User asks: "insert a CTA after services", "add text between sections"
+   - ✅ User asks: "replace button text", "change all headings", "update the description"
+   - ❌ User asks: "add a new section", "create a services grid", "build a testimonials area"
+   - Modifies EXISTING content surgically without rebuilding from scratch
    - Actions: insert_at_index, replace_block_range, delete_blocks, find_and_replace_section, find_and_replace_text
    - Examples:
-     * "update the Who We Are section" → use find_and_replace_section action
-     * "add testimonial after hero" → use insert_at_index action
+     * "update the Who We Are section" → use find_and_replace_section action with new content
+     * "add testimonial after hero" → use insert_at_index action with the new content
      * "remove third item" → use delete_blocks action
      * "change button text from X to Y" → use find_and_replace_text action
+     * "update the hero" → use find_and_replace_section with section_identifier:"hero" or heading_text match
 
 3. **"snn/update-editor-content"** - Use for FULL content operations:
    - User asks: "replace all content", "clear everything and add...", "add to the end"
    - Actions: replace (all), append (to end), prepend (to start), update_section (legacy - prefer snn/edit-block-content)
    - Note: update_section action still works but prefer snn/edit-block-content for surgical edits
+
+**CRITICAL DECISION TREE - Use this EVERY time:**
+
+User Request → Ask yourself:
+
+1. **Is the user asking to CREATE/ADD NEW content?**
+   - Keywords: "add", "create", "generate", "build", "make a new", "add more"
+   - Examples: "add a hero", "create services section", "add more sections", "build a homepage"
+   - → Use: **snn/generate-block-pattern**
+
+2. **Is the user asking to MODIFY/UPDATE/CHANGE EXISTING content?**
+   - Keywords: "update", "change", "modify", "edit", "replace", "remove", "delete", "fix"
+   - Examples: "update the hero", "change about text", "modify testimonials", "remove FAQ", "fix the heading"
+   - → Use: **snn/edit-block-content**
+
+3. **Is the user asking to REPLACE ALL content or work with full page?**
+   - Keywords: "replace all", "clear everything", "start over"
+   - → Use: **snn/update-editor-content**
+
+**SIMPLE RULE:** 
+- "ADD/CREATE something NEW" = generate-block-pattern
+- "UPDATE/CHANGE something EXISTING" = edit-block-content
+- "REPLACE EVERYTHING" = update-editor-content
 
 **Decision Tree:**
 - Creating NEW complete section (hero/services/CTA)? → snn/generate-block-pattern
@@ -2114,14 +2144,19 @@ WordPress uses wp.blocks.parse() to convert your HTML to blocks. Invalid HTML = 
    - When filtering is optional, assume "all" unless specifically asked to filter
 
 6. **Examples of CORRECT behavior:**
-   - User: "create a homepage for flower shop" → Execute 4-5 section patterns immediately (hero, services, about, testimonials, cta)
-   - User: "add more sections" → Execute 2-3 additional patterns immediately (gallery, team, faq)
+   - User: "create a homepage for flower shop" → Execute 4-5 generate-block-pattern calls immediately
+   - User: "add more sections" → Execute 2-3 generate-block-pattern calls immediately
+   - User: "update the hero section" → Execute snn/edit-block-content with find_and_replace_section action
+   - User: "change the about text" → Execute snn/edit-block-content with find_and_replace_section action
+   - User: "remove the testimonials" → Execute snn/edit-block-content with find_and_replace_section or delete_blocks action
    - User: "list all abilities" → Respond with text list, NO execution
    - User: "get site info and list users" → Execute both abilities
 
 7. **Examples of INCORRECT behavior (DON'T DO THIS):**
    - User: "create a homepage" → ❌ Asking "what sections would you like?" (WRONG - just do it!)
    - User: "add more sections" → ❌ Asking "what kind of sections?" (WRONG - pick good ones and execute!)
+   - User: "update the hero" → ❌ Using generate-block-pattern (WRONG - use edit-block-content!)
+   - User: "change the about section" → ❌ Using generate-block-pattern (WRONG - use edit-block-content!)
    - User: "make a blog post" → ❌ Asking "what should it be about?" (WRONG - only if topic completely unclear)
    - User: "list abilities" → ❌ Executing abilities to demonstrate (WRONG)
 
