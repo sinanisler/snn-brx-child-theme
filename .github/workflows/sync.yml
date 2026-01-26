@@ -42,7 +42,7 @@ jobs:
         includes/remove-rss.php
         includes/remove-wp-version.php
         includes/block-editor-settings.php
-        includes/wp-admin-dashboard-widgets.php  
+        includes/wp-admin-dashboard-widgets.php
 
         includes/ai/ai-settings.php
         includes/ai/ai-api.php
@@ -51,10 +51,49 @@ jobs:
         includes/ai/ai-block-editor.php
         includes/ai/ai-agent-and-chat.php
 
-      DIRS_TO_SYNC: |
-        includes/ai/abilities
-        assets/js
-        assets/css
+        includes/ai/abilities/ability-categories.php
+        includes/ai/abilities/active-theme-info.php
+        includes/ai/abilities/create-post-summaries.php
+        includes/ai/abilities/create-terms.php
+        includes/ai/abilities/get-comments.php
+        includes/ai/abilities/get-media.php
+        includes/ai/abilities/get-post-by-id.php
+        includes/ai/abilities/get-post-meta.php
+        includes/ai/abilities/get-site-info.php
+        includes/ai/abilities/get-tags.php
+        includes/ai/abilities/get-terms.php
+        includes/ai/abilities/get-users.php
+        includes/ai/abilities/installed-plugin-list-and-infos.php
+        includes/ai/abilities/list-taxonomies.php
+        includes/ai/abilities/search-content.php
+        includes/ai/abilities/suggest-content-ideas.php
+        includes/ai/abilities/check-seo-quality-title-and-content.php
+        includes/ai/abilities/get-posts.php
+        includes/ai/abilities/get-post-content.php
+        includes/ai/abilities/update-post-metadata.php
+        includes/ai/abilities/analyze-post-seo.php
+        includes/ai/abilities/create-posts.php
+        includes/ai/abilities/update-posts.php
+        includes/ai/abilities/generate-block-pattern.php
+
+        assets/js/FileSaver.min.js
+        assets/js/ScrollTrigger.min.js
+        assets/js/accessibility.min.js
+        assets/js/canvas-to-blob.min.js
+        assets/js/gsap-data-animate.js
+        assets/js/gsap.min.js
+        assets/js/jszip.min.js
+        assets/js/leaflet.js
+        assets/js/lottie.min.js
+        assets/js/pdf.min.js
+        assets/js/pdf.worker.min.js
+        assets/js/snn-rich-text-editor.js
+        assets/js/wavesurfer.esm.js
+        assets/js/snn-accessibility.js
+        assets/js/markdown.min.js
+
+        assets/css/leaflet.css
+        assets/css/snn-rich-text-editor.css
 
 
     steps:
@@ -94,15 +133,6 @@ jobs:
             fi
           done
 
-          # Copy entire directories
-          for dir_path in $DIRS_TO_SYNC; do
-            if [ -d "source-repo/$dir_path" ]; then
-              echo "Processing directory: $dir_path (snn-block)"
-              mkdir -p "destination-repo-block/$dir_path"
-              cp -r "source-repo/$dir_path"/* "destination-repo-block/$dir_path/"
-            fi
-          done
-
       - name: Commit and Push Changes (snn-block)
         run: |
           cd destination-repo-block
@@ -115,10 +145,6 @@ jobs:
           # Add individual files
           for file_path in $FILES_TO_SYNC; do
             git add "$file_path"
-          done
-          # Add directories
-          for dir_path in $DIRS_TO_SYNC; do
-            git add "$dir_path"
           done
           git commit -m "${{ steps.commit_info.outputs.message }}" -m ": ${{ steps.commit_info.outputs.hash }}"
           git push
