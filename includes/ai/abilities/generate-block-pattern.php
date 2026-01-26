@@ -18,15 +18,15 @@ function snn_register_generate_block_pattern_ability() {
             'description' => __( 'Generates rich, detailed block patterns using WordPress core blocks. Creates complete sections from scratch with professional styling. Use for rapid prototyping and structured layouts.
 
 PATTERN TYPES (pattern_type):
-- hero: Hero banners with headings, descriptions, CTAs (large text, centered, buttons) [ALIGN: full]
-- about: About sections with text + imagery (2-column, lists, professional) [ALIGN: wide]
-- services: Service grids (1-4 columns, titles, descriptions) [ALIGN: wide]
-- cta: Call-to-action sections (centered, prominent buttons, conversion-focused) [ALIGN: full]
-- testimonials: Customer reviews (quotes in columns, attribution) [ALIGN: wide]
-- team: Team member grids (images, names, positions, configurable columns) [ALIGN: wide]
-- stats: Statistics showcase (large numbers, labels, multi-column) [ALIGN: wide]
-- faq: FAQ sections (accordion/details blocks, expandable Q&A) [ALIGN: wide]
-- custom: Generic flexible pattern [ALIGN: none]
+- hero: Hero banners with headings, descriptions, CTAs (large text, centered, buttons) [ALIGN: full] [CLASS: hero-section]
+- about: About sections with text + imagery (2-column, lists, professional) [ALIGN: wide] [CLASS: about-section]
+- services: Service grids (1-4 columns, titles, descriptions) [ALIGN: wide] [CLASS: services-section]
+- cta: Call-to-action sections (centered, prominent buttons, conversion-focused) [ALIGN: full] [CLASS: cta-section]
+- testimonials: Customer reviews (quotes in columns, attribution) [ALIGN: wide] [CLASS: testimonials-section]
+- team: Team member grids (images, names, positions, configurable columns) [ALIGN: wide] [CLASS: team-section]
+- stats: Statistics showcase (large numbers, labels, multi-column) [ALIGN: wide] [CLASS: stats-section]
+- faq: FAQ sections (accordion/details blocks, expandable Q&A) [ALIGN: wide] [CLASS: faq-section]
+- custom: Generic flexible pattern [ALIGN: none] [CLASS: custom-section]
 
 ALIGNMENT BEHAVIOR:
 Patterns automatically apply appropriate alignment based on type:
@@ -43,12 +43,13 @@ KEY PARAMETERS:
 - color_scheme: {background: "#fff", text: "#000", accent: "#0066cc"}
 - spacing: compact (40/16/8px), normal (80/24/12px), spacious (120/40/20px)
 - action_type: replace (all content), append (add to end), prepend (add to start)
+- semantic_class: Optional custom semantic class name. If not provided, defaults to pattern-type-based class (hero-section, services-section, etc.)
 
 USAGE EXAMPLES:
-1. Hero: {pattern_type: "hero", content_description: "Heading \'Welcome to Our Agency\', description about creative services, \'Start Project\' button", style_preference: "modern", color_scheme: {background: "#000", text: "#fff", accent: "#00ff88"}}
-2. Services: {pattern_type: "services", content_description: "3 services: Web Dev (custom sites), Mobile Apps (iOS/Android), Cloud (scalable)", layout_columns: 3}
-3. Stats: {pattern_type: "stats", content_description: "500+ projects, 50+ team, 98% satisfaction", spacing: "spacious"}
-4. Team: {pattern_type: "team", content_description: "4 leadership members", layout_columns: 4, include_images: true}
+1. Hero: {pattern_type: "hero", content_description: "Heading \'Welcome to Our Agency\', description about creative services, \'Start Project\' button", style_preference: "modern", color_scheme: {background: "#000", text: "#fff", accent: "#00ff88"}, semantic_class: "agency-hero"}
+2. Services: {pattern_type: "services", content_description: "3 services: Web Dev (custom sites), Mobile Apps (iOS/Android), Cloud (scalable)", layout_columns: 3, semantic_class: "our-services"}
+3. Stats: {pattern_type: "stats", content_description: "500+ projects, 50+ team, 98% satisfaction", spacing: "spacious", semantic_class: "company-stats"}
+4. Team: {pattern_type: "team", content_description: "4 leadership members", layout_columns: 4, include_images: true, semantic_class: "leadership-team"}
 
 AVAILABLE CORE BLOCKS:
 Layout: group, columns, column, cover, media-text, spacer, separator | Content: paragraph, heading, list, list-item, quote, pullquote, table | Media: image, gallery, video, audio | Interactive: button, buttons, accordion, details, social-links
@@ -83,7 +84,14 @@ CRITICAL WORDPRESS BLOCK RULES (prevent broken blocks):
    - Alignment: has-text-align-center, aligncenter, alignleft, alignright
    - Always include semantic classes when using colors/backgrounds/typography
 
-5. INLINE STYLES (format strictly):
+5. SEMANTIC CLASS NAMES:
+   - ALWAYS include semantic className in root group: "className":"pattern-section"
+   - Pattern type defaults: hero-section, about-section, services-section, cta-section, etc.
+   - Use descriptive, kebab-case names: agency-hero, our-services, company-stats
+   - Class appears in HTML: class="wp-block-group alignfull hero-section has-text-color..."
+   - Allows for easy CSS targeting and styling customization
+
+6. INLINE STYLES (format strictly):
    - Format: style="property:value;property:value"
    - Colors: color:#000000;background-color:#ffffff
    - Spacing: margin-top:24px;padding-top:80px (include units)
@@ -91,26 +99,26 @@ CRITICAL WORDPRESS BLOCK RULES (prevent broken blocks):
    - Borders: border-radius:24px;border-color:#e0e0e0;border-width:1px
    - No spaces around colons/semicolons
 
-6. COLUMN LAYOUTS:
+7. COLUMN LAYOUTS:
    - Parent: <!-- wp:columns {"style":{}} -->
    - Child: <!-- wp:column {"width":"50%%"} --> (escape % as %%)
    - Use flex-basis in inline style: style="flex-basis:50%%"
    - Equal columns: omit width attribute
    - Column gaps: blockGap:{"top":"34px","left":"24px"}
 
-7. COLOR INHERITANCE:
+8. COLOR INHERITANCE:
    - Elements for link colors: "elements":{"link":{"color":{"text":"#000"}}}
    - Apply to parent groups to cascade to children
    - Use both class and inline style for reliability
 
-8. IMAGE BLOCKS:
+9. IMAGE BLOCKS:
    - Structure: <!-- wp:image {"sizeSlug":"large","align":"center"} -->
    - Wrap in <figure>: <figure class="wp-block-image"><img src="" alt=""/></figure>
    - Always include alt text (can be empty: alt="")
    - Include size classes: size-large, aligncenter
    - For sized images: {"width":"161px","height":"auto"}
 
-9. BUTTON BLOCKS:
+10. BUTTON BLOCKS:
    - Always wrap button in buttons: <!-- wp:buttons --> with <!-- wp:button -->
    - Structure: <div class="wp-block-button"><a class="wp-block-button__link">Text</a></div>
    - Include wp-element-button class on link
@@ -118,18 +126,18 @@ CRITICAL WORDPRESS BLOCK RULES (prevent broken blocks):
    - Example: class="wp-block-button__link has-text-color has-background has-custom-font-size wp-element-button"
    - Colors: {"style":{"color":{"background":"#000","text":"#fff"}}}
 
-10. SPACING CONSISTENCY:
+11. SPACING CONSISTENCY:
     - Section padding: 80px (normal), 40px (compact), 120px (spacious)
     - Block gaps: 24px (normal), 16px (compact), 40px (spacious)
     - Element margins: 12px (normal), 8px (compact), 20px (spacious)
     - Always use margin:{top:"0",bottom:"0"} on containers to prevent double spacing
 
-11. METADATA REQUIREMENTS:
+12. METADATA REQUIREMENTS:
     - Root group must have: {"metadata":{"categories":["type"],"patternName":"unique-slug","name":"Display Name"}}
     - Categories match pattern type: hero, about, services, cta, testimonials, team, stats, faq
     - patternName should be unique and descriptive
 
-12. VALIDATION CHECKLIST:
+13. VALIDATION CHECKLIST:
     - Every opening block comment has matching closing comment
     - All HTML tags are properly closed and nested
     - JSON attributes are valid (no trailing commas, proper quotes)
@@ -137,8 +145,10 @@ CRITICAL WORDPRESS BLOCK RULES (prevent broken blocks):
     - Color values are valid hex codes (#000000 not #000)
     - Spacing values include units (24px not 24)
     - Classes match WordPress conventions
+    - Semantic className is included in root group and appears in HTML class attribute
 
 BEST PRACTICES:
+- Always include semantic class names (hero-section, services-section, custom-hero, etc.) for easy CSS targeting
 - Be descriptive in content_description (specific headings, exact text, structure details)
 - Match colors to brand (use color_scheme with hex codes, always 6 digits: #000000 not #000)
 - Choose appropriate spacing (compact for dense info, spacious for emphasis)
@@ -205,6 +215,11 @@ BEST PRACTICES:
                         'description' => 'How to insert the pattern: replace (replace all content), append (add to end), prepend (add to start)',
                         'default'     => 'append',
                     ),
+                    'semantic_class' => array(
+                        'type'        => 'string',
+                        'description' => 'Optional semantic CSS class name for the pattern (e.g., "hero-section", "our-services"). Defaults to pattern type + "-section" if not provided.',
+                        'pattern'     => '^[a-z0-9-]+$',
+                    ),
                     'post_id' => array(
                         'type'        => 'integer',
                         'description' => 'Optional: Post ID to insert the pattern into.',
@@ -250,6 +265,7 @@ BEST PRACTICES:
                 $spacing = $input['spacing'] ?? 'normal';
                 $action_type = $input['action_type'] ?? 'append';
                 $post_id = $input['post_id'] ?? null;
+                $semantic_class = $input['semantic_class'] ?? $pattern_type . '-section';
 
                 // Check permissions
                 if ( ! current_user_can( 'edit_posts' ) ) {
@@ -291,6 +307,7 @@ BEST PRACTICES:
                     'text_color'        => $text_color,
                     'accent_color'      => $accent_color,
                     'spacing'           => $spacing_values,
+                    'semantic_class'    => $semantic_class,
                 ) );
 
                 // Calculate word count for feedback
@@ -384,10 +401,11 @@ function snn_generate_hero_pattern( $args ) {
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
     $accent_color = $args['accent_color'];
+    $semantic_class = $args['semantic_class'] ?? 'hero-section';
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["hero"],"patternName":"generated-hero"},"align":"full","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"0"},"color":{"background":"%s","text":"%s"},"elements":{"link":{"color":{"text":"%s"}}}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group alignfull has-text-color has-background has-link-color" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["hero"],"patternName":"generated-hero"},"align":"full","className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"0"},"color":{"background":"%s","text":"%s"},"elements":{"link":{"color":{"text":"%s"}}}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignfull %s has-text-color has-background has-link-color" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:group {"style":{"spacing":{"blockGap":"%s"}},"layout":{"type":"constrained","contentSize":"900px"}} -->
 <div class="wp-block-group">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"72px","lineHeight":"1.1"},"color":{"text":"%s"},"elements":{"link":{"color":{"text":"%s"}}}}} -->
@@ -428,10 +446,11 @@ function snn_generate_about_pattern( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
+    $semantic_class = $args['semantic_class'] ?? 'about-section';
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["about"],"patternName":"generated-about"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["about"],"patternName":"generated-about"},"align":"wide","className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide %s has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:columns {"style":{"spacing":{"blockGap":{"top":"%s","left":"%s"}}}} -->
 <div class="wp-block-columns">
 <!-- wp:column {"width":"50%%"} -->
@@ -481,6 +500,7 @@ function snn_generate_services_pattern( $args ) {
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
     $columns = $args['columns'];
+    $semantic_class = $args['semantic_class'] ?? 'services-section';
 
     $column_blocks = '';
     $services = array(
@@ -511,8 +531,8 @@ function snn_generate_services_pattern( $args ) {
     }
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["services"],"patternName":"generated-services"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["services"],"patternName":"generated-services"},"align":"wide","className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide %s has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px">Our Services</h2>
 <!-- /wp:heading -->
@@ -539,10 +559,11 @@ function snn_generate_cta_pattern( $args ) {
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
     $accent_color = $args['accent_color'];
+    $semantic_class = $args['semantic_class'] ?? 'cta-section';
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["cta"],"patternName":"generated-cta"},"align":"full","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"800px"}} -->
-<div class="wp-block-group alignfull has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["cta"],"patternName":"generated-cta"},"align":"full","className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"800px"}} -->
+<div class="wp-block-group alignfull %s has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px","lineHeight":"1.2"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px;line-height:1.2">Ready to Get Started?</h2>
 <!-- /wp:heading -->
@@ -575,10 +596,11 @@ function snn_generate_testimonials_pattern( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
+    $semantic_class = $args['semantic_class'] ?? 'testimonials-section';
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["testimonials"],"patternName":"generated-testimonials"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["testimonials"],"patternName":"generated-testimonials"},"align":"wide","className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide %s has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px">What Our Clients Say</h2>
 <!-- /wp:heading -->
@@ -628,6 +650,7 @@ function snn_generate_team_pattern( $args ) {
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
     $columns = $args['columns'];
+    $semantic_class = $args['semantic_class'] ?? 'team-section';
 
     $column_blocks = '';
     for ( $i = 1; $i <= $columns; $i++ ) {
@@ -657,8 +680,8 @@ function snn_generate_team_pattern( $args ) {
     }
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["team"],"patternName":"generated-team"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["team"],"patternName":"generated-team"},"align":"wide","className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide %s has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px">Meet Our Team</h2>
 <!-- /wp:heading -->
@@ -684,10 +707,11 @@ function snn_generate_stats_pattern( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
+    $semantic_class = $args['semantic_class'] ?? 'stats-section';
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["stats"],"patternName":"generated-stats"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["stats"],"patternName":"generated-stats"},"align":"wide","className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group alignwide %s has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:columns {"style":{"spacing":{"blockGap":{"top":"%s","left":"%s"}}}} -->
 <div class="wp-block-columns">
 <!-- wp:column {"style":{"spacing":{"blockGap":"0"}}} -->
@@ -745,10 +769,11 @@ function snn_generate_faq_pattern( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
+    $semantic_class = $args['semantic_class'] ?? 'faq-section';
 
     return sprintf(
-        '<!-- wp:group {"metadata":{"categories":["faq"],"patternName":"generated-faq"},"align":"wide","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"900px"}} -->
-<div class="wp-block-group alignwide has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"metadata":{"categories":["faq"],"patternName":"generated-faq"},"align":"wide","className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"900px"}} -->
+<div class="wp-block-group alignwide %s has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading has-text-align-center" style="font-size:48px">Frequently Asked Questions</h2>
 <!-- /wp:heading -->
@@ -804,10 +829,11 @@ function snn_generate_generic_pattern( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
+    $semantic_class = $args['semantic_class'] ?? 'custom-section';
 
     return sprintf(
-        '<!-- wp:group {"style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
-<div class="wp-block-group has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
+        '<!-- wp:group {"className":"%s","style":{"spacing":{"padding":{"top":"%s","bottom":"%s","left":"26px","right":"26px"},"margin":{"top":"0","bottom":"0"},"blockGap":"%s"},"color":{"background":"%s","text":"%s"}},"layout":{"type":"constrained","contentSize":"1180px"}} -->
+<div class="wp-block-group %s has-text-color has-background" style="color:%s;background-color:%s;margin-top:0;margin-bottom:0;padding-top:%s;padding-right:26px;padding-bottom:%s;padding-left:26px">
 <!-- wp:heading {"style":{"typography":{"fontSize":"48px"}}} -->
 <h2 class="wp-block-heading" style="font-size:48px">Section Heading</h2>
 <!-- /wp:heading -->

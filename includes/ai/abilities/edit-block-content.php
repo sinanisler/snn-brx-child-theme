@@ -29,6 +29,25 @@ WHEN TO USE THIS ABILITY:
 - User wants to delete specific blocks (e.g., "remove the third FAQ item")
 - User wants to find and replace text/blocks (e.g., "replace all Read More buttons with Get Started")
 
+CRITICAL: POST_ID AUTO-DETECTION
+- post_id is OPTIONAL when user is in block editor
+- The ability will automatically detect post_id from context
+- Only provide post_id manually if editing a different post than the current one
+- Accepts both integer (123) and string ("123") formats
+
+ABSTRACT TARGETING SYSTEM (Priority Order):
+1. anchor (BEST) - Target by HTML ID (e.g., "snn-section-hero-x92")
+   - Most reliable, survives text changes
+   - Use when available from pattern generation
+
+2. section_identifier - Target by heading text (e.g., "About Us")
+   - Fuzzy match fallback
+   - Less reliable if user changes text
+
+3. block_index - Target by position (e.g., 0 = first, -1 = last)
+   - Use when other methods unavailable
+   - Changes if blocks are added/removed
+
 AVAILABLE EDIT ACTIONS:
 
 1. INSERT_AT_INDEX - Insert new blocks at a specific position
@@ -46,9 +65,9 @@ AVAILABLE EDIT ACTIONS:
    - Parameters: start_index (required), end_index (optional, defaults to start_index)
    - Example: Remove FAQ item
 
-4. FIND_AND_REPLACE_SECTION - Find section by heading and replace it
+4. FIND_AND_REPLACE_SECTION - Find section by heading/anchor and replace it
    - Use when user says: "update the About Us section", "change the Services heading"
-   - Parameters: section_identifier (required), content (required)
+   - Parameters: anchor OR section_identifier (required), content (required)
    - Example: Update "Who We Are" section content
    - NOTE: This finds the heading block matching identifier and replaces it + all blocks until next heading
 
@@ -58,16 +77,20 @@ AVAILABLE EDIT ACTIONS:
    - Example: Replace "Read More" with "Learn More" in all buttons
 
 PARAMETERS:
-- post_id: (integer, required) Post ID to edit
-- action: (string, required) Edit action type (insert_at_index, replace_block_range, delete_blocks, find_and_replace_section, find_and_replace_text)
-- content: (string) Block markup to insert/replace (required for insert/replace actions)
-- insert_index: (integer) Position to insert blocks (0 = start, -1 = end)
+- post_id: (integer|string, optional) Post ID to edit - auto-detects from context if omitted
+- action: (string, required) Edit action type
+- anchor: (string, optional) HTML anchor/ID for abstract targeting (MOST RELIABLE)
+- section_identifier: (string, optional) Heading text or fuzzy match string
+- block_index: (integer, optional) Target by position (0=first, -1=last)
+- content: (string) Block markup to insert/replace
+- insert_index: (integer) Position to insert blocks
 - start_index: (integer) Start index for range operations
 - end_index: (integer) End index for range operations
-- section_identifier: (string) Heading text to find for section replacement
-- find_text: (string) Text to find for text replacement
+- find_text: (string) Text to find for replacement
 - replace_text: (string) Text to replace with
-- block_types: (array) Optional: limit operations to specific block types (e.g., ["core/button", "core/paragraph"])
+- block_types: (array) Optional: limit operations to specific block types
+- fallback_to_append: (boolean) If target not found, append instead of failing (default: false)
+- save_immediately: (boolean) Save post after edit (default: false)
 
 RETURN FORMAT:
 Returns client_command for real-time editor updates with:
@@ -78,15 +101,28 @@ Returns client_command for real-time editor updates with:
 
 EXAMPLES:
 
-1. Insert testimonial after hero:
+1. Update hero section by anchor (BEST METHOD):
 {
-  "post_id": 123,
+  "action": "find_and_replace_section",
+  "anchor": "snn-section-hero-a7f",
+  "content": "<!-- wp:heading --><h1>Shorter Title</h1><!-- /wp:heading -->"
+}
+
+2. Update hero section by text (FALLBACK):
+{
+  "action": "find_and_replace_section",
+  "section_identifier": "Hero",
+  "content": "<!-- wp:heading --><h1>Shorter Title</h1><!-- /wp:heading -->"
+}
+
+3. Insert testimonial after services (auto-detect post_id):
+{
   "action": "insert_at_index",
   "insert_index": 1,
   "content": "<!-- wp:quote -->...</quote><!-- /wp:quote -->"
 }
 
-2. Replace pricing section (blocks 5-8):
+4. Replace pricing section:
 {
   "post_id": 123,
   "action": "replace_block_range",
@@ -95,24 +131,14 @@ EXAMPLES:
   "content": "<!-- wp:group -->...new pricing...<!-- /wp:group -->"
 }
 
-3. Delete third FAQ item:
+5. Delete third FAQ item:
 {
-  "post_id": 123,
   "action": "delete_blocks",
   "start_index": 2
 }
 
-4. Update About Us section:
+6. Replace button text across all buttons:
 {
-  "post_id": 123,
-  "action": "find_and_replace_section",
-  "section_identifier": "About Us",
-  "content": "<!-- wp:heading --><h2>About Us</h2><!-- /wp:heading --><!-- wp:paragraph --><p>New content</p><!-- /wp:paragraph -->"
-}
-
-5. Replace button text:
-{
-  "post_id": 123,
   "action": "find_and_replace_text",
   "find_text": "Read More",
   "replace_text": "Learn More",
@@ -128,20 +154,32 @@ CRITICAL WORDPRESS BLOCK RULES:
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
-                'required'   => array( 'post_id', 'action' ),
+                'required'   => array( 'action' ),
                 'properties' => array(
                     'post_id' => array(
-                        'type'        => 'integer',
-                        'description' => 'Post ID to edit.',
+                        'type'        => array( 'integer', 'string' ),
+                        'description' => 'Post ID to edit. Optional - will auto-detect from current page context if in block editor.',
                     ),
                     'action' => array(
                         'type'        => 'string',
                         'enum'        => array( 'insert_at_index', 'replace_block_range', 'delete_blocks', 'find_and_replace_section', 'find_and_replace_text' ),
                         'description' => 'Type of edit action to perform.',
                     ),
+                    'anchor' => array(
+                        'type'        => 'string',
+                        'description' => 'HTML anchor/ID to target (e.g., "snn-section-hero-x92"). Most reliable targeting method.',
+                    ),
+                    'section_identifier' => array(
+                        'type'        => 'string',
+                        'description' => 'Heading text to find for section replacement OR use as fuzzy text match if anchor not available.',
+                    ),
                     'content' => array(
                         'type'        => 'string',
                         'description' => 'Block markup content (required for insert/replace actions).',
+                    ),
+                    'block_index' => array(
+                        'type'        => 'integer',
+                        'description' => 'Target block by index position (0 = first, -1 = last). Use when anchor is not available.',
                     ),
                     'insert_index' => array(
                         'type'        => 'integer',
@@ -155,10 +193,6 @@ CRITICAL WORDPRESS BLOCK RULES:
                         'type'        => 'integer',
                         'description' => 'End index for range operations (inclusive).',
                     ),
-                    'section_identifier' => array(
-                        'type'        => 'string',
-                        'description' => 'Heading text to find for section replacement.',
-                    ),
                     'find_text' => array(
                         'type'        => 'string',
                         'description' => 'Text to find for replacement.',
@@ -171,6 +205,16 @@ CRITICAL WORDPRESS BLOCK RULES:
                         'type'        => 'array',
                         'items'       => array( 'type' => 'string' ),
                         'description' => 'Optional: limit operations to specific block types.',
+                    ),
+                    'fallback_to_append' => array(
+                        'type'        => 'boolean',
+                        'description' => 'If target not found, append content to end instead of failing (default: false).',
+                        'default'     => false,
+                    ),
+                    'save_immediately' => array(
+                        'type'        => 'boolean',
+                        'description' => 'Save post immediately after edit (default: false).',
+                        'default'     => false,
                     ),
                 ),
             ),
@@ -200,7 +244,34 @@ CRITICAL WORDPRESS BLOCK RULES:
                 ),
             ),
             'execute_callback' => function( $input ) {
-                $post_id = $input['post_id'];
+                // Get post_id - auto-detect from context if not provided
+                $post_id = null;
+                
+                if ( isset( $input['post_id'] ) ) {
+                    // Cast to integer to handle string inputs
+                    $post_id = absint( $input['post_id'] );
+                }
+                
+                // If no post_id provided, try to get from current context
+                if ( ! $post_id ) {
+                    // Check if we're in admin and editing a post
+                    if ( is_admin() && isset( $_GET['post'] ) ) {
+                        $post_id = absint( $_GET['post'] );
+                    } elseif ( is_admin() && isset( $_POST['post_ID'] ) ) {
+                        $post_id = absint( $_POST['post_ID'] );
+                    } elseif ( ! is_admin() && in_the_loop() ) {
+                        $post_id = get_the_ID();
+                    }
+                }
+                
+                // If still no post_id, return helpful error
+                if ( ! $post_id ) {
+                    return new WP_Error( 
+                        'missing_post_id', 
+                        __( 'post_id is required. Please provide the post ID you want to edit, or ensure you are in the block editor context.', 'snn' )
+                    );
+                }
+                
                 $action = $input['action'];
 
                 // Check permissions
@@ -223,6 +294,29 @@ CRITICAL WORDPRESS BLOCK RULES:
                     'action'  => $action,
                     'post_id' => $post_id,
                 );
+                
+                // Add anchor for abstract targeting if provided
+                if ( isset( $input['anchor'] ) ) {
+                    $client_command['anchor'] = $input['anchor'];
+                }
+                
+                // Add section_identifier for fallback targeting
+                if ( isset( $input['section_identifier'] ) ) {
+                    $client_command['section_identifier'] = $input['section_identifier'];
+                }
+                
+                // Add block_index for index-based targeting
+                if ( isset( $input['block_index'] ) ) {
+                    $client_command['block_index'] = $input['block_index'];
+                }
+                
+                // Add fallback and save options
+                if ( isset( $input['fallback_to_append'] ) ) {
+                    $client_command['fallback_to_append'] = $input['fallback_to_append'];
+                }
+                if ( isset( $input['save_immediately'] ) ) {
+                    $client_command['save_immediately'] = $input['save_immediately'];
+                }
 
                 $message = '';
                 $blocks_affected = 0;
