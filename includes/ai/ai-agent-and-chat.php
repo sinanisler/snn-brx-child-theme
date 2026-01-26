@@ -793,15 +793,16 @@ class SNN_Chat_Overlay {
         if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) ) {
             $action = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : '';
             $post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
-            
+
             if ( $pagenow === 'post-new.php' || $action === 'edit' ) {
                 $context['type'] = 'post_editor';
-                
+                $context['details']['has_block_editor'] = true; // Flag for client-side enhancement
+
                 if ( $post_id && $action === 'edit' ) {
                     // Editing existing post
                     $the_post = get_post( $post_id );
                     if ( $the_post ) {
-                        $context['details'] = array(
+                        $context['details'] = array_merge( $context['details'], array(
                             'post_id' => $post_id,
                             'post_type' => $the_post->post_type,
                             'post_title' => $the_post->post_title,
@@ -810,18 +811,21 @@ class SNN_Chat_Overlay {
                             'post_date' => $the_post->post_date,
                             'post_modified' => $the_post->post_modified,
                             'edit_url' => admin_url( 'post.php?action=edit&post=' . $post_id ),
-                            'description' => sprintf( 'Editing %s: "%s" (ID: %d)', $the_post->post_type, $the_post->post_title, $post_id )
-                        );
+                            'description' => sprintf( 'Editing %s: "%s" (ID: %d)', $the_post->post_type, $the_post->post_title, $post_id ),
+                            'post_excerpt' => $the_post->post_excerpt,
+                            'has_blocks' => has_blocks( $the_post->post_content ),
+                            'word_count' => str_word_count( wp_strip_all_tags( $the_post->post_content ) ),
+                        ) );
                     }
                 } else {
                     // Creating new post
                     $post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : 'post';
-                    $context['details'] = array(
+                    $context['details'] = array_merge( $context['details'], array(
                         'post_type' => $post_type,
                         'description' => sprintf( 'Creating new %s', $post_type )
-                    );
+                    ) );
                 }
-                
+
                 return $context;
             }
         }
@@ -1190,10 +1194,176 @@ class SNN_Chat_Overlay {
                 autoSaveTimer: null
             };
 
+            // Block Editor Integration
+            const BlockEditorHelper = {
+                /**
+                 * Check if block editor is available
+                 */
+                isAvailable() {
+                    return typeof wp !== 'undefined' &&
+                           typeof wp.data !== 'undefined' &&
+                           typeof wp.blocks !== 'undefined';
+                },
+
+                /**
+                 * Get current post content from block editor
+                 */
+                getCurrentContent() {
+                    if (!this.isAvailable()) return null;
+
+                    try {
+                        const editor = wp.data.select('core/editor');
+                        if (!editor) return null;
+
+                        return {
+                            raw: editor.getEditedPostContent(),
+                            blocks: wp.data.select('core/block-editor').getBlocks(),
+                            title: editor.getEditedPostAttribute('title'),
+                            excerpt: editor.getEditedPostAttribute('excerpt'),
+                            wordCount: wp.data.select('core/editor').getDocumentInfo().words
+                        };
+                    } catch (e) {
+                        console.error('Failed to get editor content:', e);
+                        return null;
+                    }
+                },
+
+                /**
+                 * Get selected block info
+                 */
+                getSelectedBlock() {
+                    if (!this.isAvailable()) return null;
+
+                    try {
+                        return wp.data.select('core/block-editor').getSelectedBlock();
+                    } catch (e) {
+                        console.error('Failed to get selected block:', e);
+                        return null;
+                    }
+                },
+
+                /**
+                 * Insert blocks into editor
+                 */
+                insertBlocks(blockData, position = 'end') {
+                    if (!this.isAvailable()) {
+                        throw new Error('Block editor not available');
+                    }
+
+                    try {
+                        const { insertBlocks } = wp.data.dispatch('core/block-editor');
+                        const { createBlock } = wp.blocks;
+
+                        const blocks = Array.isArray(blockData) ? blockData : [blockData];
+                        const createdBlocks = blocks.map(data => {
+                            return createBlock(data.name || 'core/paragraph', data.attributes || {}, data.innerBlocks || []);
+                        });
+
+                        if (position === 'end') {
+                            insertBlocks(createdBlocks);
+                        } else {
+                            insertBlocks(createdBlocks, position);
+                        }
+
+                        return { success: true, message: `Inserted ${createdBlocks.length} block(s)` };
+                    } catch (e) {
+                        console.error('Failed to insert blocks:', e);
+                        throw new Error('Failed to insert blocks: ' + e.message);
+                    }
+                },
+
+                /**
+                 * Replace selected block
+                 */
+                replaceSelectedBlock(blockData) {
+                    if (!this.isAvailable()) {
+                        throw new Error('Block editor not available');
+                    }
+
+                    try {
+                        const selectedBlock = this.getSelectedBlock();
+                        if (!selectedBlock) {
+                            throw new Error('No block selected');
+                        }
+
+                        const { replaceBlocks } = wp.data.dispatch('core/block-editor');
+                        const { createBlock } = wp.blocks;
+
+                        const newBlock = createBlock(
+                            blockData.name || 'core/paragraph',
+                            blockData.attributes || {},
+                            blockData.innerBlocks || []
+                        );
+
+                        replaceBlocks(selectedBlock.clientId, newBlock);
+
+                        return { success: true, message: 'Block replaced successfully' };
+                    } catch (e) {
+                        console.error('Failed to replace block:', e);
+                        throw new Error('Failed to replace block: ' + e.message);
+                    }
+                },
+
+                /**
+                 * Append content to current post
+                 */
+                appendContent(content, blockType = 'core/paragraph') {
+                    return this.insertBlocks({
+                        name: blockType,
+                        attributes: { content: content }
+                    }, 'end');
+                },
+
+                /**
+                 * Save post
+                 */
+                savePost() {
+                    if (!this.isAvailable()) {
+                        throw new Error('Block editor not available');
+                    }
+
+                    try {
+                        const { savePost } = wp.data.dispatch('core/editor');
+                        savePost();
+                        return { success: true, message: 'Post save initiated' };
+                    } catch (e) {
+                        console.error('Failed to save post:', e);
+                        throw new Error('Failed to save post: ' + e.message);
+                    }
+                }
+            };
+
+            // Enhance page context with block editor info
+            function enhancePageContext() {
+                if (snnChatConfig.pageContext && snnChatConfig.pageContext.details.has_block_editor) {
+                    const content = BlockEditorHelper.getCurrentContent();
+                    if (content) {
+                        snnChatConfig.pageContext.details.current_content = content.raw.substring(0, 500); // Preview
+                        snnChatConfig.pageContext.details.current_title = content.title;
+                        snnChatConfig.pageContext.details.current_excerpt = content.excerpt;
+                        snnChatConfig.pageContext.details.current_word_count = content.wordCount;
+                        snnChatConfig.pageContext.details.block_count = content.blocks ? content.blocks.length : 0;
+
+                        const selectedBlock = BlockEditorHelper.getSelectedBlock();
+                        if (selectedBlock) {
+                            snnChatConfig.pageContext.details.selected_block = {
+                                name: selectedBlock.name,
+                                attributes: selectedBlock.attributes
+                            };
+                        }
+                    }
+                }
+            }
+
             // Initialize
             $(document).ready(function() {
                 initChat();
                 loadAbilities();
+
+                // Enhance context if in block editor
+                if (BlockEditorHelper.isAvailable()) {
+                    setTimeout(enhancePageContext, 1000); // Wait for editor to load
+                }
             });
 
             /**
@@ -1436,6 +1606,37 @@ class SNN_Chat_Overlay {
                         pageContextInfo += `- Title: "${ctx.details.post_title}"\n`;
                         pageContextInfo += `- Status: ${ctx.details.post_status}\n`;
                         pageContextInfo += `- Author: ${ctx.details.post_author}\n`;
+
+                        // Add block editor info if available
+                        if (ctx.details.has_block_editor) {
+                            pageContextInfo += `- Using Block Editor: Yes\n`;
+                            if (ctx.details.has_blocks) {
+                                pageContextInfo += `- Has Blocks: Yes\n`;
+                            }
+                            if (ctx.details.word_count) {
+                                pageContextInfo += `- Word Count: ${ctx.details.word_count}\n`;
+                            }
+                            if (ctx.details.current_word_count) {
+                                pageContextInfo += `- Current Word Count (live): ${ctx.details.current_word_count}\n`;
+                            }
+                            if (ctx.details.block_count) {
+                                pageContextInfo += `- Block Count: ${ctx.details.block_count}\n`;
+                            }
+                            if (ctx.details.selected_block) {
+                                pageContextInfo += `- Selected Block: ${ctx.details.selected_block.name}\n`;
+                            }
+
+                            pageContextInfo += `\n**BLOCK EDITOR CAPABILITIES:**\n`;
+                            pageContextInfo += `You can interact with the block editor using these abilities:\n`;
+                            pageContextInfo += `- snn/insert-block-content: Insert new blocks into the post\n`;
+                            pageContextInfo += `- snn/append-content-to-post: Add content to the end of the post\n`;
+                            pageContextInfo += `- snn/get-post-content: Read the current post content\n`;
+                            pageContextInfo += `- snn/replace-post-content: Replace entire post content\n`;
+                            pageContextInfo += `- snn/update-post-metadata: Update title, excerpt, status, categories, tags\n`;
+                            pageContextInfo += `- snn/analyze-post-seo: Analyze SEO quality of the current post\n`;
+                            pageContextInfo += `\nWhen the user asks to "add content", "insert text", "write about", etc., use the insert or append abilities with the post_id ${ctx.details.post_id}.\n`;
+                        }
+
                         pageContextInfo += `\n**IMPORTANT:** When the user asks about "this post", "the post", "current post", "my content", etc., they are referring to Post ID ${ctx.details.post_id} ("${ctx.details.post_title}"). Use this exact Post ID without asking for clarification.\n`;
                     } else if (ctx.type === 'post_list' && ctx.details.post_type) {
                         pageContextInfo += `\n**Currently Viewing Post List:**\n`;
