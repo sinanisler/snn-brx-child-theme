@@ -125,11 +125,24 @@ jobs:
 
       - name: Copy files to Destination Repo (snn-block)
         run: |
+          # Check if commit message contains "forcesync"
+          FORCE_SYNC=false
+          if echo "${{ steps.commit_info.outputs.message }}" | grep -qi "forcesync"; then
+            FORCE_SYNC=true
+            echo "Force sync detected - will sync all files"
+          fi
+
           # Copy individual files
           for file_path in $FILES_TO_SYNC; do
             if [ -f "source-repo/$file_path" ]; then
               echo "Processing file: $file_path (snn-block)"
               mkdir -p "destination-repo-block/$(dirname "$file_path")"
+
+              # If force sync, delete destination file first to ensure git sees it as changed
+              if [ "$FORCE_SYNC" = true ] && [ -f "destination-repo-block/$file_path" ]; then
+                rm "destination-repo-block/$file_path"
+              fi
+
               cp "source-repo/$file_path" "destination-repo-block/$file_path"
             fi
           done
