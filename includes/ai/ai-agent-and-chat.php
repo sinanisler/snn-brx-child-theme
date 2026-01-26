@@ -17,6 +17,12 @@
  * - Client-side context and state management
  * - Draggable, resizable interface
  *
+ * Abilities Management:
+ * - Uses inverted storage logic: stores DISABLED abilities instead of enabled
+ * - This makes it future-proof: newly added abilities are automatically enabled by default
+ * - Includes automatic migration from old 'enabled' format to new 'disabled' format
+ * - Database option: snn_ai_agent_disabled_abilities (array of ability names to disable)
+ *
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -99,15 +105,45 @@ class SNN_Chat_Overlay {
 
     /**
      * Get enabled abilities
+     *
+     * Future-proof approach: Stores DISABLED abilities instead of enabled.
+     * This way, newly added abilities are automatically enabled by default.
      */
     public function get_enabled_abilities() {
-        $enabled = get_option( 'snn_ai_agent_enabled_abilities', array() );
-        // If empty (first time), return all abilities as enabled
-        if ( empty( $enabled ) ) {
-            $all_abilities = $this->get_abilities();
-            return wp_list_pluck( $all_abilities, 'name' );
+        $all_abilities = $this->get_abilities();
+        $all_ability_names = wp_list_pluck( $all_abilities, 'name' );
+
+        // Get disabled abilities list (new approach - stores what's disabled)
+        $disabled = get_option( 'snn_ai_agent_disabled_abilities', array() );
+
+        // Backward compatibility: migrate from old 'enabled' approach to new 'disabled' approach
+        $old_enabled = get_option( 'snn_ai_agent_enabled_abilities', null );
+        if ( $old_enabled !== null ) {
+            // Convert: anything NOT in old enabled list becomes disabled
+            if ( is_array( $old_enabled ) && ! empty( $old_enabled ) ) {
+                $disabled = array_diff( $all_ability_names, $old_enabled );
+            } else {
+                // Old enabled was empty, means nothing was selected - disable everything
+                $disabled = $all_ability_names;
+            }
+            // Save in new format and remove old option
+            update_option( 'snn_ai_agent_disabled_abilities', $disabled );
+            delete_option( 'snn_ai_agent_enabled_abilities' );
         }
-        return is_array( $enabled ) ? $enabled : array();
+
+        // Ensure disabled is always an array
+        $disabled = is_array( $disabled ) ? $disabled : array();
+
+        // Return all abilities EXCEPT the disabled ones
+        return array_diff( $all_ability_names, $disabled );
+    }
+
+    /**
+     * Check if a specific ability is enabled
+     */
+    public function is_ability_enabled( $ability_name ) {
+        $enabled = $this->get_enabled_abilities();
+        return in_array( $ability_name, $enabled, true );
     }
 
     /**
@@ -390,7 +426,7 @@ class SNN_Chat_Overlay {
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_enabled' );
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_system_prompt' );
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_token_count' );
-        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_enabled_abilities' );
+        register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_disabled_abilities' ); // New: stores disabled, not enabled
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_debug_mode' );
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_max_retries' );
         register_setting( 'snn_ai_agent_settings', 'snn_ai_agent_max_history' );
@@ -406,7 +442,14 @@ class SNN_Chat_Overlay {
             update_option( 'snn_ai_agent_enabled', isset( $_POST['snn_ai_agent_enabled'] ) ? true : false );
             update_option( 'snn_ai_agent_system_prompt', sanitize_textarea_field( wp_unslash( $_POST['snn_ai_agent_system_prompt'] ) ) );
             update_option( 'snn_ai_agent_token_count', absint( $_POST['snn_ai_agent_token_count'] ) );
-            update_option( 'snn_ai_agent_enabled_abilities', isset( $_POST['snn_ai_agent_enabled_abilities'] ) ? array_map( 'sanitize_text_field', $_POST['snn_ai_agent_enabled_abilities'] ) : array() );
+
+            // New approach: Save DISABLED abilities (inverted logic for future-proofing)
+            $all_abilities = $this->get_abilities();
+            $all_ability_names = wp_list_pluck( $all_abilities, 'name' );
+            $enabled_from_form = isset( $_POST['snn_ai_agent_enabled_abilities'] ) ? array_map( 'sanitize_text_field', $_POST['snn_ai_agent_enabled_abilities'] ) : array();
+            $disabled_abilities = array_diff( $all_ability_names, $enabled_from_form );
+            update_option( 'snn_ai_agent_disabled_abilities', $disabled_abilities );
+
             update_option( 'snn_ai_agent_debug_mode', isset( $_POST['snn_ai_agent_debug_mode'] ) ? true : false );
             update_option( 'snn_ai_agent_max_retries', absint( $_POST['snn_ai_agent_max_retries'] ) );
             update_option( 'snn_ai_agent_max_history', absint( $_POST['snn_ai_agent_max_history'] ) );
@@ -591,9 +634,35 @@ class SNN_Chat_Overlay {
 
             <!-- Available Abilities -->
             <h2><?php echo esc_html__('Available WordPress Abilities', 'snn'); ?></h2>
-            <p><?php echo esc_html__('Select which abilities the AI agent can use. All abilities are enabled by default.', 'snn'); ?></p>
-            
+            <p><?php echo esc_html__('Select which abilities the AI agent can use. Newly added abilities are automatically enabled by default.', 'snn'); ?></p>
+
             <?php if ( ! empty( $abilities ) && is_array( $abilities ) ) : ?>
+                <?php
+                // Check for abilities with unregistered categories
+                $unregistered_categories = array();
+                foreach ( $abilities as $ability ) {
+                    $category = isset( $ability['category'] ) ? $ability['category'] : 'uncategorized';
+                    if ( $category !== 'uncategorized' && ! in_array( $category, $unregistered_categories, true ) ) {
+                        // Add to list if category appears to be custom (not core)
+                        if ( ! in_array( $category, array( 'content', 'users', 'media', 'settings', 'plugins', 'themes' ), true ) ) {
+                            $unregistered_categories[] = $category;
+                        }
+                    }
+                }
+                if ( ! empty( $unregistered_categories ) ) : ?>
+                    <div class="notice notice-warning inline" style="margin: 15px 0;">
+                        <p>
+                            <strong><?php echo esc_html__('Note:', 'snn'); ?></strong>
+                            <?php
+                            printf(
+                                esc_html__('Some abilities use custom categories (%s). If you see WordPress notices about unregistered categories, register them using wp_register_ability_category() before registering your abilities.', 'snn'),
+                                '<code>' . esc_html( implode( ', ', $unregistered_categories ) ) . '</code>'
+                            );
+                            ?>
+                        </p>
+                    </div>
+                <?php endif; ?>
+
                 <form method="post" action="">
                     <?php wp_nonce_field( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ); ?>
                     
