@@ -14,7 +14,7 @@ function snn_register_check_seo_quality_ability() {
         array(
             'label'       => __( 'Check SEO Quality', 'snn' ),
             'description' => __( 'Performs comprehensive SEO analysis on posts (including custom post types) and taxonomy terms. Analysis includes: title optimization (length, power words, numbers), meta description quality, content analysis (word count, readability score, sentence/paragraph structure), keyword density analysis with focus keyword support, heading hierarchy (H1-H6 structure), internal/external link analysis, image alt text audit, URL/slug optimization, duplicate content detection, taxonomy term SEO analysis, and overall weighted SEO scoring. Supports any registered post type (post, page, product, portfolio, etc.) and taxonomy (category, tag, custom taxonomies). Returns detailed scores across multiple categories with actionable recommendations prioritized by impact. Use this to audit content quality, identify SEO issues, and get specific improvement suggestions.', 'snn' ),
-            'category'    => 'seo-analysis',
+            'category'    => 'seo',
             'input_schema' => array(
                 'type'       => 'object',
                 'properties' => array(

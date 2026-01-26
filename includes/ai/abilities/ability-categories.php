@@ -36,9 +36,9 @@ function snn_register_all_ability_categories() {
     }
 
     // SEO Analysis - for analyzing and improving SEO quality
-    if ( ! wp_has_ability_category( 'seo-analysis' ) ) {
+    if ( ! wp_has_ability_category( 'seo' ) ) {
         wp_register_ability_category(
-            'seo-analysis',
+            'seo',
             array(
                 'label'       => __( 'SEO Analysis', 'snn' ),
                 'description' => __( 'Abilities for analyzing and improving SEO quality.', 'snn' ),
