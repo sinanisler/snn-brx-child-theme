@@ -36,8 +36,7 @@ BAD Examples (will cause broken blocks):
 - Invalid list: <ul>Item 1 Item 2</ul>
 - Loose text: Some text <p>A paragraph</p> More text
 - Empty blocks: <p></p>
-
-See full documentation at: includes/ai/docs/block-generation-rules.md', 'snn' ),
+', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
