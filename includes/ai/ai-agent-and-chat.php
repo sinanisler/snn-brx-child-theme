@@ -1215,12 +1215,17 @@ class SNN_Chat_Overlay {
                         const editor = wp.data.select('core/editor');
                         if (!editor) return null;
 
+                        const content = editor.getEditedPostContent();
+                        // Calculate word count manually since getDocumentInfo() doesn't exist
+                        const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                        const wordCount = textContent ? textContent.split(/\s+/).length : 0;
+
                         return {
-                            raw: editor.getEditedPostContent(),
+                            raw: content,
                             blocks: wp.data.select('core/block-editor').getBlocks(),
                             title: editor.getEditedPostAttribute('title'),
                             excerpt: editor.getEditedPostAttribute('excerpt'),
-                            wordCount: wp.data.select('core/editor').getDocumentInfo().words
+                            wordCount: wordCount
                         };
                     } catch (e) {
                         console.error('Failed to get editor content:', e);
@@ -1951,12 +1956,20 @@ VALIDATION REQUIREMENTS:
                     }
 
                     // Check if this ability requires client-side execution
-                    if (result.success && result.data && result.data.client_command) {
-                        debugLog('Executing client-side command:', result.data.client_command);
-                        const clientResult = await executeClientCommand(result.data.client_command);
-                        if (!clientResult.success) {
+                    // Handle both result.client_command and result.data.client_command
+                    const clientCommand = result.client_command || (result.data && result.data.client_command);
+                    if (result.success && clientCommand) {
+                        debugLog('Executing client-side command:', clientCommand);
+                        try {
+                            const clientResult = await executeClientCommand(clientCommand);
+                            if (!clientResult.success) {
+                                result.success = false;
+                                result.error = clientResult.error;
+                            }
+                        } catch (error) {
+                            console.error('Client command execution failed:', error);
                             result.success = false;
-                            result.error = clientResult.error;
+                            result.error = 'Client-side execution failed: ' + error.message;
                         }
                     }
 
@@ -2149,6 +2162,21 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
              */
             async function executeClientCommand(command) {
                 try {
+                    // Validate command object
+                    if (!command || typeof command !== 'object') {
+                        return {
+                            success: false,
+                            error: 'Invalid client command: command is not an object'
+                        };
+                    }
+
+                    if (!command.type) {
+                        return {
+                            success: false,
+                            error: 'Invalid client command: missing type property'
+                        };
+                    }
+
                     debugLog('Client command type:', command.type);
 
                     if (command.type === 'update_editor_content') {
@@ -2163,7 +2191,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     console.error('Client command execution error:', error);
                     return {
                         success: false,
-                        error: error.message
+                        error: error.message || 'Unknown error in client command execution'
                     };
                 }
             }
