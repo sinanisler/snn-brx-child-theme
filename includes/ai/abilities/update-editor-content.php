@@ -1,0 +1,134 @@
+<?php
+/**
+ * Update Editor Content Ability
+ * 
+ * This ability updates the block editor content in real-time without requiring a page refresh.
+ * It works by sending instructions to the JavaScript side to update the editor state directly.
+ * 
+ * This is the PREFERRED method when the user is actively editing a post in the block editor,
+ * as it provides immediate visual feedback and allows for iteration without losing work.
+ */
+
+// Register ability
+add_action( 'wp_abilities_api_init', 'snn_register_update_editor_content_ability' );
+function snn_register_update_editor_content_ability() {
+    wp_register_ability(
+        'snn/update-editor-content',
+        array(
+            'label'       => __( 'Update Editor Content (Real-time)', 'snn' ),
+            'description' => __( 'Updates the block editor content in real-time without page refresh. USE THIS when the user is actively editing a post in the block editor. This provides immediate visual feedback and allows iteration. For posts not currently being edited, use snn/replace-post-content instead.', 'snn' ),
+            'category'    => 'content',
+            'input_schema' => array(
+                'type'       => 'object',
+                'required'   => array( 'content', 'action' ),
+                'properties' => array(
+                    'content' => array(
+                        'type'        => 'string',
+                        'description' => 'The new content (HTML or plain text). Will be converted to blocks automatically.',
+                        'minLength'   => 1,
+                    ),
+                    'action' => array(
+                        'type'        => 'string',
+                        'enum'        => array( 'replace', 'append', 'prepend', 'preview' ),
+                        'description' => 'How to apply the content: replace (replace all), append (add to end), prepend (add to start), preview (show without applying)',
+                        'default'     => 'replace',
+                    ),
+                    'post_id' => array(
+                        'type'        => 'integer',
+                        'description' => 'Optional: Post ID to verify we\'re editing the right post. If omitted, uses current editor post.',
+                    ),
+                    'save_immediately' => array(
+                        'type'        => 'boolean',
+                        'description' => 'Whether to auto-save the changes immediately.',
+                        'default'     => false,
+                    ),
+                ),
+            ),
+            'output_schema' => array(
+                'type'       => 'object',
+                'properties' => array(
+                    'success'  => array(
+                        'type'        => 'boolean',
+                        'description' => 'Whether update was successful',
+                    ),
+                    'message' => array(
+                        'type'        => 'string',
+                        'description' => 'Result message',
+                    ),
+                    'action_type' => array(
+                        'type'        => 'string',
+                        'description' => 'Type of action performed',
+                    ),
+                    'requires_client_update' => array(
+                        'type'        => 'boolean',
+                        'description' => 'Whether this requires JavaScript execution',
+                    ),
+                    'client_command' => array(
+                        'type'        => 'object',
+                        'description' => 'Command to be executed by JavaScript',
+                    ),
+                ),
+            ),
+            'execute_callback' => function( $input ) {
+                $content = $input['content'];
+                $action = $input['action'] ?? 'replace';
+                $post_id = $input['post_id'] ?? null;
+                $save_immediately = $input['save_immediately'] ?? false;
+
+                // Validate action
+                $valid_actions = array( 'replace', 'append', 'prepend', 'preview' );
+                if ( ! in_array( $action, $valid_actions, true ) ) {
+                    return new WP_Error( 'invalid_action', __( 'Invalid action type.', 'snn' ) );
+                }
+
+                // Check permissions
+                if ( ! current_user_can( 'edit_posts' ) ) {
+                    return new WP_Error( 'permission_denied', __( 'You do not have permission to edit posts.', 'snn' ) );
+                }
+
+                // If post_id provided, verify it exists and user can edit it
+                if ( $post_id ) {
+                    $post = get_post( $post_id );
+                    if ( ! $post ) {
+                        return new WP_Error( 'invalid_post', __( 'Post not found.', 'snn' ) );
+                    }
+                    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+                        return new WP_Error( 'permission_denied', __( 'You do not have permission to edit this post.', 'snn' ) );
+                    }
+                }
+
+                // Calculate word count for feedback
+                $word_count = str_word_count( wp_strip_all_tags( $content ) );
+
+                // Return instruction for JavaScript to execute
+                return array(
+                    'success'  => true,
+                    'message'  => sprintf(
+                        __( 'Content ready to update in editor (%d words). This will update the editor in real-time.', 'snn' ),
+                        $word_count
+                    ),
+                    'action_type' => $action,
+                    'requires_client_update' => true,
+                    'client_command' => array(
+                        'type' => 'update_editor_content',
+                        'content' => $content,
+                        'action' => $action,
+                        'post_id' => $post_id,
+                        'save_immediately' => $save_immediately,
+                        'word_count' => $word_count,
+                    ),
+                );
+            },
+            'permission_callback' => function() {
+                return current_user_can( 'edit_posts' );
+            },
+            'meta' => array(
+                'show_in_rest' => true,
+                'readonly'     => false,
+                'destructive'  => false,  // Not destructive since it doesn't save immediately
+                'idempotent'   => true,
+                'requires_client_execution' => true,  // Special flag for JavaScript execution
+            ),
+        )
+    );
+}

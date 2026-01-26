@@ -76,7 +76,7 @@ require_once SNN_PATH . 'includes/ai/abilities/list-taxonomies.php';
 require_once SNN_PATH . 'includes/ai/abilities/insert-block-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/get-post-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/append-content-to-post.php';
-require_once SNN_PATH . 'includes/ai/abilities/replace-post-content.php';
+require_once SNN_PATH . 'includes/ai/abilities/update-editor-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-post-metadata.php';
 require_once SNN_PATH . 'includes/ai/abilities/analyze-post-seo.php';
 

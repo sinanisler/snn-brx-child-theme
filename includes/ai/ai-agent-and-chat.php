@@ -1713,6 +1713,27 @@ When users ask "what can you do" or "what are your capabilities", list these abi
 
 ${abilitiesDesc}
 
+=== CONTENT EDITING: BLOCK EDITOR VS DATABASE ===
+
+**CRITICAL: Choose the RIGHT ability based on context:**
+
+${ChatState.pageContext.type === 'post_editor' ? `
+🟢 **YOU ARE CURRENTLY IN THE BLOCK EDITOR**
+- User is editing: "${ChatState.pageContext.details.description || 'a post'}"
+- Post ID: ${ChatState.pageContext.details.post_id || 'unknown'}
+- For content updates, USE "snn/update-editor-content" - it updates the editor in REAL-TIME
+- Benefits: User sees changes immediately, can iterate, no page refresh needed
+- NEVER use "snn/replace-post-content" when user is actively editing in the block editor
+
+**When to use each ability:**
+- "snn/update-editor-content" → When user is IN the block editor (NOW) - provides real-time updates
+- "snn/replace-post-content" → When editing posts NOT currently open in editor
+` : `
+⚪ **YOU ARE NOT IN THE BLOCK EDITOR**
+- Use "snn/replace-post-content" for editing posts (updates database directly)
+- Use "snn/update-editor-content" ONLY when user is actively editing a post
+`}
+
 === EXECUTION PHILOSOPHY: DO EXACTLY WHAT IS ASKED ===
 
 **CRITICAL BEHAVIOR RULES:**
@@ -1929,6 +1950,16 @@ VALIDATION REQUIREMENTS:
                         }
                     }
 
+                    // Check if this ability requires client-side execution
+                    if (result.success && result.data && result.data.client_command) {
+                        debugLog('Executing client-side command:', result.data.client_command);
+                        const clientResult = await executeClientCommand(result.data.client_command);
+                        if (!clientResult.success) {
+                            result.success = false;
+                            result.error = clientResult.error;
+                        }
+                    }
+
                     // Format and display this task's result
                     const resultHtml = formatSingleAbilityResult({
                         ability: ability.name,
@@ -2111,6 +2142,106 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
              */
             function sleep(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            /**
+             * Execute client-side command (e.g., update block editor)
+             */
+            async function executeClientCommand(command) {
+                try {
+                    debugLog('Client command type:', command.type);
+
+                    if (command.type === 'update_editor_content') {
+                        return await updateBlockEditorContent(command);
+                    }
+
+                    return {
+                        success: false,
+                        error: `Unknown client command type: ${command.type}`
+                    };
+                } catch (error) {
+                    console.error('Client command execution error:', error);
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            }
+
+            /**
+             * Update block editor content in real-time
+             */
+            async function updateBlockEditorContent(command) {
+                try {
+                    // Check if we're in the block editor
+                    if (typeof wp === 'undefined' || !wp.data || !wp.data.select('core/editor')) {
+                        return {
+                            success: false,
+                            error: 'Block editor not detected. This command only works when editing a post.'
+                        };
+                    }
+
+                    const { select, dispatch } = wp.data;
+                    const editor = select('core/editor');
+                    const editorDispatch = dispatch('core/editor');
+
+                    // Get current post ID
+                    const currentPostId = editor.getCurrentPostId();
+
+                    // Verify post ID if provided
+                    if (command.post_id && command.post_id !== currentPostId) {
+                        return {
+                            success: false,
+                            error: `Post ID mismatch. Expected ${command.post_id}, but currently editing ${currentPostId}`
+                        };
+                    }
+
+                    // Get current content for append/prepend operations
+                    let newContent = command.content;
+                    if (command.action === 'append' || command.action === 'prepend') {
+                        const currentContent = editor.getEditedPostAttribute('content');
+                        if (command.action === 'append') {
+                            newContent = currentContent + '\n\n' + command.content;
+                        } else {
+                            newContent = command.content + '\n\n' + currentContent;
+                        }
+                    }
+
+                    // For preview mode, don't actually update
+                    if (command.action === 'preview') {
+                        // Could show a modal or notification here
+                        console.log('Preview content:', newContent);
+                        return {
+                            success: true,
+                            message: 'Preview mode - content not applied',
+                            preview: newContent.substring(0, 200)
+                        };
+                    }
+
+                    // Update the editor content
+                    editorDispatch.editPost({ content: newContent });
+
+                    // Auto-save if requested
+                    if (command.save_immediately) {
+                        await editorDispatch.savePost();
+                        return {
+                            success: true,
+                            message: `Content ${command.action}ed and saved (${command.word_count} words)`
+                        };
+                    }
+
+                    return {
+                        success: true,
+                        message: `Content ${command.action}ed in editor (${command.word_count} words). Remember to save your changes.`
+                    };
+
+                } catch (error) {
+                    console.error('Block editor update error:', error);
+                    return {
+                        success: false,
+                        error: `Failed to update editor: ${error.message}`
+                    };
+                }
             }
 
             /**
