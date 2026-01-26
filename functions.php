@@ -73,7 +73,6 @@ require_once SNN_PATH . 'includes/ai/abilities/installed-plugin-list-and-infos.p
 require_once SNN_PATH . 'includes/ai/abilities/active-theme-info.php';
 require_once SNN_PATH . 'includes/ai/abilities/list-taxonomies.php';
 // block editor and content manipulation abilities
-require_once SNN_PATH . 'includes/ai/abilities/insert-block-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/get-post-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/append-content-to-post.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-editor-content.php';
