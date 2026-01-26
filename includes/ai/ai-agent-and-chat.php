@@ -1293,7 +1293,7 @@ class SNN_Chat_Overlay {
                 pendingOperation: null
             };
 
-            // Block Editor Integration
+            // --- ROBUST BLOCK EDITOR HELPER WITH ABSTRACT TARGETING ---
             const BlockEditorHelper = {
                 /**
                  * Check if block editor is available
@@ -1302,6 +1302,10 @@ class SNN_Chat_Overlay {
                     return typeof wp !== 'undefined' &&
                            typeof wp.data !== 'undefined' &&
                            typeof wp.blocks !== 'undefined';
+                },
+
+                getStore() {
+                    return wp.data.select('core/block-editor') ? 'core/block-editor' : 'core/editor';
                 },
 
                 /**
@@ -1315,7 +1319,6 @@ class SNN_Chat_Overlay {
                         if (!editor) return null;
 
                         const content = editor.getEditedPostContent();
-                        // Calculate word count manually since getDocumentInfo() doesn't exist
                         const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
                         const wordCount = textContent ? textContent.split(/\s+/).length : 0;
 
@@ -1347,75 +1350,93 @@ class SNN_Chat_Overlay {
                 },
 
                 /**
-                 * Insert blocks into editor
+                 * The Core Abstract Finder
+                 * Finds blocks based on ANY criteria: anchor, clientId, type, index, or content signature
                  */
-                insertBlocks(blockData, position = 'end') {
-                    if (!this.isAvailable()) {
-                        throw new Error('Block editor not available');
-                    }
+                findBlocks(criteria = {}) {
+                    if (!this.isAvailable()) return [];
+                    
+                    const store = this.getStore();
+                    const allBlocks = wp.data.select(store).getBlocks();
+                    const results = [];
 
-                    try {
-                        const { insertBlocks } = wp.data.dispatch('core/block-editor');
-                        const { createBlock } = wp.blocks;
+                    // Recursive traversal function
+                    const traverse = (blocks, parentId = null, depth = 0) => {
+                        blocks.forEach((block, index) => {
+                            let match = true;
 
-                        const blocks = Array.isArray(blockData) ? blockData : [blockData];
-                        const createdBlocks = blocks.map(data => {
-                            return createBlock(data.name || 'core/paragraph', data.attributes || {}, data.innerBlocks || []);
+                            // 1. Check ID/Anchor (The most robust method)
+                            if (criteria.anchor && block.attributes.anchor !== criteria.anchor.replace('#', '')) {
+                                match = false;
+                            }
+
+                            // 2. Check Block Type (e.g., 'core/heading')
+                            if (match && criteria.type && block.name !== criteria.type) {
+                                match = false;
+                            }
+
+                            // 3. Check Content Signature (Fuzzy text match)
+                            if (match && criteria.containsText) {
+                                const content = block.attributes.content || block.attributes.text || '';
+                                // Strip HTML and check inclusion
+                                const cleanContent = content.replace(/<[^>]*>/g, '').toLowerCase();
+                                if (!cleanContent.includes(criteria.containsText.toLowerCase())) {
+                                    match = false;
+                                }
+                            }
+
+                            if (match) {
+                                results.push({ block, clientId: block.clientId, index, parentId, depth });
+                            }
+
+                            // Dive deeper
+                            if (block.innerBlocks && block.innerBlocks.length > 0) {
+                                traverse(block.innerBlocks, block.clientId, depth + 1);
+                            }
                         });
+                    };
 
-                        if (position === 'end') {
-                            insertBlocks(createdBlocks);
-                        } else {
-                            insertBlocks(createdBlocks, position);
+                    traverse(allBlocks);
+
+                    // 4. Handle Root-Level Index Targeting (e.g., "Replace the 2nd section")
+                    if (criteria.rootIndex !== undefined) {
+                        if (allBlocks[criteria.rootIndex]) {
+                            return [{ 
+                                block: allBlocks[criteria.rootIndex], 
+                                clientId: allBlocks[criteria.rootIndex].clientId,
+                                index: criteria.rootIndex,
+                                parentId: null
+                            }];
                         }
-
-                        return { success: true, message: `Inserted ${createdBlocks.length} block(s)` };
-                    } catch (e) {
-                        console.error('Failed to insert blocks:', e);
-                        throw new Error('Failed to insert blocks: ' + e.message);
+                        return [];
                     }
+
+                    return results;
                 },
 
                 /**
-                 * Replace selected block
+                 * Standardized Block Insertion/Replacement
                  */
-                replaceSelectedBlock(blockData) {
-                    if (!this.isAvailable()) {
-                        throw new Error('Block editor not available');
+                manipulateBlock(action, targetClientId, newBlocks = [], attributes = {}) {
+                    const dispatch = wp.data.dispatch(this.getStore());
+                    
+                    switch(action) {
+                        case 'replace': // Replaces the target block entirely
+                            dispatch.replaceBlocks(targetClientId, newBlocks);
+                            break;
+                        case 'update': // Updates attributes (like content, anchor, style)
+                            dispatch.updateBlockAttributes(targetClientId, attributes);
+                            break;
+                        case 'insert_inner': // Puts content INSIDE the target (e.g. adding to a Group)
+                            dispatch.insertBlocks(newBlocks, undefined, targetClientId);
+                            break;
+                        case 'remove':
+                            dispatch.removeBlocks(targetClientId);
+                            break;
+                        case 'append_root':
+                            dispatch.insertBlocks(newBlocks); // Ends up at bottom of doc
+                            break;
                     }
-
-                    try {
-                        const selectedBlock = this.getSelectedBlock();
-                        if (!selectedBlock) {
-                            throw new Error('No block selected');
-                        }
-
-                        const { replaceBlocks } = wp.data.dispatch('core/block-editor');
-                        const { createBlock } = wp.blocks;
-
-                        const newBlock = createBlock(
-                            blockData.name || 'core/paragraph',
-                            blockData.attributes || {},
-                            blockData.innerBlocks || []
-                        );
-
-                        replaceBlocks(selectedBlock.clientId, newBlock);
-
-                        return { success: true, message: 'Block replaced successfully' };
-                    } catch (e) {
-                        console.error('Failed to replace block:', e);
-                        throw new Error('Failed to replace block: ' + e.message);
-                    }
-                },
-
-                /**
-                 * Append content to current post
-                 */
-                appendContent(content, blockType = 'core/paragraph') {
-                    return this.insertBlocks({
-                        name: blockType,
-                        attributes: { content: content }
-                    }, 'end');
                 },
 
                 /**
@@ -1974,6 +1995,22 @@ When users ask "what can you do" or "what are your capabilities", list these abi
 === AVAILABLE ABILITIES (DETAILED) ===
 
 ${abilitiesDesc}
+
+=== CRITICAL: ABSTRACT TARGETING RULES ===
+
+**1. CREATING CONTENT (snn/generate-block-pattern):**
+   - You MUST add a unique 'anchor' attribute to the top-level block of any pattern you generate.
+   - Format: "snn-section-{type}-{random_suffix}" (e.g., "snn-section-hero-x92", "snn-section-faq-b21").
+   - This ensures you can surgically find and edit this section later, even if the text changes.
+   - Example: When generating a hero section, the outer group/section block should have: {"anchor": "snn-section-hero-a7f"}
+
+**2. EDITING CONTENT (snn/edit-block-content):**
+   - Preferred Target: Use 'anchor' (e.g., "#snn-section-hero-x92").
+   - Fallback Target: Use 'block_index' (e.g., 0 for first block, -1 for last).
+   - Fallback Text Match: Use 'section_identifier' for fuzzy text matching (least reliable).
+   - Actions: "update_attributes", "replace", "insert_before", "remove_block".
+   
+**3. NEVER rely solely on text matching** (e.g. "Find section named Hero") as text changes. Rely on Structure and IDs.
 
 === CONTENT EDITING: BLOCK EDITOR VS DATABASE ===
 
@@ -2606,42 +2643,42 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
             }
 
             /**
-             * Execute client-side command (e.g., update block editor)
+             * Execute client-side command using abstract targeting system
              */
-            async function executeClientCommand(command) {
+            async function executeClientCommand(cmd) {
+                if (!BlockEditorHelper.isAvailable()) {
+                    return { success: false, error: 'Block Editor not active.' };
+                }
+
                 try {
                     // Validate command object
-                    if (!command || typeof command !== 'object' || command === null) {
-                        return {
-                            success: false,
-                            error: 'Invalid client command: command is not an object'
-                        };
+                    if (!cmd || typeof cmd !== 'object' || cmd === null) {
+                        return { success: false, error: 'Invalid client command: not an object' };
                     }
 
-                    if (!command.type) {
-                        return {
-                            success: false,
-                            error: 'Invalid client command: missing type property'
-                        };
+                    if (!cmd.type) {
+                        return { success: false, error: 'Invalid client command: missing type property' };
                     }
 
-                    debugLog('Client command type:', command.type);
+                    debugLog('Client command type:', cmd.type);
 
-                    if (command.type === 'update_editor_content') {
-                        return await updateBlockEditorContent(command);
+                    // Legacy support for old command types
+                    if (cmd.type === 'update_editor_content') {
+                        return await updateBlockEditorContent(cmd);
                     }
 
-                    if (command.type === 'update_post_metadata') {
-                        return await updatePostMetadataInEditor(command);
+                    if (cmd.type === 'update_post_metadata') {
+                        return await updatePostMetadataInEditor(cmd);
                     }
 
-                    if (command.type === 'edit_block_content') {
-                        return await editBlockEditorContent(command);
+                    // NEW: Abstract targeting for edit_block_content
+                    if (cmd.type === 'edit_block_content') {
+                        return await editBlockEditorContentAbstract(cmd);
                     }
 
                     return {
                         success: false,
-                        error: `Unknown client command type: ${command.type}`
+                        error: `Unknown client command type: ${cmd.type}`
                     };
                 } catch (error) {
                     console.error('Client command execution error:', error);
@@ -2649,6 +2686,114 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                         success: false,
                         error: error.message || 'Unknown error in client command execution'
                     };
+                }
+            }
+
+            /**
+             * Abstract Block Content Editor using criteria-based targeting
+             */
+            async function editBlockEditorContentAbstract(cmd) {
+                if (!BlockEditorHelper.isAvailable()) {
+                    return { success: false, error: 'Block Editor not active.' };
+                }
+
+                try {
+                    // Parse content if provided
+                    let newBlocks = [];
+                    if (cmd.content) {
+                        newBlocks = wp.blocks.parse(cmd.content);
+                        if (!newBlocks.length) return { success: false, error: 'Content parsed to 0 blocks.' };
+                    }
+
+                    // --- STRATEGY: RESOLVE TARGET ---
+                    let targets = [];
+                    
+                    if (cmd.action === 'append') {
+                        // Simple append to root, no search needed
+                        BlockEditorHelper.manipulateBlock('append_root', null, newBlocks);
+                        return { success: true, message: 'Content appended to document.' };
+                    }
+
+                    // Build search criteria based on what the AI sent
+                    const criteria = {};
+                    
+                    // Priority 1: Anchor/ID (e.g., "snn-hero-section")
+                    if (cmd.anchor || (cmd.section_identifier && cmd.section_identifier.startsWith('#'))) {
+                        criteria.anchor = cmd.anchor || cmd.section_identifier;
+                    }
+                    // Priority 2: Semantic Identifier (Fallback to fuzzy text if no ID)
+                    else if (cmd.section_identifier) {
+                        criteria.containsText = cmd.section_identifier;
+                    }
+                    // Priority 3: Index
+                    else if (typeof cmd.block_index === 'number') {
+                        criteria.rootIndex = cmd.block_index;
+                    }
+
+                    // Perform Search
+                    if (Object.keys(criteria).length > 0) {
+                        targets = BlockEditorHelper.findBlocks(criteria);
+                    }
+
+                    // --- STRATEGY: EXECUTE ACTION ---
+                    
+                    if (targets.length === 0) {
+                        // If specific edit requested but not found, fallback to append?
+                        if (cmd.fallback_to_append) {
+                            BlockEditorHelper.manipulateBlock('append_root', null, newBlocks);
+                            return { success: true, message: `Target not found (${JSON.stringify(criteria)}), appended content instead.` };
+                        }
+                        return { success: false, error: `Target block not found. Criteria: ${JSON.stringify(criteria)}` };
+                    }
+
+                    // Target the first match (usually unique ID or first result)
+                    const target = targets[0];
+
+                    switch (cmd.action) {
+                        case 'replace':
+                        case 'find_and_replace_section': // Legacy support
+                            BlockEditorHelper.manipulateBlock('replace', target.clientId, newBlocks);
+                            break;
+                            
+                        case 'update_attributes':
+                        case 'find_and_replace_text':
+                            // If content is provided, we might be updating the 'content' attribute specifically
+                            // or specific attributes passed in the command
+                            const attrs = cmd.attributes || {};
+                            
+                            // Special case: Text replacement logic
+                            if (cmd.find_text && cmd.replace_text) {
+                                const oldContent = target.block.attributes.content || target.block.attributes.text || '';
+                                attrs.content = oldContent.replace(new RegExp(cmd.find_text, 'g'), cmd.replace_text);
+                            }
+                            
+                            BlockEditorHelper.manipulateBlock('update', target.clientId, null, attrs);
+                            break;
+
+                        case 'insert_before':
+                            const dispatch = wp.data.dispatch(BlockEditorHelper.getStore());
+                            dispatch.insertBlocks(newBlocks, target.index, target.parentId);
+                            break;
+
+                        case 'remove':
+                        case 'delete_blocks':
+                            BlockEditorHelper.manipulateBlock('remove', target.clientId);
+                            break;
+                            
+                        default:
+                            return { success: false, error: `Unknown action: ${cmd.action}` };
+                    }
+
+                    // Optional: Save
+                    if (cmd.save_immediately) {
+                        await wp.data.dispatch('core/editor').savePost();
+                    }
+
+                    return { success: true, message: `Successfully executed ${cmd.action} on block ${target.clientId}` };
+
+                } catch (e) {
+                    console.error(e);
+                    return { success: false, error: "Client Error: " + e.message };
                 }
             }
 
