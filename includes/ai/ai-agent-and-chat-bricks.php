@@ -898,6 +898,21 @@ class SNN_Bricks_Chat_Overlay {
                 bricksContext += `- Common elements: section, container, block, heading, text, image, button\n`;
                 bricksContext += `- Settings contain styling and content properties\n\n`;
 
+                bricksContext += `**DESIGN BEST PRACTICES (IMPORTANT!):**\n`;
+                bricksContext += `1. **Section Padding**: ONLY use top/bottom padding on sections, NEVER left/right\n`;
+                bricksContext += `   - ✅ Good: {"_padding":{"top":"100","bottom":"100"}}\n`;
+                bricksContext += `   - ❌ Bad: {"_padding":{"top":"100","right":"100","bottom":"100","left":"100"}}\n`;
+                bricksContext += `   - Left/right padding on sections looks amateur and unprofessional\n\n`;
+                bricksContext += `2. **Container Width**: Use container _width property to control content width\n`;
+                bricksContext += `   - Example: {"_width":"500"} on container element\n`;
+                bricksContext += `   - This is the proper way to make sections narrower\n\n`;
+                bricksContext += `3. **Responsive Design - MOBILE FIRST ALWAYS:**\n`;
+                bricksContext += `   - Add responsive breakpoint values for all grid/layout properties\n`;
+                bricksContext += `   - Use :mobile_landscape, :tablet_portrait, :tablet_landscape suffixes\n`;
+                bricksContext += `   - Example: {"_gridTemplateColumns":"1fr 1fr 1fr","_gridTemplateColumns:mobile_landscape":"1fr"}\n`;
+                bricksContext += `   - Always include mobile breakpoints for grid layouts\n`;
+                bricksContext += `   - Common mobile override: "_gridTemplateColumns:mobile_landscape":"1fr" (single column)\n\n`;
+
                 bricksContext += `**TYPOGRAPHY & FONTS:**\n`;
                 bricksContext += `- You can use ANY Google Font in your designs\n`;
                 bricksContext += `- Specify fonts in element settings using the 'typography' property\n`;
