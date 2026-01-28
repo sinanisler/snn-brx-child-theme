@@ -485,8 +485,11 @@ function snn_generate_bricks_hero( $args ) {
     $container_id = snn_generate_element_id();
     $content_block_id = snn_generate_element_id();
     $heading_id = snn_generate_element_id();
+    $subheading_id = snn_generate_element_id();
     $text_id = snn_generate_element_id();
+    $button_group_id = snn_generate_element_id();
     $button_id = snn_generate_element_id();
+    $button2_id = snn_generate_element_id();
 
     $content = array(
         array(
@@ -495,10 +498,25 @@ function snn_generate_bricks_hero( $args ) {
             'parent' => 0,
             'children' => array( $container_id ),
             'settings' => array(
-                '_height' => '700',
-                '_height:mobile_landscape' => '500',
+                '_height' => '100vh',
+                '_minHeight' => '700',
+                '_height:mobile_landscape' => 'auto',
+                '_minHeight:mobile_landscape' => '600',
                 '_background' => array(
                     'color' => array( 'hex' => $bg_color ),
+                    'image' => array(
+                        'url' => 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1920',
+                        'size' => 'cover',
+                        'position' => 'center center',
+                    ),
+                ),
+                '_gradient' => array(
+                    'applyTo' => 'overlay',
+                    'colors' => array(
+                        array( 'color' => array( 'hex' => $bg_color ), 'stop' => '0', 'alpha' => '0.85' ),
+                        array( 'color' => array( 'hex' => $accent_color ), 'stop' => '100', 'alpha' => '0.75' ),
+                    ),
+                    'angle' => '135',
                 ),
                 '_padding' => array(
                     'top' => $spacing['section'],
@@ -522,18 +540,46 @@ function snn_generate_bricks_hero( $args ) {
             'id' => $content_block_id,
             'name' => 'block',
             'parent' => $container_id,
-            'children' => array( $heading_id, $text_id, $button_id ),
+            'children' => array( $subheading_id, $heading_id, $text_id, $button_group_id ),
             'settings' => array(
                 '_display' => 'flex',
                 '_flexDirection' => 'column',
                 '_alignItems' => 'center',
                 '_columnGap' => $spacing['gap'],
                 '_rowGap' => $spacing['gap'],
-                '_maxWidth' => '900px',
+                '_maxWidth' => '1100px',
                 '_margin' => array(
                     'left' => 'auto',
                     'right' => 'auto',
                 ),
+                '_animation' => array(
+                    'type' => 'fadeInUp',
+                    'duration' => '1000',
+                ),
+            ),
+        ),
+        array(
+            'id' => $subheading_id,
+            'name' => 'text-basic',
+            'parent' => $content_block_id,
+            'children' => array(),
+            'settings' => array(
+                'text' => '✨ Welcome to Excellence',
+                '_typography' => array(
+                    'font-family' => 'Inter',
+                    'font-size' => '14px',
+                    'font-weight' => '600',
+                    'letter-spacing' => '2px',
+                    'text-transform' => 'uppercase',
+                    'text-align' => 'center',
+                    'color' => array( 'hex' => $accent_color ),
+                ),
+                '_backgroundColor' => array( 'hex' => '#ffffff', 'alpha' => '0.1' ),
+                '_padding' => array( 'top' => '8', 'right' => '20', 'bottom' => '8', 'left' => '20' ),
+                '_border' => array(
+                    'radius' => array( 'top' => '50', 'right' => '50', 'bottom' => '50', 'left' => '50' ),
+                ),
+                '_backdropFilter' => 'blur(10px)',
             ),
         ),
         array(
@@ -542,15 +588,24 @@ function snn_generate_bricks_hero( $args ) {
             'parent' => $content_block_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'Your Compelling Hero Heading',
+                'text' => 'Transform Your Vision Into Reality',
                 'tag' => 'h1',
                 '_typography' => array(
-                    'font-size' => '64px',
-                    'font-size:mobile_landscape' => '40px',
-                    'font-weight' => '700',
+                    'font-family' => 'Poppins',
+                    'font-size' => '80px',
+                    'font-size:tablet' => '60px',
+                    'font-size:mobile_landscape' => '42px',
+                    'font-weight' => '800',
                     'line-height' => '1.1',
+                    'letter-spacing' => '-2px',
                     'text-align' => 'center',
-                    'color' => array( 'hex' => $text_color ),
+                    'color' => array( 'hex' => '#ffffff' ),
+                ),
+                '_textShadow' => array(
+                    'horizontal' => '0',
+                    'vertical' => '4',
+                    'blur' => '20',
+                    'color' => array( 'hex' => '#000000', 'alpha' => '0.3' ),
                 ),
             ),
         ),
@@ -560,42 +615,92 @@ function snn_generate_bricks_hero( $args ) {
             'parent' => $content_block_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'This is a brief description that captures attention and explains your value proposition.',
+                'text' => 'Empowering businesses with cutting-edge solutions that drive growth, innovation, and sustainable success in the digital age.',
                 '_typography' => array(
-                    'font-size' => '20px',
-                    'line-height' => '1.6',
+                    'font-family' => 'Inter',
+                    'font-size' => '22px',
+                    'font-size:mobile_landscape' => '18px',
+                    'line-height' => '1.7',
                     'text-align' => 'center',
-                    'color' => array( 'hex' => $text_color ),
+                    'color' => array( 'hex' => '#ffffff', 'alpha' => '0.95' ),
                 ),
+                '_maxWidth' => '800px',
+            ),
+        ),
+        array(
+            'id' => $button_group_id,
+            'name' => 'block',
+            'parent' => $content_block_id,
+            'children' => array( $button_id, $button2_id ),
+            'settings' => array(
+                '_display' => 'flex',
+                '_flexDirection' => 'row',
+                '_flexDirection:mobile_landscape' => 'column',
+                '_columnGap' => '16',
+                '_rowGap' => '16',
+                '_justifyContent' => 'center',
+                '_margin' => array( 'top' => '20' ),
             ),
         ),
         array(
             'id' => $button_id,
             'name' => 'button',
-            'parent' => $content_block_id,
+            'parent' => $button_group_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'Get Started',
+                'text' => 'Get Started →',
                 'link' => array( 'url' => '#' ),
                 '_typography' => array(
-                    'font-size' => '18px',
+                    'font-family' => 'Inter',
+                    'font-size' => '17px',
+                    'font-weight' => '600',
+                    'letter-spacing' => '0.5px',
+                    'color' => array( 'hex' => '#000000' ),
+                ),
+                '_backgroundColor' => array( 'hex' => '#ffffff' ),
+                '_padding' => array(
+                    'top' => '18',
+                    'right' => '36',
+                    'bottom' => '18',
+                    'left' => '36',
+                ),
+                '_border' => array(
+                    'radius' => array( 'top' => '50', 'right' => '50', 'bottom' => '50', 'left' => '50' ),
+                ),
+                '_boxShadow' => array(
+                    'horizontal' => '0',
+                    'vertical' => '8',
+                    'blur' => '24',
+                    'color' => array( 'hex' => $accent_color, 'alpha' => '0.4' ),
+                ),
+            ),
+        ),
+        array(
+            'id' => $button2_id,
+            'name' => 'button',
+            'parent' => $button_group_id,
+            'children' => array(),
+            'settings' => array(
+                'text' => 'Learn More',
+                'link' => array( 'url' => '#' ),
+                '_typography' => array(
+                    'font-family' => 'Inter',
+                    'font-size' => '17px',
                     'font-weight' => '600',
                     'color' => array( 'hex' => '#ffffff' ),
                 ),
-                '_backgroundColor' => array( 'hex' => $accent_color ),
+                '_backgroundColor' => array( 'hex' => '#ffffff', 'alpha' => '0' ),
                 '_padding' => array(
-                    'top' => '14',
-                    'right' => '40',
-                    'bottom' => '14',
-                    'left' => '40',
+                    'top' => '18',
+                    'right' => '36',
+                    'bottom' => '18',
+                    'left' => '36',
                 ),
                 '_border' => array(
-                    'radius' => array(
-                        'top' => '6',
-                        'right' => '6',
-                        'bottom' => '6',
-                        'left' => '6',
-                    ),
+                    'width' => array( 'top' => '2', 'right' => '2', 'bottom' => '2', 'left' => '2' ),
+                    'style' => 'solid',
+                    'color' => array( 'hex' => '#ffffff', 'alpha' => '0.5' ),
+                    'radius' => array( 'top' => '50', 'right' => '50', 'bottom' => '50', 'left' => '50' ),
                 ),
             ),
         ),
@@ -679,12 +784,15 @@ function snn_generate_bricks_about( $args ) {
             'parent' => $col1_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'About Our Company',
+                'text' => 'Building Excellence, One Project at a Time',
                 'tag' => 'h2',
                 '_typography' => array(
-                    'font-size' => '48px',
-                    'font-weight' => '700',
+                    'font-family' => 'Poppins',
+                    'font-size' => '52px',
+                    'font-size:mobile_landscape' => '36px',
+                    'font-weight' => '800',
                     'line-height' => '1.2',
+                    'letter-spacing' => '-1px',
                     'color' => array( 'hex' => $text_color ),
                 ),
             ),
@@ -695,12 +803,14 @@ function snn_generate_bricks_about( $args ) {
             'parent' => $col1_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'We are dedicated to providing exceptional service and innovative solutions. Our team brings years of experience and expertise to every project.',
+                'text' => 'We are a forward-thinking team dedicated to crafting exceptional digital experiences. With a passion for innovation and a commitment to excellence, we transform ideas into reality through strategic design and cutting-edge technology.',
                 '_typography' => array(
-                    'font-size' => '16px',
-                    'line-height' => '1.6',
-                    'color' => array( 'hex' => $text_color ),
+                    'font-family' => 'Inter',
+                    'font-size' => '18px',
+                    'line-height' => '1.8',
+                    'color' => array( 'hex' => $text_color, 'alpha' => '0.85' ),
                 ),
+                '_margin' => array( 'top' => '20', 'bottom' => '20' ),
             ),
         ),
         array(
@@ -710,14 +820,16 @@ function snn_generate_bricks_about( $args ) {
             'children' => array(),
             'settings' => array(
                 'items' => array(
-                    array( 'text' => 'Quality-focused approach' ),
-                    array( 'text' => 'Expert team members' ),
-                    array( 'text' => 'Client satisfaction guaranteed' ),
+                    array( 'text' => '✓ Award-winning quality standards' ),
+                    array( 'text' => '✓ 50+ industry-certified experts' ),
+                    array( 'text' => '✓ 99.8% client satisfaction rate' ),
+                    array( 'text' => '✓ 24/7 dedicated support team' ),
                 ),
                 '_typography' => array(
-                    'font-size' => '16px',
-                    'line-height' => '1.8',
-                    'color' => array( 'hex' => $text_color ),
+                    'font-family' => 'Inter',
+                    'font-size' => '17px',
+                    'line-height' => '2',
+                    'color' => array( 'hex' => $text_color, 'alpha' => '0.9' ),
                 ),
             ),
         ),
@@ -774,10 +886,10 @@ function snn_generate_bricks_services( $args ) {
     $grid_id = snn_generate_element_id();
 
     $services = array(
-        array( 'title' => 'Service One', 'desc' => 'Description of our first service offering and its benefits.' ),
-        array( 'title' => 'Service Two', 'desc' => 'Description of our second service offering and its benefits.' ),
-        array( 'title' => 'Service Three', 'desc' => 'Description of our third service offering and its benefits.' ),
-        array( 'title' => 'Service Four', 'desc' => 'Description of our fourth service offering and its benefits.' ),
+        array( 'title' => '🚀 Digital Transformation', 'desc' => 'Revolutionize your business with cutting-edge digital solutions that drive growth and innovation in the modern marketplace.' ),
+        array( 'title' => '✨ Creative Design', 'desc' => 'Stunning visual experiences that captivate your audience and elevate your brand to new heights of excellence.' ),
+        array( 'title' => '⚡ Performance Optimization', 'desc' => 'Lightning-fast, scalable solutions engineered for peak performance and exceptional user experiences.' ),
+        array( 'title' => '🛡️ Security & Compliance', 'desc' => 'Enterprise-grade security measures that protect your data and ensure complete regulatory compliance.' ),
     );
 
     $grid_children = array();
@@ -813,16 +925,20 @@ function snn_generate_bricks_services( $args ) {
             'parent' => $container_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'Our Services',
+                'text' => 'Premium Services Tailored for You',
                 'tag' => 'h2',
                 '_typography' => array(
-                    'font-size' => '48px',
-                    'font-weight' => '700',
+                    'font-family' => 'Poppins',
+                    'font-size' => '54px',
+                    'font-size:mobile_landscape' => '38px',
+                    'font-weight' => '800',
+                    'line-height' => '1.15',
+                    'letter-spacing' => '-1px',
                     'text-align' => 'center',
                     'color' => array( 'hex' => $text_color ),
                 ),
                 '_margin' => array(
-                    'bottom' => $spacing['gap'],
+                    'bottom' => '60',
                 ),
             ),
         ),
@@ -856,19 +972,32 @@ function snn_generate_bricks_services( $args ) {
             'settings' => array(
                 '_display' => 'flex',
                 '_flexDirection' => 'column',
-                '_rowGap' => $spacing['element'],
+                '_rowGap' => '20',
                 '_padding' => array(
-                    'top' => $spacing['gap'],
-                    'right' => $spacing['gap'],
-                    'bottom' => $spacing['gap'],
-                    'left' => $spacing['gap'],
+                    'top' => '40',
+                    'right' => '32',
+                    'bottom' => '40',
+                    'left' => '32',
                 ),
+                '_backgroundColor' => array( 'hex' => '#ffffff' ),
                 '_border' => array(
-                    'width' => array( 'top' => '1', 'right' => '1', 'bottom' => '1', 'left' => '1' ),
+                    'width' => array( 'top' => '0', 'right' => '0', 'bottom' => '4', 'left' => '0' ),
                     'style' => 'solid',
-                    'color' => array( 'hex' => '#e0e0e0' ),
-                    'radius' => array( 'top' => '8', 'right' => '8', 'bottom' => '8', 'left' => '8' ),
+                    'color' => array( 'hex' => $accent_color ),
+                    'radius' => array( 'top' => '16', 'right' => '16', 'bottom' => '16', 'left' => '16' ),
                 ),
+                '_boxShadow' => array(
+                    'horizontal' => '0',
+                    'vertical' => '8',
+                    'blur' => '30',
+                    'spread' => '0',
+                    'color' => array( 'hex' => '#000000', 'alpha' => '0.08' ),
+                ),
+                '_transition' => array(
+                    'property' => 'all',
+                    'duration' => '300',
+                ),
+                '_cursor' => 'pointer',
             ),
         );
 
@@ -881,8 +1010,10 @@ function snn_generate_bricks_services( $args ) {
                 'text' => $service['title'],
                 'tag' => 'h3',
                 '_typography' => array(
-                    'font-size' => '28px',
-                    'font-weight' => '600',
+                    'font-family' => 'Poppins',
+                    'font-size' => '26px',
+                    'font-weight' => '700',
+                    'line-height' => '1.3',
                     'color' => array( 'hex' => $text_color ),
                 ),
             ),
@@ -896,9 +1027,10 @@ function snn_generate_bricks_services( $args ) {
             'settings' => array(
                 'text' => $service['desc'],
                 '_typography' => array(
+                    'font-family' => 'Inter',
                     'font-size' => '16px',
-                    'line-height' => '1.6',
-                    'color' => array( 'hex' => $text_color ),
+                    'line-height' => '1.7',
+                    'color' => array( 'hex' => $text_color, 'alpha' => '0.8' ),
                 ),
             ),
         );
@@ -977,14 +1109,24 @@ function snn_generate_bricks_cta( $args ) {
             'parent' => $content_block_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'Ready to Get Started?',
+                'text' => 'Ready to Transform Your Business?',
                 'tag' => 'h2',
                 '_typography' => array(
-                    'font-size' => '48px',
-                    'font-weight' => '700',
-                    'line-height' => '1.2',
+                    'font-family' => 'Poppins',
+                    'font-size' => '64px',
+                    'font-size:tablet' => '48px',
+                    'font-size:mobile_landscape' => '38px',
+                    'font-weight' => '800',
+                    'line-height' => '1.15',
+                    'letter-spacing' => '-1px',
                     'text-align' => 'center',
-                    'color' => array( 'hex' => $text_color ),
+                    'color' => array( 'hex' => '#ffffff' ),
+                ),
+                '_textShadow' => array(
+                    'horizontal' => '0',
+                    'vertical' => '2',
+                    'blur' => '15',
+                    'color' => array( 'hex' => '#000000', 'alpha' => '0.3' ),
                 ),
             ),
         ),
@@ -994,12 +1136,14 @@ function snn_generate_bricks_cta( $args ) {
             'parent' => $content_block_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'Join thousands of satisfied customers who have transformed their business with our solutions.',
+                'text' => 'Join 10,000+ companies already scaling with our cutting-edge platform. Start your journey to success today.',
                 '_typography' => array(
-                    'font-size' => '18px',
-                    'line-height' => '1.6',
+                    'font-family' => 'Inter',
+                    'font-size' => '21px',
+                    'font-size:mobile_landscape' => '18px',
+                    'line-height' => '1.7',
                     'text-align' => 'center',
-                    'color' => array( 'hex' => $text_color ),
+                    'color' => array( 'hex' => '#ffffff', 'alpha' => '0.95' ),
                 ),
             ),
         ),
@@ -1009,28 +1153,33 @@ function snn_generate_bricks_cta( $args ) {
             'parent' => $content_block_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'Start Now',
+                'text' => 'Start Free Trial →',
                 'link' => array( 'url' => '#' ),
                 '_typography' => array(
+                    'font-family' => 'Inter',
                     'font-size' => '18px',
-                    'font-weight' => '600',
-                    'color' => array( 'hex' => '#ffffff' ),
+                    'font-weight' => '700',
+                    'letter-spacing' => '0.5px',
+                    'color' => array( 'hex' => $accent_color ),
                 ),
-                '_backgroundColor' => array( 'hex' => $accent_color ),
+                '_backgroundColor' => array( 'hex' => '#ffffff' ),
                 '_padding' => array(
-                    'top' => '14',
-                    'right' => '40',
-                    'bottom' => '14',
-                    'left' => '40',
+                    'top' => '20',
+                    'right' => '48',
+                    'bottom' => '20',
+                    'left' => '48',
                 ),
                 '_border' => array(
-                    'radius' => array(
-                        'top' => '6',
-                        'right' => '6',
-                        'bottom' => '6',
-                        'left' => '6',
-                    ),
+                    'radius' => array( 'top' => '50', 'right' => '50', 'bottom' => '50', 'left' => '50' ),
                 ),
+                '_boxShadow' => array(
+                    'horizontal' => '0',
+                    'vertical' => '12',
+                    'blur' => '40',
+                    'spread' => '0',
+                    'color' => array( 'hex' => '#000000', 'alpha' => '0.4' ),
+                ),
+                '_margin' => array( 'top' => '12' ),
             ),
         ),
     );
@@ -1051,9 +1200,9 @@ function snn_generate_bricks_stats( $args ) {
     $grid_id = snn_generate_element_id();
 
     $stats = array(
-        array( 'number' => '500+', 'label' => 'Projects Completed' ),
-        array( 'number' => '50+', 'label' => 'Team Members' ),
-        array( 'number' => '98%', 'label' => 'Client Satisfaction' ),
+        array( 'number' => '2.5K+', 'label' => 'Projects Delivered Successfully' ),
+        array( 'number' => '120+', 'label' => 'Expert Team Members' ),
+        array( 'number' => '99.8%', 'label' => 'Client Satisfaction Score' ),
     );
 
     $grid_children = array();
@@ -1123,10 +1272,19 @@ function snn_generate_bricks_stats( $args ) {
                 'text' => $stat['number'],
                 'tag' => 'div',
                 '_typography' => array(
-                    'font-size' => '64px',
-                    'font-weight' => '700',
+                    'font-family' => 'Poppins',
+                    'font-size' => '80px',
+                    'font-size:mobile_landscape' => '56px',
+                    'font-weight' => '900',
                     'line-height' => '1',
+                    'letter-spacing' => '-2px',
                     'color' => array( 'hex' => $text_color ),
+                ),
+                '_textShadow' => array(
+                    'horizontal' => '0',
+                    'vertical' => '2',
+                    'blur' => '10',
+                    'color' => array( 'hex' => $text_color, 'alpha' => '0.1' ),
                 ),
             ),
         );
@@ -1139,9 +1297,12 @@ function snn_generate_bricks_stats( $args ) {
             'settings' => array(
                 'text' => $stat['label'],
                 '_typography' => array(
-                    'font-size' => '16px',
+                    'font-family' => 'Inter',
+                    'font-size' => '17px',
+                    'font-weight' => '500',
                     'text-align' => 'center',
-                    'color' => array( 'hex' => $text_color ),
+                    'line-height' => '1.4',
+                    'color' => array( 'hex' => $text_color, 'alpha' => '0.7' ),
                 ),
             ),
         );
@@ -1174,12 +1335,12 @@ function snn_generate_bricks_testimonials( $args ) {
 
     $testimonials = array(
         array(
-            'quote' => 'This service exceeded our expectations. Highly recommend to anyone looking for quality and professionalism.',
-            'author' => 'John Doe, CEO',
+            'quote' => 'Working with this team has been an absolute game-changer for our business. Their innovative approach and attention to detail exceeded all expectations. The results speak for themselves - 300% growth in just 6 months!',
+            'author' => 'Sarah Johnson, CEO at TechVision Inc.',
         ),
         array(
-            'quote' => 'Outstanding results and excellent customer support. They truly care about their clients success.',
-            'author' => 'Jane Smith, Marketing Director',
+            'quote' => 'Exceptional quality and professionalism from start to finish. They didn\'t just meet our requirements - they anticipated our needs and delivered solutions we didn\'t even know were possible. Truly outstanding partnership.',
+            'author' => 'Michael Chen, Director of Innovation at Global Solutions',
         ),
     );
 
@@ -1216,16 +1377,20 @@ function snn_generate_bricks_testimonials( $args ) {
             'parent' => $container_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'What Our Clients Say',
+                'text' => 'Loved by Clients Worldwide',
                 'tag' => 'h2',
                 '_typography' => array(
-                    'font-size' => '48px',
-                    'font-weight' => '700',
+                    'font-family' => 'Poppins',
+                    'font-size' => '54px',
+                    'font-size:mobile_landscape' => '38px',
+                    'font-weight' => '800',
+                    'line-height' => '1.15',
+                    'letter-spacing' => '-1px',
                     'text-align' => 'center',
                     'color' => array( 'hex' => $text_color ),
                 ),
                 '_margin' => array(
-                    'bottom' => $spacing['gap'],
+                    'bottom' => '60',
                 ),
             ),
         ),
@@ -1258,17 +1423,32 @@ function snn_generate_bricks_testimonials( $args ) {
             'settings' => array(
                 '_display' => 'flex',
                 '_flexDirection' => 'column',
-                '_rowGap' => $spacing['element'],
+                '_rowGap' => '24',
                 '_padding' => array(
-                    'top' => $spacing['gap'],
-                    'right' => $spacing['gap'],
-                    'bottom' => $spacing['gap'],
-                    'left' => $spacing['gap'],
+                    'top' => '48',
+                    'right' => '40',
+                    'bottom' => '48',
+                    'left' => '40',
                 ),
-                '_backgroundColor' => array( 'hex' => $secondary_color ),
+                '_backgroundColor' => array( 'hex' => '#ffffff' ),
                 '_border' => array(
-                    'radius' => array( 'top' => '12', 'right' => '12', 'bottom' => '12', 'left' => '12' ),
+                    'width' => array( 'top' => '1', 'right' => '1', 'bottom' => '1', 'left' => '1' ),
+                    'style' => 'solid',
+                    'color' => array( 'hex' => '#e5e7eb' ),
+                    'radius' => array( 'top' => '20', 'right' => '20', 'bottom' => '20', 'left' => '20' ),
                 ),
+                '_boxShadow' => array(
+                    'horizontal' => '0',
+                    'vertical' => '10',
+                    'blur' => '40',
+                    'spread' => '-5',
+                    'color' => array( 'hex' => '#000000', 'alpha' => '0.1' ),
+                ),
+                '_transition' => array(
+                    'property' => 'all',
+                    'duration' => '300',
+                ),
+                '_position' => 'relative',
             ),
         );
 
@@ -1280,10 +1460,10 @@ function snn_generate_bricks_testimonials( $args ) {
             'settings' => array(
                 'text' => '"' . $testimonial['quote'] . '"',
                 '_typography' => array(
-                    'font-size' => '16px',
-                    'line-height' => '1.6',
-                    'font-style' => 'italic',
-                    'color' => array( 'hex' => $text_color ),
+                    'font-family' => 'Inter',
+                    'font-size' => '18px',
+                    'line-height' => '1.75',
+                    'color' => array( 'hex' => $text_color, 'alpha' => '0.9' ),
                 ),
             ),
         );
@@ -1363,16 +1543,20 @@ function snn_generate_bricks_team( $args ) {
             'parent' => $container_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'Meet Our Team',
+                'text' => 'Meet the Visionaries',
                 'tag' => 'h2',
                 '_typography' => array(
-                    'font-size' => '48px',
-                    'font-weight' => '700',
+                    'font-family' => 'Poppins',
+                    'font-size' => '54px',
+                    'font-size:mobile_landscape' => '38px',
+                    'font-weight' => '800',
+                    'line-height' => '1.15',
+                    'letter-spacing' => '-1px',
                     'text-align' => 'center',
                     'color' => array( 'hex' => $text_color ),
                 ),
                 '_margin' => array(
-                    'bottom' => $spacing['gap'],
+                    'bottom' => '60',
                 ),
             ),
         ),
@@ -1450,8 +1634,9 @@ function snn_generate_bricks_team( $args ) {
                 'text' => 'Team Member ' . $i,
                 'tag' => 'h3',
                 '_typography' => array(
-                    'font-size' => '24px',
-                    'font-weight' => '600',
+                    'font-family' => 'Poppins',
+                    'font-size' => '26px',
+                    'font-weight' => '700',
                     'text-align' => 'center',
                     'color' => array( 'hex' => $text_color ),
                 ),
@@ -1531,16 +1716,20 @@ function snn_generate_bricks_faq( $args ) {
             'parent' => $container_id,
             'children' => array(),
             'settings' => array(
-                'text' => 'Frequently Asked Questions',
+                'text' => 'Got Questions? We\'ve Got Answers',
                 'tag' => 'h2',
                 '_typography' => array(
-                    'font-size' => '48px',
-                    'font-weight' => '700',
+                    'font-family' => 'Poppins',
+                    'font-size' => '54px',
+                    'font-size:mobile_landscape' => '38px',
+                    'font-weight' => '800',
+                    'line-height' => '1.15',
+                    'letter-spacing' => '-1px',
                     'text-align' => 'center',
                     'color' => array( 'hex' => $text_color ),
                 ),
                 '_margin' => array(
-                    'bottom' => $spacing['gap'],
+                    'bottom' => '60',
                 ),
             ),
         ),
@@ -1552,19 +1741,24 @@ function snn_generate_bricks_faq( $args ) {
             'settings' => array(
                 'items' => array(
                     array(
-                        'title' => 'What services do you offer?',
-                        'content' => 'We offer a comprehensive range of services including design, development, and consultation to meet all your business needs.',
+                        'title' => 'What makes your services unique?',
+                        'content' => 'We combine cutting-edge technology with deep industry expertise to deliver solutions that are not just functional, but transformative. Our holistic approach ensures every project aligns perfectly with your business goals and drives measurable results.',
                     ),
                     array(
-                        'title' => 'How long does a typical project take?',
-                        'content' => 'Project timelines vary based on scope and complexity, but most projects are completed within 4-8 weeks.',
+                        'title' => 'How quickly can we get started?',
+                        'content' => 'Most projects begin within 1-2 weeks of initial consultation. We pride ourselves on rapid deployment without compromising quality. Our streamlined onboarding process gets you up and running quickly while ensuring every detail is perfect.',
                     ),
                     array(
-                        'title' => 'Do you offer support after project completion?',
-                        'content' => 'Yes, we provide ongoing support and maintenance packages to ensure your continued success.',
+                        'title' => 'What kind of support do you provide?',
+                        'content' => 'We offer comprehensive 24/7 support with dedicated account managers, priority response times, and proactive monitoring. Our team doesn\\'t just fix issues - we anticipate them and provide ongoing optimization to ensure continued success.',
+                    ),
+                    array(
+                        'title' => 'Can you scale with our growing needs?',
+                        'content' => 'Absolutely. Our solutions are built with scalability at their core. Whether you\\'re doubling in size or expanding globally, our infrastructure and team grow with you seamlessly, ensuring consistent performance at any scale.',
                     ),
                 ),
                 '_typography' => array(
+                    'font-family' => 'Inter',
                     'color' => array( 'hex' => $text_color ),
                 ),
             ),
