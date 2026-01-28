@@ -77,6 +77,14 @@ function snn_register_generate_bricks_content_ability() {
             'label'       => __( 'Generate Bricks Content (Creative Mode)', 'snn' ),
             'description' => __( 'Generates Bricks Builder content with UNLIMITED CREATIVE FREEDOM. You define the structure, hierarchy, content, and styling - the system translates it into proper Bricks format.
 
+⚠️ CRITICAL: FOR FULL PAGES, CALL THIS ABILITY MULTIPLE TIMES!
+When user asks for a "homepage" or "full page", you MUST create multiple sections separately:
+- First call: Hero section
+- Second call: Features/Services section
+- Third call: Testimonials/About section
+- Fourth call: CTA/Footer section
+DO NOT try to cram everything into one giant structure. Each section should be its own separate call.
+
 🎨 CREATIVE MODE: Define ANY layout structure you can imagine!
 
 HOW IT WORKS:
@@ -98,17 +106,34 @@ AVAILABLE ELEMENT TYPES:
 - custom-html-css-script: Custom code element for advanced interactions
 
 STYLE PROPERTIES (Simple & Readable):
+
+⚠️ VALUE FORMATTING RULES:
+- Numeric values: Use plain numbers WITHOUT units: "80" NOT "80px"
+- Percentages: Include % sign: "50%"
+- Auto: Use string "auto" for margin auto
+- Colors: Always use hex format: "#ffffff" NOT "white"
+- URLs: Full https:// URLs for images
+
 LAYOUT:
 - display: "flex" | "grid" | "block"
 - flexDirection: "row" | "column"
 - justifyContent: "center" | "flex-start" | "flex-end" | "space-between"
 - alignItems: "center" | "flex-start" | "flex-end" | "stretch"
 - gridTemplateColumns: "1fr 1fr" | "repeat(3, 1fr)" | "300px 1fr"
-- gap: "20px" | "40px" (applies to both grid and flex gap)
+- gap: "20" | "40" (NO px suffix - just the number)
 
 SPACING:
-- padding: "80px" (all sides) or {top: "80", right: "40", bottom: "80", left: "40"}
-- margin: "auto" | "20px" or {top: "0", bottom: "40"}
+- padding: "80" (all sides, NO px) or {top: "80", right: "40", bottom: "80", left: "40"}
+- margin: "auto" | "20" or {top: "0", bottom: "40"}
+
+🎨 DESIGN QUALITY RULES:
+1. ALWAYS add proper gap between elements (minimum "24" for vertical, "30" for grid)
+2. Use consistent padding (sections: "80"-"100", cards: "40", buttons: "15"-"20")
+3. Ensure sufficient contrast (dark bg needs light text, light bg needs dark text)
+4. Add responsive breakpoints for mobile (gridTemplateColumns:mobile_landscape)
+5. Use proper typography hierarchy (h1: 56-72px, h2: 42-56px, h3: 28-36px, body: 16-18px)
+6. Add hover effects to interactive elements (buttons, cards)
+7. Use border radius for modern look (buttons: "6"-"8", cards: "12"-"20", images: "16"-"20")
 
 SIZING:
 - width: "100%" | "500px" | "50vw"
@@ -484,23 +509,23 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
     
     // === GAP PROPERTIES ===
     if ( isset( $simple_styles['gap'] ) ) {
-        $gap_value = rtrim( $simple_styles['gap'], 'px' );
+        $gap_value = snn_sanitize_bricks_value( $simple_styles['gap'], 'gap' );
         $settings['_columnGap'] = $gap_value;
         $settings['_rowGap'] = $gap_value;
         $settings['_gridGap'] = $gap_value;
     }
     if ( isset( $simple_styles['columnGap'] ) ) {
-        $settings['_columnGap'] = rtrim( $simple_styles['columnGap'], 'px' );
+        $settings['_columnGap'] = snn_sanitize_bricks_value( $simple_styles['columnGap'], 'columnGap' );
     }
     if ( isset( $simple_styles['rowGap'] ) ) {
-        $settings['_rowGap'] = rtrim( $simple_styles['rowGap'], 'px' );
+        $settings['_rowGap'] = snn_sanitize_bricks_value( $simple_styles['rowGap'], 'rowGap' );
     }
     
     // === SPACING PROPERTIES ===
     if ( isset( $simple_styles['padding'] ) ) {
         $padding = $simple_styles['padding'];
         if ( is_string( $padding ) ) {
-            $p = rtrim( $padding, 'px' );
+            $p = snn_sanitize_bricks_value( $padding, 'padding' );
             $settings['_padding'] = array(
                 'top'    => $p,
                 'right'  => $p,
@@ -508,7 +533,13 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
                 'left'   => $p
             );
         } elseif ( is_array( $padding ) ) {
-            $settings['_padding'] = $padding;
+            // Sanitize each value in the array
+            $settings['_padding'] = array(
+                'top'    => snn_sanitize_bricks_value( $padding['top'] ?? '0', 'padding.top' ),
+                'right'  => snn_sanitize_bricks_value( $padding['right'] ?? '0', 'padding.right' ),
+                'bottom' => snn_sanitize_bricks_value( $padding['bottom'] ?? '0', 'padding.bottom' ),
+                'left'   => snn_sanitize_bricks_value( $padding['left'] ?? '0', 'padding.left' )
+            );
         }
     }
     if ( isset( $simple_styles['margin'] ) ) {
@@ -520,7 +551,7 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
                     'right' => 'auto'
                 );
             } else {
-                $m = rtrim( $margin, 'px' );
+                $m = snn_sanitize_bricks_value( $margin, 'margin' );
                 $settings['_margin'] = array(
                     'top'    => $m,
                     'right'  => $m,
@@ -529,7 +560,13 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
                 );
             }
         } elseif ( is_array( $margin ) ) {
-            $settings['_margin'] = $margin;
+            // Sanitize each value in the array
+            $settings['_margin'] = array(
+                'top'    => snn_sanitize_bricks_value( $margin['top'] ?? '0', 'margin.top' ),
+                'right'  => snn_sanitize_bricks_value( $margin['right'] ?? '0', 'margin.right' ),
+                'bottom' => snn_sanitize_bricks_value( $margin['bottom'] ?? '0', 'margin.bottom' ),
+                'left'   => snn_sanitize_bricks_value( $margin['left'] ?? '0', 'margin.left' )
+            );
         }
     }
     
@@ -607,10 +644,7 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
     
     // === VISUAL EFFECTS ===
     if ( isset( $simple_styles['borderRadius'] ) ) {
-        $radius = rtrim( $simple_styles['borderRadius'], 'px' );
-        if ( $simple_styles['borderRadius'] === '50%' ) {
-            $radius = '50%';
-        }
+        $radius = snn_sanitize_bricks_value( $simple_styles['borderRadius'], 'borderRadius' );
         $settings['_border'] = array(
             'radius' => array(
                 'top'    => $radius,
@@ -632,19 +666,19 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
         $settings['_position'] = $simple_styles['position'];
     }
     if ( isset( $simple_styles['top'] ) ) {
-        $settings['_top'] = rtrim( $simple_styles['top'], 'px' );
+        $settings['_top'] = snn_sanitize_bricks_value( $simple_styles['top'], 'top' );
     }
     if ( isset( $simple_styles['right'] ) ) {
-        $settings['_right'] = rtrim( $simple_styles['right'], 'px' );
+        $settings['_right'] = snn_sanitize_bricks_value( $simple_styles['right'], 'right' );
     }
     if ( isset( $simple_styles['bottom'] ) ) {
-        $settings['_bottom'] = rtrim( $simple_styles['bottom'], 'px' );
+        $settings['_bottom'] = snn_sanitize_bricks_value( $simple_styles['bottom'], 'bottom' );
     }
     if ( isset( $simple_styles['left'] ) ) {
-        $settings['_left'] = rtrim( $simple_styles['left'], 'px' );
+        $settings['_left'] = snn_sanitize_bricks_value( $simple_styles['left'], 'left' );
     }
     if ( isset( $simple_styles['zIndex'] ) ) {
-        $settings['_zIndex'] = $simple_styles['zIndex'];
+        $settings['_zIndex'] = snn_sanitize_bricks_value( $simple_styles['zIndex'], 'zIndex' );
     }
     
     // === MISC ===
@@ -709,6 +743,89 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
     }
     
     return $settings;
+}
+
+/**
+ * Sanitize a style value to ensure it's properly formatted for Bricks
+ * Removes units, cleans up malformed values, ensures proper format
+ * 
+ * @param mixed $value The value to sanitize
+ * @param string $property The property name (for context-aware sanitization)
+ * @return mixed The sanitized value
+ */
+function snn_sanitize_bricks_value( $value, $property = '' ) {
+    // Handle arrays (like padding objects) recursively
+    if ( is_array( $value ) ) {
+        $sanitized = array();
+        foreach ( $value as $key => $val ) {
+            $sanitized[ $key ] = snn_sanitize_bricks_value( $val, $property . '.' . $key );
+        }
+        return $sanitized;
+    }
+    
+    // Handle null/empty
+    if ( empty( $value ) && $value !== '0' && $value !== 0 ) {
+        return $value;
+    }
+    
+    // Convert to string for processing
+    $value = (string) $value;
+    
+    // Don't sanitize certain special values
+    $no_sanitize = array( 'auto', 'none', 'inherit', 'initial', 'unset', 'normal' );
+    if ( in_array( strtolower( $value ), $no_sanitize ) ) {
+        return $value;
+    }
+    
+    // Don't sanitize URLs
+    if ( strpos( $value, 'http://' ) === 0 || strpos( $value, 'https://' ) === 0 ) {
+        return $value;
+    }
+    
+    // Don't sanitize grid template values or calc() expressions
+    if ( strpos( $value, 'fr' ) !== false || 
+         strpos( $value, 'repeat' ) !== false || 
+         strpos( $value, 'calc' ) !== false ||
+         strpos( $value, 'minmax' ) !== false ) {
+        return $value;
+    }
+    
+    // Handle percentages - keep the %
+    if ( strpos( $value, '%' ) !== false ) {
+        return preg_replace( '/[^0-9.%\-]/', '', $value );
+    }
+    
+    // Handle viewport units (vh, vw, vmin, vmax) - these are allowed
+    if ( preg_match( '/^-?[0-9.]+\s*(vh|vw|vmin|vmax)$/i', $value ) ) {
+        return $value;
+    }
+    
+    // Handle em/rem units - these are allowed
+    if ( preg_match( '/^-?[0-9.]+\s*(em|rem)$/i', $value ) ) {
+        return $value;
+    }
+    
+    // CRITICAL FIX: Remove malformed spacing like "15px 40" or "100px 20"
+    // This should be just the first number
+    if ( preg_match( '/^([0-9.]+)(?:px)?\s+([0-9.]+)/', $value, $matches ) ) {
+        // Take the first number only
+        return $matches[1];
+    }
+    
+    // For numeric values, strip all units (px, pt, etc.) - Bricks uses plain numbers
+    if ( preg_match( '/^-?[0-9.]+/', $value, $matches ) ) {
+        $number = $matches[0];
+        
+        // Preserve decimals where appropriate
+        if ( strpos( $number, '.' ) !== false ) {
+            return rtrim( rtrim( $number, '0' ), '.' );
+        }
+        
+        return $number;
+    }
+    
+    // Return as-is if we can't determine how to sanitize
+    return $value;
 }
 
 /**
