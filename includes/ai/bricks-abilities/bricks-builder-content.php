@@ -85,6 +85,12 @@ When user asks for a "homepage" or "full page", you MUST create multiple section
 - Fourth call: CTA/Footer section
 DO NOT try to cram everything into one giant structure. Each section should be its own separate call.
 
+🎨 DESIGN SYSTEM PRIORITY:
+1. **ALWAYS CHECK** if the AI system prompt includes available colors and variables
+2. **PREFER** using var(--c1), var(--c2), var(--size-X) over hardcoded values
+3. **CHECK CONTRAST** using [LIGHT]/[DARK] labels provided in the system prompt
+4. **FALLBACK** to hardcoded hex/px values ONLY if no suitable variable exists
+
 🎨 CREATIVE MODE: Define ANY layout structure you can imagine!
 
 HOW IT WORKS:
@@ -143,12 +149,27 @@ SIZING:
 - aspectRatio: "16/9" | "1/1"
 
 COLORS:
-- background: "#121212" | "#ffffff"
-- color: "#ffffff" | "#000000"
-- accentColor: "#00ff00" (for buttons, highlights)
+- **PREFER using Bricks color variables when available** (var(--c1), var(--c2), var(--c3), etc.)
+- The system will tell you which colors are available with [LIGHT] or [DARK] labels
+- **CHECK CONTRAST**: Use [LIGHT] colors for text on dark backgrounds, [DARK] colors for text on light backgrounds
+- NEVER use light-on-light or dark-on-dark combinations
+- Fallback to hex codes only if specific color not in palette: "#121212" | "#ffffff"
+- Examples:
+  * Dark section with light text: {background: "var(--c1)", color: "var(--c3)"}
+  * Light section with dark text: {background: "var(--c3)", color: "var(--c1)"}
+  * Button with accent: {background: "var(--c2)", color: "var(--c3)"}
+
+SPACING (Global Variables):
+- **PREFER using Bricks spacing variables when available** (var(--size-5), var(--size-10), etc.)
+- Common sizes: var(--size-20), var(--size-30), var(--size-50), var(--size-100)
+- Use for padding, gap, and other spacing properties
+- Fallback to numeric values only if needed: "80" (NO px suffix)
+- Examples:
+  * {padding: "var(--size-50)", gap: "var(--size-30)"}
+  * {margin: {top: "var(--size-20)", bottom: "var(--size-100)"}}
 
 TYPOGRAPHY:
-- fontSize: "60px" | "18px"
+- fontSize: "60px" | "18px" | "var(--size-36)" (if size variable exists)
 - fontWeight: "700" | "900"
 - lineHeight: "1.2" | "1.7"
 - letterSpacing: "-2px" | "3px"
@@ -179,40 +200,40 @@ For text/image elements, use "content" to define what they display:
 - button: content: "Click Me", link: "#contact"
 - image: content: "https://example.com/image.jpg"
 
-EXAMPLE 1 - Simple Hero:
+EXAMPLE 1 - Simple Hero (using color variables):
 {
   "structure": {
     "type": "section",
-    "styles": {"background": "#000000", "minHeight": "100vh", "padding": "80px"},
+    "styles": {"background": "var(--c1)", "minHeight": "100vh", "padding": "var(--size-100)"},
     "children": [{
       "type": "container",
-      "styles": {"display": "flex", "flexDirection": "column", "alignItems": "center", "gap": "30px"},
+      "styles": {"display": "flex", "flexDirection": "column", "alignItems": "center", "gap": "var(--size-30)"},
       "children": [
-        {"type": "heading", "content": "Future of Design", "styles": {"fontSize": "72px", "color": "#ffffff"}},
-        {"type": "text-basic", "content": "Where creativity meets technology", "styles": {"fontSize": "20px", "color": "#cccccc"}},
-        {"type": "button", "content": "Get Started", "link": "#", "styles": {"background": "#00ff00", "color": "#000000"}}
+        {"type": "heading", "content": "Future of Design", "styles": {"fontSize": "72px", "color": "var(--c3)"}},
+        {"type": "text-basic", "content": "Where creativity meets technology", "styles": {"fontSize": "20px", "color": "var(--c1-l-5)"}},
+        {"type": "button", "content": "Get Started", "link": "#", "styles": {"background": "var(--c2)", "color": "var(--c3)", "padding": "var(--size-20)"}}
       ]
     }]
   }
 }
 
-EXAMPLE 2 - Complex Grid Layout:
+EXAMPLE 2 - Complex Grid Layout (using variables):
 {
   "structure": {
     "type": "section",
-    "styles": {"background": "#ffffff", "padding": "100px"},
+    "styles": {"background": "var(--c3)", "padding": "var(--size-100)"},
     "children": [{
       "type": "container",
       "children": [{
         "type": "block",
-        "styles": {"display": "grid", "gridTemplateColumns": "1fr 1fr 1fr", "gap": "40px"},
+        "styles": {"display": "grid", "gridTemplateColumns": "1fr 1fr 1fr", "gap": "var(--size-40)"},
         "children": [
           {
             "type": "block",
-            "styles": {"padding": "40px", "background": "#f5f5f5", "borderRadius": "20px"},
+            "styles": {"padding": "var(--size-40)", "background": "var(--c1-l-1)", "borderRadius": "20"},
             "children": [
-              {"type": "heading", "content": "Service 1", "styles": {"fontSize": "32px"}},
-              {"type": "text-basic", "content": "Description of service", "styles": {"fontSize": "16px"}}
+              {"type": "heading", "content": "Service 1", "styles": {"fontSize": "32px", "color": "var(--c3)"}},
+              {"type": "text-basic", "content": "Description of service", "styles": {"fontSize": "16px", "color": "var(--c1-l-5)"}}
             ]
           },
           // Repeat for more cards...
