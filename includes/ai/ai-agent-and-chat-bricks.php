@@ -1520,7 +1520,7 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
 .snn-bricks-chat-plus { font-size: 24px; }
 .snn-bricks-chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #f9f9f9; font-size:14px; }
 .snn-bricks-chat-welcome { text-align: center; padding: 40px 20px; color: #666; }
-.snn-bricks-chat-message { margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; max-width: 95%; }
+.snn-bricks-chat-message { margin-bottom: 4px; padding: 4px 8px; border-radius: 12px; max-width: 95%; }
 .snn-bricks-chat-message-user { background: #161a1d; color: #fff; margin-left: auto; }
 .snn-bricks-chat-message-assistant { background: #fff; border: 1px solid #e0e0e0; margin-right: auto; }
 .snn-bricks-chat-message-error { background: #fee; color: #c33; border: 1px solid #fcc; }
@@ -1545,8 +1545,8 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
 .snn-bricks-history-item:hover { background: #f9f9f9; }
 .snn-bricks-history-title { font-weight: 600; margin-bottom: 4px; }
 .snn-bricks-history-meta { font-size: 12px; color: #666; }
-.ability-results { margin-top: 8px; }
-.ability-result { padding: 8px; margin: 4px 0; border-radius: 6px; font-size: 13px; }
+.ability-results {   }
+.ability-result { padding: 4px 8px;   border-radius: 6px; font-size: 13px; }
 .ability-result.success { background: #f0f9ff; }
 .ability-result.error { background: #fef2f2; }
 .result-data { color: #666; font-size: 12px; margin-top: 4px; }
