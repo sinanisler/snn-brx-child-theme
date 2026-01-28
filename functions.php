@@ -80,7 +80,7 @@ require_once SNN_PATH . 'includes/ai/abilities/analyze-post-seo.php';
 
 
 // Bricks Builder Chat Agent and Bricks Abilities
-require_once SNN-PATH . 'includes/ai/ai-agent-and-chat-bricks.php'
+require_once SNN-PATH . 'includes/ai/ai-agent-and-chat-bricks.php';
 require_once SNN_PATH . 'includes/ai/bricks-abilities/bricks-builder-content.php';
 
 
