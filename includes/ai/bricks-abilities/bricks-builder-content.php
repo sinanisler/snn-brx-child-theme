@@ -31,16 +31,23 @@ SECTION TYPES (section_type):
 STYLE OPTIONS (style_preference):
 modern, minimal, bold, elegant, playful, professional, creative
 
+COLOR SCHEME (Default: Monochrome):
+By default, ALL sections use a sophisticated monochrome palette (black, white, and grays) with optimal contrast.
+- Default colors: background "#ffffff" (white), text "#000000" (black), accent "#1a1a1a" (very dark gray), secondary "#f5f5f5" (light gray)
+- Monochrome ensures professional appearance and WCAG AA contrast compliance
+- Users can override defaults by providing color_scheme parameter with custom hex colors
+- Only use custom colors when user explicitly specifies them
+
 KEY PARAMETERS:
 - content_description: BE SPECIFIC about headings, text, items.
 - layout_columns: 1-4 columns for grids.
-- color_scheme: {background: "#ffffff", text: "#000000", accent: "#0066cc", secondary: "#f5f5f5"}
+- color_scheme: Optional. Defaults to monochrome. Example: {background: "#ffffff", text: "#000000", accent: "#ff6600", secondary: "#f0f0f0"}
 - spacing: compact, normal, spacious
 - action_type: replace, append, prepend
 
 USAGE EXAMPLES:
-1. Hero: {section_type: "hero", content_description: "Heading \'Future of Tech\', subtext about AI", style_preference: "bold"} -> Generates Industrial Dark Theme
-2. Hero: {section_type: "hero", content_description: "Heading \'Luxury Living\'", style_preference: "elegant"} -> Generates Layered Parallax Theme', 'snn' ),
+1. Hero (monochrome): {section_type: "hero", content_description: "Heading \'Future of Tech\', subtext about AI", style_preference: "bold"} -> Generates Industrial Dark with grayscale
+2. Services (custom colors): {section_type: "services", content_description: "3 service cards", color_scheme: {accent: "#0066cc"}} -> Uses blue accent', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -76,12 +83,12 @@ USAGE EXAMPLES:
                     ),
                     'color_scheme' => array(
                         'type'        => 'object',
-                        'description' => 'Optional color scheme.',
+                        'description' => 'Optional color scheme. Defaults to monochrome (black/white/grays). Only provide if user explicitly specifies custom colors.',
                         'properties'  => array(
-                            'background' => array( 'type' => 'string' ),
-                            'text'       => array( 'type' => 'string' ),
-                            'accent'     => array( 'type' => 'string' ),
-                            'secondary'  => array( 'type' => 'string' ),
+                            'background' => array( 'type' => 'string', 'description' => 'Background color (hex). Default: #ffffff' ),
+                            'text'       => array( 'type' => 'string', 'description' => 'Text color (hex). Default: #000000' ),
+                            'accent'     => array( 'type' => 'string', 'description' => 'Accent color (hex). Default: #1a1a1a' ),
+                            'secondary'  => array( 'type' => 'string', 'description' => 'Secondary color (hex). Default: #f5f5f5' ),
                         ),
                     ),
                     'spacing' => array(
@@ -145,7 +152,7 @@ USAGE EXAMPLES:
 
                 $bg_color = $color_scheme['background'] ?? '#ffffff';
                 $text_color = $color_scheme['text'] ?? '#000000';
-                $accent_color = $color_scheme['accent'] ?? '#0066cc';
+                $accent_color = $color_scheme['accent'] ?? '#1a1a1a';
                 $secondary_color = $color_scheme['secondary'] ?? '#f5f5f5';
 
                 $content_json = snn_generate_bricks_content( array(
@@ -1004,8 +1011,14 @@ function snn_generate_bricks_services( $args ) {
 function snn_generate_bricks_cta( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
-    $text_color = $args['text_color']; // Not used in original, kept for structure
+    $text_color = $args['text_color'];
     $accent_color = $args['accent_color'];
+
+    // CTA uses inverted colors for impact - dark bg, light text
+    $cta_bg = $accent_color; // Dark background
+    $cta_text = '#ffffff'; // White text for contrast
+    $cta_btn_bg = $text_color === '#000000' ? '#ffffff' : $bg_color; // White or light button
+    $cta_btn_text = $text_color === '#000000' ? '#000000' : $text_color; // Dark button text
 
     $section_id = snn_generate_element_id();
     $container_id = snn_generate_element_id();
@@ -1022,7 +1035,7 @@ function snn_generate_bricks_cta( $args ) {
             'children' => array( $container_id ),
             'settings' => array(
                 '_background' => array(
-                    'color' => array( 'hex' => $bg_color ),
+                    'color' => array( 'hex' => $cta_bg ),
                 ),
                 '_padding' => array(
                     'top' => $spacing['section'],
@@ -1071,7 +1084,7 @@ function snn_generate_bricks_cta( $args ) {
                     'line-height' => '1.15',
                     'letter-spacing' => '-1px',
                     'text-align' => 'center',
-                    'color' => array( 'hex' => '#ffffff' ),
+                    'color' => array( 'hex' => $cta_text ),
                 ),
                 '_textShadow' => array(
                     'horizontal' => '0',
@@ -1094,7 +1107,7 @@ function snn_generate_bricks_cta( $args ) {
                     'font-size:mobile_landscape' => '18px',
                     'line-height' => '1.7',
                     'text-align' => 'center',
-                    'color' => array( 'hex' => '#ffffff', 'alpha' => '0.95' ),
+                    'color' => array( 'hex' => $cta_text, 'alpha' => '0.95' ),
                 ),
             ),
         ),
@@ -1111,9 +1124,9 @@ function snn_generate_bricks_cta( $args ) {
                     'font-size' => '18px',
                     'font-weight' => '700',
                     'letter-spacing' => '0.5px',
-                    'color' => array( 'hex' => $accent_color ),
+                    'color' => array( 'hex' => $cta_btn_text ),
                 ),
-                '_backgroundColor' => array( 'hex' => '#ffffff' ),
+                '_backgroundColor' => array( 'hex' => $cta_btn_bg ),
                 '_padding' => array(
                     'top' => '20',
                     'right' => '48',
