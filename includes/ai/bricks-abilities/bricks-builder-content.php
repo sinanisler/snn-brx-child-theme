@@ -1750,11 +1750,11 @@ function snn_generate_bricks_faq( $args ) {
                     ),
                     array(
                         'title' => 'What kind of support do you provide?',
-                        'content' => 'We offer comprehensive 24/7 support with dedicated account managers, priority response times, and proactive monitoring. Our team doesn\\'t just fix issues - we anticipate them and provide ongoing optimization to ensure continued success.',
+                        'content' => 'We offer comprehensive 24/7 support with dedicated account managers, priority response times, and proactive monitoring. Our team doesn\'t just fix issues - we anticipate them and provide ongoing optimization to ensure continued success.',
                     ),
                     array(
                         'title' => 'Can you scale with our growing needs?',
-                        'content' => 'Absolutely. Our solutions are built with scalability at their core. Whether you\\'re doubling in size or expanding globally, our infrastructure and team grow with you seamlessly, ensuring consistent performance at any scale.',
+                        'content' => 'Absolutely. Our solutions are built with scalability at their core. Whether you\'re doubling in size or expanding globally, our infrastructure and team grow with you seamlessly, ensuring consistent performance at any scale.',
                     ),
                 ),
                 '_typography' => array(
