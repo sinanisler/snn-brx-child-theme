@@ -74,7 +74,7 @@ CRITICAL BRICKS JSON STRUCTURE:
 
    Typography:
    - _typography: {
-       font-family: "Arial",
+       font-family: "Poppins" (any Google Fonts name),
        font-size: "48px",
        font-weight: "600",
        line-height: "1.2",
@@ -82,6 +82,7 @@ CRITICAL BRICKS JSON STRUCTURE:
        text-transform: "uppercase",
        color: {raw: "var(--c2)", hex: "#000000"}
      }
+   - Available Google Fonts: Just use the font name directly (e.g., "Inter", "Roboto", "Montserrat", "Playfair Display", "ADLaM Display", "Cabin Condensed", etc.)
 
    Border:
    - _border: {
