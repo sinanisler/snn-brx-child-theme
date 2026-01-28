@@ -1,11 +1,71 @@
 <?php
 /**
- * Generate Bricks Builder Content Ability
+ * Generate Bricks Builder Content Ability - CREATIVE MODE
  *
- * This ability generates rich, detailed Bricks Builder elements using Bricks JSON structure.
- * It can create complete sections like heroes, about sections, services, CTAs, and more.
- *
- * The generated content uses proper Bricks element structure and follows Bricks best practices.
+ * ============================================================================
+ * THE TRANSLATOR PATTERN: Unlimited Creative Freedom
+ * ============================================================================
+ * 
+ * This ability uses a revolutionary "Translator Pattern" that enables the AI agent
+ * to have UNLIMITED CREATIVE FREEDOM when generating Bricks Builder content.
+ * 
+ * === HOW IT WORKS ===
+ * 
+ * OLD WAY (Template System):
+ * - Agent picks from predefined templates: hero_style_1, hero_style_2, etc.
+ * - Rigid structure, limited creativity
+ * - Can't deviate from templates
+ * 
+ * NEW WAY (Translator Pattern):
+ * - Agent designs layouts freely using simple, readable JSON
+ * - Describes structure: "container with 2 columns, left has heading + text, right has image"
+ * - PHP "translates" this simple blueprint into complex Bricks format
+ * - Agent controls EVERYTHING: hierarchy, content, styling, nesting
+ * 
+ * === THE THREE COMPONENTS ===
+ * 
+ * 1. SIMPLE INPUT (Agent writes this):
+ *    {
+ *      "type": "section",
+ *      "styles": {"background": "#000", "padding": "80px"},
+ *      "children": [
+ *        {"type": "heading", "content": "Hello World", "styles": {"color": "#fff"}}
+ *      ]
+ *    }
+ * 
+ * 2. RECURSIVE BUILDER (snn_recursive_builder):
+ *    - Walks through the structure tree
+ *    - Generates unique IDs automatically
+ *    - Handles parent-child relationships
+ *    - Recursively processes all nested children
+ * 
+ * 3. STYLE MAPPER (snn_map_styles_to_bricks):
+ *    - Translates simple keys ("color", "gap") to Bricks format ("_typography", "_gridGap")
+ *    - Handles responsive properties (fontSize:mobile_landscape)
+ *    - Manages hover states (backgroundHover)
+ *    - Prevents errors by formatting everything correctly
+ * 
+ * === WHY THIS IS POWERFUL ===
+ * 
+ * ✓ Agent can create ANY structure imaginable (3 columns? 5 columns? Nested grids? Yes!)
+ * ✓ Agent controls exact content (no more hardcoded "Lorem Ipsum")
+ * ✓ Agent decides hierarchy (which elements are children of which)
+ * ✓ Simple, readable syntax (no complex Bricks knowledge needed)
+ * ✓ Safe - can't break Bricks format (translator handles all complexity)
+ * ✓ Responsive - easy to add mobile/tablet variations
+ * ✓ Interactive - supports hover states and custom code
+ * 
+ * === EXAMPLE USE CASES ===
+ * 
+ * "Create a dark hero with the heading on the left and image on the right"
+ * "Make a 3-column service grid with icons and hover effects"
+ * "Build a testimonial slider with centered text and gradient background"
+ * "Design a sticky sidebar layout with scrolling content on the right"
+ * 
+ * The agent can now handle ALL of these with creative freedom, designing the
+ * exact structure, content, and styling that fits the user's request.
+ * 
+ * ============================================================================
  */
 
 // Register ability
@@ -14,116 +74,175 @@ function snn_register_generate_bricks_content_ability() {
     wp_register_ability(
         'snn/generate-bricks-content',
         array(
-            'label'       => __( 'Generate Bricks Content', 'snn' ),
-            'description' => __( 'Generates rich, detailed Bricks Builder sections using Bricks JSON structure. Creates complete sections from scratch with professional styling. Use for rapid prototyping and structured layouts in Bricks Builder.
+            'label'       => __( 'Generate Bricks Content (Creative Mode)', 'snn' ),
+            'description' => __( 'Generates Bricks Builder content with UNLIMITED CREATIVE FREEDOM. You define the structure, hierarchy, content, and styling - the system translates it into proper Bricks format.
 
-SECTION TYPES (section_type):
-- hero: High-end hero banners with creative variations. Styles: "bold" (Split Design), "modern" (Centered Minimal), "creative" (Grid Showcase), "elegant" (Offset Layout).
-- about: About sections with text + imagery (2-column, lists, professional) [CONTAINED]
-- services: Service grids (1-4 columns, titles, descriptions, hover effects) [CONTAINED]
-- cta: Call-to-action sections (centered, prominent buttons, conversion-focused) [FULL-WIDTH]
-- testimonials: Customer reviews (quotes in columns, attribution) [CONTAINED]
-- team: Team member grids (images, names, positions, configurable columns) [CONTAINED]
-- stats: Statistics showcase (large numbers, labels, multi-column) [CONTAINED]
-- faq: FAQ sections (accordion/expandable Q&A) [CONTAINED]
-- sticky-content: Sticky sidebar with scrolling content (product showcases, feature lists) [SPLIT]
-- custom: Generic flexible section with custom HTML/CSS/JS support [CONTAINED]
+🎨 CREATIVE MODE: Define ANY layout structure you can imagine!
 
-STYLE OPTIONS (style_preference):
-modern, minimal, bold, elegant, playful, professional, creative
+HOW IT WORKS:
+Instead of choosing from templates, you define a hierarchical structure object. Think of it like describing a visual design in JSON:
+- Define containers, sections, blocks, grids
+- Nest children freely to create any hierarchy
+- Add content (headings, text, images, buttons)
+- Apply styles using simple, readable properties
+- The system handles all complex Bricks formatting automatically
 
-INTERACTIVE FEATURES:
-- Hover states: Use _background:hover, _typography:hover, _cssTransition for smooth transitions
-- JavaScript: Agent can generate custom-html-css-script elements for interactive features when needed
-- Animations: _animation property supports fadeIn, fadeInUp, slideIn, etc.
-- Links: Button links use {"url":"#","type":"external"} format
+AVAILABLE ELEMENT TYPES:
+- section: Full-width page section
+- container: Constrained content container (max-width)
+- block: Generic flexible container (div)
+- heading: Text heading (h1-h6)
+- text-basic: Paragraph text
+- button: Interactive button with link
+- image: Image element
+- custom-html-css-script: Custom code element for advanced interactions
 
-ADVANCED LAYOUT PROPERTIES:
-GRID:
-- _justifyItemsGrid, _alignItemsGrid: Align items within grid cells
-- _justifyContentGrid, _alignContentGrid: Align entire grid
-- _gridTemplateColumns:mobile_portrait: Additional mobile breakpoint
-- _order: Visual reordering of elements
+STYLE PROPERTIES (Simple & Readable):
+LAYOUT:
+- display: "flex" | "grid" | "block"
+- flexDirection: "row" | "column"
+- justifyContent: "center" | "flex-start" | "flex-end" | "space-between"
+- alignItems: "center" | "flex-start" | "flex-end" | "stretch"
+- gridTemplateColumns: "1fr 1fr" | "repeat(3, 1fr)" | "300px 1fr"
+- gap: "20px" | "40px" (applies to both grid and flex gap)
 
-FLEX:
-- _flexWrap: "nowrap" | "wrap" | "wrap-reverse"
-- _alignSelf: Override alignment for individual items
-- _flexGrow, _flexShrink: Flexible sizing
-
-POSITIONING:
-- _position: "sticky" with _top for sticky elements
-- _top, _right, _bottom, _left: Positioning offsets
-- _overflow: "hidden" | "visible" | "scroll" | "auto"
-- _visibility: "visible" | "hidden"
+SPACING:
+- padding: "80px" (all sides) or {top: "80", right: "40", bottom: "80", left: "40"}
+- margin: "auto" | "20px" or {top: "0", bottom: "40"}
 
 SIZING:
-- _widthMin, _widthMax, _heightMin, _heightMax: Size constraints
-- _aspectRatio: Maintain aspect ratio (e.g., "16/9", "1/1")
+- width: "100%" | "500px" | "50vw"
+- height: "100vh" | "400px"
+- minHeight: "600px"
+- maxWidth: "1200px"
+- aspectRatio: "16/9" | "1/1"
 
-COLOR SCHEME (Default: Monochrome):
-By default, ALL sections use a sophisticated monochrome palette (black, white, and grays) with optimal contrast.
-- Default colors: background "#ffffff" (white), text "#000000" (black), accent "#1a1a1a" (very dark gray), secondary "#f5f5f5" (light gray)
-- Monochrome ensures professional appearance and WCAG AA contrast compliance
-- Users can override defaults by providing color_scheme parameter with custom hex colors
-- Only use custom colors when user explicitly specifies them
+COLORS:
+- background: "#121212" | "#ffffff"
+- color: "#ffffff" | "#000000"
+- accentColor: "#00ff00" (for buttons, highlights)
 
-KEY PARAMETERS:
-- content_description: BE SPECIFIC about headings, text, items.
-- layout_columns: 1-4 columns for grids.
-- color_scheme: Optional. Defaults to monochrome. Example: {background: "#ffffff", text: "#000000", accent: "#ff6600", secondary: "#f0f0f0"}
-- spacing: compact, normal, spacious
-- action_type: replace, append, prepend
+TYPOGRAPHY:
+- fontSize: "60px" | "18px"
+- fontWeight: "700" | "900"
+- lineHeight: "1.2" | "1.7"
+- letterSpacing: "-2px" | "3px"
+- textAlign: "center" | "left" | "right"
 
-USAGE EXAMPLES:
-1. Hero (monochrome): {section_type: "hero", content_description: "Heading \'Future of Tech\', subtext about AI", style_preference: "bold"} -> Generates Industrial Dark with grayscale
-2. Services (custom colors): {section_type: "services", content_description: "3 service cards", color_scheme: {accent: "#0066cc"}} -> Uses blue accent', 'snn' ),
+VISUAL EFFECTS:
+- borderRadius: "20px" | "50%"
+- opacity: "0.8"
+- boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
+
+POSITIONING:
+- position: "sticky" | "relative" | "absolute"
+- top: "100px"
+- zIndex: "10"
+
+RESPONSIVE:
+- Add ":mobile_landscape" or ":tablet" suffix to any property for responsive values
+- Example: fontSize:mobile_landscape: "32px"
+
+ADVANCED: You can also use native Bricks properties (prefixed with _):
+- _background, _typography, _padding, _border, etc.
+- Use these for fine-grained control when simple properties aren\'t enough
+
+CONTENT PROPERTY:
+For text/image elements, use "content" to define what they display:
+- heading: content: "Your Heading Text Here"
+- text-basic: content: "Your paragraph text"
+- button: content: "Click Me", link: "#contact"
+- image: content: "https://example.com/image.jpg"
+
+EXAMPLE 1 - Simple Hero:
+{
+  "structure": {
+    "type": "section",
+    "styles": {"background": "#000000", "minHeight": "100vh", "padding": "80px"},
+    "children": [{
+      "type": "container",
+      "styles": {"display": "flex", "flexDirection": "column", "alignItems": "center", "gap": "30px"},
+      "children": [
+        {"type": "heading", "content": "Future of Design", "styles": {"fontSize": "72px", "color": "#ffffff"}},
+        {"type": "text-basic", "content": "Where creativity meets technology", "styles": {"fontSize": "20px", "color": "#cccccc"}},
+        {"type": "button", "content": "Get Started", "link": "#", "styles": {"background": "#00ff00", "color": "#000000"}}
+      ]
+    }]
+  }
+}
+
+EXAMPLE 2 - Complex Grid Layout:
+{
+  "structure": {
+    "type": "section",
+    "styles": {"background": "#ffffff", "padding": "100px"},
+    "children": [{
+      "type": "container",
+      "children": [{
+        "type": "block",
+        "styles": {"display": "grid", "gridTemplateColumns": "1fr 1fr 1fr", "gap": "40px"},
+        "children": [
+          {
+            "type": "block",
+            "styles": {"padding": "40px", "background": "#f5f5f5", "borderRadius": "20px"},
+            "children": [
+              {"type": "heading", "content": "Service 1", "styles": {"fontSize": "32px"}},
+              {"type": "text-basic", "content": "Description of service", "styles": {"fontSize": "16px"}}
+            ]
+          },
+          // Repeat for more cards...
+        ]
+      }]
+    }]
+  }
+}
+
+KEY ADVANTAGES:
+✅ Unlimited creativity - no template restrictions
+✅ Define any hierarchy and nesting
+✅ Control every aspect of layout and styling
+✅ Simple, readable property names
+✅ Automatic Bricks format translation
+✅ Safe - can\'t break Bricks JSON syntax
+
+USAGE:
+Think of the user\'s request, design the structure visually in your mind, then describe it in JSON format.', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
-                'required'   => array( 'section_type', 'content_description' ),
+                'required'   => array( 'structure' ),
                 'properties' => array(
-                    'section_type' => array(
-                        'type'        => 'string',
-                        'enum'        => array( 'hero', 'about', 'services', 'cta', 'testimonials', 'team', 'stats', 'faq', 'sticky-content', 'custom' ),
-                        'description' => 'Type of section to generate.',
-                    ),
-                    'content_description' => array(
-                        'type'        => 'string',
-                        'description' => 'Detailed description of content.',
-                        'minLength'   => 10,
-                    ),
-                    'style_preference' => array(
-                        'type'        => 'string',
-                        'enum'        => array( 'modern', 'minimal', 'bold', 'elegant', 'playful', 'professional', 'creative' ),
-                        'description' => 'Style preference. "Bold/Professional" triggers Industrial layout. Others trigger Layered layout.',
-                        'default'     => 'modern',
-                    ),
-                    'layout_columns' => array(
-                        'type'        => 'integer',
-                        'description' => 'Number of columns (1-4). Default: 3',
-                        'minimum'     => 1,
-                        'maximum'     => 4,
-                        'default'     => 3,
-                    ),
-                    'include_images' => array(
-                        'type'        => 'boolean',
-                        'description' => 'Whether to include image elements.',
-                        'default'     => true,
-                    ),
-                    'color_scheme' => array(
+                    'structure' => array(
                         'type'        => 'object',
-                        'description' => 'Optional color scheme. Defaults to monochrome (black/white/grays). Only provide if user explicitly specifies custom colors.',
+                        'description' => 'The hierarchical structure definition. Must contain type, and can contain styles, content, children, and link properties.',
+                        'required'    => array( 'type' ),
                         'properties'  => array(
-                            'background' => array( 'type' => 'string', 'description' => 'Background color (hex). Default: #ffffff' ),
-                            'text'       => array( 'type' => 'string', 'description' => 'Text color (hex). Default: #000000' ),
-                            'accent'     => array( 'type' => 'string', 'description' => 'Accent color (hex). Default: #1a1a1a' ),
-                            'secondary'  => array( 'type' => 'string', 'description' => 'Secondary color (hex). Default: #f5f5f5' ),
+                            'type' => array(
+                                'type'        => 'string',
+                                'enum'        => array( 'section', 'container', 'block', 'heading', 'text-basic', 'button', 'image', 'custom-html-css-script' ),
+                                'description' => 'Element type to create',
+                            ),
+                            'content' => array(
+                                'type'        => 'string',
+                                'description' => 'Content for text elements (heading text, paragraph text, button text, image URL)',
+                            ),
+                            'link' => array(
+                                'type'        => 'string',
+                                'description' => 'Link URL for buttons',
+                            ),
+                            'tag' => array(
+                                'type'        => 'string',
+                                'description' => 'HTML tag for headings (h1-h6)',
+                            ),
+                            'styles' => array(
+                                'type'        => 'object',
+                                'description' => 'Styling properties (simple or native Bricks format)',
+                            ),
+                            'children' => array(
+                                'type'        => 'array',
+                                'description' => 'Child elements (recursive structure)',
+                            ),
                         ),
-                    ),
-                    'spacing' => array(
-                        'type'        => 'string',
-                        'enum'        => array( 'compact', 'normal', 'spacious' ),
-                        'default'     => 'normal',
                     ),
                     'action_type' => array(
                         'type'        => 'string',
@@ -148,13 +267,7 @@ USAGE EXAMPLES:
                 ),
             ),
             'execute_callback' => function( $input ) {
-                $section_type = $input['section_type'];
-                $content_description = $input['content_description'];
-                $style_preference = $input['style_preference'] ?? 'modern';
-                $layout_columns = $input['layout_columns'] ?? 3;
-                $include_images = $input['include_images'] ?? true;
-                $color_scheme = $input['color_scheme'] ?? array();
-                $spacing = $input['spacing'] ?? 'normal';
+                $structure = $input['structure'];
                 $action_type = $input['action_type'] ?? 'append';
                 $post_id = $input['post_id'] ?? null;
 
@@ -172,32 +285,10 @@ USAGE EXAMPLES:
                     }
                 }
 
-                $spacing_map = array(
-                    'compact'  => array( 'section' => '40', 'gap' => '16', 'element' => '8' ),
-                    'normal'   => array( 'section' => '80', 'gap' => '24', 'element' => '12' ),
-                    'spacious' => array( 'section' => '120', 'gap' => '40', 'element' => '20' ),
-                );
-                $spacing_values = $spacing_map[ $spacing ];
-
-                $bg_color = $color_scheme['background'] ?? '#ffffff';
-                $text_color = $color_scheme['text'] ?? '#000000';
-                $accent_color = $color_scheme['accent'] ?? '#1a1a1a';
-                $secondary_color = $color_scheme['secondary'] ?? '#f5f5f5';
-
-                $content_json = snn_generate_bricks_content( array(
-                    'type'              => $section_type,
-                    'description'       => $content_description,
-                    'style'             => $style_preference,
-                    'columns'           => $layout_columns,
-                    'include_images'    => $include_images,
-                    'bg_color'          => $bg_color,
-                    'text_color'        => $text_color,
-                    'accent_color'      => $accent_color,
-                    'secondary_color'   => $secondary_color,
-                    'spacing'           => $spacing_values,
-                ) );
-
-                $element_count = count( $content_json['content'] );
+                // Use the new creative builder system
+                $result = snn_recursive_builder( $structure );
+                $content_json = array( 'content' => $result['elements'] );
+                $element_count = count( $result['elements'] );
 
                 $command_type_map = array(
                     'replace' => 'bricks_replace_all',
@@ -214,11 +305,12 @@ USAGE EXAMPLES:
                     'element_count'    => $element_count,
                 );
 
+                $structure_type = $structure['type'] ?? 'custom';
                 return array(
                     'success'                   => true,
-                    'message'                   => sprintf( __( 'Generated %s section (%d elements). Ready to insert.', 'snn' ), $section_type, $element_count ),
+                    'message'                   => sprintf( __( 'Generated creative %s structure (%d elements). Ready to insert.', 'snn' ), $structure_type, $element_count ),
                     'content_json'              => $content_json,
-                    'content_info'              => array( 'type' => $section_type, 'style' => $style_preference, 'element_count' => $element_count ),
+                    'content_info'              => array( 'type' => $structure_type, 'element_count' => $element_count, 'root_id' => $result['root_id'] ),
                     'requires_client_update'    => true,
                     'client_command'            => $client_command,
                 );
@@ -238,33 +330,415 @@ USAGE EXAMPLES:
 }
 
 /**
- * Generate Bricks content structure based on parameters
+ * ==============================================================================
+ * THE RECURSIVE BUILDER ENGINE (The Heart of Creative Mode)
+ * ==============================================================================
+ * 
+ * This function takes the Agent's simplified "blueprint" structure and converts it
+ * into the strict Bricks Array Format. It handles all the complexity of IDs, parent-child
+ * relationships, and Bricks-specific formatting.
+ * 
+ * @param array $node The structure node from the agent (contains type, content, styles, children)
+ * @param int|string $parent_id The parent element ID (0 for root elements)
+ * @return array Array with 'root_id' (the ID of this element) and 'elements' (flat array of all elements)
  */
-function snn_generate_bricks_content( $args ) {
-    $type = $args['type'];
-
+function snn_recursive_builder( $node, $parent_id = 0 ) {
+    // Generate unique ID for this element
+    $element_id = snn_generate_element_id();
+    
+    // Extract node properties with defaults
+    $type = $node['type'] ?? 'block';
+    $content = $node['content'] ?? '';
+    $link = $node['link'] ?? '';
+    $tag = $node['tag'] ?? '';
+    $styles = $node['styles'] ?? array();
+    $children_nodes = $node['children'] ?? array();
+    
+    // 1. TRANSLATE SIMPLE STYLES TO BRICKS FORMAT
+    // This is where the magic happens - convert readable keys to Bricks keys
+    $bricks_settings = snn_map_styles_to_bricks( $styles, $type );
+    
+    // 2. HANDLE CONTENT BASED ON ELEMENT TYPE
     switch ( $type ) {
-        case 'hero':
-            return snn_generate_bricks_hero( $args );
-        case 'about':
-            return snn_generate_bricks_about( $args );
-        case 'services':
-            return snn_generate_bricks_services( $args );
-        case 'cta':
-            return snn_generate_bricks_cta( $args );
-        case 'testimonials':
-            return snn_generate_bricks_testimonials( $args );
-        case 'team':
-            return snn_generate_bricks_team( $args );
-        case 'stats':
-            return snn_generate_bricks_stats( $args );
-        case 'faq':
-            return snn_generate_bricks_faq( $args );
-        case 'sticky-content':
-            return snn_generate_bricks_sticky_content( $args );
-        default:
-            return snn_generate_bricks_generic( $args );
+        case 'heading':
+            $bricks_settings['text'] = $content;
+            if ( $tag ) {
+                $bricks_settings['tag'] = $tag;
+            } elseif ( ! isset( $bricks_settings['tag'] ) ) {
+                $bricks_settings['tag'] = 'h2'; // Default heading tag
+            }
+            break;
+            
+        case 'text-basic':
+            $bricks_settings['text'] = $content;
+            break;
+            
+        case 'button':
+            $bricks_settings['text'] = $content;
+            if ( $link ) {
+                $bricks_settings['link'] = array(
+                    'url' => $link,
+                    'type' => 'external'
+                );
+            }
+            break;
+            
+        case 'image':
+            if ( $content ) {
+                $bricks_settings['image'] = array(
+                    'url' => $content,
+                    'size' => 'full'
+                );
+            }
+            break;
+            
+        case 'custom-html-css-script':
+            // Content should contain the HTML/CSS/JS
+            $bricks_settings['content'] = $content;
+            break;
     }
+    
+    // 3. RECURSIVELY PROCESS CHILDREN
+    $children_ids = array();
+    $generated_children_elements = array();
+    
+    foreach ( $children_nodes as $child ) {
+        // Recursively build each child, passing this element as parent
+        $child_result = snn_recursive_builder( $child, $element_id );
+        
+        // Collect child ID for this element's children array
+        $children_ids[] = $child_result['root_id'];
+        
+        // Merge all child elements into our flat elements array
+        $generated_children_elements = array_merge( 
+            $generated_children_elements, 
+            $child_result['elements'] 
+        );
+    }
+    
+    // 4. CREATE THE CURRENT ELEMENT IN BRICKS FORMAT
+    $current_element = array(
+        'id'       => $element_id,
+        'name'     => $type,
+        'parent'   => $parent_id,
+        'children' => $children_ids,
+        'settings' => $bricks_settings
+    );
+    
+    // 5. RETURN THE TREE
+    // We return both this element's ID (so parent knows about us)
+    // And a flat list of ALL elements (this one + all descendants)
+    return array(
+        'root_id'  => $element_id,
+        'elements' => array_merge( array( $current_element ), $generated_children_elements )
+    );
+}
+
+/**
+ * ==============================================================================
+ * THE STYLE MAPPER (Translator from Simple to Bricks Format)
+ * ==============================================================================
+ * 
+ * Allows the agent to use simple, readable keys like "color" or "gap" without
+ * knowing the complex Bricks syntax. This function translates them.
+ * 
+ * @param array $simple_styles The simple style properties from the agent
+ * @param string $element_type The type of element being styled (for context-aware mapping)
+ * @return array Bricks-formatted settings array
+ */
+function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
+    $settings = array();
+    
+    // DIRECT PASS-THROUGH: If agent already knows Bricks syntax (keys starting with _)
+    foreach ( $simple_styles as $key => $value ) {
+        if ( strpos( $key, '_' ) === 0 ) {
+            // This is already a Bricks property, use it directly
+            $settings[ $key ] = $value;
+        }
+    }
+    
+    // SMART MAPPING: Translate simple keys to Bricks format
+    
+    // === LAYOUT PROPERTIES ===
+    if ( isset( $simple_styles['display'] ) ) {
+        $settings['_display'] = $simple_styles['display'];
+    }
+    if ( isset( $simple_styles['flexDirection'] ) ) {
+        $settings['_flexDirection'] = $simple_styles['flexDirection'];
+    }
+    if ( isset( $simple_styles['justifyContent'] ) ) {
+        $settings['_justifyContent'] = $simple_styles['justifyContent'];
+    }
+    if ( isset( $simple_styles['alignItems'] ) ) {
+        $settings['_alignItems'] = $simple_styles['alignItems'];
+    }
+    if ( isset( $simple_styles['flexWrap'] ) ) {
+        $settings['_flexWrap'] = $simple_styles['flexWrap'];
+    }
+    if ( isset( $simple_styles['gridTemplateColumns'] ) ) {
+        $settings['_gridTemplateColumns'] = $simple_styles['gridTemplateColumns'];
+    }
+    if ( isset( $simple_styles['gridTemplateRows'] ) ) {
+        $settings['_gridTemplateRows'] = $simple_styles['gridTemplateRows'];
+    }
+    
+    // === GAP PROPERTIES ===
+    if ( isset( $simple_styles['gap'] ) ) {
+        $gap_value = rtrim( $simple_styles['gap'], 'px' );
+        $settings['_columnGap'] = $gap_value;
+        $settings['_rowGap'] = $gap_value;
+        $settings['_gridGap'] = $gap_value;
+    }
+    if ( isset( $simple_styles['columnGap'] ) ) {
+        $settings['_columnGap'] = rtrim( $simple_styles['columnGap'], 'px' );
+    }
+    if ( isset( $simple_styles['rowGap'] ) ) {
+        $settings['_rowGap'] = rtrim( $simple_styles['rowGap'], 'px' );
+    }
+    
+    // === SPACING PROPERTIES ===
+    if ( isset( $simple_styles['padding'] ) ) {
+        $padding = $simple_styles['padding'];
+        if ( is_string( $padding ) ) {
+            $p = rtrim( $padding, 'px' );
+            $settings['_padding'] = array(
+                'top'    => $p,
+                'right'  => $p,
+                'bottom' => $p,
+                'left'   => $p
+            );
+        } elseif ( is_array( $padding ) ) {
+            $settings['_padding'] = $padding;
+        }
+    }
+    if ( isset( $simple_styles['margin'] ) ) {
+        $margin = $simple_styles['margin'];
+        if ( is_string( $margin ) ) {
+            if ( $margin === 'auto' ) {
+                $settings['_margin'] = array(
+                    'left'  => 'auto',
+                    'right' => 'auto'
+                );
+            } else {
+                $m = rtrim( $margin, 'px' );
+                $settings['_margin'] = array(
+                    'top'    => $m,
+                    'right'  => $m,
+                    'bottom' => $m,
+                    'left'   => $m
+                );
+            }
+        } elseif ( is_array( $margin ) ) {
+            $settings['_margin'] = $margin;
+        }
+    }
+    
+    // === SIZING PROPERTIES ===
+    if ( isset( $simple_styles['width'] ) ) {
+        $settings['_width'] = $simple_styles['width'];
+    }
+    if ( isset( $simple_styles['height'] ) ) {
+        $settings['_height'] = $simple_styles['height'];
+    }
+    if ( isset( $simple_styles['minWidth'] ) ) {
+        $settings['_widthMin'] = $simple_styles['minWidth'];
+    }
+    if ( isset( $simple_styles['minHeight'] ) ) {
+        $settings['_minHeight'] = $simple_styles['minHeight'];
+    }
+    if ( isset( $simple_styles['maxWidth'] ) ) {
+        $settings['_maxWidth'] = $simple_styles['maxWidth'];
+    }
+    if ( isset( $simple_styles['maxHeight'] ) ) {
+        $settings['_maxHeight'] = $simple_styles['maxHeight'];
+    }
+    if ( isset( $simple_styles['aspectRatio'] ) ) {
+        $settings['_aspectRatio'] = $simple_styles['aspectRatio'];
+    }
+    
+    // === COLOR PROPERTIES ===
+    if ( isset( $simple_styles['background'] ) ) {
+        $settings['_background'] = array(
+            'color' => array( 'hex' => $simple_styles['background'] )
+        );
+    }
+    if ( isset( $simple_styles['backgroundColor'] ) ) {
+        $settings['_background'] = array(
+            'color' => array( 'hex' => $simple_styles['backgroundColor'] )
+        );
+    }
+    
+    // Typography color - needs to go in _typography array
+    $typography = array();
+    if ( isset( $simple_styles['color'] ) ) {
+        $typography['color'] = array( 'hex' => $simple_styles['color'] );
+    }
+    if ( isset( $simple_styles['fontSize'] ) ) {
+        $typography['font-size'] = $simple_styles['fontSize'];
+    }
+    if ( isset( $simple_styles['fontWeight'] ) ) {
+        $typography['font-weight'] = $simple_styles['fontWeight'];
+    }
+    if ( isset( $simple_styles['lineHeight'] ) ) {
+        $typography['line-height'] = $simple_styles['lineHeight'];
+    }
+    if ( isset( $simple_styles['letterSpacing'] ) ) {
+        $typography['letter-spacing'] = $simple_styles['letterSpacing'];
+    }
+    if ( isset( $simple_styles['textAlign'] ) ) {
+        $typography['text-align'] = $simple_styles['textAlign'];
+    }
+    if ( isset( $simple_styles['fontFamily'] ) ) {
+        $typography['font-family'] = $simple_styles['fontFamily'];
+    }
+    if ( isset( $simple_styles['textTransform'] ) ) {
+        $typography['text-transform'] = $simple_styles['textTransform'];
+    }
+    
+    // Merge typography if we have any typography properties
+    if ( ! empty( $typography ) ) {
+        // If _typography already exists from direct pass-through, merge with it
+        if ( isset( $settings['_typography'] ) ) {
+            $settings['_typography'] = array_merge( $settings['_typography'], $typography );
+        } else {
+            $settings['_typography'] = $typography;
+        }
+    }
+    
+    // === VISUAL EFFECTS ===
+    if ( isset( $simple_styles['borderRadius'] ) ) {
+        $radius = rtrim( $simple_styles['borderRadius'], 'px' );
+        if ( $simple_styles['borderRadius'] === '50%' ) {
+            $radius = '50%';
+        }
+        $settings['_border'] = array(
+            'radius' => array(
+                'top'    => $radius,
+                'right'  => $radius,
+                'bottom' => $radius,
+                'left'   => $radius
+            )
+        );
+    }
+    if ( isset( $simple_styles['opacity'] ) ) {
+        $settings['_opacity'] = $simple_styles['opacity'];
+    }
+    if ( isset( $simple_styles['boxShadow'] ) ) {
+        $settings['_boxShadow'] = $simple_styles['boxShadow'];
+    }
+    
+    // === POSITIONING ===
+    if ( isset( $simple_styles['position'] ) ) {
+        $settings['_position'] = $simple_styles['position'];
+    }
+    if ( isset( $simple_styles['top'] ) ) {
+        $settings['_top'] = rtrim( $simple_styles['top'], 'px' );
+    }
+    if ( isset( $simple_styles['right'] ) ) {
+        $settings['_right'] = rtrim( $simple_styles['right'], 'px' );
+    }
+    if ( isset( $simple_styles['bottom'] ) ) {
+        $settings['_bottom'] = rtrim( $simple_styles['bottom'], 'px' );
+    }
+    if ( isset( $simple_styles['left'] ) ) {
+        $settings['_left'] = rtrim( $simple_styles['left'], 'px' );
+    }
+    if ( isset( $simple_styles['zIndex'] ) ) {
+        $settings['_zIndex'] = $simple_styles['zIndex'];
+    }
+    
+    // === MISC ===
+    if ( isset( $simple_styles['overflow'] ) ) {
+        $settings['_overflow'] = $simple_styles['overflow'];
+    }
+    if ( isset( $simple_styles['objectFit'] ) ) {
+        $settings['_objectFit'] = $simple_styles['objectFit'];
+    }
+    
+    // === RESPONSIVE PROPERTIES ===
+    // Handle properties with :mobile_landscape or :tablet suffixes
+    foreach ( $simple_styles as $key => $value ) {
+        if ( strpos( $key, ':' ) !== false ) {
+            // This is a responsive property like "fontSize:mobile_landscape"
+            list( $base_key, $breakpoint ) = explode( ':', $key, 2 );
+            
+            // Map the base key to Bricks format
+            $bricks_key = snn_map_single_style_key( $base_key );
+            if ( $bricks_key ) {
+                $responsive_key = $bricks_key . ':' . $breakpoint;
+                
+                // Handle typography properties specially
+                if ( in_array( $base_key, array( 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'color' ) ) ) {
+                    if ( ! isset( $settings['_typography'] ) ) {
+                        $settings['_typography'] = array();
+                    }
+                    $typo_key = str_replace( array( 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing' ), 
+                                           array( 'font-size', 'font-weight', 'line-height', 'letter-spacing' ), 
+                                           $base_key );
+                    $settings['_typography'][ $typo_key . ':' . $breakpoint ] = $value;
+                } else {
+                    $settings[ $responsive_key ] = $value;
+                }
+            }
+        }
+    }
+    
+    // === HOVER STATES ===
+    // Handle properties with :hover suffix (for buttons, etc.)
+    foreach ( $simple_styles as $key => $value ) {
+        if ( strpos( $key, 'Hover' ) !== false ) {
+            // backgroundHover, colorHover, etc.
+            $base_key = str_replace( 'Hover', '', $key );
+            $bricks_key = snn_map_single_style_key( $base_key );
+            if ( $bricks_key ) {
+                $settings[ $bricks_key . ':hover' ] = $value;
+            }
+        }
+    }
+    
+    // Add transition for smooth hover effects if hover states exist
+    $has_hover = false;
+    foreach ( $settings as $key => $value ) {
+        if ( strpos( $key, ':hover' ) !== false ) {
+            $has_hover = true;
+            break;
+        }
+    }
+    if ( $has_hover && ! isset( $settings['_cssTransition'] ) ) {
+        $settings['_cssTransition'] = '0.3s';
+    }
+    
+    return $settings;
+}
+
+/**
+ * Helper function to map a single style key to its Bricks equivalent
+ * 
+ * @param string $key The simple style key
+ * @return string|false The Bricks key, or false if not mappable
+ */
+function snn_map_single_style_key( $key ) {
+    $map = array(
+        'width'           => '_width',
+        'height'          => '_height',
+        'minWidth'        => '_widthMin',
+        'minHeight'       => '_minHeight',
+        'maxWidth'        => '_maxWidth',
+        'maxHeight'       => '_maxHeight',
+        'display'         => '_display',
+        'flexDirection'   => '_flexDirection',
+        'justifyContent'  => '_justifyContent',
+        'alignItems'      => '_alignItems',
+        'gridTemplateColumns' => '_gridTemplateColumns',
+        'gap'             => '_gridGap',
+        'columnGap'       => '_columnGap',
+        'rowGap'          => '_rowGap',
+        'background'      => '_background',
+        'padding'         => '_padding',
+        'margin'          => '_margin',
+    );
+    
+    return $map[ $key ] ?? false;
 }
 
 /**
@@ -2488,3 +2962,486 @@ function snn_create_custom_code_element( $parent, $html = '', $css = '', $js = '
         ),
     );
 }
+
+/**
+ * ==============================================================================
+ * CREATIVE MODE EXAMPLES - Real-World Usage Patterns
+ * ==============================================================================
+ * 
+ * These examples show how the agent can use the new creative system to build
+ * various layouts. The agent can copy/adapt these patterns or create entirely
+ * new structures.
+ * 
+ * ============================================================================
+ * 
+ * EXAMPLE 1: MODERN HERO (CENTERED)
+ * Request: "Create a centered hero with dark background"
+ * 
+ * {
+ *   "structure": {
+ *     "type": "section",
+ *     "styles": {
+ *       "background": "#1a1a1a",
+ *       "minHeight": "90vh",
+ *       "padding": "80px"
+ *     },
+ *     "children": [{
+ *       "type": "container",
+ *       "styles": {
+ *         "display": "flex",
+ *         "flexDirection": "column",
+ *         "alignItems": "center",
+ *         "justifyContent": "center",
+ *         "gap": "30px",
+ *         "minHeight": "70vh"
+ *       },
+ *       "children": [
+ *         {
+ *           "type": "text-basic",
+ *           "content": "WELCOME TO THE FUTURE",
+ *           "styles": {
+ *             "fontSize": "14px",
+ *             "fontWeight": "700",
+ *             "letterSpacing": "3px",
+ *             "textTransform": "uppercase",
+ *             "color": "#888888"
+ *           }
+ *         },
+ *         {
+ *           "type": "heading",
+ *           "content": "Innovation Meets Excellence",
+ *           "tag": "h1",
+ *           "styles": {
+ *             "fontSize": "72px",
+ *             "fontSize:mobile_landscape": "42px",
+ *             "fontWeight": "900",
+ *             "lineHeight": "1.1",
+ *             "letterSpacing": "-2px",
+ *             "color": "#ffffff",
+ *             "textAlign": "center"
+ *           }
+ *         },
+ *         {
+ *           "type": "text-basic",
+ *           "content": "Transform your business with cutting-edge solutions designed for the modern world.",
+ *           "styles": {
+ *             "fontSize": "20px",
+ *             "lineHeight": "1.7",
+ *             "color": "#cccccc",
+ *             "textAlign": "center",
+ *             "maxWidth": "700px"
+ *           }
+ *         },
+ *         {
+ *           "type": "button",
+ *           "content": "Get Started",
+ *           "link": "#contact",
+ *           "styles": {
+ *             "fontSize": "18px",
+ *             "fontWeight": "700",
+ *             "color": "#000000",
+ *             "background": "#ffffff",
+ *             "backgroundHover": "#f0f0f0",
+ *             "padding": "18px 40px",
+ *             "borderRadius": "6px"
+ *           }
+ *         }
+ *       ]
+ *     }]
+ *   }
+ * }
+ * 
+ * ============================================================================
+ * 
+ * EXAMPLE 2: SPLIT HERO (LEFT TEXT, RIGHT IMAGE)
+ * Request: "Create a split hero with heading on left, image on right"
+ * 
+ * {
+ *   "structure": {
+ *     "type": "section",
+ *     "styles": {
+ *       "background": "#ffffff",
+ *       "minHeight": "100vh"
+ *     },
+ *     "children": [{
+ *       "type": "container",
+ *       "styles": {
+ *         "_width": "100%",
+ *         "_maxWidth": "100%",
+ *         "_padding": {"top": "0", "right": "0", "bottom": "0", "left": "0"}
+ *       },
+ *       "children": [{
+ *         "type": "block",
+ *         "styles": {
+ *           "display": "grid",
+ *           "gridTemplateColumns": "1fr 1fr",
+ *           "gridTemplateColumns:mobile_landscape": "1fr",
+ *           "minHeight": "100vh"
+ *         },
+ *         "children": [
+ *           {
+ *             "type": "block",
+ *             "styles": {
+ *               "display": "flex",
+ *               "flexDirection": "column",
+ *               "justifyContent": "center",
+ *               "padding": "80px",
+ *               "gap": "30px"
+ *             },
+ *             "children": [
+ *               {
+ *                 "type": "heading",
+ *                 "content": "Build Amazing Digital Experiences",
+ *                 "tag": "h1",
+ *                 "styles": {
+ *                   "fontSize": "72px",
+ *                   "fontSize:tablet": "56px",
+ *                   "fontSize:mobile_landscape": "42px",
+ *                   "fontWeight": "900",
+ *                   "lineHeight": "1.1",
+ *                   "letterSpacing": "-2px",
+ *                   "color": "#000000"
+ *                 }
+ *               },
+ *               {
+ *                 "type": "text-basic",
+ *                 "content": "Transform your vision into reality with cutting-edge design and development solutions.",
+ *                 "styles": {
+ *                   "fontSize": "20px",
+ *                   "lineHeight": "1.7",
+ *                   "color": "#666666"
+ *                 }
+ *               },
+ *               {
+ *                 "type": "button",
+ *                 "content": "Get Started",
+ *                 "link": "#",
+ *                 "styles": {
+ *                   "fontSize": "18px",
+ *                   "fontWeight": "700",
+ *                   "color": "#ffffff",
+ *                   "background": "#000000",
+ *                   "backgroundHover": "#333333",
+ *                   "padding": "18px 40px",
+ *                   "borderRadius": "6px"
+ *                 }
+ *               }
+ *             ]
+ *           },
+ *           {
+ *             "type": "block",
+ *             "styles": {
+ *               "background": "#f5f5f5",
+ *               "display": "flex",
+ *               "alignItems": "center",
+ *               "justifyContent": "center"
+ *             },
+ *             "children": [{
+ *               "type": "image",
+ *               "content": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200",
+ *               "styles": {
+ *                 "width": "100%",
+ *                 "height": "100%",
+ *                 "objectFit": "cover"
+ *               }
+ *             }]
+ *           }
+ *         ]
+ *       }]
+ *     }]
+ *   }
+ * }
+ * 
+ * ============================================================================
+ * 
+ * EXAMPLE 3: 3-COLUMN SERVICE GRID
+ * Request: "Create a 3-column service grid with cards"
+ * 
+ * {
+ *   "structure": {
+ *     "type": "section",
+ *     "styles": {
+ *       "background": "#ffffff",
+ *       "padding": "100px"
+ *     },
+ *     "children": [{
+ *       "type": "container",
+ *       "children": [
+ *         {
+ *           "type": "heading",
+ *           "content": "Our Services",
+ *           "tag": "h2",
+ *           "styles": {
+ *             "fontSize": "56px",
+ *             "fontWeight": "800",
+ *             "textAlign": "center",
+ *             "color": "#000000",
+ *             "margin": "0 0 60px 0"
+ *           }
+ *         },
+ *         {
+ *           "type": "block",
+ *           "styles": {
+ *             "display": "grid",
+ *             "gridTemplateColumns": "repeat(3, 1fr)",
+ *             "gridTemplateColumns:mobile_landscape": "1fr",
+ *             "gap": "40px"
+ *           },
+ *           "children": [
+ *             {
+ *               "type": "block",
+ *               "styles": {
+ *                 "padding": "40px",
+ *                 "background": "#f5f5f5",
+ *                 "backgroundHover": "#eeeeee",
+ *                 "borderRadius": "20px"
+ *               },
+ *               "children": [
+ *                 {
+ *                   "type": "heading",
+ *                   "content": "Web Design",
+ *                   "tag": "h3",
+ *                   "styles": {
+ *                     "fontSize": "32px",
+ *                     "fontWeight": "700",
+ *                     "color": "#000000",
+ *                     "margin": "0 0 16px 0"
+ *                   }
+ *                 },
+ *                 {
+ *                   "type": "text-basic",
+ *                   "content": "Beautiful, responsive websites that convert visitors into customers.",
+ *                   "styles": {
+ *                     "fontSize": "16px",
+ *                     "lineHeight": "1.7",
+ *                     "color": "#666666"
+ *                   }
+ *                 }
+ *               ]
+ *             },
+ *             {
+ *               "type": "block",
+ *               "styles": {
+ *                 "padding": "40px",
+ *                 "background": "#f5f5f5",
+ *                 "backgroundHover": "#eeeeee",
+ *                 "borderRadius": "20px"
+ *               },
+ *               "children": [
+ *                 {
+ *                   "type": "heading",
+ *                   "content": "Development",
+ *                   "tag": "h3",
+ *                   "styles": {
+ *                     "fontSize": "32px",
+ *                     "fontWeight": "700",
+ *                     "color": "#000000",
+ *                     "margin": "0 0 16px 0"
+ *                   }
+ *                 },
+ *                 {
+ *                   "type": "text-basic",
+ *                   "content": "Robust, scalable applications built with modern technologies.",
+ *                   "styles": {
+ *                     "fontSize": "16px",
+ *                     "lineHeight": "1.7",
+ *                     "color": "#666666"
+ *                   }
+ *                 }
+ *               ]
+ *             },
+ *             {
+ *               "type": "block",
+ *               "styles": {
+ *                 "padding": "40px",
+ *                 "background": "#f5f5f5",
+ *                 "backgroundHover": "#eeeeee",
+ *                 "borderRadius": "20px"
+ *               },
+ *               "children": [
+ *                 {
+ *                   "type": "heading",
+ *                   "content": "Consulting",
+ *                   "tag": "h3",
+ *                   "styles": {
+ *                     "fontSize": "32px",
+ *                     "fontWeight": "700",
+ *                     "color": "#000000",
+ *                     "margin": "0 0 16px 0"
+ *                   }
+ *                 },
+ *                 {
+ *                   "type": "text-basic",
+ *                   "content": "Strategic guidance to help your business thrive in the digital age.",
+ *                   "styles": {
+ *                     "fontSize": "16px",
+ *                     "lineHeight": "1.7",
+ *                     "color": "#666666"
+ *                   }
+ *                 }
+ *               ]
+ *             }
+ *           ]
+ *         }
+ *       ]
+ *     }]
+ *   }
+ * }
+ * 
+ * ============================================================================
+ * 
+ * EXAMPLE 4: CREATIVE ASYMMETRIC LAYOUT
+ * Request: "Create something unique - asymmetric grid with large image and stacked cards"
+ * 
+ * {
+ *   "structure": {
+ *     "type": "section",
+ *     "styles": {
+ *       "background": "#000000",
+ *       "padding": "100px"
+ *     },
+ *     "children": [{
+ *       "type": "container",
+ *       "styles": {
+ *         "_maxWidth": "1400px"
+ *       },
+ *       "children": [{
+ *         "type": "block",
+ *         "styles": {
+ *           "display": "grid",
+ *           "gridTemplateColumns": "1.5fr 1fr",
+ *           "gridTemplateColumns:mobile_landscape": "1fr",
+ *           "gap": "40px",
+ *           "minHeight": "600px"
+ *         },
+ *         "children": [
+ *           {
+ *             "type": "image",
+ *             "content": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200",
+ *             "styles": {
+ *               "width": "100%",
+ *               "height": "100%",
+ *               "objectFit": "cover",
+ *               "borderRadius": "20px"
+ *             }
+ *           },
+ *           {
+ *             "type": "block",
+ *             "styles": {
+ *               "display": "flex",
+ *               "flexDirection": "column",
+ *               "gap": "24px"
+ *             },
+ *             "children": [
+ *               {
+ *                 "type": "block",
+ *                 "styles": {
+ *                   "padding": "40px",
+ *                   "background": "#1a1a1a",
+ *                   "borderRadius": "16px"
+ *                 },
+ *                 "children": [
+ *                   {
+ *                     "type": "heading",
+ *                     "content": "Innovation",
+ *                     "tag": "h3",
+ *                     "styles": {
+ *                       "fontSize": "28px",
+ *                       "fontWeight": "700",
+ *                       "color": "#ffffff",
+ *                       "margin": "0 0 12px 0"
+ *                     }
+ *                   },
+ *                   {
+ *                     "type": "text-basic",
+ *                     "content": "Pushing boundaries with cutting-edge technology.",
+ *                     "styles": {
+ *                       "fontSize": "16px",
+ *                       "lineHeight": "1.6",
+ *                       "color": "#cccccc"
+ *                     }
+ *                   }
+ *                 ]
+ *               },
+ *               {
+ *                 "type": "block",
+ *                 "styles": {
+ *                   "padding": "40px",
+ *                   "background": "#1a1a1a",
+ *                   "borderRadius": "16px"
+ *                 },
+ *                 "children": [
+ *                   {
+ *                     "type": "heading",
+ *                     "content": "Excellence",
+ *                     "tag": "h3",
+ *                     "styles": {
+ *                       "fontSize": "28px",
+ *                       "fontWeight": "700",
+ *                       "color": "#ffffff",
+ *                       "margin": "0 0 12px 0"
+ *                     }
+ *                   },
+ *                   {
+ *                     "type": "text-basic",
+ *                     "content": "Delivering quality that exceeds expectations.",
+ *                     "styles": {
+ *                       "fontSize": "16px",
+ *                       "lineHeight": "1.6",
+ *                       "color": "#cccccc"
+ *                     }
+ *                   }
+ *                 ]
+ *               },
+ *               {
+ *                 "type": "block",
+ *                 "styles": {
+ *                   "padding": "40px",
+ *                   "background": "#1a1a1a",
+ *                   "borderRadius": "16px"
+ *                 },
+ *                 "children": [
+ *                   {
+ *                     "type": "heading",
+ *                     "content": "Impact",
+ *                     "tag": "h3",
+ *                     "styles": {
+ *                       "fontSize": "28px",
+ *                       "fontWeight": "700",
+ *                       "color": "#ffffff",
+ *                       "margin": "0 0 12px 0"
+ *                     }
+ *                   },
+ *                   {
+ *                     "type": "text-basic",
+ *                     "content": "Creating solutions that transform businesses.",
+ *                     "styles": {
+ *                       "fontSize": "16px",
+ *                       "lineHeight": "1.6",
+ *                       "color": "#cccccc"
+ *                     }
+ *                   }
+ *                 ]
+ *               }
+ *             ]
+ *           }
+ *         ]
+ *       }]
+ *     }]
+ *   }
+ * }
+ * 
+ * ============================================================================
+ * 
+ * KEY TAKEAWAYS FOR AGENT:
+ * 
+ * 1. Think hierarchically - children nest inside parents
+ * 2. Use containers for constrained width, blocks for flexible divs
+ * 3. Grid is great for columns, flex is great for vertical/horizontal stacking
+ * 4. Add responsive properties with :mobile_landscape suffix
+ * 5. Use simple keys (fontSize, gap) for readability
+ * 6. Content goes in the "content" property for text/images
+ * 7. You have UNLIMITED freedom - create ANY structure you imagine!
+ * 
+ * ============================================================================
+ */
