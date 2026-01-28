@@ -628,7 +628,7 @@ class SNN_Bricks_Chat_Overlay {
 
                 const button = document.createElement('li');
                 button.className = 'snn-bricks-ai-toggle';
-                button.setAttribute('data-balloon', 'AI Design Assistant');
+                button.setAttribute('data-balloon', 'SNN AI Agent');
                 button.setAttribute('data-balloon-pos', 'bottom');
                 button.setAttribute('tabindex', '0');
                 button.innerHTML = `
