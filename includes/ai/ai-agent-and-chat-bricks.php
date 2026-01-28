@@ -898,6 +898,13 @@ class SNN_Bricks_Chat_Overlay {
                 bricksContext += `- Common elements: section, container, block, heading, text, image, button\n`;
                 bricksContext += `- Settings contain styling and content properties\n\n`;
 
+                bricksContext += `**TYPOGRAPHY & FONTS:**\n`;
+                bricksContext += `- You can use ANY Google Font in your designs\n`;
+                bricksContext += `- Specify fonts in element settings using the 'typography' property\n`;
+                bricksContext += `- Example: { typography: { family: "Playfair Display" } }\n`;
+                bricksContext += `- Popular choices: Inter, Roboto, Poppins, Montserrat, Open Sans, Playfair Display, etc.\n`;
+                bricksContext += `- Choose fonts that match the design style and brand personality\n\n`;
+
                 bricksContext += `**AVAILABLE OPERATIONS:**\n`;
                 bricksContext += `1. Replace entire page content (use for "create new page" requests)\n`;
                 bricksContext += `2. Update specific section (use for "change the hero section" requests)\n`;
