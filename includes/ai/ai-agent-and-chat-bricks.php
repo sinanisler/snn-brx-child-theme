@@ -640,7 +640,12 @@ class SNN_Bricks_Chat_Overlay {
                     toggleChat();
                 });
 
-                toolbar.appendChild(button);
+                // Insert before the last item (second to last position)
+                if (toolbar.lastElementChild) {
+                    toolbar.insertBefore(button, toolbar.lastElementChild);
+                } else {
+                    toolbar.appendChild(button);
+                }
                 debugLog('✅ Toolbar button added');
             }
 
@@ -1507,16 +1512,16 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
 /* Chat overlay - positioned for frontend */
 .snn-bricks-chat-overlay { position: fixed; top: 0; right: 0; bottom: 0; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 .snn-bricks-chat-container { width: 400px; height: 100%; background: #fff; box-shadow: -2px 0 16px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; }
-.snn-bricks-chat-header { background: #2271b1; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.snn-bricks-chat-header { background: #161a1d; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
 .snn-bricks-chat-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
 .snn-bricks-chat-controls { display: flex; gap: 4px; }
-.snn-bricks-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; }
+.snn-bricks-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display:flex; justify-content: center; align-items: center; }
 .snn-bricks-chat-btn:hover { background: rgba(255, 255, 255, 0.3); }
 .snn-bricks-chat-plus { font-size: 24px; }
 .snn-bricks-chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #f9f9f9; }
 .snn-bricks-chat-welcome { text-align: center; padding: 40px 20px; color: #666; }
-.snn-bricks-chat-message { margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; max-width: 85%; }
-.snn-bricks-chat-message-user { background: #2271b1; color: #fff; margin-left: auto; }
+.snn-bricks-chat-message { margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; max-width: 95%; }
+.snn-bricks-chat-message-user { background: #161a1d; color: #fff; margin-left: auto; }
 .snn-bricks-chat-message-assistant { background: #fff; border: 1px solid #e0e0e0; margin-right: auto; }
 .snn-bricks-chat-message-error { background: #fee; color: #c33; border: 1px solid #fcc; }
 .snn-bricks-chat-typing { padding: 8px 16px; }
@@ -1528,11 +1533,11 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
 .snn-bricks-chat-state-text { padding: 8px 16px; background: #f0f0f0; font-size: 13px; color: #666; display: none; }
 .snn-bricks-chat-quick-actions { padding: 8px 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 6px; flex-wrap: wrap; }
 .snn-bricks-quick-action-btn { padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; cursor: pointer; }
-.snn-bricks-quick-action-btn:hover { background: #2271b1; color: #fff; }
+.snn-bricks-quick-action-btn:hover { background: #161a1d; color: #fff; }
 .snn-bricks-chat-input-container { padding: 12px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 8px; }
 .snn-bricks-chat-input { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 14px; resize: none; min-height: 42px; max-height: 120px; }
-.snn-bricks-chat-send { width: 42px; height: 42px; background: #2271b1; border: none; border-radius: 8px; color: #fff; cursor: pointer; }
-.snn-bricks-chat-send:hover { background: #135e96; }
+.snn-bricks-chat-send { width: 42px; height: 42px; background: #161a1d; border: none; border-radius: 8px; color: #fff; cursor: pointer; display:flex; align-items: center; justify-content: center; }
+.snn-bricks-chat-send:hover { background: #161a1d; }
 .snn-bricks-chat-history-dropdown { position: absolute; top: 60px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #ddd; max-height: 300px; overflow-y: auto; z-index: 10; }
 .snn-bricks-history-header { padding: 12px 16px; background: #f5f5f5; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
 .snn-bricks-history-close { background: none; border: none; font-size: 24px; cursor: pointer; }
