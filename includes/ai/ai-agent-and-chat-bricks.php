@@ -1518,7 +1518,7 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
 .snn-bricks-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display:flex; justify-content: center; align-items: center; }
 .snn-bricks-chat-btn:hover { background: rgba(255, 255, 255, 0.3); }
 .snn-bricks-chat-plus { font-size: 24px; }
-.snn-bricks-chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #f9f9f9; }
+.snn-bricks-chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #f9f9f9; font-size:14px; }
 .snn-bricks-chat-welcome { text-align: center; padding: 40px 20px; color: #666; }
 .snn-bricks-chat-message { margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; max-width: 95%; }
 .snn-bricks-chat-message-user { background: #161a1d; color: #fff; margin-left: auto; }
