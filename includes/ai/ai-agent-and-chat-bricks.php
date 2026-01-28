@@ -1512,7 +1512,7 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
 /* Chat overlay - positioned for frontend */
 .snn-bricks-chat-overlay { position: fixed; top: 0; right: 0; bottom: 0; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 .snn-bricks-chat-container { width: 400px; height: 100%; background: #fff; box-shadow: -2px 0 16px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; }
-.snn-bricks-chat-header { background: #161a1d; color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.snn-bricks-chat-header { background: #161a1d; color: #fff; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; }
 .snn-bricks-chat-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
 .snn-bricks-chat-controls { display: flex; gap: 4px; }
 .snn-bricks-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display:flex; justify-content: center; align-items: center; }
