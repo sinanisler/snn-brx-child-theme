@@ -1188,6 +1188,15 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
                         case 'bricks_add_section':
                             return BricksHelper.addSection(command.content, command.position || 'append');
 
+                        case 'update_bricks_content':
+                            // Legacy fallback - interpret action parameter
+                            const action = command.action || 'append';
+                            if (action === 'replace') {
+                                return BricksHelper.replaceAllContent(command.content);
+                            } else {
+                                return BricksHelper.addSection(command.content, action === 'prepend' ? 'prepend' : 'append');
+                            }
+
                         default:
                             return {
                                 success: false,

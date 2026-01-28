@@ -381,11 +381,17 @@ BEST PRACTICES:
                 // Count elements
                 $element_count = count( $content_json['content'] );
 
-                // Build client command
+                // Build client command - map action_type to correct command type
+                $command_type_map = array(
+                    'replace' => 'bricks_replace_all',
+                    'append'  => 'bricks_add_section',
+                    'prepend' => 'bricks_add_section',
+                );
+
                 $client_command = array(
-                    'type'             => 'update_bricks_content',
+                    'type'             => $command_type_map[ $action_type ],
                     'content'          => $content_json,
-                    'action'           => $action_type,
+                    'position'         => ( $action_type === 'prepend' ) ? 'prepend' : 'append',
                     'post_id'          => $post_id,
                     'save_immediately' => false,
                     'element_count'    => $element_count,
