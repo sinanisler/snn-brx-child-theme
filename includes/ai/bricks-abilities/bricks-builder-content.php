@@ -18,7 +18,7 @@ function snn_register_generate_bricks_content_ability() {
             'description' => __( 'Generates rich, detailed Bricks Builder sections using Bricks JSON structure. Creates complete sections from scratch with professional styling. Use for rapid prototyping and structured layouts in Bricks Builder.
 
 SECTION TYPES (section_type):
-- hero: Hero banners with headings, descriptions, CTAs (large text, centered, buttons) [FULL-WIDTH]
+- hero: High-end hero banners. Styles: "bold/professional" (Industrial/Dark), "modern/elegant" (Layered/Parallax).
 - about: About sections with text + imagery (2-column, lists, professional) [CONTAINED]
 - services: Service grids (1-4 columns, titles, descriptions) [CONTAINED]
 - cta: Call-to-action sections (centered, prominent buttons, conversion-focused) [FULL-WIDTH]
@@ -29,211 +29,18 @@ SECTION TYPES (section_type):
 - custom: Generic flexible section [CONTAINED]
 
 STYLE OPTIONS (style_preference):
-modern (clean/contemporary), minimal (essential only), bold (attention-grabbing), elegant (refined), playful (creative/fun), professional (corporate), creative (artistic/unique)
+modern, minimal, bold, elegant, playful, professional, creative
 
 KEY PARAMETERS:
-- content_description: BE SPECIFIC about headings, text, items, layout. Good: "Hero with heading \'Transform Business\', subtext about digital services, \'Get Started\' button". Bad: "Make a hero"
-- layout_columns: 1-4 columns for grids (services, team, testimonials, stats)
+- content_description: BE SPECIFIC about headings, text, items.
+- layout_columns: 1-4 columns for grids.
 - color_scheme: {background: "#ffffff", text: "#000000", accent: "#0066cc", secondary: "#f5f5f5"}
-- spacing: compact (small gaps), normal (balanced), spacious (large gaps)
-- action_type: replace (all content), append (add to end), prepend (add to start)
+- spacing: compact, normal, spacious
+- action_type: replace, append, prepend
 
 USAGE EXAMPLES:
-1. Hero: {section_type: "hero", content_description: "Heading \'Welcome to Our Agency\', description about creative services, \'Start Project\' button", style_preference: "modern", color_scheme: {background: "#000000", text: "#ffffff", accent: "#00ff88"}}
-2. Services: {section_type: "services", content_description: "3 services: Web Dev (custom sites), Mobile Apps (iOS/Android), Cloud (scalable)", layout_columns: 3}
-3. Stats: {section_type: "stats", content_description: "500+ projects, 50+ team, 98% satisfaction", spacing: "spacious"}
-4. Team: {section_type: "team", content_description: "4 leadership members with photos and titles", layout_columns: 4, include_images: true}
-
-AVAILABLE BRICKS ELEMENTS:
-Layout: section, container, div, block | Content: heading, text-basic, text, list, image | Interactive: button, form, accordion, tabs | Advanced: code, video, audio, icon
-
-CRITICAL BRICKS JSON STRUCTURE:
-
-1. ELEMENT STRUCTURE:
-   - Every element needs: id, name, parent, children[], settings{}
-   - IDs must be unique 6-character strings (e.g., "qognhn", "aolxaq")
-   - Parent is either 0 (root) or another element\'s ID
-   - Children is array of child element IDs
-
-2. SETTINGS PROPERTIES (all prefixed with underscore):
-   Layout:
-   - _width, _height, _maxWidth (values with units: "800px", "100%")
-   - _margin, _padding: {top: "40", right: "20", bottom: "40", left: "20"}
-   - _display: "flex", "grid", "block"
-   - _flexDirection: "row", "column"
-   - _alignItems: "flex-start", "center", "flex-end", "stretch"
-   - _justifyContent: "flex-start", "center", "flex-end", "space-between"
-   - _columnGap, _rowGap: "20", "40"
-   - _gridTemplateColumns: "1fr 1fr", "repeat(3, 1fr)"
-   - _gridGap: "20"
-
-   Background & Colors:
-   - _background: {color: {raw: "var(--c1)", hex: "#000000"}, image: {url: "..."}, position: "center center"}
-   - _gradient: {applyTo: "overlay", colors: [{color: {hex: "#000000"}, stop: "0"}, {...}]}
-   - _backgroundColor: {raw: "var(--c1)", hex: "#ffffff"}
-
-   Typography:
-   - _typography: {
-       font-family: "Poppins" (any Google Fonts name),
-       font-size: "48px",
-       font-weight: "600",
-       line-height: "1.2",
-       letter-spacing: "1px",
-       text-transform: "uppercase",
-       color: {raw: "var(--c2)", hex: "#000000"}
-     }
-   - Available Google Fonts: Just use the font name directly (e.g., "Inter", "Roboto", "Montserrat", "Playfair Display", "ADLaM Display", "Cabin Condensed", etc.)
-
-   Border:
-   - _border: {
-       radius: {top: "8", right: "8", bottom: "8", left: "8"},
-       width: {top: "2", right: "2", bottom: "2", left: "2"},
-       style: "solid",
-       color: {raw: "var(--c2)", hex: "#e0e0e0"}
-     }
-
-   Responsive:
-   - Add :tablet or :mobile_landscape suffix to any property
-   - Example: _height:mobile_landscape: "400"
-
-3. COMMON ELEMENTS:
-
-   Section (root container):
-   {
-     id: "abc123",
-     name: "section",
-     parent: 0,
-     children: ["xyz789"],
-     settings: {
-       _height: "600",
-       _background: {color: {hex: "#ffffff"}},
-       _padding: {top: "80", bottom: "80"}
-     }
-   }
-
-   Container (content wrapper):
-   {
-     id: "xyz789",
-     name: "container",
-     parent: "abc123",
-     children: [],
-     settings: {
-       _columnGap: "40",
-       _rowGap: "40"
-     }
-   }
-
-   Heading:
-   {
-     id: "head01",
-     name: "heading",
-     parent: "xyz789",
-     children: [],
-     settings: {
-       text: "Your Heading Here",
-       tag: "h2",
-       _typography: {
-         font-size: "48px",
-         font-weight: "700",
-         line-height: "1.2",
-         color: {hex: "#000000"}
-       }
-     }
-   }
-
-   Text:
-   {
-     id: "text01",
-     name: "text-basic",
-     parent: "xyz789",
-     children: [],
-     settings: {
-       text: "Your paragraph text here",
-       _typography: {
-         font-size: "16px",
-         line-height: "1.6",
-         color: {hex: "#333333"}
-       }
-     }
-   }
-
-   Button:
-   {
-     id: "btn001",
-     name: "button",
-     parent: "xyz789",
-     children: [],
-     settings: {
-       text: "Click Me",
-       link: {url: "#"},
-       _typography: {
-         font-size: "16px",
-         font-weight: "600",
-         color: {hex: "#ffffff"}
-       },
-       _backgroundColor: {hex: "#0066cc"},
-       _padding: {top: "12", right: "32", bottom: "12", left: "32"},
-       _border: {radius: {top: "4", right: "4", bottom: "4", left: "4"}}
-     }
-   }
-
-   Block (div with flex/grid):
-   {
-     id: "blk001",
-     name: "block",
-     parent: "xyz789",
-     children: [],
-     settings: {
-       _display: "grid",
-       _gridTemplateColumns: "1fr 1fr 1fr",
-       _gridGap: "24",
-       _gridTemplateColumns:mobile_landscape: "1fr"
-     }
-   }
-
-   Image:
-   {
-     id: "img001",
-     name: "image",
-     parent: "xyz789",
-     children: [],
-     settings: {
-       image: {
-         url: "https://placeholder.com/800x600",
-         id: 0,
-         size: "full"
-       },
-       _objectFit: "cover",
-       _width: "100%",
-       _height: "400px"
-     }
-   }
-
-4. SPACING GUIDELINES:
-   - Compact: section padding 40, gaps 16
-   - Normal: section padding 80, gaps 24-40
-   - Spacious: section padding 120, gaps 40-60
-
-5. COLOR SYSTEM:
-   - Use CSS variables: var(--c1), var(--c2), var(--c3) for theme colors
-   - Or direct hex codes: #000000, #ffffff
-   - Format: {raw: "var(--c1)", hex: "#000000"} or just {hex: "#000000"}
-
-6. RESPONSIVE DESIGN:
-   - Use :tablet and :mobile_landscape suffixes
-   - Example: _gridTemplateColumns:mobile_landscape: "1fr"
-   - Common breakpoints: reduce columns, stack layouts, adjust heights
-
-BEST PRACTICES:
-- Use descriptive content_description (specific headings, exact text, structure details)
-- Match colors to brand (use color_scheme with hex codes)
-- Choose appropriate spacing (compact for dense info, spacious for emphasis)
-- Use layout_columns based on content: 1 (detailed), 2 (balanced), 3 (standard grid), 4 (dense grid)
-- Always include responsive variants for mobile/tablet
-- Generate unique 6-char IDs for each element
-- Properly nest parent-child relationships
-- Use container elements to constrain content width
-- Apply consistent spacing throughout sections', 'snn' ),
+1. Hero: {section_type: "hero", content_description: "Heading \'Future of Tech\', subtext about AI", style_preference: "bold"} -> Generates Industrial Dark Theme
+2. Hero: {section_type: "hero", content_description: "Heading \'Luxury Living\'", style_preference: "elegant"} -> Generates Layered Parallax Theme', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
@@ -242,86 +49,66 @@ BEST PRACTICES:
                     'section_type' => array(
                         'type'        => 'string',
                         'enum'        => array( 'hero', 'about', 'services', 'cta', 'testimonials', 'team', 'stats', 'faq', 'custom' ),
-                        'description' => 'Type of section to generate. Choose the category that best fits the desired section.',
+                        'description' => 'Type of section to generate.',
                     ),
                     'content_description' => array(
                         'type'        => 'string',
-                        'description' => 'Detailed description of what the section should contain. Include: main message/heading, key points, number of items, desired layout (columns, rows), style preferences, any special features needed.',
+                        'description' => 'Detailed description of content.',
                         'minLength'   => 10,
                     ),
                     'style_preference' => array(
                         'type'        => 'string',
                         'enum'        => array( 'modern', 'minimal', 'bold', 'elegant', 'playful', 'professional', 'creative' ),
-                        'description' => 'Overall style/mood for the section design.',
+                        'description' => 'Style preference. "Bold/Professional" triggers Industrial layout. Others trigger Layered layout.',
                         'default'     => 'modern',
                     ),
                     'layout_columns' => array(
                         'type'        => 'integer',
-                        'description' => 'Number of columns for layouts that support it (1-4). Default: 3',
+                        'description' => 'Number of columns (1-4). Default: 3',
                         'minimum'     => 1,
                         'maximum'     => 4,
                         'default'     => 3,
                     ),
                     'include_images' => array(
                         'type'        => 'boolean',
-                        'description' => 'Whether to include image elements with placeholder URLs.',
+                        'description' => 'Whether to include image elements.',
                         'default'     => true,
                     ),
                     'color_scheme' => array(
                         'type'        => 'object',
-                        'description' => 'Optional color scheme. Provide background, text, accent, and secondary colors.',
+                        'description' => 'Optional color scheme.',
                         'properties'  => array(
-                            'background' => array( 'type' => 'string', 'description' => 'Background color (hex)' ),
-                            'text'       => array( 'type' => 'string', 'description' => 'Text color (hex)' ),
-                            'accent'     => array( 'type' => 'string', 'description' => 'Accent color for buttons, highlights (hex)' ),
-                            'secondary'  => array( 'type' => 'string', 'description' => 'Secondary background color (hex)' ),
+                            'background' => array( 'type' => 'string' ),
+                            'text'       => array( 'type' => 'string' ),
+                            'accent'     => array( 'type' => 'string' ),
+                            'secondary'  => array( 'type' => 'string' ),
                         ),
                     ),
                     'spacing' => array(
                         'type'        => 'string',
                         'enum'        => array( 'compact', 'normal', 'spacious' ),
-                        'description' => 'Spacing between elements.',
                         'default'     => 'normal',
                     ),
                     'action_type' => array(
                         'type'        => 'string',
                         'enum'        => array( 'replace', 'append', 'prepend' ),
-                        'description' => 'How to insert the content: replace (replace all content), append (add to end), prepend (add to start)',
                         'default'     => 'append',
                     ),
                     'post_id' => array(
                         'type'        => 'integer',
-                        'description' => 'Optional: Post ID to insert the content into.',
+                        'description' => 'Optional Post ID.',
                     ),
                 ),
             ),
             'output_schema' => array(
                 'type'       => 'object',
                 'properties' => array(
-                    'success'  => array(
-                        'type'        => 'boolean',
-                        'description' => 'Whether content generation was successful',
-                    ),
-                    'message' => array(
-                        'type'        => 'string',
-                        'description' => 'Result message',
-                    ),
-                    'content_json' => array(
-                        'type'        => 'object',
-                        'description' => 'Generated Bricks JSON structure',
-                    ),
-                    'content_info' => array(
-                        'type'        => 'object',
-                        'description' => 'Information about the generated content',
-                    ),
-                    'requires_client_update' => array(
-                        'type'        => 'boolean',
-                        'description' => 'Whether this requires JavaScript execution',
-                    ),
-                    'client_command' => array(
-                        'type'        => 'object',
-                        'description' => 'Command to be executed by JavaScript',
-                    ),
+                    'success' => array( 'type' => 'boolean' ),
+                    'message' => array( 'type' => 'string' ),
+                    'content_json' => array( 'type' => 'object' ),
+                    'content_info' => array( 'type' => 'object' ),
+                    'requires_client_update' => array( 'type' => 'boolean' ),
+                    'client_command' => array( 'type' => 'object' ),
                 ),
             ),
             'execute_callback' => function( $input ) {
@@ -335,12 +122,10 @@ BEST PRACTICES:
                 $action_type = $input['action_type'] ?? 'append';
                 $post_id = $input['post_id'] ?? null;
 
-                // Check permissions
                 if ( ! current_user_can( 'edit_posts' ) ) {
                     return new WP_Error( 'permission_denied', __( 'You do not have permission to edit posts.', 'snn' ) );
                 }
 
-                // If post_id provided, verify it exists and user can edit it
                 if ( $post_id ) {
                     $post = get_post( $post_id );
                     if ( ! $post ) {
@@ -351,7 +136,6 @@ BEST PRACTICES:
                     }
                 }
 
-                // Set spacing values based on preference
                 $spacing_map = array(
                     'compact'  => array( 'section' => '40', 'gap' => '16', 'element' => '8' ),
                     'normal'   => array( 'section' => '80', 'gap' => '24', 'element' => '12' ),
@@ -359,13 +143,11 @@ BEST PRACTICES:
                 );
                 $spacing_values = $spacing_map[ $spacing ];
 
-                // Set default colors if not provided
                 $bg_color = $color_scheme['background'] ?? '#ffffff';
                 $text_color = $color_scheme['text'] ?? '#000000';
                 $accent_color = $color_scheme['accent'] ?? '#0066cc';
                 $secondary_color = $color_scheme['secondary'] ?? '#f5f5f5';
 
-                // Generate content based on type
                 $content_json = snn_generate_bricks_content( array(
                     'type'              => $section_type,
                     'description'       => $content_description,
@@ -379,10 +161,8 @@ BEST PRACTICES:
                     'spacing'           => $spacing_values,
                 ) );
 
-                // Count elements
                 $element_count = count( $content_json['content'] );
 
-                // Build client command - map action_type to correct command type
                 $command_type_map = array(
                     'replace' => 'bricks_replace_all',
                     'append'  => 'bricks_add_section',
@@ -398,20 +178,11 @@ BEST PRACTICES:
                     'element_count'    => $element_count,
                 );
 
-                // Return instruction for JavaScript to execute
                 return array(
                     'success'                   => true,
-                    'message'                   => sprintf(
-                        __( 'Generated %s section (%d elements). Ready to insert into Bricks Builder.', 'snn' ),
-                        $section_type,
-                        $element_count
-                    ),
+                    'message'                   => sprintf( __( 'Generated %s section (%d elements). Ready to insert.', 'snn' ), $section_type, $element_count ),
                     'content_json'              => $content_json,
-                    'content_info'              => array(
-                        'type'          => $section_type,
-                        'style'         => $style_preference,
-                        'element_count' => $element_count,
-                    ),
+                    'content_info'              => array( 'type' => $section_type, 'style' => $style_preference, 'element_count' => $element_count ),
                     'requires_client_update'    => true,
                     'client_command'            => $client_command,
                 );
@@ -436,7 +207,6 @@ BEST PRACTICES:
 function snn_generate_bricks_content( $args ) {
     $type = $args['type'];
 
-    // Generate appropriate content based on type
     switch ( $type ) {
         case 'hero':
             return snn_generate_bricks_hero( $args );
@@ -472,242 +242,422 @@ function snn_generate_element_id() {
 }
 
 /**
- * Generate hero section
+ * ==============================================================================
+ * UPDATED HERO GENERATION (Pro Industrial & Layered Styles)
+ * ==============================================================================
+ */
+
+/**
+ * Main Hero Switcher
  */
 function snn_generate_bricks_hero( $args ) {
-    $spacing = $args['spacing'];
+    $style = $args['style'] ?? 'modern';
+    
+    // Switch between styles based on preference
+    // "Bold" or "Professional" triggers the Dark Industrial look (Kussmaul)
+    if ( $style === 'bold' || $style === 'professional' ) {
+        return snn_hero_style_industrial( $args );
+    } 
+    // All other styles default to the Modern Layered look (Whisky)
+    else {
+        return snn_hero_style_layered( $args );
+    }
+}
+
+/**
+ * STYLE A: "Industrial"
+ * Features: Full BG, Bottom Aligned, Rotating Badge, Gradient Overlay
+ */
+function snn_hero_style_industrial( $args ) {
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
     $accent_color = $args['accent_color'];
-    $include_images = $args['include_images'];
 
-    $section_id = snn_generate_element_id();
-    $container_id = snn_generate_element_id();
-    $content_block_id = snn_generate_element_id();
-    $heading_id = snn_generate_element_id();
-    $subheading_id = snn_generate_element_id();
-    $text_id = snn_generate_element_id();
-    $button_group_id = snn_generate_element_id();
-    $button_id = snn_generate_element_id();
-    $button2_id = snn_generate_element_id();
+    $ids = array(
+        'section' => snn_generate_element_id(),
+        'container' => snn_generate_element_id(),
+        'pill_btn' => snn_generate_element_id(),
+        'grid_wrapper' => snn_generate_element_id(),
+        'heading' => snn_generate_element_id(),
+        'spinner_wrapper' => snn_generate_element_id(),
+        'spinner_icon' => snn_generate_element_id(),
+    );
 
     $content = array(
+        // 1. SECTION
         array(
-            'id' => $section_id,
+            'id' => $ids['section'],
             'name' => 'section',
             'parent' => 0,
-            'children' => array( $container_id ),
+            'children' => array( $ids['container'] ),
             'settings' => array(
-                '_height' => '100vh',
+                '_height' => '85vh',
                 '_minHeight' => '700',
-                '_height:mobile_landscape' => 'auto',
-                '_minHeight:mobile_landscape' => '600',
+                '_height:mobile_landscape' => '600',
+                '_justifyContent' => 'flex-end', // Align content to bottom
+                '_padding' => array( 'bottom' => '60', 'top' => '100' ),
                 '_background' => array(
-                    'color' => array( 'hex' => $bg_color ),
                     'image' => array(
-                        'url' => 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1920',
-                        'size' => 'cover',
-                        'position' => 'center center',
+                        'url' => 'https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2000',
+                        'size' => 'full',
+                        'position' => 'center center'
                     ),
+                    'color' => array( 'hex' => '#000000' ),
                 ),
                 '_gradient' => array(
                     'applyTo' => 'overlay',
                     'colors' => array(
-                        array( 'color' => array( 'hex' => $bg_color ), 'stop' => '0', 'alpha' => '0.85' ),
-                        array( 'color' => array( 'hex' => $accent_color ), 'stop' => '100', 'alpha' => '0.75' ),
+                        array( 'color' => array( 'hex' => '#000000', 'alpha' => '0' ), 'stop' => '40' ),
+                        array( 'color' => array( 'hex' => '#000000', 'alpha' => '0.8' ), 'stop' => '100' ),
                     ),
-                    'angle' => '135',
                 ),
-                '_padding' => array(
-                    'top' => $spacing['section'],
-                    'bottom' => $spacing['section'],
-                ),
-                '_justifyContent' => 'center',
-                '_alignItems' => 'center',
             ),
         ),
+        // 2. CONTAINER
         array(
-            'id' => $container_id,
+            'id' => $ids['container'],
             'name' => 'container',
-            'parent' => $section_id,
-            'children' => array( $content_block_id ),
+            'parent' => $ids['section'],
+            'children' => array( $ids['pill_btn'], $ids['grid_wrapper'] ),
             'settings' => array(
-                '_columnGap' => $spacing['gap'],
-                '_rowGap' => $spacing['gap'],
+                '_columnGap' => '40',
+                '_rowGap' => '40',
             ),
         ),
+        // 3. PILL BUTTON (Top Element)
         array(
-            'id' => $content_block_id,
-            'name' => 'block',
-            'parent' => $container_id,
-            'children' => array( $subheading_id, $heading_id, $text_id, $button_group_id ),
-            'settings' => array(
-                '_display' => 'flex',
-                '_flexDirection' => 'column',
-                '_alignItems' => 'center',
-                '_columnGap' => $spacing['gap'],
-                '_rowGap' => $spacing['gap'],
-                '_maxWidth' => '1100px',
-                '_margin' => array(
-                    'left' => 'auto',
-                    'right' => 'auto',
-                ),
-                '_animation' => array(
-                    'type' => 'fadeInUp',
-                    'duration' => '1000',
-                ),
-            ),
-        ),
-        array(
-            'id' => $subheading_id,
-            'name' => 'text-basic',
-            'parent' => $content_block_id,
+            'id' => $ids['pill_btn'],
+            'name' => 'button',
+            'parent' => $ids['container'],
             'children' => array(),
             'settings' => array(
-                'text' => '✨ Welcome to Excellence',
+                'text' => '100% PREMIUM QUALITY',
+                'style' => 'outline',
                 '_typography' => array(
-                    'font-family' => 'Inter',
-                    'font-size' => '14px',
-                    'font-weight' => '600',
-                    'letter-spacing' => '2px',
+                    'color' => array( 'hex' => '#ffffff' ),
                     'text-transform' => 'uppercase',
-                    'text-align' => 'center',
-                    'color' => array( 'hex' => $accent_color ),
+                    'font-size' => '12px',
+                    'letter-spacing' => '2px',
+                    'font-weight' => '600',
                 ),
-                '_backgroundColor' => array( 'hex' => '#ffffff', 'alpha' => '0.1' ),
-                '_padding' => array( 'top' => '8', 'right' => '20', 'bottom' => '8', 'left' => '20' ),
                 '_border' => array(
-                    'radius' => array( 'top' => '50', 'right' => '50', 'bottom' => '50', 'left' => '50' ),
+                    'style' => 'solid',
+                    'width' => array('top' => 1, 'right' => 1, 'bottom' => 1, 'left' => 1),
+                    'color' => array( 'hex' => '#ffffff', 'alpha' => '0.3' ),
+                    'radius' => array('top' => 100, 'right' => 100, 'bottom' => 100, 'left' => 100),
                 ),
+                '_padding' => array('top' => 10, 'right' => 24, 'bottom' => 10, 'left' => 24),
+                '_background' => array('color' => array('hex' => '#000000', 'alpha' => '0.2')),
                 '_backdropFilter' => 'blur(10px)',
             ),
         ),
+        // 4. GRID WRAPPER (Heading + Spinner)
         array(
-            'id' => $heading_id,
+            'id' => $ids['grid_wrapper'],
+            'name' => 'block',
+            'parent' => $ids['container'],
+            'children' => array( $ids['heading'], $ids['spinner_wrapper'] ),
+            'settings' => array(
+                '_display' => 'grid',
+                '_gridTemplateColumns' => '1fr 140px',
+                '_gridTemplateColumns:mobile_landscape' => '1fr',
+                '_gridGap' => '60',
+                '_alignItems' => 'flex-end',
+            ),
+        ),
+        // 5. MAIN HEADING
+        array(
+            'id' => $ids['heading'],
             'name' => 'heading',
-            'parent' => $content_block_id,
+            'parent' => $ids['grid_wrapper'],
             'children' => array(),
             'settings' => array(
-                'text' => 'Transform Your Vision Into Reality',
+                'text' => 'MASTERFUL DESIGN &<br>TECHNICAL EXCELLENCE',
                 'tag' => 'h1',
                 '_typography' => array(
-                    'font-family' => 'Poppins',
-                    'font-size' => '80px',
-                    'font-size:tablet' => '60px',
-                    'font-size:mobile_landscape' => '42px',
-                    'font-weight' => '800',
-                    'line-height' => '1.1',
-                    'letter-spacing' => '-2px',
-                    'text-align' => 'center',
                     'color' => array( 'hex' => '#ffffff' ),
+                    'font-size' => '70px',
+                    'font-size:tablet' => '50px',
+                    'font-size:mobile_landscape' => '40px',
+                    'font-weight' => '400', 
+                    'text-transform' => 'uppercase',
+                    'line-height' => '1.05',
                 ),
-                '_textShadow' => array(
-                    'horizontal' => '0',
-                    'vertical' => '4',
-                    'blur' => '20',
-                    'color' => array( 'hex' => '#000000', 'alpha' => '0.3' ),
-                ),
+                '_animation' => array( 'type' => 'fadeInUp', 'duration' => 1000 ),
             ),
         ),
+        // 6. SPINNER WRAPPER
         array(
-            'id' => $text_id,
-            'name' => 'text-basic',
-            'parent' => $content_block_id,
-            'children' => array(),
-            'settings' => array(
-                'text' => 'Empowering businesses with cutting-edge solutions that drive growth, innovation, and sustainable success in the digital age.',
-                '_typography' => array(
-                    'font-family' => 'Inter',
-                    'font-size' => '22px',
-                    'font-size:mobile_landscape' => '18px',
-                    'line-height' => '1.7',
-                    'text-align' => 'center',
-                    'color' => array( 'hex' => '#ffffff', 'alpha' => '0.95' ),
-                ),
-                '_maxWidth' => '800px',
-            ),
-        ),
-        array(
-            'id' => $button_group_id,
+            'id' => $ids['spinner_wrapper'],
             'name' => 'block',
-            'parent' => $content_block_id,
-            'children' => array( $button_id, $button2_id ),
+            'parent' => $ids['grid_wrapper'],
+            'children' => array( $ids['spinner_icon'] ),
             'settings' => array(
+                '_width' => '140',
+                '_height' => '140',
                 '_display' => 'flex',
-                '_flexDirection' => 'row',
-                '_flexDirection:mobile_landscape' => 'column',
-                '_columnGap' => '16',
-                '_rowGap' => '16',
                 '_justifyContent' => 'center',
-                '_margin' => array( 'top' => '20' ),
+                '_alignItems' => 'center',
+                '_background' => array(
+                    'image' => array(
+                        'url' => 'https://assets.website-files.com/62a74c7e63579ea019a797c2/62a74c7e63579e273ca797fe_badge-text.svg',
+                        'size' => 'contain',
+                    ),
+                    'color' => array('hex' => 'transparent'),
+                ),
+                '_cssCustom' => "
+#brxe-" . $ids['spinner_wrapper'] . " {
+  animation: rotate 20s infinite linear;
+  transform-origin: center;
+}
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+                ",
+                '_display:mobile_landscape' => 'none',
             ),
         ),
+        // 7. ICON INSIDE SPINNER
         array(
-            'id' => $button_id,
-            'name' => 'button',
-            'parent' => $button_group_id,
+            'id' => $ids['spinner_icon'],
+            'name' => 'icon',
+            'parent' => $ids['spinner_wrapper'],
             'children' => array(),
             'settings' => array(
-                'text' => 'Get Started →',
-                'link' => array( 'url' => '#' ),
-                '_typography' => array(
-                    'font-family' => 'Inter',
-                    'font-size' => '17px',
-                    'font-weight' => '600',
-                    'letter-spacing' => '0.5px',
-                    'color' => array( 'hex' => '#000000' ),
+                'icon' => array(
+                    'library' => 'ionicons',
+                    'icon' => 'ion-ios-star',
                 ),
-                '_backgroundColor' => array( 'hex' => '#ffffff' ),
-                '_padding' => array(
-                    'top' => '18',
-                    'right' => '36',
-                    'bottom' => '18',
-                    'left' => '36',
-                ),
-                '_border' => array(
-                    'radius' => array( 'top' => '50', 'right' => '50', 'bottom' => '50', 'left' => '50' ),
-                ),
-                '_boxShadow' => array(
-                    'horizontal' => '0',
-                    'vertical' => '8',
-                    'blur' => '24',
-                    'color' => array( 'hex' => $accent_color, 'alpha' => '0.4' ),
-                ),
-            ),
-        ),
-        array(
-            'id' => $button2_id,
-            'name' => 'button',
-            'parent' => $button_group_id,
-            'children' => array(),
-            'settings' => array(
-                'text' => 'Learn More',
-                'link' => array( 'url' => '#' ),
-                '_typography' => array(
-                    'font-family' => 'Inter',
-                    'font-size' => '17px',
-                    'font-weight' => '600',
-                    'color' => array( 'hex' => '#ffffff' ),
-                ),
-                '_backgroundColor' => array( 'hex' => '#ffffff', 'alpha' => '0' ),
-                '_padding' => array(
-                    'top' => '18',
-                    'right' => '36',
-                    'bottom' => '18',
-                    'left' => '36',
-                ),
-                '_border' => array(
-                    'width' => array( 'top' => '2', 'right' => '2', 'bottom' => '2', 'left' => '2' ),
-                    'style' => 'solid',
-                    'color' => array( 'hex' => '#ffffff', 'alpha' => '0.5' ),
-                    'radius' => array( 'top' => '50', 'right' => '50', 'bottom' => '50', 'left' => '50' ),
-                ),
+                '_color' => array( 'hex' => $accent_color ),
+                '_typography' => array( 'font-size' => '30px' ),
+                 '_cssCustom' => "
+#brxe-" . $ids['spinner_icon'] . " {
+  animation: rotate-reverse 20s infinite linear;
+}
+@keyframes rotate-reverse {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+                 ",
             ),
         ),
     );
 
     return array( 'content' => $content );
 }
+
+/**
+ * STYLE B: "Layered"
+ * Features: Floating Image, Parallax JS, Negative Margin Overlap
+ */
+function snn_hero_style_layered( $args ) {
+    $bg_color = $args['bg_color'];
+    $text_color = $args['text_color'];
+    $accent_color = $args['accent_color'];
+
+    $ids = array(
+        'section' => snn_generate_element_id(),
+        'top_container' => snn_generate_element_id(),
+        'image_el' => snn_generate_element_id(),
+        'code_block' => snn_generate_element_id(),
+        'content_container' => snn_generate_element_id(),
+        'text_group' => snn_generate_element_id(),
+        'subheading' => snn_generate_element_id(),
+        'heading' => snn_generate_element_id(),
+        'btn_group' => snn_generate_element_id(),
+        'button' => snn_generate_element_id(),
+    );
+
+    // JS Script for Mouse Parallax
+    $parallax_script = "
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const heroImg = document.querySelector('.hero-parallax');
+  if (!heroImg) return;
+  const intensity = 30; 
+  document.addEventListener('mousemove', function(e) {
+    const xPos = (e.clientX / window.innerWidth) - 0.5;
+    const yPos = (e.clientY / window.innerHeight) - 0.5;
+    heroImg.style.transform = `translate(\${-xPos * intensity}px, \${-yPos * intensity}px)`;
+  });
+});
+</script>
+<style>.hero-parallax { transition: transform 0.2s ease-out; will-change: transform; }</style>
+    ";
+
+    $content = array(
+        // 1. SECTION
+        array(
+            'id' => $ids['section'],
+            'name' => 'section',
+            'parent' => 0,
+            'children' => array( $ids['top_container'], $ids['content_container'] ),
+            'settings' => array(
+                '_padding' => array( 'top' => '80', 'bottom' => '80' ),
+                '_background' => array( 'color' => array( 'hex' => $bg_color ) ),
+                '_overflow' => 'hidden',
+            ),
+        ),
+        // 2. TOP CONTAINER (Image)
+        array(
+            'id' => $ids['top_container'],
+            'name' => 'container',
+            'parent' => $ids['section'],
+            'children' => array( $ids['image_el'], $ids['code_block'] ),
+            'settings' => array(
+                '_display' => 'flex',
+                '_justifyContent' => 'center',
+                '_alignItems' => 'center',
+                '_zIndex' => '0',
+            ),
+        ),
+        // 3. MAIN HERO IMAGE
+        array(
+            'id' => $ids['image_el'],
+            'name' => 'image',
+            'parent' => $ids['top_container'],
+            'children' => array(),
+            'settings' => array(
+                'image' => array(
+                    'url' => 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1600',
+                    'size' => 'full',
+                ),
+                '_width' => '600px',
+                '_width:tablet' => '80%',
+                '_cssClasses' => 'hero-parallax',
+                '_animation' => array( 'type' => 'fadeIn', 'duration' => 1000 ),
+            ),
+        ),
+        // 4. JAVASCRIPT BLOCK
+        array(
+            'id' => $ids['code_block'],
+            'name' => 'code',
+            'parent' => $ids['top_container'],
+            'children' => array(),
+            'settings' => array(
+                'code' => $parallax_script,
+                'executeCode' => true,
+            ),
+        ),
+        // 5. CONTENT CONTAINER (Overlapping)
+        array(
+            'id' => $ids['content_container'],
+            'name' => 'container',
+            'parent' => $ids['section'],
+            'children' => array( $ids['text_group'], $ids['btn_group'] ),
+            'settings' => array(
+                '_display' => 'grid',
+                '_gridTemplateColumns' => '1fr 300px',
+                '_gridTemplateColumns:mobile_landscape' => '1fr',
+                '_columnGap' => '40',
+                '_rowGap' => '30',
+                '_margin' => array( 'top' => '-150' ),
+                '_margin:mobile_landscape' => array( 'top' => '0' ),
+                '_zIndex' => '1',
+                '_position' => 'relative',
+            ),
+        ),
+        // 6. TEXT GROUP
+        array(
+            'id' => $ids['text_group'],
+            'name' => 'block',
+            'parent' => $ids['content_container'],
+            'children' => array( $ids['subheading'], $ids['heading'] ),
+            'settings' => array(
+                '_display' => 'flex',
+                '_flexDirection' => 'column',
+                '_rowGap' => '16',
+            ),
+        ),
+        array(
+            'id' => $ids['subheading'],
+            'name' => 'text-basic',
+            'parent' => $ids['text_group'],
+            'children' => array(),
+            'settings' => array(
+                'text' => 'Premium Events & Experience',
+                '_typography' => array(
+                    'font-family' => 'Inter',
+                    'font-size' => '16px',
+                    'letter-spacing' => '1px',
+                    'text-transform' => 'uppercase',
+                    'font-weight' => '600',
+                    'color' => array( 'hex' => $accent_color ),
+                ),
+                '_animation' => array( 'type' => 'fadeInUp', 'delay' => 200 ),
+            ),
+        ),
+        array(
+            'id' => $ids['heading'],
+            'name' => 'heading',
+            'parent' => $ids['text_group'],
+            'children' => array(),
+            'settings' => array(
+                'text' => 'Elevate Your<br>Digital Experience',
+                'tag' => 'h1',
+                '_typography' => array(
+                    'font-family' => 'Poppins',
+                    'font-size' => '82px',
+                    'font-size:tablet' => '60px',
+                    'font-size:mobile_landscape' => '42px',
+                    'line-height' => '1.1',
+                    'letter-spacing' => '-2px',
+                    'font-weight' => '700',
+                    'color' => array( 'hex' => $text_color ),
+                    'text-shadow' => '4px -1px 3px rgba(0,0,0,0.1)',
+                ),
+                '_animation' => array( 'type' => 'fadeInUp', 'delay' => 300 ),
+            ),
+        ),
+        // 7. BUTTON GROUP
+        array(
+            'id' => $ids['btn_group'],
+            'name' => 'block',
+            'parent' => $ids['content_container'],
+            'children' => array( $ids['button'] ),
+            'settings' => array(
+                '_display' => 'flex',
+                '_alignItems' => 'flex-end',
+                '_alignItems:mobile_landscape' => 'flex-start',
+                '_justifyContent' => 'flex-end',
+                '_justifyContent:mobile_landscape' => 'flex-start',
+            ),
+        ),
+        array(
+            'id' => $ids['button'],
+            'name' => 'button',
+            'parent' => $ids['btn_group'],
+            'children' => array(),
+            'settings' => array(
+                'text' => 'Book Experience',
+                'link' => array( 'url' => '#' ),
+                '_typography' => array(
+                    'font-family' => 'Inter',
+                    'font-weight' => '600',
+                    'color' => array( 'hex' => '#ffffff' ),
+                ),
+                '_background' => array( 'color' => array( 'hex' => $accent_color ) ),
+                '_padding' => array( 'top' => 20, 'right' => 50, 'bottom' => 20, 'left' => 50 ),
+                '_border' => array( 'radius' => array( 'top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0 ) ),
+                '_transition' => array( 'duration' => 300 ),
+                '_boxShadow' => array(
+                     'horizontal' => 0, 'vertical' => 10, 'blur' => 20, 
+                     'color' => array( 'hex' => $accent_color, 'alpha' => '0.3' )
+                ),
+                '_animation' => array( 'type' => 'fadeInUp', 'delay' => 400 ),
+            ),
+        ),
+    );
+
+    return array( 'content' => $content );
+}
+
+/**
+ * ==============================================================================
+ * STANDARD SECTIONS (Original Code Preserved Below)
+ * ==============================================================================
+ */
 
 /**
  * Generate about section
@@ -878,6 +828,7 @@ function snn_generate_bricks_services( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
+    $accent_color = $args['accent_color']; // Added for border
     $columns = $args['columns'];
 
     $section_id = snn_generate_element_id();
@@ -1053,7 +1004,7 @@ function snn_generate_bricks_services( $args ) {
 function snn_generate_bricks_cta( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
-    $text_color = $args['text_color'];
+    $text_color = $args['text_color']; // Not used in original, kept for structure
     $accent_color = $args['accent_color'];
 
     $section_id = snn_generate_element_id();
@@ -1326,7 +1277,7 @@ function snn_generate_bricks_testimonials( $args ) {
     $spacing = $args['spacing'];
     $bg_color = $args['bg_color'];
     $text_color = $args['text_color'];
-    $secondary_color = $args['secondary_color'];
+    $secondary_color = $args['secondary_color']; // Not used in original code logic, but kept in signature
 
     $section_id = snn_generate_element_id();
     $container_id = snn_generate_element_id();
