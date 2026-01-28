@@ -569,8 +569,47 @@ class SNN_Bricks_Chat_Overlay {
              */
             function addToolbarButton() {
                 const toolbar = document.querySelector('.bricks-toolbar ul.end');
-                if (!toolbar) {
-                    console.error('Bricks toolbar not found');
+
+                if (toolbar) {
+                    // Toolbar exists, add button immediately
+                    createToolbarButton(toolbar);
+                    return;
+                }
+
+                // Toolbar doesn't exist yet, observe DOM for it
+                debugLog('Toolbar not found, observing DOM...');
+
+                const observer = new MutationObserver(function(mutations, obs) {
+                    const toolbar = document.querySelector('.bricks-toolbar ul.end');
+                    if (toolbar) {
+                        debugLog('✅ Toolbar found via observer');
+                        createToolbarButton(toolbar);
+                        obs.disconnect(); // Stop observing
+                    }
+                });
+
+                // Start observing the document body for added nodes
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+
+                // Timeout after 15 seconds
+                setTimeout(function() {
+                    observer.disconnect();
+                    if (!document.querySelector('.snn-bricks-ai-toggle')) {
+                        console.warn('Bricks toolbar not found after 15 seconds');
+                    }
+                }, 15000);
+            }
+
+            /**
+             * Create and append toolbar button
+             */
+            function createToolbarButton(toolbar) {
+                // Check if button already exists
+                if (document.querySelector('.snn-bricks-ai-toggle')) {
+                    debugLog('Toolbar button already exists');
                     return;
                 }
 
