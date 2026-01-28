@@ -280,6 +280,48 @@ function snn_generate_element_id() {
 }
 
 /**
+ * Calculate relative luminance of a color (WCAG formula)
+ * Used to determine if text will be readable on a background
+ */
+function snn_get_luminance( $hex ) {
+    $hex = ltrim( $hex, '#' );
+    $r = hexdec( substr( $hex, 0, 2 ) ) / 255;
+    $g = hexdec( substr( $hex, 2, 2 ) ) / 255;
+    $b = hexdec( substr( $hex, 4, 2 ) ) / 255;
+
+    $r = $r <= 0.03928 ? $r / 12.92 : pow( ( $r + 0.055 ) / 1.055, 2.4 );
+    $g = $g <= 0.03928 ? $g / 12.92 : pow( ( $g + 0.055 ) / 1.055, 2.4 );
+    $b = $b <= 0.03928 ? $b / 12.92 : pow( ( $b + 0.055 ) / 1.055, 2.4 );
+
+    return 0.2126 * $r + 0.7152 * $g + 0.0722 * $b;
+}
+
+/**
+ * Check if text color has sufficient contrast against background
+ * Returns true if contrast ratio >= 4.5:1 (WCAG AA standard)
+ */
+function snn_has_good_contrast( $text_color, $bg_color ) {
+    $l1 = snn_get_luminance( $text_color );
+    $l2 = snn_get_luminance( $bg_color );
+
+    $lighter = max( $l1, $l2 );
+    $darker = min( $l1, $l2 );
+
+    $contrast = ( $lighter + 0.05 ) / ( $darker + 0.05 );
+
+    return $contrast >= 4.5;
+}
+
+/**
+ * Get contrasting text color (black or white) for a given background
+ */
+function snn_get_contrast_text_color( $bg_color ) {
+    $luminance = snn_get_luminance( $bg_color );
+    // If background is dark (luminance < 0.5), use white text. Otherwise use black.
+    return $luminance < 0.5 ? '#ffffff' : '#000000';
+}
+
+/**
  * ==============================================================================
  * HERO GENERATION - Multiple Creative Variations
  * ==============================================================================
@@ -480,6 +522,9 @@ function snn_hero_centered_minimal( $args ) {
     $text_color = $args['text_color'];
     $accent_color = $args['accent_color'];
 
+    // Ensure subtext has good contrast with background
+    $subtext_color = snn_has_good_contrast( $accent_color, $bg_color ) ? $accent_color : $text_color;
+
     $ids = array(
         'section' => snn_generate_element_id(),
         'container' => snn_generate_element_id(),
@@ -538,7 +583,7 @@ function snn_hero_centered_minimal( $args ) {
                     'font-weight' => '700',
                     'letter-spacing' => '3px',
                     'text-transform' => 'uppercase',
-                    'color' => array( 'hex' => $accent_color ),
+                    'color' => array( 'hex' => $subtext_color ),
                 ),
                 '_animation' => array( 'type' => 'fadeIn', 'delay' => 100 ),
             ),
@@ -868,6 +913,10 @@ function snn_hero_offset_layout( $args ) {
     $text_color = $args['text_color'];
     $accent_color = $args['accent_color'];
 
+    // This hero has a dark overlay, so ensure eyebrow text is bright/light
+    // If accent is too dark for dark background, use white with slight opacity
+    $eyebrow_color = snn_has_good_contrast( $accent_color, '#000000' ) ? $accent_color : '#ffffff';
+
     $ids = array(
         'section' => snn_generate_element_id(),
         'container' => snn_generate_element_id(),
@@ -940,7 +989,7 @@ function snn_hero_offset_layout( $args ) {
                     'font-weight' => '700',
                     'letter-spacing' => '4px',
                     'text-transform' => 'uppercase',
-                    'color' => array( 'hex' => $accent_color ),
+                    'color' => array( 'hex' => $eyebrow_color ),
                 ),
                 '_animation' => array( 'type' => 'fadeIn', 'delay' => 100 ),
             ),
@@ -1330,7 +1379,6 @@ function snn_generate_bricks_services( $args ) {
                     'left' => '32',
                 ),
                 '_backgroundColor' => array( 'hex' => '#ffffff' ),
-                '_backgroundColor:hover' => array( 'hex' => $accent_color ),
                 '_border' => array(
                     'width' => array( 'top' => '0', 'right' => '0', 'bottom' => '4', 'left' => '0' ),
                     'style' => 'solid',
@@ -1344,15 +1392,6 @@ function snn_generate_bricks_services( $args ) {
                     'spread' => '0',
                     'color' => array( 'hex' => '#000000', 'alpha' => '0.08' ),
                 ),
-                '_boxShadow:hover' => array(
-                    'horizontal' => '0',
-                    'vertical' => '16',
-                    'blur' => '40',
-                    'spread' => '0',
-                    'color' => array( 'hex' => $accent_color, 'alpha' => '0.25' ),
-                ),
-                '_cssTransition' => '0.3s',
-                '_cursor' => 'pointer',
             ),
         );
 
@@ -1371,10 +1410,6 @@ function snn_generate_bricks_services( $args ) {
                     'line-height' => '1.3',
                     'color' => array( 'hex' => $text_color ),
                 ),
-                '_typography:hover' => array(
-                    'color' => array( 'hex' => '#ffffff' ),
-                ),
-                '_cssTransition' => '0.3s',
             ),
         );
 
@@ -1391,10 +1426,6 @@ function snn_generate_bricks_services( $args ) {
                     'line-height' => '1.7',
                     'color' => array( 'hex' => $text_color, 'alpha' => '0.8' ),
                 ),
-                '_typography:hover' => array(
-                    'color' => array( 'hex' => '#ffffff', 'alpha' => '0.95' ),
-                ),
-                '_cssTransition' => '0.3s',
             ),
         );
     }
@@ -1421,9 +1452,15 @@ function snn_generate_bricks_cta( $args ) {
 
     // CTA uses inverted colors for impact - dark bg, light text
     $cta_bg = $accent_color; // Dark background
-    $cta_text = '#ffffff'; // White text for contrast
-    $cta_btn_bg = $text_color === '#000000' ? '#ffffff' : $bg_color; // White or light button
-    $cta_btn_text = $text_color === '#000000' ? '#000000' : $text_color; // Dark button text
+    $cta_text = snn_get_contrast_text_color( $cta_bg ); // Ensure readable text on CTA background
+
+    // Button should contrast with CTA background
+    // Normal state: Light button with dark text
+    // Hover state: Dark button with light text
+    $cta_btn_bg = $cta_text === '#ffffff' ? '#ffffff' : '#000000'; // Opposite of background
+    $cta_btn_text = snn_get_contrast_text_color( $cta_btn_bg ); // Text contrasts with button
+    $cta_btn_bg_hover = $cta_bg; // Hover uses CTA background color
+    $cta_btn_text_hover = $cta_text; // Hover text uses CTA text color
 
     $section_id = snn_generate_element_id();
     $container_id = snn_generate_element_id();
@@ -1532,10 +1569,10 @@ function snn_generate_bricks_cta( $args ) {
                     'color' => array( 'hex' => $cta_btn_text ),
                 ),
                 '_typography:hover' => array(
-                    'color' => array( 'hex' => $cta_btn_text ),
+                    'color' => array( 'hex' => $cta_btn_text_hover ),
                 ),
                 '_backgroundColor' => array( 'hex' => $cta_btn_bg ),
-                '_backgroundColor:hover' => array( 'hex' => $cta_text ),
+                '_backgroundColor:hover' => array( 'hex' => $cta_btn_bg_hover ),
                 '_padding' => array(
                     'top' => '20',
                     'right' => '48',
