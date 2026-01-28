@@ -146,7 +146,7 @@ class SNN_Bricks_Chat_Overlay {
                 <div class="snn-bricks-chat-header">
                     <div class="snn-bricks-chat-title">
                         <span class="dashicons dashicons-admin-comments"></span>
-                        <span>AI Design Assistant</span>
+                        <span>SNN AI Agent</span>
                         <span class="snn-bricks-agent-state-badge" id="snn-bricks-agent-state-badge"></span>
                     </div>
                     <div class="snn-bricks-chat-controls">
