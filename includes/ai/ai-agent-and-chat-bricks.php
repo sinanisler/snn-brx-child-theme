@@ -102,33 +102,6 @@ class SNN_Bricks_Chat_Overlay {
             ),
         ) );
 
-        // Add inline script to capture Bricks design system
-        wp_add_inline_script( 'jquery', '
-            window.snnBricksDesignSystem = {
-                colorPalette: null,
-                globalVariables: null,
-                captured: false
-            };
-            
-            // Capture design system when Bricks is ready
-            (function() {
-                const captureInterval = setInterval(function() {
-                    if (typeof window.bricksState !== "undefined" && window.bricksState.colorPalette && window.bricksState.globalVariables) {
-                        window.snnBricksDesignSystem.colorPalette = JSON.parse(JSON.stringify(window.bricksState.colorPalette));
-                        window.snnBricksDesignSystem.globalVariables = JSON.parse(JSON.stringify(window.bricksState.globalVariables));
-                        window.snnBricksDesignSystem.captured = true;
-                        clearInterval(captureInterval);
-                        console.log("✅ Captured Bricks design system", window.snnBricksDesignSystem);
-                    }
-                }, 500);
-                
-                // Timeout after 10 seconds
-                setTimeout(function() {
-                    clearInterval(captureInterval);
-                }, 10000);
-            })();
-        ', 'before' );
-
         // Inline styles
         wp_add_inline_style( 'bricks-builder', $this->get_inline_css() );
     }
@@ -898,120 +871,6 @@ class SNN_Bricks_Chat_Overlay {
             }
 
             /**
-             * Get design system context (color palette and global variables)
-             */
-            function getDesignSystemContext() {
-                if (!window.snnBricksDesignSystem || !window.snnBricksDesignSystem.captured) {
-                    return '';
-                }
-
-                let context = `\n**🎨 AVAILABLE DESIGN SYSTEM:**\n\n`;
-
-                // Process color palette
-                const colorPalette = window.snnBricksDesignSystem.colorPalette;
-                if (colorPalette && colorPalette[0] && colorPalette[0].colors) {
-                    context += `**Color Palette:**\n`;
-                    const colors = colorPalette[0].colors;
-                    
-                    // Group colors by parent
-                    const baseColors = colors.filter(c => !c.parent);
-                    const variantColors = colors.filter(c => c.parent);
-                    
-                    context += `\nBase Colors:\n`;
-                    baseColors.forEach(color => {
-                        const varName = color.raw;
-                        const value = color.light || color.dark || 'N/A';
-                        const luminance = calculateLuminance(value);
-                        const brightness = luminance > 0.5 ? 'LIGHT' : 'DARK';
-                        context += `  • ${varName} = ${value} [${brightness}]\n`;
-                    });
-                    
-                    context += `\nColor Variants (lighter/darker shades):\n`;
-                    const grouped = {};
-                    variantColors.forEach(color => {
-                        if (!grouped[color.parent]) grouped[color.parent] = [];
-                        grouped[color.parent].push(color);
-                    });
-                    
-                    Object.keys(grouped).forEach(parent => {
-                        const parentColor = baseColors.find(c => c.id === parent);
-                        if (parentColor) {
-                            context += `  ${parentColor.raw} variants:\n`;
-                            grouped[parent].forEach(variant => {
-                                const luminance = calculateLuminance(variant.light || variant.dark);
-                                const brightness = luminance > 0.5 ? 'LIGHT' : 'DARK';
-                                context += `    - ${variant.raw} = ${variant.light || variant.dark} [${brightness}]\n`;
-                            });
-                        }
-                    });
-
-                    context += `\n⚠️ **COLOR USAGE RULES:**\n`;
-                    context += `- ALWAYS use var(--c1), var(--c2), etc. instead of hardcoded hex colors\n`;
-                    context += `- Check [LIGHT] or [DARK] labels for contrast\n`;
-                    context += `- NEVER use LIGHT colors on LIGHT backgrounds or DARK on DARK\n`;
-                    context += `- For text on dark backgrounds: use LIGHT colors (var(--c3) or light variants)\n`;
-                    context += `- For text on light backgrounds: use DARK colors (var(--c1) or dark variants)\n`;
-                    context += `- For buttons with dark backgrounds: use light text\n`;
-                    context += `- Example: {background: \"var(--c1)\", color: \"var(--c3)\"}\n\n`;
-                }
-
-                // Process global variables
-                const globalVars = window.snnBricksDesignSystem.globalVariables;
-                if (globalVars && globalVars.length > 0) {
-                    context += `**Global Variables (Spacing/Sizing):**\n`;
-                    globalVars.forEach(varItem => {
-                        const varName = `var(--${varItem.name})`;
-                        context += `  • ${varName} = ${varItem.value}\n`;
-                    });
-                    
-                    context += `\n⚠️ **VARIABLE USAGE RULES:**\n`;
-                    context += `- Prefer using these variables for consistent spacing\n`;
-                    context += `- Use var(--size-X) instead of hardcoded px values when available\n`;
-                    context += `- Example: {padding: \"var(--size-50)\", gap: \"var(--size-24)\"}\n\n`;
-                }
-
-                return context;
-            }
-
-            /**
-             * Calculate luminance from color string (HSL, RGB, or hex)
-             */
-            function calculateLuminance(colorStr) {
-                if (!colorStr) return 0;
-
-                // Parse HSL
-                if (colorStr.startsWith('hsl')) {
-                    const match = colorStr.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
-                    if (match) {
-                        const l = parseInt(match[3]);
-                        return l / 100;
-                    }
-                }
-
-                // Parse RGB
-                if (colorStr.startsWith('rgb')) {
-                    const match = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-                    if (match) {
-                        const r = parseInt(match[1]) / 255;
-                        const g = parseInt(match[2]) / 255;
-                        const b = parseInt(match[3]) / 255;
-                        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-                    }
-                }
-
-                // Parse hex
-                if (colorStr.startsWith('#')) {
-                    const hex = colorStr.substring(1);
-                    const r = parseInt(hex.substring(0, 2), 16) / 255;
-                    const g = parseInt(hex.substring(2, 4), 16) / 255;
-                    const b = parseInt(hex.substring(4, 6), 16) / 255;
-                    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-                }
-
-                return 0.5; // Default to middle if can't parse
-            }
-
-            /**
              * Build system prompt with Bricks-specific context
              */
             function buildSystemPrompt() {
@@ -1020,12 +879,6 @@ class SNN_Bricks_Chat_Overlay {
                 let bricksContext = `\n\n=== BRICKS BUILDER CONTEXT ===\n\n`;
                 bricksContext += `You are helping the user design pages using Bricks Builder, a visual page builder for WordPress.\n`;
                 bricksContext += `The user is currently editing: ${snnBricksChatConfig.pageContext.details.description || 'a page'}\n\n`;
-
-                // Add design system (color palette and global variables)
-                const designSystem = getDesignSystemContext();
-                if (designSystem) {
-                    bricksContext += designSystem;
-                }
 
                 if (snnBricksChatConfig.pageContext.details.post_id) {
                     bricksContext += `**Currently Editing:**\n`;
