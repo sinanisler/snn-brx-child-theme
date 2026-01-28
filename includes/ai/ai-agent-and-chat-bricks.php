@@ -628,11 +628,11 @@ class SNN_Bricks_Chat_Overlay {
 
                 const button = document.createElement('li');
                 button.className = 'snn-bricks-ai-toggle';
+                button.setAttribute('data-balloon', 'AI Design Assistant');
+                button.setAttribute('data-balloon-pos', 'bottom');
+                button.setAttribute('tabindex', '0');
                 button.innerHTML = `
-                    <a href="#" title="AI Design Assistant" class="bricks-toolbar-item">
-                        <i class="dashicons dashicons-admin-comments" style="font-size: 18px;"></i>
-                        <span>AI Assistant</span>
-                    </a>
+                    <span class="snn-ai-icon" style="font-size: 25px; background: linear-gradient(45deg, #2271b1, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; position: relative; line-height: 1.2; display: inline-block; cursor: pointer;">✦</span>
                 `;
 
                 button.addEventListener('click', function(e) {
