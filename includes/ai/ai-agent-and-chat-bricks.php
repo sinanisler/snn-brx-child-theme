@@ -912,6 +912,10 @@ class SNN_Bricks_Chat_Overlay {
                 bricksContext += `   - Example: {"_gridTemplateColumns":"1fr 1fr 1fr","_gridTemplateColumns:mobile_landscape":"1fr"}\n`;
                 bricksContext += `   - Always include mobile breakpoints for grid layouts\n`;
                 bricksContext += `   - Common mobile override: "_gridTemplateColumns:mobile_landscape":"1fr" (single column)\n\n`;
+                bricksContext += `4. **Image Aspect Ratio**: When using _aspectRatio on images, ALWAYS add _objectFit:"cover"\n`;
+                bricksContext += `   - ✅ Good: {"_aspectRatio":"1/1","_objectFit":"cover",...}\n`;
+                bricksContext += `   - This ensures images fill their container properly without distortion\n`;
+                bricksContext += `   - Common aspect ratios: "1/1" (square), "16/9" (landscape), "4/3", "3/2"\n\n`;
 
                 bricksContext += `**TYPOGRAPHY & FONTS:**\n`;
                 bricksContext += `- You can use ANY Google Font in your designs\n`;
