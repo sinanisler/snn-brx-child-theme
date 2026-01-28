@@ -72,12 +72,22 @@ require_once SNN_PATH . 'includes/ai/abilities/check-seo-quality-title-and-conte
 require_once SNN_PATH . 'includes/ai/abilities/installed-plugin-list-and-infos.php';
 require_once SNN_PATH . 'includes/ai/abilities/active-theme-info.php';
 require_once SNN_PATH . 'includes/ai/abilities/list-taxonomies.php';
-// block editor and content manipulation abilities
 require_once SNN_PATH . 'includes/ai/abilities/get-post-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/generate-block-pattern.php';
 require_once SNN_PATH . 'includes/ai/abilities/edit-block-content.php';
 require_once SNN_PATH . 'includes/ai/abilities/update-post-metadata.php';
 require_once SNN_PATH . 'includes/ai/abilities/analyze-post-seo.php';
+
+
+// Bricks Builder Chat Agent and Bricks Abilities
+require_once SNN-PATH . 'includes/ai/ai-agent-and-chat-bricks.php'
+require_once SNN_PATH . 'includes/ai/bricks-abilities/bricks-builder-content.php';
+
+
+
+
+
+
 
 require_once SNN_PATH . 'includes/block-editor-settings.php';
 require_once SNN_PATH . 'includes/media-image-opt.php';
