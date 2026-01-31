@@ -23,11 +23,29 @@
  */
 add_filter( 'bricks/dynamic_tags_list', 'register_current_author_tag' );
 function register_current_author_tag( $tags ) {
-    $tags[] = [
-        'name'  => '{current_author}',
-        'label' => 'Current Author',
-        'group' => 'SNN',
+    // Register all current author tag variations
+    $author_tags = [
+        'id'          => 'Current Author ID',
+        'name'        => 'Current Author Display Name',
+        'firstname'   => 'Current Author First Name',
+        'lastname'    => 'Current Author Last Name',
+        'email'       => 'Current Author Email',
+        'role'        => 'Current Author Role(s)',
+        'url'         => 'Current Author Website URL',
+        'description' => 'Current Author Bio/Description',
+        'nicename'    => 'Current Author Nicename (Slug)',
+        'login'       => 'Current Author Username',
+        'registered'  => 'Current Author Registration Date',
     ];
+
+    foreach ( $author_tags as $type => $label ) {
+        $tags[] = [
+            'name'  => "{current_author:$type}",
+            'label' => $label,
+            'group' => 'SNN',
+        ];
+    }
+
     return $tags;
 }
 
@@ -94,7 +112,7 @@ function render_current_author_tag( $tag, $post, $context = 'text' ) {
 
         case 'role':
             $roles = $author_data->roles;
-            return ! empty( $roles ) ? $roles[0] : '';
+            return ! empty( $roles ) ? implode( ', ', $roles ) : '';
 
         case 'url':
         case 'website':
