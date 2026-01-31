@@ -119,6 +119,8 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/comment-count-current-post.p
 require_once SNN_PATH . 'includes/dynamic-data-tags/get-parent-and-child-posts-list.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/current-post-custom-field-output.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/current-author.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/get_id_from_url_output_content.php';
+
 
 // Utils
 require_once SNN_PATH . 'includes/utils.php';
