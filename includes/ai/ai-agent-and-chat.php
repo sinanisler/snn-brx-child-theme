@@ -654,19 +654,7 @@ class SNN_Chat_Overlay {
             <p><?php echo esc_html__('Select which abilities the AI agent can use. Newly added abilities are automatically enabled by default.', 'snn'); ?></p>
 
             <?php if ( ! empty( $abilities ) && is_array( $abilities ) ) : ?>
-                <?php
-                // Check for abilities with unregistered categories
-                $unregistered_categories = array();
-                foreach ( $abilities as $ability ) {
-                    $category = isset( $ability['category'] ) ? $ability['category'] : 'uncategorized';
-                    if ( $category !== 'uncategorized' && ! in_array( $category, $unregistered_categories, true ) ) {
-                        // Add to list if category appears to be custom (not core)
-                        if ( ! in_array( $category, array( 'content', 'users', 'media', 'settings', 'plugins', 'themes' ), true ) ) {
-                            $unregistered_categories[] = $category;
-                        }
-                    }
-                }
-                if ( ! empty( $unregistered_categories ) ) : ?> <?php endif; ?>
+                
 
                 <form method="post" action="">
                     <?php wp_nonce_field( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ); ?>
