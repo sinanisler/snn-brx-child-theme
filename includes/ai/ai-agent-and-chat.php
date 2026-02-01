@@ -666,19 +666,7 @@ class SNN_Chat_Overlay {
                         }
                     }
                 }
-                if ( ! empty( $unregistered_categories ) ) : ?>
-                    <div class="notice notice-warning inline" style="margin: 15px 0;">
-                        <p>
-                            <strong><?php echo esc_html__('Note:', 'snn'); ?></strong>
-                            <?php
-                            printf(
-                                esc_html__('Some abilities use custom categories (%s). If you see WordPress notices about unregistered categories, register them using wp_register_ability_category() before registering your abilities.', 'snn'),
-                                '<code>' . esc_html( implode( ', ', $unregistered_categories ) ) . '</code>'
-                            );
-                            ?>
-                        </p>
-                    </div>
-                <?php endif; ?>
+                if ( ! empty( $unregistered_categories ) ) : ?> <?php endif; ?>
 
                 <form method="post" action="">
                     <?php wp_nonce_field( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ); ?>
