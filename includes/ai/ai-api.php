@@ -133,7 +133,7 @@ function snn_ai_proxy_request_handler() {
     
     if ($request_count === false) {
         set_transient($rate_limit_key, 1, HOUR_IN_SECONDS);
-    } else if ($request_count >= 100) {  // 100 requests per hour limit
+    } elseif ($request_count >= 100) {  // 100 requests per hour limit
         wp_send_json_error('Rate limit exceeded. Please try again later.', 429);
     } else {
         set_transient($rate_limit_key, $request_count + 1, HOUR_IN_SECONDS);

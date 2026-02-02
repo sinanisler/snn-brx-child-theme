@@ -773,7 +773,8 @@ function snn_handle_301_redirects() {
     if (is_admin()) return;
 
     // SECURITY FIX: Sanitize $_SERVER variables
-    $request_uri  = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+    // Using esc_url_raw to preserve URL structure while ensuring security
+    $request_uri  = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
     if (empty($request_uri)) return;
     
     $parsed_url   = parse_url($request_uri);
