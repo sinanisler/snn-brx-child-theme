@@ -2959,6 +2959,26 @@ function snn_save_optimized_existing_image() {
     $path_info = pathinfo($original_file);
     $webp_path = $path_info['dirname'] . '/' . $path_info['filename'] . '.webp';
     
+    // CRITICAL: If original is already WebP, rename it first (like JPG→JPG, PNG→PNG)
+    // This ensures original and current URLs are different for proper restore functionality
+    if (strtolower($path_info['extension']) === 'webp') {
+        $original_renamed = $path_info['dirname'] . '/' . $path_info['filename'] . '-original.webp';
+        
+        // Only rename if not already optimized (first optimization)
+        if (!$is_already_optimized && file_exists($original_file)) {
+            if (!@rename($original_file, $original_renamed)) {
+                wp_send_json_error(__('Failed to rename original WebP file.', 'snn'));
+            }
+            // Update the original file path to the renamed version
+            $original_file = $original_renamed;
+            $original_url = str_replace(basename($path_info['basename']), basename($original_renamed), $original_url);
+            
+            // Update stored metadata with new paths
+            update_post_meta($attachment_id, '_snn_original_url', $original_url);
+            update_post_meta($attachment_id, '_snn_original_file', $original_file);
+        }
+    }
+    
     // Move uploaded file
     if (!move_uploaded_file($uploaded_file, $webp_path)) {
         wp_send_json_error(__('Failed to save WebP file.', 'snn'));
