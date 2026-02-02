@@ -2823,7 +2823,7 @@ function snn_scan_unoptimized_images() {
     
     $base_args = array(
         'post_type' => 'attachment',
-        'post_mime_type' => array('image/jpeg', 'image/png'),
+        'post_mime_type' => array('image/jpeg', 'image/png', 'image/webp'),
         'posts_per_page' => $per_page,
         'paged' => $page,
         'post_status' => 'inherit'
