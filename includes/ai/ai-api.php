@@ -108,3 +108,109 @@ function snn_get_ai_api_config() {
 
     return $config;
 }
+
+/**
+ * SECURITY FIX: Server-side AJAX proxy for AI API requests
+ * This prevents API keys from being exposed to client-side JavaScript
+ * 
+ * Handles WordPress AJAX requests and proxies them to the AI API
+ * with proper authentication and rate limiting
+ */
+add_action('wp_ajax_snn_ai_proxy_request', 'snn_ai_proxy_request_handler');
+function snn_ai_proxy_request_handler() {
+    // Verify nonce for security
+    check_ajax_referer('snn_ai_proxy_nonce', 'nonce');
+    
+    // Verify user has permission
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Unauthorized: Insufficient permissions', 403);
+    }
+    
+    // Rate limiting: Check if user has exceeded request limit
+    $user_id = get_current_user_id();
+    $rate_limit_key = 'snn_ai_rate_limit_' . $user_id;
+    $request_count = get_transient($rate_limit_key);
+    
+    if ($request_count === false) {
+        set_transient($rate_limit_key, 1, HOUR_IN_SECONDS);
+    } else if ($request_count >= 100) {  // 100 requests per hour limit
+        wp_send_json_error('Rate limit exceeded. Please try again later.', 429);
+    } else {
+        set_transient($rate_limit_key, $request_count + 1, HOUR_IN_SECONDS);
+    }
+    
+    // Get AI configuration (with API keys - kept server-side)
+    $config = snn_get_ai_api_config();
+    
+    // Validate that we have necessary configuration
+    if (empty($config['apiKey']) || empty($config['apiEndpoint'])) {
+        wp_send_json_error('API configuration is incomplete. Please check settings.');
+    }
+    
+    // Get and validate messages from request
+    $messages = isset($_POST['messages']) ? json_decode(stripslashes($_POST['messages']), true) : array();
+    $model = isset($_POST['model']) ? sanitize_text_field($_POST['model']) : $config['model'];
+    
+    if (empty($messages) || !is_array($messages)) {
+        wp_send_json_error('Invalid messages format');
+    }
+    
+    // Prepare request body
+    $request_body = array(
+        'model' => $model,
+        'messages' => $messages
+    );
+    
+    // Add response format if configured
+    if (!empty($config['responseFormat'])) {
+        $request_body['response_format'] = $config['responseFormat'];
+    }
+    
+    // Make request to AI API using WordPress HTTP API
+    $response = wp_remote_post($config['apiEndpoint'], array(
+        'headers' => array(
+            'Authorization' => 'Bearer ' . $config['apiKey'],
+            'Content-Type' => 'application/json',
+        ),
+        'body' => json_encode($request_body),
+        'timeout' => 60,  // 60 second timeout for AI responses
+        'sslverify' => true,  // Always verify SSL certificates
+    ));
+    
+    // Handle errors
+    if (is_wp_error($response)) {
+        error_log('SNN AI Proxy Error: ' . $response->get_error_message());
+        wp_send_json_error('AI API request failed: ' . $response->get_error_message());
+    }
+    
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
+    
+    // Handle non-200 responses
+    if ($response_code !== 200) {
+        $error_data = json_decode($response_body, true);
+        $error_message = 'AI API error';
+        
+        if (isset($error_data['error']['message'])) {
+            $error_message = $error_data['error']['message'];
+        }
+        
+        error_log(sprintf('SNN AI Proxy: API returned %d - %s', $response_code, $error_message));
+        wp_send_json_error($error_message, $response_code);
+    }
+    
+    // Parse and return successful response
+    $ai_response = json_decode($response_body, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log('SNN AI Proxy: Invalid JSON response from API');
+        wp_send_json_error('Invalid response from AI API');
+    }
+    
+    // Log successful request (optional, for monitoring)
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log(sprintf('SNN AI Proxy: Successful request by user %d, model: %s', $user_id, $model));
+    }
+    
+    wp_send_json_success($ai_response);
+}

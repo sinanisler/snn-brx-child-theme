@@ -68,12 +68,35 @@ function snn_normalize_path($url) {
 }
 
 function snn_validate_url($url) {
+    // Allow relative URLs (starting with /)
     if (substr($url, 0, 1) === '/') {
         return true;
     }
+    
+    // Parse the URL to check its components
+    $parsed = parse_url($url);
+    
+    // SECURITY FIX: Block dangerous URL schemes that could lead to XSS
+    $dangerous_schemes = array('javascript', 'data', 'vbscript', 'file', 'about', 'blob');
+    if (isset($parsed['scheme'])) {
+        $scheme = strtolower($parsed['scheme']);
+        if (in_array($scheme, $dangerous_schemes)) {
+            error_log('SNN Security: Blocked dangerous URL scheme: ' . $scheme . ' in URL: ' . $url);
+            return false;  // BLOCK malicious URLs
+        }
+        
+        // Only allow http and https for external URLs
+        if (!in_array($scheme, array('http', 'https'))) {
+            error_log('SNN Security: Blocked non-http(s) URL scheme: ' . $scheme);
+            return false;
+        }
+    }
+    
+    // Validate URL format
     if (filter_var($url, FILTER_VALIDATE_URL)) {
         return true;
     }
+    
     return false;
 }
 
@@ -749,7 +772,10 @@ function snn_render_301_redirects_page() {
 function snn_handle_301_redirects() {
     if (is_admin()) return;
 
-    $request_uri  = $_SERVER['REQUEST_URI'];
+    // SECURITY FIX: Sanitize $_SERVER variables
+    $request_uri  = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+    if (empty($request_uri)) return;
+    
     $parsed_url   = parse_url($request_uri);
     $path         = isset($parsed_url['path']) ? rawurldecode($parsed_url['path']) : '/';
     $current_path = snn_normalize_path($path);
@@ -787,6 +813,12 @@ function snn_handle_301_redirects() {
             }
             if (strpos($redirect_to, 'http') !== 0) {
                 $redirect_to = home_url($redirect_to);
+            }
+            
+            // SECURITY FIX: Double-check URL is safe before redirecting
+            if (!snn_validate_url($redirect_to)) {
+                error_log('SNN Security: Blocked invalid redirect to: ' . $redirect_to);
+                return;  // Abort redirect
             }
             
             // Update click count directly in the DB. This does not invalidate the cache.
@@ -834,6 +866,12 @@ function snn_handle_301_redirects() {
                 $final_destination = home_url($final_destination);
             }
             
+            // SECURITY FIX: Double-check URL is safe before redirecting
+            if (!snn_validate_url($final_destination)) {
+                error_log('SNN Security: Blocked invalid wildcard redirect to: ' . $final_destination);
+                continue;  // Skip this redirect
+            }
+            
             // Update click count directly in the DB
             $clicks = (int) get_post_meta($redirect['ID'], 'redirect_clicks', true);
             update_post_meta($redirect['ID'], 'redirect_clicks', $clicks + 1);
@@ -862,9 +900,14 @@ function snn_log_redirect($redirect_from, $redirect_to) {
         update_post_meta($log_id, 'redirect_to', $redirect_to);
         update_post_meta($log_id, 'created_date', current_time('mysql'));
         update_post_meta($log_id, 'ip_address', snn_get_client_ip());
-        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+        
+        // SECURITY FIX: Sanitize $_SERVER variables before storing
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? 
+            sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
         update_post_meta($log_id, 'user_agent', $user_agent);
-        $referral = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+        
+        $referral = isset($_SERVER['HTTP_REFERER']) ? 
+            esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : '';
         update_post_meta($log_id, 'referral', $referral);
 
         // Enforce the maximum number of logs and remove old ones if needed

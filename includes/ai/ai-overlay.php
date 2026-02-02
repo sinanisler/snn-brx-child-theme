@@ -341,11 +341,13 @@ function snn_add_ai_script_to_footer() {
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // SECURITY FIX: API keys are NO LONGER exposed to client-side
+        // All API requests now go through server-side WordPress AJAX proxy
         const config = {
-            apiKey: <?php echo json_encode($config['apiKey']); ?>,
             model: <?php echo json_encode($config['model']); ?>,
             systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>,
-            apiEndpoint: <?php echo json_encode($config['apiEndpoint']); ?>
+            ajaxUrl: <?php echo json_encode(admin_url('admin-ajax.php')); ?>,
+            nonce: <?php echo json_encode(wp_create_nonce('snn_ai_proxy_nonce')); ?>
         };
 
         let actionPresets = <?php echo json_encode($config['actionPresets']); ?>;
@@ -574,14 +576,6 @@ function snn_add_ai_script_to_footer() {
             if (isRequestPending) {
                 console.warn("SNN AI: Request already pending."); return;
             }
-            if (!config.apiKey) {
-                console.error("SNN AI: API Key missing.");
-                if(responseDiv) {
-                    responseDiv.textContent = "Error: API Key missing in settings.";
-                    responseDiv.style.display = 'block';
-                }
-                return;
-            }
             if (!targetElement || !targetType) {
                 console.error("SNN AI: Target element error.");
                 if(responseDiv) {
@@ -652,31 +646,31 @@ function snn_add_ai_script_to_footer() {
             }
 
             try {
-                const fetchResponse = await fetch(config.apiEndpoint, {
+                // SECURITY FIX: Send request to WordPress AJAX proxy instead of direct API call
+                const formData = new FormData();
+                formData.append('action', 'snn_ai_proxy_request');
+                formData.append('nonce', config.nonce);
+                formData.append('messages', JSON.stringify(messages));
+                formData.append('model', config.model);
+                
+                const fetchResponse = await fetch(config.ajaxUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    },
-                    body: JSON.stringify({ model: config.model, messages })
+                    body: formData
                 });
 
                 if (!fetchResponse.ok) {
-                    const errorData = await fetchResponse.json().catch(() => ({}));
-                    let errorMsg = `API Error: ${fetchResponse.status} ${fetchResponse.statusText}`;
-                    if (errorData.error && errorData.error.message) {
-                        errorMsg += ` - ${errorData.error.message}`;
-                    } else if (fetchResponse.status === 401) {
-                        errorMsg += ' - Check API key.';
-                    } else if (fetchResponse.status === 429) {
-                        errorMsg += ' - Quota exceeded.';
-                    }
-                    throw new Error(errorMsg);
+                    throw new Error(`Server Error: ${fetchResponse.status} ${fetchResponse.statusText}`);
                 }
 
                 const data = await fetchResponse.json();
-                if (data.choices && data.choices.length && data.choices[0].message && data.choices[0].message.content) {
-                    aiResponse = data.choices[0].message.content.trim();
+                
+                if (!data.success) {
+                    throw new Error(data.data || 'API request failed');
+                }
+                
+                const aiData = data.data;
+                if (aiData.choices && aiData.choices.length && aiData.choices[0].message && aiData.choices[0].message.content) {
+                    aiResponse = aiData.choices[0].message.content.trim();
                     if(responseDiv) {
                         responseDiv.textContent = aiResponse;
                         responseDiv.style.display = 'block';
@@ -998,14 +992,6 @@ function snn_add_ai_script_to_footer() {
 
         if(bulkAiSubmitButton) bulkAiSubmitButton.addEventListener('click', async () => {
             if (isBulkRequestPending) { console.warn("SNN Bulk AI: Request already pending."); return; }
-            if (!config.apiKey) {
-                console.error("SNN Bulk AI: API Key missing.");
-                if(bulkAiResponseDisplay) {
-                    bulkAiResponseDisplay.textContent = "Error: API Key missing in settings.";
-                    bulkAiResponseDisplay.style.display = 'block';
-                }
-                return;
-            }
 
             lastProcessedBulkElements = currentBulkElements.filter(el => el.checkboxElement && el.checkboxElement.checked); // Ensured el.checkboxElement exists
 
@@ -1051,25 +1037,29 @@ function snn_add_ai_script_to_footer() {
             messages.push({ role: 'user', content: userInstruction });
 
             try {
-                const fetchResponse = await fetch(config.apiEndpoint, {
+                // SECURITY FIX: Send request to WordPress AJAX proxy instead of direct API call
+                const formData = new FormData();
+                formData.append('action', 'snn_ai_proxy_request');
+                formData.append('nonce', config.nonce);
+                formData.append('messages', JSON.stringify(messages));
+                formData.append('model', config.model);
+                
+                const fetchResponse = await fetch(config.ajaxUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    },
-                    body: JSON.stringify({ model: config.model, messages })
+                    body: formData
                 });
 
                 if (!fetchResponse.ok) {
-                    const errorData = await fetchResponse.json().catch(() => ({}));
-                    let errorMsg = `API Error: ${fetchResponse.status} ${fetchResponse.statusText}`;
-                     if (errorData.error && errorData.error.message) {
-                        errorMsg += ` - ${errorData.error.message}`;
-                    }
-                    throw new Error(errorMsg);
+                    throw new Error(`Server Error: ${fetchResponse.status} ${fetchResponse.statusText}`);
                 }
 
-                const data = await fetchResponse.json();
+                const responseData = await fetchResponse.json();
+                
+                if (!responseData.success) {
+                    throw new Error(responseData.data || 'API request failed');
+                }
+                
+                const data = responseData.data;
                 if (data.choices && data.choices.length && data.choices[0].message && data.choices[0].message.content) {
                     bulkAiRawResponse = data.choices[0].message.content.trim();
                     if(bulkAiResponseDisplay) {
