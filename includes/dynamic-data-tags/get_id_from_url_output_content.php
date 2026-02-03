@@ -89,7 +89,7 @@ function add_get_id_from_url_tags_to_builder($tags) {
         $tags[] = [
             'name'  => "{get_id_from_url_output_content:param:$field}",
             'label' => $label,
-            'group' => 'SNN URL',
+            'group' => 'SNN',
         ];
     }
 
