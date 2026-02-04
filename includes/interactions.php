@@ -253,7 +253,6 @@ function snn_enable_lenis_callback() {
                 margin-left: 10px;
             }
             .lenis-accordion {
-                margin-top: 25px;
                 border: 1px solid #ddd;
                 padding: 15px;
                 border-radius: 4px;
@@ -367,7 +366,6 @@ function snn_enqueue_lenis_scripts() {
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_lenis_scripts');
-add_action('admin_enqueue_scripts', 'snn_enqueue_lenis_scripts');
 
 
 
