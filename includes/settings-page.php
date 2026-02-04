@@ -27,7 +27,6 @@ function snn_settings_page_callback() {
             $menu_items = array(
                 array('slug' => 'snn-settings',               'label' => $dynamic_title.' '.__('Settings', 'snn'),      'dashicon' => 'dashicons-admin-home'),
                 array('slug' => 'editor-settings',            'label' => __('Editor Settings', 'snn'),                  'dashicon' => 'dashicons-edit'),
-                array('slug' => 'snn-interactions',           'label' => __('Interactions', 'snn'),                     'dashicon' => 'dashicons-table-col-after'),
                 array('slug' => 'snn-security',               'label' => __('Security Settings', 'snn'),                'dashicon' => 'dashicons-shield'),
                 array('slug' => 'snn-custom-post-types',      'label' => __('Post Types', 'snn'),                       'dashicon' => 'dashicons-admin-post'),
                 array('slug' => 'snn-custom-fields',          'label' => __('Custom Fields', 'snn'),                    'dashicon' => 'dashicons-admin-page'),
@@ -44,6 +43,7 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-search-logs',            'label' => __('Search Logs', 'snn'),                      'dashicon' => 'dashicons-search'),
                 array('slug' => 'snn-ai-settings',            'label' => __('AI Settings', 'snn'),                      'dashicon' => 'dashicons-nametag'),
                 array('slug' => 'snn-ai-agent-settings',      'label' => __('AI Agent and Chat', 'snn'),                'dashicon' => 'dashicons-nametag'),
+                array('slug' => 'snn-interactions',           'label' => __('Interactions', 'snn'),                     'dashicon' => 'dashicons-table-col-after'),
                 array('slug' => 'snn-media-settings',         'label' => __('Media Settings', 'snn'),                   'dashicon' => 'dashicons-format-image'),
                 array('slug' => 'snn-activity-log',           'label' => __('Activity Logs', 'snn'),                    'dashicon' => 'dashicons-text'),
                 array('slug' => 'snn-custom-codes-snippets',  'label' => __('Code Snippets', 'snn'),                    'dashicon' => 'dashicons-editor-code'),
