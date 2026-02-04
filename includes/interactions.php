@@ -645,7 +645,7 @@ function snn_enqueue_page_transitions() {
             }
         }
 
-        // JavaScript for View Transitions (Improved for Asset Loading)
+        // JavaScript for View Transitions
         $inline_script = "
         (function() {
             if (!document.startViewTransition) return;
@@ -654,7 +654,8 @@ function snn_enqueue_page_transitions() {
                 updateMode: '" . esc_js($update_mode) . "',
                 headerSelector: '" . esc_js($header_selector) . "',
                 mainSelector: '" . esc_js($main_selector) . "',
-                footerSelector: '" . esc_js($footer_selector) . "'
+                footerSelector: '" . esc_js($footer_selector) . "',
+                hasOverlay: " . ($show_logo && isset($options['page_transition_logo']) && wp_get_attachment_image_url($options['page_transition_logo'], 'medium') ? 'true' : 'false') . "
             };
 
             function isInternalLink(url) {
@@ -665,51 +666,56 @@ function snn_enqueue_page_transitions() {
             }
 
             function showOverlay() {
+                if (!config.hasOverlay) return;
                 var overlay = document.getElementById('snn-transition-overlay');
                 if (overlay && overlay.dataset.hasLogo) overlay.style.display = 'flex';
             }
 
             function hideOverlay() {
+                if (!config.hasOverlay) return;
                 var overlay = document.getElementById('snn-transition-overlay');
                 if (overlay) overlay.style.display = 'none';
             }
 
-            // CRITICAL: Force scripts to run by creating new elements
+            // Only run inline scripts that don't have global side effects
             function runScripts(container) {
                 const scripts = container.querySelectorAll('script');
                 scripts.forEach(oldScript => {
+                    // Skip inline scripts (they've already been run globally)
+                    if (!oldScript.src) return;
+
                     const newScript = document.createElement('script');
                     Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    if (oldScript.innerHTML) {
+                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    }
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
             }
 
-            // CRITICAL: Trigger events so lazy loaders and builders (Bricks/Elementor) wake up
             function triggerPageEvents() {
-                window.dispatchEvent(new Event('resize'));
-                window.dispatchEvent(new Event('scroll'));
-                document.dispatchEvent(new Event('DOMContentLoaded'));
+                // Dispatch events to wake up lazy loaders
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                    window.dispatchEvent(new Event('scroll'));
+                }, 50);
 
-                // Specific fix for Bricks Builder if detected
-                if (window.bricksIsFrontend) {
-                    setTimeout(() => {
-                        window.bricks.init();
-                    }, 50);
+                // Bricks Builder support
+                if (window.bricksIsFrontend && window.bricks && typeof window.bricks.init === 'function') {
+                    setTimeout(() => window.bricks.init(), 100);
                 }
             }
 
             function updateHead(newDoc) {
-                // Update Title
                 document.title = newDoc.title;
 
-                // Update Stylesheets (find new CSS links and add them)
+                // Update stylesheets
                 const newStyles = newDoc.querySelectorAll('link[rel=\"stylesheet\"], style');
                 const currentHead = document.head;
 
                 newStyles.forEach(newNode => {
                     let exists = false;
-                    if(newNode.tagName === 'LINK' && newNode.href) {
+                    if (newNode.tagName === 'LINK' && newNode.href) {
                         exists = !!currentHead.querySelector('link[href=\"' + newNode.href + '\"]');
                     } else if (newNode.id) {
                         exists = !!currentHead.querySelector('#' + newNode.id);
@@ -724,6 +730,12 @@ function snn_enqueue_page_transitions() {
             function updatePageContent(newDoc) {
                 updateHead(newDoc);
 
+                // Remove any old overlay elements from the new document
+                const oldOverlay = newDoc.querySelector('#snn-transition-overlay');
+                if (oldOverlay && !config.hasOverlay) {
+                    oldOverlay.remove();
+                }
+
                 if (config.updateMode === 'smart') {
                     document.body.className = newDoc.body.className;
                     var mainSelectors = config.mainSelector.split(',').map(function(s) { return s.trim(); });
@@ -735,14 +747,13 @@ function snn_enqueue_page_transitions() {
 
                         if (currentMain && newMain) {
                             currentMain.innerHTML = newMain.innerHTML;
-                            runScripts(currentMain); // Re-run scripts in main
+                            runScripts(currentMain);
                             mainUpdated = true;
                             break;
                         }
                     }
 
                     if (!mainUpdated) {
-                        // Fallback
                         document.body.innerHTML = newDoc.body.innerHTML;
                         runScripts(document.body);
                     }
@@ -765,8 +776,10 @@ function snn_enqueue_page_transitions() {
                         showOverlay();
                         setTimeout(attachTransitionListeners, 0);
 
-                        // Re-init Lenis if it exists to fix scroll height
-                        if(window.lenis) window.lenis.resize();
+                        // Reinitialize Lenis if present
+                        if (window.lenis && typeof window.lenis.resize === 'function') {
+                            window.lenis.resize();
+                        }
                     })
                     .catch(error => { window.location.href = url; });
             }
@@ -792,8 +805,11 @@ function snn_enqueue_page_transitions() {
                 transition.finished.then(() => hideOverlay());
             });
 
-            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', attachTransitionListeners); }
-            else { attachTransitionListeners(); }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', attachTransitionListeners);
+            } else {
+                attachTransitionListeners();
+            }
         })();
         ";
 
