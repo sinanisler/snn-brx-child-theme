@@ -104,8 +104,6 @@ add_action('admin_init', 'snn_register_other_settings');
 function snn_sanitize_other_settings($input) {
     $sanitized = array();
 
-    $sanitized['enqueue_gsap'] = isset($input['enqueue_gsap']) && $input['enqueue_gsap'] ? 1 : 0;
-
     if (isset($input['revisions_limit']) && $input['revisions_limit'] !== '') {
         $sanitized['revisions_limit'] = intval($input['revisions_limit']);
     } else {
@@ -123,27 +121,6 @@ function snn_sanitize_other_settings($input) {
     } else {
         $sanitized['dashboard_custom_metabox_content'] = '';
     }
-
-    // Lenis settings
-    $sanitized['enable_lenis'] = isset($input['enable_lenis']) && $input['enable_lenis'] ? 1 : 0;
-    $sanitized['lenis_autoRaf'] = isset($input['lenis_autoRaf']) && $input['lenis_autoRaf'] ? 1 : 0;
-    $sanitized['lenis_smoothWheel'] = isset($input['lenis_smoothWheel']) && $input['lenis_smoothWheel'] ? 1 : 0;
-    $sanitized['lenis_syncTouch'] = isset($input['lenis_syncTouch']) && $input['lenis_syncTouch'] ? 1 : 0;
-    $sanitized['lenis_infinite'] = isset($input['lenis_infinite']) && $input['lenis_infinite'] ? 1 : 0;
-    $sanitized['lenis_overscroll'] = isset($input['lenis_overscroll']) && $input['lenis_overscroll'] ? 1 : 0;
-
-    // Lenis numeric settings
-    $sanitized['lenis_duration'] = isset($input['lenis_duration']) ? floatval($input['lenis_duration']) : 1.2;
-    $sanitized['lenis_lerp'] = isset($input['lenis_lerp']) ? floatval($input['lenis_lerp']) : 0.1;
-    $sanitized['lenis_wheelMultiplier'] = isset($input['lenis_wheelMultiplier']) ? floatval($input['lenis_wheelMultiplier']) : 1;
-    $sanitized['lenis_syncTouchLerp'] = isset($input['lenis_syncTouchLerp']) ? floatval($input['lenis_syncTouchLerp']) : 0.075;
-    $sanitized['lenis_touchMultiplier'] = isset($input['lenis_touchMultiplier']) ? floatval($input['lenis_touchMultiplier']) : 1;
-    $sanitized['lenis_touchInertiaExponent'] = isset($input['lenis_touchInertiaExponent']) ? floatval($input['lenis_touchInertiaExponent']) : 1.7;
-
-    // Lenis select settings
-    $sanitized['lenis_orientation'] = isset($input['lenis_orientation']) ? sanitize_text_field($input['lenis_orientation']) : 'vertical';
-    $sanitized['lenis_gestureOrientation'] = isset($input['lenis_gestureOrientation']) ? sanitize_text_field($input['lenis_gestureOrientation']) : 'vertical';
-    $sanitized['lenis_easing'] = isset($input['lenis_easing']) ? sanitize_text_field($input['lenis_easing']) : 'default';
 
     // Update comment_registration option only when this setting is saved
     // Enable if either setting requires it
