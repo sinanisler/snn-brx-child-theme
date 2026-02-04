@@ -684,15 +684,11 @@ function snn_enqueue_page_transitions() {
                     const newScript = document.createElement('script');
                     Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
 
-                    // Wrap inline script content in try-catch to handle redeclaration errors
-                    if (oldScript.innerHTML) {
-                        if (!oldScript.src) {
-                            // Inline script - wrap in try-catch
-                            newScript.textContent = 'try{' + oldScript.innerHTML + '}catch(e){console.debug("Script already initialized:",e.message)}';
-                        } else {
-                            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                        }
+                    if (!oldScript.src && oldScript.innerHTML) {
+                        // Inline script - wrap in try-catch to handle redeclaration errors
+                        newScript.textContent = 'try{' + oldScript.innerHTML + '}catch(e){}';
                     }
+                    // External scripts (with src) will load automatically from the src attribute
 
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
