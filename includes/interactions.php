@@ -566,73 +566,116 @@ function snn_enqueue_page_transitions() {
 
     if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
         $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down';
-        $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
-        $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
-        $duration = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
-        $logo_width = isset($options['page_transition_logo_width']) ? absint($options['page_transition_logo_width']) : 200;
+        $show_logo       = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
+        $overlay_color   = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
+        $duration        = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
+        $logo_width      = isset($options['page_transition_logo_width']) ? absint($options['page_transition_logo_width']) : 200;
 
-        // Enable native MPA View Transitions - browser handles everything automatically
+        // Base Settings
         $inline_css = "
         @view-transition { navigation: auto; }
         :root { --snn-transition-duration: " . $duration . "s; }
+        /* Ensure distinct stacking context */
+        ::view-transition-group(root) { animation-duration: var(--snn-transition-duration); }
         ";
 
-        // Overlay CSS only if logo feature is enabled
+        // ---------------------------------------------------------
+        // SCENARIO 1: LOGO/OVERLAY IS ENABLED
+        // The transition is handled by the overlay element covering the screen
+        // ---------------------------------------------------------
         if ($show_logo) {
-            $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
+            $logo_id  = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
             $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
 
-            if ($logo_url) {
-                $inline_css .= "
-                #snn-transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: " . esc_attr($overlay_color) . "; display: flex; align-items: center; justify-content: center; z-index: 999999; pointer-events: none; view-transition-name: snn-overlay; contain: paint; }
-                .snn-transition-logo img { max-width: " . $logo_width . "px; height: auto; object-fit: contain; }
-                html:not(:active-view-transition) #snn-transition-overlay { display: none; }
-                ";
-            }
-        }
-
-        // Transition animations
-        if ($transition_type === 'wipe-down') {
+            // 1. Overlay Styling
             $inline_css .= "
-            ::view-transition-old(root) { animation: calc(var(--snn-transition-duration) * 0.4) cubic-bezier(0.4, 0, 0.6, 1) both snn-wipe-out; }
-            ::view-transition-new(root) { animation: calc(var(--snn-transition-duration) * 0.6) cubic-bezier(0.4, 0, 0.2, 1) both snn-wipe-in; animation-delay: calc(var(--snn-transition-duration) * 0.4); }
-            @keyframes snn-wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
-            @keyframes snn-wipe-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+            #snn-transition-overlay { 
+                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+                background: " . esc_attr($overlay_color) . "; 
+                display: flex; align-items: center; justify-content: center; 
+                z-index: 999999; pointer-events: none; 
+                view-transition-name: snn-overlay; 
+                contain: paint; 
+            }
+            .snn-transition-logo img { max-width: " . $logo_width . "px; height: auto; object-fit: contain; }
+            html:not(:active-view-transition) #snn-transition-overlay { display: none; }
             ";
 
-            if ($show_logo && isset($options['page_transition_logo']) && wp_get_attachment_image_url($options['page_transition_logo'], 'medium')) {
+            // 2. Keep the pages static underneath while overlay does the work
+            $inline_css .= "
+            ::view-transition-old(root),
+            ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+            ";
+
+            // 3. Animate the Overlay
+            if ($transition_type === 'wipe-down') {
                 $inline_css .= "
                 ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); }
                 ::view-transition-old(snn-overlay) { animation: none; opacity: 0; }
-                ::view-transition-new(snn-overlay) { animation: snn-overlay-wipe var(--snn-transition-duration) ease-in-out both; }
+                ::view-transition-new(snn-overlay) { animation: snn-overlay-wipe var(--snn-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) both; }
+                
                 @keyframes snn-overlay-wipe {
-                    0% { clip-path: inset(0 0 100% 0); }
-                    20% { clip-path: inset(0 0 0 0); }
-                    80% { clip-path: inset(0 0 0 0); }
-                    100% { clip-path: inset(100% 0 0 0); }
+                    0% { clip-path: inset(0 0 100% 0); } /* Enters from top */
+                    30%, 70% { clip-path: inset(0 0 0 0); } /* Full screen pause */
+                    100% { clip-path: inset(100% 0 0 0); } /* Exits to bottom */
                 }
                 ";
-            }
-        } else {
-            // Fade transition
-            $inline_css .= "
-            ::view-transition-old(root) { animation: calc(var(--snn-transition-duration) * 0.3) ease-out both snn-fade-out; }
-            ::view-transition-new(root) { animation: calc(var(--snn-transition-duration) * 0.5) ease-in both snn-fade-in; animation-delay: calc(var(--snn-transition-duration) * 0.3); }
-            @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
-            @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
-            ";
-
-            if ($show_logo && isset($options['page_transition_logo']) && wp_get_attachment_image_url($options['page_transition_logo'], 'medium')) {
+            } else {
+                // Fade Overlay
                 $inline_css .= "
                 ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); }
                 ::view-transition-old(snn-overlay) { animation: none; opacity: 0; }
                 ::view-transition-new(snn-overlay) { animation: snn-overlay-fade var(--snn-transition-duration) ease-in-out both; }
+                
                 @keyframes snn-overlay-fade {
                     0% { opacity: 0; }
-                    15% { opacity: 1; }
-                    85% { opacity: 1; }
+                    20%, 80% { opacity: 1; }
                     100% { opacity: 0; }
                 }
+                ";
+            }
+        } 
+        // ---------------------------------------------------------
+        // SCENARIO 2: LOGO/OVERLAY IS DISABLED (Pure Page-to-Page)
+        // ---------------------------------------------------------
+        else {
+            
+            if ($transition_type === 'wipe-down') {
+                // Wipe Down: New page wipes IN over the Old page.
+                // Old page stays static (no gap created).
+                $inline_css .= "
+                ::view-transition-old(root) { 
+                    animation: none; 
+                    z-index: -1; 
+                }
+                ::view-transition-new(root) { 
+                    animation: snn-wipe-in var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both; 
+                    z-index: 1; 
+                    clip-path: inset(0 0 100% 0); /* Start hidden at top */
+                }
+                
+                @keyframes snn-wipe-in { 
+                    from { clip-path: inset(0 0 100% 0); } 
+                    to { clip-path: inset(0 0 0 0); } 
+                }
+                ";
+            } else {
+                // Fade: Smooth Crossfade
+                // mix-blend-mode: plus-lighter prevents the white background from bleeding through
+                $inline_css .= "
+                ::view-transition-old(root) { 
+                    animation: snn-fade-out var(--snn-transition-duration) ease both; 
+                }
+                ::view-transition-new(root) { 
+                    animation: snn-fade-in var(--snn-transition-duration) ease both; 
+                    mix-blend-mode: plus-lighter; 
+                }
+                
+                @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
+                @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
+                
+                /* Fallback for dark mode/specific blending issues */
+                ::view-transition-image-pair(root) { isolation: isolate; }
                 ";
             }
         }
@@ -644,7 +687,5 @@ function snn_enqueue_page_transitions() {
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_page_transitions');
-
-
 
 
