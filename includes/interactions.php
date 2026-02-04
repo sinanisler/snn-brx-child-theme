@@ -287,6 +287,10 @@ function snn_enable_page_transitions_callback() {
                 <label><?php _e('Transition Type', 'snn'); ?>:
                     <select name="snn_interactions_settings[page_transition_type]" class="transitions-select">
                         <option value="wipe-down" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-down'); ?>><?php _e('Wipe Down (Top to Bottom)', 'snn'); ?></option>
+                        <option value="wipe-up" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-up'); ?>><?php _e('Wipe Up (Bottom to Top)', 'snn'); ?></option>
+                        <option value="wipe-left" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-left'); ?>><?php _e('Wipe Left (Right to Left)', 'snn'); ?></option>
+                        <option value="wipe-right" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-right'); ?>><?php _e('Wipe Right (Left to Right)', 'snn'); ?></option>
+                        <option value="perspective-flip" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'perspective-flip'); ?>><?php _e('3D Perspective Flip', 'snn'); ?></option>
                         <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
                     </select>
                 </label>
@@ -459,14 +463,107 @@ function snn_enqueue_page_transitions() {
                 z-index: -1;
             }
             ::view-transition-new(root) {
-                animation: snn-wipe-in var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                animation: snn-wipe-down var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
                 z-index: 1;
                 clip-path: inset(0 0 100% 0); /* Start hidden at top */
             }
 
-            @keyframes snn-wipe-in {
+            @keyframes snn-wipe-down {
                 from { clip-path: inset(0 0 100% 0); }
                 to { clip-path: inset(0 0 0 0); }
+            }
+            ";
+        } elseif ($transition_type === 'wipe-up') {
+            // Wipe Up: New page wipes IN from bottom to top.
+            $inline_css .= "
+            ::view-transition-old(root) {
+                animation: none;
+                z-index: -1;
+            }
+            ::view-transition-new(root) {
+                animation: snn-wipe-up var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 1;
+                clip-path: inset(100% 0 0 0); /* Start hidden at bottom */
+            }
+
+            @keyframes snn-wipe-up {
+                from { clip-path: inset(100% 0 0 0); }
+                to { clip-path: inset(0 0 0 0); }
+            }
+            ";
+        } elseif ($transition_type === 'wipe-left') {
+            // Wipe Left: New page wipes IN from right to left.
+            $inline_css .= "
+            ::view-transition-old(root) {
+                animation: none;
+                z-index: -1;
+            }
+            ::view-transition-new(root) {
+                animation: snn-wipe-left var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 1;
+                clip-path: inset(0 0 0 100%); /* Start hidden at right */
+            }
+
+            @keyframes snn-wipe-left {
+                from { clip-path: inset(0 0 0 100%); }
+                to { clip-path: inset(0 0 0 0); }
+            }
+            ";
+        } elseif ($transition_type === 'wipe-right') {
+            // Wipe Right: New page wipes IN from left to right.
+            $inline_css .= "
+            ::view-transition-old(root) {
+                animation: none;
+                z-index: -1;
+            }
+            ::view-transition-new(root) {
+                animation: snn-wipe-right var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 1;
+                clip-path: inset(0 100% 0 0); /* Start hidden at left */
+            }
+
+            @keyframes snn-wipe-right {
+                from { clip-path: inset(0 100% 0 0); }
+                to { clip-path: inset(0 0 0 0); }
+            }
+            ";
+        } elseif ($transition_type === 'perspective-flip') {
+            // 3D Perspective Flip: Old page rotates away in 3D space, new page rotates in.
+            $inline_css .= "
+            ::view-transition-old(root),
+            ::view-transition-new(root) {
+                backface-visibility: hidden;
+            }
+
+            ::view-transition-old(root) {
+                animation: snn-perspective-out var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 1;
+            }
+            ::view-transition-new(root) {
+                animation: snn-perspective-in var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 2;
+            }
+
+            @keyframes snn-perspective-out {
+                0% {
+                    transform: perspective(1000px) rotateY(0deg) scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: perspective(1000px) rotateY(-90deg) scale(0.8);
+                    opacity: 0;
+                }
+            }
+
+            @keyframes snn-perspective-in {
+                0% {
+                    transform: perspective(1000px) rotateY(90deg) scale(0.8);
+                    opacity: 0;
+                }
+                100% {
+                    transform: perspective(1000px) rotateY(0deg) scale(1);
+                    opacity: 1;
+                }
             }
             ";
         } else {
