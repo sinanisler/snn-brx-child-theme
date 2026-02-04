@@ -97,7 +97,7 @@ function snn_enable_lenis_callback() {
         <div class="lenis-config" style="margin-top: 20px; <?php echo $enabled ? '' : 'opacity: 0.5; pointer-events: none;'; ?>">
             <h4><?php _e('Basic Settings', 'snn'); ?></h4>
 
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 3px;">
                 <label>
                     <input type="checkbox" name="snn_other_settings[lenis_autoRaf]" value="1" <?php checked(1, isset($options['lenis_autoRaf']) ? $options['lenis_autoRaf'] : 1); ?>>
                     <?php _e('Auto RAF (Recommended)', 'snn'); ?>
@@ -105,7 +105,7 @@ function snn_enable_lenis_callback() {
                 <p class="description"><?php _e('Automatically run requestAnimationFrame loop. Keep this enabled for best performance.', 'snn'); ?></p>
             </div>
 
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 3px;">
                 <label>
                     <?php _e('Duration (seconds)', 'snn'); ?>:
                     <input type="number" step="0.1" min="0.1" max="5" name="snn_other_settings[lenis_duration]" value="<?php echo isset($options['lenis_duration']) ? esc_attr($options['lenis_duration']) : '1.2'; ?>" style="width: 80px;">
@@ -113,7 +113,7 @@ function snn_enable_lenis_callback() {
                 <p class="description"><?php _e('Animation duration in seconds. Default: 1.2', 'snn'); ?></p>
             </div>
 
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 3px;">
                 <label>
                     <?php _e('Lerp (smoothness)', 'snn'); ?>:
                     <input type="number" step="0.01" min="0.01" max="1" name="snn_other_settings[lenis_lerp]" value="<?php echo isset($options['lenis_lerp']) ? esc_attr($options['lenis_lerp']) : '0.1'; ?>" style="width: 80px;">
@@ -121,7 +121,7 @@ function snn_enable_lenis_callback() {
                 <p class="description"><?php _e('Linear interpolation intensity (0.01 to 1). Lower = smoother. Default: 0.1', 'snn'); ?></p>
             </div>
 
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 3px;">
                 <label>
                     <?php _e('Wheel Multiplier', 'snn'); ?>:
                     <input type="number" step="0.1" min="0.1" max="5" name="snn_other_settings[lenis_wheelMultiplier]" value="<?php echo isset($options['lenis_wheelMultiplier']) ? esc_attr($options['lenis_wheelMultiplier']) : '1'; ?>" style="width: 80px;">
@@ -129,7 +129,7 @@ function snn_enable_lenis_callback() {
                 <p class="description"><?php _e('Mouse wheel scroll speed. Default: 1', 'snn'); ?></p>
             </div>
 
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 3px;">
                 <label>
                     <input type="checkbox" name="snn_other_settings[lenis_smoothWheel]" value="1" <?php checked(1, isset($options['lenis_smoothWheel']) ? $options['lenis_smoothWheel'] : 1); ?>>
                     <?php _e('Smooth Wheel Events', 'snn'); ?>
@@ -139,12 +139,12 @@ function snn_enable_lenis_callback() {
 
             <!-- Advanced Settings Accordion -->
             <details style="margin-top: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 4px;">
-                <summary style="cursor: pointer; font-weight: bold; margin-bottom: 15px;">
+                <summary style="cursor: pointer; font-weight: bold; margin-bottom: 3px;">
                     <?php _e('Advanced Settings', 'snn'); ?>
                 </summary>
 
                 <div style="margin-top: 15px;">
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <?php _e('Orientation', 'snn'); ?>:
                             <select name="snn_other_settings[lenis_orientation]" style="margin-left: 10px;">
@@ -155,7 +155,7 @@ function snn_enable_lenis_callback() {
                         <p class="description"><?php _e('Scrolling orientation. Default: vertical', 'snn'); ?></p>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <?php _e('Gesture Orientation', 'snn'); ?>:
                             <select name="snn_other_settings[lenis_gestureOrientation]" style="margin-left: 10px;">
@@ -167,7 +167,7 @@ function snn_enable_lenis_callback() {
                         <p class="description"><?php _e('Touch gesture orientation. Default: vertical', 'snn'); ?></p>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <input type="checkbox" name="snn_other_settings[lenis_syncTouch]" value="1" <?php checked(1, isset($options['lenis_syncTouch']) ? $options['lenis_syncTouch'] : 0); ?>>
                             <?php _e('Sync Touch', 'snn'); ?>
@@ -175,7 +175,7 @@ function snn_enable_lenis_callback() {
                         <p class="description"><?php _e('Mimic touch device scroll (can be unstable on iOS<16). Default: disabled', 'snn'); ?></p>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <?php _e('Sync Touch Lerp', 'snn'); ?>:
                             <input type="number" step="0.001" min="0.001" max="1" name="snn_other_settings[lenis_syncTouchLerp]" value="<?php echo isset($options['lenis_syncTouchLerp']) ? esc_attr($options['lenis_syncTouchLerp']) : '0.075'; ?>" style="width: 80px;">
@@ -183,7 +183,7 @@ function snn_enable_lenis_callback() {
                         <p class="description"><?php _e('Lerp applied during syncTouch inertia. Default: 0.075', 'snn'); ?></p>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <?php _e('Touch Multiplier', 'snn'); ?>:
                             <input type="number" step="0.1" min="0.1" max="5" name="snn_other_settings[lenis_touchMultiplier]" value="<?php echo isset($options['lenis_touchMultiplier']) ? esc_attr($options['lenis_touchMultiplier']) : '1'; ?>" style="width: 80px;">
@@ -191,7 +191,7 @@ function snn_enable_lenis_callback() {
                         <p class="description"><?php _e('Touch scroll speed multiplier. Default: 1', 'snn'); ?></p>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <?php _e('Touch Inertia Exponent', 'snn'); ?>:
                             <input type="number" step="0.1" min="0.1" max="5" name="snn_other_settings[lenis_touchInertiaExponent]" value="<?php echo isset($options['lenis_touchInertiaExponent']) ? esc_attr($options['lenis_touchInertiaExponent']) : '1.7'; ?>" style="width: 80px;">
@@ -199,7 +199,7 @@ function snn_enable_lenis_callback() {
                         <p class="description"><?php _e('Strength of syncTouch inertia. Default: 1.7', 'snn'); ?></p>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <input type="checkbox" name="snn_other_settings[lenis_infinite]" value="1" <?php checked(1, isset($options['lenis_infinite']) ? $options['lenis_infinite'] : 0); ?>>
                             <?php _e('Infinite Scroll', 'snn'); ?>
@@ -207,7 +207,7 @@ function snn_enable_lenis_callback() {
                         <p class="description"><?php _e('Enable infinite scrolling. Requires syncTouch on touch devices. Default: disabled', 'snn'); ?></p>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <input type="checkbox" name="snn_other_settings[lenis_overscroll]" value="1" <?php checked(1, isset($options['lenis_overscroll']) ? $options['lenis_overscroll'] : 1); ?>>
                             <?php _e('Overscroll', 'snn'); ?>
@@ -215,7 +215,7 @@ function snn_enable_lenis_callback() {
                         <p class="description"><?php _e('Similar to CSS overscroll-behavior. Default: enabled', 'snn'); ?></p>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 3px;">
                         <label>
                             <?php _e('Easing Function', 'snn'); ?>:
                             <select name="snn_other_settings[lenis_easing]" style="margin-left: 10px;">
@@ -242,7 +242,7 @@ function snn_enable_lenis_callback() {
                 border-radius: 3px;
             }
             .lenis-settings details[open] summary {
-                margin-bottom: 15px;
+                margin-bottom: 3px;
             }
             .lenis-settings label {
                 display: inline-block;
