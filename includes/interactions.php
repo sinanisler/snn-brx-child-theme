@@ -13,7 +13,7 @@ function snn_add_interactions_page() {
 add_action('admin_menu', 'snn_add_interactions_page');
 
 function snn_enqueue_interactions_admin_scripts($hook) {
-    if ($hook !== 'snn-settings_page_snn-interactions') {
+    if (!isset($_GET['page']) || $_GET['page'] !== 'snn-interactions') {
         return;
     }
     wp_enqueue_media();
@@ -108,6 +108,7 @@ function snn_sanitize_interactions_settings($input) {
     $sanitized['page_transition_overlay_color'] = isset($input['page_transition_overlay_color']) ? sanitize_hex_color($input['page_transition_overlay_color']) : '#000000';
     $sanitized['page_transition_show_logo'] = isset($input['page_transition_show_logo']) && $input['page_transition_show_logo'] ? 1 : 0;
     $sanitized['page_transition_logo'] = isset($input['page_transition_logo']) ? absint($input['page_transition_logo']) : 0;
+    $sanitized['page_transition_duration'] = isset($input['page_transition_duration']) ? floatval($input['page_transition_duration']) : 1.5;
 
     return $sanitized;
 }
@@ -269,6 +270,7 @@ function snn_enable_page_transitions_callback() {
     $show_logo = isset($options['page_transition_show_logo']) ? $options['page_transition_show_logo'] : 0;
     $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
     $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
+    $duration = isset($options['page_transition_duration']) ? $options['page_transition_duration'] : 1.5;
     $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
     ?>
     <div class="page-transitions-settings">
@@ -299,6 +301,12 @@ function snn_enable_page_transitions_callback() {
                 </div>
 
                 <div class="transitions-field">
+                    <label><?php _e('Transition Duration (seconds)', 'snn'); ?>:</label>
+                    <input type="number" name="snn_interactions_settings[page_transition_duration]" value="<?php echo esc_attr($duration); ?>" class="transitions-duration-input" step="0.1" min="0.5" max="5">
+                    <p class="description"><?php _e('Total duration of the overlay transition effect in seconds. Default: 1.5s', 'snn'); ?></p>
+                </div>
+
+                <div class="transitions-field">
                     <label><?php _e('Transition Logo', 'snn'); ?>:</label>
                     <div class="transitions-logo-wrapper">
                         <input type="hidden" id="page_transition_logo" name="snn_interactions_settings[page_transition_logo]" value="<?php echo esc_attr($logo_id); ?>">
@@ -323,6 +331,7 @@ function snn_enable_page_transitions_callback() {
             .page-transitions-settings label{display:inline-block}
             .page-transitions-settings .description{font-size:13px;color:#666;margin-top:5px}
             .transitions-color-picker{vertical-align:middle;margin-left:10px;width:60px;height:30px;padding:0;border:1px solid #ccc;cursor:pointer}
+            .transitions-duration-input{margin-left:10px;width:80px}
             .transitions-logo-wrapper{margin-top:10px;display:flex;align-items:center;gap:10px}
             .transitions-logo-preview{width:100px;height:100px;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;background:#f9f9f9}
             .transitions-logo-preview img{max-width:100%;max-height:100%;object-fit:contain}
@@ -495,9 +504,14 @@ function snn_enqueue_page_transitions() {
         $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'fade';
         $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
         $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
+        $duration = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
 
         // CSS for View Transitions
         $inline_css = "
+:root {
+    --snn-transition-duration: " . $duration . "s;
+}
+
 /* View Transition Overlay */
 #snn-transition-overlay {
     position: fixed;
@@ -513,8 +527,6 @@ function snn_enqueue_page_transitions() {
 
 #snn-transition-overlay[data-has-logo] {
     view-transition-name: snn-overlay;
-    align-items: center;
-    justify-content: center;
 }
 
 .snn-transition-logo {
@@ -536,12 +548,19 @@ function snn_enqueue_page_transitions() {
 }
 
 ::view-transition-new(root) {
-    animation: 300ms cubic-bezier(0, 0, 0.2, 1) 150ms both snn-fade-in;
+    animation: 400ms cubic-bezier(0, 0, 0.2, 1) both snn-fade-in;
+    animation-delay: calc(var(--snn-transition-duration) * 0.5);
 }
 
-/* Overlay animation (only when logo is enabled) */
+/* Overlay group animation */
+::view-transition-group(snn-overlay) {
+    animation-duration: var(--snn-transition-duration);
+    animation-timing-function: ease-in-out;
+}
+
+/* Overlay animation */
 ::view-transition-new(snn-overlay) {
-    animation: 600ms ease-in-out both snn-overlay-animation;
+    animation: snn-overlay-in-out var(--snn-transition-duration) forwards;
 }
 
 @keyframes snn-fade-in {
@@ -554,9 +573,9 @@ function snn_enqueue_page_transitions() {
     to { opacity: 0; }
 }
 
-@keyframes snn-overlay-animation {
-    0% { opacity: 0; transform: scale(1.05); }
-    20% { opacity: 1; transform: scale(1); }
+@keyframes snn-overlay-in-out {
+    0% { opacity: 0; transform: scale(1.1); }
+    15% { opacity: 1; transform: scale(1); }
     80% { opacity: 1; }
     100% { opacity: 0; }
 }
