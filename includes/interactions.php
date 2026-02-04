@@ -677,18 +677,23 @@ function snn_enqueue_page_transitions() {
                 if (overlay) overlay.style.display = 'none';
             }
 
-            // Only run inline scripts that don't have global side effects
+            // Re-run scripts for lazy loading and other page-specific functionality
             function runScripts(container) {
                 const scripts = container.querySelectorAll('script');
                 scripts.forEach(oldScript => {
-                    // Skip inline scripts (they've already been run globally)
-                    if (!oldScript.src) return;
-
                     const newScript = document.createElement('script');
                     Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+
+                    // Wrap inline script content in try-catch to handle redeclaration errors
                     if (oldScript.innerHTML) {
-                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                        if (!oldScript.src) {
+                            // Inline script - wrap in try-catch
+                            newScript.textContent = 'try{' + oldScript.innerHTML + '}catch(e){console.debug("Script already initialized:",e.message)}';
+                        } else {
+                            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                        }
                     }
+
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 });
             }
