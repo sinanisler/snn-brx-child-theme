@@ -50,6 +50,14 @@ function snn_register_interactions_settings() {
         'snn-interactions',
         'snn_interactions_section'
     );
+
+    add_settings_field(
+        'enable_page_transitions',
+        __('Enable Page Transitions', 'snn'),
+        'snn_enable_page_transitions_callback',
+        'snn-interactions',
+        'snn_interactions_section'
+    );
 }
 add_action('admin_init', 'snn_register_interactions_settings');
 
@@ -113,6 +121,50 @@ function snn_enable_lenis_callback() {
         </div>
         <style>.lenis-config{margin-top:20px}.lenis-disabled{opacity:0.5;pointer-events:none}.lenis-field{margin-bottom:5px}.lenis-input-small{width:80px}.lenis-select{margin-left:10px}.lenis-accordion{border:1px solid #ddd;padding:15px;border-radius:4px}.lenis-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px}.lenis-accordion[open] .lenis-summary{margin-bottom:5px}.lenis-accordion-content{margin-top:15px}.lenis-settings label{display:inline-block}.lenis-settings .description{font-size:13px;color:#666}</style>
         <script>document.addEventListener('DOMContentLoaded', function() { const enableCheckbox = document.getElementById('enable_lenis'); const configDiv = document.querySelector('.lenis-config'); if (enableCheckbox && configDiv) { enableCheckbox.addEventListener('change', function() { if (this.checked) { configDiv.classList.remove('lenis-disabled'); } else { configDiv.classList.add('lenis-disabled'); } }); } });</script>
+    </div>
+<?php }
+
+function snn_enable_page_transitions_callback() {
+    $options = get_option('snn_other_settings');
+    $enabled = isset($options['enable_page_transitions']) ? $options['enable_page_transitions'] : 0; ?>
+    <div class="page-transitions-settings">
+        <input type="checkbox" id="enable_page_transitions" name="snn_other_settings[enable_page_transitions]" value="1" <?php checked(1, $enabled); ?>> <label for="enable_page_transitions"><strong><?php _e('Enable Page Transitions with View Transition API', 'snn'); ?></strong></label>
+        <p><?php _e('The View Transition API provides a mechanism for easily creating animated transitions between different website pages. It allows you to create seamless visual transitions when navigating between pages, improving the user experience.', 'snn'); ?></p>
+        <p><?php _e('Learn more:', 'snn'); ?> <a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API" target="_blank">View Transitions API - MDN Web Docs</a></p>
+        <div class="page-transitions-config <?php echo $enabled ? '' : 'transitions-disabled'; ?>">
+            <h4><?php _e('Transition Settings', 'snn'); ?></h4>
+            <div class="transitions-field">
+                <label><?php _e('Transition Type', 'snn'); ?>:
+                    <select name="snn_other_settings[page_transition_type]" class="transitions-select">
+                        <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'fade', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
+                    </select>
+                </label>
+                <p class="description"><?php _e('Select the type of transition effect to use when navigating between pages. Default: Fade in and Fade out', 'snn'); ?></p>
+            </div>
+        </div>
+        <style>
+            .page-transitions-config{margin-top:20px}
+            .transitions-disabled{opacity:0.5;pointer-events:none}
+            .transitions-field{margin-bottom:15px}
+            .transitions-select{margin-left:10px;min-width:200px}
+            .page-transitions-settings label{display:inline-block}
+            .page-transitions-settings .description{font-size:13px;color:#666;margin-top:5px}
+        </style>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const enableCheckbox = document.getElementById('enable_page_transitions');
+                const configDiv = document.querySelector('.page-transitions-config');
+                if (enableCheckbox && configDiv) {
+                    enableCheckbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            configDiv.classList.remove('transitions-disabled');
+                        } else {
+                            configDiv.classList.add('transitions-disabled');
+                        }
+                    });
+                }
+            });
+        </script>
     </div>
 <?php }
 
@@ -183,6 +235,88 @@ function snn_enqueue_lenis_scripts() {
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_lenis_scripts');
+
+function snn_enqueue_page_transitions() {
+    $options = get_option('snn_other_settings');
+
+    if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
+        $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'fade';
+
+        // Enqueue inline CSS for View Transitions
+        $inline_css = "
+        /* View Transition API Styles */
+        ::view-transition-old(root) {
+            animation: 90ms cubic-bezier(0.4, 0, 1, 1) both fade-out;
+        }
+        ::view-transition-new(root) {
+            animation: 400ms cubic-bezier(0, 0, 0.2, 1) both fade-in;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; }
+        }
+        @keyframes fade-out {
+            to { opacity: 0; }
+        }
+        ";
+
+        wp_add_inline_style('wp-block-library', $inline_css);
+
+        // Enqueue inline JavaScript for View Transitions
+        $inline_script = "
+        (function() {
+            // Check if View Transitions API is supported
+            if (!document.startViewTransition) {
+                console.warn('View Transitions API is not supported in this browser.');
+                return;
+            }
+
+            function attachPageTransitionListeners() {
+                document.querySelectorAll('a:not([target=\"_blank\"]):not([href^=\"#\"]):not([href^=\"mailto:\"]):not([href^=\"tel:\"])').forEach(link => {
+                    // Skip if already has listener
+                    if (link.dataset.transitionListener) return;
+                    link.dataset.transitionListener = 'true';
+
+                    link.addEventListener('click', async (e) => {
+                        const url = e.currentTarget.href;
+
+                        // Skip if same page or external link
+                        if (url === window.location.href || !url.startsWith(window.location.origin)) {
+                            return;
+                        }
+
+                        e.preventDefault();
+
+                        const transition = document.startViewTransition(async () => {
+                            const response = await fetch(url);
+                            const html = await response.text();
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+
+                            document.body.innerHTML = doc.body.innerHTML;
+
+                            // Reattach listeners after content update
+                            attachPageTransitionListeners();
+                        });
+
+                        await transition.finished;
+                    });
+                });
+            }
+
+            // Initialize on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', attachPageTransitionListeners);
+            } else {
+                attachPageTransitionListeners();
+            }
+        })();
+        ";
+
+        wp_add_inline_script('jquery-core', $inline_script);
+    }
+}
+add_action('wp_enqueue_scripts', 'snn_enqueue_page_transitions');
 
 
 
