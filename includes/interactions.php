@@ -12,6 +12,14 @@ function snn_add_interactions_page() {
 }
 add_action('admin_menu', 'snn_add_interactions_page');
 
+function snn_enqueue_interactions_admin_scripts($hook) {
+    if ($hook !== 'snn-settings_page_snn-interactions') {
+        return;
+    }
+    wp_enqueue_media();
+}
+add_action('admin_enqueue_scripts', 'snn_enqueue_interactions_admin_scripts');
+
 function snn_render_interactions_page() {
     ?>
     <div class="wrap">
@@ -97,6 +105,9 @@ function snn_sanitize_interactions_settings($input) {
     // Page Transitions settings
     $sanitized['enable_page_transitions'] = isset($input['enable_page_transitions']) && $input['enable_page_transitions'] ? 1 : 0;
     $sanitized['page_transition_type'] = isset($input['page_transition_type']) ? sanitize_text_field($input['page_transition_type']) : 'fade';
+    $sanitized['page_transition_overlay_color'] = isset($input['page_transition_overlay_color']) ? sanitize_hex_color($input['page_transition_overlay_color']) : '#000000';
+    $sanitized['page_transition_show_logo'] = isset($input['page_transition_show_logo']) && $input['page_transition_show_logo'] ? 1 : 0;
+    $sanitized['page_transition_logo'] = isset($input['page_transition_logo']) ? absint($input['page_transition_logo']) : 0;
 
     return $sanitized;
 }
@@ -254,7 +265,12 @@ function snn_enable_lenis_callback() {
 
 function snn_enable_page_transitions_callback() {
     $options = snn_get_interactions_settings();
-    $enabled = isset($options['enable_page_transitions']) ? $options['enable_page_transitions'] : 0; ?>
+    $enabled = isset($options['enable_page_transitions']) ? $options['enable_page_transitions'] : 0;
+    $show_logo = isset($options['page_transition_show_logo']) ? $options['page_transition_show_logo'] : 0;
+    $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
+    $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
+    $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
+    ?>
     <div class="page-transitions-settings">
         <input type="checkbox" id="enable_page_transitions" name="snn_interactions_settings[enable_page_transitions]" value="1" <?php checked(1, $enabled); ?>> <label for="enable_page_transitions"><strong><?php _e('Enable Page Transitions with View Transition API', 'snn'); ?></strong></label>
         <p style="max-width:800px"><?php _e('The View Transition API provides a mechanism for easily creating animated transitions between different website pages. It allows you to create seamless visual transitions when navigating between pages, improving the user experience.', 'snn'); ?></p>
@@ -269,26 +285,108 @@ function snn_enable_page_transitions_callback() {
                 </label>
                 <p class="description"><?php _e('Select the type of transition effect to use when navigating between pages. Default: Fade in and Fade out', 'snn'); ?></p>
             </div>
+
+            <div class="transitions-field">
+                <label><input type="checkbox" id="page_transition_show_logo" name="snn_interactions_settings[page_transition_show_logo]" value="1" <?php checked(1, $show_logo); ?>> <strong><?php _e('Show Logo Overlay During Transition', 'snn'); ?></strong></label>
+                <p class="description"><?php _e('When enabled, displays a colored overlay with your logo during page transitions.', 'snn'); ?></p>
+            </div>
+
+            <div class="transitions-logo-settings <?php echo $show_logo ? '' : 'logo-disabled'; ?>">
+                <div class="transitions-field">
+                    <label><?php _e('Overlay Background Color', 'snn'); ?>:</label>
+                    <input type="color" name="snn_interactions_settings[page_transition_overlay_color]" value="<?php echo esc_attr($overlay_color); ?>" class="transitions-color-picker">
+                    <p class="description"><?php _e('Choose the background color for the transition overlay. Default: #000000 (black)', 'snn'); ?></p>
+                </div>
+
+                <div class="transitions-field">
+                    <label><?php _e('Transition Logo', 'snn'); ?>:</label>
+                    <div class="transitions-logo-wrapper">
+                        <input type="hidden" id="page_transition_logo" name="snn_interactions_settings[page_transition_logo]" value="<?php echo esc_attr($logo_id); ?>">
+                        <div id="transitions-logo-preview" class="transitions-logo-preview">
+                            <?php if ($logo_url) : ?>
+                                <img src="<?php echo esc_url($logo_url); ?>" alt="Logo Preview">
+                            <?php endif; ?>
+                        </div>
+                        <button type="button" id="transitions-logo-upload" class="button"><?php _e('Select Logo', 'snn'); ?></button>
+                        <button type="button" id="transitions-logo-remove" class="button" <?php echo !$logo_id ? 'style="display:none;"' : ''; ?>><?php _e('Remove', 'snn'); ?></button>
+                    </div>
+                    <p class="description"><?php _e('Select an image to display as the logo during page transitions.', 'snn'); ?></p>
+                </div>
+            </div>
         </div>
         <style>
             .page-transitions-config{margin-top:20px}
             .transitions-disabled{opacity:0.5;pointer-events:none}
+            .logo-disabled{opacity:0.5;pointer-events:none}
             .transitions-field{margin-bottom:15px}
             .transitions-select{margin-left:10px;min-width:200px}
             .page-transitions-settings label{display:inline-block}
             .page-transitions-settings .description{font-size:13px;color:#666;margin-top:5px}
+            .transitions-color-picker{vertical-align:middle;margin-left:10px;width:60px;height:30px;padding:0;border:1px solid #ccc;cursor:pointer}
+            .transitions-logo-wrapper{margin-top:10px;display:flex;align-items:center;gap:10px}
+            .transitions-logo-preview{width:100px;height:100px;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;background:#f9f9f9}
+            .transitions-logo-preview img{max-width:100%;max-height:100%;object-fit:contain}
+            .transitions-logo-settings{margin-top:20px;padding:15px;background:#f9f9f9;border:1px solid #ddd;border-radius:4px}
         </style>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const enableCheckbox = document.getElementById('enable_page_transitions');
-                const configDiv = document.querySelector('.page-transitions-config');
+                var enableCheckbox = document.getElementById('enable_page_transitions');
+                var configDiv = document.querySelector('.page-transitions-config');
+                var showLogoCheckbox = document.getElementById('page_transition_show_logo');
+                var logoSettings = document.querySelector('.transitions-logo-settings');
+
                 if (enableCheckbox && configDiv) {
                     enableCheckbox.addEventListener('change', function() {
-                        if (this.checked) {
-                            configDiv.classList.remove('transitions-disabled');
-                        } else {
-                            configDiv.classList.add('transitions-disabled');
+                        configDiv.classList.toggle('transitions-disabled', !this.checked);
+                    });
+                }
+
+                if (showLogoCheckbox && logoSettings) {
+                    showLogoCheckbox.addEventListener('change', function() {
+                        logoSettings.classList.toggle('logo-disabled', !this.checked);
+                    });
+                }
+
+                // Media uploader
+                var uploadBtn = document.getElementById('transitions-logo-upload');
+                var removeBtn = document.getElementById('transitions-logo-remove');
+                var logoInput = document.getElementById('page_transition_logo');
+                var logoPreview = document.getElementById('transitions-logo-preview');
+                var mediaFrame;
+
+                if (uploadBtn) {
+                    uploadBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        if (mediaFrame) {
+                            mediaFrame.open();
+                            return;
                         }
+
+                        mediaFrame = wp.media({
+                            title: '<?php _e('Select Transition Logo', 'snn'); ?>',
+                            button: { text: '<?php _e('Use this image', 'snn'); ?>' },
+                            multiple: false
+                        });
+
+                        mediaFrame.on('select', function() {
+                            var attachment = mediaFrame.state().get('selection').first().toJSON();
+                            logoInput.value = attachment.id;
+                            var imgUrl = attachment.sizes && attachment.sizes.medium ? attachment.sizes.medium.url : attachment.url;
+                            logoPreview.innerHTML = '<img src="' + imgUrl + '" alt="Logo Preview">';
+                            removeBtn.style.display = '';
+                        });
+
+                        mediaFrame.open();
+                    });
+                }
+
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        logoInput.value = '';
+                        logoPreview.innerHTML = '';
+                        this.style.display = 'none';
                     });
                 }
             });
@@ -364,84 +462,218 @@ function snn_enqueue_lenis_scripts() {
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_lenis_scripts');
 
+/**
+ * Add View Transition overlay element to footer
+ */
+function snn_add_view_transition_overlay() {
+    $options = snn_get_interactions_settings();
+
+    if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
+        $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
+        $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
+        $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
+        ?>
+        <div id="snn-transition-overlay"<?php echo $show_logo && $logo_url ? ' data-has-logo="true"' : ''; ?>>
+            <?php if ($show_logo && $logo_url) : ?>
+                <div class="snn-transition-logo">
+                    <img src="<?php echo esc_url($logo_url); ?>" alt="Loading">
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+}
+add_action('wp_footer', 'snn_add_view_transition_overlay', 100);
+
+/**
+ * Enqueue View Transition styles and scripts
+ */
 function snn_enqueue_page_transitions() {
     $options = snn_get_interactions_settings();
 
     if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
         $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'fade';
+        $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
+        $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
 
-        // Enqueue inline CSS for View Transitions
+        // CSS for View Transitions
         $inline_css = "
-        /* View Transition API Styles */
-        ::view-transition-old(root) {
-            animation: 90ms cubic-bezier(0.4, 0, 1, 1) both fade-out;
-        }
-        ::view-transition-new(root) {
-            animation: 400ms cubic-bezier(0, 0, 0.2, 1) both fade-in;
-        }
+/* View Transition Overlay */
+#snn-transition-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: " . esc_attr($overlay_color) . ";
+    display: none;
+    z-index: 999999;
+    pointer-events: none;
+}
 
-        @keyframes fade-in {
-            from { opacity: 0; }
-        }
-        @keyframes fade-out {
-            to { opacity: 0; }
-        }
-        ";
+#snn-transition-overlay[data-has-logo] {
+    view-transition-name: snn-overlay;
+    align-items: center;
+    justify-content: center;
+}
 
-        wp_add_inline_style('wp-block-library', $inline_css);
+.snn-transition-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
 
-        // Enqueue inline JavaScript for View Transitions
+.snn-transition-logo img {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: contain;
+}
+
+/* Page content transitions */
+::view-transition-old(root) {
+    animation: 90ms cubic-bezier(0.4, 0, 1, 1) both snn-fade-out;
+}
+
+::view-transition-new(root) {
+    animation: 300ms cubic-bezier(0, 0, 0.2, 1) 150ms both snn-fade-in;
+}
+
+/* Overlay animation (only when logo is enabled) */
+::view-transition-new(snn-overlay) {
+    animation: 600ms ease-in-out both snn-overlay-animation;
+}
+
+@keyframes snn-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes snn-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes snn-overlay-animation {
+    0% { opacity: 0; transform: scale(1.05); }
+    20% { opacity: 1; transform: scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+";
+
+        // JavaScript for View Transitions (native JS, no jQuery)
         $inline_script = "
-        (function() {
-            // Check if View Transitions API is supported
-            if (!document.startViewTransition) {
-                console.warn('View Transitions API is not supported in this browser.');
-                return;
-            }
+(function() {
+    if (!document.startViewTransition) {
+        return;
+    }
 
-            function attachPageTransitionListeners() {
-                document.querySelectorAll('a:not([target=\"_blank\"]):not([href^=\"#\"]):not([href^=\"mailto:\"]):not([href^=\"tel:\"])').forEach(link => {
-                    // Skip if already has listener
-                    if (link.dataset.transitionListener) return;
-                    link.dataset.transitionListener = 'true';
+    function isInternalLink(url) {
+        try {
+            var linkUrl = new URL(url, window.location.origin);
+            return linkUrl.origin === window.location.origin &&
+                   !linkUrl.hash &&
+                   !url.startsWith('mailto:') &&
+                   !url.startsWith('tel:') &&
+                   linkUrl.href !== window.location.href;
+        } catch (e) {
+            return false;
+        }
+    }
 
-                    link.addEventListener('click', async (e) => {
-                        const url = e.currentTarget.href;
+    function showOverlay() {
+        var overlay = document.getElementById('snn-transition-overlay');
+        if (overlay && overlay.dataset.hasLogo) {
+            overlay.style.display = 'flex';
+        }
+    }
 
-                        // Skip if same page or external link
-                        if (url === window.location.href || !url.startsWith(window.location.origin)) {
-                            return;
-                        }
+    function hideOverlay() {
+        var overlay = document.getElementById('snn-transition-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
 
-                        e.preventDefault();
+    function attachTransitionListeners() {
+        document.querySelectorAll('a').forEach(function(link) {
+            if (link.dataset.snnTransition) return;
+            if (link.target === '_blank') return;
+            if (!isInternalLink(link.href)) return;
 
-                        const transition = document.startViewTransition(async () => {
-                            const response = await fetch(url);
-                            const html = await response.text();
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, 'text/html');
+            link.dataset.snnTransition = 'true';
 
-                            document.body.innerHTML = doc.body.innerHTML;
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                var url = this.href;
 
-                            // Reattach listeners after content update
-                            attachPageTransitionListeners();
+                var transition = document.startViewTransition(function() {
+                    return fetch(url)
+                        .then(function(response) { return response.text(); })
+                        .then(function(html) {
+                            var parser = new DOMParser();
+                            var doc = parser.parseFromString(html, 'text/html');
+
+                            // Update the page
+                            document.documentElement.innerHTML = doc.documentElement.innerHTML;
+
+                            // Update URL
+                            history.pushState(null, '', url);
+
+                            // Show overlay for animation (only if logo enabled)
+                            showOverlay();
+
+                            // Re-attach listeners
+                            attachTransitionListeners();
                         });
-
-                        await transition.finished;
-                    });
                 });
-            }
 
-            // Initialize on DOM ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', attachPageTransitionListeners);
-            } else {
-                attachPageTransitionListeners();
-            }
-        })();
-        ";
+                transition.finished.then(function() {
+                    hideOverlay();
+                    window.scrollTo(0, 0);
+                });
+            });
+        });
+    }
 
-        wp_add_inline_script('jquery-core', $inline_script);
+    // Handle browser back/forward
+    window.addEventListener('popstate', function() {
+        var transition = document.startViewTransition(function() {
+            return fetch(window.location.href)
+                .then(function(response) { return response.text(); })
+                .then(function(html) {
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(html, 'text/html');
+                    document.documentElement.innerHTML = doc.documentElement.innerHTML;
+                    showOverlay();
+                    attachTransitionListeners();
+                });
+        });
+
+        transition.finished.then(function() {
+            hideOverlay();
+        });
+    });
+
+    // Initialize
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', attachTransitionListeners);
+    } else {
+        attachTransitionListeners();
+    }
+})();
+";
+
+        // Register and enqueue styles
+        wp_register_style('snn-view-transitions', false);
+        wp_enqueue_style('snn-view-transitions');
+        wp_add_inline_style('snn-view-transitions', $inline_css);
+
+        // Register and enqueue script
+        wp_register_script('snn-view-transitions', false, array(), false, true);
+        wp_enqueue_script('snn-view-transitions');
+        wp_add_inline_script('snn-view-transitions', $inline_script);
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_page_transitions');
