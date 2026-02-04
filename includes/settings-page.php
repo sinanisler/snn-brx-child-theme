@@ -27,6 +27,7 @@ function snn_settings_page_callback() {
             $menu_items = array(
                 array('slug' => 'snn-settings',               'label' => $dynamic_title.' '.__('Settings', 'snn'),      'dashicon' => 'dashicons-admin-home'),
                 array('slug' => 'editor-settings',            'label' => __('Editor Settings', 'snn'),                  'dashicon' => 'dashicons-edit'),
+                array('slug' => 'snn-interactions',           'label' => __('Interactions', 'snn'),                     'dashicon' => 'dashicons-table-col-after'),
                 array('slug' => 'snn-security',               'label' => __('Security Settings', 'snn'),                'dashicon' => 'dashicons-shield'),
                 array('slug' => 'snn-custom-post-types',      'label' => __('Post Types', 'snn'),                       'dashicon' => 'dashicons-admin-post'),
                 array('slug' => 'snn-custom-fields',          'label' => __('Custom Fields', 'snn'),                    'dashicon' => 'dashicons-admin-page'),
@@ -40,7 +41,6 @@ function snn_settings_page_callback() {
                 array('slug' => 'snn-role-management',        'label' => __('Role Manager', 'snn'),                     'dashicon' => 'dashicons-admin-users'),
                 array('slug' => 'snn-cookie-settings',        'label' => __('Cookie Settings', 'snn'),                  'dashicon' => 'dashicons-admin-site'),
                 array('slug' => 'snn-accessibility-settings', 'label' => __('Accessibility Settings', 'snn'),           'dashicon' => 'dashicons-universal-access'),
-                array('slug' => 'snn-interactions',           'label' => __('Interactions', 'snn'),                     'dashicon' => 'dashicons-table-col-after'),
                 array('slug' => 'snn-search-logs',            'label' => __('Search Logs', 'snn'),                      'dashicon' => 'dashicons-search'),
                 array('slug' => 'snn-ai-settings',            'label' => __('AI Settings', 'snn'),                      'dashicon' => 'dashicons-nametag'),
                 array('slug' => 'snn-ai-agent-settings',      'label' => __('AI Agent and Chat', 'snn'),                'dashicon' => 'dashicons-nametag'),
