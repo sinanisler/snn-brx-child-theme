@@ -547,9 +547,9 @@ function snn_add_view_transition_overlay() {
         // Only output overlay HTML if logo feature is enabled
         if ($show_logo && $logo_url) :
         ?>
-        <div id="snn-transition-overlay" data-has-logo="true">
+        <div id="snn-transition-overlay">
             <div class="snn-transition-logo">
-                <img src="<?php echo esc_url($logo_url); ?>" alt="Loading">
+                <img src="<?php echo esc_url($logo_url); ?>" alt="">
             </div>
         </div>
         <?php
@@ -571,256 +571,76 @@ function snn_enqueue_page_transitions() {
         $duration = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
         $logo_width = isset($options['page_transition_logo_width']) ? absint($options['page_transition_logo_width']) : 200;
 
-        // Get selectors with defaults
-        $header_selector = isset($options['page_transition_header_selector']) ? $options['page_transition_header_selector'] : 'header';
-        $main_selector = isset($options['page_transition_main_selector']) ? $options['page_transition_main_selector'] : 'main, article, #brx-content';
-        $footer_selector = isset($options['page_transition_footer_selector']) ? $options['page_transition_footer_selector'] : 'footer';
-        $update_mode = isset($options['page_transition_update_mode']) ? $options['page_transition_update_mode'] : 'smart';
+        // Enable native MPA View Transitions - browser handles everything automatically
+        $inline_css = "
+        @view-transition { navigation: auto; }
+        :root { --snn-transition-duration: " . $duration . "s; }
+        ";
 
-        // Base CSS for View Transitions
-        $inline_css = ":root { --snn-transition-duration: " . $duration . "s; }";
-
-        // Only include overlay CSS if logo feature is enabled
+        // Overlay CSS only if logo feature is enabled
         if ($show_logo) {
             $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
             $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
 
             if ($logo_url) {
                 $inline_css .= "
-                #snn-transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: " . esc_attr($overlay_color) . "; display: none; z-index: 999999; pointer-events: none; view-transition-name: snn-overlay; }
-                .snn-transition-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+                #snn-transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: " . esc_attr($overlay_color) . "; display: flex; align-items: center; justify-content: center; z-index: 999999; pointer-events: none; view-transition-name: snn-overlay; contain: paint; }
                 .snn-transition-logo img { max-width: " . $logo_width . "px; height: auto; object-fit: contain; }
+                html:not(:active-view-transition) #snn-transition-overlay { display: none; }
                 ";
             }
         }
 
-        // Add transition-specific animations
+        // Transition animations
         if ($transition_type === 'wipe-down') {
             $inline_css .= "
-            ::view-transition-old(root) { animation: calc(var(--snn-transition-duration) * 0.4) cubic-bezier(0.4, 0, 0.6, 1) both snn-wipe-down-out; }
-            ::view-transition-new(root) { animation: calc(var(--snn-transition-duration) * 0.6) cubic-bezier(0.4, 0, 0.2, 1) both snn-wipe-down-in; animation-delay: calc(var(--snn-transition-duration) * 0.4); }
-            @keyframes snn-wipe-down-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
-            @keyframes snn-wipe-down-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+            ::view-transition-old(root) { animation: calc(var(--snn-transition-duration) * 0.4) cubic-bezier(0.4, 0, 0.6, 1) both snn-wipe-out; }
+            ::view-transition-new(root) { animation: calc(var(--snn-transition-duration) * 0.6) cubic-bezier(0.4, 0, 0.2, 1) both snn-wipe-in; animation-delay: calc(var(--snn-transition-duration) * 0.4); }
+            @keyframes snn-wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
+            @keyframes snn-wipe-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
             ";
 
-            // Only add overlay animations if logo feature is enabled
-            if ($show_logo) {
-                $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
-                $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
-
-                if ($logo_url) {
-                    $inline_css .= "
-                    ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); animation-timing-function: ease-in-out; }
-                    ::view-transition-new(snn-overlay) { animation: snn-overlay-wipe-down var(--snn-transition-duration) forwards; }
-                    @keyframes snn-overlay-wipe-down {
-                        0% { clip-path: inset(0 0 100% 0); opacity: 1; }
-                        20% { clip-path: inset(0 0 0 0); opacity: 1; }
-                        80% { clip-path: inset(0 0 0 0); opacity: 1; }
-                        100% { clip-path: inset(100% 0 0 0); opacity: 1; }
-                    }
-                    ";
+            if ($show_logo && isset($options['page_transition_logo']) && wp_get_attachment_image_url($options['page_transition_logo'], 'medium')) {
+                $inline_css .= "
+                ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); }
+                ::view-transition-old(snn-overlay) { animation: none; opacity: 0; }
+                ::view-transition-new(snn-overlay) { animation: snn-overlay-wipe var(--snn-transition-duration) ease-in-out both; }
+                @keyframes snn-overlay-wipe {
+                    0% { clip-path: inset(0 0 100% 0); }
+                    20% { clip-path: inset(0 0 0 0); }
+                    80% { clip-path: inset(0 0 0 0); }
+                    100% { clip-path: inset(100% 0 0 0); }
                 }
+                ";
             }
         } else {
-            // Fade transition (default/fallback)
+            // Fade transition
             $inline_css .= "
-            ::view-transition-old(root) { animation: 90ms cubic-bezier(0.4, 0, 1, 1) both snn-fade-out; }
-            ::view-transition-new(root) { animation: 400ms cubic-bezier(0, 0, 0.2, 1) both snn-fade-in; animation-delay: calc(var(--snn-transition-duration) * 0.5); }
-            @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
+            ::view-transition-old(root) { animation: calc(var(--snn-transition-duration) * 0.3) ease-out both snn-fade-out; }
+            ::view-transition-new(root) { animation: calc(var(--snn-transition-duration) * 0.5) ease-in both snn-fade-in; animation-delay: calc(var(--snn-transition-duration) * 0.3); }
             @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
+            @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
             ";
 
-            // Only add overlay animations if logo feature is enabled
-            if ($show_logo) {
-                $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
-                $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
-
-                if ($logo_url) {
-                    $inline_css .= "
-                    ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); animation-timing-function: ease-in-out; }
-                    ::view-transition-new(snn-overlay) { animation: snn-overlay-in-out var(--snn-transition-duration) forwards; }
-                    @keyframes snn-overlay-in-out { 0% { opacity: 0; transform: scale(1.1); } 15% { opacity: 1; transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
-                    ";
+            if ($show_logo && isset($options['page_transition_logo']) && wp_get_attachment_image_url($options['page_transition_logo'], 'medium')) {
+                $inline_css .= "
+                ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); }
+                ::view-transition-old(snn-overlay) { animation: none; opacity: 0; }
+                ::view-transition-new(snn-overlay) { animation: snn-overlay-fade var(--snn-transition-duration) ease-in-out both; }
+                @keyframes snn-overlay-fade {
+                    0% { opacity: 0; }
+                    15% { opacity: 1; }
+                    85% { opacity: 1; }
+                    100% { opacity: 0; }
                 }
+                ";
             }
         }
 
-        // JavaScript for View Transitions
-        $inline_script = "
-        (function() {
-            if (!document.startViewTransition) return;
-
-            var config = {
-                updateMode: '" . esc_js($update_mode) . "',
-                headerSelector: '" . esc_js($header_selector) . "',
-                mainSelector: '" . esc_js($main_selector) . "',
-                footerSelector: '" . esc_js($footer_selector) . "',
-                hasOverlay: " . ($show_logo && isset($options['page_transition_logo']) && wp_get_attachment_image_url($options['page_transition_logo'], 'medium') ? 'true' : 'false') . "
-            };
-
-            function isInternalLink(url) {
-                try {
-                    var linkUrl = new URL(url, window.location.origin);
-                    return linkUrl.origin === window.location.origin && !linkUrl.hash && !url.startsWith('mailto:') && !url.startsWith('tel:') && linkUrl.href !== window.location.href && !url.match(/\.(jpg|jpeg|gif|png|webp|svg|pdf)$/i);
-                } catch (e) { return false; }
-            }
-
-            function showOverlay() {
-                if (!config.hasOverlay) return;
-                var overlay = document.getElementById('snn-transition-overlay');
-                if (overlay && overlay.dataset.hasLogo) overlay.style.display = 'flex';
-            }
-
-            function hideOverlay() {
-                if (!config.hasOverlay) return;
-                var overlay = document.getElementById('snn-transition-overlay');
-                if (overlay) overlay.style.display = 'none';
-            }
-
-            // Re-run scripts for lazy loading and other page-specific functionality
-            function runScripts(container) {
-                const scripts = container.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-
-                    if (!oldScript.src && oldScript.innerHTML) {
-                        // Inline script - wrap in try-catch to handle redeclaration errors
-                        newScript.textContent = 'try{' + oldScript.innerHTML + '}catch(e){}';
-                    }
-                    // External scripts (with src) will load automatically from the src attribute
-
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-            }
-
-            function triggerPageEvents() {
-                // Dispatch events to wake up lazy loaders
-                setTimeout(() => {
-                    window.dispatchEvent(new Event('resize'));
-                    window.dispatchEvent(new Event('scroll'));
-                }, 50);
-
-                // Bricks Builder support
-                if (window.bricksIsFrontend && window.bricks && typeof window.bricks.init === 'function') {
-                    setTimeout(() => window.bricks.init(), 100);
-                }
-            }
-
-            function updateHead(newDoc) {
-                document.title = newDoc.title;
-
-                // Update stylesheets
-                const newStyles = newDoc.querySelectorAll('link[rel=\"stylesheet\"], style');
-                const currentHead = document.head;
-
-                newStyles.forEach(newNode => {
-                    let exists = false;
-                    if (newNode.tagName === 'LINK' && newNode.href) {
-                        exists = !!currentHead.querySelector('link[href=\"' + newNode.href + '\"]');
-                    } else if (newNode.id) {
-                        exists = !!currentHead.querySelector('#' + newNode.id);
-                    }
-
-                    if (!exists) {
-                        currentHead.appendChild(newNode.cloneNode(true));
-                    }
-                });
-            }
-
-            function updatePageContent(newDoc) {
-                updateHead(newDoc);
-
-                // Remove any old overlay elements from the new document
-                const oldOverlay = newDoc.querySelector('#snn-transition-overlay');
-                if (oldOverlay && !config.hasOverlay) {
-                    oldOverlay.remove();
-                }
-
-                if (config.updateMode === 'smart') {
-                    document.body.className = newDoc.body.className;
-                    var mainSelectors = config.mainSelector.split(',').map(function(s) { return s.trim(); });
-                    var mainUpdated = false;
-
-                    for (var i = 0; i < mainSelectors.length; i++) {
-                        var currentMain = document.querySelector(mainSelectors[i]);
-                        var newMain = newDoc.querySelector(mainSelectors[i]);
-
-                        if (currentMain && newMain) {
-                            currentMain.innerHTML = newMain.innerHTML;
-                            runScripts(currentMain);
-                            mainUpdated = true;
-                            break;
-                        }
-                    }
-
-                    if (!mainUpdated) {
-                        document.body.innerHTML = newDoc.body.innerHTML;
-                        runScripts(document.body);
-                    }
-                } else {
-                    document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
-                    runScripts(document.body);
-                }
-
-                triggerPageEvents();
-            }
-
-            function navigateToPage(url) {
-                return fetch(url)
-                    .then(response => { if (!response.ok) throw new Error('Net err'); return response.text(); })
-                    .then(html => {
-                        var parser = new DOMParser();
-                        var newDoc = parser.parseFromString(html, 'text/html');
-                        updatePageContent(newDoc);
-                        history.pushState(null, '', url);
-                        showOverlay();
-                        setTimeout(attachTransitionListeners, 0);
-
-                        // Reinitialize Lenis if present
-                        if (window.lenis && typeof window.lenis.resize === 'function') {
-                            window.lenis.resize();
-                        }
-                    })
-                    .catch(error => { window.location.href = url; });
-            }
-
-            function attachTransitionListeners() {
-                document.querySelectorAll('a').forEach(link => {
-                    if (link.dataset.snnTransition || link.target === '_blank' || !isInternalLink(link.href)) return;
-                    link.dataset.snnTransition = 'true';
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        var url = this.href;
-                        var transition = document.startViewTransition(() => navigateToPage(url));
-                        transition.finished.then(() => {
-                            hideOverlay();
-                            window.scrollTo(0, 0);
-                        });
-                    });
-                });
-            }
-
-            window.addEventListener('popstate', () => {
-                var transition = document.startViewTransition(() => navigateToPage(window.location.href));
-                transition.finished.then(() => hideOverlay());
-            });
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', attachTransitionListeners);
-            } else {
-                attachTransitionListeners();
-            }
-        })();
-        ";
-
+        // CSS-only - no JavaScript needed for native MPA transitions!
         wp_register_style('snn-view-transitions', false);
         wp_enqueue_style('snn-view-transitions');
         wp_add_inline_style('snn-view-transitions', $inline_css);
-
-        wp_register_script('snn-view-transitions', false, array(), false, true);
-        wp_enqueue_script('snn-view-transitions');
-        wp_add_inline_script('snn-view-transitions', $inline_script);
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_page_transitions');
