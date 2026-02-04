@@ -104,7 +104,7 @@ function snn_sanitize_interactions_settings($input) {
 
     // Page Transitions settings
     $sanitized['enable_page_transitions'] = isset($input['enable_page_transitions']) && $input['enable_page_transitions'] ? 1 : 0;
-    $sanitized['page_transition_type'] = isset($input['page_transition_type']) ? sanitize_text_field($input['page_transition_type']) : 'fade';
+    $sanitized['page_transition_type'] = isset($input['page_transition_type']) ? sanitize_text_field($input['page_transition_type']) : 'wipe-down';
     $sanitized['page_transition_overlay_color'] = isset($input['page_transition_overlay_color']) ? sanitize_hex_color($input['page_transition_overlay_color']) : '#000000';
     $sanitized['page_transition_show_logo'] = isset($input['page_transition_show_logo']) && $input['page_transition_show_logo'] ? 1 : 0;
     $sanitized['page_transition_logo'] = isset($input['page_transition_logo']) ? absint($input['page_transition_logo']) : 0;
@@ -296,10 +296,11 @@ function snn_enable_page_transitions_callback() {
             <div class="transitions-field">
                 <label><?php _e('Transition Type', 'snn'); ?>:
                     <select name="snn_interactions_settings[page_transition_type]" class="transitions-select">
-                        <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'fade', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
+                        <option value="wipe-down" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-down'); ?>><?php _e('Wipe Down (Top to Bottom)', 'snn'); ?></option>
+                        <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
                     </select>
                 </label>
-                <p class="description"><?php _e('Select the type of transition effect to use when navigating between pages. Default: Fade in and Fade out', 'snn'); ?></p>
+                <p class="description"><?php _e('Select the type of transition effect to use when navigating between pages. Default: Wipe Down', 'snn'); ?></p>
             </div>
 
             <div class="transitions-field">
@@ -554,7 +555,7 @@ function snn_enqueue_page_transitions() {
     $options = snn_get_interactions_settings();
 
     if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
-        $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'fade';
+        $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down';
         $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
         $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
         $duration = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
@@ -565,13 +566,34 @@ function snn_enqueue_page_transitions() {
         $footer_selector = isset($options['page_transition_footer_selector']) ? $options['page_transition_footer_selector'] : 'footer';
         $update_mode = isset($options['page_transition_update_mode']) ? $options['page_transition_update_mode'] : 'smart';
 
-        // CSS for View Transitions
+        // Base CSS for View Transitions
         $inline_css = "
             :root { --snn-transition-duration: " . $duration . "s; }
             #snn-transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: " . esc_attr($overlay_color) . "; display: none; z-index: 999999; pointer-events: none; }
             #snn-transition-overlay[data-has-logo] { view-transition-name: snn-overlay; }
             .snn-transition-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
             .snn-transition-logo img { max-width: 200px; max-height: 200px; object-fit: contain; }
+        ";
+
+        // Add transition-specific animations
+        if ($transition_type === 'wipe-down') {
+            $inline_css .= "
+            ::view-transition-old(root) { animation: calc(var(--snn-transition-duration) * 0.4) cubic-bezier(0.4, 0, 0.6, 1) both snn-wipe-down-out; }
+            ::view-transition-new(root) { animation: calc(var(--snn-transition-duration) * 0.6) cubic-bezier(0.4, 0, 0.2, 1) both snn-wipe-down-in; animation-delay: calc(var(--snn-transition-duration) * 0.4); }
+            ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); animation-timing-function: ease-in-out; }
+            ::view-transition-new(snn-overlay) { animation: snn-overlay-wipe-down var(--snn-transition-duration) forwards; }
+            @keyframes snn-wipe-down-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
+            @keyframes snn-wipe-down-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+            @keyframes snn-overlay-wipe-down {
+                0% { clip-path: inset(0 0 100% 0); opacity: 1; }
+                20% { clip-path: inset(0 0 0 0); opacity: 1; }
+                80% { clip-path: inset(0 0 0 0); opacity: 1; }
+                100% { clip-path: inset(100% 0 0 0); opacity: 1; }
+            }
+            ";
+        } else {
+            // Fade transition (default/fallback)
+            $inline_css .= "
             ::view-transition-old(root) { animation: 90ms cubic-bezier(0.4, 0, 1, 1) both snn-fade-out; }
             ::view-transition-new(root) { animation: 400ms cubic-bezier(0, 0, 0.2, 1) both snn-fade-in; animation-delay: calc(var(--snn-transition-duration) * 0.5); }
             ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); animation-timing-function: ease-in-out; }
@@ -579,7 +601,8 @@ function snn_enqueue_page_transitions() {
             @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
             @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
             @keyframes snn-overlay-in-out { 0% { opacity: 0; transform: scale(1.1); } 15% { opacity: 1; transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
-        ";
+            ";
+        }
 
         // JavaScript for View Transitions (Improved for Asset Loading)
         $inline_script = "
