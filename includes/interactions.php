@@ -105,10 +105,6 @@ function snn_sanitize_interactions_settings($input) {
     // Page Transitions settings
     $sanitized['enable_page_transitions'] = isset($input['enable_page_transitions']) && $input['enable_page_transitions'] ? 1 : 0;
     $sanitized['page_transition_type'] = isset($input['page_transition_type']) ? sanitize_text_field($input['page_transition_type']) : 'wipe-down';
-    $sanitized['page_transition_overlay_color'] = isset($input['page_transition_overlay_color']) ? sanitize_hex_color($input['page_transition_overlay_color']) : '#000000';
-    $sanitized['page_transition_show_logo'] = isset($input['page_transition_show_logo']) && $input['page_transition_show_logo'] ? 1 : 0;
-    $sanitized['page_transition_logo'] = isset($input['page_transition_logo']) ? absint($input['page_transition_logo']) : 0;
-    $sanitized['page_transition_logo_width'] = isset($input['page_transition_logo_width']) ? absint($input['page_transition_logo_width']) : 200;
     $sanitized['page_transition_duration'] = isset($input['page_transition_duration']) ? floatval($input['page_transition_duration']) : 1.5;
 
     // Page Transition Selectors
@@ -282,12 +278,7 @@ function snn_enable_lenis_callback() {
 function snn_enable_page_transitions_callback() {
     $options = snn_get_interactions_settings();
     $enabled = isset($options['enable_page_transitions']) ? $options['enable_page_transitions'] : 0;
-    $show_logo = isset($options['page_transition_show_logo']) ? $options['page_transition_show_logo'] : 0;
-    $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
-    $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
     $duration = isset($options['page_transition_duration']) ? $options['page_transition_duration'] : 1.5;
-    $logo_width = isset($options['page_transition_logo_width']) ? $options['page_transition_logo_width'] : 200;
-    $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
     ?>
     <div class="page-transitions-settings">
         <input type="checkbox" id="enable_page_transitions" name="snn_interactions_settings[enable_page_transitions]" value="1" <?php checked(1, $enabled); ?>> <label for="enable_page_transitions"><strong><?php _e('Enable Page Transitions with View Transition API', 'snn'); ?></strong></label>
@@ -306,43 +297,9 @@ function snn_enable_page_transitions_callback() {
             </div>
 
             <div class="transitions-field">
-                <label><input type="checkbox" id="page_transition_show_logo" name="snn_interactions_settings[page_transition_show_logo]" value="1" <?php checked(1, $show_logo); ?>> <strong><?php _e('Show Logo and Overlay During Transition', 'snn'); ?></strong></label>
-                <p class="description"><?php _e('When enabled, displays a colored overlay with your logo during page transitions.', 'snn'); ?></p>
-            </div>
-
-            <div class="transitions-logo-settings <?php echo $show_logo ? '' : 'logo-disabled'; ?>">
-                <div class="transitions-field">
-                    <label><?php _e('Overlay Background Color', 'snn'); ?>:</label>
-                    <input type="color" name="snn_interactions_settings[page_transition_overlay_color]" value="<?php echo esc_attr($overlay_color); ?>" class="transitions-color-picker">
-                    <p class="description"><?php _e('Choose the background color for the transition overlay. Default: #000000 (black)', 'snn'); ?></p>
-                </div>
-
-                <div class="transitions-field">
-                    <label><?php _e('Transition Duration (seconds)', 'snn'); ?>:</label>
-                    <input type="number" name="snn_interactions_settings[page_transition_duration]" value="<?php echo esc_attr($duration); ?>" class="transitions-duration-input" step="0.1" min="0.5" max="5">
-                    <p class="description"><?php _e('Total duration of the overlay transition effect in seconds. Default: 1.5s', 'snn'); ?></p>
-                </div>
-
-                <div class="transitions-field">
-                    <label><?php _e('Transition Logo', 'snn'); ?>:</label>
-                    <div class="transitions-logo-wrapper">
-                        <input type="hidden" id="page_transition_logo" name="snn_interactions_settings[page_transition_logo]" value="<?php echo esc_attr($logo_id); ?>">
-                        <div id="transitions-logo-preview" class="transitions-logo-preview">
-                            <?php if ($logo_url) : ?>
-                                <img src="<?php echo esc_url($logo_url); ?>" alt="Logo Preview">
-                            <?php endif; ?>
-                        </div>
-                        <button type="button" id="transitions-logo-upload" class="button"><?php _e('Select Logo', 'snn'); ?></button>
-                        <button type="button" id="transitions-logo-remove" class="button" <?php echo !$logo_id ? 'style="display:none;"' : ''; ?>><?php _e('Remove', 'snn'); ?></button>
-                    </div>
-                    <p class="description"><?php _e('Select an image to display as the logo during page transitions.', 'snn'); ?></p>
-                </div>
-
-                <div class="transitions-field">
-                    <label><?php _e('Logo Width (pixels)', 'snn'); ?>:</label>
-                    <input type="number" name="snn_interactions_settings[page_transition_logo_width]" value="<?php echo esc_attr($logo_width); ?>" class="transitions-duration-input" step="10" min="50" max="800">
-                    <p class="description"><?php _e('Set the maximum width of the logo in pixels. Height will be automatic. Default: 200px', 'snn'); ?></p>
-                </div>
+                <label><?php _e('Transition Duration (seconds)', 'snn'); ?>:</label>
+                <input type="number" name="snn_interactions_settings[page_transition_duration]" value="<?php echo esc_attr($duration); ?>" class="transitions-duration-input" step="0.1" min="0.5" max="5">
+                <p class="description"><?php _e('Total duration of the transition effect in seconds. Default: 1.5s', 'snn'); ?></p>
             </div>
 
             <details class="transitions-accordion">
@@ -383,17 +340,11 @@ function snn_enable_page_transitions_callback() {
         <style>
             .page-transitions-config{margin-top:20px}
             .transitions-disabled{opacity:0.5;pointer-events:none}
-            .logo-disabled{opacity:0.5;pointer-events:none}
             .transitions-field{margin-bottom:15px}
             .transitions-select{margin-left:10px;min-width:200px}
             .page-transitions-settings label{display:inline-block}
             .page-transitions-settings .description{font-size:13px;color:#666;margin-top:5px}
-            .transitions-color-picker{vertical-align:middle;margin-left:10px;width:60px;height:30px;padding:0;border:1px solid #ccc;cursor:pointer}
             .transitions-duration-input{margin-left:10px;width:80px}
-            .transitions-logo-wrapper{margin-top:10px;display:flex;align-items:center;gap:10px}
-            .transitions-logo-preview{width:100px;height:100px;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;background:#f9f9f9}
-            .transitions-logo-preview img{max-width:100%;max-height:100%;object-fit:contain}
-            .transitions-logo-settings{margin-top:20px;padding:15px;background:#f9f9f9;border:1px solid #ddd;border-radius:4px}
             .transitions-accordion{border:1px solid #ddd;border-radius:4px;margin-top:20px}
             .transitions-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px;user-select:none}
             .transitions-accordion[open] .transitions-summary{margin-bottom:10px}
@@ -403,61 +354,10 @@ function snn_enable_page_transitions_callback() {
             document.addEventListener('DOMContentLoaded', function() {
                 var enableCheckbox = document.getElementById('enable_page_transitions');
                 var configDiv = document.querySelector('.page-transitions-config');
-                var showLogoCheckbox = document.getElementById('page_transition_show_logo');
-                var logoSettings = document.querySelector('.transitions-logo-settings');
 
                 if (enableCheckbox && configDiv) {
                     enableCheckbox.addEventListener('change', function() {
                         configDiv.classList.toggle('transitions-disabled', !this.checked);
-                    });
-                }
-
-                if (showLogoCheckbox && logoSettings) {
-                    showLogoCheckbox.addEventListener('change', function() {
-                        logoSettings.classList.toggle('logo-disabled', !this.checked);
-                    });
-                }
-
-                // Media uploader
-                var uploadBtn = document.getElementById('transitions-logo-upload');
-                var removeBtn = document.getElementById('transitions-logo-remove');
-                var logoInput = document.getElementById('page_transition_logo');
-                var logoPreview = document.getElementById('transitions-logo-preview');
-                var mediaFrame;
-
-                if (uploadBtn) {
-                    uploadBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-
-                        if (mediaFrame) {
-                            mediaFrame.open();
-                            return;
-                        }
-
-                        mediaFrame = wp.media({
-                            title: '<?php _e('Select Transition Logo', 'snn'); ?>',
-                            button: { text: '<?php _e('Use this image', 'snn'); ?>' },
-                            multiple: false
-                        });
-
-                        mediaFrame.on('select', function() {
-                            var attachment = mediaFrame.state().get('selection').first().toJSON();
-                            logoInput.value = attachment.id;
-                            var imgUrl = attachment.sizes && attachment.sizes.medium ? attachment.sizes.medium.url : attachment.url;
-                            logoPreview.innerHTML = '<img src="' + imgUrl + '" alt="Logo Preview">';
-                            removeBtn.style.display = '';
-                        });
-
-                        mediaFrame.open();
-                    });
-                }
-
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        logoInput.value = '';
-                        logoPreview.innerHTML = '';
-                        this.style.display = 'none';
                     });
                 }
             });
@@ -533,212 +433,76 @@ function snn_enqueue_lenis_scripts() {
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_lenis_scripts');
 
-/**
- * Add View Transition overlay element to footer
- */
-function snn_add_view_transition_overlay() {
-    $options = snn_get_interactions_settings();
-
-    if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
-        $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
-        $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
-        $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
-
-        // Only output overlay HTML if logo feature is enabled
-        if ($show_logo && $logo_url) :
-        ?>
-        <div id="snn-transition-overlay">
-            <div class="snn-transition-logo">
-                <img src="<?php echo esc_url($logo_url); ?>" alt="">
-            </div>
-        </div>
-        <?php
-        endif;
-    }
-}
-add_action('wp_footer', 'snn_add_view_transition_overlay', 100);
 
 /**
- * Enqueue View Transition styles and scripts
+ * Enqueue View Transition styles
  */
 function snn_enqueue_page_transitions() {
     $options = snn_get_interactions_settings();
 
     if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
         $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down';
-        $show_logo       = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
-        $overlay_color   = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
-        $duration        = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
-        $logo_width      = isset($options['page_transition_logo_width']) ? absint($options['page_transition_logo_width']) : 200;
+        $duration = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
 
-        // Base Settings & Anti-Jank Fixes
+        // Base Settings
         $inline_css = "
         @view-transition { navigation: auto; }
-        
-        /* PREVENT LAYOUT SHIFTS (Jumping) */
+
+        /* Prevent layout shifts */
         html { scrollbar-gutter: stable; }
-        
-        :root { 
-            --snn-transition-duration: " . $duration . "s; 
-            --snn-overlay-bg: " . esc_attr($overlay_color) . ";
+
+        :root {
+            --snn-transition-duration: " . $duration . "s;
         }
 
-        /* Ensure smooth layering */
-        ::view-transition-group(root) { 
+        /* Base transition group */
+        ::view-transition-group(root) {
             animation-duration: var(--snn-transition-duration);
             z-index: 1;
         }
         ";
 
-        // ---------------------------------------------------------
-        // SCENARIO 1: LOGO & OVERLAY ENABLED
-        // ---------------------------------------------------------
-        if ($show_logo) {
-            $logo_id  = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
-            $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
-
-            // 1. CSS for the Overlay Element (Must be captured by browser)
-            // We use clip-path to hide it instead of display:none so it exists in the DOM snapshot.
+        // Apply transition styles based on type
+        if ($transition_type === 'wipe-down') {
             $inline_css .= "
-            #snn-transition-overlay { 
-                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-                background: var(--snn-overlay-bg); 
-                display: flex; align-items: center; justify-content: center; 
-                z-index: 999999; pointer-events: none; 
-                
-                /* VITAL: Identify this element to the API */
-                view-transition-name: snn-overlay; 
-                
-                /* VITAL: Hide it visually but keep it paintable for the snapshot */
-                clip-path: inset(100% 0 0 0); 
+            ::view-transition-old(root) {
+                animation: snn-scale-out var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: -1;
+                transform-origin: center bottom;
+                filter: brightness(0.8);
             }
-            .snn-transition-logo img { 
-                max-width: " . $logo_width . "px; height: auto; object-fit: contain; 
-            }
-            ";
-
-            // 2. The Animation Logic
-            // When overlay is active, the Page Content (root) should essentially freeze or hide
-            // behind the overlay to prevent double-animation glitches.
-            $inline_css .= "
-            ::view-transition-old(root),
             ::view-transition-new(root) {
-                animation: none;
-                opacity: 0; /* Hide page content while overlay is doing the work */
-                mix-blend-mode: normal;
+                animation: snn-wipe-in var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 2;
+                box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
             }
 
-            /* The Overlay Group - Highest Z-Index */
-            ::view-transition-group(snn-overlay) {
-                z-index: 999999;
-                animation: none; /* We animate the children (old/new) or mix-blend */
-                mix-blend-mode: normal;
-                height: 100%; /* Fix for some browsers collapsing height */
+            @keyframes snn-wipe-in {
+                from { clip-path: inset(100% 0 0 0); transform: translateY(50px); }
+                to { clip-path: inset(0 0 0 0); transform: translateY(0); }
             }
-            
-            /* Since the element is technically 'clipped' in the DOM, 
-               we force the snapshot to be fully visible during transition */
-            ::view-transition-old(snn-overlay),
-            ::view-transition-new(snn-overlay) {
-                /* Unlock the clip-path for the animation duration */
-                height: 100%;
-                width: 100%;
-                object-fit: cover;
-                object-position: center;
+            @keyframes snn-scale-out {
+                from { transform: scale(1); opacity: 1; }
+                to { transform: scale(0.95); opacity: 0.8; }
             }
             ";
-
-            // 3. Define the Animation Keyframes
-            if ($transition_type === 'wipe-down') {
-                $inline_css .= "
-                /* We animate the NEW view of the overlay */
-                ::view-transition-new(snn-overlay) {
-                    animation: snn-overlay-wipe-sequence var(--snn-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) both;
-                    opacity: 1;
-                }
-                
-                /* Sequence:
-                   0-40%: Wipe UP (Cover screen)
-                   40-60%: Hold (Logo visible, page loads behind)
-                   60-100%: Wipe UP/Fade OUT (Reveal new page)
-                */
-                @keyframes snn-overlay-wipe-sequence {
-                    0% { clip-path: inset(100% 0 0 0); }   /* Start at bottom */
-                    35% { clip-path: inset(0 0 0 0); }     /* Full Screen */
-                    65% { clip-path: inset(0 0 0 0); }     /* Hold */
-                    100% { clip-path: inset(0 0 100% 0); } /* Exit to top */
-                }
-                
-                /* Hide the 'old' snapshot of the overlay immediately */
-                ::view-transition-old(snn-overlay) { display: none; }
-                ";
-            } else {
-                // FADE TYPE OVERLAY
-                $inline_css .= "
-                ::view-transition-new(snn-overlay) {
-                    animation: snn-overlay-fade-sequence var(--snn-transition-duration) ease-in-out both;
-                    clip-path: none; /* Remove the hiding clip */
-                }
-
-                @keyframes snn-overlay-fade-sequence {
-                    0% { opacity: 0; }
-                    25% { opacity: 1; }
-                    75% { opacity: 1; }
-                    100% { opacity: 0; }
-                }
-                
-                ::view-transition-old(snn-overlay) { display: none; }
-                ";
+        } else {
+            // Fade transition
+            $inline_css .= "
+            ::view-transition-old(root) {
+                animation: snn-fade-out var(--snn-transition-duration) linear both;
             }
-        } 
-        // ---------------------------------------------------------
-        // SCENARIO 2: PAGE-TO-PAGE (NO OVERLAY)
-        // ---------------------------------------------------------
-        else {
-            if ($transition_type === 'wipe-down') {
-                // Wipe Down: New page wipes IN over the Old page.
-                // Added 'isolation: isolate' to prevent blending weirdness.
-                $inline_css .= "
-                ::view-transition-old(root) { 
-                    animation: snn-scale-out var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
-                    z-index: -1;
-                    transform-origin: center bottom;
-                    filter: brightness(0.8); /* Slight dim for depth */
-                }
-                ::view-transition-new(root) { 
-                    animation: snn-wipe-in var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both; 
-                    z-index: 2; 
-                    box-shadow: 0 -10px 40px rgba(0,0,0,0.1); /* Shadow for depth */
-                }
-                
-                @keyframes snn-wipe-in { 
-                    from { clip-path: inset(100% 0 0 0); transform: translateY(50px); } 
-                    to { clip-path: inset(0 0 0 0); transform: translateY(0); } 
-                }
-                @keyframes snn-scale-out {
-                    from { transform: scale(1); opacity: 1; }
-                    to { transform: scale(0.95); opacity: 0.8; }
-                }
-                ";
-            } else {
-                // Fade: Smooth Crossfade
-                // mix-blend-mode: plus-lighter fixes the 'white flash' issue
-                $inline_css .= "
-                ::view-transition-old(root) { 
-                    animation: snn-fade-out var(--snn-transition-duration) linear both; 
-                }
-                ::view-transition-new(root) { 
-                    animation: snn-fade-in var(--snn-transition-duration) linear both; 
-                    mix-blend-mode: plus-lighter; 
-                }
-                
-                @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
-                @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
-                
-                /* Dark mode protection */
-                ::view-transition-image-pair(root) { isolation: isolate; background-color: transparent; }
-                ";
+            ::view-transition-new(root) {
+                animation: snn-fade-in var(--snn-transition-duration) linear both;
+                mix-blend-mode: plus-lighter;
             }
+
+            @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
+            @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+            /* Prevent white flash */
+            ::view-transition-image-pair(root) { isolation: isolate; background-color: transparent; }
+            ";
         }
 
         // Output styles
