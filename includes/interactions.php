@@ -259,7 +259,7 @@ function snn_enable_lenis_callback() {
                 </div>
             </details>
         </div>
-        <style>.lenis-config{margin-top:20px}.lenis-disabled{opacity:0.5;pointer-events:none}.lenis-field{margin-bottom:5px}.lenis-input-small{width:80px}.lenis-select{margin-left:10px}.lenis-accordion{border:1px solid #ddd;padding:15px;border-radius:4px}.lenis-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px}.lenis-accordion[open] .lenis-summary{margin-bottom:5px}.lenis-accordion-content{margin-top:15px}.lenis-settings label{display:inline-block}.lenis-settings .description{font-size:13px;color:#666}</style>
+        <style>.lenis-config{margin-top:20px}.lenis-disabled{opacity:0.5;pointer-events:none}.lenis-field{margin-bottom:5px}.lenis-input-small{width:80px}.lenis-select{margin-left:10px}.lenis-accordion{border:1px solid #ddd;padding:;border-radius:4px}.lenis-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px}.lenis-accordion[open] .lenis-summary{margin-bottom:5px}.lenis-accordion-content{margin-top:15px}.lenis-settings label{display:inline-block}.lenis-settings .description{font-size:13px;color:#666}</style>
         <script>document.addEventListener('DOMContentLoaded', function() { const enableCheckbox = document.getElementById('enable_lenis'); const configDiv = document.querySelector('.lenis-config'); if (enableCheckbox && configDiv) { enableCheckbox.addEventListener('change', function() { if (this.checked) { configDiv.classList.remove('lenis-disabled'); } else { configDiv.classList.add('lenis-disabled'); } }); } });</script>
     </div>
 <?php }
