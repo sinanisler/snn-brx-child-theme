@@ -108,6 +108,7 @@ function snn_sanitize_interactions_settings($input) {
     $sanitized['page_transition_overlay_color'] = isset($input['page_transition_overlay_color']) ? sanitize_hex_color($input['page_transition_overlay_color']) : '#000000';
     $sanitized['page_transition_show_logo'] = isset($input['page_transition_show_logo']) && $input['page_transition_show_logo'] ? 1 : 0;
     $sanitized['page_transition_logo'] = isset($input['page_transition_logo']) ? absint($input['page_transition_logo']) : 0;
+    $sanitized['page_transition_logo_width'] = isset($input['page_transition_logo_width']) ? absint($input['page_transition_logo_width']) : 200;
     $sanitized['page_transition_duration'] = isset($input['page_transition_duration']) ? floatval($input['page_transition_duration']) : 1.5;
 
     // Page Transition Selectors
@@ -285,6 +286,7 @@ function snn_enable_page_transitions_callback() {
     $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
     $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
     $duration = isset($options['page_transition_duration']) ? $options['page_transition_duration'] : 1.5;
+    $logo_width = isset($options['page_transition_logo_width']) ? $options['page_transition_logo_width'] : 200;
     $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
     ?>
     <div class="page-transitions-settings">
@@ -334,6 +336,12 @@ function snn_enable_page_transitions_callback() {
                         <button type="button" id="transitions-logo-remove" class="button" <?php echo !$logo_id ? 'style="display:none;"' : ''; ?>><?php _e('Remove', 'snn'); ?></button>
                     </div>
                     <p class="description"><?php _e('Select an image to display as the logo during page transitions.', 'snn'); ?></p>
+                </div>
+
+                <div class="transitions-field">
+                    <label><?php _e('Logo Width (pixels)', 'snn'); ?>:</label>
+                    <input type="number" name="snn_interactions_settings[page_transition_logo_width]" value="<?php echo esc_attr($logo_width); ?>" class="transitions-duration-input" step="10" min="50" max="800">
+                    <p class="description"><?php _e('Set the maximum width of the logo in pixels. Height will be automatic. Default: 200px', 'snn'); ?></p>
                 </div>
             </div>
 
@@ -559,6 +567,7 @@ function snn_enqueue_page_transitions() {
         $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
         $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
         $duration = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
+        $logo_width = isset($options['page_transition_logo_width']) ? absint($options['page_transition_logo_width']) : 200;
 
         // Get selectors with defaults
         $header_selector = isset($options['page_transition_header_selector']) ? $options['page_transition_header_selector'] : 'header';
@@ -572,7 +581,7 @@ function snn_enqueue_page_transitions() {
             #snn-transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: " . esc_attr($overlay_color) . "; display: none; z-index: 999999; pointer-events: none; }
             #snn-transition-overlay[data-has-logo] { view-transition-name: snn-overlay; }
             .snn-transition-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-            .snn-transition-logo img { max-width: 200px; max-height: 200px; object-fit: contain; }
+            .snn-transition-logo img { max-width: " . $logo_width . "px; height: auto; object-fit: contain; }
         ";
 
         // Add transition-specific animations
