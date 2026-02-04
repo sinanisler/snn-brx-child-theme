@@ -567,252 +567,176 @@ function snn_enqueue_page_transitions() {
 
         // CSS for View Transitions
         $inline_css = "
-:root {
-    --snn-transition-duration: " . $duration . "s;
-}
+            :root { --snn-transition-duration: " . $duration . "s; }
+            #snn-transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: " . esc_attr($overlay_color) . "; display: none; z-index: 999999; pointer-events: none; }
+            #snn-transition-overlay[data-has-logo] { view-transition-name: snn-overlay; }
+            .snn-transition-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+            .snn-transition-logo img { max-width: 200px; max-height: 200px; object-fit: contain; }
+            ::view-transition-old(root) { animation: 90ms cubic-bezier(0.4, 0, 1, 1) both snn-fade-out; }
+            ::view-transition-new(root) { animation: 400ms cubic-bezier(0, 0, 0.2, 1) both snn-fade-in; animation-delay: calc(var(--snn-transition-duration) * 0.5); }
+            ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); animation-timing-function: ease-in-out; }
+            ::view-transition-new(snn-overlay) { animation: snn-overlay-in-out var(--snn-transition-duration) forwards; }
+            @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
+            @keyframes snn-overlay-in-out { 0% { opacity: 0; transform: scale(1.1); } 15% { opacity: 1; transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+        ";
 
-/* View Transition Overlay */
-#snn-transition-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: " . esc_attr($overlay_color) . ";
-    display: none;
-    z-index: 999999;
-    pointer-events: none;
-}
-
-#snn-transition-overlay[data-has-logo] {
-    view-transition-name: snn-overlay;
-}
-
-.snn-transition-logo {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.snn-transition-logo img {
-    max-width: 200px;
-    max-height: 200px;
-    object-fit: contain;
-}
-
-/* Page content transitions */
-::view-transition-old(root) {
-    animation: 90ms cubic-bezier(0.4, 0, 1, 1) both snn-fade-out;
-}
-
-::view-transition-new(root) {
-    animation: 400ms cubic-bezier(0, 0, 0.2, 1) both snn-fade-in;
-    animation-delay: calc(var(--snn-transition-duration) * 0.5);
-}
-
-/* Overlay group animation */
-::view-transition-group(snn-overlay) {
-    animation-duration: var(--snn-transition-duration);
-    animation-timing-function: ease-in-out;
-}
-
-/* Overlay animation */
-::view-transition-new(snn-overlay) {
-    animation: snn-overlay-in-out var(--snn-transition-duration) forwards;
-}
-
-@keyframes snn-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes snn-fade-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
-@keyframes snn-overlay-in-out {
-    0% { opacity: 0; transform: scale(1.1); }
-    15% { opacity: 1; transform: scale(1); }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
-}
-";
-
-        // JavaScript for View Transitions (native JS, no jQuery)
+        // JavaScript for View Transitions (Improved for Asset Loading)
         $inline_script = "
-(function() {
-    if (!document.startViewTransition) {
-        return;
-    }
+        (function() {
+            if (!document.startViewTransition) return;
 
-    // Configuration
-    var config = {
-        updateMode: '" . esc_js($update_mode) . "',
-        headerSelector: '" . esc_js($header_selector) . "',
-        mainSelector: '" . esc_js($main_selector) . "',
-        footerSelector: '" . esc_js($footer_selector) . "'
-    };
+            var config = {
+                updateMode: '" . esc_js($update_mode) . "',
+                headerSelector: '" . esc_js($header_selector) . "',
+                mainSelector: '" . esc_js($main_selector) . "',
+                footerSelector: '" . esc_js($footer_selector) . "'
+            };
 
-    function isInternalLink(url) {
-        try {
-            var linkUrl = new URL(url, window.location.origin);
-            return linkUrl.origin === window.location.origin &&
-                   !linkUrl.hash &&
-                   !url.startsWith('mailto:') &&
-                   !url.startsWith('tel:') &&
-                   linkUrl.href !== window.location.href;
-        } catch (e) {
-            return false;
-        }
-    }
+            function isInternalLink(url) {
+                try {
+                    var linkUrl = new URL(url, window.location.origin);
+                    return linkUrl.origin === window.location.origin && !linkUrl.hash && !url.startsWith('mailto:') && !url.startsWith('tel:') && linkUrl.href !== window.location.href && !url.match(/\.(jpg|jpeg|gif|png|webp|svg|pdf)$/i);
+                } catch (e) { return false; }
+            }
 
-    function showOverlay() {
-        var overlay = document.getElementById('snn-transition-overlay');
-        if (overlay && overlay.dataset.hasLogo) {
-            overlay.style.display = 'flex';
-        }
-    }
+            function showOverlay() {
+                var overlay = document.getElementById('snn-transition-overlay');
+                if (overlay && overlay.dataset.hasLogo) overlay.style.display = 'flex';
+            }
 
-    function hideOverlay() {
-        var overlay = document.getElementById('snn-transition-overlay');
-        if (overlay) {
-            overlay.style.display = 'none';
-        }
-    }
+            function hideOverlay() {
+                var overlay = document.getElementById('snn-transition-overlay');
+                if (overlay) overlay.style.display = 'none';
+            }
 
-    function updatePageContent(newDoc) {
-        if (config.updateMode === 'smart') {
-            // Smart update: Only update main content
-            try {
-                // Update page title
+            // CRITICAL: Force scripts to run by creating new elements
+            function runScripts(container) {
+                const scripts = container.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            }
+
+            // CRITICAL: Trigger events so lazy loaders and builders (Bricks/Elementor) wake up
+            function triggerPageEvents() {
+                window.dispatchEvent(new Event('resize'));
+                window.dispatchEvent(new Event('scroll'));
+                document.dispatchEvent(new Event('DOMContentLoaded'));
+
+                // Specific fix for Bricks Builder if detected
+                if (window.bricksIsFrontend) {
+                    setTimeout(() => {
+                        window.bricks.init();
+                    }, 50);
+                }
+            }
+
+            function updateHead(newDoc) {
+                // Update Title
                 document.title = newDoc.title;
 
-                // Update meta tags
-                var currentMetas = document.head.querySelectorAll('meta[name], meta[property]');
-                currentMetas.forEach(function(meta) {
-                    var name = meta.getAttribute('name') || meta.getAttribute('property');
-                    var newMeta = newDoc.head.querySelector('meta[name=\"' + name + '\"], meta[property=\"' + name + '\"]');
-                    if (newMeta) {
-                        meta.setAttribute('content', newMeta.getAttribute('content'));
+                // Update Stylesheets (find new CSS links and add them)
+                const newStyles = newDoc.querySelectorAll('link[rel=\"stylesheet\"], style');
+                const currentHead = document.head;
+
+                newStyles.forEach(newNode => {
+                    let exists = false;
+                    if(newNode.tagName === 'LINK' && newNode.href) {
+                        exists = !!currentHead.querySelector('link[href=\"' + newNode.href + '\"]');
+                    } else if (newNode.id) {
+                        exists = !!currentHead.querySelector('#' + newNode.id);
+                    }
+
+                    if (!exists) {
+                        currentHead.appendChild(newNode.cloneNode(true));
                     }
                 });
-
-                // Update body classes
-                document.body.className = newDoc.body.className;
-
-                // Update main content area
-                var mainSelectors = config.mainSelector.split(',').map(function(s) { return s.trim(); });
-                var mainUpdated = false;
-
-                for (var i = 0; i < mainSelectors.length; i++) {
-                    var currentMain = document.querySelector(mainSelectors[i]);
-                    var newMain = newDoc.querySelector(mainSelectors[i]);
-
-                    if (currentMain && newMain) {
-                        currentMain.innerHTML = newMain.innerHTML;
-                        mainUpdated = true;
-                        break;
-                    }
-                }
-
-                // If no main content found, fall back to full replace
-                if (!mainUpdated) {
-                    console.warn('SNN Transitions: Main content selector not found, falling back to full page replace');
-                    document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
-                }
-            } catch (error) {
-                console.error('SNN Transitions: Error during smart update, falling back to full replace', error);
-                document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
             }
-        } else {
-            // Full page replace
-            document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
-        }
-    }
 
-    function navigateToPage(url) {
-        return fetch(url)
-            .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+            function updatePageContent(newDoc) {
+                updateHead(newDoc);
+
+                if (config.updateMode === 'smart') {
+                    document.body.className = newDoc.body.className;
+                    var mainSelectors = config.mainSelector.split(',').map(function(s) { return s.trim(); });
+                    var mainUpdated = false;
+
+                    for (var i = 0; i < mainSelectors.length; i++) {
+                        var currentMain = document.querySelector(mainSelectors[i]);
+                        var newMain = newDoc.querySelector(mainSelectors[i]);
+
+                        if (currentMain && newMain) {
+                            currentMain.innerHTML = newMain.innerHTML;
+                            runScripts(currentMain); // Re-run scripts in main
+                            mainUpdated = true;
+                            break;
+                        }
+                    }
+
+                    if (!mainUpdated) {
+                        // Fallback
+                        document.body.innerHTML = newDoc.body.innerHTML;
+                        runScripts(document.body);
+                    }
+                } else {
+                    document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
+                    runScripts(document.body);
                 }
-                return response.text();
-            })
-            .then(function(html) {
-                var parser = new DOMParser();
-                var newDoc = parser.parseFromString(html, 'text/html');
 
-                // Update page content
-                updatePageContent(newDoc);
+                triggerPageEvents();
+            }
 
-                // Update URL
-                history.pushState(null, '', url);
+            function navigateToPage(url) {
+                return fetch(url)
+                    .then(response => { if (!response.ok) throw new Error('Net err'); return response.text(); })
+                    .then(html => {
+                        var parser = new DOMParser();
+                        var newDoc = parser.parseFromString(html, 'text/html');
+                        updatePageContent(newDoc);
+                        history.pushState(null, '', url);
+                        showOverlay();
+                        setTimeout(attachTransitionListeners, 0);
 
-                // Show overlay for animation (only if logo enabled)
-                showOverlay();
+                        // Re-init Lenis if it exists to fix scroll height
+                        if(window.lenis) window.lenis.resize();
+                    })
+                    .catch(error => { window.location.href = url; });
+            }
 
-                // Re-attach listeners after DOM update
-                setTimeout(attachTransitionListeners, 0);
-            })
-            .catch(function(error) {
-                console.error('SNN Transitions: Navigation error', error);
-                // Fallback to normal navigation
-                window.location.href = url;
-            });
-    }
-
-    function attachTransitionListeners() {
-        document.querySelectorAll('a').forEach(function(link) {
-            if (link.dataset.snnTransition) return;
-            if (link.target === '_blank') return;
-            if (!isInternalLink(link.href)) return;
-
-            link.dataset.snnTransition = 'true';
-
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                var url = this.href;
-
-                var transition = document.startViewTransition(function() {
-                    return navigateToPage(url);
+            function attachTransitionListeners() {
+                document.querySelectorAll('a').forEach(link => {
+                    if (link.dataset.snnTransition || link.target === '_blank' || !isInternalLink(link.href)) return;
+                    link.dataset.snnTransition = 'true';
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        var url = this.href;
+                        var transition = document.startViewTransition(() => navigateToPage(url));
+                        transition.finished.then(() => {
+                            hideOverlay();
+                            window.scrollTo(0, 0);
+                        });
+                    });
                 });
+            }
 
-                transition.finished.then(function() {
-                    hideOverlay();
-                    window.scrollTo(0, 0);
-                });
+            window.addEventListener('popstate', () => {
+                var transition = document.startViewTransition(() => navigateToPage(window.location.href));
+                transition.finished.then(() => hideOverlay());
             });
-        });
-    }
 
-    // Handle browser back/forward
-    window.addEventListener('popstate', function() {
-        var transition = document.startViewTransition(function() {
-            return navigateToPage(window.location.href);
-        });
+            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', attachTransitionListeners); }
+            else { attachTransitionListeners(); }
+        })();
+        ";
 
-        transition.finished.then(function() {
-            hideOverlay();
-        });
-    });
-
-    // Initialize
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', attachTransitionListeners);
-    } else {
-        attachTransitionListeners();
-    }
-})();
-";
-
-        // Register and enqueue styles
         wp_register_style('snn-view-transitions', false);
         wp_enqueue_style('snn-view-transitions');
         wp_add_inline_style('snn-view-transitions', $inline_css);
 
-        // Register and enqueue script
         wp_register_script('snn-view-transitions', false, array(), false, true);
         wp_enqueue_script('snn-view-transitions');
         wp_add_inline_script('snn-view-transitions', $inline_script);
