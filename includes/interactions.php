@@ -129,7 +129,7 @@ function snn_enable_page_transitions_callback() {
     $enabled = isset($options['enable_page_transitions']) ? $options['enable_page_transitions'] : 0; ?>
     <div class="page-transitions-settings">
         <input type="checkbox" id="enable_page_transitions" name="snn_other_settings[enable_page_transitions]" value="1" <?php checked(1, $enabled); ?>> <label for="enable_page_transitions"><strong><?php _e('Enable Page Transitions with View Transition API', 'snn'); ?></strong></label>
-        <p><?php _e('The View Transition API provides a mechanism for easily creating animated transitions between different website pages. It allows you to create seamless visual transitions when navigating between pages, improving the user experience.', 'snn'); ?></p>
+        <p style="max-width:800px"><?php _e('The View Transition API provides a mechanism for easily creating animated transitions between different website pages. It allows you to create seamless visual transitions when navigating between pages, improving the user experience.', 'snn'); ?></p>
         <p><?php _e('Learn more:', 'snn'); ?> <a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API" target="_blank">View Transitions API - MDN Web Docs</a></p>
         <div class="page-transitions-config <?php echo $enabled ? '' : 'transitions-disabled'; ?>">
             <h4><?php _e('Transition Settings', 'snn'); ?></h4>
