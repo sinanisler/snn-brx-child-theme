@@ -587,7 +587,7 @@ function snn_enqueue_page_transitions() {
             $logo_id  = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
             $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
 
-            // 1. Overlay Styling - Hidden by default, shown only during transition via JS
+            // 1. Overlay Styling - Hidden by default, visible only during view transition
             $inline_css .= "
             #snn-transition-overlay {
                 position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -596,9 +596,11 @@ function snn_enqueue_page_transitions() {
                 z-index: 999999; pointer-events: none;
                 view-transition-name: snn-overlay;
                 contain: paint;
-                visibility: hidden;
+                clip-path: inset(0 0 100% 0);
             }
-            #snn-transition-overlay.snn-transitioning { visibility: visible; }
+            html:active-view-transition #snn-transition-overlay {
+                clip-path: inset(0);
+            }
             .snn-transition-logo img { max-width: " . $logo_width . "px; height: auto; object-fit: contain; }
             ";
 
@@ -608,16 +610,19 @@ function snn_enqueue_page_transitions() {
             ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
             ";
 
-            // 3. Animate the Overlay
+            // 3. Animate the Overlay - both old and new get animated
             if ($transition_type === 'wipe-down') {
                 $inline_css .= "
                 ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); }
-                ::view-transition-old(snn-overlay) { animation: none; opacity: 0; }
-                ::view-transition-new(snn-overlay) { animation: snn-overlay-wipe var(--snn-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) both; }
+                ::view-transition-old(snn-overlay) { animation: snn-overlay-wipe-out calc(var(--snn-transition-duration) * 0.5) cubic-bezier(0.87, 0, 0.13, 1) both; }
+                ::view-transition-new(snn-overlay) { animation: snn-overlay-wipe-in calc(var(--snn-transition-duration) * 0.5) cubic-bezier(0.87, 0, 0.13, 1) calc(var(--snn-transition-duration) * 0.5) both; }
 
-                @keyframes snn-overlay-wipe {
+                @keyframes snn-overlay-wipe-out {
                     0% { clip-path: inset(0 0 100% 0); }
-                    30%, 70% { clip-path: inset(0 0 0 0); }
+                    100% { clip-path: inset(0 0 0 0); }
+                }
+                @keyframes snn-overlay-wipe-in {
+                    0% { clip-path: inset(0 0 0 0); }
                     100% { clip-path: inset(100% 0 0 0); }
                 }
                 ";
@@ -625,12 +630,15 @@ function snn_enqueue_page_transitions() {
                 // Fade Overlay
                 $inline_css .= "
                 ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); }
-                ::view-transition-old(snn-overlay) { animation: none; opacity: 0; }
-                ::view-transition-new(snn-overlay) { animation: snn-overlay-fade var(--snn-transition-duration) ease-in-out both; }
+                ::view-transition-old(snn-overlay) { animation: snn-overlay-fade-in calc(var(--snn-transition-duration) * 0.5) ease-in-out both; }
+                ::view-transition-new(snn-overlay) { animation: snn-overlay-fade-out calc(var(--snn-transition-duration) * 0.5) ease-in-out calc(var(--snn-transition-duration) * 0.5) both; }
 
-                @keyframes snn-overlay-fade {
+                @keyframes snn-overlay-fade-in {
                     0% { opacity: 0; }
-                    20%, 80% { opacity: 1; }
+                    100% { opacity: 1; }
+                }
+                @keyframes snn-overlay-fade-out {
+                    0% { opacity: 1; }
                     100% { opacity: 0; }
                 }
                 ";
@@ -684,44 +692,6 @@ function snn_enqueue_page_transitions() {
         wp_register_style('snn-view-transitions', false);
         wp_enqueue_style('snn-view-transitions');
         wp_add_inline_style('snn-view-transitions', $inline_css);
-
-        // JavaScript to handle overlay visibility during MPA view transitions
-        if ($show_logo) {
-            $inline_js = "
-            (function() {
-                var overlay = null;
-
-                function showOverlay() {
-                    if (!overlay) overlay = document.getElementById('snn-transition-overlay');
-                    if (overlay) overlay.classList.add('snn-transitioning');
-                }
-
-                function hideOverlay() {
-                    if (!overlay) overlay = document.getElementById('snn-transition-overlay');
-                    if (overlay) overlay.classList.remove('snn-transitioning');
-                }
-
-                // pageswap fires on the OLD page before navigation - show overlay for capture
-                document.addEventListener('pageswap', function(e) {
-                    if (e.viewTransition) {
-                        showOverlay();
-                    }
-                });
-
-                // pagereveal fires on the NEW page - show overlay for capture, hide when done
-                document.addEventListener('pagereveal', function(e) {
-                    if (e.viewTransition) {
-                        showOverlay();
-                        e.viewTransition.finished.then(hideOverlay).catch(hideOverlay);
-                    }
-                });
-            })();
-            ";
-
-            wp_register_script('snn-view-transitions-js', false, array(), false, false);
-            wp_enqueue_script('snn-view-transitions-js');
-            wp_add_inline_script('snn-view-transitions-js', $inline_js);
-        }
     }
 }
 add_action('wp_enqueue_scripts', 'snn_enqueue_page_transitions');
