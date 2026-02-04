@@ -306,7 +306,7 @@ function snn_enable_page_transitions_callback() {
             </div>
 
             <div class="transitions-field">
-                <label><input type="checkbox" id="page_transition_show_logo" name="snn_interactions_settings[page_transition_show_logo]" value="1" <?php checked(1, $show_logo); ?>> <strong><?php _e('Show Logo Overlay During Transition', 'snn'); ?></strong></label>
+                <label><input type="checkbox" id="page_transition_show_logo" name="snn_interactions_settings[page_transition_show_logo]" value="1" <?php checked(1, $show_logo); ?>> <strong><?php _e('Show Logo and Overlay During Transition', 'snn'); ?></strong></label>
                 <p class="description"><?php _e('When enabled, displays a colored overlay with your logo during page transitions.', 'snn'); ?></p>
             </div>
 
