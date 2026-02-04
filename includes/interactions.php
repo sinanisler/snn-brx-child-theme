@@ -1,1292 +1,750 @@
 <?php
-
 // The Page for Interactions and Animations Settings
-
 function snn_add_interactions_page() {
-
     add_submenu_page(
-
         'snn-settings',
-
         __('Interactions', 'snn'),
-
         __('Interactions', 'snn'),
-
         'manage_options',
-
         'snn-interactions',
-
         'snn_render_interactions_page'
-
     );
-
 }
-
 add_action('admin_menu', 'snn_add_interactions_page');
 
-
-
 function snn_enqueue_interactions_admin_scripts($hook) {
-
     if (!isset($_GET['page']) || $_GET['page'] !== 'snn-interactions') {
-
         return;
-
     }
-
     wp_enqueue_media();
-
 }
-
 add_action('admin_enqueue_scripts', 'snn_enqueue_interactions_admin_scripts');
 
-
-
 function snn_render_interactions_page() {
-
     ?>
-
     <div class="wrap">
-
         <h1><?php _e('Interactions & Animations', 'snn'); ?></h1>
-
         <form method="post" action="options.php">
-
             <?php
-
                 settings_fields('snn_interactions_settings_group');
-
                 do_settings_sections('snn-interactions');
-
                 submit_button();
-
             ?>
-
         </form>
-
     </div>
-
     <?php
-
 }
-
-
 
 function snn_register_interactions_settings() {
-
     register_setting(
-
         'snn_interactions_settings_group',
-
         'snn_interactions_settings',
-
         'snn_sanitize_interactions_settings'
-
     );
-
-
 
     add_settings_section(
-
         'snn_interactions_section',
-
         __('Animation Settings', 'snn'),
-
         'snn_interactions_section_callback',
-
         'snn-interactions'
-
     );
 
-
-
     add_settings_field(
-
         'enqueue_gsap',
-
         __('Enable GSAP and GSAP Elements', 'snn'),
-
         'snn_enqueue_gsap_callback',
-
         'snn-interactions',
-
         'snn_interactions_section'
-
     );
 
-
-
     add_settings_field(
-
         'enable_lenis',
-
         __('Enable Lenis Smooth Scroll', 'snn'),
-
         'snn_enable_lenis_callback',
-
         'snn-interactions',
-
         'snn_interactions_section'
-
     );
-
-
 
     add_settings_field(
-
         'enable_page_transitions',
-
         __('Enable Page Transitions', 'snn'),
-
         'snn_enable_page_transitions_callback',
-
         'snn-interactions',
-
         'snn_interactions_section'
-
     );
-
 }
-
 add_action('admin_init', 'snn_register_interactions_settings');
 
-
-
 function snn_sanitize_interactions_settings($input) {
-
     $sanitized = array();
 
-
-
     // GSAP settings
-
     $sanitized['enqueue_gsap'] = isset($input['enqueue_gsap']) && $input['enqueue_gsap'] ? 1 : 0;
 
-
-
     // Lenis settings
-
     $sanitized['enable_lenis'] = isset($input['enable_lenis']) && $input['enable_lenis'] ? 1 : 0;
-
     $sanitized['lenis_autoRaf'] = isset($input['lenis_autoRaf']) && $input['lenis_autoRaf'] ? 1 : 0;
-
     $sanitized['lenis_smoothWheel'] = isset($input['lenis_smoothWheel']) && $input['lenis_smoothWheel'] ? 1 : 0;
-
     $sanitized['lenis_syncTouch'] = isset($input['lenis_syncTouch']) && $input['lenis_syncTouch'] ? 1 : 0;
-
     $sanitized['lenis_infinite'] = isset($input['lenis_infinite']) && $input['lenis_infinite'] ? 1 : 0;
-
     $sanitized['lenis_overscroll'] = isset($input['lenis_overscroll']) && $input['lenis_overscroll'] ? 1 : 0;
 
-
-
     // Lenis numeric settings
-
     $sanitized['lenis_duration'] = isset($input['lenis_duration']) ? floatval($input['lenis_duration']) : 1.2;
-
     $sanitized['lenis_lerp'] = isset($input['lenis_lerp']) ? floatval($input['lenis_lerp']) : 0.1;
-
     $sanitized['lenis_wheelMultiplier'] = isset($input['lenis_wheelMultiplier']) ? floatval($input['lenis_wheelMultiplier']) : 1;
-
     $sanitized['lenis_syncTouchLerp'] = isset($input['lenis_syncTouchLerp']) ? floatval($input['lenis_syncTouchLerp']) : 0.075;
-
     $sanitized['lenis_touchMultiplier'] = isset($input['lenis_touchMultiplier']) ? floatval($input['lenis_touchMultiplier']) : 1;
-
     $sanitized['lenis_touchInertiaExponent'] = isset($input['lenis_touchInertiaExponent']) ? floatval($input['lenis_touchInertiaExponent']) : 1.7;
 
-
-
     // Lenis select settings
-
     $sanitized['lenis_orientation'] = isset($input['lenis_orientation']) ? sanitize_text_field($input['lenis_orientation']) : 'vertical';
-
     $sanitized['lenis_gestureOrientation'] = isset($input['lenis_gestureOrientation']) ? sanitize_text_field($input['lenis_gestureOrientation']) : 'vertical';
-
     $sanitized['lenis_easing'] = isset($input['lenis_easing']) ? sanitize_text_field($input['lenis_easing']) : 'default';
 
-
-
     // Page Transitions settings
-
     $sanitized['enable_page_transitions'] = isset($input['enable_page_transitions']) && $input['enable_page_transitions'] ? 1 : 0;
-
     $sanitized['page_transition_type'] = isset($input['page_transition_type']) ? sanitize_text_field($input['page_transition_type']) : 'wipe-down';
-
     $sanitized['page_transition_overlay_color'] = isset($input['page_transition_overlay_color']) ? sanitize_hex_color($input['page_transition_overlay_color']) : '#000000';
-
     $sanitized['page_transition_show_logo'] = isset($input['page_transition_show_logo']) && $input['page_transition_show_logo'] ? 1 : 0;
-
     $sanitized['page_transition_logo'] = isset($input['page_transition_logo']) ? absint($input['page_transition_logo']) : 0;
-
     $sanitized['page_transition_logo_width'] = isset($input['page_transition_logo_width']) ? absint($input['page_transition_logo_width']) : 200;
-
     $sanitized['page_transition_duration'] = isset($input['page_transition_duration']) ? floatval($input['page_transition_duration']) : 1.5;
 
-
-
     // Page Transition Selectors
-
     $sanitized['page_transition_header_selector'] = isset($input['page_transition_header_selector']) ? sanitize_text_field($input['page_transition_header_selector']) : 'header';
-
     $sanitized['page_transition_main_selector'] = isset($input['page_transition_main_selector']) ? sanitize_text_field($input['page_transition_main_selector']) : 'main, article, #brx-content';
-
     $sanitized['page_transition_footer_selector'] = isset($input['page_transition_footer_selector']) ? sanitize_text_field($input['page_transition_footer_selector']) : 'footer';
-
     $sanitized['page_transition_update_mode'] = isset($input['page_transition_update_mode']) ? sanitize_text_field($input['page_transition_update_mode']) : 'smart';
 
-
-
     return $sanitized;
-
 }
-
-
 
 function snn_interactions_section_callback() {
-
     echo '<p>' . esc_html__( 'Configure animation and interaction settings for your site below.', 'snn' ) . '</p>';
-
 }
 
-
-
 /**
-
  * Get interactions settings with backward compatibility.
-
  * Checks new location first, falls back to old location if needed.
-
  *
-
  * @return array The interactions settings
-
  */
-
 function snn_get_interactions_settings() {
-
     $new_settings = get_option('snn_interactions_settings');
-
     $old_settings = get_option('snn_other_settings');
-
-
 
     // If new settings exist and have at least one interactions-related key, use them
-
     if ($new_settings && (
-
         isset($new_settings['enqueue_gsap']) ||
-
         isset($new_settings['enable_lenis']) ||
-
         isset($new_settings['enable_page_transitions'])
-
     )) {
-
         return $new_settings;
-
     }
-
-
 
     // Fall back to old settings for backward compatibility
-
     if ($old_settings) {
-
         return $old_settings;
-
     }
-
-
 
     // Return empty array if neither exists
-
     return array();
-
 }
-
-
 
 /**
-
  * One-time migration of interactions settings from old location to new location.
-
  * This function runs once and migrates existing settings.
-
  */
-
 function snn_migrate_interactions_settings() {
-
     // Check if migration has already been done
-
     if (get_option('snn_interactions_migrated')) {
-
         return;
-
     }
-
-
 
     $old_settings = get_option('snn_other_settings');
-
     $new_settings = get_option('snn_interactions_settings');
 
-
-
     // Only migrate if old settings exist and new settings don't
-
     if ($old_settings && !$new_settings) {
-
         $interactions_keys = array(
-
             'enqueue_gsap',
-
             'enable_lenis',
-
             'lenis_autoRaf',
-
             'lenis_duration',
-
             'lenis_lerp',
-
             'lenis_wheelMultiplier',
-
             'lenis_smoothWheel',
-
             'lenis_orientation',
-
             'lenis_gestureOrientation',
-
             'lenis_syncTouch',
-
             'lenis_syncTouchLerp',
-
             'lenis_touchMultiplier',
-
             'lenis_touchInertiaExponent',
-
             'lenis_infinite',
-
             'lenis_overscroll',
-
             'lenis_easing',
-
             'enable_page_transitions',
-
             'page_transition_type',
-
             'page_transition_overlay_color',
-
             'page_transition_show_logo',
-
             'page_transition_logo',
-
             'page_transition_duration',
-
             'page_transition_header_selector',
-
             'page_transition_main_selector',
-
             'page_transition_footer_selector',
-
             'page_transition_update_mode'
-
         );
-
-
 
         $migrated_settings = array();
-
         foreach ($interactions_keys as $key) {
-
             if (isset($old_settings[$key])) {
-
                 $migrated_settings[$key] = $old_settings[$key];
-
             }
-
         }
-
-
 
         // Save migrated settings to new location if any were found
-
         if (!empty($migrated_settings)) {
-
             update_option('snn_interactions_settings', $migrated_settings);
 
-
-
             // Remove interactions settings from old location
-
             foreach ($interactions_keys as $key) {
-
                 unset($old_settings[$key]);
-
             }
-
             update_option('snn_other_settings', $old_settings);
-
         }
-
     }
-
-
 
     // Mark migration as complete
-
     update_option('snn_interactions_migrated', true);
-
 }
-
 add_action('admin_init', 'snn_migrate_interactions_settings');
 
-
-
 function snn_enqueue_gsap_callback() {
-
     $options = snn_get_interactions_settings();
-
     ?>
-
     <input type="checkbox" name="snn_interactions_settings[enqueue_gsap]" value="1" <?php checked(1, isset($options['enqueue_gsap']) ? $options['enqueue_gsap'] : 0); ?>>
-
     <p>
-
         <?php _e('Enabling this setting will enqueue the GSAP library and its associated scripts on your website.', 'snn'); ?><br>
-
         <?php _e('GSAP is a powerful JavaScript animation library that allows you to create complex and interactive animations.', 'snn'); ?><br><br>
-
         - <?php _e('Ability to create GSAP animations with just data-animate attributes.', 'snn'); ?><br>
-
         - <?php _e('gsap.min.php: The core GSAP library.', 'snn'); ?><br>
-
         - <?php _e('ScrollTrigger.min.php: A GSAP plugin that enables scroll-based animations.', 'snn'); ?><br>
-
         - <?php _e('gsap-data-animate.php: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.', 'snn'); ?><br>
-
     </p>
-
     <?php
-
 }
-
-
 
 function snn_enqueue_gsap_scripts() {
-
     $options = snn_get_interactions_settings();
-
     if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
-
         wp_enqueue_script('gsap-js', SNN_URL_ASSETS . 'js/gsap.min.js', array(), null, true);
-
         wp_enqueue_script('gsap-st-js', SNN_URL_ASSETS . 'js/ScrollTrigger.min.js', array('gsap-js'), null, true);
-
         wp_enqueue_script('gsap-data-js', SNN_URL_ASSETS . 'js/gsap-data-animate.js?v0.05', array(), null, true);
-
     }
-
 }
-
 add_action('wp_enqueue_scripts', 'snn_enqueue_gsap_scripts');
-
 add_action('admin_enqueue_scripts', 'snn_enqueue_gsap_scripts');
 
-
-
 function snn_enable_lenis_callback() {
-
     $options = snn_get_interactions_settings();
-
     $enabled = isset($options['enable_lenis']) ? $options['enable_lenis'] : 0; ?>
-
     <div class="lenis-settings">
-
         <input type="checkbox" id="enable_lenis" name="snn_interactions_settings[enable_lenis]" value="1" <?php checked(1, $enabled); ?>> <label for="enable_lenis"><strong><?php _e('Enable Lenis Smooth Scroll', 'snn'); ?></strong></label>
-
         <p><?php _e('Lenis is a lightweight, robust, and performant smooth scroll library designed for creating smooth scrolling experiences.', 'snn'); ?></p>
-
         <div class="lenis-config <?php echo $enabled ? '' : 'lenis-disabled'; ?>">
-
             <h4><?php _e('Basic Settings', 'snn'); ?></h4>
-
             <div class="lenis-field"><label><input type="checkbox" name="snn_interactions_settings[lenis_autoRaf]" value="1" <?php checked(1, isset($options['lenis_autoRaf']) ? $options['lenis_autoRaf'] : 1); ?>> <?php _e('Auto RAF (Recommended)', 'snn'); ?></label><p class="description"><?php _e('Automatically run requestAnimationFrame loop. Keep this enabled for best performance.', 'snn'); ?></p></div>
-
             <div class="lenis-field"><label><?php _e('Duration (seconds)', 'snn'); ?>: <input type="number" class="lenis-input-small" step="0.1" min="0.1" max="5" name="snn_interactions_settings[lenis_duration]" value="<?php echo isset($options['lenis_duration']) ? esc_attr($options['lenis_duration']) : '1.2'; ?>"></label><p class="description"><?php _e('Animation duration in seconds. Default: 1.2', 'snn'); ?></p></div>
-
             <div class="lenis-field"><label><?php _e('Lerp (smoothness)', 'snn'); ?>: <input type="number" class="lenis-input-small" step="0.01" min="0.01" max="1" name="snn_interactions_settings[lenis_lerp]" value="<?php echo isset($options['lenis_lerp']) ? esc_attr($options['lenis_lerp']) : '0.1'; ?>"></label><p class="description"><?php _e('Linear interpolation intensity (0.01 to 1). Lower = smoother. Default: 0.1', 'snn'); ?></p></div>
-
             <div class="lenis-field"><label><?php _e('Wheel Multiplier', 'snn'); ?>: <input type="number" class="lenis-input-small" step="0.1" min="0.1" max="5" name="snn_interactions_settings[lenis_wheelMultiplier]" value="<?php echo isset($options['lenis_wheelMultiplier']) ? esc_attr($options['lenis_wheelMultiplier']) : '1'; ?>"></label><p class="description"><?php _e('Mouse wheel scroll speed. Default: 1', 'snn'); ?></p></div>
-
             <div class="lenis-field"><label><input type="checkbox" name="snn_interactions_settings[lenis_smoothWheel]" value="1" <?php checked(1, isset($options['lenis_smoothWheel']) ? $options['lenis_smoothWheel'] : 1); ?>> <?php _e('Smooth Wheel Events', 'snn'); ?></label><p class="description"><?php _e('Smooth the scroll initiated by wheel events. Default: enabled', 'snn'); ?></p></div>
-
             <details class="lenis-accordion">
-
                 <summary class="lenis-field lenis-summary"><?php _e('Advanced Settings', 'snn'); ?></summary>
-
                 <div class="lenis-accordion-content">
-
                     <div class="lenis-field"><label><?php _e('Orientation', 'snn'); ?>: <select name="snn_interactions_settings[lenis_orientation]" class="lenis-select"><option value="vertical" <?php selected(isset($options['lenis_orientation']) ? $options['lenis_orientation'] : 'vertical', 'vertical'); ?>>Vertical</option><option value="horizontal" <?php selected(isset($options['lenis_orientation']) ? $options['lenis_orientation'] : 'vertical', 'horizontal'); ?>>Horizontal</option></select></label><p class="description"><?php _e('Scrolling orientation. Default: vertical', 'snn'); ?></p></div>
-
                     <div class="lenis-field"><label><?php _e('Gesture Orientation', 'snn'); ?>: <select name="snn_interactions_settings[lenis_gestureOrientation]" class="lenis-select"><option value="vertical" <?php selected(isset($options['lenis_gestureOrientation']) ? $options['lenis_gestureOrientation'] : 'vertical', 'vertical'); ?>>Vertical</option><option value="horizontal" <?php selected(isset($options['lenis_gestureOrientation']) ? $options['lenis_gestureOrientation'] : 'vertical', 'horizontal'); ?>>Horizontal</option><option value="both" <?php selected(isset($options['lenis_gestureOrientation']) ? $options['lenis_gestureOrientation'] : 'vertical', 'both'); ?>>Both</option></select></label><p class="description"><?php _e('Touch gesture orientation. Default: vertical', 'snn'); ?></p></div>
-
                     <div class="lenis-field"><label><input type="checkbox" name="snn_interactions_settings[lenis_syncTouch]" value="1" <?php checked(1, isset($options['lenis_syncTouch']) ? $options['lenis_syncTouch'] : 0); ?>> <?php _e('Sync Touch', 'snn'); ?></label><p class="description"><?php _e('Mimic touch device scroll (can be unstable on iOS<16). Default: disabled', 'snn'); ?></p></div>
-
                     <div class="lenis-field"><label><?php _e('Sync Touch Lerp', 'snn'); ?>: <input type="number" class="lenis-input-small" step="0.001" min="0.001" max="1" name="snn_interactions_settings[lenis_syncTouchLerp]" value="<?php echo isset($options['lenis_syncTouchLerp']) ? esc_attr($options['lenis_syncTouchLerp']) : '0.075'; ?>"></label><p class="description"><?php _e('Lerp applied during syncTouch inertia. Default: 0.075', 'snn'); ?></p></div>
-
                     <div class="lenis-field"><label><?php _e('Touch Multiplier', 'snn'); ?>: <input type="number" class="lenis-input-small" step="0.1" min="0.1" max="5" name="snn_interactions_settings[lenis_touchMultiplier]" value="<?php echo isset($options['lenis_touchMultiplier']) ? esc_attr($options['lenis_touchMultiplier']) : '1'; ?>"></label><p class="description"><?php _e('Touch scroll speed multiplier. Default: 1', 'snn'); ?></p></div>
-
                     <div class="lenis-field"><label><?php _e('Touch Inertia Exponent', 'snn'); ?>: <input type="number" class="lenis-input-small" step="0.1" min="0.1" max="5" name="snn_interactions_settings[lenis_touchInertiaExponent]" value="<?php echo isset($options['lenis_touchInertiaExponent']) ? esc_attr($options['lenis_touchInertiaExponent']) : '1.7'; ?>"></label><p class="description"><?php _e('Strength of syncTouch inertia. Default: 1.7', 'snn'); ?></p></div>
-
                     <div class="lenis-field"><label><input type="checkbox" name="snn_interactions_settings[lenis_infinite]" value="1" <?php checked(1, isset($options['lenis_infinite']) ? $options['lenis_infinite'] : 0); ?>> <?php _e('Infinite Scroll', 'snn'); ?></label><p class="description"><?php _e('Enable infinite scrolling. Requires syncTouch on touch devices. Default: disabled', 'snn'); ?></p></div>
-
                     <div class="lenis-field"><label><input type="checkbox" name="snn_interactions_settings[lenis_overscroll]" value="1" <?php checked(1, isset($options['lenis_overscroll']) ? $options['lenis_overscroll'] : 1); ?>> <?php _e('Overscroll', 'snn'); ?></label><p class="description"><?php _e('Similar to CSS overscroll-behavior. Default: enabled', 'snn'); ?></p></div>
-
                     <div class="lenis-field"><label><?php _e('Easing Function', 'snn'); ?>: <select name="snn_interactions_settings[lenis_easing]" class="lenis-select"><option value="default" <?php selected(isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default', 'default'); ?>>Default (Custom)</option><option value="linear" <?php selected(isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default', 'linear'); ?>>Linear</option><option value="easeInQuad" <?php selected(isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default', 'easeInQuad'); ?>>Ease In Quad</option><option value="easeOutQuad" <?php selected(isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default', 'easeOutQuad'); ?>>Ease Out Quad</option><option value="easeInOutQuad" <?php selected(isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default', 'easeInOutQuad'); ?>>Ease In Out Quad</option><option value="easeInCubic" <?php selected(isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default', 'easeInCubic'); ?>>Ease In Cubic</option><option value="easeOutCubic" <?php selected(isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default', 'easeOutCubic'); ?>>Ease Out Cubic</option><option value="easeInOutCubic" <?php selected(isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default', 'easeInOutCubic'); ?>>Ease In Out Cubic</option></select></label><p class="description"><?php _e('Easing function for scroll animation. Default: custom exponential', 'snn'); ?></p></div>
-
                 </div>
-
             </details>
-
         </div>
-
         <style>.lenis-config{margin-top:20px}.lenis-disabled{opacity:0.5;pointer-events:none}.lenis-field{margin-bottom:5px}.lenis-input-small{width:80px}.lenis-select{margin-left:10px}.lenis-accordion{border:1px solid #ddd;padding:;border-radius:4px}.lenis-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px}.lenis-accordion[open] .lenis-summary{margin-bottom:5px}.lenis-accordion-content{margin-top:15px}.lenis-settings label{display:inline-block}.lenis-settings .description{font-size:13px;color:#666}</style>
-
         <script>document.addEventListener('DOMContentLoaded', function() { const enableCheckbox = document.getElementById('enable_lenis'); const configDiv = document.querySelector('.lenis-config'); if (enableCheckbox && configDiv) { enableCheckbox.addEventListener('change', function() { if (this.checked) { configDiv.classList.remove('lenis-disabled'); } else { configDiv.classList.add('lenis-disabled'); } }); } });</script>
-
     </div>
-
 <?php }
-
-
 
 function snn_enable_page_transitions_callback() {
-
     $options = snn_get_interactions_settings();
-
     $enabled = isset($options['enable_page_transitions']) ? $options['enable_page_transitions'] : 0;
-
     $show_logo = isset($options['page_transition_show_logo']) ? $options['page_transition_show_logo'] : 0;
-
     $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
-
     $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
-
     $duration = isset($options['page_transition_duration']) ? $options['page_transition_duration'] : 1.5;
-
     $logo_width = isset($options['page_transition_logo_width']) ? $options['page_transition_logo_width'] : 200;
-
     $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
-
     ?>
-
     <div class="page-transitions-settings">
-
         <input type="checkbox" id="enable_page_transitions" name="snn_interactions_settings[enable_page_transitions]" value="1" <?php checked(1, $enabled); ?>> <label for="enable_page_transitions"><strong><?php _e('Enable Page Transitions with View Transition API', 'snn'); ?></strong></label>
-
         <p style="max-width:800px"><?php _e('The View Transition API provides a mechanism for easily creating animated transitions between different website pages. It allows you to create seamless visual transitions when navigating between pages, improving the user experience.', 'snn'); ?></p>
-
         <p><?php _e('Learn more:', 'snn'); ?> <a href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API" target="_blank">View Transitions API - MDN Web Docs</a></p>
-
         <div class="page-transitions-config <?php echo $enabled ? '' : 'transitions-disabled'; ?>">
-
             <h4><?php _e('Transition Settings', 'snn'); ?></h4>
-
             <div class="transitions-field">
-
                 <label><?php _e('Transition Type', 'snn'); ?>:
-
                     <select name="snn_interactions_settings[page_transition_type]" class="transitions-select">
-
                         <option value="wipe-down" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-down'); ?>><?php _e('Wipe Down (Top to Bottom)', 'snn'); ?></option>
-
                         <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
-
                     </select>
-
                 </label>
-
                 <p class="description"><?php _e('Select the type of transition effect to use when navigating between pages. Default: Wipe Down', 'snn'); ?></p>
-
             </div>
-
-
 
             <div class="transitions-field">
-
                 <label><input type="checkbox" id="page_transition_show_logo" name="snn_interactions_settings[page_transition_show_logo]" value="1" <?php checked(1, $show_logo); ?>> <strong><?php _e('Show Logo and Overlay During Transition', 'snn'); ?></strong></label>
-
                 <p class="description"><?php _e('When enabled, displays a colored overlay with your logo during page transitions.', 'snn'); ?></p>
-
             </div>
-
-
 
             <div class="transitions-logo-settings <?php echo $show_logo ? '' : 'logo-disabled'; ?>">
-
                 <div class="transitions-field">
-
                     <label><?php _e('Overlay Background Color', 'snn'); ?>:</label>
-
                     <input type="color" name="snn_interactions_settings[page_transition_overlay_color]" value="<?php echo esc_attr($overlay_color); ?>" class="transitions-color-picker">
-
                     <p class="description"><?php _e('Choose the background color for the transition overlay. Default: #000000 (black)', 'snn'); ?></p>
-
                 </div>
 
-
-
                 <div class="transitions-field">
-
                     <label><?php _e('Transition Duration (seconds)', 'snn'); ?>:</label>
-
                     <input type="number" name="snn_interactions_settings[page_transition_duration]" value="<?php echo esc_attr($duration); ?>" class="transitions-duration-input" step="0.1" min="0.5" max="5">
-
                     <p class="description"><?php _e('Total duration of the overlay transition effect in seconds. Default: 1.5s', 'snn'); ?></p>
-
                 </div>
 
-
-
                 <div class="transitions-field">
-
                     <label><?php _e('Transition Logo', 'snn'); ?>:</label>
-
                     <div class="transitions-logo-wrapper">
-
                         <input type="hidden" id="page_transition_logo" name="snn_interactions_settings[page_transition_logo]" value="<?php echo esc_attr($logo_id); ?>">
-
                         <div id="transitions-logo-preview" class="transitions-logo-preview">
-
                             <?php if ($logo_url) : ?>
-
                                 <img src="<?php echo esc_url($logo_url); ?>" alt="Logo Preview">
-
                             <?php endif; ?>
-
                         </div>
-
                         <button type="button" id="transitions-logo-upload" class="button"><?php _e('Select Logo', 'snn'); ?></button>
-
                         <button type="button" id="transitions-logo-remove" class="button" <?php echo !$logo_id ? 'style="display:none;"' : ''; ?>><?php _e('Remove', 'snn'); ?></button>
-
                     </div>
-
                     <p class="description"><?php _e('Select an image to display as the logo during page transitions.', 'snn'); ?></p>
-
                 </div>
-
-
 
                 <div class="transitions-field">
-
                     <label><?php _e('Logo Width (pixels)', 'snn'); ?>:</label>
-
                     <input type="number" name="snn_interactions_settings[page_transition_logo_width]" value="<?php echo esc_attr($logo_width); ?>" class="transitions-duration-input" step="10" min="50" max="800">
-
                     <p class="description"><?php _e('Set the maximum width of the logo in pixels. Height will be automatic. Default: 200px', 'snn'); ?></p>
-
                 </div>
-
             </div>
 
-
-
             <details class="transitions-accordion">
-
                 <summary class="transitions-summary"><?php _e('Advanced Settings', 'snn'); ?></summary>
-
                 <div class="transitions-accordion-content">
-
                     <h4><?php _e('Page Structure Selectors', 'snn'); ?></h4>
-
                     <p class="description" style="margin-bottom:15px"><?php _e('Define CSS selectors to identify different parts of your page. This helps the transition system properly update content and preserve scripts/assets.', 'snn'); ?></p>
 
-
-
                     <div class="transitions-field">
-
                         <label><?php _e('Update Mode', 'snn'); ?>:</label>
-
                         <select name="snn_interactions_settings[page_transition_update_mode]" class="transitions-select">
-
                             <option value="smart" <?php selected(isset($options['page_transition_update_mode']) ? $options['page_transition_update_mode'] : 'smart', 'smart'); ?>><?php _e('Smart Update (Recommended)', 'snn'); ?></option>
-
                             <option value="full" <?php selected(isset($options['page_transition_update_mode']) ? $options['page_transition_update_mode'] : 'smart', 'full'); ?>><?php _e('Full Page Replace', 'snn'); ?></option>
-
                         </select>
-
                         <p class="description"><?php _e('Smart Update: Only updates main content area while preserving header/footer and scripts. Full Page Replace: Replaces entire page content (may cause asset loading issues). Default: Smart Update', 'snn'); ?></p>
-
                     </div>
 
-
-
                     <div class="transitions-field">
-
                         <label><?php _e('Header Selector', 'snn'); ?>:</label>
-
                         <input type="text" name="snn_interactions_settings[page_transition_header_selector]" value="<?php echo esc_attr(isset($options['page_transition_header_selector']) ? $options['page_transition_header_selector'] : 'header'); ?>" class="regular-text">
-
                         <p class="description"><?php _e('CSS selector for the global header element. Default: header', 'snn'); ?></p>
-
                     </div>
 
-
-
                     <div class="transitions-field">
-
                         <label><?php _e('Main Content Selector', 'snn'); ?>:</label>
-
                         <input type="text" name="snn_interactions_settings[page_transition_main_selector]" value="<?php echo esc_attr(isset($options['page_transition_main_selector']) ? $options['page_transition_main_selector'] : 'main, article, #brx-content'); ?>" class="regular-text">
-
                         <p class="description"><?php _e('CSS selector for the main content area. Supports multiple selectors separated by commas. Default: main, article, #brx-content', 'snn'); ?></p>
-
                     </div>
-
-
 
                     <div class="transitions-field">
-
                         <label><?php _e('Footer Selector', 'snn'); ?>:</label>
-
                         <input type="text" name="snn_interactions_settings[page_transition_footer_selector]" value="<?php echo esc_attr(isset($options['page_transition_footer_selector']) ? $options['page_transition_footer_selector'] : 'footer'); ?>" class="regular-text">
-
                         <p class="description"><?php _e('CSS selector for the global footer element. Default: footer', 'snn'); ?></p>
-
                     </div>
-
                 </div>
-
             </details>
-
         </div>
-
         <style>
-
             .page-transitions-config{margin-top:20px}
-
             .transitions-disabled{opacity:0.5;pointer-events:none}
-
             .logo-disabled{opacity:0.5;pointer-events:none}
-
             .transitions-field{margin-bottom:15px}
-
             .transitions-select{margin-left:10px;min-width:200px}
-
             .page-transitions-settings label{display:inline-block}
-
             .page-transitions-settings .description{font-size:13px;color:#666;margin-top:5px}
-
             .transitions-color-picker{vertical-align:middle;margin-left:10px;width:60px;height:30px;padding:0;border:1px solid #ccc;cursor:pointer}
-
             .transitions-duration-input{margin-left:10px;width:80px}
-
             .transitions-logo-wrapper{margin-top:10px;display:flex;align-items:center;gap:10px}
-
             .transitions-logo-preview{width:100px;height:100px;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;background:#f9f9f9}
-
             .transitions-logo-preview img{max-width:100%;max-height:100%;object-fit:contain}
-
             .transitions-logo-settings{margin-top:20px;padding:15px;background:#f9f9f9;border:1px solid #ddd;border-radius:4px}
-
             .transitions-accordion{border:1px solid #ddd;border-radius:4px;margin-top:20px}
-
             .transitions-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px;user-select:none}
-
             .transitions-accordion[open] .transitions-summary{margin-bottom:10px}
-
             .transitions-accordion-content{padding:15px}
-
         </style>
-
         <script>
-
             document.addEventListener('DOMContentLoaded', function() {
-
                 var enableCheckbox = document.getElementById('enable_page_transitions');
-
                 var configDiv = document.querySelector('.page-transitions-config');
-
                 var showLogoCheckbox = document.getElementById('page_transition_show_logo');
-
                 var logoSettings = document.querySelector('.transitions-logo-settings');
 
-
-
                 if (enableCheckbox && configDiv) {
-
                     enableCheckbox.addEventListener('change', function() {
-
                         configDiv.classList.toggle('transitions-disabled', !this.checked);
-
                     });
-
                 }
-
-
 
                 if (showLogoCheckbox && logoSettings) {
-
                     showLogoCheckbox.addEventListener('change', function() {
-
                         logoSettings.classList.toggle('logo-disabled', !this.checked);
-
                     });
-
                 }
-
-
 
                 // Media uploader
-
                 var uploadBtn = document.getElementById('transitions-logo-upload');
-
                 var removeBtn = document.getElementById('transitions-logo-remove');
-
                 var logoInput = document.getElementById('page_transition_logo');
-
                 var logoPreview = document.getElementById('transitions-logo-preview');
-
                 var mediaFrame;
 
-
-
                 if (uploadBtn) {
-
                     uploadBtn.addEventListener('click', function(e) {
-
                         e.preventDefault();
-
-
 
                         if (mediaFrame) {
-
                             mediaFrame.open();
-
                             return;
-
                         }
 
-
-
                         mediaFrame = wp.media({
-
                             title: '<?php _e('Select Transition Logo', 'snn'); ?>',
-
                             button: { text: '<?php _e('Use this image', 'snn'); ?>' },
-
                             multiple: false
-
                         });
-
-
 
                         mediaFrame.on('select', function() {
-
                             var attachment = mediaFrame.state().get('selection').first().toJSON();
-
                             logoInput.value = attachment.id;
-
                             var imgUrl = attachment.sizes && attachment.sizes.medium ? attachment.sizes.medium.url : attachment.url;
-
                             logoPreview.innerHTML = '<img src="' + imgUrl + '" alt="Logo Preview">';
-
                             removeBtn.style.display = '';
-
                         });
 
-
-
                         mediaFrame.open();
-
                     });
-
                 }
-
-
 
                 if (removeBtn) {
-
                     removeBtn.addEventListener('click', function(e) {
-
                         e.preventDefault();
-
                         logoInput.value = '';
-
                         logoPreview.innerHTML = '';
-
                         this.style.display = 'none';
-
                     });
-
                 }
-
             });
-
         </script>
-
     </div>
-
 <?php }
 
-
-
 function snn_enqueue_lenis_scripts() {
-
     $options = snn_get_interactions_settings();
 
-
-
     if (isset($options['enable_lenis']) && $options['enable_lenis']) {
-
         // Enqueue Lenis library
-
         wp_enqueue_script('lenis-js', SNN_URL_ASSETS . 'js/lenis.min.js', array(), null, true);
 
-
-
         // Get settings with defaults
-
         $autoRaf = isset($options['lenis_autoRaf']) ? $options['lenis_autoRaf'] : 1;
-
         $duration = isset($options['lenis_duration']) ? floatval($options['lenis_duration']) : 1.2;
-
         $lerp = isset($options['lenis_lerp']) ? floatval($options['lenis_lerp']) : 0.1;
-
         $wheelMultiplier = isset($options['lenis_wheelMultiplier']) ? floatval($options['lenis_wheelMultiplier']) : 1;
-
         $smoothWheel = isset($options['lenis_smoothWheel']) ? $options['lenis_smoothWheel'] : 1;
 
-
-
         // Advanced settings
-
         $orientation = isset($options['lenis_orientation']) ? $options['lenis_orientation'] : 'vertical';
-
         $gestureOrientation = isset($options['lenis_gestureOrientation']) ? $options['lenis_gestureOrientation'] : 'vertical';
-
         $syncTouch = isset($options['lenis_syncTouch']) ? $options['lenis_syncTouch'] : 0;
-
         $syncTouchLerp = isset($options['lenis_syncTouchLerp']) ? floatval($options['lenis_syncTouchLerp']) : 0.075;
-
         $touchMultiplier = isset($options['lenis_touchMultiplier']) ? floatval($options['lenis_touchMultiplier']) : 1;
-
         $touchInertiaExponent = isset($options['lenis_touchInertiaExponent']) ? floatval($options['lenis_touchInertiaExponent']) : 1.7;
-
         $infinite = isset($options['lenis_infinite']) ? $options['lenis_infinite'] : 0;
-
         $overscroll = isset($options['lenis_overscroll']) ? $options['lenis_overscroll'] : 1;
-
         $easing = isset($options['lenis_easing']) ? $options['lenis_easing'] : 'default';
 
-
-
         // Easing function mapping
-
         $easingFunctions = array(
-
             'default' => '(t) => Math.min(1, 1.001 - Math.pow(2, -10 * t))',
-
             'linear' => '(t) => t',
-
             'easeInQuad' => '(t) => t * t',
-
             'easeOutQuad' => '(t) => t * (2 - t)',
-
             'easeInOutQuad' => '(t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t',
-
             'easeInCubic' => '(t) => t * t * t',
-
             'easeOutCubic' => '(t) => (--t) * t * t + 1',
-
             'easeInOutCubic' => '(t) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1'
-
         );
-
-
 
         $easingFunction = isset($easingFunctions[$easing]) ? $easingFunctions[$easing] : $easingFunctions['default'];
 
-
-
         // Build Lenis configuration
-
         $inline_script = "
-
         // Check if URL contains ?bricks=run
-
         const urlParams = new URLSearchParams(window.location.search);
-
         if (!urlParams.has('bricks') || urlParams.get('bricks') !== 'run') {
-
             const lenis = new Lenis({
-
                 autoRaf: " . ($autoRaf ? 'true' : 'false') . ",
-
                 duration: " . $duration . ",
-
                 easing: " . $easingFunction . ",
-
                 lerp: " . $lerp . ",
-
                 wheelMultiplier: " . $wheelMultiplier . ",
-
                 smoothWheel: " . ($smoothWheel ? 'true' : 'false') . ",
-
                 orientation: '" . esc_js($orientation) . "',
-
                 gestureOrientation: '" . esc_js($gestureOrientation) . "',
-
                 syncTouch: " . ($syncTouch ? 'true' : 'false') . ",
-
                 syncTouchLerp: " . $syncTouchLerp . ",
-
                 touchMultiplier: " . $touchMultiplier . ",
-
                 touchInertiaExponent: " . $touchInertiaExponent . ",
-
                 infinite: " . ($infinite ? 'true' : 'false') . ",
-
                 overscroll: " . ($overscroll ? 'true' : 'false') . "
-
             });
-
         }
-
         ";
-
-
 
         wp_add_inline_script('lenis-js', $inline_script);
-
     }
-
 }
-
 add_action('wp_enqueue_scripts', 'snn_enqueue_lenis_scripts');
 
-
-
 /**
-
  * Add View Transition overlay element to footer
-
  */
-
 function snn_add_view_transition_overlay() {
-
     $options = snn_get_interactions_settings();
 
-
-
     if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
-
         $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
-
         $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
-
         $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
 
-
-
         // Only output overlay HTML if logo feature is enabled
-
         if ($show_logo && $logo_url) :
-
         ?>
-
         <div id="snn-transition-overlay">
-
             <div class="snn-transition-logo">
-
                 <img src="<?php echo esc_url($logo_url); ?>" alt="">
-
             </div>
-
         </div>
-
         <?php
-
         endif;
-
     }
-
 }
-
 add_action('wp_footer', 'snn_add_view_transition_overlay', 100);
 
-
-
 /**
-
  * Enqueue View Transition styles and scripts
-
  */
-
 function snn_enqueue_page_transitions() {
-
     $options = snn_get_interactions_settings();
 
-
-
     if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
-
         $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down';
+        $show_logo       = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
+        $overlay_color   = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
+        $duration        = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
+        $logo_width      = isset($options['page_transition_logo_width']) ? absint($options['page_transition_logo_width']) : 200;
 
-        $show_logo = isset($options['page_transition_show_logo']) && $options['page_transition_show_logo'];
-
-        $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
-
-        $duration = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
-
-        $logo_width = isset($options['page_transition_logo_width']) ? absint($options['page_transition_logo_width']) : 200;
-
-
-
-        // Enable native MPA View Transitions - browser handles everything automatically
-
+        // Base Settings & Anti-Jank Fixes
         $inline_css = "
-
         @view-transition { navigation: auto; }
+        
+        /* PREVENT LAYOUT SHIFTS (Jumping) */
+        html { scrollbar-gutter: stable; }
+        
+        :root { 
+            --snn-transition-duration: " . $duration . "s; 
+            --snn-overlay-bg: " . esc_attr($overlay_color) . ";
+        }
 
-        :root { --snn-transition-duration: " . $duration . "s; }
-
+        /* Ensure smooth layering */
+        ::view-transition-group(root) { 
+            animation-duration: var(--snn-transition-duration);
+            z-index: 1;
+        }
         ";
 
-
-
-        // Overlay CSS only if logo feature is enabled
-
+        // ---------------------------------------------------------
+        // SCENARIO 1: LOGO & OVERLAY ENABLED
+        // ---------------------------------------------------------
         if ($show_logo) {
-
-            $logo_id = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
-
+            $logo_id  = isset($options['page_transition_logo']) ? $options['page_transition_logo'] : 0;
             $logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'medium') : '';
 
-
-
-            if ($logo_url) {
-
-                $inline_css .= "
-
-                #snn-transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: " . esc_attr($overlay_color) . "; display: flex; align-items: center; justify-content: center; z-index: 999999; pointer-events: none; view-transition-name: snn-overlay; contain: paint; }
-
-                .snn-transition-logo img { max-width: " . $logo_width . "px; height: auto; object-fit: contain; }
-
-                html:not(:active-view-transition) #snn-transition-overlay { display: none; }
-
-                ";
-
-            }
-
-        }
-
-
-
-        // Transition animations
-
-        if ($transition_type === 'wipe-down') {
-
+            // 1. CSS for the Overlay Element (Must be captured by browser)
+            // We use clip-path to hide it instead of display:none so it exists in the DOM snapshot.
             $inline_css .= "
-
-            ::view-transition-old(root) { animation: calc(var(--snn-transition-duration) * 0.4) cubic-bezier(0.4, 0, 0.6, 1) both snn-wipe-out; }
-
-            ::view-transition-new(root) { animation: calc(var(--snn-transition-duration) * 0.6) cubic-bezier(0.4, 0, 0.2, 1) both snn-wipe-in; animation-delay: calc(var(--snn-transition-duration) * 0.4); }
-
-            @keyframes snn-wipe-out { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
-
-            @keyframes snn-wipe-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
-
+            #snn-transition-overlay { 
+                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+                background: var(--snn-overlay-bg); 
+                display: flex; align-items: center; justify-content: center; 
+                z-index: 999999; pointer-events: none; 
+                
+                /* VITAL: Identify this element to the API */
+                view-transition-name: snn-overlay; 
+                
+                /* VITAL: Hide it visually but keep it paintable for the snapshot */
+                clip-path: inset(100% 0 0 0); 
+            }
+            .snn-transition-logo img { 
+                max-width: " . $logo_width . "px; height: auto; object-fit: contain; 
+            }
             ";
 
+            // 2. The Animation Logic
+            // When overlay is active, the Page Content (root) should essentially freeze or hide
+            // behind the overlay to prevent double-animation glitches.
+            $inline_css .= "
+            ::view-transition-old(root),
+            ::view-transition-new(root) {
+                animation: none;
+                opacity: 0; /* Hide page content while overlay is doing the work */
+                mix-blend-mode: normal;
+            }
 
+            /* The Overlay Group - Highest Z-Index */
+            ::view-transition-group(snn-overlay) {
+                z-index: 999999;
+                animation: none; /* We animate the children (old/new) or mix-blend */
+                mix-blend-mode: normal;
+                height: 100%; /* Fix for some browsers collapsing height */
+            }
+            
+            /* Since the element is technically 'clipped' in the DOM, 
+               we force the snapshot to be fully visible during transition */
+            ::view-transition-old(snn-overlay),
+            ::view-transition-new(snn-overlay) {
+                /* Unlock the clip-path for the animation duration */
+                height: 100%;
+                width: 100%;
+                object-fit: cover;
+                object-position: center;
+            }
+            ";
 
-            if ($show_logo && isset($options['page_transition_logo']) && wp_get_attachment_image_url($options['page_transition_logo'], 'medium')) {
-
+            // 3. Define the Animation Keyframes
+            if ($transition_type === 'wipe-down') {
                 $inline_css .= "
-
-                ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); }
-
-                ::view-transition-old(snn-overlay) { animation: none; opacity: 0; }
-
-                ::view-transition-new(snn-overlay) { animation: snn-overlay-wipe var(--snn-transition-duration) ease-in-out both; }
-
-                @keyframes snn-overlay-wipe {
-
-                    0% { clip-path: inset(0 0 100% 0); }
-
-                    20% { clip-path: inset(0 0 0 0); }
-
-                    80% { clip-path: inset(0 0 0 0); }
-
-                    100% { clip-path: inset(100% 0 0 0); }
-
+                /* We animate the NEW view of the overlay */
+                ::view-transition-new(snn-overlay) {
+                    animation: snn-overlay-wipe-sequence var(--snn-transition-duration) cubic-bezier(0.87, 0, 0.13, 1) both;
+                    opacity: 1;
+                }
+                
+                /* Sequence:
+                   0-40%: Wipe UP (Cover screen)
+                   40-60%: Hold (Logo visible, page loads behind)
+                   60-100%: Wipe UP/Fade OUT (Reveal new page)
+                */
+                @keyframes snn-overlay-wipe-sequence {
+                    0% { clip-path: inset(100% 0 0 0); }   /* Start at bottom */
+                    35% { clip-path: inset(0 0 0 0); }     /* Full Screen */
+                    65% { clip-path: inset(0 0 0 0); }     /* Hold */
+                    100% { clip-path: inset(0 0 100% 0); } /* Exit to top */
+                }
+                
+                /* Hide the 'old' snapshot of the overlay immediately */
+                ::view-transition-old(snn-overlay) { display: none; }
+                ";
+            } else {
+                // FADE TYPE OVERLAY
+                $inline_css .= "
+                ::view-transition-new(snn-overlay) {
+                    animation: snn-overlay-fade-sequence var(--snn-transition-duration) ease-in-out both;
+                    clip-path: none; /* Remove the hiding clip */
                 }
 
-                ";
-
-            }
-
-        } else {
-
-            // Fade transition
-
-            $inline_css .= "
-
-            ::view-transition-old(root) { animation: calc(var(--snn-transition-duration) * 0.3) ease-out both snn-fade-out; }
-
-            ::view-transition-new(root) { animation: calc(var(--snn-transition-duration) * 0.5) ease-in both snn-fade-in; animation-delay: calc(var(--snn-transition-duration) * 0.3); }
-
-            @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
-
-            @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
-
-            ";
-
-
-
-            if ($show_logo && isset($options['page_transition_logo']) && wp_get_attachment_image_url($options['page_transition_logo'], 'medium')) {
-
-                $inline_css .= "
-
-                ::view-transition-group(snn-overlay) { animation-duration: var(--snn-transition-duration); }
-
-                ::view-transition-old(snn-overlay) { animation: none; opacity: 0; }
-
-                ::view-transition-new(snn-overlay) { animation: snn-overlay-fade var(--snn-transition-duration) ease-in-out both; }
-
-                @keyframes snn-overlay-fade {
-
+                @keyframes snn-overlay-fade-sequence {
                     0% { opacity: 0; }
-
-                    15% { opacity: 1; }
-
-                    85% { opacity: 1; }
-
+                    25% { opacity: 1; }
+                    75% { opacity: 1; }
                     100% { opacity: 0; }
-
                 }
-
+                
+                ::view-transition-old(snn-overlay) { display: none; }
                 ";
-
             }
-
+        } 
+        // ---------------------------------------------------------
+        // SCENARIO 2: PAGE-TO-PAGE (NO OVERLAY)
+        // ---------------------------------------------------------
+        else {
+            if ($transition_type === 'wipe-down') {
+                // Wipe Down: New page wipes IN over the Old page.
+                // Added 'isolation: isolate' to prevent blending weirdness.
+                $inline_css .= "
+                ::view-transition-old(root) { 
+                    animation: snn-scale-out var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                    z-index: -1;
+                    transform-origin: center bottom;
+                    filter: brightness(0.8); /* Slight dim for depth */
+                }
+                ::view-transition-new(root) { 
+                    animation: snn-wipe-in var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both; 
+                    z-index: 2; 
+                    box-shadow: 0 -10px 40px rgba(0,0,0,0.1); /* Shadow for depth */
+                }
+                
+                @keyframes snn-wipe-in { 
+                    from { clip-path: inset(100% 0 0 0); transform: translateY(50px); } 
+                    to { clip-path: inset(0 0 0 0); transform: translateY(0); } 
+                }
+                @keyframes snn-scale-out {
+                    from { transform: scale(1); opacity: 1; }
+                    to { transform: scale(0.95); opacity: 0.8; }
+                }
+                ";
+            } else {
+                // Fade: Smooth Crossfade
+                // mix-blend-mode: plus-lighter fixes the 'white flash' issue
+                $inline_css .= "
+                ::view-transition-old(root) { 
+                    animation: snn-fade-out var(--snn-transition-duration) linear both; 
+                }
+                ::view-transition-new(root) { 
+                    animation: snn-fade-in var(--snn-transition-duration) linear both; 
+                    mix-blend-mode: plus-lighter; 
+                }
+                
+                @keyframes snn-fade-out { from { opacity: 1; } to { opacity: 0; } }
+                @keyframes snn-fade-in { from { opacity: 0; } to { opacity: 1; } }
+                
+                /* Dark mode protection */
+                ::view-transition-image-pair(root) { isolation: isolate; background-color: transparent; }
+                ";
+            }
         }
 
-
-
-        // CSS-only - no JavaScript needed for native MPA transitions!
-
+        // Output styles
         wp_register_style('snn-view-transitions', false);
-
         wp_enqueue_style('snn-view-transitions');
-
         wp_add_inline_style('snn-view-transitions', $inline_css);
-
     }
-
 }
-
 add_action('wp_enqueue_scripts', 'snn_enqueue_page_transitions');
-
