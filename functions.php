@@ -12,6 +12,7 @@ define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );
 require_once SNN_PATH . 'includes/settings-page.php';
 
 require_once SNN_PATH . 'includes/other-settings.php';
+require_once SNN_PATH . 'includes/interactions.php';
 require_once SNN_PATH . 'includes/security-page.php';
 require_once SNN_PATH . 'includes/post-types-settings.php';
 require_once SNN_PATH . 'includes/custom-field-settings.php';

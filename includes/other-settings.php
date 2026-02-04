@@ -44,14 +44,6 @@ function snn_register_other_settings() {
     );
 
     add_settings_field(
-        'enqueue_gsap',
-        __('Enable GSAP and GSAP Elements', 'snn'),
-        'snn_enqueue_gsap_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
-
-    add_settings_field(
         'revisions_limit',
         __('Limit Post Revisions (Per Post)', 'snn'),
         'snn_revisions_limit_callback',
@@ -147,21 +139,6 @@ function snn_other_settings_section_callback() {
     echo '<p>' . esc_html__( 'Configure additional settings for your site below.', 'snn' ) . '</p>';
 }
 
-function snn_enqueue_gsap_callback() {
-    $options = get_option('snn_other_settings');
-    ?>
-    <input type="checkbox" name="snn_other_settings[enqueue_gsap]" value="1" <?php checked(1, isset($options['enqueue_gsap']) ? $options['enqueue_gsap'] : 0); ?>>
-    <p>
-        <?php _e('Enabling this setting will enqueue the GSAP library and its associated scripts on your website.', 'snn'); ?><br>
-        <?php _e('GSAP is a powerful JavaScript animation library that allows you to create complex and interactive animations.', 'snn'); ?><br><br>
-        - <?php _e('Ability to create GSAP animations with just data-animate attributes.', 'snn'); ?><br>
-        - <?php _e('gsap.min.php: The core GSAP library.', 'snn'); ?><br>
-        - <?php _e('ScrollTrigger.min.php: A GSAP plugin that enables scroll-based animations.', 'snn'); ?><br>
-        - <?php _e('gsap-data-animate.php: A custom script that utilizes GSAP and ScrollTrigger for animating elements based on data attributes.', 'snn'); ?><br>
-    </p>
-    <?php
-}
-
 function snn_revisions_limit_callback() {
     $options = get_option('snn_other_settings');
     $value = (isset($options['revisions_limit']) && $options['revisions_limit'] !== '' && intval($options['revisions_limit']) > 0)
@@ -247,17 +224,6 @@ function snn_dashboard_custom_metabox_content_callback() {
     </p>
     <?php
 }
-
-function snn_enqueue_gsap_scripts() {
-    $options = get_option('snn_other_settings');
-    if (isset($options['enqueue_gsap']) && $options['enqueue_gsap']) {
-        wp_enqueue_script('gsap-js', SNN_URL_ASSETS . 'js/gsap.min.js', array(), null, true);
-        wp_enqueue_script('gsap-st-js', SNN_URL_ASSETS . 'js/ScrollTrigger.min.js', array('gsap-js'), null, true);
-        wp_enqueue_script('gsap-data-js', SNN_URL_ASSETS . 'js/gsap-data-animate.js?v0.05', array(), null, true);
-    }
-}
-add_action('wp_enqueue_scripts', 'snn_enqueue_gsap_scripts');
-add_action('admin_enqueue_scripts', 'snn_enqueue_gsap_scripts');
 
 function snn_limit_post_revisions($num, $post) {
     $options = get_option('snn_other_settings');
