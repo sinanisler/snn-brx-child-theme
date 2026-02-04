@@ -110,6 +110,12 @@ function snn_sanitize_interactions_settings($input) {
     $sanitized['page_transition_logo'] = isset($input['page_transition_logo']) ? absint($input['page_transition_logo']) : 0;
     $sanitized['page_transition_duration'] = isset($input['page_transition_duration']) ? floatval($input['page_transition_duration']) : 1.5;
 
+    // Page Transition Selectors
+    $sanitized['page_transition_header_selector'] = isset($input['page_transition_header_selector']) ? sanitize_text_field($input['page_transition_header_selector']) : 'header';
+    $sanitized['page_transition_main_selector'] = isset($input['page_transition_main_selector']) ? sanitize_text_field($input['page_transition_main_selector']) : 'main, article, #brx-content';
+    $sanitized['page_transition_footer_selector'] = isset($input['page_transition_footer_selector']) ? sanitize_text_field($input['page_transition_footer_selector']) : 'footer';
+    $sanitized['page_transition_update_mode'] = isset($input['page_transition_update_mode']) ? sanitize_text_field($input['page_transition_update_mode']) : 'smart';
+
     return $sanitized;
 }
 
@@ -178,7 +184,15 @@ function snn_migrate_interactions_settings() {
             'lenis_overscroll',
             'lenis_easing',
             'enable_page_transitions',
-            'page_transition_type'
+            'page_transition_type',
+            'page_transition_overlay_color',
+            'page_transition_show_logo',
+            'page_transition_logo',
+            'page_transition_duration',
+            'page_transition_header_selector',
+            'page_transition_main_selector',
+            'page_transition_footer_selector',
+            'page_transition_update_mode'
         );
 
         $migrated_settings = array();
@@ -321,6 +335,41 @@ function snn_enable_page_transitions_callback() {
                     <p class="description"><?php _e('Select an image to display as the logo during page transitions.', 'snn'); ?></p>
                 </div>
             </div>
+
+            <details class="transitions-accordion">
+                <summary class="transitions-summary"><?php _e('Advanced Settings', 'snn'); ?></summary>
+                <div class="transitions-accordion-content">
+                    <h4><?php _e('Page Structure Selectors', 'snn'); ?></h4>
+                    <p class="description" style="margin-bottom:15px"><?php _e('Define CSS selectors to identify different parts of your page. This helps the transition system properly update content and preserve scripts/assets.', 'snn'); ?></p>
+
+                    <div class="transitions-field">
+                        <label><?php _e('Update Mode', 'snn'); ?>:</label>
+                        <select name="snn_interactions_settings[page_transition_update_mode]" class="transitions-select">
+                            <option value="smart" <?php selected(isset($options['page_transition_update_mode']) ? $options['page_transition_update_mode'] : 'smart', 'smart'); ?>><?php _e('Smart Update (Recommended)', 'snn'); ?></option>
+                            <option value="full" <?php selected(isset($options['page_transition_update_mode']) ? $options['page_transition_update_mode'] : 'smart', 'full'); ?>><?php _e('Full Page Replace', 'snn'); ?></option>
+                        </select>
+                        <p class="description"><?php _e('Smart Update: Only updates main content area while preserving header/footer and scripts. Full Page Replace: Replaces entire page content (may cause asset loading issues). Default: Smart Update', 'snn'); ?></p>
+                    </div>
+
+                    <div class="transitions-field">
+                        <label><?php _e('Header Selector', 'snn'); ?>:</label>
+                        <input type="text" name="snn_interactions_settings[page_transition_header_selector]" value="<?php echo esc_attr(isset($options['page_transition_header_selector']) ? $options['page_transition_header_selector'] : 'header'); ?>" class="regular-text">
+                        <p class="description"><?php _e('CSS selector for the global header element. Default: header', 'snn'); ?></p>
+                    </div>
+
+                    <div class="transitions-field">
+                        <label><?php _e('Main Content Selector', 'snn'); ?>:</label>
+                        <input type="text" name="snn_interactions_settings[page_transition_main_selector]" value="<?php echo esc_attr(isset($options['page_transition_main_selector']) ? $options['page_transition_main_selector'] : 'main, article, #brx-content'); ?>" class="regular-text">
+                        <p class="description"><?php _e('CSS selector for the main content area. Supports multiple selectors separated by commas. Default: main, article, #brx-content', 'snn'); ?></p>
+                    </div>
+
+                    <div class="transitions-field">
+                        <label><?php _e('Footer Selector', 'snn'); ?>:</label>
+                        <input type="text" name="snn_interactions_settings[page_transition_footer_selector]" value="<?php echo esc_attr(isset($options['page_transition_footer_selector']) ? $options['page_transition_footer_selector'] : 'footer'); ?>" class="regular-text">
+                        <p class="description"><?php _e('CSS selector for the global footer element. Default: footer', 'snn'); ?></p>
+                    </div>
+                </div>
+            </details>
         </div>
         <style>
             .page-transitions-config{margin-top:20px}
@@ -336,6 +385,10 @@ function snn_enable_page_transitions_callback() {
             .transitions-logo-preview{width:100px;height:100px;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;background:#f9f9f9}
             .transitions-logo-preview img{max-width:100%;max-height:100%;object-fit:contain}
             .transitions-logo-settings{margin-top:20px;padding:15px;background:#f9f9f9;border:1px solid #ddd;border-radius:4px}
+            .transitions-accordion{border:1px solid #ddd;border-radius:4px;margin-top:20px}
+            .transitions-summary{cursor:pointer;font-weight:bold;background:#f0f0f1;padding:10px;border-radius:3px;user-select:none}
+            .transitions-accordion[open] .transitions-summary{margin-bottom:10px}
+            .transitions-accordion-content{padding:15px}
         </style>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -506,6 +559,12 @@ function snn_enqueue_page_transitions() {
         $overlay_color = isset($options['page_transition_overlay_color']) ? $options['page_transition_overlay_color'] : '#000000';
         $duration = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
 
+        // Get selectors with defaults
+        $header_selector = isset($options['page_transition_header_selector']) ? $options['page_transition_header_selector'] : 'header';
+        $main_selector = isset($options['page_transition_main_selector']) ? $options['page_transition_main_selector'] : 'main, article, #brx-content';
+        $footer_selector = isset($options['page_transition_footer_selector']) ? $options['page_transition_footer_selector'] : 'footer';
+        $update_mode = isset($options['page_transition_update_mode']) ? $options['page_transition_update_mode'] : 'smart';
+
         // CSS for View Transitions
         $inline_css = "
 :root {
@@ -588,6 +647,14 @@ function snn_enqueue_page_transitions() {
         return;
     }
 
+    // Configuration
+    var config = {
+        updateMode: '" . esc_js($update_mode) . "',
+        headerSelector: '" . esc_js($header_selector) . "',
+        mainSelector: '" . esc_js($main_selector) . "',
+        footerSelector: '" . esc_js($footer_selector) . "'
+    };
+
     function isInternalLink(url) {
         try {
             var linkUrl = new URL(url, window.location.origin);
@@ -615,6 +682,87 @@ function snn_enqueue_page_transitions() {
         }
     }
 
+    function updatePageContent(newDoc) {
+        if (config.updateMode === 'smart') {
+            // Smart update: Only update main content
+            try {
+                // Update page title
+                document.title = newDoc.title;
+
+                // Update meta tags
+                var currentMetas = document.head.querySelectorAll('meta[name], meta[property]');
+                currentMetas.forEach(function(meta) {
+                    var name = meta.getAttribute('name') || meta.getAttribute('property');
+                    var newMeta = newDoc.head.querySelector('meta[name=\"' + name + '\"], meta[property=\"' + name + '\"]');
+                    if (newMeta) {
+                        meta.setAttribute('content', newMeta.getAttribute('content'));
+                    }
+                });
+
+                // Update body classes
+                document.body.className = newDoc.body.className;
+
+                // Update main content area
+                var mainSelectors = config.mainSelector.split(',').map(function(s) { return s.trim(); });
+                var mainUpdated = false;
+
+                for (var i = 0; i < mainSelectors.length; i++) {
+                    var currentMain = document.querySelector(mainSelectors[i]);
+                    var newMain = newDoc.querySelector(mainSelectors[i]);
+
+                    if (currentMain && newMain) {
+                        currentMain.innerHTML = newMain.innerHTML;
+                        mainUpdated = true;
+                        break;
+                    }
+                }
+
+                // If no main content found, fall back to full replace
+                if (!mainUpdated) {
+                    console.warn('SNN Transitions: Main content selector not found, falling back to full page replace');
+                    document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
+                }
+            } catch (error) {
+                console.error('SNN Transitions: Error during smart update, falling back to full replace', error);
+                document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
+            }
+        } else {
+            // Full page replace
+            document.documentElement.innerHTML = newDoc.documentElement.innerHTML;
+        }
+    }
+
+    function navigateToPage(url) {
+        return fetch(url)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(function(html) {
+                var parser = new DOMParser();
+                var newDoc = parser.parseFromString(html, 'text/html');
+
+                // Update page content
+                updatePageContent(newDoc);
+
+                // Update URL
+                history.pushState(null, '', url);
+
+                // Show overlay for animation (only if logo enabled)
+                showOverlay();
+
+                // Re-attach listeners after DOM update
+                setTimeout(attachTransitionListeners, 0);
+            })
+            .catch(function(error) {
+                console.error('SNN Transitions: Navigation error', error);
+                // Fallback to normal navigation
+                window.location.href = url;
+            });
+    }
+
     function attachTransitionListeners() {
         document.querySelectorAll('a').forEach(function(link) {
             if (link.dataset.snnTransition) return;
@@ -628,24 +776,7 @@ function snn_enqueue_page_transitions() {
                 var url = this.href;
 
                 var transition = document.startViewTransition(function() {
-                    return fetch(url)
-                        .then(function(response) { return response.text(); })
-                        .then(function(html) {
-                            var parser = new DOMParser();
-                            var doc = parser.parseFromString(html, 'text/html');
-
-                            // Update the page
-                            document.documentElement.innerHTML = doc.documentElement.innerHTML;
-
-                            // Update URL
-                            history.pushState(null, '', url);
-
-                            // Show overlay for animation (only if logo enabled)
-                            showOverlay();
-
-                            // Re-attach listeners
-                            attachTransitionListeners();
-                        });
+                    return navigateToPage(url);
                 });
 
                 transition.finished.then(function() {
@@ -659,15 +790,7 @@ function snn_enqueue_page_transitions() {
     // Handle browser back/forward
     window.addEventListener('popstate', function() {
         var transition = document.startViewTransition(function() {
-            return fetch(window.location.href)
-                .then(function(response) { return response.text(); })
-                .then(function(html) {
-                    var parser = new DOMParser();
-                    var doc = parser.parseFromString(html, 'text/html');
-                    document.documentElement.innerHTML = doc.documentElement.innerHTML;
-                    showOverlay();
-                    attachTransitionListeners();
-                });
+            return navigateToPage(window.location.href);
         });
 
         transition.finished.then(function() {
