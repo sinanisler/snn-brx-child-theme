@@ -569,25 +569,26 @@ function snn_enqueue_page_transitions() {
             ";
         } elseif ($transition_type === 'mosaic-squares') {
             // Mosaic Squares: New page reveals through expanding squares
-            // Grid cell size in pixels
             $size = 40;
 
-            // Generate the SVG with embedded SMIL animation
-            $svg_mask = '
-            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            // Generate unique ID to prevent browser caching the finished animation state
+            $unique_id = 'snn_sq_' . uniqid();
+
+            // SVG with SMIL animation - squares grow from 0 to full size
+            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <defs>
-                    <pattern id="grid" x="0" y="0" width="'.$size.'" height="'.$size.'" patternUnits="userSpaceOnUse">
+                    <pattern id="'.$unique_id.'" x="0" y="0" width="'.$size.'" height="'.$size.'" patternUnits="userSpaceOnUse">
                         <rect x="0" y="0" width="0" height="0" fill="white">
-                            <animate attributeName="width" from="0" to="'.$size.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" />
-                            <animate attributeName="height" from="0" to="'.$size.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" />
+                            <animate attributeName="width" from="0" to="'.$size.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                            <animate attributeName="height" from="0" to="'.$size.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
                         </rect>
                     </pattern>
                 </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
+                <rect x="0" y="0" width="100" height="100" fill="url(#'.$unique_id.')" />
             </svg>';
 
-            // Encode SVG for CSS
-            $encoded_svg = rawurlencode(preg_replace('/\s+/', ' ', $svg_mask));
+            // Base64 encoding prevents breaking of # references (bulletproof)
+            $encoded_svg = base64_encode($svg_mask);
 
             $inline_css .= "
             ::view-transition-old(root) {
@@ -596,13 +597,21 @@ function snn_enqueue_page_transitions() {
             }
             ::view-transition-new(root) {
                 z-index: 1;
-                mask-image: url('data:image/svg+xml;utf8," . $encoded_svg . "');
+                -webkit-mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                -webkit-mask-size: cover;
+                mask-size: cover;
+                -webkit-mask-position: center;
                 mask-position: center;
+                -webkit-mask-repeat: repeat;
                 mask-repeat: repeat;
                 animation: snn-hold var(--snn-transition-duration) linear forwards;
             }
 
-            @keyframes snn-hold { from{opacity:1} to{opacity:1} }
+            @keyframes snn-hold {
+                from { opacity: 1; }
+                to { opacity: 1; }
+            }
             ";
         } else {
             // Fade: Smooth Crossfade
