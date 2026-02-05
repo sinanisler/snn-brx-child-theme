@@ -4,8 +4,8 @@
 function snn_add_other_settings_submenu() {
     add_submenu_page(
         'snn-settings',
-        __('Other Settings', 'snn'),
-        __('Other Settings', 'snn'),
+        __('Dashboard Settings', 'snn'),
+        __('Dashboard Settings', 'snn'),
         'manage_options',
         'snn-other-settings',
         'snn_render_other_settings',
