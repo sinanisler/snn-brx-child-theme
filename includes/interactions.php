@@ -299,13 +299,8 @@ function snn_enable_page_transitions_callback() {
                         <option value="iris-circle" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'iris-circle'); ?>><?php _e('Iris Circle', 'snn'); ?></option>
                         <option value="diagonal-slashes" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'diagonal-slashes'); ?>><?php _e('Diagonal Slashes', 'snn'); ?></option>
                         <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
-                        <option value="liquid-drip" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'liquid-drip'); ?>><?php _e('Liquid Drip (Bio-Hazard)', 'snn'); ?></option>
                         <option value="glitch-noise" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'glitch-noise'); ?>><?php _e('Digital Glitch (Cyberpunk)', 'snn'); ?></option>
                         <option value="ink-spread" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'ink-spread'); ?>><?php _e('Ink Spread (Rorschach)', 'snn'); ?></option>
-                        <option value="crt-turn-on" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'crt-turn-on'); ?>><?php _e('CRT TV Power On', 'snn'); ?></option>
-                        <option value="clock-wipe" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'clock-wipe'); ?>><?php _e('Clock Wipe (Windshield)', 'snn'); ?></option>
-                        <option value="honeycomb" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'honeycomb'); ?>><?php _e('Honeycomb (Hexagon Grid)', 'snn'); ?></option>
-                        <option value="gradient-wipe" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'gradient-wipe'); ?>><?php _e('Star Wars Wipe (Soft Edge)', 'snn'); ?></option>
                         <option value="camera-aperture" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'camera-aperture'); ?>><?php _e('Camera Aperture (Spiral)', 'snn'); ?></option>
                         <option value="broken-glass" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'broken-glass'); ?>><?php _e('Broken Glass (Polygons)', 'snn'); ?></option>
                         <option value="pixel-dither" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'pixel-dither'); ?>><?php _e('Pixel Dither (Dissolve)', 'snn'); ?></option>
@@ -841,44 +836,19 @@ function snn_enqueue_page_transitions() {
             }
             @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
             ";
-        } elseif ($transition_type === 'liquid-drip') {
-            // Liquid Drip: Circles falling and merging like slime
-            $unique_id = 'snn_liquid_' . uniqid();
-
-            // We create falling circles and use a "Gooey" filter (Blur + Contrast)
-            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none">
-                <defs>
-                    <filter id="goo">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
-                        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-                    </filter>
-                </defs>
-                <g filter="url(#goo)">
-                    <rect x="0" y="0" width="100%" height="0" fill="white">
-                         <animate attributeName="height" from="0" to="100%" dur="'.$duration.'s" fill="freeze" />
-                    </rect>
-                    <circle cx="20%" cy="0" r="50" fill="white"><animate attributeName="cy" from="0" to="120%" dur="'.$duration.'s" /></circle>
-                    <circle cx="50%" cy="0" r="70" fill="white"><animate attributeName="cy" from="0" to="120%" dur="'.$duration.'s" begin="0.1s" /></circle>
-                    <circle cx="80%" cy="0" r="40" fill="white"><animate attributeName="cy" from="0" to="120%" dur="'.$duration.'s" begin="0.2s" /></circle>
-                </g>
-            </svg>';
-
-            $encoded_svg = base64_encode($svg_mask);
-            $inline_css .= snn_generate_mask_css($encoded_svg);
         } elseif ($transition_type === 'glitch-noise') {
             // Digital Glitch: DisplacementMap uses noise to shift pixels
             $unique_id = 'snn_glitch_' . uniqid();
 
             $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none">
                 <filter id="'.$unique_id.'">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.05 0.5" numOctaves="1" result="noise" />
+                    <feTurbulence type="fractalNoise" baseFrequency="0.8 1.2" numOctaves="2" result="noise" />
                     <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G">
-                         <animate attributeName="scale" values="0; 100; 500; 0" keyTimes="0; 0.3; 0.8; 1" dur="'.$duration.'s" fill="freeze" />
+                         <animate attributeName="scale" values="0; 200; 800; 1500; 0" keyTimes="0; 0.2; 0.5; 0.85; 1" dur="'.$duration.'s" fill="freeze" />
                     </feDisplacementMap>
                 </filter>
                 <rect width="100%" height="100%" fill="white" filter="url(#'.$unique_id.')">
-                     <animate attributeName="opacity" values="0;1" dur="'.$duration.'s" fill="freeze" />
+                     <animate attributeName="opacity" values="0; 0.3; 1; 1" keyTimes="0; 0.1; 0.3; 1" dur="'.$duration.'s" fill="freeze" />
                 </rect>
             </svg>';
 
@@ -889,79 +859,13 @@ function snn_enqueue_page_transitions() {
             $unique_id = 'snn_ink_' . uniqid();
 
             $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none">
-                <filter id="'.$unique_id.'" x="0" y="0">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="1" />
-                    <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -10">
-                        <animate attributeName="values" from="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0 -50" to="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 10" dur="'.$duration.'s" fill="freeze" />
+                <filter id="'.$unique_id.'" x="-50%" y="-50%" width="200%" height="200%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="1" result="noise" />
+                    <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -10" in="noise">
+                        <animate attributeName="values" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 5 -25; 1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 15 -5; 1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 10" keyTimes="0; 0.4; 1" dur="'.$duration.'s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.2 1" />
                     </feColorMatrix>
                 </filter>
                 <rect width="100%" height="100%" fill="white" filter="url(#'.$unique_id.')" />
-            </svg>';
-
-            $encoded_svg = base64_encode($svg_mask);
-            $inline_css .= snn_generate_mask_css($encoded_svg);
-        } elseif ($transition_type === 'crt-turn-on') {
-            // CRT TV Power On: Horizontal line that expands vertically
-            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <rect x="0" y="50" width="100" height="0" fill="white">
-                    <animate attributeName="height" from="0" to="2" dur="'.($duration*0.3).'s" begin="0s" fill="freeze" />
-                    <animate attributeName="y" from="50" to="49" dur="'.($duration*0.3).'s" begin="0s" fill="freeze" />
-                    <animate attributeName="height" from="2" to="100" dur="'.($duration*0.7).'s" begin="'.($duration*0.3).'s" fill="freeze" />
-                    <animate attributeName="y" from="49" to="0" dur="'.($duration*0.7).'s" begin="'.($duration*0.3).'s" fill="freeze" />
-                </rect>
-            </svg>';
-
-            $encoded_svg = base64_encode($svg_mask);
-            $inline_css .= snn_generate_mask_css($encoded_svg);
-        } elseif ($transition_type === 'clock-wipe') {
-            // Windshield Wiper / Clock Wipe: Radial wipe in an arc
-            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                 <g transform="rotate(-90 50 50)">
-                    <circle cx="50" cy="50" r="50" fill="none" stroke="white" stroke-width="100" stroke-dasharray="315 315" stroke-dashoffset="315">
-                        <animate attributeName="stroke-dashoffset" from="315" to="0" dur="'.$duration.'s" fill="freeze" />
-                    </circle>
-                 </g>
-            </svg>';
-
-            $encoded_svg = base64_encode($svg_mask);
-            $inline_css .= snn_generate_mask_css($encoded_svg);
-        } elseif ($transition_type === 'honeycomb') {
-            // Honeycomb: Hexagon grid scaling up
-            $size = 10;
-            $unique_id = 'snn_hex_' . uniqid();
-            $hex_path = "M5,0 L10,2.5 L10,7.5 L5,10 L0,7.5 L0,2.5 Z";
-
-            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-                <defs>
-                    <pattern id="'.$unique_id.'" x="0" y="0" width="'.$size.'" height="'.$size.'" patternUnits="userSpaceOnUse" patternTransform="scale(2)">
-                        <g transform="translate(5,5) scale(0)">
-                            <path d="'.$hex_path.'" fill="white" />
-                            <animateTransform attributeName="transform" type="scale" from="0" to="1.5" dur="'.$duration.'s" fill="freeze" additive="sum" />
-                        </g>
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#'.$unique_id.')" />
-            </svg>';
-
-            $encoded_svg = base64_encode($svg_mask);
-            $inline_css .= snn_generate_mask_css($encoded_svg);
-        } elseif ($transition_type === 'gradient-wipe') {
-            // Star Wars Wipe: Linear wipe with soft gradient edge
-            $unique_id = 'snn_grad_' . uniqid();
-
-            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none">
-                <defs>
-                    <linearGradient id="'.$unique_id.'" x1="0" x2="1" y1="0" y2="0">
-                        <stop offset="0" stop-color="white" stop-opacity="1" />
-                        <stop offset="0" stop-color="white" stop-opacity="0" />
-                    </linearGradient>
-                    <mask id="mask">
-                        <rect x="-100%" y="0" width="200%" height="100%" fill="url(#'.$unique_id.')">
-                            <animate attributeName="x" from="-100%" to="0%" dur="'.$duration.'s" fill="freeze" />
-                        </rect>
-                    </mask>
-                </defs>
-                <rect width="100%" height="100%" fill="white" mask="url(#mask)" />
             </svg>';
 
             $encoded_svg = base64_encode($svg_mask);
