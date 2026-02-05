@@ -291,6 +291,7 @@ function snn_enable_page_transitions_callback() {
                         <option value="wipe-left" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-left'); ?>><?php _e('Wipe Left (Right to Left)', 'snn'); ?></option>
                         <option value="wipe-right" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-right'); ?>><?php _e('Wipe Right (Left to Right)', 'snn'); ?></option>
                         <option value="perspective-flip" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'perspective-flip'); ?>><?php _e('3D Perspective Flip', 'snn'); ?></option>
+                        <option value="mosaic-squares" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'mosaic-squares'); ?>><?php _e('Mosaic Grid Reveal', 'snn'); ?></option>
                         <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
                     </select>
                 </label>
@@ -565,6 +566,43 @@ function snn_enqueue_page_transitions() {
                     opacity: 1;
                 }
             }
+            ";
+        } elseif ($transition_type === 'mosaic-squares') {
+            // Mosaic Squares: New page reveals through expanding squares
+            // Grid cell size in pixels
+            $size = 40;
+
+            // Generate the SVG with embedded SMIL animation
+            $svg_mask = '
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <defs>
+                    <pattern id="grid" x="0" y="0" width="'.$size.'" height="'.$size.'" patternUnits="userSpaceOnUse">
+                        <rect x="0" y="0" width="0" height="0" fill="white">
+                            <animate attributeName="width" from="0" to="'.$size.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" />
+                            <animate attributeName="height" from="0" to="'.$size.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" />
+                        </rect>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+            </svg>';
+
+            // Encode SVG for CSS
+            $encoded_svg = rawurlencode(preg_replace('/\s+/', ' ', $svg_mask));
+
+            $inline_css .= "
+            ::view-transition-old(root) {
+                animation: none;
+                z-index: -1;
+            }
+            ::view-transition-new(root) {
+                z-index: 1;
+                mask-image: url('data:image/svg+xml;utf8," . $encoded_svg . "');
+                mask-position: center;
+                mask-repeat: repeat;
+                animation: snn-hold var(--snn-transition-duration) linear forwards;
+            }
+
+            @keyframes snn-hold { from{opacity:1} to{opacity:1} }
             ";
         } else {
             // Fade: Smooth Crossfade
