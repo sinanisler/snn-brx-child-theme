@@ -303,6 +303,10 @@ function snn_enable_page_transitions_callback() {
                         <option value="camera-aperture" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'camera-aperture'); ?>><?php _e('Camera Aperture (Spiral)', 'snn'); ?></option>
                         <option value="broken-glass" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'broken-glass'); ?>><?php _e('Broken Glass (Polygons)', 'snn'); ?></option>
                         <option value="pixel-dither" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'pixel-dither'); ?>><?php _e('Pixel Dither (Dissolve)', 'snn'); ?></option>
+                        <option value="radial-wipe" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'radial-wipe'); ?>><?php _e('Radial Wipe (Clock Sweep)', 'snn'); ?></option>
+                        <option value="hexagon-grid" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'hexagon-grid'); ?>><?php _e('Hexagon Grid', 'snn'); ?></option>
+                        <option value="zoom-scale" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'zoom-scale'); ?>><?php _e('Zoom Scale', 'snn'); ?></option>
+                        <option value="wave-wipe" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wave-wipe'); ?>><?php _e('Wave Wipe', 'snn'); ?></option>
                     </select>
                 </label>
                 <p class="description"><?php _e('Select the type of transition effect to use when navigating between pages. Default: Wipe Down', 'snn'); ?></p>
@@ -900,6 +904,130 @@ function snn_enqueue_page_transitions() {
 
             $encoded_svg = base64_encode($svg_mask);
             $inline_css .= snn_generate_mask_css($encoded_svg);
+        } elseif ($transition_type === 'radial-wipe') {
+            // Radial Wipe (Clock Sweep): A pie-shaped wedge sweeps around like a clock hand
+            $inline_css .= "
+            ::view-transition-old(root) {
+                animation: none;
+                z-index: -1;
+            }
+            ::view-transition-new(root) {
+                animation: snn-radial-wipe var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 1;
+            }
+
+            @keyframes snn-radial-wipe {
+                0%   { clip-path: polygon(50% 50%, 50% 0%, 50% 0%); }
+                12.5%  { clip-path: polygon(50% 50%, 50% 0%, 100% 0%); }
+                25%  { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%); }
+                37.5%  { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%); }
+                50%  { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%); }
+                62.5%  { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%); }
+                100% { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%); }
+            }
+            ";
+        } elseif ($transition_type === 'hexagon-grid') {
+            // Hexagon Grid: Hexagonal cells expanding to reveal
+            $unique_id = 'snn_hex_' . uniqid();
+
+            // Hexagonal pattern using polygon shapes in a repeating grid
+            $hex_w = 12;
+            $hex_h = round($hex_w * 1.1547, 2); // hex height ratio
+            $half_w = $hex_w / 2;
+            $quarter_h = round($hex_h / 4, 2);
+            $three_quarter_h = round($hex_h * 3 / 4, 2);
+
+            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="'.$unique_id.'" x="0" y="0" width="'.$hex_w.'" height="'.$hex_h.'" patternUnits="userSpaceOnUse">
+                        <polygon points="'.$half_w.',0 '.$hex_w.','.$quarter_h.' '.$hex_w.','.$three_quarter_h.' '.$half_w.','.$hex_h.' 0,'.$three_quarter_h.' 0,'.$quarter_h.'" fill="white" transform="scale(0)" transform-origin="'.$half_w.' '.round($hex_h/2, 2).'">
+                            <animateTransform attributeName="transform" type="scale" from="0" to="1.15" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" />
+                        </polygon>
+                        <polygon points="'.($half_w + $half_w).','.round($hex_h/2, 2).' '.($hex_w + $half_w).','.$three_quarter_h.' '.($hex_w + $half_w).','.round($hex_h + $quarter_h, 2).' '.($half_w + $half_w).','.round($hex_h + round($hex_h/2, 2), 2).' '.$half_w.','.round($hex_h + $quarter_h, 2).' '.$half_w.','.$three_quarter_h.'" fill="white" transform="scale(0)" transform-origin="'.$hex_w.' '.round($hex_h * 0.75, 2).'">
+                            <animateTransform attributeName="transform" type="scale" from="0" to="1.15" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" />
+                        </polygon>
+                    </pattern>
+                </defs>
+                <rect x="0" y="0" width="100" height="100" fill="url(#'.$unique_id.')" />
+            </svg>';
+
+            $encoded_svg = base64_encode($svg_mask);
+
+            $inline_css .= "
+            ::view-transition-old(root) { animation: none; z-index: -1; }
+            ::view-transition-new(root) {
+                z-index: 1;
+                -webkit-mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                -webkit-mask-size: cover;
+                mask-size: cover;
+                animation: snn-hold var(--snn-transition-duration) linear forwards;
+            }
+            @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
+            ";
+        } elseif ($transition_type === 'zoom-scale') {
+            // Zoom Scale: Old page zooms out and fades, new page zooms in from large
+            $inline_css .= "
+            ::view-transition-old(root) {
+                animation: snn-zoom-out var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 1;
+            }
+            ::view-transition-new(root) {
+                animation: snn-zoom-in var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 2;
+            }
+
+            @keyframes snn-zoom-out {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(0.5);
+                    opacity: 0;
+                }
+            }
+
+            @keyframes snn-zoom-in {
+                0% {
+                    transform: scale(1.5);
+                    opacity: 0;
+                }
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+
+            ::view-transition-image-pair(root) { isolation: isolate; }
+            ";
+        } elseif ($transition_type === 'wave-wipe') {
+            // Wave Wipe: A wavy edge sweeps across the screen from left to right
+            $inline_css .= "
+            ::view-transition-old(root) {
+                animation: none;
+                z-index: -1;
+            }
+            ::view-transition-new(root) {
+                animation: snn-wave-wipe var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 1;
+            }
+
+            @keyframes snn-wave-wipe {
+                0% {
+                    clip-path: polygon(
+                        -20% 0%, -15% 10%, -20% 20%, -15% 30%, -20% 40%, -15% 50%, -20% 60%, -15% 70%, -20% 80%, -15% 90%, -20% 100%,
+                        -20% 100%, -20% 0%
+                    );
+                }
+                100% {
+                    clip-path: polygon(
+                        80% 0%, 85% 10%, 80% 20%, 85% 30%, 80% 40%, 85% 50%, 80% 60%, 85% 70%, 80% 80%, 85% 90%, 80% 100%,
+                        120% 100%, 120% 0%
+                    );
+                }
+            }
+            ";
         } else {
             // Fade: Smooth Crossfade
             // mix-blend-mode: plus-lighter prevents the white background from bleeding through
