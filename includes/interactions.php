@@ -292,6 +292,11 @@ function snn_enable_page_transitions_callback() {
                         <option value="wipe-right" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-right'); ?>><?php _e('Wipe Right (Left to Right)', 'snn'); ?></option>
                         <option value="perspective-flip" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'perspective-flip'); ?>><?php _e('3D Perspective Flip', 'snn'); ?></option>
                         <option value="mosaic-squares" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'mosaic-squares'); ?>><?php _e('Mosaic Grid Reveal', 'snn'); ?></option>
+                        <option value="halftone-dots" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'halftone-dots'); ?>><?php _e('Halftone Dots', 'snn'); ?></option>
+                        <option value="vertical-shutters" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'vertical-shutters'); ?>><?php _e('Vertical Shutters', 'snn'); ?></option>
+                        <option value="diamond-grid" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'diamond-grid'); ?>><?php _e('Diamond Grid', 'snn'); ?></option>
+                        <option value="iris-circle" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'iris-circle'); ?>><?php _e('Iris Circle', 'snn'); ?></option>
+                        <option value="diagonal-slashes" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'diagonal-slashes'); ?>><?php _e('Diagonal Slashes', 'snn'); ?></option>
                         <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
                     </select>
                 </label>
@@ -612,6 +617,163 @@ function snn_enqueue_page_transitions() {
                 from { opacity: 1; }
                 to { opacity: 1; }
             }
+            ";
+        } elseif ($transition_type === 'halftone-dots') {
+            // Halftone: Circles grow from center until they overlap to fill screen
+            $size = 10; // Pattern size
+            $unique_id = 'snn_dot_' . uniqid();
+
+            // R expands to approx 7.1 (sqrt(50)) to ensure square is fully covered by circle
+            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="'.$unique_id.'" x="0" y="0" width="'.$size.'" height="'.$size.'" patternUnits="userSpaceOnUse">
+                        <circle cx="'.($size/2).'" cy="'.($size/2).'" r="0" fill="white">
+                            <animate attributeName="r" from="0" to="'.($size * 0.8).'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                        </circle>
+                    </pattern>
+                </defs>
+                <rect x="0" y="0" width="100" height="100" fill="url(#'.$unique_id.')" />
+            </svg>';
+
+            $encoded_svg = base64_encode($svg_mask);
+
+            $inline_css .= "
+            ::view-transition-old(root) { animation: none; z-index: -1; }
+            ::view-transition-new(root) {
+                z-index: 1;
+                -webkit-mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                -webkit-mask-size: cover;
+                mask-size: cover;
+                animation: snn-hold var(--snn-transition-duration) linear forwards;
+            }
+            @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
+            ";
+        } elseif ($transition_type === 'vertical-shutters') {
+            // Shutters: Vertical bars widening
+            $count = 10; // Number of shutters
+            $width = 100 / $count;
+            $unique_id = 'snn_shut_' . uniqid();
+
+            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="'.$unique_id.'" x="0" y="0" width="'.$width.'" height="100" patternUnits="userSpaceOnUse">
+                        <rect x="0" y="0" width="0" height="100" fill="white">
+                             <animate attributeName="width" from="0" to="'.$width.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                        </rect>
+                    </pattern>
+                </defs>
+                <rect x="0" y="0" width="100" height="100" fill="url(#'.$unique_id.')" />
+            </svg>';
+
+            $encoded_svg = base64_encode($svg_mask);
+
+            $inline_css .= "
+            ::view-transition-old(root) { animation: none; z-index: -1; }
+            ::view-transition-new(root) {
+                z-index: 1;
+                -webkit-mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                -webkit-mask-size: cover;
+                mask-size: cover;
+                animation: snn-hold var(--snn-transition-duration) linear forwards;
+            }
+            @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
+            ";
+        } elseif ($transition_type === 'diamond-grid') {
+            // Diamonds: Rotated rects
+            $size = 10;
+            $unique_id = 'snn_dia_' . uniqid();
+
+            // Note: We rotate the rect around the center of the pattern cell
+            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="'.$unique_id.'" x="0" y="0" width="'.$size.'" height="'.$size.'" patternUnits="userSpaceOnUse">
+                        <rect x="'.($size/2).'" y="'.($size/2).'" width="0" height="0" fill="white" transform="rotate(45 '.($size/2).' '.($size/2).')">
+                            <animate attributeName="width" from="0" to="'.($size * 1.5).'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                            <animate attributeName="height" from="0" to="'.($size * 1.5).'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                            <animate attributeName="x" from="'.($size/2).'" to="'.(($size/2) - ($size * 0.75)).'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                            <animate attributeName="y" from="'.($size/2).'" to="'.(($size/2) - ($size * 0.75)).'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                        </rect>
+                    </pattern>
+                </defs>
+                <rect x="0" y="0" width="100" height="100" fill="url(#'.$unique_id.')" />
+            </svg>';
+
+            $encoded_svg = base64_encode($svg_mask);
+
+            $inline_css .= "
+            ::view-transition-old(root) { animation: none; z-index: -1; }
+            ::view-transition-new(root) {
+                z-index: 1;
+                -webkit-mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                -webkit-mask-size: cover;
+                mask-size: cover;
+                animation: snn-hold var(--snn-transition-duration) linear forwards;
+            }
+            @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
+            ";
+        } elseif ($transition_type === 'iris-circle') {
+            // Iris: Single large circle opening from center
+            // We don't use a pattern here, just a single shape
+            $unique_id = 'snn_iris_' . uniqid();
+
+            // r goes to 150 to cover corners of wide screens
+            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <circle cx="50" cy="50" r="0" fill="white">
+                    <animate attributeName="r" from="0" to="150" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                </circle>
+            </svg>';
+
+            $encoded_svg = base64_encode($svg_mask);
+
+            $inline_css .= "
+            ::view-transition-old(root) { animation: none; z-index: -1; }
+            ::view-transition-new(root) {
+                z-index: 1;
+                -webkit-mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                -webkit-mask-size: 100% 100%;
+                mask-size: 100% 100%;
+                -webkit-mask-position: center;
+                mask-position: center;
+                -webkit-mask-repeat: no-repeat;
+                mask-repeat: no-repeat;
+                animation: snn-hold var(--snn-transition-duration) linear forwards;
+            }
+            @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
+            ";
+        } elseif ($transition_type === 'diagonal-slashes') {
+            // Diagonal lines expanding
+            $size = 10;
+            $unique_id = 'snn_slash_' . uniqid();
+
+            // We define a path that is a diagonal line, then increase stroke-width
+            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="'.$unique_id.'" x="0" y="0" width="'.$size.'" height="'.$size.'" patternUnits="userSpaceOnUse">
+                        <path d="M-1,'.$size.' L'.$size.',-1" stroke="white" stroke-width="0">
+                            <animate attributeName="stroke-width" from="0" to="'.($size * 1.5).'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                        </path>
+                    </pattern>
+                </defs>
+                <rect x="0" y="0" width="100" height="100" fill="url(#'.$unique_id.')" />
+            </svg>';
+
+            $encoded_svg = base64_encode($svg_mask);
+
+            $inline_css .= "
+            ::view-transition-old(root) { animation: none; z-index: -1; }
+            ::view-transition-new(root) {
+                z-index: 1;
+                -webkit-mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                -webkit-mask-size: cover;
+                mask-size: cover;
+                animation: snn-hold var(--snn-transition-duration) linear forwards;
+            }
+            @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
             ";
         } else {
             // Fade: Smooth Crossfade
