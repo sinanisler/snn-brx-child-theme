@@ -305,8 +305,8 @@ function snn_enable_page_transitions_callback() {
                         <option value="pixel-dither" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'pixel-dither'); ?>><?php _e('Pixel Dither (Dissolve)', 'snn'); ?></option>
                         <option value="radial-wipe" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'radial-wipe'); ?>><?php _e('Radial Wipe (Clock Sweep)', 'snn'); ?></option>
                         <option value="hexagon-grid" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'hexagon-grid'); ?>><?php _e('Hexagon Grid', 'snn'); ?></option>
-                        <option value="zoom-scale" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'zoom-scale'); ?>><?php _e('Zoom Scale', 'snn'); ?></option>
-                        <option value="wave-wipe" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wave-wipe'); ?>><?php _e('Wave Wipe', 'snn'); ?></option>
+                        <option value="zoom-scale" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'zoom-scale'); ?>><?php _e('Zoom Out Scale', 'snn'); ?></option>
+                        <option value="zoom-in-scale" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'zoom-in-scale'); ?>><?php _e('Zoom In Scale', 'snn'); ?></option>
                     </select>
                 </label>
                 <p class="description"><?php _e('Select the type of transition effect to use when navigating between pages. Default: Wipe Down', 'snn'); ?></p>
@@ -1001,32 +1001,41 @@ function snn_enqueue_page_transitions() {
 
             ::view-transition-image-pair(root) { isolation: isolate; }
             ";
-        } elseif ($transition_type === 'wave-wipe') {
-            // Wave Wipe: A wavy edge sweeps across the screen from left to right
+        } elseif ($transition_type === 'zoom-in-scale') {
+            // Zoom In Scale: Old page zooms in (grows) and fades, new page scales up from small
             $inline_css .= "
             ::view-transition-old(root) {
-                animation: none;
-                z-index: -1;
-            }
-            ::view-transition-new(root) {
-                animation: snn-wave-wipe var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                animation: snn-zoom-in-out var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
                 z-index: 1;
             }
+            ::view-transition-new(root) {
+                animation: snn-zoom-in-in var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 2;
+            }
 
-            @keyframes snn-wave-wipe {
+            @keyframes snn-zoom-in-out {
                 0% {
-                    clip-path: polygon(
-                        -20% 0%, -15% 10%, -20% 20%, -15% 30%, -20% 40%, -15% 50%, -20% 60%, -15% 70%, -20% 80%, -15% 90%, -20% 100%,
-                        -20% 100%, -20% 0%
-                    );
+                    transform: scale(1);
+                    opacity: 1;
                 }
                 100% {
-                    clip-path: polygon(
-                        80% 0%, 85% 10%, 80% 20%, 85% 30%, 80% 40%, 85% 50%, 80% 60%, 85% 70%, 80% 80%, 85% 90%, 80% 100%,
-                        120% 100%, 120% 0%
-                    );
+                    transform: scale(1.5);
+                    opacity: 0;
                 }
             }
+
+            @keyframes snn-zoom-in-in {
+                0% {
+                    transform: scale(0.5);
+                    opacity: 0;
+                }
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+
+            ::view-transition-image-pair(root) { isolation: isolate; }
             ";
         } else {
             // Fade: Smooth Crossfade
