@@ -290,7 +290,6 @@ function snn_enable_page_transitions_callback() {
                         <option value="wipe-up" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-up'); ?>><?php _e('Wipe Up (Bottom to Top)', 'snn'); ?></option>
                         <option value="wipe-left" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-left'); ?>><?php _e('Wipe Left (Right to Left)', 'snn'); ?></option>
                         <option value="wipe-right" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-right'); ?>><?php _e('Wipe Right (Left to Right)', 'snn'); ?></option>
-                        <option value="wipe-down-blur" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-down-blur'); ?>><?php _e('Wipe Down with Blur Reveal', 'snn'); ?></option>
                         <option value="perspective-flip" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'perspective-flip'); ?>><?php _e('3D Perspective Flip', 'snn'); ?></option>
                         <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
                     </select>
@@ -526,55 +525,6 @@ function snn_enqueue_page_transitions() {
             @keyframes snn-wipe-right {
                 from { clip-path: inset(0 100% 0 0); }
                 to { clip-path: inset(0 0 0 0); }
-            }
-            ";
-        } elseif ($transition_type === 'wipe-down-blur') {
-            // Wipe Down with Blur: Blur clears as page wipes down
-            // Note: True "edge-only blur" requires JavaScript due to View Transitions API limitations
-            $inline_css .= "
-            ::view-transition-old(root) {
-                animation: snn-old-blur-fade var(--snn-transition-duration) ease-out both;
-                z-index: 1;
-            }
-
-            ::view-transition-new(root) {
-                animation: snn-new-blur-wipe var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
-                z-index: 2;
-            }
-
-            @keyframes snn-old-blur-fade {
-                from {
-                    opacity: 1;
-                    filter: blur(0px);
-                }
-                to {
-                    opacity: 0;
-                    filter: blur(10px);
-                }
-            }
-
-            @keyframes snn-new-blur-wipe {
-                0% {
-                    clip-path: inset(0 0 100% 0);
-                    filter: blur(20px);
-                    transform: translateY(-20px);
-                }
-                25% {
-                    filter: blur(15px);
-                }
-                50% {
-                    filter: blur(8px);
-                    transform: translateY(-10px);
-                }
-                75% {
-                    filter: blur(3px);
-                    transform: translateY(-5px);
-                }
-                100% {
-                    clip-path: inset(0 0 0 0);
-                    filter: blur(0px);
-                    transform: translateY(0);
-                }
             }
             ";
         } elseif ($transition_type === 'perspective-flip') {
