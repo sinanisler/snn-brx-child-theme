@@ -299,7 +299,6 @@ function snn_enable_page_transitions_callback() {
                         <option value="iris-circle" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'iris-circle'); ?>><?php _e('Iris Circle', 'snn'); ?></option>
                         <option value="diagonal-slashes" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'diagonal-slashes'); ?>><?php _e('Diagonal Slashes', 'snn'); ?></option>
                         <option value="fade" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'fade'); ?>><?php _e('Fade in and Fade out', 'snn'); ?></option>
-                        <option value="glitch-noise" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'glitch-noise'); ?>><?php _e('Digital Glitch (Cyberpunk)', 'snn'); ?></option>
                         <option value="ink-spread" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'ink-spread'); ?>><?php _e('Ink Spread (Rorschach)', 'snn'); ?></option>
                         <option value="camera-aperture" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'camera-aperture'); ?>><?php _e('Camera Aperture (Spiral)', 'snn'); ?></option>
                         <option value="broken-glass" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'broken-glass'); ?>><?php _e('Broken Glass (Polygons)', 'snn'); ?></option>
@@ -836,24 +835,6 @@ function snn_enqueue_page_transitions() {
             }
             @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
             ";
-        } elseif ($transition_type === 'glitch-noise') {
-            // Digital Glitch: DisplacementMap uses noise to shift pixels
-            $unique_id = 'snn_glitch_' . uniqid();
-
-            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none">
-                <filter id="'.$unique_id.'">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.08 0.5" numOctaves="1" result="noise" />
-                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G">
-                         <animate attributeName="scale" values="0; 200; 800; 1500; 0" keyTimes="0; 0.2; 0.5; 0.85; 1" dur="'.$duration.'s" fill="freeze" />
-                    </feDisplacementMap>
-                </filter>
-                <rect width="100%" height="100%" fill="white" filter="url(#'.$unique_id.')">
-                     <animate attributeName="opacity" values="0; 0.3; 1; 1" keyTimes="0; 0.1; 0.3; 1" dur="'.$duration.'s" fill="freeze" />
-                </rect>
-            </svg>';
-
-            $encoded_svg = base64_encode($svg_mask);
-            $inline_css .= snn_generate_mask_css($encoded_svg);
         } elseif ($transition_type === 'ink-spread') {
             // Ink Spread: Fractal noise pattern that expands
             $unique_id = 'snn_ink_' . uniqid();
