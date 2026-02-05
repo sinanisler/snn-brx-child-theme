@@ -842,7 +842,7 @@ function snn_enqueue_page_transitions() {
 
             $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none">
                 <filter id="'.$unique_id.'">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.8 1.2" numOctaves="2" result="noise" />
+                    <feTurbulence type="fractalNoise" baseFrequency="0.08 0.5" numOctaves="1" result="noise" />
                     <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G">
                          <animate attributeName="scale" values="0; 200; 800; 1500; 0" keyTimes="0; 0.2; 0.5; 0.85; 1" dur="'.$duration.'s" fill="freeze" />
                     </feDisplacementMap>
