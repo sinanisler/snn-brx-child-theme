@@ -529,28 +529,51 @@ function snn_enqueue_page_transitions() {
             }
             ";
         } elseif ($transition_type === 'wipe-down-blur') {
-            // Wipe Down with Blur: New page wipes IN from top with blur-to-sharp transition.
+            // Wipe Down with Blur: Blur clears as page wipes down
+            // Note: True "edge-only blur" requires JavaScript due to View Transitions API limitations
             $inline_css .= "
             ::view-transition-old(root) {
-                animation: none;
-                z-index: -1;
-            }
-            ::view-transition-new(root) {
-                animation: snn-wipe-down-blur var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                animation: snn-old-blur-fade var(--snn-transition-duration) ease-out both;
                 z-index: 1;
             }
 
-            @keyframes snn-wipe-down-blur {
+            ::view-transition-new(root) {
+                animation: snn-new-blur-wipe var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 2;
+            }
+
+            @keyframes snn-old-blur-fade {
+                from {
+                    opacity: 1;
+                    filter: blur(0px);
+                }
+                to {
+                    opacity: 0;
+                    filter: blur(10px);
+                }
+            }
+
+            @keyframes snn-new-blur-wipe {
                 0% {
                     clip-path: inset(0 0 100% 0);
                     filter: blur(20px);
+                    transform: translateY(-20px);
                 }
-                60% {
-                    filter: blur(5px);
+                25% {
+                    filter: blur(15px);
+                }
+                50% {
+                    filter: blur(8px);
+                    transform: translateY(-10px);
+                }
+                75% {
+                    filter: blur(3px);
+                    transform: translateY(-5px);
                 }
                 100% {
                     clip-path: inset(0 0 0 0);
                     filter: blur(0px);
+                    transform: translateY(0);
                 }
             }
             ";
