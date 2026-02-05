@@ -294,6 +294,7 @@ function snn_enable_page_transitions_callback() {
                         <option value="mosaic-squares" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'mosaic-squares'); ?>><?php _e('Mosaic Grid Reveal', 'snn'); ?></option>
                         <option value="halftone-dots" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'halftone-dots'); ?>><?php _e('Halftone Dots', 'snn'); ?></option>
                         <option value="vertical-shutters" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'vertical-shutters'); ?>><?php _e('Vertical Shutters', 'snn'); ?></option>
+                        <option value="horizontal-shutters" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'horizontal-shutters'); ?>><?php _e('Horizontal Shutters', 'snn'); ?></option>
                         <option value="diamond-grid" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'diamond-grid'); ?>><?php _e('Diamond Grid', 'snn'); ?></option>
                         <option value="iris-circle" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'iris-circle'); ?>><?php _e('Iris Circle', 'snn'); ?></option>
                         <option value="diagonal-slashes" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'diagonal-slashes'); ?>><?php _e('Diagonal Slashes', 'snn'); ?></option>
@@ -660,6 +661,37 @@ function snn_enqueue_page_transitions() {
                     <pattern id="'.$unique_id.'" x="0" y="0" width="'.$width.'" height="100" patternUnits="userSpaceOnUse">
                         <rect x="0" y="0" width="0" height="100" fill="white">
                              <animate attributeName="width" from="0" to="'.$width.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
+                        </rect>
+                    </pattern>
+                </defs>
+                <rect x="0" y="0" width="100" height="100" fill="url(#'.$unique_id.')" />
+            </svg>';
+
+            $encoded_svg = base64_encode($svg_mask);
+
+            $inline_css .= "
+            ::view-transition-old(root) { animation: none; z-index: -1; }
+            ::view-transition-new(root) {
+                z-index: 1;
+                -webkit-mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                mask-image: url('data:image/svg+xml;base64," . $encoded_svg . "');
+                -webkit-mask-size: cover;
+                mask-size: cover;
+                animation: snn-hold var(--snn-transition-duration) linear forwards;
+            }
+            @keyframes snn-hold { from { opacity: 1; } to { opacity: 1; } }
+            ";
+        } elseif ($transition_type === 'horizontal-shutters') {
+            // Horizontal Shutters: Horizontal bars heightening
+            $count = 10; // Number of shutters
+            $height = 100 / $count;
+            $unique_id = 'snn_hshut_' . uniqid();
+
+            $svg_mask = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="'.$unique_id.'" x="0" y="0" width="100" height="'.$height.'" patternUnits="userSpaceOnUse">
+                        <rect x="0" y="0" width="100" height="0" fill="white">
+                             <animate attributeName="height" from="0" to="'.$height.'" dur="'.$duration.'s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" begin="0s" />
                         </rect>
                     </pattern>
                 </defs>
