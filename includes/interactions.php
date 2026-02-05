@@ -569,7 +569,7 @@ function snn_enqueue_page_transitions() {
             ";
         } elseif ($transition_type === 'mosaic-squares') {
             // Mosaic Squares: New page reveals through expanding squares
-            $size = 40;
+            $size = 10;
 
             // Generate unique ID to prevent browser caching the finished animation state
             $unique_id = 'snn_sq_' . uniqid();
