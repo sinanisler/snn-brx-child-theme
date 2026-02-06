@@ -105,7 +105,7 @@ function snn_sanitize_interactions_settings($input) {
     // Page Transitions settings
     $sanitized['enable_page_transitions'] = isset($input['enable_page_transitions']) && $input['enable_page_transitions'] ? 1 : 0;
     $sanitized['page_transition_type'] = isset($input['page_transition_type']) ? sanitize_text_field($input['page_transition_type']) : 'wipe-down';
-    $sanitized['page_transition_duration'] = isset($input['page_transition_duration']) ? floatval($input['page_transition_duration']) : 1.5;
+    $sanitized['page_transition_duration'] = isset($input['page_transition_duration']) ? floatval($input['page_transition_duration']) : 0.5;
 
     // Page Transition Selectors
     $sanitized['page_transition_header_selector'] = isset($input['page_transition_header_selector']) ? sanitize_text_field($input['page_transition_header_selector']) : 'header';
@@ -275,7 +275,7 @@ function snn_enable_lenis_callback() {
 function snn_enable_page_transitions_callback() {
     $options = snn_get_interactions_settings();
     $enabled = isset($options['enable_page_transitions']) ? $options['enable_page_transitions'] : 0;
-    $duration = isset($options['page_transition_duration']) ? $options['page_transition_duration'] : 1.5;
+    $duration = isset($options['page_transition_duration']) ? $options['page_transition_duration'] : 0.5;
     ?>
     <div class="page-transitions-settings">
         <input type="checkbox" id="enable_page_transitions" name="snn_interactions_settings[enable_page_transitions]" value="1" <?php checked(1, $enabled); ?>> <label for="enable_page_transitions"><strong><?php _e('Enable Page Transitions with View Transition API', 'snn'); ?></strong></label>
@@ -315,7 +315,7 @@ function snn_enable_page_transitions_callback() {
             <div class="transitions-field">
                 <label><?php _e('Transition Duration (seconds)', 'snn'); ?>:</label>
                 <input type="number" name="snn_interactions_settings[page_transition_duration]" value="<?php echo esc_attr($duration); ?>" class="transitions-duration-input" step="0.1" min="0.5" max="5">
-                <p class="description"><?php _e('Duration of the transition effect in seconds. Default: 1.5s', 'snn'); ?></p>
+                <p class="description"><?php _e('Duration of the transition effect in seconds. Default: 0.5s', 'snn'); ?></p>
             </div>
 
             <details class="transitions-accordion">
@@ -482,7 +482,7 @@ function snn_enqueue_page_transitions() {
 
     if (isset($options['enable_page_transitions']) && $options['enable_page_transitions']) {
         $transition_type = isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down';
-        $duration        = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 1.5;
+        $duration        = isset($options['page_transition_duration']) ? floatval($options['page_transition_duration']) : 0.5;
 
         // Base Settings
         $inline_css = "
