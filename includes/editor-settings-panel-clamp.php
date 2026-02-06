@@ -7,7 +7,7 @@ function snn_render_clamp_calculator_section() {
 ?>
 <div class="snn-settings-content-wrapper-section">
     <div class="snn-settings-content-wrapper-section-title">
-        <p style="margin-bottom:20px; font-size:14px; color:var(--builder-color-accent); max-width:550px"><?php _e('Generate CSS clamp() values for responsive typography and spacing. (Do not forget to match your HTML font-size with clamp.  Go to: Theme Styles > Typography > HTML font-size)', 'snn'); ?></p>
+        <p style="margin-bottom:20px; font-size:14px; color:var(--builder-color-accent); max-width:550px"><?php _e('Generate CSS clamp() values for responsive typography and spacing. Copy the generated value or save it directly to Bricks Global Variables for easy reuse. (Do not forget to match your HTML font-size with clamp. Go to: Theme Styles > Typography > HTML font-size)', 'snn'); ?></p>
     </div>
     <div class="snn-settings-content-wrapper-section-setting-area snn-clamp-container">
         
@@ -68,7 +68,8 @@ function snn_render_clamp_calculator_section() {
         margin-bottom: 0.25rem;
     }
 
-    .snn-clamp-container input[type="number"] {
+    .snn-clamp-container input[type="number"],
+    .snn-clamp-container input[type="text"] {
         width: 100%;
         padding: 0.75rem 1rem;
         border: 1px solid var(--gray-800);
@@ -77,17 +78,19 @@ function snn_render_clamp_calculator_section() {
         transition: all 0.2s ease-in-out;
         /* Dark Theme for Inputs */
         background-color: black;
-        color: white; 
+        color: white;
         font-size: 16px;
     }
 
     /* Placeholder text color */
-    .snn-clamp-container input[type="number"]::placeholder {
+    .snn-clamp-container input[type="number"]::placeholder,
+    .snn-clamp-container input[type="text"]::placeholder {
         color: var(--gray-600);
     }
     
     /* Custom focus ring colors for dark inputs */
-    .snn-clamp-container input[type="number"]:focus {
+    .snn-clamp-container input[type="number"]:focus,
+    .snn-clamp-container input[type="text"]:focus {
         border-color: var(--builder-color-accent);
         box-shadow: 0 0 0 2px var(--builder-color-accent);
     }
@@ -96,11 +99,12 @@ function snn_render_clamp_calculator_section() {
     .snn-clamp-container #minViewport:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
     .snn-clamp-container #maxViewport:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
     .snn-clamp-container #rootFontSize:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
+    .snn-clamp-container #variableName:focus { box-shadow: 0 0 0 2px var(--builder-color-accent); border-color: var(--builder-color-accent); }
 
     /* Buttons */
-    .snn-clamp-container .copy-btn {
+    .snn-clamp-container .copy-btn,
+    .snn-clamp-container .save-btn {
         margin-top: 0.5rem;
-        background-color: var(--blue-500);
         color: #fff;
         padding: 0.5rem 1rem;
         border-radius: 0.375rem;
@@ -112,19 +116,38 @@ function snn_render_clamp_calculator_section() {
         display: flex;
         align-items: center;
     }
+
+    .snn-clamp-container .copy-btn {
+        background-color: var(--blue-500);
+    }
+
+    .snn-clamp-container .save-btn {
+        background-color: #10b981; /* Green color for save button */
+    }
+
     @media (min-width: 640px) {
-        .snn-clamp-container .copy-btn {
+        .snn-clamp-container .copy-btn,
+        .snn-clamp-container .save-btn {
             margin-top: 0;
         }
     }
+
     .snn-clamp-container .copy-btn:hover {
         background-color: var(--blue-600);
     }
-    .snn-clamp-container .copy-btn:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px var(--blue-500);
+
+    .snn-clamp-container .save-btn:hover {
+        background-color: #059669; /* Darker green on hover */
     }
-    .snn-clamp-container .copy-btn svg {
+
+    .snn-clamp-container .copy-btn:focus,
+    .snn-clamp-container .save-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px currentColor;
+    }
+
+    .snn-clamp-container .copy-btn svg,
+    .snn-clamp-container .save-btn svg {
         width: 20px;
         height: 20px;
         margin-right: 0.5rem;
@@ -148,6 +171,7 @@ function snn_render_clamp_calculator_section() {
         align-items: center;
         justify-content: space-between;
         flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
     .snn-clamp-container #result {
@@ -156,8 +180,24 @@ function snn_render_clamp_calculator_section() {
         font-weight: 600;
         color: var(--gray-800);
         word-break: break-all;
-        flex: 1 1 auto;
+        flex: 1 1 100%;
         padding-right: 1rem;
+    }
+
+    .snn-clamp-container .button-group {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    @media (min-width: 640px) {
+        .snn-clamp-container #result {
+            flex: 1 1 auto;
+        }
+        .snn-clamp-container .button-group {
+            width: auto;
+        }
     }
 
     /* Pure CSS Tooltip */
@@ -221,6 +261,12 @@ function snn_render_clamp_calculator_section() {
             <input type="number" id="rootFontSize" value="16" min="1" step="1" placeholder="e.g. 16"
                    data-tooltip="The base font size on your HTML root (usually 16px). Used for 'rem' conversion.">
         </div>
+
+        <div class="input-group md-col-span-2">
+            <label for="variableName">Variable Name (for saving to Global Variables):</label>
+            <input type="text" id="variableName" value="" placeholder="e.g. heading-1-clamp"
+                   data-tooltip="Enter a unique name for this clamp value to save it as a global variable.">
+        </div>
     </div>
 
     <div id="resultBox">
@@ -228,14 +274,24 @@ function snn_render_clamp_calculator_section() {
             <p id="result">
                 clamp(1rem, -2.764rem + 16.731vw, 11.875rem)
             </p>
-            <button onclick="copyToClipboard()" class="copy-btn" aria-label="Copy clamp() to clipboard" data-tooltip="Copy clamp() to clipboard" type="button" data-snn-no-close="true">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                    <rect x="3" y="8" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M8 8V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
-                    <path d="M7 13h5"></path>
-                </svg>
-                <span class="copy-text">Copy</span>
-            </button>
+            <div class="button-group">
+                <button onclick="copyToClipboard()" class="copy-btn" aria-label="Copy clamp() to clipboard" data-tooltip="Copy clamp() to clipboard" type="button" data-snn-no-close="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <rect x="3" y="8" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M8 8V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                        <path d="M7 13h5"></path>
+                    </svg>
+                    <span class="copy-text">Copy</span>
+                </button>
+                <button onclick="saveToGlobalVariables()" class="save-btn" aria-label="Save to Global Variables" data-tooltip="Save to Global Variables" type="button" data-snn-no-close="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <span class="save-text">Save</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -322,13 +378,107 @@ function snn_render_clamp_calculator_section() {
         }
     }
 
+    /**
+     * Saves the generated clamp() value to Bricks Global Variables.
+     */
+    function saveToGlobalVariables() {
+        const resultText = document.getElementById("result").textContent;
+        const variableName = document.getElementById("variableName").value.trim();
+
+        // Validate inputs
+        if (!resultText || resultText.includes("Please") || resultText.includes("must be")) {
+            alert("Please generate a valid clamp() value first.");
+            return;
+        }
+
+        if (!variableName) {
+            alert("Please enter a variable name before saving.");
+            document.getElementById("variableName").focus();
+            return;
+        }
+
+        try {
+            // Access Bricks Vue state
+            const vueApp = document.querySelector("[data-v-app]");
+            if (!vueApp || !vueApp.__vue_app__) {
+                alert("Error: Could not access Bricks editor state. Please make sure you're in the Bricks editor.");
+                console.error("Bricks Vue app not found");
+                return;
+            }
+
+            const bricksState = vueApp.__vue_app__.config.globalProperties.$_state;
+            if (!bricksState) {
+                alert("Error: Could not access Bricks state.");
+                console.error("Bricks state not found");
+                return;
+            }
+
+            // Get existing global variables or initialize empty array
+            if (!bricksState.globalVariables) {
+                bricksState.globalVariables = [];
+            }
+
+            const globalVariables = bricksState.globalVariables;
+
+            // Check if variable name already exists
+            const existingVariable = globalVariables.find(v => v.name === variableName);
+            if (existingVariable) {
+                const confirmUpdate = confirm(`Variable "${variableName}" already exists. Do you want to update it?`);
+                if (!confirmUpdate) {
+                    return;
+                }
+                // Update existing variable
+                existingVariable.value = resultText;
+            } else {
+                // Generate unique ID (similar to how Bricks does it)
+                const generateUniqueId = () => {
+                    const timestamp = Date.now().toString(36);
+                    const randomStr = Math.random().toString(36).substring(2, 9);
+                    return `${timestamp}${randomStr}`;
+                };
+
+                // Create new global variable object
+                const newVariable = {
+                    id: generateUniqueId(),
+                    name: variableName,
+                    value: resultText
+                };
+
+                // Add to global variables array
+                globalVariables.push(newVariable);
+            }
+
+            // Update the save button to show success
+            const saveButton = document.querySelector('.save-btn');
+            if (!saveButton.dataset.originalContent) {
+                saveButton.dataset.originalContent = saveButton.innerHTML;
+            }
+            saveButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"></circle><path d="M9 12.5l2 2 4-5"/></svg><span class="save-text">Saved!</span>';
+            saveButton.setAttribute('aria-label', 'Saved!');
+
+            setTimeout(() => {
+                saveButton.innerHTML = saveButton.dataset.originalContent;
+                saveButton.setAttribute('aria-label', 'Save to Global Variables');
+            }, 2000);
+
+            console.log(`Successfully saved variable "${variableName}" with value: ${resultText}`);
+            console.log('Current global variables:', globalVariables);
+
+        } catch (err) {
+            console.error('Failed to save to global variables:', err);
+            alert("Error: Failed to save to global variables. Check console for details.");
+        }
+    }
+
     // --- Event Listeners ---
     const inputs = document.querySelectorAll("#controls input");
     inputs.forEach(input => {
         input.addEventListener("input", calculateClamp);
     });
 
+    // Make functions available globally
     window.copyToClipboard = copyToClipboard;
+    window.saveToGlobalVariables = saveToGlobalVariables;
 
     document.addEventListener('DOMContentLoaded', () => {
         calculateClamp();
