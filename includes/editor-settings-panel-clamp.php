@@ -263,8 +263,8 @@ function snn_render_clamp_calculator_section() {
         </div>
 
         <div class="input-group md-col-span-2">
-            <label for="variableName">Variable Name (for saving to Global Variables):</label>
-            <input type="text" id="variableName" value="" placeholder="e.g. heading-1-clamp"
+            <label for="variableName">Variable Name:</label>
+            <input type="text" id="variableName" value="" placeholder="size-99"
                    data-tooltip="Enter a unique name for this clamp value to save it as a global variable.">
         </div>
     </div>
