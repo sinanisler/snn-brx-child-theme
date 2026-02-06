@@ -1090,10 +1090,59 @@ function snn_seo_filter_document_title($title) {
         
         return !empty($custom_title) ? $custom_title : $title;
     }
+    // Search Results
+    elseif (is_search()) {
+        if (!get_option('snn_seo_search_enabled', true)) {
+            return $title;
+        }
 
-    // For all other cases (search, date, 404, etc.)
-    // Return the title as-is and let snn_seo_output_meta_tags handle it
-    return $title;
+        $context = ['search_query' => get_search_query()];
+        $template = get_option('snn_seo_search_title', 'Search Results for "{search_query}" - {site_title}');
+        $custom_title = snn_seo_replace_tags($template, $context);
+    }
+    // Date Archives
+    elseif (is_date()) {
+        if (!get_option('snn_seo_date_enabled', true)) {
+            return $title;
+        }
+
+        $date_string = '';
+        if (is_year()) {
+            $date_string = get_the_date('Y');
+        } elseif (is_month()) {
+            $date_string = get_the_date('F Y');
+        } elseif (is_day()) {
+            $date_string = get_the_date('F j, Y');
+        }
+
+        $context = ['date' => $date_string];
+        $template = get_option('snn_seo_date_title', '{date} - {site_title}');
+        $custom_title = snn_seo_replace_tags($template, $context);
+    }
+    // 404 Page
+    elseif (is_404()) {
+        if (!get_option('snn_seo_404_enabled', true)) {
+            return $title;
+        }
+
+        $template = get_option('snn_seo_404_title', 'Page Not Found - {site_title}');
+        $custom_title = snn_seo_replace_tags($template, []);
+    }
+    // Blog Index (The "Posts" page when using a static homepage)
+    elseif (is_home() && !is_front_page()) {
+        $post_type = 'post';
+        $archive_titles = get_option('snn_seo_archive_titles', []);
+
+        $template = isset($archive_titles[$post_type]) && !empty($archive_titles[$post_type])
+            ? $archive_titles[$post_type]
+            : 'Blog - {site_title}';
+
+        $context = ['archive_title' => get_the_title(get_option('page_for_posts'))];
+        $custom_title = snn_seo_replace_tags($template, $context);
+    }
+
+    // For all other cases, return the title as-is
+    return !empty($custom_title) ? $custom_title : $title;
 }
 add_filter('pre_get_document_title', 'snn_seo_filter_document_title', 100);
 
