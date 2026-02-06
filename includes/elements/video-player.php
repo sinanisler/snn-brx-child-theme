@@ -229,6 +229,7 @@ class SNN_Video_Player_Element extends Element {
             'label' => esc_html__( 'Controls Bar Background', 'snn' ),
             'type'  => 'color',
             'default' => 'rgba(0, 0, 0, 0.8)',
+			'inline'=> true,
         ];
     }
 
