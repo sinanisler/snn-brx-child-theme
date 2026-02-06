@@ -85,7 +85,13 @@ function snn_render_clamp_calculator_section() {
     /* Placeholder text color */
     .snn-clamp-container input[type="number"]::placeholder,
     .snn-clamp-container input[type="text"]::placeholder {
-        color: var(--gray-300);
+        color: #888888 !important;
+        opacity: 1 !important;
+    }
+
+    .snn-clamp-container #variableName::placeholder {
+        color: #888888 !important;
+        opacity: 1 !important;
     }
     
     /* Custom focus ring colors for dark inputs */
