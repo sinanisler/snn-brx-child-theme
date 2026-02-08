@@ -169,7 +169,7 @@ add_action('init', function () {
 
 
 // if GSAP setting is enabled Register Elements
-$options = get_option('snn_other_settings');
+$options = snn_get_interactions_settings();
 if (!empty($options['enqueue_gsap'])) {
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations.php');
     \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/gsap-animations-code.php');
@@ -183,7 +183,7 @@ if (!empty($options['enqueue_gsap'])) {
 }, 11);
 
 
-$options = get_option('snn_other_settings');
+$options = snn_get_interactions_settings();
 if (!empty($options['enqueue_gsap'])) {
 
     require_once SNN_PATH . 'includes/elements/gsap-multi-element-register.php';

@@ -131,7 +131,7 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         ];
 
         // GSAP Scroll Trigger Controls - Only show if GSAP is enabled
-        $options = get_option('snn_other_settings');
+        $options = snn_get_interactions_settings();
         if ( ! empty( $options['enqueue_gsap'] ) ) {
             // Scroll Trigger Option
             $this->controls['scroll_trigger'] = [
