@@ -597,6 +597,7 @@ class SNN_Video_Player_Element extends Element {
                                 <button class="snn-control-button snn-settings-btn" aria-label="Playback Speed">1x</button>
                                 <div class="snn-settings-menu">
                                     <button class="snn-speed-option snn-active" data-speed="1">1x</button>
+                                    <button class="snn-speed-option" data-speed="1.5">1.5x</button>
                                     <button class="snn-speed-option" data-speed="2">2x</button>
                                     <button class="snn-speed-option" data-speed="4">4x</button>
                                     <button class="snn-speed-option" data-speed="8">8x</button>
@@ -1229,8 +1230,8 @@ class SNN_Video_Player_Element extends Element {
             if (settingsBtn && settingsMenu && speedOptions) {
                 // Load and apply saved playback speed
                 const savedSpeed = loadPlaybackSpeed();
-                // Find closest available speed option (1, 2, 4, or 8)
-                const availableSpeeds = [1, 2, 4, 8];
+                // Find closest available speed option (1, 1.5, 2, 4, or 8)
+                const availableSpeeds = [1, 1.5, 2, 4, 8];
                 const closestSpeed = availableSpeeds.reduce((prev, curr) =>
                     Math.abs(curr - savedSpeed) < Math.abs(prev - savedSpeed) ? curr : prev
                 );
