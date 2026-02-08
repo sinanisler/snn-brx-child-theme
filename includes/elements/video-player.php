@@ -486,15 +486,13 @@ class SNN_Video_Player_Element extends Element {
             #" . esc_attr($root_id) . " .snn-cc-back-btn.snn-show { display: flex; }
             #" . esc_attr($root_id) . " .snn-cc-back-btn svg { width: 16px; height: 16px; }
             #" . esc_attr($root_id) . " .snn-settings-container { position: relative; }
-            #" . esc_attr($root_id) . " .snn-settings-menu { position: absolute; bottom: 100%; right: 0; margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.9); border-radius: 5px; min-width: 200px; display: none; z-index: 100; padding: 12px 16px; }
+            #" . esc_attr($root_id) . " .snn-settings-btn { min-width: 48px; font-size: 14px; font-weight: 600; padding: 5px 8px; }
+            #" . esc_attr($root_id) . " .snn-settings-menu { position: absolute; bottom: 100%; right: 0; margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.9); border-radius: 5px; min-width: 80px; display: none; z-index: 100; }
             #" . esc_attr($root_id) . " .snn-settings-menu.snn-show { display: block; }
-            #" . esc_attr($root_id) . " .snn-settings-row { margin-bottom: 12px; }
-            #" . esc_attr($root_id) . " .snn-settings-row:last-child { margin-bottom: 0; }
-            #" . esc_attr($root_id) . " .snn-settings-label { display: block; color: var(--text-color); font-size: 14px; margin-bottom: 6px; font-weight: 500; }
-            #" . esc_attr($root_id) . " .snn-settings-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--slider-track-color); cursor: pointer; border-radius: 5px; }
-            #" . esc_attr($root_id) . " .snn-settings-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--thumb-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--primary-accent-color); }
-            #" . esc_attr($root_id) . " .snn-settings-slider::-moz-range-thumb { width: 16px; height: 16px; background: var(--thumb-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--primary-accent-color); }
-            #" . esc_attr($root_id) . " .snn-settings-value { display: inline-block; min-width: 30px; text-align: right; color: var(--text-color); font-size: 14px; }
+            #" . esc_attr($root_id) . " .snn-speed-option { padding: 12px 20px; cursor: pointer; color: var(--text-color); font-size: 14px; font-weight: 500; transition: background-color 0.2s; border: none; background: none; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
+            #" . esc_attr($root_id) . " .snn-speed-option:hover { background-color: var(--button-hover-background); }
+            #" . esc_attr($root_id) . " .snn-speed-option.snn-active { background-color: var(--primary-accent-color); color: var(--tooltip-text-color); }
+            #" . esc_attr($root_id) . " .snn-speed-option svg { width: 16px; height: 16px; fill: currentColor; }
             #" . esc_attr($root_id) . " video::cue { font-size: 20px; }
             #" . esc_attr($root_id) . " .snn-hidden { display: none !important; }
         </style>";
@@ -596,16 +594,12 @@ class SNN_Video_Player_Element extends Element {
                             </div>
                             <?php endif; ?>
                             <div class="snn-settings-container">
-                                <button class="snn-control-button snn-settings-btn" aria-label="Settings">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"></path></svg>
-                                </button>
+                                <button class="snn-control-button snn-settings-btn" aria-label="Playback Speed">1x</button>
                                 <div class="snn-settings-menu">
-                                    <div class="snn-settings-row">
-                                        <label class="snn-settings-label">
-                                            Playback Speed: <span class="snn-settings-value snn-speed-value">1.0</span>x
-                                        </label>
-                                        <input type="range" class="snn-settings-slider snn-speed-slider" min="0.25" max="10" step="0.25" value="1">
-                                    </div>
+                                    <button class="snn-speed-option snn-active" data-speed="1">1x</button>
+                                    <button class="snn-speed-option" data-speed="2">2x</button>
+                                    <button class="snn-speed-option" data-speed="4">4x</button>
+                                    <button class="snn-speed-option" data-speed="8">8x</button>
                                 </div>
                             </div>
                             <button class="snn-control-button snn-fullscreen-btn" aria-label="Fullscreen">
@@ -679,8 +673,7 @@ class SNN_Video_Player_Element extends Element {
             const ccBgOpacityValue        = playerWrapper.querySelector('.snn-cc-bg-opacity-value');
             const settingsBtn             = playerWrapper.querySelector('.snn-settings-btn');
             const settingsMenu            = playerWrapper.querySelector('.snn-settings-menu');
-            const speedSlider             = playerWrapper.querySelector('.snn-speed-slider');
-            const speedValue              = playerWrapper.querySelector('.snn-speed-value');
+            const speedOptions            = playerWrapper.querySelectorAll('.snn-speed-option');
 
             if (!video || !controlsOverlay || !playPauseBtn || !progressThumb) return;
 
@@ -1233,12 +1226,28 @@ class SNN_Video_Player_Element extends Element {
             }
 
             // Playback speed functionality
-            if (settingsBtn && settingsMenu && speedSlider && speedValue) {
+            if (settingsBtn && settingsMenu && speedOptions) {
                 // Load and apply saved playback speed
                 const savedSpeed = loadPlaybackSpeed();
-                video.playbackRate = savedSpeed;
-                speedSlider.value = savedSpeed;
-                speedValue.textContent = savedSpeed.toFixed(2);
+                // Find closest available speed option (1, 2, 4, or 8)
+                const availableSpeeds = [1, 2, 4, 8];
+                const closestSpeed = availableSpeeds.reduce((prev, curr) =>
+                    Math.abs(curr - savedSpeed) < Math.abs(prev - savedSpeed) ? curr : prev
+                );
+
+                video.playbackRate = closestSpeed;
+                settingsBtn.textContent = `${closestSpeed}x`;
+
+                // Mark the current speed option as active
+                speedOptions.forEach(option => {
+                    const optionSpeed = parseFloat(option.dataset.speed);
+                    if (optionSpeed === closestSpeed) {
+                        option.classList.add('snn-active');
+                        const checkmark = document.createElement('div');
+                        checkmark.innerHTML = ICONS.check;
+                        option.insertBefore(checkmark.firstChild, option.firstChild);
+                    }
+                });
 
                 // Settings button click
                 settingsBtn.addEventListener('click', (e) => {
@@ -1248,12 +1257,38 @@ class SNN_Video_Player_Element extends Element {
                     if (ccMenu) ccMenu.classList.remove('snn-show');
                 });
 
-                // Speed slider change
-                speedSlider.addEventListener('input', (e) => {
-                    const speed = parseFloat(e.target.value);
-                    video.playbackRate = speed;
-                    speedValue.textContent = speed.toFixed(2);
-                    savePlaybackSpeed(speed);
+                // Speed option clicks
+                speedOptions.forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const speed = parseFloat(option.dataset.speed);
+
+                        // Update video playback rate
+                        video.playbackRate = speed;
+
+                        // Update button text
+                        settingsBtn.textContent = `${speed}x`;
+
+                        // Save preference
+                        savePlaybackSpeed(speed);
+
+                        // Update active state
+                        speedOptions.forEach(opt => {
+                            opt.classList.remove('snn-active');
+                            const existingCheck = opt.querySelector('svg');
+                            if (existingCheck) {
+                                existingCheck.remove();
+                            }
+                        });
+
+                        option.classList.add('snn-active');
+                        const checkmark = document.createElement('div');
+                        checkmark.innerHTML = ICONS.check;
+                        option.insertBefore(checkmark.firstChild, option.firstChild);
+
+                        // Close menu
+                        settingsMenu.classList.remove('snn-show');
+                    });
                 });
 
                 // Close settings menu when clicking outside
