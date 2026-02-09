@@ -6,21 +6,24 @@
  * Usage: {attachment_metadata:field:attachment_id}
  * 
  * Examples:
+ * - {attachment_metadata:url} - Gets URL of current post's featured image
  * - {attachment_metadata:width} - Gets width of current post's featured image
  * - {attachment_metadata:height:123} - Gets height of attachment ID 123
  * - {attachment_metadata:file} - Gets file path
  * - {attachment_metadata:filesize} - Gets file size in bytes
  * - {attachment_metadata:mime_type} - Gets MIME type
  * - {attachment_metadata:image_meta.camera} - Gets camera info (nested data)
- * 
+ *
  * Custom Field Examples:
+ * - {attachment_metadata:logo:url} - Gets URL from attachment stored in 'logo' custom field
  * - {attachment_metadata:logo:width} - Gets width from attachment stored in 'logo' custom field
  * - {attachment_metadata:hero_image:height} - Gets height from 'hero_image' custom field
  * - {attachment_metadata:gallery_image:filesize} - Gets filesize from 'gallery_image' custom field
  * - {attachment_metadata:video_url:length} - Gets length from 'video_url' custom field
  * 
  * Available Fields:
- * - width, height, file, filesize, mime_type, sizes, image_meta, length, duration
+ * - url, title, alt, caption, description (attachment post fields)
+ * - width, height, file, filesize, mime_type, sizes, image_meta, length, duration (metadata)
  * ----------------------------------------
  */
 
@@ -28,6 +31,11 @@
 add_filter('bricks/dynamic_tags_list', 'add_attachment_metadata_tags_to_builder');
 function add_attachment_metadata_tags_to_builder($tags) {
     $metadata_fields = [
+        'url'        => 'Attachment URL',
+        'title'      => 'Attachment Title',
+        'alt'        => 'Attachment Alt Text',
+        'caption'    => 'Attachment Caption',
+        'description'=> 'Attachment Description',
         'width'      => 'Attachment Width',
         'height'     => 'Attachment Height',
         'file'       => 'Attachment File Path',
@@ -66,6 +74,25 @@ function get_attachment_metadata_value($field, $attachment_id = null) {
 
     if (!$attachment_id) {
         return '';
+    }
+
+    // Handle attachment post fields (don't need metadata for these)
+    if ($field === 'url') {
+        return wp_get_attachment_url($attachment_id);
+    }
+    if ($field === 'title') {
+        return get_the_title($attachment_id);
+    }
+    if ($field === 'alt') {
+        return get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+    }
+    if ($field === 'caption') {
+        $post_obj = get_post($attachment_id);
+        return $post_obj ? $post_obj->post_excerpt : '';
+    }
+    if ($field === 'description') {
+        $post_obj = get_post($attachment_id);
+        return $post_obj ? $post_obj->post_content : '';
     }
 
     $metadata = wp_get_attachment_metadata($attachment_id);
