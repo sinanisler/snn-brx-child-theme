@@ -426,7 +426,7 @@ class SNN_Video_Player_Element extends Element {
         echo "<style>
             #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --thumb-color: {$thumb_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; --tooltip-text-color: {$tooltip_text_color}; --controls-bar-bg: {$controls_bar_bg}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
             #" . esc_attr($root_id) . " .snn-video-container { position: relative; background-color: #000; overflow: hidden; height: var(--player-height); }
-            #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: cover; }
+            #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: contain; }
             #" . esc_attr($root_id) . " .snn-video-container:fullscreen { width: 100vw; height: 100vh; max-width: 100%; border-radius: 0; }
             #" . esc_attr($root_id) . " .snn-controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease-in-out; }
             #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
