@@ -57,11 +57,11 @@ function add_attachment_metadata_tags_to_builder($tags) {
 }
 
 // Step 2: Helper function to retrieve attachment metadata.
-function get_attachment_metadata_value($field, $attachment_id = null) {
-    // If no attachment ID provided, try to determine from context
-    if (!$attachment_id) {
+function get_attachment_metadata_value($field, $attachment_id = null, $use_fallback = true) {
+    // If no attachment ID provided, try to determine from context (only if fallback is enabled)
+    if (!$attachment_id && $use_fallback) {
         global $post;
-        
+
         // Priority 1: Check if current post is an attachment
         if ($post && $post->post_type === 'attachment') {
             $attachment_id = $post->ID;
@@ -174,22 +174,25 @@ function render_attachment_metadata_tag($tag, $post, $context = 'text') {
     if (strpos($tag, '{attachment_metadata:') === 0 && substr($tag, -1) === '}') {
         $parts = str_replace(['{attachment_metadata:', '}'], '', $tag);
         $parts = explode(':', $parts);
-        
+
         $field = isset($parts[0]) ? sanitize_text_field($parts[0]) : '';
         $attachment_id = null;
-        
+        $use_fallback = true;
+
         // Check if we have 2 parts
         if (isset($parts[1])) {
             $second_part = sanitize_text_field($parts[1]);
-            
+
             // If second part is numeric, it's an attachment ID
             if (is_numeric($second_part)) {
                 $attachment_id = intval($second_part);
+                $use_fallback = false; // Explicit ID provided, don't use fallback
             } else {
                 // Otherwise, first part is custom field name, second part is the metadata field
                 $custom_field_name = $field;
                 $field = $second_part;
-                
+                $use_fallback = false; // Custom field lookup, don't use fallback
+
                 // Get attachment ID from custom field
                 if ($post && isset($post->ID)) {
                     $custom_field_value = get_post_meta($post->ID, $custom_field_name, true);
@@ -202,13 +205,13 @@ function render_attachment_metadata_tag($tag, $post, $context = 'text') {
                 }
             }
         }
-        
+
         // If no explicit ID provided, check if $post is an attachment in loop context
-        if (!$attachment_id && $post && isset($post->post_type) && $post->post_type === 'attachment') {
+        if (!$attachment_id && $use_fallback && $post && isset($post->post_type) && $post->post_type === 'attachment') {
             $attachment_id = $post->ID;
         }
 
-        return get_attachment_metadata_value($field, $attachment_id);
+        return get_attachment_metadata_value($field, $attachment_id, $use_fallback);
     }
 
     return $tag;
@@ -227,19 +230,22 @@ function replace_attachment_metadata_in_content($content, $post, $context = 'tex
         foreach ($matches as $match) {
             $field = sanitize_text_field($match[1]);
             $attachment_id = null;
-            
+            $use_fallback = true;
+
             // Check if we have a second part
             if (isset($match[2]) && !empty($match[2])) {
                 $second_part = sanitize_text_field($match[2]);
-                
+
                 // If second part is numeric, it's an attachment ID
                 if (is_numeric($second_part)) {
                     $attachment_id = intval($second_part);
+                    $use_fallback = false; // Explicit ID provided, don't use fallback
                 } else {
                     // Otherwise, first part is custom field name, second part is the metadata field
                     $custom_field_name = $field;
                     $field = $second_part;
-                    
+                    $use_fallback = false; // Custom field lookup, don't use fallback
+
                     // Get attachment ID from custom field
                     if ($post && isset($post->ID)) {
                         $custom_field_value = get_post_meta($post->ID, $custom_field_name, true);
@@ -252,13 +258,13 @@ function replace_attachment_metadata_in_content($content, $post, $context = 'tex
                     }
                 }
             }
-            
+
             // If no explicit ID provided, check if $post is an attachment in loop context
-            if (!$attachment_id && $post && isset($post->post_type) && $post->post_type === 'attachment') {
+            if (!$attachment_id && $use_fallback && $post && isset($post->post_type) && $post->post_type === 'attachment') {
                 $attachment_id = $post->ID;
             }
-            
-            $value = get_attachment_metadata_value($field, $attachment_id);
+
+            $value = get_attachment_metadata_value($field, $attachment_id, $use_fallback);
             $content = str_replace($match[0], $value, $content);
         }
     }
