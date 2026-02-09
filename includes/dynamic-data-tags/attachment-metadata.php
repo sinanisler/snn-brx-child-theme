@@ -155,6 +155,19 @@ function get_attachment_metadata_value($field, $attachment_id = null, $use_fallb
         return '';
     }
 
+    // Handle filesize - format as human-readable (KB, MB, GB)
+    if ($field === 'filesize') {
+        if (!empty($metadata['filesize'])) {
+            return size_format($metadata['filesize'], 2);
+        }
+        // Fallback: get file size from actual file
+        $file_path = get_attached_file($attachment_id);
+        if ($file_path && file_exists($file_path)) {
+            return size_format(filesize($file_path), 2);
+        }
+        return '';
+    }
+
     // Handle direct fields
     if (isset($metadata[$field])) {
         return is_array($metadata[$field]) ? '' : $metadata[$field];
