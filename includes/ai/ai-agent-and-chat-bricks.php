@@ -1355,8 +1355,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                         model: config.model,
                         messages: messages,
                         temperature: 0.7,
-                        max_tokens: config.maxTokens || 4000,
-                        tool_choice: "none"  // Prevent Gemini from trying to use function calling
+                        max_tokens: config.maxTokens || 4000
                     };
 
                     debugLog('Sending to AI:', {
