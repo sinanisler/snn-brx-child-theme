@@ -229,7 +229,7 @@ class SNN_Bricks_Chat_Overlay {
 4. Expertise: Dark, big numbers, vertical stack. 
 5. Visuals: Film-grain overlay using custom-code block. 
 6. Footer: Giant stats and a sharp ghost button. 
-Rule: No 'px' in JSON, raw numbers only, make it 1fr on mobile. GO.">Luxury Real Estate</button>
+Rule: No 'px' in JSON, raw numbers only, make it 1fr on mobile. GO.">Real Estate</button>
 
 <button class="snn-bricks-quick-action-btn" data-message="Build it: A 'Bento-Box' Agency site. 6 sections. Call 'snn/generate-bricks-content' for each. 
 1. Hero: Dark (#080808), Neon Mint (#a3e635), custom-code marquee scrolling title. 
@@ -237,7 +237,7 @@ Rule: No 'px' in JSON, raw numbers only, make it 1fr on mobile. GO.">Luxury Real
 3. Services: Skinny green ticker bar. 
 4. Process: Horizontal sliding row. 
 5. Mega-CTA: 80vh height, huge 150 size font, glowing button shadow. 
-Rule: Vertical gaps must be 40+, use hex codes only. GO.">Creative Agency</button>
+Rule: Vertical gaps must be 40+, use hex codes only. GO.">Agency</button>
 
 <button class="snn-bricks-quick-action-btn" data-message="Build it: An 'Ethereal Wellness' page. 5 sections. Call 'snn/generate-bricks-content' for each. 
 1. Hero: Cream (#fdfbf7), soft lavender glow, perfectly round image with 100 blur shadow. 
@@ -245,7 +245,7 @@ Rule: Vertical gaps must be 40+, use hex codes only. GO.">Creative Agency</butto
 3. Wall of Love: 3-column masonry grid, cards rounded to 32, soft shadows. 
 4. Break: Full-width photo, height 600, centered text on top. 
 5. Join: Forest Green (#84a98c), pill-shaped button, clean spacing. 
-Rule: Body line-height 1.6, titles 1.1, define padding as an object. GO.">Wellness & Spa</button>
+Rule: Body line-height 1.6, titles 1.1, define padding as an object. GO.">Wellness</button>
 
 <button class="snn-bricks-quick-action-btn" data-message="Build it: A 'Deep Space' Crypto page. 6 sections. Call 'snn/generate-bricks-content' for each. 
 1. Hero: Pure black, huge tech title left, floating 3D orb custom-code right. 
@@ -254,7 +254,7 @@ Rule: Body line-height 1.6, titles 1.1, define padding as an object. GO.">Wellne
 4. Staking: Centered box, maxWidth 600, unique neon border. 
 5. Roadmap: Zig-zag vertical timeline, Neon Purple (#6366f1) accents. 
 6. CTA: Terminal style, monospace font, command-prompt button. 
-Rule: Every header needs fontSize:mobile_landscape, raw numbers only. GO.">Fintech / Crypto</button>
+Rule: Every header needs fontSize:mobile_landscape, raw numbers only. GO.">Fintech</button>
 
 
                 </div>
