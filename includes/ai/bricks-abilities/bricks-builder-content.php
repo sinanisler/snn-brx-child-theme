@@ -719,7 +719,7 @@ EXAMPLE 10 - Button with Custom Animation CSS:
       "children": [
         {"type": "heading", "content": "Experience Magic", "styles": {"fontSize": "64", "color": "#ffffff", "animationPreset": "shimmer"}},
         {"type": "button", "content": "Launch Now", "link": "#", "styles": {
-          "customCss": "#brxe-{ID} { transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; z-index: 1; overflow: hidden; } #brxe-{ID}::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; } #brxe-{ID}:hover::before { left: 100%; } #brxe-{ID}:hover { transform: translateY(-4px) scale(1.05); box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4); }",
+          "customCss": "#brxe-{ID} { transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; z-index: 1; overflow: hidden; } #brxe-{ID}::before { content: \'\'; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; } #brxe-{ID}:hover::before { left: 100%; } #brxe-{ID}:hover { transform: translateY(-4px) scale(1.05); box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4); }",
           "background": "#6366f1",
           "color": "#ffffff",
           "padding": {"top": "18", "right": "40", "bottom": "18", "left": "40"},
