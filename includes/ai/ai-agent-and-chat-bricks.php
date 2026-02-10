@@ -239,6 +239,8 @@ class SNN_Bricks_Chat_Overlay {
     <button class="snn-bricks-quick-action-btn" data-message="The 'Gourmet' Michelin Star Restaurant Section 1 (Hero): {type: 'section', styles: {minHeight: '100vh', background: '#000'}, children: [{type: 'container', styles: {display: 'flex', flexDirection: 'column', alignItems: 'center'}, children: [{type: 'heading', content: 'The Art of Taste', styles: {fontSize: '80', color: '#fff'}}, {type: 'button', content: 'Reserve Table'}]}]} Section 2 (Menu Tabs): {type: 'tabs-nested', children: [{type: 'block', label: 'Menu', children: [{type: 'text-basic', content: 'Dinner'}, {type: 'text-basic', content: 'Wine List'}]}, {type: 'block', label: 'Content', children: [{type: 'list', items: [{title: 'Wagyu A5', meta: '$120'}]}, {type: 'list', items: [{title: '1945 Bordeaux', meta: '$2400'}]}]}]} Section 3 (Gallery Slider): {type: 'slider-nested', styles: {perPage: '3', autoplay: true}, children: [{type: 'image', content: 'dish1.jpg'}, {type: 'image', content: 'dish2.jpg'}, {type: 'image', content: 'interior.jpg'}]} Section 4 (About): {type: 'about', content_description: 'A culinary journey led by Chef Marco Rossi.', action_type: 'append'} Section 5 (CTA): {type: 'cta', content_description: 'Heading: A Night to Remember. Button: Book Now.', action_type: 'append'}">
     Restaurant</button>
 
+    <button class="snn-bricks-quick-action-btn" data-message="Creative Agency Portfolio Design a creative agency homepage with a playful modern style (#F5F0EB warm cream base, #FF6B35 orange accent, #1D1D1D near-black text). Section 1: Hero with an asymmetric 60/40 grid. Left wider column has a casual friendly heading 'We Make Brands People Love' in a heavy bold weight, a paragraph about creative strategy, and a single orange rounded button 'See Our Work'. Right narrower column has a tilted/rotated image placeholder with a subtle shadow and 20px border radius. Section 2: Scrolling logo marquee area — simple section with text 'Brands We have Partnered With' and a horizontal row of 6 grayscale logo placeholders on a white background strip. Section 3: Selected work showcase — heading 'Featured Projects' centered, then a 2-column grid with 4 project cards. Each card has a large image filling the top (aspect ratio 16/10), project title, category tag in small orange text, and a brief one-liner. Cards have cream background with soft shadow. Section 4: Services in a 2x2 grid on white background. Each service block has an orange number ('01'-'04'), bold title ('Brand Strategy', 'Visual Identity', 'Digital Design', 'Motion & Video'), a description paragraph, and a small 'Learn more →' text link. Section 5: Team section with heading 'The Humans Behind the Magic' and 4 team member cards in a row. Each card has a square photo placeholder with rounded corners, name, quirky job title ('Chief Pixel Pusher', 'Idea Wrangler', etc.), and a row of small social icons. Section 6: Contact section split into 2 columns — left has heading 'Got a Project in Mind?', encouraging text, email and phone info. Right has a simple contact form with name, email, message fields and an orange submit button.">
+    Agency</button>
 
 
 </div>
@@ -1120,20 +1122,23 @@ class SNN_Bricks_Chat_Overlay {
                 bricksContext += `- Settings contain styling and content properties\n\n`;
 
                 bricksContext += `**DESIGN BEST PRACTICES (IMPORTANT!):**\n`;
-                bricksContext += `1. **Section Padding**: ONLY use top/bottom padding on sections, NEVER left/right\n`;
+                bricksContext += `1. **Keep Structures Concise**: Generate focused, simple sections. Avoid overly complex nested structures.\n`;
+                bricksContext += `   - Break complex designs into multiple separate sections instead of one giant section\n`;
+                bricksContext += `   - Each section should have 3-8 elements maximum to stay within response limits\n\n`;
+                bricksContext += `2. **Section Padding**: ONLY use top/bottom padding on sections, NEVER left/right\n`;
                 bricksContext += `   - ✅ Good: {"_padding":{"top":"100","bottom":"100"}}\n`;
                 bricksContext += `   - ❌ Bad: {"_padding":{"top":"100","right":"100","bottom":"100","left":"100"}}\n`;
                 bricksContext += `   - Left/right padding on sections looks amateur and unprofessional\n\n`;
-                bricksContext += `2. **Container Width**: Use container _width property to control content width\n`;
+                bricksContext += `3. **Container Width**: Use container _width property to control content width\n`;
                 bricksContext += `   - Example: {"_width":"500"} on container element\n`;
                 bricksContext += `   - This is the proper way to make sections narrower\n\n`;
-                bricksContext += `3. **Responsive Design - MOBILE FIRST ALWAYS:**\n`;
+                bricksContext += `4. **Responsive Design - MOBILE FIRST ALWAYS:**\n`;
                 bricksContext += `   - Add responsive breakpoint values for all grid/layout properties\n`;
                 bricksContext += `   - Use :mobile_landscape, :tablet_portrait, :tablet_landscape suffixes\n`;
                 bricksContext += `   - Example: {"_gridTemplateColumns":"1fr 1fr 1fr","_gridTemplateColumns:mobile_landscape":"1fr"}\n`;
                 bricksContext += `   - Always include mobile breakpoints for grid layouts\n`;
                 bricksContext += `   - Common mobile override: "_gridTemplateColumns:mobile_landscape":"1fr" (single column)\n\n`;
-                bricksContext += `4. **Image Aspect Ratio**: When using _aspectRatio on images, ALWAYS add _objectFit:"cover"\n`;
+                bricksContext += `5. **Image Aspect Ratio**: When using _aspectRatio on images, ALWAYS add _objectFit:"cover"\n`;
                 bricksContext += `   - ✅ Good: {"_aspectRatio":"1/1","_objectFit":"cover",...}\n`;
                 bricksContext += `   - This ensures images fill their container properly without distortion\n`;
                 bricksContext += `   - Common aspect ratios: "1/1" (square), "16/9" (landscape), "4/3", "3/2"\n\n`;
@@ -1415,19 +1420,229 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                 const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/);
 
                 if (!jsonMatch) {
+                    debugLog('⚠️ No JSON code block found in response');
                     return abilities;
                 }
 
-                try {
-                    const parsed = JSON.parse(jsonMatch[1]);
-                    if (parsed.abilities && Array.isArray(parsed.abilities)) {
-                        return parsed.abilities;
-                    }
-                } catch (error) {
-                    console.error('Failed to parse abilities:', error);
+                let jsonString = jsonMatch[1].trim();
+
+                // Detect potential truncation indicators
+                const truncationIndicators = [
+                    jsonString.length > 8000, // Very long JSON might be truncated
+                    !jsonString.endsWith('}') && !jsonString.endsWith(']'),
+                    /[a-zA-Z0-9]$/.test(jsonString) && !jsonString.endsWith('"'), // Ends abruptly
+                    (jsonString.match(/{/g) || []).length !== (jsonString.match(/}/g) || []).length,
+                    (jsonString.match(/\[/g) || []).length !== (jsonString.match(/\]/g) || []).length
+                ];
+
+                if (truncationIndicators.some(indicator => indicator)) {
+                    debugLog('⚠️ JSON appears to be truncated or incomplete, will attempt repair');
                 }
 
-                return abilities;
+                try {
+                    // First attempt: Parse as-is
+                    const parsed = JSON.parse(jsonString);
+                    if (parsed.abilities && Array.isArray(parsed.abilities)) {
+                        // Validate and filter abilities
+                        const validAbilities = validateAbilities(parsed.abilities);
+                        if (validAbilities.length > 0) {
+                            debugLog(`✅ Parsed ${validAbilities.length} valid abilities (${parsed.abilities.length - validAbilities.length} invalid)`);
+                            return validAbilities;
+                        } else {
+                            debugLog('⚠️ No valid abilities found after validation');
+                        }
+                    }
+                } catch (error) {
+                    debugLog('Initial JSON parse failed, attempting repair:', error.message);
+                    
+                    try {
+                        // Attempt to repair truncated/malformed JSON
+                        const repairedJson = repairTruncatedJSON(jsonString);
+                        const parsed = JSON.parse(repairedJson);
+                        
+                        if (parsed.abilities && Array.isArray(parsed.abilities)) {
+                            // Validate and filter repaired abilities
+                            const validAbilities = validateAbilities(parsed.abilities);
+                            if (validAbilities.length > 0) {
+                                debugLog(`✅ Successfully repaired and parsed ${validAbilities.length} valid abilities`);
+                                return validAbilities;
+                            }
+                        }
+                    } catch (repairError) {
+                        debugLog('JSON repair also failed:', repairError.message);
+                        console.error('Failed to parse abilities after repair:', repairError);
+                        console.error('JSON string length:', jsonString.length);
+                        console.error('First 500 chars:', jsonString.substring(0, 500));
+                        console.error('Last 500 chars:', jsonString.substring(Math.max(0, jsonString.length - 500)));
+                    }
+                }
+
+               Validate abilities array and filter out invalid entries
+             */
+            function validateAbilities(abilities) {
+                if (!Array.isArray(abilities)) {
+                    return [];
+                }
+
+                return abilities.filter((ability, index) => {
+                    // Check if ability has required name property
+                    if (!ability.name || typeof ability.name !== 'string') {
+                        debugLog(`⚠️ Ability #${index + 1} missing or invalid 'name' property`);
+                        return false;
+                    }
+
+                    // Check if ability has input property (can be empty object)
+                    if (!ability.hasOwnProperty('input')) {
+                        debugLog(`⚠️ Ability #${index + 1} (${ability.name}) missing 'input' property`);
+                        return false;
+                    }
+
+                    // For Bricks content generation, check for structure
+                    if (ability.name === 'snn/generate-bricks-content') {
+                        if (!ability.input || typeof ability.input !== 'object') {
+                            debugLog(`⚠️ Ability #${index + 1} (${ability.name}) has invalid input`);
+                            return false;
+                        }
+
+                        // Structure is required for content generation
+                        if (!ability.input.structure) {
+                            debugLog(`⚠️ Ability #${index + 1} (${ability.name}) missing 'structure' in input`);
+                            return false;
+                        }
+
+                        // Check if structure has type property
+                        if (!ability.input.structure.type) {
+                            debugLog(`⚠️ Ability #${index + 1} (${ability.name}) structure missing 'type' property`);
+                            return false;
+                        }
+                    }
+
+                    // Ability is valid
+                    return true;
+                });
+            }
+
+            /**
+             *  return abilities;
+            }
+
+            /**
+             * Attempt to repair truncated or malformed JSON
+             */
+            function repairTruncatedJSON(jsonString) {
+                let repaired = jsonString;
+                
+                debugLog('Starting JSON repair, length:', repaired.length);
+                
+                // Track opening and closing brackets/braces
+                let braceCount = 0;
+                let bracketCount = 0;
+                let inString = false;
+                let lastChar = '';
+                let lastValidIndex = 0;
+                let lastCompleteStructureIndex = 0;
+                
+                // Analyze the JSON structure
+                for (let i = 0; i < repaired.length; i++) {
+                    const char = repaired[i];
+                    
+                    // Handle string detection (ignore escaped quotes)
+                    if (char === '"' && lastChar !== '\\') {
+                        inString = !inString;
+                    }
+                    
+                    if (!inString) {
+                        if (char === '{') {
+                            braceCount++;
+                            lastValidIndex = i;
+                        } else if (char === '}') {
+                            braceCount--;
+                            lastValidIndex = i;
+                            // Track when structures are balanced
+                            if (braceCount === 1 && bracketCount === 0) {
+                                lastCompleteStructureIndex = i;
+                            }
+                        } else if (char === '[') {
+                            bracketCount++;
+                            lastValidIndex = i;
+                        } else if (char === ']') {
+                            bracketCount--;
+                            lastValidIndex = i;
+                        }
+                    }
+                    
+                    lastChar = char;
+                }
+                
+                debugLog(`Brace count: ${braceCount}, Bracket count: ${bracketCount}, In string: ${inString}`);
+                
+                // If we're still in a string, close it
+                if (inString) {
+                    repaired += '"';
+                    debugLog('Repair: Added closing quote for unclosed string');
+                }
+                
+                // Check for incomplete content after last valid structure
+                if (lastCompleteStructureIndex > 0 && lastCompleteStructureIndex < repaired.length - 50) {
+                    const afterLast = repaired.substring(lastCompleteStructureIndex + 1).trim();
+                    
+                    // If there's substantial incomplete content, try to remove it
+                    if (afterLast.length > 10 && /^[,\s]*\{|^[,\s]*"/.test(afterLast)) {
+                        debugLog('Repair: Detected incomplete structure after last complete item');
+                        // Look for last comma before the incomplete content
+                        let lastCommaIndex = repaired.lastIndexOf(',', lastCompleteStructureIndex + 10);
+                        if (lastCommaIndex > lastCompleteStructureIndex) {
+                            repaired = repaired.substring(0, lastCommaIndex);
+                            debugLog('Repair: Removed incomplete trailing structure');
+                            
+                            // Recount after truncation
+                            braceCount = (repaired.match(/\\{/g) || []).length - (repaired.match(/\\}/g) || []).length;
+                            bracketCount = (repaired.match(/\\[/g) || []).length - (repaired.match(/\\]/g) || []).length;
+                        }
+                    }
+                }
+                
+                // Close missing brackets and braces
+                let closingBrackets = 0;
+                while (bracketCount > 0) {
+                    repaired += ']';
+                    bracketCount--;
+                    closingBrackets++;
+                }
+                
+                let closingBraces = 0;
+                while (braceCount > 0) {
+                    repaired += '}';
+                    braceCount--;
+                    closingBraces++;
+                }
+                
+                if (closingBrackets > 0) {
+                    debugLog(`Repair: Added ${closingBrackets} closing bracket(s)`);
+                }
+                if (closingBraces > 0) {
+                    debugLog(`Repair: Added ${closingBraces} closing brace(s)`);
+                }
+                
+                // Remove trailing commas before closing brackets/braces (multiple passes)
+                let beforeCommaFix = repaired;
+                repaired = repaired.replace(/,(\s*[\}\]])/g, '$1');
+                repaired = repaired.replace(/,(\s*[\}\]])/g, '$1'); // Second pass for nested cases
+                if (beforeCommaFix !== repaired) {
+                    debugLog('Repair: Removed trailing commas');
+                }
+                
+                // Fix incomplete property values
+                repaired = repaired.replace(/:\s*,/g, ': null,');
+                repaired = repaired.replace(/:\s*\}/g, ': null}');
+                repaired = repaired.replace(/:\s*$/g, ': null');
+                
+                // Remove any trailing commas at the very end
+                repaired = repaired.replace(/,\s*$/, '');
+                
+                debugLog('JSON repair complete, new length:', repaired.length);
+                
+                return repaired;
             }
 
             /**
