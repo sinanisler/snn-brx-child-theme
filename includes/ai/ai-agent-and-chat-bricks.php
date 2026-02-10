@@ -1308,7 +1308,27 @@ If an ability fails, the error message will tell you what's wrong. Common issues
 - "Invalid style value" = used "px" or wrong format
 - "Missing gap property" = container/block has multiple children but no gap
 
-Fix the EXACT issue mentioned in the error, don't just retry the same input.`;
+Fix the EXACT issue mentioned in the error, don't just retry the same input.
+
+**RESPONSE FORMAT:**
+
+You MUST respond with regular text containing a JSON code block. DO NOT use function calling or tool calling.
+
+Your response should look like this:
+` + '```json' + `
+{
+  "abilities": [
+    {
+      "name": "snn/generate-bricks-content",
+      "input": {
+        "structure": {...}
+      }
+    }
+  ]
+}
+` + '```' + `
+
+IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... ` + '```' + `). Do not attempt to call functions or tools directly.`;
             }
 
             /**
@@ -1328,7 +1348,8 @@ Fix the EXACT issue mentioned in the error, don't just retry the same input.`;
                         model: config.model,
                         messages: messages,
                         temperature: 0.7,
-                        max_tokens: config.maxTokens || 4000
+                        max_tokens: config.maxTokens || 4000,
+                        tool_choice: "none"  // Prevent Gemini from trying to use function calling
                     };
 
                     debugLog('Sending to AI:', {
