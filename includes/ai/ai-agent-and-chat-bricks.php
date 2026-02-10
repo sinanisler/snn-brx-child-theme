@@ -1022,6 +1022,13 @@ Rule: Every header needs fontSize:mobile_landscape, raw numbers only. GO.">Finte
                     const aiResponse = await callAI(messages);
                     hideTyping();
 
+                    debugLog('AI Response:', aiResponse);
+
+                    // Check for empty response
+                    if (!aiResponse || aiResponse.trim() === '') {
+                        throw new Error('AI returned empty response. Please try again.');
+                    }
+
                     // Extract abilities from response
                     const abilities = extractAbilitiesFromResponse(aiResponse);
 
@@ -1178,7 +1185,7 @@ Rule: Every header needs fontSize:mobile_landscape, raw numbers only. GO.">Finte
 
                 bricksContext += `**AVAILABLE BRICKS ABILITIES:**\n${abilitiesList}\n\n`;
 
-                return `${basePrompt}${bricksContext}
+                return basePrompt + bricksContext + `
 
 === CRITICAL: HOW TO USE ABILITIES CORRECTLY ===
 
@@ -1187,7 +1194,7 @@ Rule: Every header needs fontSize:mobile_landscape, raw numbers only. GO.">Finte
 When the user asks for "6 sections", you must make 6 SEPARATE ability calls, each with a UNIQUE description:
 
 ❌ WRONG (generates 6 identical sections):
-\`\`\`json
+` + '```json' + `
 {
   "abilities": [
     {"name": "snn/generate-bricks-content", "input": {"structure": {...}}},
@@ -1195,10 +1202,10 @@ When the user asks for "6 sections", you must make 6 SEPARATE ability calls, eac
     {"name": "snn/generate-bricks-content", "input": {"structure": {...}}}
   ]
 }
-\`\`\`
+` + '```' + `
 
 ✅ CORRECT (each call describes a different section):
-\`\`\`json
+` + '```json' + `
 {
   "abilities": [
     {
@@ -1250,12 +1257,12 @@ When the user asks for "6 sections", you must make 6 SEPARATE ability calls, eac
     }
   ]
 }
-\`\`\`
+` + '```' + `
 
 **INPUT FORMAT REQUIREMENTS:**
 
 The ability expects:
-\`\`\`json
+` + '```json' + `
 {
   "input": {
     "structure": {
@@ -1264,18 +1271,17 @@ The ability expects:
       "styles": {
         "background": "#hexcolor",
         "padding": "number",
-        "fontSize": "number",
-        // etc - see ability docs for all style properties
+        "fontSize": "number"
       },
       "children": [
         // nested child elements following same format
       ]
     },
-    "action_type": "append|prepend|replace",  // optional, default: append
-    "post_id": 12345  // optional
+    "action_type": "append|prepend|replace",
+    "post_id": 12345
   }
 }
-\`\`\`
+` + '```' + `
 
 **COMMON MISTAKES TO AVOID:**
 
@@ -1318,18 +1324,27 @@ Fix the EXACT issue mentioned in the error, don't just retry the same input.`;
                 try {
                     ChatState.abortController = new AbortController();
 
+                    const requestBody = {
+                        model: config.model,
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: config.maxTokens || 4000
+                    };
+
+                    debugLog('Sending to AI:', {
+                        model: requestBody.model,
+                        messageCount: messages.length,
+                        systemPromptLength: messages[0]?.content?.length || 0,
+                        maxTokens: requestBody.max_tokens
+                    });
+
                     const response = await fetch(config.apiEndpoint, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${config.apiKey}`
                         },
-                        body: JSON.stringify({
-                            model: config.model,
-                            messages: messages,
-                            temperature: 0.7,
-                            max_tokens: config.maxTokens || 4000
-                        }),
+                        body: JSON.stringify(requestBody),
                         signal: ChatState.abortController.signal
                     });
 
@@ -1352,13 +1367,30 @@ Fix the EXACT issue mentioned in the error, don't just retry the same input.`;
                     }
 
                     if (!response.ok) {
-                        throw new Error(`AI API error: ${response.status}`);
+                        const errorText = await response.text();
+                        debugLog('API Error Response:', errorText);
+                        throw new Error(`AI API error: ${response.status} - ${errorText.substring(0, 200)}`);
                     }
 
                     const data = await response.json();
+                    debugLog('API Response Data:', data);
+
                     ChatState.recoveryAttempts = 0;
 
-                    return data.choices[0].message.content;
+                    // Validate response structure
+                    if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+                        debugLog('Invalid response structure:', data);
+                        throw new Error('Invalid AI API response structure');
+                    }
+
+                    const content = data.choices[0].message.content;
+
+                    if (!content || content.trim() === '') {
+                        debugLog('Empty content in response');
+                        throw new Error('AI returned empty content');
+                    }
+
+                    return content;
 
                 } catch (error) {
                     if (error.name === 'AbortError') throw error;
