@@ -1777,138 +1777,25 @@ function snn_infer_flex_direction_from_children( $children_nodes, $simple_styles
  */
 function snn_get_animation_preset_css( $preset_name, $element_type = '' ) {
     $presets = array(
-        'hover-lift' => '
-#brxe-{ID} {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-#brxe-{ID}:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-}',
+        'hover-lift' => "#brxe-{ID} {\n  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n  position: relative;\n}\n\n#brxe-{ID}:hover {\n  transform: translateY(-8px);\n  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);\n}",
         
-        'hover-glow' => '
-#brxe-{ID} {
-  transition: all 0.4s ease;
-  position: relative;
-}
-
-#brxe-{ID}:hover {
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.6), 0 0 60px rgba(99, 102, 241, 0.3);
-  filter: brightness(1.1);
-}',
+        'hover-glow' => "#brxe-{ID} {\n  transition: all 0.4s ease;\n  position: relative;\n}\n\n#brxe-{ID}:hover {\n  box-shadow: 0 0 30px rgba(99, 102, 241, 0.6), 0 0 60px rgba(99, 102, 241, 0.3);\n  filter: brightness(1.1);\n}",
         
-        'hover-scale' => '
-#brxe-{ID} {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-}
-
-#brxe-{ID}:hover {
-  transform: scale(1.08);
-  z-index: 10;
-}',
+        'hover-scale' => "#brxe-{ID} {\n  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);\n  position: relative;\n}\n\n#brxe-{ID}:hover {\n  transform: scale(1.08);\n  z-index: 10;\n}",
         
-        'hover-gradient' => '
-#brxe-{ID} {
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative;
-  z-index: 1;
-  background-size: 200% 200%;
-  background-position: left center;
-}
-
-#brxe-{ID}:hover {
-  background-position: right center;
-  transform: translateY(-4px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-}',
+        'hover-gradient' => "#brxe-{ID} {\n  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);\n  position: relative;\n  z-index: 1;\n  background-size: 200% 200%;\n  background-position: left center;\n}\n\n#brxe-{ID}:hover {\n  background-position: right center;\n  transform: translateY(-4px);\n  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);\n}",
         
-        'hover-rotate' => '
-#brxe-{ID} {
-  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  position: relative;
-}
-
-#brxe-{ID}:hover {
-  transform: rotate(5deg) scale(1.05);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}',
+        'hover-rotate' => "#brxe-{ID} {\n  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);\n  position: relative;\n}\n\n#brxe-{ID}:hover {\n  transform: rotate(5deg) scale(1.05);\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);\n}",
         
-        'pulse' => '
-@keyframes snn-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-#brxe-{ID} {
-  animation: snn-pulse 2s ease-in-out infinite;
-}',
+        'pulse' => "@keyframes snn-pulse {\n  0%, 100% { transform: scale(1); }\n  50% { transform: scale(1.05); }\n}\n\n#brxe-{ID} {\n  animation: snn-pulse 2s ease-in-out infinite;\n}",
         
-        'float' => '
-@keyframes snn-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-#brxe-{ID} {
-  animation: snn-float 3s ease-in-out infinite;
-}',
+        'float' => "@keyframes snn-float {\n  0%, 100% { transform: translateY(0); }\n  50% { transform: translateY(-10px); }\n}\n\n#brxe-{ID} {\n  animation: snn-float 3s ease-in-out infinite;\n}",
         
-        'shimmer' => '
-@keyframes snn-shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
-}
-
-#brxe-{ID} {
-  background: linear-gradient(90deg, currentColor 40%, rgba(255,255,255,0.8) 50%, currentColor 60%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: snn-shimmer 3s linear infinite;
-}',
+        'shimmer' => "@keyframes snn-shimmer {\n  0% { background-position: -1000px 0; }\n  100% { background-position: 1000px 0; }\n}\n\n#brxe-{ID} {\n  background: linear-gradient(90deg, currentColor 40%, rgba(255,255,255,0.8) 50%, currentColor 60%);\n  background-size: 200% 100%;\n  -webkit-background-clip: text;\n  background-clip: text;\n  -webkit-text-fill-color: transparent;\n  animation: snn-shimmer 3s linear infinite;\n}",
         
-        'hover-3d' => '
-#brxe-{ID} {
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative;
-  transform-style: preserve-3d;
-}
-
-#brxe-{ID}:hover {
-  transform: perspective(1000px) rotateX(10deg) rotateY(-10deg) scale(1.05);
-  box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.3);
-}',
+        'hover-3d' => "#brxe-{ID} {\n  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);\n  position: relative;\n  transform-style: preserve-3d;\n}\n\n#brxe-{ID}:hover {\n  transform: perspective(1000px) rotateX(10deg) rotateY(-10deg) scale(1.05);\n  box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.3);\n}",
         
-        'hover-shine' => '
-#brxe-{ID} {
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-#brxe-{ID}::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.6s ease;
-}
-
-#brxe-{ID}:hover::before {
-  left: 100%;
-}
-
-#brxe-{ID}:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-}',
+        'hover-shine' => "#brxe-{ID} {\n  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);\n  position: relative;\n  overflow: hidden;\n}\n\n#brxe-{ID}::before {\n  content: '';\n  position: absolute;\n  top: 0;\n  left: -100%;\n  width: 100%;\n  height: 100%;\n  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);\n  transition: left 0.6s ease;\n}\n\n#brxe-{ID}:hover::before {\n  left: 100%;\n}\n\n#brxe-{ID}:hover {\n  transform: translateY(-4px);\n  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);\n}",
     );
     
     return $presets[ $preset_name ] ?? '';
