@@ -228,7 +228,7 @@ Start with a 'Monolithic' hero: make the background pitch black (#111111) with o
 
 I also want an 'Asymmetric' project grid where the first box is twice as wide as the others. Follow that with an 'Expertise' list: a dark section where each row has a big number and a description. For extra flair, use the 'custom-html-css-script' block to add a subtle film-grain texture over the whole page. End with big 'Studio Stats' and a footer with a 'ghost' button (no color inside, just a white border). 
 
-Rule: Use raw numbers for sizes, no 'px', and make sure it looks great on mobile!">Luxury Real Estate</button>
+Rule: Use raw numbers for sizes, no 'px', and make sure it looks great on mobile!">Real Estate</button>
 
 <button class="snn-bricks-quick-action-btn" data-message="Yo! I want a super trendy 'Bento Box' style portfolio for my creative agency. Act as my Creative Director. Build me 6 sections using 'snn/generate-bricks-content' for each.
 
@@ -236,7 +236,7 @@ For the hero, let's go dark (#080808) with Neon Mint accents (#a3e635). Use that
 
 Add a 'Service Ticker' (a skinny green bar with scrolling text) and a slider for our process. Use a big, 32pt italic font for the testimonials. Finish with a 'Mega-CTA' that's almost the full height of the screen with a massive title and a glowing mint-colored button. 
 
-Keep the gaps between sections big (at least 40) and only use hex codes for colors!">Creative Agency</button>
+Keep the gaps between sections big (at least 40) and only use hex codes for colors!">Agency</button>
 
 <button class="snn-bricks-quick-action-btn" data-message="Hi there! I'm looking for a very soft, 'Ethereal' and calm sales page for a Wellness retreat. Act as a Lead Designer and make 5 sections using 'snn/generate-bricks-content'.
 
@@ -244,7 +244,7 @@ The hero should feel 'Frosted'—a light cream background (#fdfbf7) with soft la
 
 I want a 'Wall of Love' testimonial grid with very rounded corners (32) and soft shadows. Add a big, beautiful full-width photo in the middle of the page as a 'Visual Break' with some text floating on top. End with a Forest Green (#84a98c) invitation section and a pill-shaped button. 
 
-Please use 1.6 line height for the reading text so it's easy on the eyes, and keep all the spacing clean!">Wellness & Spa</button>
+Please use 1.6 line height for the reading text so it's easy on the eyes, and keep all the spacing clean!">Wellness</button>
 
 <button class="snn-bricks-quick-action-btn" data-message="Can you build a 'Deep Space' style landing page for a new Crypto app? Act as a Fintech UI Lead. Build 6 sections using 'snn/generate-bricks-content'.
 
@@ -252,7 +252,7 @@ Make the hero totally black (#000000). On the left, put a huge technical-looking
 
 The 'Features' should look like glass cards with faint white borders and a blur effect. Include a 'Staking Calculator' that's a centered box with a bright accent border. Create a 'Roadmap' timeline that zig-zags left and right using Neon Purple (#6366f1). For the final CTA, make it look like a computer terminal—monospace fonts and a button that looks like a command prompt.
 
-Make sure all headings scale down for mobile so they don't break, and use raw numbers for all the sizing!">Fintech / Crypto</button>
+Make sure all headings scale down for mobile so they don't break, and use raw numbers for all the sizing!">Fintech</button>
             </div>
 
                 <!-- Input -->
