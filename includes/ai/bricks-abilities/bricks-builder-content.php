@@ -102,7 +102,7 @@ Layout & Structure:
 - container: Constrained content container (max-width)
 - block: Flexbox container (div with display:flex defaults)
 - div: Clean div element (no default flexbox, better for raw layouts and precise control)
-⚠️ IMPORTANT: Use 'div' when you need a simple wrapper without flex defaults. Use 'block' when you want flexbox behavior.
+⚠️ IMPORTANT: Use "div" when you need a simple wrapper without flex defaults. Use "block" when you want flexbox behavior.
 
 Content & Typography:
 - heading: Text heading (h1-h6)
