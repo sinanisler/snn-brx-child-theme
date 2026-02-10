@@ -224,41 +224,18 @@ class SNN_Bricks_Chat_Overlay {
 
 <div class="snn-bricks-chat-quick-actions">
 
-    <button class="snn-bricks-quick-action-btn" data-message="Build it: A 'Cyber-Glass' SaaS Landing Page. 6 sections. Call 'snn/generate-bricks-content' for each. 
-1. Hero: Dark gradient (#0f172a), centered H1 (size 72), subheading, and a flex-row button group (Primary + Ghost). 
-2. Social Proof: A flex-row container of 5 grey logos with opacity 0.5. 
-3. Features: A 3-column grid. Each card has a glass effect (bg: #ffffff10, backdrop-filter), icon on top. 
-4. Reviews: Use type 'slider-nested'. PerPage: 2. Gap: 20. Children are testimonial cards. 
-5. FAQ: Use type 'accordion-nested'. 4 items. Dark styling with thin borders. 
-6. Contact: A 2-column layout. Left: Text. Right: Use type 'form' with name, email, and message fields. 
-Rule: Use Inter font. Section padding 100. No 'px' in values. Gap 30 for all grids. GO.">SaaS & Tech</button>
+    <button class="snn-bricks-quick-action-btn" data-message="The 'Artisan Bakery' E-Commerce Section 1 (Hero): {pattern_type: 'hero', content_description: 'Heading: Baked Daily With Love. Subtext: Sourdough and pastries delivered to your door. Button: Order Now.', action_type: 'replace', style_preference: 'playful'} Section 2 (About): {pattern_type: 'about', content_description: 'Our Story: 20 years of family recipes and organic local flour. Image of a bakery interior.', action_type: 'append'} Section 3 (Services): {pattern_type: 'services', layout_columns: 3, content_description: '1. Sourdough Loaves, 2. Sweet Pastries, 3. Morning Coffee.', action_type: 'append'} Section 4 (Testimonials): {pattern_type: 'testimonials', content_description: 'Reviews from local foodies about the crunch and flavor.', action_type: 'append'} Section 5 (CTA): {pattern_type: 'cta', content_description: 'Heading: Join the Bread Club. Button: Subscribe.', action_type: 'append'}">
+    Bakery</button>
 
-    <button class="snn-bricks-quick-action-btn" data-message="Build it: A 'Neo-Brutalist' Portfolio. 6 sections. Call 'snn/generate-bricks-content' for each. 
-1. Hero: Bright Yellow (#FFDE00) bg. Massive black text (size 100). Hard black borders (width 4). 
-2. Marquee: Use type 'custom-html-css-script' to create an infinite scrolling text banner. 
-3. Services: Vertical flex stack. Each item is a flex-row with 'justifyContent: space-between', thick bottom border, hover: bg-black + text-white. 
-4. Stats: A 4-column grid using type 'counter'. Numbers must be size 80 and bold. 
-5. Gallery: Asymmetric Grid. First item spans 2 rows. All images have 'objectFit: cover' and border-radius 0. 
-6. Footer: Simple black section. Huge white links in a flex-row. 
-Rule: All borders must be width: 4, style: solid, color: #000. Box-shadow: 8 8 0 #000. GO.">Brutalist</button>
+    <button class="snn-bricks-quick-action-btn" data-message="The 'High-Growth' Fintech App Section 1 (Hero): {pattern_type: 'hero', content_description: 'Heading: Smart Money for Everyone. Subtext: Banking, investing, and saving in one simple app. Button: Download Now.', action_type: 'replace', style_preference: 'modern'} Section 2 (Stats): {pattern_type: 'stats', content_description: '$10B Managed, 5M+ Users, 120 Countries.', action_type: 'append'} Section 3 (About): {pattern_type: 'about', content_description: 'Bank-grade security. 24/7 fraud monitoring. Your wealth, protected.', action_type: 'append'} Section 4 (Testimonials): {pattern_type: 'testimonials', content_description: 'Real stories from users who reached their saving goals.', action_type: 'append'} Section 5 (FAQ): {pattern_type: 'faq', content_description: 'Questions about interest rates, card delivery, and crypto features.', action_type: 'append'}">
+    Fintech</button>
 
-    <button class="snn-bricks-quick-action-btn" data-message="Build it: A 'Hype-Beast' Product Drop. 6 sections. Call 'snn/generate-bricks-content' for each. 
-1. Intro: Full height video background. Centered text. Use type 'countdown' targeting 2026-12-31. 
-2. Product Showcase: A 'Sticky' layout. Left col: Sticky product image (top: 100). Right col: Long scrolling text content. 
-3. Specs: Use type 'tabs-nested'. Tabs: 'Materials', 'Sizing', 'Shipping'. 
-4. Gallery: A horizontal scrolling container (overflow: auto, flex-wrap: nowrap). 
-5. Benefits: List element with checkmark icons. 
-6. Sticky Buy Bar: A fixed bottom section (position: fixed, bottom: 0, zIndex: 99). Flex-row with price and 'Buy Now' button. 
-Rule: Use Hex #ff4400 for accents. Section padding 120. Responsive typography required. GO.">E-Commerce</button>
+    <button class="snn-bricks-quick-action-btn" data-message="The 'Creative Studio' Portfolio Section 1 (Hero): {pattern_type: 'hero', content_description: 'Heading: We Build Digital Icons. Subtext: Branding and web design for ambitious brands. Button: See Work.', action_type: 'replace', style_preference: 'bold'} Section 2 (About): {pattern_type: 'about', content_description: 'A boutique team of 10 designers and developers working globally from London.', action_type: 'append'} Section 3 (Services): {pattern_type: 'services', layout_columns: 3, content_description: '1. Brand Strategy, 2. Web Design, 3. Motion Graphics.', action_type: 'append'} Section 4 (Team): {pattern_type: 'team', layout_columns: 4, content_description: 'The creative leads behind our award-winning projects.', action_type: 'append'} Section 5 (CTA): {pattern_type: 'cta', content_description: 'Heading: Have a bold idea? Button: Let’s Talk.', action_type: 'append'}">
+    Studio</button>
 
-    <button class="snn-bricks-quick-action-btn" data-message="Build it: A 'Swiss Style' Architecture site. 6 sections. Call 'snn/generate-bricks-content' for each. 
-1. Header: White bg. Simple black H1 aligned bottom-left of a 90vh container. 
-2. Manifesto: A grid. Col 1: Empty. Col 2: Paragraph text. gridTemplateColumns: '1fr 2fr'. 
-3. Projects: 2-column grid. Gap: 80. Images must have aspect-ratio '4/3'. 
-4. Detail: A container with maxWidth 600. Centered text. 
-5. Team: 4-column grid. gridTemplateColumns:mobile_landscape: '1fr 1fr'. Images grayscale until hover. 
-6. Contact: Minimal footer. Text size 100. Flex-direction: column. 
-Rule: Font: Helvetica. No border radius. Padding top/bottom 120. Gap 60. Use raw numbers only. GO.">Minimalist</button>
+    <button class="snn-bricks-quick-action-btn" data-message="The 'E-Learning' Academy Section 1 (Hero): {patterntype: 'hero', contentdescription: 'Heading: Master New Skills. Subtext: Learn from industry experts at your own pace.', actiontype: 'replace', stylepreference: 'modern'} Section 2 (Services): {patterntype: 'services', layoutcolumns: 3, contentdescription: '1. Programming, 2. Digital Marketing, 3. Graphic Design.', actiontype: 'append'} Section 3 (Stats): {patterntype: 'stats', contentdescription: '500+ Courses, 50k Students, 4.9 Avg Rating.', actiontype: 'append'} Section 4 (Testimonials): {patterntype: 'testimonials', contentdescription: 'Success stories from graduates now working at top tech firms.', actiontype: 'append'} Section 5 (CTA): {patterntype: 'cta', contentdescription: 'Heading: Start learning for free. Button: Browse Catalog.', action_type: 'append'}">
+    Academy</button>
+
 
 </div>
 

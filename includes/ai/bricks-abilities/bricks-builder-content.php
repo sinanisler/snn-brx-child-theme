@@ -1262,11 +1262,124 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
             }
             break;
             
-        case 'slider-nested':
         case 'accordion-nested':
+            // CRITICAL FIX: Validate and enhance accordion structure
+            // Each child should be an Item block with Title + Content children
+            foreach ( $children_nodes as &$item ) {
+                if ( ! isset( $item['label'] ) ) {
+                    $item['label'] = 'Item';
+                }
+
+                // Ensure item has exactly 2 children: title block and content block
+                if ( isset( $item['children'] ) && count( $item['children'] ) >= 2 ) {
+                    $title_block = &$item['children'][0];
+                    $content_block = &$item['children'][1];
+
+                    // Add CSS classes for Bricks accordion functionality
+                    if ( ! isset( $title_block['label'] ) ) {
+                        $title_block['label'] = 'Title';
+                    }
+                    if ( ! isset( $title_block['styles'] ) ) {
+                        $title_block['styles'] = array();
+                    }
+                    if ( ! isset( $title_block['styles']['_hidden'] ) ) {
+                        $title_block['styles']['_hidden'] = array();
+                    }
+                    $title_block['styles']['_hidden']['_cssClasses'] = 'accordion-title-wrapper';
+
+                    // Ensure title has direction set for proper layout
+                    if ( ! isset( $title_block['styles']['_direction'] ) ) {
+                        $title_block['styles']['_direction'] = 'row';
+                    }
+
+                    // Add content wrapper class
+                    if ( ! isset( $content_block['label'] ) ) {
+                        $content_block['label'] = 'Content';
+                    }
+                    if ( ! isset( $content_block['styles'] ) ) {
+                        $content_block['styles'] = array();
+                    }
+                    if ( ! isset( $content_block['styles']['_hidden'] ) ) {
+                        $content_block['styles']['_hidden'] = array();
+                    }
+                    $content_block['styles']['_hidden']['_cssClasses'] = 'accordion-content-wrapper';
+                }
+            }
+            break;
+
+        case 'slider-nested':
+            // CRITICAL FIX: Ensure each slide child has a label
+            // This helps with Bricks builder organization and slide identification
+            foreach ( $children_nodes as $index => &$slide ) {
+                if ( ! isset( $slide['label'] ) ) {
+                    $slide['label'] = 'Slide ' . ( $index + 1 );
+                }
+            }
+            break;
+
         case 'tabs-nested':
-            // Nestable elements - children define the structure
-            // Additional settings can be passed through styles
+            // CRITICAL FIX: Tabs need exactly 2 children: tab-menu block and tab-content block
+            if ( count( $children_nodes ) >= 2 ) {
+                $menu_block = &$children_nodes[0];
+                $content_block = &$children_nodes[1];
+
+                // Configure tab menu block
+                if ( ! isset( $menu_block['label'] ) ) {
+                    $menu_block['label'] = 'Tab menu';
+                }
+                if ( ! isset( $menu_block['styles'] ) ) {
+                    $menu_block['styles'] = array();
+                }
+                $menu_block['styles']['_direction'] = 'row';
+                if ( ! isset( $menu_block['styles']['_hidden'] ) ) {
+                    $menu_block['styles']['_hidden'] = array();
+                }
+                $menu_block['styles']['_hidden']['_cssClasses'] = 'tab-menu';
+
+                // Each child of menu block needs tab-title class
+                if ( isset( $menu_block['children'] ) ) {
+                    foreach ( $menu_block['children'] as &$title ) {
+                        if ( ! isset( $title['label'] ) ) {
+                            $title['label'] = 'Title';
+                        }
+                        if ( ! isset( $title['styles'] ) ) {
+                            $title['styles'] = array();
+                        }
+                        if ( ! isset( $title['styles']['_hidden'] ) ) {
+                            $title['styles']['_hidden'] = array();
+                        }
+                        $title['styles']['_hidden']['_cssClasses'] = 'tab-title';
+                    }
+                }
+
+                // Configure tab content block
+                if ( ! isset( $content_block['label'] ) ) {
+                    $content_block['label'] = 'Tab content';
+                }
+                if ( ! isset( $content_block['styles'] ) ) {
+                    $content_block['styles'] = array();
+                }
+                if ( ! isset( $content_block['styles']['_hidden'] ) ) {
+                    $content_block['styles']['_hidden'] = array();
+                }
+                $content_block['styles']['_hidden']['_cssClasses'] = 'tab-content';
+
+                // Each child of content block needs tab-pane class
+                if ( isset( $content_block['children'] ) ) {
+                    foreach ( $content_block['children'] as &$pane ) {
+                        if ( ! isset( $pane['label'] ) ) {
+                            $pane['label'] = 'Pane';
+                        }
+                        if ( ! isset( $pane['styles'] ) ) {
+                            $pane['styles'] = array();
+                        }
+                        if ( ! isset( $pane['styles']['_hidden'] ) ) {
+                            $pane['styles']['_hidden'] = array();
+                        }
+                        $pane['styles']['_hidden']['_cssClasses'] = 'tab-pane';
+                    }
+                }
+            }
             break;
             
         case 'custom-html-css-script':
@@ -1334,7 +1447,16 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
             $settings[ $key ] = $value;
         }
     }
-    
+
+    // CRITICAL FIX: Handle _cssClasses as shorthand for _hidden._cssClasses
+    // This is used by nestable elements (accordion, tabs) for Bricks CSS hooks
+    if ( isset( $simple_styles['_cssClasses'] ) ) {
+        if ( ! isset( $settings['_hidden'] ) ) {
+            $settings['_hidden'] = array();
+        }
+        $settings['_hidden']['_cssClasses'] = $simple_styles['_cssClasses'];
+    }
+
     // SMART MAPPING: Translate simple keys to Bricks format
     
     // === LAYOUT PROPERTIES ===
@@ -1346,10 +1468,16 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
         if ( $simple_styles['display'] === 'flex' && ! isset( $simple_styles['flexDirection'] ) && ! isset( $settings['_flexDirection'] ) ) {
             // Use intelligent inference based on children types and styles
             $inferred_direction = snn_infer_flex_direction_from_children( $children_nodes, $simple_styles );
-            
+
             // Add the inferred direction
             $settings['_flexDirection'] = $inferred_direction;
-            
+
+            // CRITICAL FIX: Also add alignItems default for row layouts
+            // Row layouts (buttons, icons, navigation) need vertical centering
+            if ( $inferred_direction === 'row' && ! isset( $simple_styles['alignItems'] ) && ! isset( $settings['_alignItems'] ) ) {
+                $settings['_alignItems'] = 'center';
+            }
+
             // Add debug flag (hidden from UI but useful for troubleshooting)
             if ( ! isset( $settings['_hidden'] ) ) {
                 $settings['_hidden'] = array();
@@ -1359,6 +1487,12 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
     }
     if ( isset( $simple_styles['flexDirection'] ) ) {
         $settings['_flexDirection'] = $simple_styles['flexDirection'];
+
+        // CRITICAL FIX: Add alignItems default for explicit row direction too
+        // Only apply if alignItems is not already set
+        if ( $simple_styles['flexDirection'] === 'row' && ! isset( $simple_styles['alignItems'] ) && ! isset( $settings['_alignItems'] ) ) {
+            $settings['_alignItems'] = 'center';
+        }
     }
     if ( isset( $simple_styles['justifyContent'] ) ) {
         $settings['_justifyContent'] = $simple_styles['justifyContent'];
