@@ -1596,8 +1596,8 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                             debugLog('Repair: Removed incomplete trailing structure');
                             
                             // Recount after truncation
-                            braceCount = (repaired.match(/\\{/g) || []).length - (repaired.match(/\\}/g) || []).length;
-                            bracketCount = (repaired.match(/\\[/g) || []).length - (repaired.match(/\\]/g) || []).length;
+                            braceCount = (repaired.match(/{/g) || []).length - (repaired.match(/}/g) || []).length;
+                            bracketCount = (repaired.match(/\[/g) || []).length - (repaired.match(/\]/g) || []).length;
                         }
                     }
                 }
