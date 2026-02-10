@@ -1551,26 +1551,34 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
     // === SPACING PROPERTIES ===
     if ( isset( $simple_styles['padding'] ) ) {
         $padding = $simple_styles['padding'];
-        if ( is_string( $padding ) ) {
-            $p = snn_sanitize_bricks_value( $padding, 'padding' );
-            $settings['_padding'] = array(
-                'top'    => $p,
-                'right'  => $p,
-                'bottom' => $p,
-                'left'   => $p
-            );
-        } elseif ( is_array( $padding ) ) {
-            // CRITICAL FIX: For sections, only apply top/bottom padding
-            // Never add left/right padding to sections as it breaks gutters and responsive behavior
-            if ( $element_type === 'section' ) {
-                // Sections: Only top/bottom padding
+
+        // CRITICAL: Sections NEVER get left/right padding (breaks gutters & responsive behavior)
+        if ( $element_type === 'section' ) {
+            if ( is_string( $padding ) ) {
+                // Section with string padding: only apply to top/bottom
+                $p = snn_sanitize_bricks_value( $padding, 'padding' );
+                $settings['_padding'] = array(
+                    'top'    => $p,
+                    'bottom' => $p
+                );
+            } elseif ( is_array( $padding ) ) {
+                // Section with array padding: only use top/bottom
                 $settings['_padding'] = array(
                     'top'    => snn_sanitize_bricks_value( $padding['top'] ?? '0', 'padding.top' ),
                     'bottom' => snn_sanitize_bricks_value( $padding['bottom'] ?? '0', 'padding.bottom' )
                 );
-                // Don't include left/right for sections - they should use container maxWidth instead
-            } else {
-                // Non-sections: All sides allowed
+            }
+        } else {
+            // Non-sections: All sides allowed
+            if ( is_string( $padding ) ) {
+                $p = snn_sanitize_bricks_value( $padding, 'padding' );
+                $settings['_padding'] = array(
+                    'top'    => $p,
+                    'right'  => $p,
+                    'bottom' => $p,
+                    'left'   => $p
+                );
+            } elseif ( is_array( $padding ) ) {
                 $settings['_padding'] = array(
                     'top'    => snn_sanitize_bricks_value( $padding['top'] ?? '0', 'padding.top' ),
                     'right'  => snn_sanitize_bricks_value( $padding['right'] ?? '0', 'padding.right' ),
