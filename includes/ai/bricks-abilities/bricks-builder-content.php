@@ -98,11 +98,16 @@ Instead of choosing from templates, you define a hierarchical structure object. 
 AVAILABLE ELEMENT TYPES:
 
 Layout & Structure:
-- section: Full-width page section
-- container: Constrained content container (max-width)
-- block: Flexbox container (div with display:flex defaults)
+- section: Full-width page section (can have padding, background, but should NOT have gap - children handle their own spacing)
+- container: Constrained content container (max-width). ⚠️ CRITICAL: Containers CAN and SHOULD have display/flex/grid properties directly! Dont add unnecessary wrapper blocks. If you need flex column layout, add flexDirection to the container itself.
+- block: Flexbox container (div with display:flex defaults). Use for card wrappers, grid items, or when you need a dedicated layout container.
 - div: Clean div element (no default flexbox, better for raw layouts and precise control)
-⚠️ IMPORTANT: Use "div" when you need a simple wrapper without flex defaults. Use "block" when you want flexbox behavior.
+
+⚠️ STRUCTURE HIERARCHY RULES:
+1. Keep structure FLAT and CLEAN: section > container > content elements (headings, text, buttons, etc.)
+2. Only add wrapper blocks when you need: grids with multiple cards, special flex layouts, or grouping related elements
+3. Containers can have flex/grid properties directly - dont wrap everything in blocks!
+4. If container has multiple direct children, it MUST have gap property (minimum "24" for vertical, "30" for grids)
 
 Content & Typography:
 - heading: Text heading (h1-h6)
@@ -153,14 +158,95 @@ SPACING:
 - padding: "80" (all sides, NO px) or {top: "80", right: "40", bottom: "80", left: "40"}
 - margin: "auto" | "20" or {top: "0", bottom: "40"}
 
-🎨 DESIGN QUALITY RULES:
-1. ALWAYS add proper gap between elements (minimum "24" for vertical, "30" for grid)
-2. Use consistent padding (sections: "80"-"100", cards: "40", buttons: "15"-"20")
-3. Ensure sufficient contrast (dark bg needs light text, light bg needs dark text)
-4. Add responsive breakpoints for mobile (gridTemplateColumns:mobile_landscape)
-5. Use proper typography hierarchy (h1: 56-72px, h2: 42-56px, h3: 28-36px, body: 16-18px)
-6. Add hover effects to interactive elements (buttons, cards)
-7. Use border radius for modern look (buttons: "6"-"8", cards: "12"-"20", images: "16"-"20")
+🎨 DESIGN QUALITY RULES (MUST FOLLOW):
+
+⚠️ CRITICAL SPACING REQUIREMENTS:
+1. ALWAYS add gap to containers/blocks with multiple children:
+   - Flex column layouts: gap: "24" minimum (vertical spacing)
+   - Flex row layouts: gap: "20" minimum (horizontal spacing)
+   - Grid layouts: gap: "30" minimum (both directions)
+   - If a container/block has 2+ children, it MUST have a gap property!
+
+2. NEVER create layouts without proper spacing between elements
+3. Use consistent padding (sections: "80"-"100", cards: "40", buttons: "15"-"20")
+4. Ensure sufficient contrast (dark bg needs light text, light bg needs dark text)
+5. Add responsive breakpoints for mobile (gridTemplateColumns:mobile_landscape)
+6. Use proper typography hierarchy (h1: 56-72px, h2: 42-56px, h3: 28-36px, body: 16-18px)
+7. Add hover effects to interactive elements (buttons, cards)
+8. Use border radius for modern look (buttons: "6"-"8", cards: "12"-"20", images: "16"-"20")
+
+📐 CLEAN STRUCTURE PATTERNS:
+
+✅ GOOD - Container with flex properties directly:
+{
+  "type": "section",
+  "styles": {"background": "#ffffff", "padding": "80"},
+  "children": [{
+    "type": "container",
+    "styles": {"display": "flex", "flexDirection": "column", "gap": "24", "alignItems": "center"},
+    "children": [
+      {"type": "heading", "content": "Title"},
+      {"type": "text-basic", "content": "Description"},
+      {"type": "button", "content": "Click Me"}
+    ]
+  }]
+}
+
+❌ BAD - Unnecessary wrapper block:
+{
+  "type": "section",
+  "children": [{
+    "type": "container",
+    "children": [{
+      "type": "block",  // ← UNNECESSARY! Container could have flex properties
+      "styles": {"display": "flex", "flexDirection": "column"},
+      "children": [...]
+    }]
+  }]
+}
+
+✅ GOOD - Grid layout (wrapper block IS needed here):
+{
+  "type": "section",
+  "children": [{
+    "type": "container",
+    "children": [{
+      "type": "block",  // ← NEEDED for grid layout
+      "styles": {"display": "grid", "gridTemplateColumns": "repeat(3, 1fr)", "gap": "30"},
+      "children": [
+        {"type": "block", "children": [...]},  // Card 1
+        {"type": "block", "children": [...]},  // Card 2
+        {"type": "block", "children": [...]}   // Card 3
+      ]
+    }]
+  }]
+}
+
+✅ GOOD - Multiple sections on page (each section has proper spacing):
+{
+  "type": "section",
+  "styles": {"padding": "80"},
+  "children": [{
+    "type": "container",
+    "styles": {"gap": "24"},  // ← Gap for multiple children
+    "children": [
+      {"type": "heading", "content": "Services"},
+      {"type": "text-basic", "content": "Our offerings"}
+    ]
+  }]
+}
+
+WHEN TO USE WRAPPER BLOCKS:
+✓ Grid layouts with multiple cards/items
+✓ Special flex layouts that are different from parent container
+✓ Grouping related elements that need their own layout context
+✓ Creating card wrappers with padding/background
+
+WHEN NOT TO USE WRAPPER BLOCKS:
+✗ Simple vertical stacking (container can do this with flexDirection: "column")
+✗ Centering content (container can do this with alignItems/justifyContent)
+✗ Single column layouts (container is enough)
+✗ "Just because" - only add blocks when theres a clear layout reason
 
 SIZING:
 - width: "100%" | "500px" | "50vw"
@@ -206,14 +292,19 @@ For text/image elements, use "content" to define what they display:
 - button: content: "Click Me", link: "#contact"
 - image: content: "https://example.com/image.jpg"
 
-EXAMPLE 1 - Simple Hero:
+EXAMPLE 1 - Simple Hero (CLEAN STRUCTURE):
 {
   "structure": {
     "type": "section",
-    "styles": {"background": "#000000", "minHeight": "100vh", "padding": "80px"},
+    "styles": {"background": "#000000", "minHeight": "100vh", "padding": "80"},
     "children": [{
       "type": "container",
-      "styles": {"display": "flex", "flexDirection": "column", "alignItems": "center", "gap": "30px"},
+      "styles": {
+        "display": "flex",
+        "flexDirection": "column",
+        "alignItems": "center",
+        "gap": "30"  // ← CRITICAL: Always add gap when container has multiple children!
+      },
       "children": [
         {"type": "heading", "content": "Future of Design", "styles": {"fontSize": "72px", "color": "#ffffff"}},
         {"type": "text-basic", "content": "Where creativity meets technology", "styles": {"fontSize": "20px", "color": "#cccccc"}},
@@ -222,73 +313,148 @@ EXAMPLE 1 - Simple Hero:
     }]
   }
 }
+// Note: Container has flex properties directly - no wrapper block needed!
 
-EXAMPLE 2 - Complex Grid Layout:
+EXAMPLE 2 - Grid Layout (wrapper block needed for grid):
 {
   "structure": {
     "type": "section",
-    "styles": {"background": "#ffffff", "padding": "100px"},
+    "styles": {"background": "#ffffff", "padding": "100"},
     "children": [{
       "type": "container",
       "children": [{
-        "type": "block",
-        "styles": {"display": "grid", "gridTemplateColumns": "1fr 1fr 1fr", "gap": "40px"},
+        "type": "block",  // ← Wrapper IS needed here for grid layout
+        "styles": {
+          "display": "grid",
+          "gridTemplateColumns": "1fr 1fr 1fr",
+          "gridTemplateColumns:mobile_landscape": "1fr",  // ← Responsive!
+          "gap": "40"  // ← CRITICAL: Always include gap in grids!
+        },
         "children": [
           {
-            "type": "block",
-            "styles": {"padding": "40px", "background": "#f5f5f5", "borderRadius": "20px"},
+            "type": "block",  // Card wrapper
+            "styles": {
+              "display": "flex",
+              "flexDirection": "column",
+              "gap": "16",  // ← Gap between heading and text
+              "padding": "40",
+              "background": "#f5f5f5",
+              "borderRadius": "20"
+            },
             "children": [
-              {"type": "heading", "content": "Service 1", "styles": {"fontSize": "32px"}},
-              {"type": "text-basic", "content": "Description of service", "styles": {"fontSize": "16px"}}
+              {"type": "heading", "content": "Service 1", "styles": {"fontSize": "32"}},
+              {"type": "text-basic", "content": "Description of service", "styles": {"fontSize": "16"}}
             ]
           },
-          // Repeat for more cards...
+          {
+            "type": "block",  // Card 2
+            "styles": {"display": "flex", "flexDirection": "column", "gap": "16", "padding": "40", "background": "#f5f5f5", "borderRadius": "20"},
+            "children": [
+              {"type": "heading", "content": "Service 2", "styles": {"fontSize": "32"}},
+              {"type": "text-basic", "content": "Another service", "styles": {"fontSize": "16"}}
+            ]
+          },
+          {
+            "type": "block",  // Card 3
+            "styles": {"display": "flex", "flexDirection": "column", "gap": "16", "padding": "40", "background": "#f5f5f5", "borderRadius": "20"},
+            "children": [
+              {"type": "heading", "content": "Service 3", "styles": {"fontSize": "32"}},
+              {"type": "text-basic", "content": "Third service", "styles": {"fontSize": "16"}}
+            ]
+          }
         ]
       }]
     }]
   }
 }
+// Note: Each card also has gap between its children!
 
-EXAMPLE 3 - Icon with Text:
+EXAMPLE 3 - Icon with Text (CLEAN - no wrapper block):
 {
   "structure": {
     "type": "section",
+    "styles": {"padding": "80"},
     "children": [{
       "type": "container",
-      "children": [{
-        "type": "block",
-        "styles": {"display": "flex", "alignItems": "center", "gap": "20"},
-        "children": [
-          {"type": "icon", "iconData": {"library": "fontawesome", "icon": "fa fa-star"}, "styles": {"fontSize": "40px", "color": "#FFD700"}},
-          {"type": "heading", "content": "Featured Item", "styles": {"fontSize": "24px"}}
-        ]
-      }]
-    }]
-  }
-}
-
-EXAMPLE 4 - Counter:
-{
-  "structure": {
-    "type": "section",
-    "children": [{
-      "type": "container",
+      "styles": {
+        "display": "flex",  // ← Container has flex directly
+        "alignItems": "center",
+        "gap": "20"  // ← CRITICAL: Gap between icon and heading
+      },
       "children": [
-        {"type": "counter", "countTo": "1000", "styles": {"fontSize": "72px", "fontWeight": "900", "color": "#000000"}}
+        {"type": "icon", "iconData": {"library": "fontawesome", "icon": "fa fa-star"}, "styles": {"fontSize": "40", "color": "#FFD700"}},
+        {"type": "heading", "content": "Featured Item", "styles": {"fontSize": "24"}}
+      ]
+    }]
+  }
+}
+// Note: No wrapper block needed! Container handles the flex layout directly.
+
+EXAMPLE 4 - About Section with Image (shows proper gap usage):
+{
+  "structure": {
+    "type": "section",
+    "styles": {"background": "#ffffff", "padding": "100"},
+    "children": [{
+      "type": "container",
+      "styles": {
+        "display": "grid",
+        "gridTemplateColumns": "1fr 1fr",
+        "gridTemplateColumns:mobile_landscape": "1fr",
+        "gap": "60"  // ← Gap between text column and image column
+      },
+      "children": [
+        {
+          "type": "block",  // Text column wrapper
+          "styles": {
+            "display": "flex",
+            "flexDirection": "column",
+            "gap": "24",  // ← Gap between heading, text, and button
+            "justifyContent": "center"
+          },
+          "children": [
+            {"type": "heading", "content": "About Our Company", "tag": "h2", "styles": {"fontSize": "48", "fontWeight": "800", "color": "#000000"}},
+            {"type": "text-basic", "content": "We create amazing digital experiences that help businesses grow.", "styles": {"fontSize": "18", "lineHeight": "1.7", "color": "#666666"}},
+            {"type": "button", "content": "Learn More", "link": "#", "styles": {"background": "#000000", "color": "#ffffff", "padding": {"top": "16", "right": "32", "bottom": "16", "left": "32"}}}
+          ]
+        },
+        {
+          "type": "image",
+          "content": "https://images.unsplash.com/photo-1522071820081-009f0129c71c",
+          "styles": {"width": "100%", "borderRadius": "20", "objectFit": "cover"}
+        }
+      ]
+    }]
+  }
+}
+// Note: Container uses grid for 2-column layout. Text column block has gap for vertical spacing.
+
+EXAMPLE 5 - Counter:
+{
+  "structure": {
+    "type": "section",
+    "styles": {"padding": "80"},
+    "children": [{
+      "type": "container",
+      "styles": {"display": "flex", "justifyContent": "center"},
+      "children": [
+        {"type": "counter", "countTo": "1000", "styles": {"fontSize": "72", "fontWeight": "900", "color": "#000000"}}
       ]
     }]
   }
 }
 
-EXAMPLE 5 - Countdown Timer:
+EXAMPLE 6 - Countdown Timer:
 {
   "structure": {
     "type": "section",
+    "styles": {"padding": "80"},
     "children": [{
       "type": "container",
+      "styles": {"display": "flex", "justifyContent": "center"},
       "children": [
         {
-          "type": "countdown", 
+          "type": "countdown",
           "date": "2026-12-31 23:59",
           "fields": [
             {"format": "%D days"},
@@ -296,19 +462,21 @@ EXAMPLE 5 - Countdown Timer:
             {"format": "%M minutes"},
             {"format": "%S seconds"}
           ],
-          "styles": {"fontSize": "48px", "textAlign": "center"}
+          "styles": {"fontSize": "48", "textAlign": "center"}
         }
       ]
     }]
   }
 }
 
-EXAMPLE 6 - Social Icons:
+EXAMPLE 7 - Social Icons:
 {
   "structure": {
     "type": "section",
+    "styles": {"padding": "80"},
     "children": [{
       "type": "container",
+      "styles": {"display": "flex", "justifyContent": "center"},
       "children": [{
         "type": "social-icons",
         "icons": [
@@ -322,10 +490,11 @@ EXAMPLE 6 - Social Icons:
   }
 }
 
-EXAMPLE 7 - List:
+EXAMPLE 8 - List:
 {
   "structure": {
     "type": "section",
+    "styles": {"padding": "80"},
     "children": [{
       "type": "container",
       "children": [{
@@ -334,18 +503,20 @@ EXAMPLE 7 - List:
           {"title": "Feature One", "meta": "Available", "id": "item1"},
           {"title": "Feature Two", "meta": "Coming Soon", "id": "item2"}
         ],
-        "styles": {"fontSize": "18px", "gap": "16"}
+        "styles": {"fontSize": "18", "gap": "16"}
       }]
     }]
   }
 }
 
-EXAMPLE 8 - Form:
+EXAMPLE 9 - Form:
 {
   "structure": {
     "type": "section",
+    "styles": {"padding": "80"},
     "children": [{
       "type": "container",
+      "styles": {"maxWidth": "600"},
       "children": [{
         "type": "form",
         "actions": ["email"],
@@ -476,8 +647,35 @@ Create tabbed content. Structure: tabs > (tab-menu block + tab-content block)
   ]
 }
 
+✅ PRE-GENERATION CHECKLIST:
+Before creating your structure, verify:
+
+1. SPACING:
+   □ Does every container/block with 2+ children have a gap property?
+   □ Minimum gap values: "24" for vertical, "30" for grids, "20" for horizontal
+   □ Does the section have proper padding ("80" or "100")?
+
+2. STRUCTURE:
+   □ Is the structure as flat as possible (section > container > content)?
+   □ Are wrapper blocks only used when necessary (grids, special layouts)?
+   □ Can the container have flex/grid properties directly instead of adding a wrapper block?
+
+3. RESPONSIVE:
+   □ Do grid layouts have mobile breakpoints (gridTemplateColumns:mobile_landscape)?
+   □ Do large font sizes have mobile variations (fontSize:mobile_landscape)?
+
+4. QUALITY:
+   □ Proper typography hierarchy (h1: 56-72, h2: 42-56, h3: 28-36, body: 16-18)?
+   □ Sufficient color contrast?
+   □ Border radius on cards/buttons/images?
+   □ Hover effects on interactive elements?
+
+5. VALUES:
+   □ All numeric values without "px" suffix (just numbers)?
+   □ All colors in hex format?
+
 USAGE:
-Think of the user\'s request, design the structure visually in your mind, then describe it in JSON format.', 'snn' ),
+Think of the user\'s request, design the structure visually in your mind, verify it against the checklist above, then describe it in clean JSON format with proper spacing.', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
