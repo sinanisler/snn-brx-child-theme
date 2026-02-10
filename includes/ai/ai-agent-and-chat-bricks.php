@@ -222,38 +222,42 @@ class SNN_Bricks_Chat_Overlay {
                 <!-- Quick Actions -->
                 <div class="snn-bricks-chat-quick-actions">
 
-<button class="snn-bricks-quick-action-btn" data-message="Hey! I need a really high-end, expensive-looking landing page for an Architecture firm. Can you act as a Lead UI Architect? Build it in 6 separate sections using 'snn/generate-bricks-content' for each one. 
+<button class="snn-bricks-quick-action-btn" data-message="Build it: A high-end Architecture page. 6 sections. Call 'snn/generate-bricks-content' for each. 
+1. Hero: Total black (#111111), massive white title (size 120), absolute text in bottom corner. 
+2. Manifesto: Pure white, 120 padding, bold h2 left, thin paragraph right. 
+3. Work: Asymmetric grid, first box spans 2 columns. 
+4. Expertise: Dark, big numbers, vertical stack. 
+5. Visuals: Film-grain overlay using custom-code block. 
+6. Footer: Giant stats and a sharp ghost button. 
+Rule: No 'px' in JSON, raw numbers only, make it 1fr on mobile. GO.">Luxury Real Estate</button>
 
-Start with a 'Monolithic' hero: make the background pitch black (#111111) with one massive, giant title (size 120) and a tiny bit of text tucked into the bottom left corner. Then, do a 'Manifesto' section: super clean white background, lots of breathing room (120 padding), with a bold heading on the left and a narrow paragraph on the right. 
+<button class="snn-bricks-quick-action-btn" data-message="Build it: A 'Bento-Box' Agency site. 6 sections. Call 'snn/generate-bricks-content' for each. 
+1. Hero: Dark (#080808), Neon Mint (#a3e635), custom-code marquee scrolling title. 
+2. Gallery: Bento tiles. Big 2x2 dark card, other cards Pink (#db2777) and Indigo (#6366f1) with hover effects. 
+3. Services: Skinny green ticker bar. 
+4. Process: Horizontal sliding row. 
+5. Mega-CTA: 80vh height, huge 150 size font, glowing button shadow. 
+Rule: Vertical gaps must be 40+, use hex codes only. GO.">Creative Agency</button>
 
-I also want an 'Asymmetric' project grid where the first box is twice as wide as the others. Follow that with an 'Expertise' list: a dark section where each row has a big number and a description. For extra flair, use the 'custom-html-css-script' block to add a subtle film-grain texture over the whole page. End with big 'Studio Stats' and a footer with a 'ghost' button (no color inside, just a white border). 
+<button class="snn-bricks-quick-action-btn" data-message="Build it: An 'Ethereal Wellness' page. 5 sections. Call 'snn/generate-bricks-content' for each. 
+1. Hero: Cream (#fdfbf7), soft lavender glow, perfectly round image with 100 blur shadow. 
+2. Curriculum: Stacked glass cards, white bg at 0.4 opacity, backdrop blur 20. 
+3. Wall of Love: 3-column masonry grid, cards rounded to 32, soft shadows. 
+4. Break: Full-width photo, height 600, centered text on top. 
+5. Join: Forest Green (#84a98c), pill-shaped button, clean spacing. 
+Rule: Body line-height 1.6, titles 1.1, define padding as an object. GO.">Wellness & Spa</button>
 
-Rule: Use raw numbers for sizes, no 'px', and make sure it looks great on mobile!">Real Estate</button>
+<button class="snn-bricks-quick-action-btn" data-message="Build it: A 'Deep Space' Crypto page. 6 sections. Call 'snn/generate-bricks-content' for each. 
+1. Hero: Pure black, huge tech title left, floating 3D orb custom-code right. 
+2. Ticker: Emerald green (#34d399) coin icons in a flex row. 
+3. Features: Glass cards, faint borders, blur effect. 
+4. Staking: Centered box, maxWidth 600, unique neon border. 
+5. Roadmap: Zig-zag vertical timeline, Neon Purple (#6366f1) accents. 
+6. CTA: Terminal style, monospace font, command-prompt button. 
+Rule: Every header needs fontSize:mobile_landscape, raw numbers only. GO.">Fintech / Crypto</button>
 
-<button class="snn-bricks-quick-action-btn" data-message="Yo! I want a super trendy 'Bento Box' style portfolio for my creative agency. Act as my Creative Director. Build me 6 sections using 'snn/generate-bricks-content' for each.
 
-For the hero, let's go dark (#080808) with Neon Mint accents (#a3e635). Use that custom code block to make a scrolling marquee title that moves across the screen. The main 'Work' section should look like a grid of tiles—make the first tile big (2x2) and dark, and make the other tiles pop with Pink (#db2777) and Indigo (#6366f1). Give them all a cool hover effect.
-
-Add a 'Service Ticker' (a skinny green bar with scrolling text) and a slider for our process. Use a big, 32pt italic font for the testimonials. Finish with a 'Mega-CTA' that's almost the full height of the screen with a massive title and a glowing mint-colored button. 
-
-Keep the gaps between sections big (at least 40) and only use hex codes for colors!">Agency</button>
-
-<button class="snn-bricks-quick-action-btn" data-message="Hi there! I'm looking for a very soft, 'Ethereal' and calm sales page for a Wellness retreat. Act as a Lead Designer and make 5 sections using 'snn/generate-bricks-content'.
-
-The hero should feel 'Frosted'—a light cream background (#fdfbf7) with soft lavender glow in the corners. Put a perfectly round image in the center with a very soft, blurry shadow behind it. For the 'Curriculum' part, stack up some glass-looking blocks that have that blurry 'backdrop filter' effect. 
-
-I want a 'Wall of Love' testimonial grid with very rounded corners (32) and soft shadows. Add a big, beautiful full-width photo in the middle of the page as a 'Visual Break' with some text floating on top. End with a Forest Green (#84a98c) invitation section and a pill-shaped button. 
-
-Please use 1.6 line height for the reading text so it's easy on the eyes, and keep all the spacing clean!">Wellness</button>
-
-<button class="snn-bricks-quick-action-btn" data-message="Can you build a 'Deep Space' style landing page for a new Crypto app? Act as a Fintech UI Lead. Build 6 sections using 'snn/generate-bricks-content'.
-
-Make the hero totally black (#000000). On the left, put a huge technical-looking title. On the right, use the custom code block to create a glowing, floating 3D orb. Below that, let's have a 'Live Ticker' row with tiny coin icons and bright emerald green text (#34d399).
-
-The 'Features' should look like glass cards with faint white borders and a blur effect. Include a 'Staking Calculator' that's a centered box with a bright accent border. Create a 'Roadmap' timeline that zig-zags left and right using Neon Purple (#6366f1). For the final CTA, make it look like a computer terminal—monospace fonts and a button that looks like a command prompt.
-
-Make sure all headings scale down for mobile so they don't break, and use raw numbers for all the sizing!">Fintech</button>
-            </div>
+                </div>
 
                 <!-- Input -->
                 <div class="snn-bricks-chat-input-container">
@@ -1173,34 +1177,132 @@ Make sure all headings scale down for mobile so they don't break, and use raw nu
                 }).join('\n');
 
                 bricksContext += `**AVAILABLE BRICKS ABILITIES:**\n${abilitiesList}\n\n`;
-                bricksContext += `Use these abilities to generate Bricks-compatible JSON content based on user requests.\n`;
 
                 return `${basePrompt}${bricksContext}
 
-=== HOW TO USE ABILITIES ===
+=== CRITICAL: HOW TO USE ABILITIES CORRECTLY ===
 
-When the user asks you to create or modify page designs:
+**EACH ABILITY CALL = ONE DISTINCT SECTION**
 
-1. Acknowledge the request briefly
-2. Include a JSON code block with abilities to execute
-3. I will execute them and inject the content into Bricks Builder
+When the user asks for "6 sections", you must make 6 SEPARATE ability calls, each with a UNIQUE description:
 
-Example response:
-"I'll create a hero section for you.
-
+❌ WRONG (generates 6 identical sections):
 \`\`\`json
 {
   "abilities": [
-    {"name": "exact-ability-name", "input": {"description": "hero section with image"}}
+    {"name": "snn/generate-bricks-content", "input": {"structure": {...}}},
+    {"name": "snn/generate-bricks-content", "input": {"structure": {...}}},
+    {"name": "snn/generate-bricks-content", "input": {"structure": {...}}}
   ]
 }
-\`\`\`"
+\`\`\`
 
-IMPORTANT:
-- Use EXACT ability names from the list above
-- The abilities will return Bricks JSON content
-- I will handle injecting it into the page
-- Focus on describing what the user wants clearly`;
+✅ CORRECT (each call describes a different section):
+\`\`\`json
+{
+  "abilities": [
+    {
+      "name": "snn/generate-bricks-content",
+      "input": {
+        "structure": {
+          "type": "section",
+          "styles": {"background": "#000000", "minHeight": "100vh", "padding": "80"},
+          "children": [{
+            "type": "container",
+            "styles": {"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "60"},
+            "children": [
+              {
+                "type": "block",
+                "styles": {"display": "flex", "flexDirection": "column", "gap": "24"},
+                "children": [
+                  {"type": "heading", "content": "Crypto Platform", "tag": "h1", "styles": {"fontSize": "120", "fontSize:mobile_landscape": "56", "fontWeight": "900", "color": "#ffffff"}}
+                ]
+              },
+              {
+                "type": "custom-html-css-script",
+                "content": "<div id='orb'></div><style>#orb{width:400px;height:400px;border-radius:50%;background:radial-gradient(circle, #34d399, #000);filter:blur(40px);animation:float 6s ease-in-out infinite;}@keyframes float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-30px)}}</style>"
+              }
+            ]
+          }]
+        }
+      }
+    },
+    {
+      "name": "snn/generate-bricks-content",
+      "input": {
+        "structure": {
+          "type": "section",
+          "styles": {"background": "#000000", "padding": "40"},
+          "children": [{
+            "type": "container",
+            "children": [{
+              "type": "block",
+              "styles": {"display": "flex", "flexDirection": "row", "gap": "20", "overflow": "hidden"},
+              "children": [
+                {"type": "text-basic", "content": "🪙 BTC +5.2%", "styles": {"color": "#34d399", "fontSize": "14", "fontWeight": "700"}},
+                {"type": "text-basic", "content": "🪙 ETH +3.8%", "styles": {"color": "#34d399", "fontSize": "14", "fontWeight": "700"}},
+                {"type": "text-basic", "content": "🪙 SOL +8.1%", "styles": {"color": "#34d399", "fontSize": "14", "fontWeight": "700"}}
+              ]
+            }]
+          }]
+        }
+      }
+    }
+  ]
+}
+\`\`\`
+
+**INPUT FORMAT REQUIREMENTS:**
+
+The ability expects:
+\`\`\`json
+{
+  "input": {
+    "structure": {
+      "type": "section|container|block|heading|text|image|etc",
+      "content": "text content for text elements",
+      "styles": {
+        "background": "#hexcolor",
+        "padding": "number",
+        "fontSize": "number",
+        // etc - see ability docs for all style properties
+      },
+      "children": [
+        // nested child elements following same format
+      ]
+    },
+    "action_type": "append|prepend|replace",  // optional, default: append
+    "post_id": 12345  // optional
+  }
+}
+\`\`\`
+
+**COMMON MISTAKES TO AVOID:**
+
+1. ❌ Missing "structure" wrapper: {"input": {"type": "section"}}
+   ✅ Correct: {"input": {"structure": {"type": "section"}}}
+
+2. ❌ Using "px" suffix: {"padding": "80px"}
+   ✅ Correct: {"padding": "80"}
+
+3. ❌ Missing flexDirection with display:flex
+   ✅ Always specify: {"display": "flex", "flexDirection": "row"} or "column"
+
+4. ❌ Multiple children without gap property
+   ✅ Always add gap: {"gap": "24", "children": [...]}
+
+5. ❌ Section with left/right padding
+   ✅ Only top/bottom: {"padding": {"top": "80", "bottom": "80"}}
+
+**WHEN ERRORS OCCUR:**
+
+If an ability fails, the error message will tell you what's wrong. Common issues:
+- "Invalid structure format" = missing required "structure" object
+- "Invalid element type" = used wrong type name
+- "Invalid style value" = used "px" or wrong format
+- "Missing gap property" = container/block has multiple children but no gap
+
+Fix the EXACT issue mentioned in the error, don't just retry the same input.`;
             }
 
             /**
@@ -1347,9 +1449,10 @@ IMPORTANT:
                     // Show result
                     const resultHtml = formatSingleAbilityResult({
                         ability: ability.name,
-                        result: result
+                        result: result,
+                        retries: retryCount
                     });
-                    addMessage('assistant', resultHtml, [{ ability: ability.name, result: result }]);
+                    addMessage('assistant', resultHtml, [{ ability: ability.name, result: result, retries: retryCount }]);
 
                     if (i < abilities.length - 1) {
                         await sleep(500);
@@ -1365,13 +1468,33 @@ IMPORTANT:
                     showTyping();
                     setAgentState(AgentState.RETRYING);
 
+                    // Provide detailed context about what failed
+                    let errorContext = `The ability "${failedAbility.name}" failed with this error:\n"${errorMessage}"\n\n`;
+
+                    // Add specific guidance based on error type
+                    if (errorMessage.includes('structure')) {
+                        errorContext += `ISSUE: The input is missing the required "structure" object.\n`;
+                        errorContext += `REQUIRED FORMAT:\n{"input": {"structure": {"type": "...", "children": [...]}}}\n\n`;
+                    } else if (errorMessage.includes('px')) {
+                        errorContext += `ISSUE: Style values should be plain numbers, not "px" strings.\n`;
+                        errorContext += `❌ Wrong: {"padding": "80px"}\n✅ Correct: {"padding": "80"}\n\n`;
+                    } else if (errorMessage.includes('gap')) {
+                        errorContext += `ISSUE: Containers/blocks with multiple children must have a "gap" property.\n`;
+                        errorContext += `✅ Add: {"gap": "24", "children": [...]}\n\n`;
+                    } else if (errorMessage.includes('flexDirection')) {
+                        errorContext += `ISSUE: Elements with display:flex must specify flexDirection.\n`;
+                        errorContext += `✅ Add: {"display": "flex", "flexDirection": "column"} or "row"\n\n`;
+                    }
+
+                    errorContext += `Your PREVIOUS (failed) input was:\n${JSON.stringify(failedAbility.input, null, 2)}\n\n`;
+                    errorContext += `Please provide CORRECTED input that fixes the specific issue mentioned above.\n`;
+                    errorContext += `Respond with ONLY a JSON code block with the corrected ability, or "CANNOT_FIX" if impossible.`;
+
                     const retryMessages = [
                         ...conversationMessages,
                         {
                             role: 'user',
-                            content: `The ability "${failedAbility.name}" failed with error: "${errorMessage}"
-
-Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX".`
+                            content: errorContext
                         }
                     ];
 
@@ -1379,14 +1502,17 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
                     hideTyping();
 
                     if (aiResponse.includes('CANNOT_FIX')) {
+                        debugLog('AI cannot fix the error');
                         return null;
                     }
 
                     const correctedAbilities = extractAbilitiesFromResponse(aiResponse);
                     if (correctedAbilities.length > 0) {
+                        debugLog('✅ AI provided corrected input');
                         return correctedAbilities[0];
                     }
 
+                    debugLog('⚠️ AI response did not contain valid corrected input');
                     return null;
                 } catch (error) {
                     console.error('Retry failed:', error);
@@ -1525,15 +1651,24 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
             function formatSingleAbilityResult(r) {
                 const success = r.result.success;
                 const status = success ? '✅' : '❌';
+                const retries = r.retries || 0;
 
                 let html = '<div class="ability-results">';
                 html += `<div class="ability-result ${success ? 'success' : 'error'}">`;
                 html += `<strong>${status} ${r.ability}</strong>`;
 
                 if (success) {
-                    html += `<div class="result-data">Content injected into page</div>`;
+                    let successMsg = 'Content injected into page';
+                    if (retries > 0) {
+                        successMsg += ` (after ${retries} ${retries === 1 ? 'retry' : 'retries'})`;
+                    }
+                    html += `<div class="result-data">${successMsg}</div>`;
                 } else {
-                    html += `<div class="result-error">${r.result.error || 'Unknown error'}</div>`;
+                    let errorMsg = r.result.error || 'Unknown error';
+                    if (retries > 0) {
+                        errorMsg = `Failed after ${retries} ${retries === 1 ? 'retry' : 'retries'}: ${errorMsg}`;
+                    }
+                    html += `<div class="result-error">${errorMsg}</div>`;
                 }
 
                 html += '</div></div>';
