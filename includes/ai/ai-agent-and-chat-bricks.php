@@ -1425,55 +1425,49 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                 }
 
                 let jsonString = jsonMatch[1].trim();
+                debugLog(`Attempting to parse JSON (${jsonString.length} chars)`);
 
-                // Detect potential truncation indicators
-                const truncationIndicators = [
-                    jsonString.length > 8000, // Very long JSON might be truncated
-                    !jsonString.endsWith('}') && !jsonString.endsWith(']'),
-                    /[a-zA-Z0-9]$/.test(jsonString) && !jsonString.endsWith('"'), // Ends abruptly
-                    (jsonString.match(/{/g) || []).length !== (jsonString.match(/}/g) || []).length,
-                    (jsonString.match(/\[/g) || []).length !== (jsonString.match(/\]/g) || []).length
+                // Try progressive repair strategies
+                const repairStrategies = [
+                    { name: 'as-is', fn: (s) => s },
+                    { name: 'basic-cleanup', fn: basicJSONCleanup },
+                    { name: 'aggressive-repair', fn: repairTruncatedJSON },
+                    { name: 'progressive-truncate', fn: progressiveTruncate }
                 ];
 
-                if (truncationIndicators.some(indicator => indicator)) {
-                    debugLog('⚠️ JSON appears to be truncated or incomplete, will attempt repair');
-                }
-
-                try {
-                    // First attempt: Parse as-is
-                    const parsed = JSON.parse(jsonString);
-                    if (parsed.abilities && Array.isArray(parsed.abilities)) {
-                        // Validate and filter abilities
-                        const validAbilities = validateAbilities(parsed.abilities);
-                        if (validAbilities.length > 0) {
-                            debugLog(`✅ Parsed ${validAbilities.length} valid abilities (${parsed.abilities.length - validAbilities.length} invalid)`);
-                            return validAbilities;
-                        } else {
-                            debugLog('⚠️ No valid abilities found after validation');
-                        }
-                    }
-                } catch (error) {
-                    debugLog('Initial JSON parse failed, attempting repair:', error.message);
-                    
+                for (const strategy of repairStrategies) {
                     try {
-                        // Attempt to repair truncated/malformed JSON
-                        const repairedJson = repairTruncatedJSON(jsonString);
+                        const repairedJson = strategy.fn(jsonString);
                         const parsed = JSON.parse(repairedJson);
                         
                         if (parsed.abilities && Array.isArray(parsed.abilities)) {
-                            // Validate and filter repaired abilities
                             const validAbilities = validateAbilities(parsed.abilities);
                             if (validAbilities.length > 0) {
-                                debugLog(`✅ Successfully repaired and parsed ${validAbilities.length} valid abilities`);
+                                if (strategy.name !== 'as-is') {
+                                    debugLog(`✅ Parsed ${validAbilities.length} abilities using strategy: ${strategy.name}`);
+                                } else {
+                                    debugLog(`✅ Parsed ${validAbilities.length} abilities successfully`);
+                                }
                                 return validAbilities;
                             }
                         }
-                    } catch (repairError) {
-                        debugLog('JSON repair also failed:', repairError.message);
-                        console.error('Failed to parse abilities after repair:', repairError);
-                        console.error('JSON string length:', jsonString.length);
-                        console.error('First 500 chars:', jsonString.substring(0, 500));
-                        console.error('Last 500 chars:', jsonString.substring(Math.max(0, jsonString.length - 500)));
+                    } catch (error) {
+                        debugLog(`Strategy "${strategy.name}" failed:`, error.message);
+                        if (strategy.name === repairStrategies[repairStrategies.length - 1].name) {
+                            // Last strategy failed, log details
+                            console.error('All repair strategies failed');
+                            console.error('JSON length:', jsonString.length);
+                            console.error('Error:', error.message);
+                            
+                            // Try to find the error location
+                            const match = error.message.match(/position (\d+)/);
+                            if (match) {
+                                const pos = parseInt(match[1]);
+                                const start = Math.max(0, pos - 100);
+                                const end = Math.min(jsonString.length, pos + 100);
+                                console.error(`Context around error (pos ${pos}):`, jsonString.substring(start, end));
+                            }
+                        }
                     }
                 }
 
@@ -1527,12 +1521,108 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
             }
 
             /**
+             * Basic JSON cleanup - fix common syntax issues
+             */
+            function basicJSONCleanup(jsonString) {
+                let cleaned = jsonString;
+                
+                // Remove trailing commas before closing brackets/braces (multiple passes)
+                cleaned = cleaned.replace(/,(\s*[\}\]])/g, '$1');
+                cleaned = cleaned.replace(/,(\s*[\}\]])/g, '$1');
+                cleaned = cleaned.replace(/,(\s*[\}\]])/g, '$1');
+                
+                // Fix duplicate commas
+                cleaned = cleaned.replace(/,\s*,+/g, ',');
+                
+                // Fix missing commas between object properties (} followed by ")
+                cleaned = cleaned.replace(/}(\s*)"(?!:)/g, '},$1"');
+                
+                // Fix missing commas between array items (] followed by {)
+                cleaned = cleaned.replace(/](\s*)\{/g, '],$1{');
+                
+                // Fix missing commas after closing brace/bracket before opening brace
+                cleaned = cleaned.replace(/}(\s*)\{/g, '},$1{');
+                cleaned = cleaned.replace(/](\s*)\[/g, '],$1[');
+                
+                // Fix incomplete property values (: followed directly by , or })
+                cleaned = cleaned.replace(/:\s*,/g, ': null,');
+                cleaned = cleaned.replace(/:\s*\}/g, ': null}');
+                cleaned = cleaned.replace(/:\s*\]/g, ': null]');
+                
+                // Remove trailing comma at end
+                cleaned = cleaned.replace(/,\s*$/, '');
+                
+                return cleaned;
+            }
+
+            /**
+             * Progressive truncation - try parsing increasingly smaller chunks
+             */
+            function progressiveTruncate(jsonString) {
+                // Find the abilities array and try to salvage as many complete abilities as possible
+                const abilitiesMatch = jsonString.match(/"abilities"\s*:\s*\[/);
+                if (!abilitiesMatch) {
+                    return jsonString;
+                }
+
+                const startPos = abilitiesMatch.index + abilitiesMatch[0].length;
+                let depth = 0;
+                let lastCompleteAbility = -1;
+                let inString = false;
+                let escapeNext = false;
+                
+                // Find complete ability objects
+                for (let i = startPos; i < jsonString.length; i++) {
+                    const char = jsonString[i];
+                    
+                    if (escapeNext) {
+                        escapeNext = false;
+                        continue;
+                    }
+                    
+                    if (char === '\\') {
+                        escapeNext = true;
+                        continue;
+                    }
+                    
+                    if (char === '"') {
+                        inString = !inString;
+                        continue;
+                    }
+                    
+                    if (!inString) {
+                        if (char === '{') {
+                            depth++;
+                        } else if (char === '}') {
+                            depth--;
+                            if (depth === 0) {
+                                // Found a complete ability object
+                                lastCompleteAbility = i;
+                            }
+                        }
+                    }
+                }
+
+                // If we found at least one complete ability, truncate after it
+                if (lastCompleteAbility > startPos) {
+                    const truncated = jsonString.substring(0, lastCompleteAbility + 1) + ']}';
+                    debugLog(`Progressive truncate: salvaged up to position ${lastCompleteAbility}`);
+                    return truncated;
+                }
+
+                return jsonString;
+            }
+
+            /**
              * Attempt to repair truncated or malformed JSON
              */
             function repairTruncatedJSON(jsonString) {
                 let repaired = jsonString;
                 
-                debugLog('Starting JSON repair, length:', repaired.length);
+                debugLog('Aggressive JSON repair starting, length:', repaired.length);
+                
+                // First, apply basic cleanup
+                repaired = basicJSONCleanup(repaired);
                 
                 // Track opening and closing brackets/braces
                 let braceCount = 0;
@@ -1574,12 +1664,12 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                     lastChar = char;
                 }
                 
-                debugLog(`Brace count: ${braceCount}, Bracket count: ${bracketCount}, In string: ${inString}`);
+                debugLog(`Structure analysis - Braces: ${braceCount}, Brackets: ${bracketCount}, In string: ${inString}`);
                 
                 // If we're still in a string, close it
                 if (inString) {
                     repaired += '"';
-                    debugLog('Repair: Added closing quote for unclosed string');
+                    debugLog('Repair: Closed unclosed string');
                 }
                 
                 // Check for incomplete content after last valid structure
@@ -1617,30 +1707,14 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                     closingBraces++;
                 }
                 
-                if (closingBrackets > 0) {
-                    debugLog(`Repair: Added ${closingBrackets} closing bracket(s)`);
-                }
-                if (closingBraces > 0) {
-                    debugLog(`Repair: Added ${closingBraces} closing brace(s)`);
+                if (closingBrackets > 0 || closingBraces > 0) {
+                    debugLog(`Repair: Added ${closingBrackets} bracket(s) and ${closingBraces} brace(s)`);
                 }
                 
-                // Remove trailing commas before closing brackets/braces (multiple passes)
-                let beforeCommaFix = repaired;
-                repaired = repaired.replace(/,(\s*[\}\]])/g, '$1');
-                repaired = repaired.replace(/,(\s*[\}\]])/g, '$1'); // Second pass for nested cases
-                if (beforeCommaFix !== repaired) {
-                    debugLog('Repair: Removed trailing commas');
-                }
+                // Final cleanup pass
+                repaired = basicJSONCleanup(repaired);
                 
-                // Fix incomplete property values
-                repaired = repaired.replace(/:\s*,/g, ': null,');
-                repaired = repaired.replace(/:\s*\}/g, ': null}');
-                repaired = repaired.replace(/:\s*$/g, ': null');
-                
-                // Remove any trailing commas at the very end
-                repaired = repaired.replace(/,\s*$/, '');
-                
-                debugLog('JSON repair complete, new length:', repaired.length);
+                debugLog('Aggressive repair complete, new length:', repaired.length);
                 
                 return repaired;
             }
