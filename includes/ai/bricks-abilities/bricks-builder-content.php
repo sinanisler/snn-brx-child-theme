@@ -390,6 +390,48 @@ COLORS:
 - color: "#ffffff" | "#000000"
 - accentColor: "#00ff00" (for buttons, highlights)
 
+GRADIENTS:
+For gradient backgrounds, use the _gradient native Bricks property with this EXACT format:
+"_gradient": {
+  "applyTo": "overlay",
+  "colors": [
+    {"id": "color1", "color": {"hex": "#212121"}},
+    {"id": "color2", "color": {"hex": "#111118"}},
+    {"id": "color3", "color": {"hex": "#000000"}}
+  ],
+  "angle": "181",
+  "gradientType": "linear"
+}
+
+⚠️ CRITICAL GRADIENT RULES:
+1. Each color MUST have an "id" field (unique identifier like "color1", "color2", etc.)
+2. Each color MUST have a "color" object with "hex" property
+3. MUST include "angle" field (0-360 degrees as string)
+4. MUST include "gradientType" field ("linear" or "radial")
+5. "applyTo" is typically "overlay" or "background"
+6. DO NOT use "stop" field - it\'s not needed in this format
+7. Color hex values should be WITHOUT the # symbol in some cases, WITH it in others - use WITH #
+
+Example gradient section:
+{
+  "type": "section",
+  "styles": {
+    "padding": "120",
+    "_background": {"color": {"hex": "#111118"}},
+    "_gradient": {
+      "applyTo": "overlay",
+      "colors": [
+        {"id": "grad1", "color": {"hex": "#212121"}},
+        {"id": "grad2", "color": {"hex": "#111118"}},
+        {"id": "grad3", "color": {"hex": "#000000"}}
+      ],
+      "angle": "181",
+      "gradientType": "linear"
+    }
+  },
+  "children": [...]
+}
+
 TYPOGRAPHY:
 - fontSize: "60px" | "18px"
 - fontWeight: "700" | "900"
@@ -2657,9 +2699,11 @@ function snn_hero_offset_layout( $args ) {
                 '_gradient' => array(
                     'applyTo' => 'overlay',
                     'colors' => array(
-                        array( 'color' => array( 'hex' => '#000000', 'alpha' => '0.6' ), 'stop' => '0' ),
-                        array( 'color' => array( 'hex' => '#000000', 'alpha' => '0.3' ), 'stop' => '100' ),
+                        array( 'id' => 'grad1', 'color' => array( 'hex' => '#000000' ) ),
+                        array( 'id' => 'grad2', 'color' => array( 'hex' => '#333333' ) ),
                     ),
+                    'angle' => '180',
+                    'gradientType' => 'linear',
                 ),
                 '_padding' => array( 'top' => '80', 'bottom' => '80' ),
             ),
