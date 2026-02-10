@@ -117,7 +117,7 @@ Content & Typography:
 
 Media & Visuals:
 - image: Image element
-- icon: Icon from icon libraries (FontAwesome, Ionicons, etc.)
+- icon: Icon element. CRITICAL: Use exact Bricks library names: "fontawesomeSolid" (fas fa-*), "fontawesomeRegular" (far fa-*), "fontawesomeBrands" (fab fa-*), "ionicons" (ion-*), "themify" (ti-*). NEVER use just "fontawesome"!
 - svg: SVG file element
 
 Interactive Elements:
@@ -270,7 +270,7 @@ SPACING:
   "type": "block",
   "styles": {"display": "flex", "flexDirection": "row", "gap": "12", "alignItems": "center"},
   "children": [
-    {"type": "icon", "iconData": {"library": "fontawesome", "icon": "fa fa-check"}},
+    {"type": "icon", "iconData": {"library": "fontawesomeSolid", "icon": "fas fa-check"}},
     {"type": "text-basic", "content": "Feature enabled"}
   ]
 }
@@ -335,7 +335,7 @@ WHEN NOT TO USE WRAPPER BLOCKS:
   "type": "block",
   "styles": {"display": "flex", "flexDirection": "row", "gap": "12", "alignItems": "center"},
   "children": [
-    {"type": "icon", "iconData": {"library": "fontawesome", "icon": "fa fa-star"}, "styles": {"fontSize": "24", "color": "#FFD700"}},
+    {"type": "icon", "iconData": {"library": "fontawesomeSolid", "icon": "fas fa-star"}, "styles": {"fontSize": "24", "color": "#FFD700"}},
     {"type": "heading", "content": "Premium Feature", "tag": "h3"}
   ]
 }
@@ -513,7 +513,7 @@ EXAMPLE 3 - Icon with Text (HORIZONTAL - flex row):
         "gap": "20"  // ← CRITICAL: Gap between icon and heading
       },
       "children": [
-        {"type": "icon", "iconData": {"library": "fontawesome", "icon": "fa fa-star"}, "styles": {"fontSize": "40", "color": "#FFD700"}},
+        {"type": "icon", "iconData": {"library": "fontawesomeSolid", "icon": "fas fa-star"}, "styles": {"fontSize": "40", "color": "#FFD700"}},
         {"type": "heading", "content": "Featured Item", "styles": {"fontSize": "24"}}
       ]
     }]
@@ -1104,7 +1104,8 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
             
         case 'icon':
             // Icon element - expects icon data in styles or as iconData property
-            // Format: {"library": "fontawesome", "icon": "fa fa-star"}
+            // Format: {"library": "fontawesomeSolid", "icon": "fas fa-star"}
+            // CRITICAL: Use exact Bricks library names: fontawesomeSolid, fontawesomeRegular, fontawesomeBrands, ionicons, themify
             // Bricks uses TWO properties: iconData (legacy) and icon (actual)
 
             $icon_config = null;
@@ -1118,9 +1119,9 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
                 if ( $icon_data ) {
                     $icon_config = $icon_data;
                 } else {
-                    // Fallback: assume simple icon class
+                    // Fallback: assume simple icon class (default to Solid)
                     $icon_config = array(
-                        'library' => 'fontawesome',
+                        'library' => 'fontawesomeSolid',
                         'icon' => $content
                     );
                 }
@@ -1133,12 +1134,12 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
 
                 // Set the actual icon property (this is what Bricks really uses)
                 // Map library names to Bricks format
-                $library = $icon_config['library'] ?? 'fontawesome';
+                $library = $icon_config['library'] ?? 'fontawesomeSolid';
                 $icon_class = $icon_config['icon'] ?? '';
 
                 // Map common library names to Bricks-specific library names
                 $library_map = array(
-                    'fontawesome' => 'fontawesomeSolid',  // Default to solid
+                    'fontawesome' => 'fontawesomeSolid',  // Backward compatibility only - prefer specific library names
                     'fontawesomesolid' => 'fontawesomeSolid',
                     'fontawesomeregular' => 'fontawesomeRegular',
                     'fontawesomebrands' => 'fontawesomeBrands',
