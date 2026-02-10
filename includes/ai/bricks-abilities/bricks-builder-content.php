@@ -96,13 +96,40 @@ Instead of choosing from templates, you define a hierarchical structure object. 
 - The system handles all complex Bricks formatting automatically
 
 AVAILABLE ELEMENT TYPES:
+
+Layout & Structure:
 - section: Full-width page section
 - container: Constrained content container (max-width)
-- block: Generic flexible container (div)
+- block: Flexbox container (div with display:flex defaults)
+- div: Clean div element (no default flexbox, better for raw layouts and precise control)
+⚠️ IMPORTANT: Use 'div' when you need a simple wrapper without flex defaults. Use 'block' when you want flexbox behavior.
+
+Content & Typography:
 - heading: Text heading (h1-h6)
-- text-basic: Paragraph text
-- button: Interactive button with link
+- text-basic: Simple paragraph text
+- text: Rich text with HTML formatting
+- text-link: Text element with link
+
+Media & Visuals:
 - image: Image element
+- icon: Icon from icon libraries (FontAwesome, Ionicons, etc.)
+- svg: SVG file element
+
+Interactive Elements:
+- button: Interactive button with link
+- form: Form with customizable fields
+- social-icons: Social media icon row
+
+Nestable/Complex Elements:
+- slider-nested: Slider/carousel container (children = slides)
+- accordion-nested: Accordion container (children = accordion items)
+- tabs-nested: Tabs container (children = tab menu + tab content)
+
+Special Elements:
+- counter: Animated number counter
+- countdown: Countdown timer
+- list: Styled list with items
+- shortcode: WordPress shortcode element
 - custom-html-css-script: Custom code element for advanced interactions
 
 STYLE PROPERTIES (Simple & Readable):
@@ -222,6 +249,152 @@ EXAMPLE 2 - Complex Grid Layout:
   }
 }
 
+EXAMPLE 3 - Icon with Text:
+{
+  "structure": {
+    "type": "section",
+    "children": [{
+      "type": "container",
+      "children": [{
+        "type": "block",
+        "styles": {"display": "flex", "alignItems": "center", "gap": "20"},
+        "children": [
+          {"type": "icon", "iconData": {"library": "fontawesome", "icon": "fa fa-star"}, "styles": {"fontSize": "40px", "color": "#FFD700"}},
+          {"type": "heading", "content": "Featured Item", "styles": {"fontSize": "24px"}}
+        ]
+      }]
+    }]
+  }
+}
+
+EXAMPLE 4 - Counter:
+{
+  "structure": {
+    "type": "section",
+    "children": [{
+      "type": "container",
+      "children": [
+        {"type": "counter", "countTo": "1000", "styles": {"fontSize": "72px", "fontWeight": "900", "color": "#000000"}}
+      ]
+    }]
+  }
+}
+
+EXAMPLE 5 - Countdown Timer:
+{
+  "structure": {
+    "type": "section",
+    "children": [{
+      "type": "container",
+      "children": [
+        {
+          "type": "countdown", 
+          "date": "2026-12-31 23:59",
+          "fields": [
+            {"format": "%D days"},
+            {"format": "%H hours"},
+            {"format": "%M minutes"},
+            {"format": "%S seconds"}
+          ],
+          "styles": {"fontSize": "48px", "textAlign": "center"}
+        }
+      ]
+    }]
+  }
+}
+
+EXAMPLE 6 - Social Icons:
+{
+  "structure": {
+    "type": "section",
+    "children": [{
+      "type": "container",
+      "children": [{
+        "type": "social-icons",
+        "icons": [
+          {"label": "Facebook", "icon": {"library": "fontawesomeBrands", "icon": "fab fa-facebook"}, "background": {"hex": "#3b5998"}, "id": "fb001"},
+          {"label": "Twitter", "icon": {"library": "fontawesomeBrands", "icon": "fab fa-twitter"}, "background": {"hex": "#1DA1F2"}, "id": "tw001"}
+        ],
+        "direction": "row",
+        "styles": {"gap": "16", "justifyContent": "center"}
+      }]
+    }]
+  }
+}
+
+EXAMPLE 7 - List:
+{
+  "structure": {
+    "type": "section",
+    "children": [{
+      "type": "container",
+      "children": [{
+        "type": "list",
+        "items": [
+          {"title": "Feature One", "meta": "Available", "id": "item1"},
+          {"title": "Feature Two", "meta": "Coming Soon", "id": "item2"}
+        ],
+        "styles": {"fontSize": "18px", "gap": "16"}
+      }]
+    }]
+  }
+}
+
+EXAMPLE 8 - Form:
+{
+  "structure": {
+    "type": "section",
+    "children": [{
+      "type": "container",
+      "children": [{
+        "type": "form",
+        "actions": ["email"],
+        "emailTo": "admin@example.com",
+        "emailSubject": "Contact Form Submission",
+        "successMessage": "Thank you for your message!",
+        "fields": [
+          {"type": "text", "label": "Name", "placeholder": "Your Name", "id": "name001"},
+          {"type": "email", "label": "Email", "placeholder": "your@email.com", "id": "email001"},
+          {"type": "textarea", "label": "Message", "placeholder": "Your message", "id": "msg001"}
+        ]
+      }]
+    }]
+  }
+}
+
+ADVANCED USAGE TIPS:
+
+🎨 USING GLOBAL VARIABLES & COLOR PALETTE:
+Instead of hardcoded values, you can reference theme variables:
+- Font sizes: Use "var(--brxw-text-xl)" or "var(--size-48)" for responsive fluid typography
+- Colors: Use "var(--c1)" or "var(--c2)" for theme colors (these map to the site\'s color palette)
+- Spacing: Use "var(--brxw-space-m)" for consistent spacing
+
+Example with variables:
+{
+  "structure": {
+    "type": "section",
+    "styles": {"background": "var(--c1)", "padding": "var(--brxw-space-3xl)"},
+    "children": [{
+      "type": "heading",
+      "content": "Heading",
+      "styles": {"fontSize": "var(--brxw-text-5xl)", "color": "var(--c3)"}
+    }]
+  }
+}
+
+💡 GLOBAL VARIABLES AVAILABLE:
+Access via bricksState.globalVariables:
+- Text sizes: brxw-text-xs, brxw-text-s, brxw-text-m, brxw-text-l, brxw-text-xl, brxw-text-2xl, brxw-text-3xl, brxw-text-4xl, brxw-text-5xl
+- Space sizes: brxw-space-3xs, brxw-space-2xs, brxw-space-xs, brxw-space-s, brxw-space-m, brxw-space-l, brxw-space-xl, brxw-space-2xl, brxw-space-3xl
+- Custom sizes: size-18, size-24, size-32, size-48, size-64, size-82, size-96 (if defined)
+
+🎨 COLOR PALETTE:
+Access via bricksState.colorPalette:
+- Prefer: "var(--c1)", "var(--c2)", etc. for theme colors
+- Fallback: Static hex colors like "#ffffff" if variables aren\'t defined
+- Color palette IDs from user\'s theme should be used when available
+
 KEY ADVANTAGES:
 ✅ Unlimited creativity - no template restrictions
 ✅ Define any hierarchy and nesting
@@ -229,6 +402,79 @@ KEY ADVANTAGES:
 ✅ Simple, readable property names
 ✅ Automatic Bricks format translation
 ✅ Safe - can\'t break Bricks JSON syntax
+✅ 20+ element types including sliders, accordions, forms, icons
+
+🏗️ NESTABLE ELEMENTS (Advanced Structures):
+
+SLIDER (slider-nested):
+Create carousels and sliders. Direct children become slides.
+{
+  "type": "slider-nested",
+  "styles": {"height": "500px", "perPage": "3", "gap": "20", "pagination": true, "arrows": true},
+  "children": [
+    {"type": "block", "label": "Slide 1", "children": [{"type": "heading", "content": "Slide 1"}]},
+    {"type": "block", "label": "Slide 2", "children": [{"type": "heading", "content": "Slide 2"}]}
+  ]
+}
+
+ACCORDION (accordion-nested):
+Create expandable accordion sections. Structure: accordion > items > (title block + content block)
+{
+  "type": "accordion-nested",
+  "styles": {"titleHeight": "50px", "contentPadding": {"top": "15", "right": "0", "bottom": "15", "left": "0"}},
+  "children": [
+    {
+      "type": "block",
+      "label": "Item",
+      "children": [
+        {
+          "type": "block",
+          "label": "Title",
+          "styles": {"_hidden": {"_cssClasses": "accordion-title-wrapper"}},
+          "children": [
+            {"type": "heading", "content": "Accordion Title", "tag": "h3"},
+            {"type": "icon", "iconData": {"library": "ionicons", "icon": "ion-ios-arrow-forward"}, "styles": {"isAccordionIcon": true}}
+          ]
+        },
+        {
+          "type": "block",
+          "label": "Content",
+          "styles": {"_hidden": {"_cssClasses": "accordion-content-wrapper"}},
+          "children": [
+            {"type": "text", "content": "<p>Accordion content goes here...</p>"}
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+TABS (tabs-nested):
+Create tabbed content. Structure: tabs > (tab-menu block + tab-content block)
+{
+  "type": "tabs-nested",
+  "styles": {"titlePadding": {"top": "20", "right": "20", "bottom": "20", "left": "20"}},
+  "children": [
+    {
+      "type": "block",
+      "label": "Tab menu",
+      "styles": {"_direction": "row", "_hidden": {"_cssClasses": "tab-menu"}},
+      "children": [
+        {"type": "div", "styles": {"_hidden": {"_cssClasses": "tab-title"}}, "children": [{"type": "text-basic", "content": "Tab 1"}]},
+        {"type": "div", "styles": {"_hidden": {"_cssClasses": "tab-title"}}, "children": [{"type": "text-basic", "content": "Tab 2"}]}
+      ]
+    },
+    {
+      "type": "block",
+      "label": "Tab content",
+      "styles": {"_hidden": {"_cssClasses": "tab-content"}},
+      "children": [
+        {"type": "block", "styles": {"_hidden": {"_cssClasses": "tab-pane"}}, "children": [{"type": "text", "content": "Content 1"}]},
+        {"type": "block", "styles": {"_hidden": {"_cssClasses": "tab-pane"}}, "children": [{"type": "text", "content": "Content 2"}]}
+      ]
+    }
+  ]
+}
 
 USAGE:
 Think of the user\'s request, design the structure visually in your mind, then describe it in JSON format.', 'snn' ),
@@ -244,7 +490,14 @@ Think of the user\'s request, design the structure visually in your mind, then d
                         'properties'  => array(
                             'type' => array(
                                 'type'        => 'string',
-                                'enum'        => array( 'section', 'container', 'block', 'heading', 'text-basic', 'button', 'image', 'custom-html-css-script' ),
+                                'enum'        => array( 
+                                    'section', 'container', 'block', 'div', 
+                                    'heading', 'text-basic', 'text', 'text-link',
+                                    'button', 'image', 'icon', 'svg',
+                                    'slider-nested', 'accordion-nested', 'tabs-nested',
+                                    'form', 'counter', 'countdown', 'list', 'shortcode', 'social-icons',
+                                    'custom-html-css-script' 
+                                ),
                                 'description' => 'Element type to create',
                             ),
                             'content' => array(
@@ -376,12 +629,42 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
     $content = $node['content'] ?? '';
     $link = $node['link'] ?? '';
     $tag = $node['tag'] ?? '';
+    $label = $node['label'] ?? ''; // Optional label for element
     $styles = $node['styles'] ?? array();
     $children_nodes = $node['children'] ?? array();
     
     // 1. TRANSLATE SIMPLE STYLES TO BRICKS FORMAT
     // This is where the magic happens - convert readable keys to Bricks keys
     $bricks_settings = snn_map_styles_to_bricks( $styles, $type );
+    
+    // Add label if provided (helps with organization in Bricks builder)
+    if ( $label ) {
+        $bricks_settings['label'] = $label;
+    }
+    
+    // Handle any additional special properties from node
+    // These are passed directly to settings if they don't conflict
+    $special_properties = array(
+        'iconData', 'fileData', 'countTo', 'date', 'fields', 'items', 'icons', 
+        'direction', 'actions', 'emailTo', 'emailSubject', 'successMessage', 
+        'emailErrorMessage', 'fromName', 'htmlEmail',
+        // Slider properties
+        'pagination', 'arrows', 'perPage', 'autoplay', 'loop',
+        // Accordion properties  
+        'titleHeight', 'contentPadding', 'titleBackgroundColor', 'titleBorder', 'contentBorder',
+        // Tabs properties
+        'titlePadding', 'titleActiveBackgroundColor', 'contentBorder',
+        // Form properties
+        'submitButtonStyle', 'submitButtonText',
+        // Other nestable properties
+        'isAccordionIcon'
+    );
+    
+    foreach ( $special_properties as $prop ) {
+        if ( isset( $node[ $prop ] ) && ! isset( $bricks_settings[ $prop ] ) ) {
+            $bricks_settings[ $prop ] = $node[ $prop ];
+        }
+    }
     
     // 2. HANDLE CONTENT BASED ON ELEMENT TYPE
     switch ( $type ) {
@@ -396,6 +679,22 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
             
         case 'text-basic':
             $bricks_settings['text'] = $content;
+            break;
+            
+        case 'text':
+            // Rich text with HTML
+            $bricks_settings['text'] = $content;
+            break;
+            
+        case 'text-link':
+            // Text with link
+            $bricks_settings['text'] = $content;
+            if ( $link ) {
+                $bricks_settings['link'] = array(
+                    'url' => $link,
+                    'type' => 'external'
+                );
+            }
             break;
             
         case 'button':
@@ -415,6 +714,125 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
                     'size' => 'full'
                 );
             }
+            break;
+            
+        case 'icon':
+            // Icon element - expects icon data in styles or as iconData property
+            // Format: {"library": "fontawesome", "icon": "fa fa-star"}
+            if ( isset( $node['iconData'] ) ) {
+                $bricks_settings['icon'] = $node['iconData'];
+            } elseif ( $content ) {
+                // If content is provided as JSON string, parse it
+                $icon_data = json_decode( $content, true );
+                if ( $icon_data ) {
+                    $bricks_settings['icon'] = $icon_data;
+                } else {
+                    // Fallback: assume simple icon class
+                    $bricks_settings['icon'] = array(
+                        'library' => 'fontawesome',
+                        'icon' => $content
+                    );
+                }
+            }
+            break;
+            
+        case 'svg':
+            // SVG file element - expects file data
+            if ( isset( $node['fileData'] ) ) {
+                $bricks_settings['file'] = $node['fileData'];
+            } elseif ( $content ) {
+                // Content is URL
+                $bricks_settings['file'] = array(
+                    'url' => $content
+                );
+            }
+            break;
+            
+        case 'counter':
+            // Animated counter
+            if ( $content ) {
+                $bricks_settings['countTo'] = $content;
+            } elseif ( isset( $node['countTo'] ) ) {
+                $bricks_settings['countTo'] = $node['countTo'];
+            }
+            break;
+            
+        case 'countdown':
+            // Countdown timer
+            if ( $content ) {
+                $bricks_settings['date'] = $content;
+            } elseif ( isset( $node['date'] ) ) {
+                $bricks_settings['date'] = $node['date'];
+            }
+            // Fields for countdown display
+            if ( isset( $node['fields'] ) ) {
+                $bricks_settings['fields'] = $node['fields'];
+            } else {
+                // Default fields
+                $bricks_settings['fields'] = array(
+                    array( 'format' => '%D days' ),
+                    array( 'format' => '%H hours' ),
+                    array( 'format' => '%M minutes' ),
+                    array( 'format' => '%S seconds' )
+                );
+            }
+            break;
+            
+        case 'shortcode':
+            // WordPress shortcode
+            if ( $content ) {
+                $bricks_settings['shortcode'] = $content;
+            }
+            break;
+            
+        case 'list':
+            // List element with items
+            if ( isset( $node['items'] ) ) {
+                $bricks_settings['items'] = $node['items'];
+            }
+            break;
+            
+        case 'social-icons':
+            // Social media icons
+            if ( isset( $node['icons'] ) ) {
+                $bricks_settings['icons'] = $node['icons'];
+            }
+            // Direction
+            if ( isset( $node['direction'] ) ) {
+                $bricks_settings['direction'] = $node['direction'];
+            }
+            break;
+            
+        case 'form':
+            // Form element
+            if ( isset( $node['fields'] ) ) {
+                $bricks_settings['fields'] = $node['fields'];
+            }
+            // Form actions
+            if ( isset( $node['actions'] ) ) {
+                $bricks_settings['actions'] = $node['actions'];
+            }
+            // Email settings
+            if ( isset( $node['emailTo'] ) ) {
+                $bricks_settings['emailTo'] = $node['emailTo'];
+            }
+            if ( isset( $node['emailSubject'] ) ) {
+                $bricks_settings['emailSubject'] = $node['emailSubject'];
+            }
+            // Success/Error messages
+            if ( isset( $node['successMessage'] ) ) {
+                $bricks_settings['successMessage'] = $node['successMessage'];
+            }
+            if ( isset( $node['emailErrorMessage'] ) ) {
+                $bricks_settings['emailErrorMessage'] = $node['emailErrorMessage'];
+            }
+            break;
+            
+        case 'slider-nested':
+        case 'accordion-nested':
+        case 'tabs-nested':
+            // Nestable elements - children define the structure
+            // Additional settings can be passed through styles
             break;
             
         case 'custom-html-css-script':
