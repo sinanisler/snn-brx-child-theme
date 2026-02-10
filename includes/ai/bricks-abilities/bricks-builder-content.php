@@ -377,6 +377,44 @@ VISUAL EFFECTS:
 - opacity: "0.8"
 - boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
 
+CUSTOM CSS & ANIMATIONS:
+- customCss: "string" - Write custom CSS directly for advanced effects
+- animationPreset: "hover-lift" | "hover-glow" | "hover-scale" | "hover-gradient" | "hover-rotate" | "pulse" | "float" - Pre-built animation effects
+- transitionDuration: "0.3s" | "0.5s" - Animation timing
+
+⚠️ CUSTOM CSS POWER:
+For buttons, titles, sections, and interactive elements, you can create INSANE custom animations!
+
+Example - Button with Custom Hover Animation:
+{
+  "type": "button",
+  "content": "Click Me",
+  "styles": {
+    "customCss": "#brxe-{ID} { transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; z-index: 1; background: rgba(255, 255, 255, 0.05); border-radius: 8px; overflow: hidden; } #brxe-{ID}:hover { transform: translateY(-8px); background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3); color: #ffffff; }"
+  }
+}
+
+OR use animation presets for instant effects:
+{
+  "type": "button",
+  "content": "Get Started",
+  "styles": {
+    "animationPreset": "hover-lift",
+    "background": "#0061ff",
+    "color": "#ffffff"
+  }
+}
+
+Available Animation Presets:
+- hover-lift: Smooth upward movement with shadow on hover
+- hover-glow: Glowing effect with box shadow animation
+- hover-scale: Scale up effect on hover
+- hover-gradient: Animated gradient background shift
+- hover-rotate: Subtle rotation effect
+- pulse: Pulsing scale animation (continuous)
+- float: Floating up/down animation (continuous)
+- shimmer: Shimmering light effect across element
+
 POSITIONING:
 - position: "sticky" | "relative" | "absolute"
 - top: "100px"
@@ -555,8 +593,8 @@ EXAMPLE 5 - Button Group (HORIZONTAL - flex row for multiple buttons):
             "flexWrap": "wrap"  // ← Wrap on mobile if needed
           },
           "children": [
-            {"type": "button", "content": "Start Free Trial", "link": "#", "styles": {"background": "#0061ff", "color": "#ffffff", "padding": {"top": "18", "right": "32", "bottom": "18", "left": "32"}}},
-            {"type": "button", "content": "View Demo", "link": "#", "styles": {"background": "#ffffff", "color": "#000000", "padding": {"top": "18", "right": "32", "bottom": "18", "left": "32"}}}
+            {"type": "button", "content": "Start Free Trial", "link": "#", "styles": {"animationPreset": "hover-lift", "background": "#0061ff", "color": "#ffffff", "padding": {"top": "18", "right": "32", "bottom": "18", "left": "32"}}},
+            {"type": "button", "content": "View Demo", "link": "#", "styles": {"animationPreset": "hover-scale", "background": "#ffffff", "color": "#000000", "padding": {"top": "18", "right": "32", "bottom": "18", "left": "32"}}}
           ]
         }
       ]
@@ -564,6 +602,7 @@ EXAMPLE 5 - Button Group (HORIZONTAL - flex row for multiple buttons):
   }
 }
 // Note: Button wrapper uses flexDirection "row" to place buttons side by side!
+// Buttons have animation presets for smooth hover effects!
 
 EXAMPLE 6 - Counter:
 {
@@ -668,6 +707,29 @@ EXAMPLE 9 - Form:
     }]
   }
 }
+
+EXAMPLE 10 - Button with Custom Animation CSS:
+{
+  "structure": {
+    "type": "section",
+    "styles": {"padding": "80", "background": "#000000"},
+    "children": [{
+      "type": "container",
+      "styles": {"display": "flex", "flexDirection": "column", "alignItems": "center", "gap": "24"},
+      "children": [
+        {"type": "heading", "content": "Experience Magic", "styles": {"fontSize": "64", "color": "#ffffff", "animationPreset": "shimmer"}},
+        {"type": "button", "content": "Launch Now", "link": "#", "styles": {
+          "customCss": "#brxe-{ID} { transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; z-index: 1; overflow: hidden; } #brxe-{ID}::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; } #brxe-{ID}:hover::before { left: 100%; } #brxe-{ID}:hover { transform: translateY(-4px) scale(1.05); box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4); }",
+          "background": "#6366f1",
+          "color": "#ffffff",
+          "padding": {"top": "18", "right": "40", "bottom": "18", "left": "40"},
+          "borderRadius": "8"
+        }}
+      ]
+    }]
+  }
+}
+// Note: Custom CSS creates a sliding shine effect + lift animation on button hover!
 
 ADVANCED USAGE TIPS:
 
@@ -1465,6 +1527,37 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
         $settings['_objectFit'] = $simple_styles['objectFit'];
     }
     
+    // === CUSTOM CSS & ANIMATIONS ===
+    // Handle animation presets - generate CSS from preset names
+    if ( isset( $simple_styles['animationPreset'] ) ) {
+        $preset_name = $simple_styles['animationPreset'];
+        $custom_css = snn_get_animation_preset_css( $preset_name, $element_type );
+        if ( $custom_css ) {
+            if ( ! isset( $settings['_cssCustom'] ) ) {
+                $settings['_cssCustom'] = $custom_css;
+            } else {
+                // Append to existing custom CSS
+                $settings['_cssCustom'] .= "\n" . $custom_css;
+            }
+        }
+    }
+    
+    // Handle direct custom CSS (with {ID} placeholder replacement)
+    if ( isset( $simple_styles['customCss'] ) ) {
+        $custom_css = $simple_styles['customCss'];
+        if ( ! isset( $settings['_cssCustom'] ) ) {
+            $settings['_cssCustom'] = $custom_css;
+        } else {
+            // Append to existing custom CSS
+            $settings['_cssCustom'] .= "\n" . $custom_css;
+        }
+    }
+    
+    // Handle transition duration for smooth animations
+    if ( isset( $simple_styles['transitionDuration'] ) ) {
+        $settings['_cssTransition'] = $simple_styles['transitionDuration'];
+    }
+    
     // === RESPONSIVE PROPERTIES ===
     // Handle properties with :mobile_landscape or :tablet suffixes
     foreach ( $simple_styles as $key => $value ) {
@@ -1672,6 +1765,153 @@ function snn_infer_flex_direction_from_children( $children_nodes, $simple_styles
     // - Cards, forms, or any complex nested structure
     
     return 'column'; // Safe default for most cases
+}
+
+/**
+ * Get animation preset CSS code
+ * Returns ready-to-use CSS for common animation patterns
+ * 
+ * @param string $preset_name The preset name (hover-lift, hover-glow, etc.)
+ * @param string $element_type The element type (for context-aware animations)
+ * @return string CSS code with #brxe-{ID} placeholder
+ */
+function snn_get_animation_preset_css( $preset_name, $element_type = '' ) {
+    $presets = array(
+        'hover-lift' => '
+#brxe-{ID} {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+#brxe-{ID}:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}',
+        
+        'hover-glow' => '
+#brxe-{ID} {
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+#brxe-{ID}:hover {
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.6), 0 0 60px rgba(99, 102, 241, 0.3);
+  filter: brightness(1.1);
+}',
+        
+        'hover-scale' => '
+#brxe-{ID} {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+#brxe-{ID}:hover {
+  transform: scale(1.08);
+  z-index: 10;
+}',
+        
+        'hover-gradient' => '
+#brxe-{ID} {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  z-index: 1;
+  background-size: 200% 200%;
+  background-position: left center;
+}
+
+#brxe-{ID}:hover {
+  background-position: right center;
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}',
+        
+        'hover-rotate' => '
+#brxe-{ID} {
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+}
+
+#brxe-{ID}:hover {
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}',
+        
+        'pulse' => '
+@keyframes snn-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+#brxe-{ID} {
+  animation: snn-pulse 2s ease-in-out infinite;
+}',
+        
+        'float' => '
+@keyframes snn-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+#brxe-{ID} {
+  animation: snn-float 3s ease-in-out infinite;
+}',
+        
+        'shimmer' => '
+@keyframes snn-shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+#brxe-{ID} {
+  background: linear-gradient(90deg, currentColor 40%, rgba(255,255,255,0.8) 50%, currentColor 60%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: snn-shimmer 3s linear infinite;
+}',
+        
+        'hover-3d' => '
+#brxe-{ID} {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+#brxe-{ID}:hover {
+  transform: perspective(1000px) rotateX(10deg) rotateY(-10deg) scale(1.05);
+  box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.3);
+}',
+        
+        'hover-shine' => '
+#brxe-{ID} {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+#brxe-{ID}::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+#brxe-{ID}:hover::before {
+  left: 100%;
+}
+
+#brxe-{ID}:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}',
+    );
+    
+    return $presets[ $preset_name ] ?? '';
 }
 
 /**
