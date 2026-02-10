@@ -148,7 +148,7 @@ STYLE PROPERTIES (Simple & Readable):
 
 LAYOUT:
 - display: "flex" | "grid" | "block"
-- flexDirection: "row" | "column"
+- flexDirection: "row" | "column" ⚠️ CRITICAL: ALWAYS specify flexDirection when using display:flex! Row for horizontal layouts (buttons, icon+text), Column for vertical stacks.
 - justifyContent: "center" | "flex-start" | "flex-end" | "space-between"
 - alignItems: "center" | "flex-start" | "flex-end" | "stretch"
 - gridTemplateColumns: "1fr 1fr" | "repeat(3, 1fr)" | "300px 1fr"
@@ -160,8 +160,13 @@ SPACING:
 
 🎨 DESIGN QUALITY RULES (MUST FOLLOW):
 
-⚠️ CRITICAL SPACING REQUIREMENTS:
-1. ALWAYS add gap to containers/blocks with multiple children:
+⚠️ CRITICAL LAYOUT REQUIREMENTS:
+1. ALWAYS specify flexDirection when using display:flex:
+   - Horizontal layouts (buttons in a row, icon + text, navigation): flexDirection: "row"
+   - Vertical layouts (cards, stacked content, column layouts): flexDirection: "column"
+   - NEVER use display:flex without flexDirection - it will cause stacking issues!
+
+2. ALWAYS add gap to containers/blocks with multiple children:
    - Flex column layouts: gap: "24" minimum (vertical spacing)
    - Flex row layouts: gap: "20" minimum (horizontal spacing)
    - Grid layouts: gap: "30" minimum (both directions)
@@ -177,7 +182,7 @@ SPACING:
 
 📐 CLEAN STRUCTURE PATTERNS:
 
-✅ GOOD - Container with flex properties directly:
+✅ GOOD - Container with flex properties directly (vertical layout):
 {
   "type": "section",
   "styles": {"background": "#ffffff", "padding": "80"},
@@ -192,6 +197,16 @@ SPACING:
   }]
 }
 
+✅ GOOD - Horizontal flex layout (buttons in row):
+{
+  "type": "block",
+  "styles": {"display": "flex", "flexDirection": "row", "gap": "20", "alignItems": "center"},
+  "children": [
+    {"type": "button", "content": "Primary Action"},
+    {"type": "button", "content": "Secondary Action"}
+  ]
+}
+
 ❌ BAD - Unnecessary wrapper block:
 {
   "type": "section",
@@ -203,6 +218,36 @@ SPACING:
       "children": [...]
     }]
   }]
+}
+
+❌ BAD - Missing flexDirection (will cause stacking issues!):
+{
+  "type": "block",
+  "styles": {"display": "flex", "gap": "20"},  // ← MISSING flexDirection!
+  "children": [
+    {"type": "button", "content": "Button 1"},
+    {"type": "button", "content": "Button 2"}
+  ]
+}
+
+✅ GOOD - Horizontal button row with flexDirection specified:
+{
+  "type": "block",
+  "styles": {"display": "flex", "flexDirection": "row", "gap": "20", "alignItems": "center"},
+  "children": [
+    {"type": "button", "content": "Primary Action"},
+    {"type": "button", "content": "Secondary Action"}
+  ]
+}
+
+✅ GOOD - Icon and text horizontal layout:
+{
+  "type": "block",
+  "styles": {"display": "flex", "flexDirection": "row", "gap": "12", "alignItems": "center"},
+  "children": [
+    {"type": "icon", "iconData": {"library": "fontawesome", "icon": "fa fa-check"}},
+    {"type": "text-basic", "content": "Feature enabled"}
+  ]
 }
 
 ✅ GOOD - Grid layout (wrapper block IS needed here):
@@ -247,6 +292,66 @@ WHEN NOT TO USE WRAPPER BLOCKS:
 ✗ Centering content (container can do this with alignItems/justifyContent)
 ✗ Single column layouts (container is enough)
 ✗ "Just because" - only add blocks when theres a clear layout reason
+
+⚠️ CRITICAL: COMMON HORIZONTAL LAYOUT PATTERNS (USE flexDirection: "row"):
+
+1. BUTTON GROUPS (Multiple buttons side by side):
+{
+  "type": "block",
+  "styles": {"display": "flex", "flexDirection": "row", "gap": "16", "alignItems": "center", "flexWrap": "wrap"},
+  "children": [
+    {"type": "button", "content": "Get Started", "link": "#"},
+    {"type": "button", "content": "Learn More", "link": "#"}
+  ]
+}
+
+2. ICON + TEXT COMBINATIONS (Features, benefits, labels):
+{
+  "type": "block",
+  "styles": {"display": "flex", "flexDirection": "row", "gap": "12", "alignItems": "center"},
+  "children": [
+    {"type": "icon", "iconData": {"library": "fontawesome", "icon": "fa fa-star"}, "styles": {"fontSize": "24", "color": "#FFD700"}},
+    {"type": "heading", "content": "Premium Feature", "tag": "h3"}
+  ]
+}
+
+3. BADGE + TITLE (Labels, tags, notifications):
+{
+  "type": "block",
+  "styles": {"display": "flex", "flexDirection": "row", "gap": "16", "alignItems": "center"},
+  "children": [
+    {"type": "text-basic", "content": "New", "styles": {"padding": {"top": "4", "right": "12", "bottom": "4", "left": "12"}, "background": "#00ff00", "borderRadius": "20", "fontSize": "12", "fontWeight": "700"}},
+    {"type": "text-basic", "content": "Latest Update Available"}
+  ]
+}
+
+4. IMAGE + CONTENT (Side by side layouts):
+{
+  "type": "block",
+  "styles": {"display": "flex", "flexDirection": "row", "gap": "40", "alignItems": "center"},
+  "children": [
+    {"type": "image", "content": "https://example.com/image.jpg", "styles": {"width": "200px", "borderRadius": "12"}},
+    {"type": "block", "styles": {"display": "flex", "flexDirection": "column", "gap": "16"}, "children": [
+      {"type": "heading", "content": "Title"},
+      {"type": "text-basic", "content": "Description"}
+    ]}
+  ]
+}
+
+5. NAVIGATION/MENU ITEMS (Horizontal navigation):
+{
+  "type": "block",
+  "styles": {"display": "flex", "flexDirection": "row", "gap": "32", "alignItems": "center"},
+  "children": [
+    {"type": "text-link", "content": "Home", "link": "#"},
+    {"type": "text-link", "content": "About", "link": "#"},
+    {"type": "text-link", "content": "Services", "link": "#"},
+    {"type": "text-link", "content": "Contact", "link": "#"}
+  ]
+}
+
+⚠️ REMEMBER: If you want elements to appear horizontally (side by side), ALWAYS use flexDirection: "row"!
+If you want elements to stack vertically, use flexDirection: "column".
 
 SIZING:
 - width: "100%" | "500px" | "50vw"
@@ -369,7 +474,7 @@ EXAMPLE 2 - Grid Layout (wrapper block needed for grid):
 }
 // Note: Each card also has gap between its children!
 
-EXAMPLE 3 - Icon with Text (CLEAN - no wrapper block):
+EXAMPLE 3 - Icon with Text (HORIZONTAL - flex row):
 {
   "structure": {
     "type": "section",
@@ -378,6 +483,7 @@ EXAMPLE 3 - Icon with Text (CLEAN - no wrapper block):
       "type": "container",
       "styles": {
         "display": "flex",  // ← Container has flex directly
+        "flexDirection": "row",  // ← CRITICAL: row for horizontal layout!
         "alignItems": "center",
         "gap": "20"  // ← CRITICAL: Gap between icon and heading
       },
@@ -388,7 +494,7 @@ EXAMPLE 3 - Icon with Text (CLEAN - no wrapper block):
     }]
   }
 }
-// Note: No wrapper block needed! Container handles the flex layout directly.
+// Note: flexDirection "row" makes icon and heading sit side by side (horizontal)
 
 EXAMPLE 4 - About Section with Image (shows proper gap usage):
 {
@@ -429,7 +535,37 @@ EXAMPLE 4 - About Section with Image (shows proper gap usage):
 }
 // Note: Container uses grid for 2-column layout. Text column block has gap for vertical spacing.
 
-EXAMPLE 5 - Counter:
+EXAMPLE 5 - Button Group (HORIZONTAL - flex row for multiple buttons):
+{
+  "structure": {
+    "type": "section",
+    "styles": {"padding": "80"},
+    "children": [{
+      "type": "container",
+      "styles": {"display": "flex", "flexDirection": "column", "alignItems": "center", "gap": "32"},
+      "children": [
+        {"type": "heading", "content": "Get Started Today", "styles": {"fontSize": "48", "fontWeight": "800"}},
+        {
+          "type": "block",  // Button wrapper
+          "styles": {
+            "display": "flex",
+            "flexDirection": "row",  // ← CRITICAL: row for horizontal button layout!
+            "gap": "16",  // ← Gap between buttons
+            "alignItems": "center",
+            "flexWrap": "wrap"  // ← Wrap on mobile if needed
+          },
+          "children": [
+            {"type": "button", "content": "Start Free Trial", "link": "#", "styles": {"background": "#0061ff", "color": "#ffffff", "padding": {"top": "18", "right": "32", "bottom": "18", "left": "32"}}},
+            {"type": "button", "content": "View Demo", "link": "#", "styles": {"background": "#ffffff", "color": "#000000", "padding": {"top": "18", "right": "32", "bottom": "18", "left": "32"}}}
+          ]
+        }
+      ]
+    }]
+  }
+}
+// Note: Button wrapper uses flexDirection "row" to place buttons side by side!
+
+EXAMPLE 6 - Counter:
 {
   "structure": {
     "type": "section",
@@ -650,7 +786,13 @@ Create tabbed content. Structure: tabs > (tab-menu block + tab-content block)
 ✅ PRE-GENERATION CHECKLIST:
 Before creating your structure, verify:
 
-1. SPACING:
+1. FLEX DIRECTION (MOST CRITICAL!):
+   □ Does every element with display:flex have a flexDirection specified?
+   □ Horizontal layouts (buttons, nav, icon+text): flexDirection: "row"
+   □ Vertical layouts (cards, stacks, columns): flexDirection: "column"
+   □ NO display:flex without flexDirection!
+
+2. SPACING:
    □ Does every container/block with 2+ children have a gap property?
    □ Minimum gap values: "24" for vertical, "30" for grids, "20" for horizontal
    □ Does the section have proper padding ("80" or "100")?
@@ -833,7 +975,8 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
     
     // 1. TRANSLATE SIMPLE STYLES TO BRICKS FORMAT
     // This is where the magic happens - convert readable keys to Bricks keys
-    $bricks_settings = snn_map_styles_to_bricks( $styles, $type );
+    // IMPORTANT: Pass children_nodes so mapper can infer flex direction intelligently
+    $bricks_settings = snn_map_styles_to_bricks( $styles, $type, $children_nodes );
     
     // Add label if provided (helps with organization in Bricks builder)
     if ( $label ) {
@@ -1085,9 +1228,10 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
  * 
  * @param array $simple_styles The simple style properties from the agent
  * @param string $element_type The type of element being styled (for context-aware mapping)
+ * @param array $children_nodes The children nodes (for intelligent flex direction inference)
  * @return array Bricks-formatted settings array
  */
-function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
+function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children_nodes = array() ) {
     $settings = array();
     
     // DIRECT PASS-THROUGH: If agent already knows Bricks syntax (keys starting with _)
@@ -1103,6 +1247,22 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '' ) {
     // === LAYOUT PROPERTIES ===
     if ( isset( $simple_styles['display'] ) ) {
         $settings['_display'] = $simple_styles['display'];
+        
+        // CRITICAL FIX: Add smart default for flexDirection when display:flex is used
+        // This prevents elements from stacking incorrectly when flexDirection is missed
+        if ( $simple_styles['display'] === 'flex' && ! isset( $simple_styles['flexDirection'] ) && ! isset( $settings['_flexDirection'] ) ) {
+            // Use intelligent inference based on children types and styles
+            $inferred_direction = snn_infer_flex_direction_from_children( $children_nodes, $simple_styles );
+            
+            // Add the inferred direction
+            $settings['_flexDirection'] = $inferred_direction;
+            
+            // Add debug flag (hidden from UI but useful for troubleshooting)
+            if ( ! isset( $settings['_hidden'] ) ) {
+                $settings['_hidden'] = array();
+            }
+            $settings['_hidden']['_autoInferredFlexDirection'] = $inferred_direction;
+        }
     }
     if ( isset( $simple_styles['flexDirection'] ) ) {
         $settings['_flexDirection'] = $simple_styles['flexDirection'];
@@ -1442,6 +1602,76 @@ function snn_sanitize_bricks_value( $value, $property = '' ) {
     
     // Return as-is if we can't determine how to sanitize
     return $value;
+}
+
+/**
+ * Helper function to infer flex direction based on children types
+ * Returns 'row' or 'column' based on the most likely intended layout
+ * 
+ * @param array $children_nodes Array of child node structures
+ * @param array $simple_styles The styles being applied
+ * @return string 'row' or 'column'
+ */
+function snn_infer_flex_direction_from_children( $children_nodes, $simple_styles ) {
+    // If no children, default to column (safer)
+    if ( empty( $children_nodes ) ) {
+        return 'column';
+    }
+    
+    // Pattern detection based on children types
+    $child_types = array();
+    foreach ( $children_nodes as $child ) {
+        if ( isset( $child['type'] ) ) {
+            $child_types[] = $child['type'];
+        }
+    }
+    
+    // HORIZONTAL LAYOUT PATTERNS (should be flex row):
+    // 1. Multiple buttons together (common CTA pattern)
+    $button_count = count( array_filter( $child_types, function( $type ) {
+        return $type === 'button';
+    } ) );
+    if ( $button_count >= 2 ) {
+        return 'row'; // Multiple buttons = horizontal row
+    }
+    
+    // 2. Icon + text/heading combination (common pattern for features, benefits)
+    $has_icon = in_array( 'icon', $child_types );
+    $has_text = in_array( 'heading', $child_types ) || in_array( 'text-basic', $child_types ) || in_array( 'text', $child_types );
+    if ( $has_icon && $has_text && count( $child_types ) <= 3 ) {
+        return 'row'; // Icon + text = horizontal row
+    }
+    
+    // 3. Social icons or nav items
+    $has_social = in_array( 'social-icons', $child_types );
+    if ( $has_social ) {
+        return 'row';
+    }
+    
+    // 4. Image + button/text in same level (common for hero CTAs)
+    $has_image = in_array( 'image', $child_types );
+    $has_button = in_array( 'button', $child_types );
+    if ( $has_image && $has_button && count( $child_types ) <= 3 ) {
+        return 'row';
+    }
+    
+    // 5. Check style hints
+    // If alignItems is center and only 2-3 children, likely horizontal
+    if ( isset( $simple_styles['alignItems'] ) && $simple_styles['alignItems'] === 'center' && count( $child_types ) <= 3 ) {
+        return 'row';
+    }
+    
+    // If flexWrap is set, it's usually for horizontal layouts that wrap
+    if ( isset( $simple_styles['flexWrap'] ) ) {
+        return 'row';
+    }
+    
+    // VERTICAL LAYOUT PATTERNS (default):
+    // - Multiple different content types (heading + text + button)
+    // - More than 3 children (likely a vertical stack)
+    // - Cards, forms, or any complex nested structure
+    
+    return 'column'; // Safe default for most cases
 }
 
 /**
