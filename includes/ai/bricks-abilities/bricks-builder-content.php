@@ -99,10 +99,21 @@ AVAILABLE ELEMENT TYPES:
 - section: Full-width page section
 - container: Constrained content container (max-width)
 - block: Generic flexible container (div)
+- div: Raw html div (use for clean grids/wrappers)
 - heading: Text heading (h1-h6)
-- text-basic: Paragraph text
+- text-basic: Simple paragraph text
+- rich-text: Advanced text with HTML support (lists, bold, etc.)
+- text-link: Inline text link (span with link)
 - button: Interactive button with link
+- icon: Vector icon (use settings.icon)
 - image: Image element
+- video: Video element
+- svg: Raw SVG
+- slider-nestable: Nestable slider (contains 'slide' children)
+- accordion-nestable: Nestable accordion
+- tabs-nestable: Nestable tabs
+- form: Form element
+- code: Code block
 - custom-html-css-script: Custom code element for advanced interactions
 
 STYLE PROPERTIES (Simple & Readable):
@@ -378,52 +389,64 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
     $tag = $node['tag'] ?? '';
     $styles = $node['styles'] ?? array();
     $children_nodes = $node['children'] ?? array();
+
+    // Get element config
+    $config_map = snn_get_element_config();
+    $config = $config_map[ $type ] ?? null;
+
+    // Fallback if type not found: Treat as block or pass through name if unknown
+    if ( ! $config ) {
+        $bricks_name = $type;
+        $default_settings = array();
+        $content_map = null;
+    } else {
+        $bricks_name = $config['bricks_name'];
+        $default_settings = $config['defaults'] ?? array();
+        $content_map = $config['content_map'] ?? null;
+    }
     
     // 1. TRANSLATE SIMPLE STYLES TO BRICKS FORMAT
     // This is where the magic happens - convert readable keys to Bricks keys
-    $bricks_settings = snn_map_styles_to_bricks( $styles, $type );
+    $mapped_styles = snn_map_styles_to_bricks( $styles, $type );
     
-    // 2. HANDLE CONTENT BASED ON ELEMENT TYPE
-    switch ( $type ) {
-        case 'heading':
-            $bricks_settings['text'] = $content;
-            if ( $tag ) {
-                $bricks_settings['tag'] = $tag;
-            } elseif ( ! isset( $bricks_settings['tag'] ) ) {
-                $bricks_settings['tag'] = 'h2'; // Default heading tag
-            }
-            break;
-            
-        case 'text-basic':
-            $bricks_settings['text'] = $content;
-            break;
-            
-        case 'button':
-            $bricks_settings['text'] = $content;
-            if ( $link ) {
-                $bricks_settings['link'] = array(
-                    'url' => $link,
-                    'type' => 'external'
-                );
-            }
-            break;
-            
-        case 'image':
-            if ( $content ) {
-                $bricks_settings['image'] = array(
-                    'url' => $content,
-                    'size' => 'full'
-                );
-            }
-            break;
-            
-        case 'custom-html-css-script':
-            // Content should contain the HTML/CSS/JS
-            $bricks_settings['content'] = $content;
-            break;
+    // Merge defaults with mapped styles (styles override defaults)
+    $bricks_settings = array_merge( $default_settings, $mapped_styles );
+    
+    // 2. HANDLE CONTENT MAPPING (Generic)
+    if ( $content && $content_map ) {
+         $bricks_settings[ $content_map ] = $content;
+    }
+
+    // 3. SPECIAL HANDLING FOR COMPLEX ELEMENTS
+    // Button
+    if ( $type === 'button' && $link ) {
+         $bricks_settings['link'] = array( 'url' => $link, 'type' => 'external' );
     }
     
-    // 3. RECURSIVELY PROCESS CHILDREN
+    // Heading
+    if ( $type === 'heading' ) {
+         if ( $tag ) {
+             $bricks_settings['tag'] = $tag;
+         } elseif ( ! isset( $bricks_settings['tag'] ) ) {
+             $bricks_settings['tag'] = 'h2'; // Default
+         }
+    }
+
+    // Image
+    if ( $type === 'image' && $content ) {
+         // Agent passes URL in 'content'
+         $bricks_settings['image'] = array( 'url' => $content, 'size' => 'full' );
+    }
+
+    // Icon - support simple class string if agent sends it in content, though usually in settings
+    if ( $type === 'icon' && $content ) {
+        // Simple heuristic: if content has "fa ", assume fontawesome
+        if ( strpos( $content, 'fa ' ) !== false || strpos( $content, 'fas ' ) !== false ) {
+             $bricks_settings['icon'] = array( 'library' => 'fontawesome', 'icon' => $content );
+        }
+    }
+    
+    // 4. RECURSIVELY PROCESS CHILDREN
     $children_ids = array();
     $generated_children_elements = array();
     
@@ -441,16 +464,16 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
         );
     }
     
-    // 4. CREATE THE CURRENT ELEMENT IN BRICKS FORMAT
+    // 5. CREATE THE CURRENT ELEMENT IN BRICKS FORMAT
     $current_element = array(
         'id'       => $element_id,
-        'name'     => $type,
+        'name'     => $bricks_name, // Use the mapped Bricks name
         'parent'   => $parent_id,
         'children' => $children_ids,
         'settings' => $bricks_settings
     );
     
-    // 5. RETURN THE TREE
+    // 6. RETURN THE TREE
     // We return both this element's ID (so parent knows about us)
     // And a flat list of ALL elements (this one + all descendants)
     return array(
@@ -3076,6 +3099,137 @@ function snn_create_custom_code_element( $parent, $html = '', $css = '', $js = '
         'children' => array(),
         'settings' => array(
             'content' => implode( "\n", $content_parts ),
+        ),
+    );
+}
+
+/**
+ * Get configuration for available Bricks elements
+ * Maps agent-friendly names to Bricks internal names and settings
+ */
+function snn_get_element_config() {
+    return array(
+        // === STRUCTURAL ===
+        'section' => array( 
+            'bricks_name' => 'section',
+            'defaults' => array( '_padding' => array( 'top' => '100', 'bottom' => '100' ) )
+        ),
+        'container' => array( 
+            'bricks_name' => 'container',
+            'defaults' => array()
+        ),
+        'block' => array( 
+            'bricks_name' => 'block',
+            'defaults' => array()
+        ),
+        'div' => array( 
+            'bricks_name' => 'div',
+            'defaults' => array()
+        ),
+
+        // === TYPOGRAPHY ===
+        'heading' => array( 
+            'bricks_name' => 'heading', 
+            'content_map' => 'text',
+            'defaults' => array( 'tag' => 'h2' )
+        ),
+        'text-basic' => array( 
+            'bricks_name' => 'text-basic', 
+            'content_map' => 'text',
+            'defaults' => array()
+        ),
+        'text' => array( 
+            'bricks_name' => 'text', 
+            'content_map' => 'text',
+            'defaults' => array() // This is Rich Text in Bricks
+        ),
+        'rich-text' => array( 
+            'bricks_name' => 'text', 
+            'content_map' => 'text',
+            'defaults' => array() // Alias for text
+        ),
+        'text-link' => array( 
+            'bricks_name' => 'text-link', 
+            'content_map' => 'text',
+            'defaults' => array( 'link' => array( 'type' => 'external', 'url' => '#' ) )
+        ),
+
+        // === INTERACTIVE ===
+        'button' => array( 
+            'bricks_name' => 'button', 
+            'content_map' => 'text',
+            'defaults' => array( 'style' => 'primary', 'size' => 'md' )
+        ),
+        'icon' => array( 
+            'bricks_name' => 'icon', 
+            'defaults' => array()
+        ),
+        'image' => array( 
+            'bricks_name' => 'image', 
+            'defaults' => array()
+        ),
+        'video' => array( 
+            'bricks_name' => 'video', 
+            'defaults' => array()
+        ),
+        'svg' => array( 
+            'bricks_name' => 'svg', 
+            'defaults' => array()
+        ),
+        'divider' => array(
+            'bricks_name' => 'divider',
+            'defaults' => array()
+        ),
+
+        // === NESTABLES ===
+        'slider-nestable' => array( 
+            'bricks_name' => 'slider-nested', 
+            'defaults' => array( 'items' => 1 )
+        ),
+        'accordion-nestable' => array( 
+            'bricks_name' => 'accordion-nested', 
+            'defaults' => array()
+        ),
+        'tabs-nestable' => array( 
+            'bricks_name' => 'tabs-nested', 
+            'defaults' => array()
+        ),
+        'list' => array(
+            'bricks_name' => 'list',
+            'defaults' => array()
+        ),
+        'social-icons' => array(
+            'bricks_name' => 'social-icons',
+            'defaults' => array()
+        ),
+
+        // === FUNCTIONAL ===
+        'form' => array( 
+            'bricks_name' => 'form', 
+            'defaults' => array()
+        ),
+        'code' => array( 
+            'bricks_name' => 'code', 
+            'content_map' => 'code',
+            'defaults' => array()
+        ),
+        'shortcode' => array( 
+            'bricks_name' => 'shortcode', 
+            'content_map' => 'shortcode',
+            'defaults' => array()
+        ),
+        'counter' => array( 
+            'bricks_name' => 'counter', 
+            'defaults' => array()
+        ),
+        'countdown' => array( 
+            'bricks_name' => 'countdown', 
+            'defaults' => array()
+        ),
+        'custom-html-css-script' => array( 
+            'bricks_name' => 'custom-html-css-script', 
+            'content_map' => 'content',
+            'defaults' => array()
         ),
     );
 }
