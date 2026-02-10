@@ -155,8 +155,33 @@ LAYOUT:
 - gap: "20" | "40" (NO px suffix - just the number)
 
 SPACING:
-- padding: "80" (all sides, NO px) or {top: "80", right: "40", bottom: "80", left: "40"}
+- padding: "80" (all sides, NO px) or {top: "80", bottom: "80"}
 - margin: "auto" | "20" or {top: "0", bottom: "40"}
+
+⚠️ CRITICAL SPACING RULES - READ CAREFULLY:
+
+1. SECTIONS should ONLY have top/bottom padding:
+   ✅ CORRECT: padding: "80" OR padding: {top: "80", bottom: "80"}
+   ❌ WRONG: padding: {top: "80", right: "0", bottom: "80", left: "0"}
+   ❌ WRONG: padding: {top: "100", right: "120", bottom: "100", left: "120"}
+
+   WHY: Sections need natural gutters for responsive layouts. Adding left/right padding:
+   - Breaks responsive spacing
+   - Kills the natural gutter system
+   - Causes alignment issues on mobile
+   - Is never needed (use container maxWidth instead)
+
+2. To control content width, use CONTAINER maxWidth, NOT section padding:
+   ✅ CORRECT: "type": "container", "styles": {"maxWidth": "900px"}
+   ❌ WRONG: "type": "section", "styles": {"padding": {left: "120", right: "120"}}
+
+   WHY: Container maxWidth is the proper way to constrain content width.
+   Large section padding is a hack that breaks responsive behavior.
+
+3. Only specify padding sides you actually need:
+   ✅ CORRECT: padding: "80" (all sides equal)
+   ✅ CORRECT: padding: {top: "80", bottom: "100"} (only vertical)
+   ❌ WRONG: padding: {top: "80", right: "0", bottom: "80", left: "0"} (don\'t explicitly set to 0)
 
 🎨 DESIGN QUALITY RULES (MUST FOLLOW):
 
@@ -783,6 +808,24 @@ Create tabbed content. Structure: tabs > (tab-menu block + tab-content block)
   ]
 }
 
+❌ ANTI-PATTERNS - NEVER DO THESE:
+
+1. NEVER add left/right padding to sections:
+   ❌ BAD: {"type": "section", "styles": {"padding": {"top": "80", "right": "0", "bottom": "80", "left": "0"}}}
+   ✅ GOOD: {"type": "section", "styles": {"padding": "80"}}
+
+2. NEVER use large section padding to control width:
+   ❌ BAD: {"type": "section", "styles": {"padding": {"top": "100", "right": "120", "bottom": "100", "left": "120"}}}
+   ✅ GOOD: {"type": "section", "styles": {"padding": "100"}, "children": [{"type": "container", "styles": {"maxWidth": "900px"}}]}
+
+3. NEVER use display:flex without flexDirection:
+   ❌ BAD: {"styles": {"display": "flex", "gap": "20"}}
+   ✅ GOOD: {"styles": {"display": "flex", "flexDirection": "row", "gap": "20"}}
+
+4. NEVER create containers/blocks with multiple children without gap:
+   ❌ BAD: {"type": "block", "children": [{...}, {...}, {...}]}
+   ✅ GOOD: {"type": "block", "styles": {"gap": "24"}, "children": [{...}, {...}, {...}]}
+
 ✅ PRE-GENERATION CHECKLIST:
 Before creating your structure, verify:
 
@@ -796,8 +839,10 @@ Before creating your structure, verify:
    □ Does every container/block with 2+ children have a gap property?
    □ Minimum gap values: "24" for vertical, "30" for grids, "20" for horizontal
    □ Does the section have proper padding ("80" or "100")?
+   □ NO left/right padding on sections? (Should be padding: "80" NOT padding: {left: "0", right: "0"})
+   □ Using container maxWidth instead of large section padding? (maxWidth: "900px" NOT padding: {left: "120", right: "120"})
 
-2. STRUCTURE:
+3. STRUCTURE:
    □ Is the structure as flat as possible (section > container > content)?
    □ Are wrapper blocks only used when necessary (grids, special layouts)?
    □ Can the container have flex/grid properties directly instead of adding a wrapper block?
@@ -1309,13 +1354,24 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
                 'left'   => $p
             );
         } elseif ( is_array( $padding ) ) {
-            // Sanitize each value in the array
-            $settings['_padding'] = array(
-                'top'    => snn_sanitize_bricks_value( $padding['top'] ?? '0', 'padding.top' ),
-                'right'  => snn_sanitize_bricks_value( $padding['right'] ?? '0', 'padding.right' ),
-                'bottom' => snn_sanitize_bricks_value( $padding['bottom'] ?? '0', 'padding.bottom' ),
-                'left'   => snn_sanitize_bricks_value( $padding['left'] ?? '0', 'padding.left' )
-            );
+            // CRITICAL FIX: For sections, only apply top/bottom padding
+            // Never add left/right padding to sections as it breaks gutters and responsive behavior
+            if ( $element_type === 'section' ) {
+                // Sections: Only top/bottom padding
+                $settings['_padding'] = array(
+                    'top'    => snn_sanitize_bricks_value( $padding['top'] ?? '0', 'padding.top' ),
+                    'bottom' => snn_sanitize_bricks_value( $padding['bottom'] ?? '0', 'padding.bottom' )
+                );
+                // Don't include left/right for sections - they should use container maxWidth instead
+            } else {
+                // Non-sections: All sides allowed
+                $settings['_padding'] = array(
+                    'top'    => snn_sanitize_bricks_value( $padding['top'] ?? '0', 'padding.top' ),
+                    'right'  => snn_sanitize_bricks_value( $padding['right'] ?? '0', 'padding.right' ),
+                    'bottom' => snn_sanitize_bricks_value( $padding['bottom'] ?? '0', 'padding.bottom' ),
+                    'left'   => snn_sanitize_bricks_value( $padding['left'] ?? '0', 'padding.left' )
+                );
+            }
         }
     }
     if ( isset( $simple_styles['margin'] ) ) {
