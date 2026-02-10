@@ -4133,7 +4133,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-quick-action-btn:hover { background: #1d2327; color: #fff; border-color: #1d2327; }
 .snn-chat-input-container { padding: 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 12px; align-items: flex-end; }
 .snn-chat-input-wrapper { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.snn-chat-input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; min-height: 42px; max-height: 120px; }
+.snn-chat-input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; min-height: 62px; max-height: 120px; }
 .snn-chat-input:focus { border-color: #667eea; }
 .snn-chat-attach-btn { width: 42px; height: 42px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
 .snn-chat-attach-btn:hover { background: #e0e0e0; }
