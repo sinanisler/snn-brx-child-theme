@@ -228,23 +228,16 @@ class SNN_Bricks_Chat_Overlay {
                 </div>
 
                 <!-- Input -->
-                <div class="snn-bricks-chat-input-container" style="flex-direction: column;">
-                    <div id="snn-chat-preview-area" style="width:100%; display:none; flex-wrap:wrap; gap:5px; margin-bottom:5px; padding-bottom:5px; border-bottom:1px solid #eee;"></div>
-                    <div style="display:flex; width:100%; gap:8px; align-items:flex-end;">
-                        <button id="snn-bricks-chat-attach-btn" class="snn-bricks-chat-btn" style="background:#f0f0f0; color:#333; width:42px; height:42px;" title="Attach image">
-                            <span class="dashicons dashicons-format-image"></span>
-                        </button>
-                        <input type="file" id="snn-chat-file-input" accept="image/*" style="display:none;">
-                        <textarea
-                            id="snn-bricks-chat-input"
-                            class="snn-bricks-chat-input"
-                            placeholder="Describe what you want to create... (Paste images supported)"
-                            rows="1"
-                        ></textarea>
-                        <button id="snn-bricks-chat-send" class="snn-bricks-chat-send" title="Send message">
-                            <span class="dashicons dashicons-arrow-up-alt2"></span>
-                        </button>
-                    </div>
+                <div class="snn-bricks-chat-input-container">
+                    <textarea
+                        id="snn-bricks-chat-input"
+                        class="snn-bricks-chat-input"
+                        placeholder="Describe what you want to create..."
+                        rows="1"
+                    ></textarea>
+                    <button id="snn-bricks-chat-send" class="snn-bricks-chat-send" title="Send message">
+                        <span class="dashicons dashicons-arrow-up-alt2"></span>
+                    </button>
                 </div>
                 <?php endif; ?>
             </div>
@@ -291,7 +284,6 @@ class SNN_Bricks_Chat_Overlay {
             const ChatState = {
                 messages: [],
                 abilities: [],
-                attachments: [],
                 isOpen: false,
                 isProcessing: false,
                 abortController: null,
@@ -308,50 +300,6 @@ class SNN_Bricks_Chat_Overlay {
 
             // Bricks Builder Integration
             const BricksHelper = {
-                /**
-                 * Get global context (colors, variables)
-                 */
-                getGlobalContext() {
-                    const state = this.getState();
-                    if (!state) return '';
-                    
-                    let context = '';
-                    
-                    // Colors
-                    if (state.colorPalette) {
-                        context += "**SITE COLORS (Use these variables):**\n";
-                        try {
-                            const palettes = Array.isArray(state.colorPalette) ? state.colorPalette : [state.colorPalette];
-                            palettes.forEach(palette => {
-                                if (palette && palette.colors) {
-                                     palette.colors.forEach(c => {
-                                         if (c.raw) context += `- ${c.name || 'Color'}: ${c.raw} (Value: ${c.light || c.hex})\n`;
-                                         else if (c.hex) context += `- ${c.name || 'Color'}: ${c.hex}\n`;
-                                     });
-                                }
-                            });
-                        } catch(e) { console.error('Error parsing colors', e); }
-                        context += "\n";
-                    }
-                    
-                    // Global Variables
-                    if (state.globalVariables) {
-                        context += "**GLOBAL VARIABLES (Usage: var(--name)):**\n";
-                        try {
-                            const vars = Array.isArray(state.globalVariables) ? state.globalVariables : Object.values(state.globalVariables);
-                            // Limit to 50 variables to avoid token overflow
-                            vars.slice(0, 50).forEach(v => {
-                                if (v.name && v.value) {
-                                    context += `- var(--${v.name}): ${v.value}\n`;
-                                }
-                            });
-                        } catch(e) {}
-                        context += "\n";
-                    }
-                    
-                    return context;
-                },
-
                 /**
                  * Check if Bricks reactive state is available
                  */
@@ -726,7 +674,7 @@ class SNN_Bricks_Chat_Overlay {
                     $('#snn-bricks-chat-history-dropdown').hide();
                 });
 
-                // Send message logic
+                // Send message
                 $('#snn-bricks-chat-send').on('click', sendMessage);
 
                 // Send on Enter (Shift+Enter for newline)
@@ -734,30 +682,6 @@ class SNN_Bricks_Chat_Overlay {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         sendMessage();
-                    }
-                });
-                
-                // Image attachment handling
-                $('#snn-bricks-chat-attach-btn').on('click', function() {
-                    $('#snn-chat-file-input').click();
-                });
-
-                $('#snn-chat-file-input').on('change', function(e) {
-                    if (this.files && this.files[0]) {
-                        handleImageAttachment(this.files[0]);
-                        this.value = '';
-                    }
-                });
-
-                // Paste handling
-                $('#snn-bricks-chat-input').on('paste', function(e) {
-                    const items = (e.originalEvent || e).clipboardData.items;
-                    for (let index in items) {
-                        const item = items[index];
-                        if (item.kind === 'file' && item.type.includes('image/')) {
-                            const blob = item.getAsFile();
-                            handleImageAttachment(blob);
-                        }
                     }
                 });
 
@@ -776,50 +700,6 @@ class SNN_Bricks_Chat_Overlay {
 
                 // Auto-save conversation periodically
                 setInterval(autoSaveConversation, 30000);
-            }
-
-            function handleImageAttachment(file) {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('Image too large. Max 5MB.');
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    ChatState.attachments.push({
-                        type: 'image',
-                        data: e.target.result,
-                        name: file.name
-                    });
-                    updateAttachmentPreview();
-                };
-                reader.readAsDataURL(file);
-            }
-
-            function updateAttachmentPreview() {
-                const $preview = $('#snn-chat-preview-area');
-                $preview.empty();
-                
-                if (ChatState.attachments.length === 0) {
-                    $preview.hide();
-                    return;
-                }
-                
-                $preview.show();
-                ChatState.attachments.forEach((att, index) => {
-                    const $item = $(
-                        '<div style="position:relative; width:60px; height:60px; border:1px solid #ddd; border-radius:4px; overflow:hidden;">' +
-                            '<img src="' + att.data + '" style="width:100%; height:100%; object-fit:cover;">' +
-                            '<button style="position:absolute; top:0; right:0; background:rgba(0,0,0,0.5); color:#fff; border:none; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer;" data-index="' + index + '">×</button>' +
-                        '</div>'
-                    );
-                    $item.find('button').on('click', function() {
-                        ChatState.attachments.splice($(this).data('index'), 1);
-                        updateAttachmentPreview();
-                    });
-                    $preview.append($item);
-                });
-                $('#snn-bricks-chat-input').focus();
             }
 
             /**
@@ -872,47 +752,13 @@ class SNN_Bricks_Chat_Overlay {
                 const input = $('#snn-bricks-chat-input');
                 const message = input.val().trim();
 
-                if ((!message && ChatState.attachments.length === 0) || ChatState.isProcessing) {
+                if (!message || ChatState.isProcessing) {
                     return;
                 }
 
-                // Add user message to UI
-                let displayHtml = message ? formatMessage(message) : '';
-                if (ChatState.attachments.length > 0) {
-                    displayHtml += '<div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:5px;">';
-                    ChatState.attachments.forEach(att => {
-                        displayHtml += '<img src="' + att.data + '" style="max-height:100px; max-width:100%; border-radius:4px;">';
-                    });
-                    displayHtml += '</div>';
-                }
-                
-                const $messages = $('#snn-bricks-chat-messages');
-                const $message = $('<div>').addClass('snn-bricks-chat-message snn-bricks-chat-message-user').html(displayHtml);
-                $messages.append($message);
-                scrollToBottom();
-
-                // Capture current attachments
-                const currentAttachments = [...ChatState.attachments];
-                
-                // Construct content object for state history
-                let contentForState = message;
-                if (currentAttachments.length > 0) {
-                     contentForState = [];
-                     if (message) contentForState.push({ type: 'text', text: message });
-                     currentAttachments.forEach(att => contentForState.push({ type: 'image_url', image_url: { url: att.data } }));
-                }
-
-                // Push to history
-                ChatState.messages.push({
-                    role: 'user',
-                    content: contentForState,
-                    timestamp: Date.now()
-                });
-
-                // Clear input and state
+                // Add user message
+                addMessage('user', message);
                 input.val('').css('height', 'auto');
-                ChatState.attachments = [];
-                $('#snn-chat-preview-area').empty().hide();
 
                 // Process with AI
                 await processWithAI(message);
@@ -928,11 +774,9 @@ class SNN_Bricks_Chat_Overlay {
                 setAgentState(AgentState.THINKING);
 
                 try {
-                    const latestMsg = ChatState.messages[ChatState.messages.length - 1];
                     ChatState.pendingOperation = {
                         type: 'processMessage',
                         message: userMessage,
-                        content: latestMsg ? latestMsg.content : userMessage,
                         timestamp: Date.now()
                     };
 
@@ -1047,12 +891,6 @@ class SNN_Bricks_Chat_Overlay {
                 const currentContent = BricksHelper.getCurrentContent();
                 if (currentContent) {
                     bricksContext += `- Current Page Elements: ${currentContent.elementCount}\n\n`;
-                }
-
-                // Inject global variables (Colors, Sizes)
-                const globalContext = BricksHelper.getGlobalContext();
-                if (globalContext) {
-                    bricksContext += globalContext;
                 }
 
                 bricksContext += `**BRICKS CONTENT FORMAT:**\n`;
