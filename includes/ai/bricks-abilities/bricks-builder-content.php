@@ -1105,20 +1105,68 @@ function snn_recursive_builder( $node, $parent_id = 0 ) {
         case 'icon':
             // Icon element - expects icon data in styles or as iconData property
             // Format: {"library": "fontawesome", "icon": "fa fa-star"}
+            // Bricks uses TWO properties: iconData (legacy) and icon (actual)
+
+            $icon_config = null;
+
+            // Check for iconData property first
             if ( isset( $node['iconData'] ) ) {
-                $bricks_settings['icon'] = $node['iconData'];
+                $icon_config = $node['iconData'];
             } elseif ( $content ) {
                 // If content is provided as JSON string, parse it
                 $icon_data = json_decode( $content, true );
                 if ( $icon_data ) {
-                    $bricks_settings['icon'] = $icon_data;
+                    $icon_config = $icon_data;
                 } else {
                     // Fallback: assume simple icon class
-                    $bricks_settings['icon'] = array(
+                    $icon_config = array(
                         'library' => 'fontawesome',
                         'icon' => $content
                     );
                 }
+            }
+
+            // Set both iconData and icon properties if we have config
+            if ( $icon_config ) {
+                // Keep iconData as-is (legacy support)
+                $bricks_settings['iconData'] = $icon_config;
+
+                // Set the actual icon property (this is what Bricks really uses)
+                // Map library names to Bricks format
+                $library = $icon_config['library'] ?? 'fontawesome';
+                $icon_class = $icon_config['icon'] ?? '';
+
+                // Map common library names to Bricks-specific library names
+                $library_map = array(
+                    'fontawesome' => 'fontawesomeSolid',  // Default to solid
+                    'fontawesomesolid' => 'fontawesomeSolid',
+                    'fontawesomeregular' => 'fontawesomeRegular',
+                    'fontawesomebrands' => 'fontawesomeBrands',
+                    'ionicons' => 'ionicons',
+                    'themify' => 'themify',
+                );
+
+                // Detect library from icon class if not explicitly mapped
+                $bricks_library = $library_map[strtolower($library)] ?? $library;
+
+                // Auto-detect from icon class prefix
+                if ( strpos( $icon_class, 'fas ' ) === 0 ) {
+                    $bricks_library = 'fontawesomeSolid';
+                } elseif ( strpos( $icon_class, 'far ' ) === 0 ) {
+                    $bricks_library = 'fontawesomeRegular';
+                } elseif ( strpos( $icon_class, 'fab ' ) === 0 ) {
+                    $bricks_library = 'fontawesomeBrands';
+                } elseif ( strpos( $icon_class, 'ion-' ) === 0 ) {
+                    $bricks_library = 'ionicons';
+                } elseif ( strpos( $icon_class, 'ti-' ) === 0 ) {
+                    $bricks_library = 'themify';
+                }
+
+                // Set the icon property with proper library
+                $bricks_settings['icon'] = array(
+                    'library' => $bricks_library,
+                    'icon' => $icon_class
+                );
             }
             break;
             
