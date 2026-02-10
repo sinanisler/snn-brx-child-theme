@@ -1457,6 +1457,29 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
         $settings['_hidden']['_cssClasses'] = $simple_styles['_cssClasses'];
     }
 
+    // CRITICAL FIX: Nestable elements have special properties that should NOT be converted
+    // These properties need to stay in their original format (no underscore prefix)
+    $nestable_properties = array(
+        'slider-nested' => array( 'perPage', 'arrows', 'pagination', 'loop', 'autoplay', 'gap', 'height', 'prevArrow', 'nextArrow', 'prevArrowTop', 'nextArrowTop', 'dots', 'drag', 'dragThreshold' ),
+        'accordion-nested' => array( 'titleHeight', 'contentPadding', 'titleBackgroundColor', 'titleBorder', 'contentBorder', 'titleActiveBackgroundColor' ),
+        'tabs-nested' => array( 'titlePadding', 'titleActiveBackgroundColor', 'contentBorder', 'titleBorder' ),
+    );
+
+    // For nestable elements, preserve their special properties without underscore prefix
+    if ( isset( $nestable_properties[ $element_type ] ) ) {
+        foreach ( $nestable_properties[ $element_type ] as $prop ) {
+            if ( isset( $simple_styles[ $prop ] ) ) {
+                $settings[ $prop ] = $simple_styles[ $prop ];
+            }
+            // Also handle responsive versions (e.g., perPage:mobile_landscape)
+            foreach ( $simple_styles as $key => $value ) {
+                if ( strpos( $key, $prop . ':' ) === 0 ) {
+                    $settings[ $key ] = $value;
+                }
+            }
+        }
+    }
+
     // SMART MAPPING: Translate simple keys to Bricks format
     
     // === LAYOUT PROPERTIES ===
@@ -1511,7 +1534,8 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
     }
     
     // === GAP PROPERTIES ===
-    if ( isset( $simple_styles['gap'] ) ) {
+    // CRITICAL FIX: Don't convert gap for slider-nested (it's already handled as slider gap)
+    if ( isset( $simple_styles['gap'] ) && ! isset( $settings['gap'] ) ) {
         $gap_value = snn_sanitize_bricks_value( $simple_styles['gap'], 'gap' );
         $settings['_columnGap'] = $gap_value;
         $settings['_rowGap'] = $gap_value;
@@ -1588,7 +1612,8 @@ function snn_map_styles_to_bricks( $simple_styles, $element_type = '', $children
     if ( isset( $simple_styles['width'] ) ) {
         $settings['_width'] = $simple_styles['width'];
     }
-    if ( isset( $simple_styles['height'] ) ) {
+    // CRITICAL FIX: Don't convert height for slider-nested (it's already handled as slider height)
+    if ( isset( $simple_styles['height'] ) && ! isset( $settings['height'] ) ) {
         $settings['_height'] = $simple_styles['height'];
     }
     if ( isset( $simple_styles['minWidth'] ) ) {
