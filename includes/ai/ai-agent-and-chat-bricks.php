@@ -1477,7 +1477,11 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                     }
                 }
 
-               Validate abilities array and filter out invalid entries
+                return abilities;
+            }
+
+            /**
+             * Validate abilities array and filter out invalid entries
              */
             function validateAbilities(abilities) {
                 if (!Array.isArray(abilities)) {
@@ -1520,10 +1524,6 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                     // Ability is valid
                     return true;
                 });
-            }
-
-            /**
-             *  return abilities;
             }
 
             /**
