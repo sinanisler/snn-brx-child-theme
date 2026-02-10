@@ -1200,12 +1200,19 @@ class SNN_Chat_Overlay {
 
                 <!-- Input -->
                 <div class="snn-chat-input-container">
-                    <textarea
-                        id="snn-chat-input"
-                        class="snn-chat-input"
-                        placeholder="Ask me anything..."
-                        rows="1"
-                    ></textarea>
+                    <input type="file" id="snn-chat-file-input" accept="image/*" style="display: none;" />
+                    <button id="snn-chat-attach-btn" class="snn-chat-attach-btn" title="Attach image">
+                        <span class="dashicons dashicons-paperclip"></span>
+                    </button>
+                    <div class="snn-chat-input-wrapper">
+                        <div id="snn-chat-image-preview" class="snn-chat-image-preview"></div>
+                        <textarea
+                            id="snn-chat-input"
+                            class="snn-chat-input"
+                            placeholder="Ask me anything or paste a screenshot..."
+                            rows="1"
+                        ></textarea>
+                    </div>
                     <button id="snn-chat-send" class="snn-chat-send" title="Send message">
                         <span class="dashicons dashicons-arrow-up-alt2"></span>
                     </button>
@@ -1266,7 +1273,8 @@ class SNN_Chat_Overlay {
                 pageContext: snnChatConfig && snnChatConfig.pageContext ? snnChatConfig.pageContext : { type: 'unknown', details: {} },
                 recoveryAttempts: 0,
                 lastError: null,
-                pendingOperation: null
+                pendingOperation: null,
+                attachedImages: []
             };
 
             // Block Editor Integration
@@ -1499,6 +1507,21 @@ class SNN_Chat_Overlay {
                     sendMessage();
                 });
 
+                // Image attachment button
+                $('#snn-chat-attach-btn').on('click', function() {
+                    $('#snn-chat-file-input').click();
+                });
+
+                // File input change
+                $('#snn-chat-file-input').on('change', function(e) {
+                    handleFileSelect(e.target.files);
+                });
+
+                // Paste event for clipboard images
+                $('#snn-chat-input').on('paste', function(e) {
+                    handlePaste(e.originalEvent);
+                });
+
                 // Auto-save conversation periodically
                 setInterval(autoSaveConversation, 30000); // Every 30 seconds
             }
@@ -1565,28 +1588,145 @@ class SNN_Chat_Overlay {
             }
 
             /**
+             * Handle file selection
+             */
+            async function handleFileSelect(files) {
+                if (!files || files.length === 0) return;
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (!file.type.startsWith('image/')) continue;
+
+                    try {
+                        const base64 = await fileToBase64(file);
+                        addImageAttachment(base64, file.name);
+                    } catch (error) {
+                        console.error('Failed to process image:', error);
+                    }
+                }
+
+                // Reset file input
+                $('#snn-chat-file-input').val('');
+            }
+
+            /**
+             * Handle clipboard paste
+             */
+            async function handlePaste(event) {
+                const items = event.clipboardData?.items;
+                if (!items) return;
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.type.startsWith('image/')) {
+                        event.preventDefault();
+                        const file = item.getAsFile();
+                        if (file) {
+                            try {
+                                const base64 = await fileToBase64(file);
+                                addImageAttachment(base64, 'pasted-image.png');
+                            } catch (error) {
+                                console.error('Failed to process pasted image:', error);
+                            }
+                        }
+                    }
+                }
+            }
+
+            /**
+             * Convert file to base64
+             */
+            function fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            /**
+             * Add image attachment
+             */
+            function addImageAttachment(base64Data, fileName) {
+                const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                ChatState.attachedImages.push({
+                    id: imageId,
+                    data: base64Data,
+                    fileName: fileName
+                });
+
+                renderImagePreviews();
+                debugLog('Image attached:', fileName);
+            }
+
+            /**
+             * Remove image attachment
+             */
+            function removeImageAttachment(imageId) {
+                ChatState.attachedImages = ChatState.attachedImages.filter(img => img.id !== imageId);
+                renderImagePreviews();
+            }
+
+            /**
+             * Render image previews
+             */
+            function renderImagePreviews() {
+                const $preview = $('#snn-chat-image-preview');
+                $preview.empty();
+
+                if (ChatState.attachedImages.length === 0) {
+                    $preview.hide();
+                    return;
+                }
+
+                $preview.show();
+                ChatState.attachedImages.forEach(img => {
+                    const $imgWrapper = $('<div>').addClass('snn-image-preview-item');
+                    const $img = $('<img>').attr('src', img.data).attr('alt', img.fileName);
+                    const $remove = $('<button>').addClass('snn-image-preview-remove').html('\u00d7').attr('title', 'Remove image');
+
+                    $remove.on('click', function() {
+                        removeImageAttachment(img.id);
+                    });
+
+                    $imgWrapper.append($img).append($remove);
+                    $preview.append($imgWrapper);
+                });
+            }
+
+            /**
              * Send user message
              */
             async function sendMessage() {
                 const input = $('#snn-chat-input');
                 const message = input.val().trim();
+                const hasImages = ChatState.attachedImages.length > 0;
 
-                if (!message || ChatState.isProcessing) {
+                if ((!message && !hasImages) || ChatState.isProcessing) {
                     return;
                 }
 
-                // Add user message
-                addMessage('user', message);
+                // Add user message with images
+                const messageContent = message || '(Image attached)';
+                addMessage('user', messageContent, ChatState.attachedImages);
+                
+                // Save images for processing
+                const imagesToProcess = [...ChatState.attachedImages];
+                
+                // Clear input and images
                 input.val('').css('height', 'auto');
+                ChatState.attachedImages = [];
+                renderImagePreviews();
 
                 // Process with AI
-                await processWithAI(message);
+                await processWithAI(message, imagesToProcess);
             }
 
             /**
              * Process message with AI agent with error recovery
              */
-            async function processWithAI(userMessage) {
+            async function processWithAI(userMessage, images = []) {
                 ChatState.isProcessing = true;
                 ChatState.recoveryAttempts = 0;
                 showTyping();
@@ -1602,7 +1742,29 @@ class SNN_Chat_Overlay {
                     
                     // Prepare conversation context (use MAX_HISTORY setting)
                     const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
-                        let content = m.content;
+                        let msg = {
+                            role: m.role === 'user' ? 'user' : 'assistant'
+                        };
+
+                        // Handle messages with images
+                        if (m.images && m.images.length > 0) {
+                            msg.content = [];
+                            if (m.content && m.content !== '(Image attached)') {
+                                msg.content.push({
+                                    type: 'text',
+                                    text: m.content
+                                });
+                            }
+                            m.images.forEach(img => {
+                                msg.content.push({
+                                    type: 'image_url',
+                                    image_url: {
+                                        url: img.data
+                                    }
+                                });
+                            });
+                        } else {
+                            let content = m.content;
 
                         // If this message had ability executions, include results in context
                         if (m.metadata && m.metadata.length > 0) {
@@ -1635,10 +1797,10 @@ class SNN_Chat_Overlay {
                             }
                         }
 
-                        return {
-                            role: m.role === 'user' ? 'user' : 'assistant',
-                            content: content
-                        };
+                        msg.content = content;
+                    }
+
+                        return msg;
                     }).filter(msg => msg !== null); // Remove null entries (skipped interpretations)
 
                     // Build AI prompt with abilities
@@ -1647,6 +1809,35 @@ class SNN_Chat_Overlay {
                         { role: 'system', content: systemPrompt },
                         ...context
                     ];
+
+                    // Add current user message with images if any
+                    if (images.length > 0) {
+                        const currentMsg = {
+                            role: 'user',
+                            content: []
+                        };
+
+                        if (userMessage) {
+                            currentMsg.content.push({
+                                type: 'text',
+                                text: userMessage
+                            });
+                        }
+
+                        images.forEach(img => {
+                            currentMsg.content.push({
+                                type: 'image_url',
+                                image_url: {
+                                    url: img.data
+                                }
+                            });
+                        });
+
+                        // Only add if not already in context
+                        if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+                            messages.push(currentMsg);
+                        }
+                    }
 
                     // Call AI API for initial planning
                     const aiResponse = await callAI(messages);
@@ -3422,13 +3613,19 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
             /**
              * Add message to chat
              */
-            function addMessage(role, content, metadata = null) {
+            function addMessage(role, content, metadataOrImages = null) {
                 const message = {
                     role: role,
                     content: content,
-                    metadata: metadata,
                     timestamp: Date.now()
                 };
+
+                // Handle images parameter (array of images) vs metadata
+                if (Array.isArray(metadataOrImages) && metadataOrImages.length > 0 && metadataOrImages[0].data) {
+                    message.images = metadataOrImages;
+                } else {
+                    message.metadata = metadataOrImages;
+                }
 
                 ChatState.messages.push(message);
 
@@ -3443,8 +3640,20 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 
                 const $message = $('<div>')
                     .addClass('snn-chat-message')
-                    .addClass('snn-chat-message-' + role)
-                    .html(formatMessage(content));
+                    .addClass('snn-chat-message-' + role);
+
+                // Add images if present
+                if (message.images && message.images.length > 0) {
+                    const $imagesDiv = $('<div>').addClass('snn-message-images');
+                    message.images.forEach(img => {
+                        const $img = $('<img>').attr('src', img.data).attr('alt', img.fileName || 'Attached image');
+                        $imagesDiv.append($img);
+                    });
+                    $message.append($imagesDiv);
+                }
+
+                // Add text content
+                $message.append($('<div>').html(formatMessage(content)));
 
                 $messages.append($message);
                 scrollToBottom();
@@ -3597,6 +3806,8 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
             function clearChat() {
                 ChatState.messages = [];
                 ChatState.currentSessionId = null;
+                ChatState.attachedImages = [];
+                renderImagePreviews();
                 $('#snn-chat-messages').html(`
                     <div class="snn-chat-welcome">
                         <h3>Conversation cleared</h3>
@@ -3921,12 +4132,23 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
 .snn-quick-action-btn { padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; color: #333; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
 .snn-quick-action-btn:hover { background: #1d2327; color: #fff; border-color: #1d2327; }
 .snn-chat-input-container { padding: 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 12px; align-items: flex-end; }
-.snn-chat-input { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; min-height: 42px; max-height: 120px; }
+.snn-chat-input-wrapper { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.snn-chat-input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 14px; resize: none; outline: none; font-family: inherit; min-height: 42px; max-height: 120px; }
 .snn-chat-input:focus { border-color: #667eea; }
+.snn-chat-attach-btn { width: 42px; height: 42px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+.snn-chat-attach-btn:hover { background: #e0e0e0; }
+.snn-chat-attach-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
 .snn-chat-send { width: 42px; height: 42px; background: #1d2327; border: none; border-radius: 8px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; }
 .snn-chat-send:hover { transform: scale(1.05); }
 .snn-chat-send:active { transform: scale(0.95); }
 .snn-chat-send .dashicons { font-size: 20px; width: 20px; height: 20px; rotate: 90deg; }
+.snn-chat-image-preview { display: none; flex-wrap: wrap; gap: 8px; padding: 8px; background: #f9f9f9; border-radius: 8px; }
+.snn-image-preview-item { position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; background: #fff; border: 1px solid #e0e0e0; }
+.snn-image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.snn-image-preview-remove { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(0, 0, 0, 0.7); color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center; }
+.snn-image-preview-remove:hover { background: rgba(220, 38, 38, 0.9); }
+.snn-message-images { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.snn-message-images img { max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(0, 0, 0, 0.1); }
 #wpadminbar #wp-admin-bar-snn-ai-chat .ab-icon:before { content: "\f125"; top: 2px; }
 @media (max-width: 768px) { .snn-chat-container { width: 100vw; height: 100%; } .snn-chat-overlay { top: 0; right: 0; } }
         ';

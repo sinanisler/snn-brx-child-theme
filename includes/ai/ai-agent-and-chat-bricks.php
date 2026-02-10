@@ -229,12 +229,19 @@ class SNN_Bricks_Chat_Overlay {
 
                 <!-- Input -->
                 <div class="snn-bricks-chat-input-container">
-                    <textarea
-                        id="snn-bricks-chat-input"
-                        class="snn-bricks-chat-input"
-                        placeholder="Describe what you want to create..."
-                        rows="1"
-                    ></textarea>
+                    <input type="file" id="snn-bricks-chat-file-input" accept="image/*" style="display: none;" />
+                    <button id="snn-bricks-chat-attach-btn" class="snn-bricks-chat-attach-btn" title="Attach image">
+                        <span class="dashicons dashicons-paperclip"></span>
+                    </button>
+                    <div class="snn-bricks-chat-input-wrapper">
+                        <div id="snn-bricks-chat-image-preview" class="snn-bricks-chat-image-preview"></div>
+                        <textarea
+                            id="snn-bricks-chat-input"
+                            class="snn-bricks-chat-input"
+                            placeholder="Describe what you want to create or paste a screenshot..."
+                            rows="1"
+                        ></textarea>
+                    </div>
                     <button id="snn-bricks-chat-send" class="snn-bricks-chat-send" title="Send message">
                         <span class="dashicons dashicons-arrow-up-alt2"></span>
                     </button>
@@ -295,7 +302,8 @@ class SNN_Bricks_Chat_Overlay {
                 recoveryAttempts: 0,
                 lastError: null,
                 pendingOperation: null,
-                bricksState: null
+                bricksState: null,
+                attachedImages: []
             };
 
             // Bricks Builder Integration
@@ -698,6 +706,21 @@ class SNN_Bricks_Chat_Overlay {
                     sendMessage();
                 });
 
+                // Image attachment button
+                $('#snn-bricks-chat-attach-btn').on('click', function() {
+                    $('#snn-bricks-chat-file-input').click();
+                });
+
+                // File input change
+                $('#snn-bricks-chat-file-input').on('change', function(e) {
+                    handleFileSelect(e.target.files);
+                });
+
+                // Paste event for clipboard images
+                $('#snn-bricks-chat-input').on('paste', function(e) {
+                    handlePaste(e.originalEvent);
+                });
+
                 // Auto-save conversation periodically
                 setInterval(autoSaveConversation, 30000);
             }
@@ -746,28 +769,145 @@ class SNN_Bricks_Chat_Overlay {
             }
 
             /**
+             * Handle file selection
+             */
+            async function handleFileSelect(files) {
+                if (!files || files.length === 0) return;
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (!file.type.startsWith('image/')) continue;
+
+                    try {
+                        const base64 = await fileToBase64(file);
+                        addImageAttachment(base64, file.name);
+                    } catch (error) {
+                        console.error('Failed to process image:', error);
+                    }
+                }
+
+                // Reset file input
+                $('#snn-bricks-chat-file-input').val('');
+            }
+
+            /**
+             * Handle clipboard paste
+             */
+            async function handlePaste(event) {
+                const items = event.clipboardData?.items;
+                if (!items) return;
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.type.startsWith('image/')) {
+                        event.preventDefault();
+                        const file = item.getAsFile();
+                        if (file) {
+                            try {
+                                const base64 = await fileToBase64(file);
+                                addImageAttachment(base64, 'pasted-image.png');
+                            } catch (error) {
+                                console.error('Failed to process pasted image:', error);
+                            }
+                        }
+                    }
+                }
+            }
+
+            /**
+             * Convert file to base64
+             */
+            function fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            /**
+             * Add image attachment
+             */
+            function addImageAttachment(base64Data, fileName) {
+                const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                ChatState.attachedImages.push({
+                    id: imageId,
+                    data: base64Data,
+                    fileName: fileName
+                });
+
+                renderImagePreviews();
+                debugLog('Image attached:', fileName);
+            }
+
+            /**
+             * Remove image attachment
+             */
+            function removeImageAttachment(imageId) {
+                ChatState.attachedImages = ChatState.attachedImages.filter(img => img.id !== imageId);
+                renderImagePreviews();
+            }
+
+            /**
+             * Render image previews
+             */
+            function renderImagePreviews() {
+                const $preview = $('#snn-bricks-chat-image-preview');
+                $preview.empty();
+
+                if (ChatState.attachedImages.length === 0) {
+                    $preview.hide();
+                    return;
+                }
+
+                $preview.show();
+                ChatState.attachedImages.forEach(img => {
+                    const $imgWrapper = $('<div>').addClass('snn-image-preview-item');
+                    const $img = $('<img>').attr('src', img.data).attr('alt', img.fileName);
+                    const $remove = $('<button>').addClass('snn-image-preview-remove').html('×').attr('title', 'Remove image');
+
+                    $remove.on('click', function() {
+                        removeImageAttachment(img.id);
+                    });
+
+                    $imgWrapper.append($img).append($remove);
+                    $preview.append($imgWrapper);
+                });
+            }
+
+            /**
              * Send user message
              */
             async function sendMessage() {
                 const input = $('#snn-bricks-chat-input');
                 const message = input.val().trim();
+                const hasImages = ChatState.attachedImages.length > 0;
 
-                if (!message || ChatState.isProcessing) {
+                if ((!message && !hasImages) || ChatState.isProcessing) {
                     return;
                 }
 
-                // Add user message
-                addMessage('user', message);
+                // Add user message with images
+                const messageContent = message || '(Image attached)';
+                addMessage('user', messageContent, ChatState.attachedImages);
+                
+                // Save images for processing
+                const imagesToProcess = [...ChatState.attachedImages];
+                
+                // Clear input and images
                 input.val('').css('height', 'auto');
+                ChatState.attachedImages = [];
+                renderImagePreviews();
 
                 // Process with AI
-                await processWithAI(message);
+                await processWithAI(message, imagesToProcess);
             }
 
             /**
              * Process message with AI agent
              */
-            async function processWithAI(userMessage) {
+            async function processWithAI(userMessage, images = []) {
                 ChatState.isProcessing = true;
                 ChatState.recoveryAttempts = 0;
                 showTyping();
@@ -781,10 +921,34 @@ class SNN_Bricks_Chat_Overlay {
                     };
 
                     // Prepare conversation context
-                    const context = ChatState.messages.slice(-MAX_HISTORY).map(m => ({
-                        role: m.role === 'user' ? 'user' : 'assistant',
-                        content: m.content
-                    }));
+                    const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
+                        const msg = {
+                            role: m.role === 'user' ? 'user' : 'assistant'
+                        };
+
+                        // Handle messages with images
+                        if (m.images && m.images.length > 0) {
+                            msg.content = [];
+                            if (m.content && m.content !== '(Image attached)') {
+                                msg.content.push({
+                                    type: 'text',
+                                    text: m.content
+                                });
+                            }
+                            m.images.forEach(img => {
+                                msg.content.push({
+                                    type: 'image_url',
+                                    image_url: {
+                                        url: img.data
+                                    }
+                                });
+                            });
+                        } else {
+                            msg.content = m.content;
+                        }
+
+                        return msg;
+                    });
 
                     // Build AI prompt with Bricks-specific abilities
                     const systemPrompt = buildSystemPrompt();
@@ -792,6 +956,35 @@ class SNN_Bricks_Chat_Overlay {
                         { role: 'system', content: systemPrompt },
                         ...context
                     ];
+
+                    // Add current user message with images if any
+                    if (images.length > 0) {
+                        const currentMsg = {
+                            role: 'user',
+                            content: []
+                        };
+
+                        if (userMessage) {
+                            currentMsg.content.push({
+                                type: 'text',
+                                text: userMessage
+                            });
+                        }
+
+                        images.forEach(img => {
+                            currentMsg.content.push({
+                                type: 'image_url',
+                                image_url: {
+                                    url: img.data
+                                }
+                            });
+                        });
+
+                        // Only add if not already in context
+                        if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+                            messages.push(currentMsg);
+                        }
+                    }
 
                     // Call AI API
                     const aiResponse = await callAI(messages);
@@ -924,6 +1117,18 @@ class SNN_Bricks_Chat_Overlay {
                 bricksContext += `- Example: { typography: { family: "Playfair Display" } }\n`;
                 bricksContext += `- Popular choices: Inter, Roboto, Poppins, Montserrat, Open Sans, Playfair Display, etc.\n`;
                 bricksContext += `- Choose fonts that match the design style and brand personality\n\n`;
+
+                bricksContext += `**IMAGE ANALYSIS & DESIGN RECREATION:**\n`;
+                bricksContext += `- Users can paste screenshots or upload design images (from Figma, Adobe XD, etc.)\n`;
+                bricksContext += `- When you receive an image, carefully analyze:\n`;
+                bricksContext += `  * Layout structure (sections, grids, columns)\n`;
+                bricksContext += `  * Typography (font styles, sizes, hierarchy)\n`;
+                bricksContext += `  * Colors (background, text, accents)\n`;
+                bricksContext += `  * Spacing (padding, margins, gaps)\n`;
+                bricksContext += `  * Visual elements (images, icons, shapes)\n`;
+                bricksContext += `- Recreate the design as faithfully as possible using Bricks elements\n`;
+                bricksContext += `- If design uses custom graphics, suggest placeholder images or similar alternatives\n`;
+                bricksContext += `- Maintain responsive design principles even when replicating desktop designs\n\n`;
 
                 bricksContext += `**AVAILABLE OPERATIONS:**\n`;
                 bricksContext += `1. Replace entire page content (use for "create new page" requests)\n`;
@@ -1356,13 +1561,19 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
                 }
             }
 
-            function addMessage(role, content, metadata = null) {
+            function addMessage(role, content, metadataOrImages = null) {
                 const message = {
                     role: role,
                     content: content,
-                    metadata: metadata,
                     timestamp: Date.now()
                 };
+
+                // Handle images parameter (array of images) vs metadata
+                if (Array.isArray(metadataOrImages) && metadataOrImages.length > 0 && metadataOrImages[0].data) {
+                    message.images = metadataOrImages;
+                } else {
+                    message.metadata = metadataOrImages;
+                }
 
                 ChatState.messages.push(message);
 
@@ -1376,8 +1587,20 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
 
                 const $message = $('<div>')
                     .addClass('snn-bricks-chat-message')
-                    .addClass('snn-bricks-chat-message-' + role)
-                    .html(formatMessage(content));
+                    .addClass('snn-bricks-chat-message-' + role);
+
+                // Add images if present
+                if (message.images && message.images.length > 0) {
+                    const $imagesDiv = $('<div>').addClass('snn-message-images');
+                    message.images.forEach(img => {
+                        const $img = $('<img>').attr('src', img.data).attr('alt', img.fileName || 'Attached image');
+                        $imagesDiv.append($img);
+                    });
+                    $message.append($imagesDiv);
+                }
+
+                // Add text content
+                $message.append($('<div>').html(formatMessage(content)));
 
                 $messages.append($message);
                 scrollToBottom();
@@ -1407,6 +1630,8 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
             function clearChat() {
                 ChatState.messages = [];
                 ChatState.currentSessionId = null;
+                ChatState.attachedImages = [];
+                renderImagePreviews();
                 $('#snn-bricks-chat-messages').html(`
                     <div class="snn-bricks-chat-welcome">
                         <h3>Conversation cleared</h3>
@@ -1561,10 +1786,20 @@ Please provide a CORRECTED input. Respond with a JSON code block or "CANNOT_FIX"
 .snn-bricks-chat-quick-actions { padding: 8px 10px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 6px; flex-wrap: wrap; }
 .snn-bricks-quick-action-btn { padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; cursor: pointer; }
 .snn-bricks-quick-action-btn:hover { background: #161a1d; color: #fff; }
-.snn-bricks-chat-input-container { padding: 12px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 8px; }
-.snn-bricks-chat-input { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 14px; resize: none; min-height: 42px; max-height: 120px; }
-.snn-bricks-chat-send { width: 42px; height: 42px; background: #161a1d; border: none; border-radius: 8px; color: #fff; cursor: pointer; display:flex; align-items: center; justify-content: center; }
-.snn-bricks-chat-send:hover { background: #161a1d; }
+.snn-bricks-chat-input-container { padding: 12px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; gap: 8px; align-items: flex-end; }
+.snn-bricks-chat-input-wrapper { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.snn-bricks-chat-input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 14px; resize: none; min-height: 42px; max-height: 120px; }
+.snn-bricks-chat-attach-btn { width: 42px; height: 42px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.snn-bricks-chat-attach-btn:hover { background: #e0e0e0; }
+.snn-bricks-chat-send { width: 42px; height: 42px; background: #161a1d; border: none; border-radius: 8px; color: #fff; cursor: pointer; display:flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.snn-bricks-chat-send:hover { background: #0f1315; }
+.snn-bricks-chat-image-preview { display: none; flex-wrap: wrap; gap: 8px; padding: 8px; background: #f9f9f9; border-radius: 8px; }
+.snn-image-preview-item { position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; background: #fff; border: 1px solid #e0e0e0; }
+.snn-image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.snn-image-preview-remove { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: rgba(0, 0, 0, 0.7); color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center; }
+.snn-image-preview-remove:hover { background: rgba(220, 38, 38, 0.9); }
+.snn-message-images { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.snn-message-images img { max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(0, 0, 0, 0.1); }
 .snn-bricks-chat-history-dropdown { position: absolute; top: 60px; left: 0; right: 0; background: #fff; border-bottom: 1px solid #ddd; max-height: 300px; overflow-y: auto; z-index: 10; }
 .snn-bricks-history-header { padding: 12px 16px; background: #f5f5f5; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
 .snn-bricks-history-close { background: none; border: none; font-size: 24px; cursor: pointer; }
