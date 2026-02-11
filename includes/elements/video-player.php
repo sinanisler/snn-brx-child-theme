@@ -168,6 +168,21 @@ class SNN_Video_Player_Element extends Element {
             'default' => '100%',
         ];
 
+        $this->controls['video_object_fit'] = [
+            'tab'   => 'content',
+            'label' => esc_html__( 'Video Object Fit', 'snn' ),
+            'type'  => 'select',
+            'options' => [
+                'contain' => esc_html__( 'Contain (Default)', 'snn' ),
+                'cover' => esc_html__( 'Cover', 'snn' ),
+                'fill' => esc_html__( 'Fill', 'snn' ),
+                'scale-down' => esc_html__( 'Scale Down', 'snn' ),
+                'none' => esc_html__( 'None', 'snn' ),
+            ],
+            'default' => 'contain',
+            'description' => esc_html__( 'Controls how the video fits within its container.', 'snn' ),
+        ];
+
         $this->controls['primary_accent_color'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Primary Accent', 'snn' ),
@@ -410,6 +425,7 @@ class SNN_Video_Player_Element extends Element {
 
         $player_height      = $settings['player_height'] ?? '400px';
         $player_max_width = $settings['player_max_width'] ?? '896px';
+        $video_object_fit   = $settings['video_object_fit'] ?? 'contain';
 
         $accent_color        = $settings['primary_accent_color']['raw'] ?? $settings['primary_accent_color']['hex'] ?? '#ffd64f';
         $thumb_color         = $settings['thumb_color']['raw'] ?? $settings['thumb_color']['hex'] ?? '#ffffff';
@@ -426,7 +442,7 @@ class SNN_Video_Player_Element extends Element {
         echo "<style>
             #" . esc_attr($root_id) . " { --primary-accent-color: {$accent_color}; --thumb-color: {$thumb_color}; --text-color: {$text_color}; --slider-track-color: {$slider_track}; --chapter-dot-color: {$chapter_dot_color}; --button-hover-background: {$btn_hover_bg}; --player-height: {$player_height}; --player-max-width: {$player_max_width}; --button-color: {$button_color}; --tooltip-text-color: {$tooltip_text_color}; --controls-bar-bg: {$controls_bar_bg}; width: 100%; max-width: var(--player-max-width); margin-left: auto; margin-right: auto; }
             #" . esc_attr($root_id) . " .snn-video-container { position: relative; background-color: #000; overflow: hidden; height: var(--player-height); }
-            #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: contain; }
+            #" . esc_attr($root_id) . " .snn-video-container video { width: 100%; height: 100%; display: block; object-fit: " . esc_attr($video_object_fit) . "; }
             #" . esc_attr($root_id) . " .snn-video-container:fullscreen { width: 100vw; height: 100vh; max-width: 100%; border-radius: 0; }
             #" . esc_attr($root_id) . " .snn-controls-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease-in-out; }
             #" . esc_attr($root_id) . " .snn-video-container.snn-controls-visible .snn-controls-overlay { opacity: 1; }
