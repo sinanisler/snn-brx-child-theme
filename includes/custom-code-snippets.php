@@ -1268,7 +1268,7 @@ function snn_custom_codes_snippets_init_execution() {
         add_action( 'admin_head', 'snn_custom_codes_snippets_admin_output', 1 );
     }
 }
-add_action( 'init', 'snn_custom_codes_snippets_init_execution', 10 );
+add_action( 'init', 'snn_custom_codes_snippets_init_execution', 15 );
 
 /** Output callback for frontend head snippet */
 function snn_custom_codes_snippets_frontend_output() {
