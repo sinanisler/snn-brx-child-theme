@@ -20,54 +20,45 @@ function register_parents_child_posts_count_tag( $tags ) {
     return $tags;
 }
 
-add_filter( 'bricks/dynamic_data/render_tag', 'render_parents_child_posts_count_tag', 10, 3 );
+add_filter( 'bricks/dynamic_data/render_tag', 'render_parents_child_posts_count_tag', 20, 3 );
 function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) {
-    if ( strpos( $tag, '{parents_child_posts_count}' ) === false ) {
+    if ( $tag !== '{parents_child_posts_count}' ) {
         return $tag;
     }
 
-    // Get the current post ID
     $current_post_id = get_the_ID();
 
     if ( ! $current_post_id ) {
         return 0;
     }
 
-    // Get the current post object
     $current_post = get_post( $current_post_id );
 
-    if ( ! $current_post ) {
+    if ( ! $current_post || ! $current_post->post_parent ) {
         return 0;
     }
 
-    // If the post has no parent, return 0
-    if ( ! $current_post->post_parent ) {
-        return 0;
-    }
-
-    // Get the parent ID
-    $parent_id = $current_post->post_parent;
-
-    // Query for all child posts of the parent
+    // Get all children of the parent using get_children()
     $args = [
-        'post_parent'    => $parent_id,
+        'post_parent'    => $current_post->post_parent,
         'post_type'      => $current_post->post_type,
         'post_status'    => 'publish',
-        'posts_per_page' => -1,
-        'fields'         => 'ids', // Only get IDs for performance
+        'numberposts'    => -1,
     ];
 
-    $child_posts = get_posts( $args );
+    $children = get_children( $args );
 
-    // Return the count
-    return count( $child_posts );
+    return count( $children );
 }
 
-add_filter( 'bricks/dynamic_data/render_content', 'render_parents_child_posts_count_tag_in_content', 10, 3 );
-add_filter( 'bricks/frontend/render_data', 'render_parents_child_posts_count_tag_in_content', 10, 2 );
+add_filter( 'bricks/dynamic_data/render_content', 'render_parents_child_posts_count_tag_in_content', 20, 3 );
+add_filter( 'bricks/frontend/render_data', 'render_parents_child_posts_count_tag_in_content', 20, 2 );
 function render_parents_child_posts_count_tag_in_content( $content, $post, $context = 'text' ) {
+    if ( ! is_string( $content ) ) {
+        return $content;
+    }
+
     if ( strpos( $content, '{parents_child_posts_count}' ) !== false ) {
-        // Get count using the render function
         $count   = render_parents_child_posts_count_tag( '{parents_child_posts_count}', $post, $context );
         $content = str_replace( '{parents_child_posts_count}', $count, $content );
     }
