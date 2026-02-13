@@ -50,39 +50,9 @@ function snn_parents_render_child_posts_count_tag( $tag, $post, $context = 'text
         return $tag;
     }
 
-    // DEBUG OUTPUT - FRONTEND
-    $debug = '<div style="background:#000;color:#0f0;padding:20px;margin:10px 0;font-family:monospace;font-size:12px;border:2px solid #0f0;overflow:auto;max-height:500px;">';
-    $debug .= '<strong>🔍 PARENT CHILD COUNT DEBUG (RECURSIVE)</strong><br><br>';
-    $debug .= '📌 Current Post ID: ' . (is_object($post) ? $post->ID : 'NOT AN OBJECT') . '<br>';
-    $debug .= '📄 Post Type: ' . (is_object($post) ? $post->post_type : 'N/A') . '<br>';
-    $debug .= '📊 Post Title: ' . (is_object($post) && isset($post->post_title) ? $post->post_title : 'N/A') . '<br><br>';
-
-    $debug .= '🔎 Getting ALL descendants recursively...<br><br>';
-    
     // Get ALL descendants recursively
     $all_descendants = snn_parents_get_all_descendants( $post->ID, $post->post_type );
-    
-    $debug .= '📈 <strong>Total Descendants Found: ' . count($all_descendants) . '</strong><br><br>';
-    if ( !empty($all_descendants) ) {
-        $debug .= '🆔 All Descendant IDs: ' . implode(', ', array_keys($all_descendants)) . '<br><br>';
-        $debug .= '<strong>Full List:</strong><br>';
-        foreach ( $all_descendants as $desc_id => $desc ) {
-            $depth = '';
-            $current = $desc;
-            while ( $current->post_parent != $post->ID && $current->post_parent != 0 ) {
-                $depth .= '&nbsp;&nbsp;';
-                $current = get_post( $current->post_parent );
-            }
-            $debug .= $depth . '└─ ID ' . $desc_id . ': ' . $desc->post_title . ' (parent: ' . $desc->post_parent . ')<br>';
-        }
-    } else {
-        $debug .= '⚠️ No descendants found for this post!<br>';
-    }
-    
-    $debug .= '</div>';
-    $debug .= '<strong style="font-size:24px;">' . count( $all_descendants ) . '</strong>';
-
-    return $debug;
+    return count( $all_descendants );
 }
 
 add_filter( 'bricks/dynamic_data/render_content', 'snn_parents_render_child_posts_count_tag_in_content', 10, 3 );
