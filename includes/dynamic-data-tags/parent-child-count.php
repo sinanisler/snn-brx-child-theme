@@ -29,32 +29,19 @@ function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) 
     // DEBUG OUTPUT - FRONTEND
     $debug = '<div style="background:#000;color:#0f0;padding:20px;margin:10px 0;font-family:monospace;font-size:12px;border:2px solid #0f0;">';
     $debug .= '<strong>🔍 PARENT CHILD COUNT DEBUG</strong><br><br>';
-    $debug .= '📌 Post ID: ' . (is_object($post) ? $post->ID : 'NOT AN OBJECT') . '<br>';
+    $debug .= '📌 Current Post ID: ' . (is_object($post) ? $post->ID : 'NOT AN OBJECT') . '<br>';
     $debug .= '📄 Post Type: ' . (is_object($post) ? $post->post_type : 'N/A') . '<br>';
-    $debug .= '👨‍👦 Post Parent: ' . (is_object($post) ? $post->post_parent : 'N/A') . '<br>';
     $debug .= '📊 Post Title: ' . (is_object($post) && isset($post->post_title) ? $post->post_title : 'N/A') . '<br><br>';
 
-    // If the post has no parent, return 0
-    if ( ! $post->post_parent ) {
-        $debug .= '❌ <strong>NO PARENT FOUND - Returning 0</strong><br>';
-        $debug .= '</div>';
-        return $debug;
-    }
-
-    $debug .= '✅ <strong>Parent ID Found: ' . $post->post_parent . '</strong><br><br>';
-
-    // Get all children of the parent using get_children()
+    // Get all children of the CURRENT post
     $args = array(
-        'post_parent'    => $post->post_parent,
+        'post_parent'    => $post->ID,  // Use current post ID, not parent!
         'post_type'      => $post->post_type,
         'post_status'    => 'publish',
         'numberposts'    => -1,
     );
     
-    $debug .= '🔎 Query Args:<br>';
-    $debug .= '&nbsp;&nbsp;- post_parent: ' . $args['post_parent'] . '<br>';
-    $debug .= '&nbsp;&nbsp;- post_type: ' . $args['post_type'] . '<br>';
-    $debug .= '&nbsp;&nbsp;- post_status: ' . $args['post_status'] . '<br><br>';
+    $debug .= '🔎 Looking for children where post_parent = ' . $post->ID . '<br><br>';
     
     $children = get_children( $args );
     
@@ -65,7 +52,7 @@ function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) 
             $debug .= '&nbsp;&nbsp;- ID ' . $child_id . ': ' . $child->post_title . '<br>';
         }
     } else {
-        $debug .= '⚠️ No children found with these query args!<br>';
+        $debug .= '⚠️ No children found for this post!<br>';
     }
     
     $debug .= '</div>';
