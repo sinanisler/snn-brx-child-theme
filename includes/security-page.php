@@ -140,8 +140,10 @@ function snn_max_attempts_callback() {
     $options = get_option('snn_security_options');
     $max_attempts = isset($options['max_login_attempts']) && $options['max_login_attempts'] > 0 ? intval($options['max_login_attempts']) : 5;
     ?>
-    <input type="number" name="snn_security_options[max_login_attempts]" value="<?php echo esc_attr($max_attempts); ?>" min="1" max="100" step="1">
-    <p><?php esc_html_e( 'Specify the number of failed login attempts before an IP address is blocked. Default: 5', 'snn' ); ?></p>
+    <div style="padding-left: 40px;">
+        <input type="number" name="snn_security_options[max_login_attempts]" value="<?php echo esc_attr($max_attempts); ?>" min="1" max="100" step="1">
+        <p><?php esc_html_e( 'Specify the number of failed login attempts before an IP address is blocked. Default: 5', 'snn' ); ?></p>
+    </div>
     <?php
 }
 
@@ -149,8 +151,10 @@ function snn_reset_time_callback() {
     $options = get_option('snn_security_options');
     $reset_time = isset($options['login_reset_time']) && $options['login_reset_time'] > 0 ? intval($options['login_reset_time']) : 24;
     ?>
-    <input type="number" name="snn_security_options[login_reset_time]" value="<?php echo esc_attr($reset_time); ?>" min="1" max="720" step="1">
-    <p><?php esc_html_e( 'Time in hours after which failed login attempts count is reset to 0 and blocked IPs are unblocked. Default: 24 hours (1 day)', 'snn' ); ?></p>
+    <div style="padding-left: 40px;">
+        <input type="number" name="snn_security_options[login_reset_time]" value="<?php echo esc_attr($reset_time); ?>" min="1" max="720" step="1">
+        <p><?php esc_html_e( 'Time in hours after which failed login attempts count is reset to 0 and blocked IPs are unblocked. Default: 24 hours (1 day)', 'snn' ); ?></p>
+    </div>
     <?php
 }
 ?>
