@@ -20,6 +20,30 @@ function register_parents_child_posts_count_tag( $tags ) {
     return $tags;
 }
 
+// Recursive function to get ALL descendants
+function get_all_descendants( $post_id, $post_type ) {
+    $all_descendants = array();
+    
+    // Get direct children
+    $children = get_children( array(
+        'post_parent'    => $post_id,
+        'post_type'      => $post_type,
+        'post_status'    => 'publish',
+        'numberposts'    => -1,
+    ) );
+    
+    foreach ( $children as $child_id => $child ) {
+        // Add this child
+        $all_descendants[$child_id] = $child;
+        
+        // Recursively get this child's children
+        $grandchildren = get_all_descendants( $child_id, $post_type );
+        $all_descendants = array_merge( $all_descendants, $grandchildren );
+    }
+    
+    return $all_descendants;
+}
+
 add_filter( 'bricks/dynamic_data/render_tag', 'render_parents_child_posts_count_tag', 10, 3 );
 function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) {
     if ( strpos( $tag, '{parents_child_posts_count}' ) === false ) {
@@ -27,36 +51,36 @@ function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) 
     }
 
     // DEBUG OUTPUT - FRONTEND
-    $debug = '<div style="background:#000;color:#0f0;padding:20px;margin:10px 0;font-family:monospace;font-size:12px;border:2px solid #0f0;">';
-    $debug .= '<strong>🔍 PARENT CHILD COUNT DEBUG</strong><br><br>';
+    $debug = '<div style="background:#000;color:#0f0;padding:20px;margin:10px 0;font-family:monospace;font-size:12px;border:2px solid #0f0;overflow:auto;max-height:500px;">';
+    $debug .= '<strong>🔍 PARENT CHILD COUNT DEBUG (RECURSIVE)</strong><br><br>';
     $debug .= '📌 Current Post ID: ' . (is_object($post) ? $post->ID : 'NOT AN OBJECT') . '<br>';
     $debug .= '📄 Post Type: ' . (is_object($post) ? $post->post_type : 'N/A') . '<br>';
     $debug .= '📊 Post Title: ' . (is_object($post) && isset($post->post_title) ? $post->post_title : 'N/A') . '<br><br>';
 
-    // Get all children of the CURRENT post
-    $args = array(
-        'post_parent'    => $post->ID,  // Use current post ID, not parent!
-        'post_type'      => $post->post_type,
-        'post_status'    => 'publish',
-        'numberposts'    => -1,
-    );
+    $debug .= '🔎 Getting ALL descendants recursively...<br><br>';
     
-    $debug .= '🔎 Looking for children where post_parent = ' . $post->ID . '<br><br>';
+    // Get ALL descendants recursively
+    $all_descendants = get_all_descendants( $post->ID, $post->post_type );
     
-    $children = get_children( $args );
-    
-    $debug .= '📈 <strong>Children Found: ' . count($children) . '</strong><br>';
-    if ( !empty($children) ) {
-        $debug .= '🆔 Children IDs: ' . implode(', ', array_keys($children)) . '<br>';
-        foreach ( $children as $child_id => $child ) {
-            $debug .= '&nbsp;&nbsp;- ID ' . $child_id . ': ' . $child->post_title . '<br>';
+    $debug .= '📈 <strong>Total Descendants Found: ' . count($all_descendants) . '</strong><br><br>';
+    if ( !empty($all_descendants) ) {
+        $debug .= '🆔 All Descendant IDs: ' . implode(', ', array_keys($all_descendants)) . '<br><br>';
+        $debug .= '<strong>Full List:</strong><br>';
+        foreach ( $all_descendants as $desc_id => $desc ) {
+            $depth = '';
+            $current = $desc;
+            while ( $current->post_parent != $post->ID && $current->post_parent != 0 ) {
+                $depth .= '&nbsp;&nbsp;';
+                $current = get_post( $current->post_parent );
+            }
+            $debug .= $depth . '└─ ID ' . $desc_id . ': ' . $desc->post_title . ' (parent: ' . $desc->post_parent . ')<br>';
         }
     } else {
-        $debug .= '⚠️ No children found for this post!<br>';
+        $debug .= '⚠️ No descendants found for this post!<br>';
     }
     
     $debug .= '</div>';
-    $debug .= '<strong style="font-size:24px;">' . count( $children ) . '</strong>';
+    $debug .= '<strong style="font-size:24px;">' . count( $all_descendants ) . '</strong>';
 
     return $debug;
 }
