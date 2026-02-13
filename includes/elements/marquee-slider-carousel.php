@@ -378,7 +378,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
                     echo wp_get_attachment_image( $item['image']['id'], 'full', false, ['loading' => 'eager'] );
                 }
                 if ( ! empty( $item['text'] ) ) {
-                    echo '<div class="marquee__item--text">' . esc_html( $item['text'] ) . '</div>';
+                    echo '<div class="marquee__item--text">' . wp_kses_post( $item['text'] ) . '</div>';
                 }
 
                 echo "</{$tag}>";
