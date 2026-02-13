@@ -68,7 +68,7 @@ add_filter( 'bricks/frontend/render_data', 'render_parents_child_posts_count_tag
 function render_parents_child_posts_count_tag_in_content( $content, $post, $context = 'text' ) {
     if ( strpos( $content, '{parents_child_posts_count}' ) !== false ) {
         // Get count using the render function
-        $count   = render_parents_child_posts_count_tag( '{parents_child_posts_count}', null, $context );
+        $count   = render_parents_child_posts_count_tag( '{parents_child_posts_count}', $post, $context );
         $content = str_replace( '{parents_child_posts_count}', $count, $content );
     }
 
