@@ -83,6 +83,22 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
+
+    // Register revision settings separately
+    register_setting(
+        'snn_other_settings_group',
+        'snn_revision_settings'
+    );
+
+    add_settings_field(
+        'enable_draft_revision',
+        __('Enable Draft Revision System', 'snn'),
+        'snn_enable_draft_revision_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
+
     add_settings_field(
         'disable_dashboard_widgets',
         __('Disable Default Dashboard Widgets', 'snn'),
@@ -99,19 +115,6 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
-    // Register revision settings separately
-    register_setting(
-        'snn_other_settings_group',
-        'snn_revision_settings'
-    );
-
-    add_settings_field(
-        'enable_draft_revision',
-        __('Enable Draft Revision System', 'snn'),
-        'snn_enable_draft_revision_callback',
-        'snn-other-settings',
-        'snn_other_settings_section'
-    );
 }
 add_action('admin_init', 'snn_register_other_settings');
 
