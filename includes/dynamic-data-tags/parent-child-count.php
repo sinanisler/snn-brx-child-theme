@@ -10,8 +10,8 @@
  * - Returns the count of all child posts belonging to the current post's parent
  * - If the current post has no parent, returns 0
  */
-add_filter( 'bricks/dynamic_tags_list', 'register_parents_child_posts_count_tag' );
-function register_parents_child_posts_count_tag( $tags ) {
+add_filter( 'bricks/dynamic_tags_list', 'snn_parents_register_child_posts_count_tag' );
+function snn_parents_register_child_posts_count_tag( $tags ) {
     $tags[] = [
         'name'  => '{parents_child_posts_count}',
         'label' => 'Parent\'s Child Posts Count',
@@ -20,8 +20,8 @@ function register_parents_child_posts_count_tag( $tags ) {
     return $tags;
 }
 
-// Recursive function to get ALL descendants
-function snn_get_all_descendants_count( $post_id, $post_type ) {
+// Recursive function to get ALL descendants - v2
+function snn_parents_get_all_descendants( $post_id, $post_type ) {
     $all_descendants = array();
     
     // Get direct children
@@ -37,15 +37,15 @@ function snn_get_all_descendants_count( $post_id, $post_type ) {
         $all_descendants[$child_id] = $child;
         
         // Recursively get this child's children
-        $grandchildren = snn_get_all_descendants_count( $child_id, $post_type );
+        $grandchildren = snn_parents_get_all_descendants( $child_id, $post_type );
         $all_descendants = array_merge( $all_descendants, $grandchildren );
     }
     
     return $all_descendants;
 }
 
-add_filter( 'bricks/dynamic_data/render_tag', 'render_parents_child_posts_count_tag', 10, 3 );
-function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) {
+add_filter( 'bricks/dynamic_data/render_tag', 'snn_parents_render_child_posts_count_tag', 10, 3 );
+function snn_parents_render_child_posts_count_tag( $tag, $post, $context = 'text' ) {
     if ( strpos( $tag, '{parents_child_posts_count}' ) === false ) {
         return $tag;
     }
@@ -60,7 +60,7 @@ function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) 
     $debug .= '🔎 Getting ALL descendants recursively...<br><br>';
     
     // Get ALL descendants recursively
-    $all_descendants = snn_get_all_descendants_count( $post->ID, $post->post_type );
+    $all_descendants = snn_parents_get_all_descendants( $post->ID, $post->post_type );
     
     $debug .= '📈 <strong>Total Descendants Found: ' . count($all_descendants) . '</strong><br><br>';
     if ( !empty($all_descendants) ) {
@@ -85,11 +85,11 @@ function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) 
     return $debug;
 }
 
-add_filter( 'bricks/dynamic_data/render_content', 'render_parents_child_posts_count_tag_in_content', 10, 3 );
-add_filter( 'bricks/frontend/render_data', 'render_parents_child_posts_count_tag_in_content', 10, 2 );
-function render_parents_child_posts_count_tag_in_content( $content, $post, $context = 'text' ) {
+add_filter( 'bricks/dynamic_data/render_content', 'snn_parents_render_child_posts_count_tag_in_content', 10, 3 );
+add_filter( 'bricks/frontend/render_data', 'snn_parents_render_child_posts_count_tag_in_content', 10, 2 );
+function snn_parents_render_child_posts_count_tag_in_content( $content, $post, $context = 'text' ) {
     if ( strpos( $content, '{parents_child_posts_count}' ) !== false ) {
-        $count   = render_parents_child_posts_count_tag( '{parents_child_posts_count}', $post, $context );
+        $count   = snn_parents_render_child_posts_count_tag( '{parents_child_posts_count}', $post, $context );
         $content = str_replace( '{parents_child_posts_count}', $count, $content );
     }
 
