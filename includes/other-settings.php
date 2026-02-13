@@ -205,6 +205,21 @@ function snn_enable_thumbnail_column_callback() {
     <?php
 }
 
+
+function snn_enable_draft_revision_callback() {
+    $options = get_option('snn_revision_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_revision_settings[enable_draft_revision]" value="1" <?php checked(1, isset($options['enable_draft_revision']) ? $options['enable_draft_revision'] : 0); ?>>
+        <?php _e('Enable draft revision system for all post types', 'snn'); ?>
+    </label>
+    <p>
+        <?php _e('Enabling this will add "Create Revision" and "Sync with Original" quick links to your posts.', 'snn'); ?><br>
+        <?php _e('This allows you to create draft revisions of posts, edit them, and sync them back to the original when ready.', 'snn'); ?>
+    </p>
+    <?php
+}
+
 function snn_disable_dashboard_widgets_callback() {
     $options = get_option('snn_other_settings');
     ?>
@@ -237,19 +252,6 @@ function snn_dashboard_custom_metabox_content_callback() {
     <?php
 }
 
-function snn_enable_draft_revision_callback() {
-    $options = get_option('snn_revision_settings');
-    ?>
-    <label>
-        <input type="checkbox" name="snn_revision_settings[enable_draft_revision]" value="1" <?php checked(1, isset($options['enable_draft_revision']) ? $options['enable_draft_revision'] : 0); ?>>
-        <?php _e('Enable draft revision system for all post types', 'snn'); ?>
-    </label>
-    <p>
-        <?php _e('Enabling this will add "Create Revision" and "Sync with Original" quick links to your posts.', 'snn'); ?><br>
-        <?php _e('This allows you to create draft revisions of posts, edit them, and sync them back to the original when ready.', 'snn'); ?>
-    </p>
-    <?php
-}
 
 function snn_limit_post_revisions($num, $post) {
     $options = get_option('snn_other_settings');
