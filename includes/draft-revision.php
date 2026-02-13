@@ -394,5 +394,15 @@ class SNN_Draft_Revision {
     }
 }
 
-// Initialize the class
-new SNN_Draft_Revision();
+/**
+ * Initialize the Draft Revision System only if enabled in settings
+ */
+function snn_init_draft_revision() {
+    $options = get_option('snn_revision_settings');
+
+    // Check if the feature is enabled (disabled by default)
+    if (isset($options['enable_draft_revision']) && $options['enable_draft_revision']) {
+        new SNN_Draft_Revision();
+    }
+}
+add_action('init', 'snn_init_draft_revision');
