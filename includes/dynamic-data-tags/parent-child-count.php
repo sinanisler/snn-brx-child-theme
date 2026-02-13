@@ -21,7 +21,7 @@ function register_parents_child_posts_count_tag( $tags ) {
 }
 
 // Recursive function to get ALL descendants
-function get_all_descendants( $post_id, $post_type ) {
+function snn_get_all_descendants_count( $post_id, $post_type ) {
     $all_descendants = array();
     
     // Get direct children
@@ -37,7 +37,7 @@ function get_all_descendants( $post_id, $post_type ) {
         $all_descendants[$child_id] = $child;
         
         // Recursively get this child's children
-        $grandchildren = get_all_descendants( $child_id, $post_type );
+        $grandchildren = snn_get_all_descendants_count( $child_id, $post_type );
         $all_descendants = array_merge( $all_descendants, $grandchildren );
     }
     
@@ -60,7 +60,7 @@ function render_parents_child_posts_count_tag( $tag, $post, $context = 'text' ) 
     $debug .= '🔎 Getting ALL descendants recursively...<br><br>';
     
     // Get ALL descendants recursively
-    $all_descendants = get_all_descendants( $post->ID, $post->post_type );
+    $all_descendants = snn_get_all_descendants_count( $post->ID, $post->post_type );
     
     $debug .= '📈 <strong>Total Descendants Found: ' . count($all_descendants) . '</strong><br><br>';
     if ( !empty($all_descendants) ) {
