@@ -44,6 +44,7 @@ require_once SNN_PATH . 'includes/activity-logs.php';
 require_once SNN_PATH . 'includes/seo.php';
 require_once SNN_PATH . 'includes/seo-bricks-setting.php';
 require_once SNN_PATH . 'includes/interactions.php';
+require_once SNN_PATH . 'includes/draft-revision.php';
 
 
 require_once SNN_PATH . 'includes/ai/ai-settings.php';
