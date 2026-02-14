@@ -47,6 +47,21 @@ function snn_enqueue_block_editor_ai_assets() {
         $post_id = isset($post->ID) ? $post->ID : 0;
     }
 
+    // Get featured image info
+    $featured_image = null;
+    if ($post_id) {
+        $thumbnail_id = get_post_thumbnail_id($post_id);
+        if ($thumbnail_id) {
+            $image_url = wp_get_attachment_image_src($thumbnail_id, 'large');
+            if ($image_url) {
+                $featured_image = array(
+                    'id' => $thumbnail_id,
+                    'url' => $image_url[0]
+                );
+            }
+        }
+    }
+
     // Pass config to JavaScript
     wp_localize_script('wp-plugins', 'snnAiConfig', array(
         'apiKey' => $config['apiKey'],
@@ -57,7 +72,8 @@ function snn_enqueue_block_editor_ai_assets() {
         'imageConfig' => $config['imageConfig'],
         'postId' => $post_id,
         'ajaxUrl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('snn_ai_image_save')
+        'nonce' => wp_create_nonce('snn_ai_image_save'),
+        'featuredImage' => $featured_image
     ));
 }
 add_action('enqueue_block_editor_assets', 'snn_enqueue_block_editor_ai_assets');
@@ -404,6 +420,13 @@ function snn_add_block_editor_ai_panel() {
                         <input type="checkbox" id="snn-ai-include-content">
                         <label for="snn-ai-include-content"><?php esc_html_e('Include Post Content', 'snn'); ?></label>
                     </div>
+                    <div class="snn-block-ai-checkbox-item">
+                        <input type="checkbox" id="snn-ai-edit-existing">
+                        <label for="snn-ai-edit-existing"><?php esc_html_e('Edit Existing Featured Image', 'snn'); ?></label>
+                    </div>
+                </div>
+                <div id="snn-block-ai-existing-image-preview" class="snn-block-ai-image-preview" style="margin-bottom: 12px;">
+                    <img id="snn-block-ai-existing-image-img" src="" alt="Current Featured Image" style="max-height: 200px;">
                 </div>
                 <div id="snn-block-ai-image-actions-container" class="snn-block-ai-actions-container"></div>
                 <textarea
@@ -448,7 +471,18 @@ function snn_add_block_editor_ai_panel() {
                 imageConfig: <?php echo json_encode($config['imageConfig']); ?>,
                 postId: <?php echo json_encode($post_id); ?>,
                 ajaxUrl: <?php echo json_encode(admin_url('admin-ajax.php')); ?>,
-                nonce: <?php echo json_encode(wp_create_nonce('snn_ai_image_save')); ?>
+                nonce: <?php echo json_encode(wp_create_nonce('snn_ai_image_save')); ?>,
+                featuredImage: <?php
+                    $thumbnail_id = get_post_thumbnail_id($post_id);
+                    $featured_image = null;
+                    if ($thumbnail_id) {
+                        $image_url = wp_get_attachment_image_src($thumbnail_id, 'large');
+                        if ($image_url) {
+                            $featured_image = array('id' => $thumbnail_id, 'url' => $image_url[0]);
+                        }
+                    }
+                    echo json_encode($featured_image);
+                ?>
             };
 
             let actionPresets = config.actionPresets || [];
@@ -856,6 +890,9 @@ function snn_add_block_editor_ai_panel() {
             const imageSaveButton = document.getElementById('snn-block-ai-image-save');
             const includeTitleCheckbox = document.getElementById('snn-ai-include-title');
             const includeContentCheckbox = document.getElementById('snn-ai-include-content');
+            const editExistingCheckbox = document.getElementById('snn-ai-edit-existing');
+            const existingImagePreview = document.getElementById('snn-block-ai-existing-image-preview');
+            const existingImageImg = document.getElementById('snn-block-ai-existing-image-img');
 
             let imageSelectedPresets = [];
             let isImageRequestPending = false;
@@ -893,6 +930,18 @@ function snn_add_block_editor_ai_panel() {
                 generatedImageUrl = null;
                 imageSelectedPresets = [];
                 document.querySelectorAll('#snn-block-ai-image-actions-container .snn-block-ai-action-button.selected').forEach(b => b.classList.remove('selected'));
+
+                // Check if featured image exists
+                if (config.featuredImage && config.featuredImage.url) {
+                    editExistingCheckbox.disabled = false;
+                    editExistingCheckbox.checked = false;
+                    existingImageImg.src = config.featuredImage.url;
+                    existingImagePreview.style.display = 'none';
+                } else {
+                    editExistingCheckbox.disabled = true;
+                    editExistingCheckbox.checked = false;
+                    existingImagePreview.style.display = 'none';
+                }
 
                 // Check if title and content exist
                 if (wp.data && wp.data.select) {
@@ -933,7 +982,8 @@ function snn_add_block_editor_ai_panel() {
                 const hasPresets = imageSelectedPresets.length > 0;
                 const hasTitle = includeTitleCheckbox.checked;
                 const hasContent = includeContentCheckbox.checked;
-                imageSubmitButton.disabled = isImageRequestPending || !(hasPrompt || hasPresets || hasTitle || hasContent);
+                const isEditing = editExistingCheckbox.checked;
+                imageSubmitButton.disabled = isImageRequestPending || !(hasPrompt || hasPresets || hasTitle || hasContent || isEditing);
             }
 
             imageCloseButton.addEventListener('click', hideImageModal);
@@ -946,6 +996,16 @@ function snn_add_block_editor_ai_panel() {
             imagePromptTextarea.addEventListener('input', updateImageSubmitButtonState);
             includeTitleCheckbox.addEventListener('change', updateImageSubmitButtonState);
             includeContentCheckbox.addEventListener('change', updateImageSubmitButtonState);
+            editExistingCheckbox.addEventListener('change', () => {
+                if (editExistingCheckbox.checked) {
+                    existingImagePreview.style.display = 'block';
+                    imageSubmitButton.textContent = 'Edit Image';
+                } else {
+                    existingImagePreview.style.display = 'none';
+                    imageSubmitButton.textContent = 'Generate Image';
+                }
+                updateImageSubmitButtonState();
+            });
 
             async function generateImage() {
                 if (isImageRequestPending) {
@@ -1030,12 +1090,41 @@ function snn_add_block_editor_ai_panel() {
                     // Use OpenRouter image generation API
                     const imageApiEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
 
-                    const messages = [
-                        {
+                    // Build messages array
+                    const messages = [];
+
+                    // If editing existing image, include it in the request
+                    if (editExistingCheckbox.checked && config.featuredImage && config.featuredImage.url) {
+                        try {
+                            // Fetch and convert existing image to base64
+                            const existingImageBase64 = await imageUrlToBase64(config.featuredImage.url);
+
+                            messages.push({
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'image_url',
+                                        image_url: {
+                                            url: existingImageBase64
+                                        }
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: `Edit this image. ${finalPrompt}`
+                                    }
+                                ]
+                            });
+                        } catch (error) {
+                            console.error('Failed to load existing image:', error);
+                            throw new Error('Failed to load existing featured image. Please try again.');
+                        }
+                    } else {
+                        // Generate new image
+                        messages.push({
                             role: 'user',
                             content: finalPrompt
-                        }
-                    ];
+                        });
+                    }
 
                     const requestBody = {
                         model: config.imageConfig.image_model,
@@ -1113,6 +1202,8 @@ function snn_add_block_editor_ai_panel() {
                 } finally {
                     isImageRequestPending = false;
                     imageSpinner.style.display = 'none';
+                    // Restore button text based on edit mode
+                    imageSubmitButton.textContent = editExistingCheckbox.checked ? 'Edit Image' : 'Generate Image';
                     updateImageSubmitButtonState();
                 }
             }
@@ -1120,8 +1211,38 @@ function snn_add_block_editor_ai_panel() {
             imageSubmitButton.addEventListener('click', generateImage);
             imageRegenerateButton.addEventListener('click', generateImage);
 
-            // Function to compress image using canvas
-            async function compressImage(imageUrl, maxWidth = 1920, maxHeight = 1080, quality = 0.75, format = 'image/webp') {
+            // Helper function to convert image URL to base64
+            async function imageUrlToBase64(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+
+                        try {
+                            const base64 = canvas.toDataURL('image/png');
+                            resolve(base64);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+
+                    img.onerror = () => {
+                        reject(new Error('Failed to load image'));
+                    };
+
+                    img.src = url;
+                });
+            }
+
+            // Function to compress image using canvas with transparency support
+            // WebP supports both transparency and compression, so we use it exclusively
+            async function compressImage(imageUrl, maxWidth = 1920, maxHeight = 1080, quality = 0.75) {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
@@ -1149,6 +1270,9 @@ function snn_add_block_editor_ai_panel() {
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
+                        // Use WebP format (supports both transparency and compression)
+                        const outputFormat = 'image/webp';
+
                         // Convert to blob with compression
                         canvas.toBlob((blob) => {
                             if (!blob) {
@@ -1165,7 +1289,7 @@ function snn_add_block_editor_ai_panel() {
                                 reject(new Error('Failed to read compressed image'));
                             };
                             reader.readAsDataURL(blob);
-                        }, format, quality);
+                        }, outputFormat, quality);
                     };
 
                     img.onerror = () => {
@@ -1196,12 +1320,9 @@ function snn_add_block_editor_ai_panel() {
                     let imageToSend = generatedImageUrl;
 
                     try {
-                        // Try to compress - use WebP if supported, otherwise JPEG
-                        const supportsWebP = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0;
-                        const format = supportsWebP ? 'image/webp' : 'image/jpeg';
-
-                        console.log('Compressing image to', format);
-                        imageToSend = await compressImage(generatedImageUrl, 1920, 1080, 0.75, format);
+                        // Compress to WebP format (supports transparency and compression)
+                        console.log('Compressing image to WebP...');
+                        imageToSend = await compressImage(generatedImageUrl, 1920, 1080, 0.75);
                         console.log('Image compressed successfully');
                     } catch (compressionError) {
                         console.warn('Image compression failed, using original:', compressionError);
