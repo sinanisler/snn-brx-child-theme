@@ -1063,27 +1063,35 @@ function snn_add_block_editor_ai_panel() {
                     const data = await fetchResponse.json();
 
                     // Extract image URL from response
-                    if (data.choices && data.choices.length && data.choices[0].message && data.choices[0].message.content) {
-                        const content = data.choices[0].message.content;
+                    if (data.choices && data.choices.length && data.choices[0].message) {
+                        const message = data.choices[0].message;
 
-                        // Try to extract image URL from markdown format
-                        const markdownMatch = content.match(/!\[.*?\]\((https?:\/\/.*?)\)/);
-                        if (markdownMatch && markdownMatch[1]) {
-                            generatedImageUrl = markdownMatch[1];
-                        } else {
-                            // Try to find any URL in the content
-                            const urlMatch = content.match(/(https?:\/\/[^\s]+)/);
-                            if (urlMatch && urlMatch[1]) {
-                                generatedImageUrl = urlMatch[1];
+                        // Check if images array exists (primary method for image models)
+                        if (message.images && message.images.length > 0) {
+                            generatedImageUrl = message.images[0].url;
+                        }
+                        // Fallback: try to extract from content if it's a markdown URL
+                        else if (message.content) {
+                            const content = message.content;
+                            const markdownMatch = content.match(/!\[.*?\]\((https?:\/\/.*?)\)/);
+                            if (markdownMatch && markdownMatch[1]) {
+                                generatedImageUrl = markdownMatch[1];
                             } else {
-                                throw new Error('No image URL found in response.');
+                                const urlMatch = content.match(/(https?:\/\/[^\s]+)/);
+                                if (urlMatch && urlMatch[1]) {
+                                    generatedImageUrl = urlMatch[1];
+                                }
                             }
                         }
 
-                        imagePreviewImg.src = generatedImageUrl;
-                        imagePreview.style.display = 'block';
-                        imageRegenerateButton.style.display = 'inline-block';
-                        imageSaveButton.style.display = 'inline-block';
+                        if (generatedImageUrl) {
+                            imagePreviewImg.src = generatedImageUrl;
+                            imagePreview.style.display = 'block';
+                            imageRegenerateButton.style.display = 'inline-block';
+                            imageSaveButton.style.display = 'inline-block';
+                        } else {
+                            throw new Error('No image URL found in response.');
+                        }
                     } else {
                         throw new Error('Unexpected image API response format.');
                     }
