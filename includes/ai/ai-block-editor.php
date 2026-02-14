@@ -489,7 +489,7 @@ function snn_add_block_editor_ai_panel() {
                 contentButton.id = 'snn-ai-summary-button';
                 contentButton.type = 'button';
                 contentButton.className = 'snn-block-ai-panel-button button';
-                contentButton.textContent = 'Generate Content with AI ✨';
+                contentButton.textContent = 'Generate Content with AI';
                 contentButton.onclick = showModal;
 
                 // Image generation button
@@ -497,7 +497,7 @@ function snn_add_block_editor_ai_panel() {
                 imageButton.id = 'snn-ai-image-button';
                 imageButton.type = 'button';
                 imageButton.className = 'snn-block-ai-panel-button button';
-                imageButton.textContent = 'Generate Image with AI 🎨';
+                imageButton.textContent = 'Generate Image with AI';
                 imageButton.onclick = showImageModal;
 
                 buttonContainer.appendChild(contentButton);
