@@ -812,14 +812,41 @@ function snn_render_ai_settings() {
                 if (!dataListEl) return;
                 const openrouterKeyEl = document.getElementById('snn_openrouter_api_key');
                 const openrouterKey = openrouterKeyEl ? openrouterKeyEl.value.trim() : '';
+
+                // Static list of image models
+                const staticImageModels = [
+                    'sourceful/riverflow-v2-pro',
+                    'sourceful/riverflow-v2-fast',
+                    'black-forest-labs/flux.2-klein-4b',
+                    'bytedance-seed/seedream-4.5',
+                    'black-forest-labs/flux.2-max',
+                    'sourceful/riverflow-v2-max-preview',
+                    'sourceful/riverflow-v2-standard-preview',
+                    'sourceful/riverflow-v2-fast-preview',
+                    'black-forest-labs/flux.2-flex',
+                    'black-forest-labs/flux.2-pro',
+                    'google/gemini-3-pro-image-preview',
+                    'openai/gpt-5-image-mini',
+                    'openai/gpt-5-image',
+                    'google/gemini-2.5-flash-image',
+                    'google/gemini-2.5-flash-image-preview'
+                ];
+
+                // Populate datalist with static options immediately
+                dataListEl.innerHTML = '';
+                staticImageModels.forEach(modelId => {
+                    const option = document.createElement('option');
+                    option.value = modelId;
+                    option.text = modelId;
+                    dataListEl.appendChild(option);
+                });
+
+                // If no API key, stop here
                 if (!openrouterKey) {
-                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('OpenRouter key missing. Please add your key first.', 'snn'); ?></option>';
                     return;
                 }
-                dataListEl.innerHTML = '<option value=""><?php esc_html_e('Loading image models...', 'snn'); ?></option>';
-                let slowTimeout = setTimeout(function(){
-                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Still loading image models... (this is taking longer than usual)', 'snn'); ?></option>';
-                }, 3000);
+
+                // Fetch full model data in background for feature display
                 fetch('https://openrouter.ai/api/v1/models', {
                     headers: { 'Authorization': 'Bearer ' + openrouterKey }
                 })
@@ -831,82 +858,15 @@ function snn_render_ai_settings() {
                 })
                 .then(data => {
                     if (data && data.data) {
-                        // Filter models with image output capabilities using multiple criteria
-                        const imageModels = data.data.filter(model => {
-                            // Check 1: output_modalities explicitly includes 'image'
-                            const hasImageOutput = model.architecture && 
-                                   model.architecture.output_modalities && 
-                                   Array.isArray(model.architecture.output_modalities) &&
-                                   model.architecture.output_modalities.includes('image');
-                            
-                            // Check 2: Has image pricing (indicates image generation capability)
-                            const hasImagePricing = model.pricing && 
-                                   (model.pricing.image || (model.pricing.image !== undefined && model.pricing.image !== null));
-                            
-                            // Check 3: Modality string contains "image" in output part (e.g., "text+image->text+image")
-                            const modalityIncludesImage = model.architecture && 
-                                   model.architecture.modality && 
-                                   typeof model.architecture.modality === 'string' &&
-                                   model.architecture.modality.split('->')[1]?.includes('image');
-                            
-                            // Check 4: Model ID or name suggests image generation (common patterns)
-                            const nameOrIdSuggestsImage = (model.id && model.id.toLowerCase().match(/image|dall-e|stable-?diffusion|midjourney|flux|ideogram|recraft/)) ||
-                                   (model.name && model.name.toLowerCase().match(/image|dall-e|stable-?diffusion|midjourney|flux|ideogram|recraft/));
-                            
-                            // Return true if ANY check passes
-                            return hasImageOutput || hasImagePricing || modalityIncludesImage || nameOrIdSuggestsImage;
-                        });
-                        
-                        allOpenRouterImageModels = imageModels; // Store filtered image models
-                        dataListEl.innerHTML = '';
-                        
-                        if (imageModels.length === 0) {
-                            dataListEl.innerHTML = '<option value=""><?php esc_html_e('No image models found.', 'snn'); ?></option>';
-                            return;
-                        }
-                        
-                        imageModels.forEach(model => {
-                            const option = document.createElement('option');
-                            option.value = model.id;
-                            let priceInfo = '';
-                            
-                            // Handle different pricing structures
-                            if (model.pricing) {
-                                if (model.pricing.image !== undefined && model.pricing.image !== null) {
-                                    const imageCost = (parseFloat(model.pricing.image) * 1000000).toFixed(6);
-                                    priceInfo = ` | Image: $${imageCost}/M`;
-                                } else if (model.pricing.prompt && model.pricing.completion) {
-                                    // Handle both nested (.cost) and direct pricing structures
-                                    const promptCost = model.pricing.prompt.cost 
-                                        ? (parseFloat(model.pricing.prompt.cost) * 1000000).toFixed(6)
-                                        : (parseFloat(model.pricing.prompt) * 1000000).toFixed(6);
-                                    const completionCost = model.pricing.completion.cost
-                                        ? (parseFloat(model.pricing.completion.cost) * 1000000).toFixed(6)
-                                        : (parseFloat(model.pricing.completion) * 1000000).toFixed(6);
-                                    priceInfo = ` | Prompt: $${promptCost}/M, Comp: $${completionCost}/M`;
-                                } else if (model.pricing.request) {
-                                    const requestCost = parseFloat(model.pricing.request).toFixed(6);
-                                    priceInfo = ` | Request: $${requestCost}`;
-                                }
-                            }
-                            
-                            const providerInfo = model.top_provider && model.top_provider.name ? ` | Provider: ${model.top_provider.name}` : '';
-                            const modalityInfo = model.architecture && model.architecture.modality ? ` | ${model.architecture.modality}` : '';
-                            option.text = `${model.name} (${model.id})${modalityInfo}${priceInfo}${providerInfo}`;
-                            dataListEl.appendChild(option);
-                        });
+                        // Store all models for feature lookup
+                        allOpenRouterImageModels = data.data;
+
                         // Display features for the currently selected image model if any
                         displayOpenRouterImageModelFeatures(openrouterImageModelInput.value);
-                    } else {
-                        dataListEl.innerHTML = '<option value=""><?php esc_html_e('No models found.', 'snn'); ?></option>';
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching OpenRouter image models:', error);
-                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Error loading image models.', 'snn'); ?></option>';
-                })
-                .finally(() => {
-                    clearTimeout(slowTimeout);
+                    console.error('Error fetching OpenRouter image models data:', error);
                 });
             }
 
