@@ -1040,8 +1040,11 @@ function snn_add_block_editor_ai_panel() {
                     const requestBody = {
                         model: config.imageConfig.image_model,
                         messages: messages,
-                        aspect_ratio: config.imageConfig.aspect_ratio,
-                        image_size: config.imageConfig.image_size
+                        modalities: ['image', 'text'],
+                        image_config: {
+                            aspect_ratio: config.imageConfig.aspect_ratio,
+                            image_size: config.imageConfig.image_size
+                        }
                     };
 
                     const fetchResponse = await fetch(imageApiEndpoint, {
