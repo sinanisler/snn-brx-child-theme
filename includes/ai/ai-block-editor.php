@@ -401,7 +401,7 @@ function snn_add_block_editor_ai_panel() {
                         <label for="snn-ai-include-title"><?php esc_html_e('Include Post Title', 'snn'); ?></label>
                     </div>
                     <div class="snn-block-ai-checkbox-item">
-                        <input type="checkbox" id="snn-ai-include-content" checked>
+                        <input type="checkbox" id="snn-ai-include-content">
                         <label for="snn-ai-include-content"><?php esc_html_e('Include Post Content', 'snn'); ?></label>
                     </div>
                 </div>
@@ -911,9 +911,9 @@ function snn_add_block_editor_ai_panel() {
                         includeTitleCheckbox.disabled = !title || title.trim() === '';
                         includeContentCheckbox.disabled = !content || content.trim() === '';
 
-                        // Check by default if content exists
+                        // Check title by default if exists, but leave content unchecked
                         includeTitleCheckbox.checked = title && title.trim() !== '';
-                        includeContentCheckbox.checked = content && content.trim() !== '';
+                        includeContentCheckbox.checked = false;
                     }
                 }
 
