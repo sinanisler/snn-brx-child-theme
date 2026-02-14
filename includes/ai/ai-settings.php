@@ -831,12 +831,30 @@ function snn_render_ai_settings() {
                 })
                 .then(data => {
                     if (data && data.data) {
-                        // Filter models that have "image" in their output_modalities
+                        // Filter models with image output capabilities using multiple criteria
                         const imageModels = data.data.filter(model => {
-                            return model.architecture && 
+                            // Check 1: output_modalities explicitly includes 'image'
+                            const hasImageOutput = model.architecture && 
                                    model.architecture.output_modalities && 
                                    Array.isArray(model.architecture.output_modalities) &&
                                    model.architecture.output_modalities.includes('image');
+                            
+                            // Check 2: Has image pricing (indicates image generation capability)
+                            const hasImagePricing = model.pricing && 
+                                   (model.pricing.image || (model.pricing.image !== undefined && model.pricing.image !== null));
+                            
+                            // Check 3: Modality string contains "image" in output part (e.g., "text+image->text+image")
+                            const modalityIncludesImage = model.architecture && 
+                                   model.architecture.modality && 
+                                   typeof model.architecture.modality === 'string' &&
+                                   model.architecture.modality.split('->')[1]?.includes('image');
+                            
+                            // Check 4: Model ID or name suggests image generation (common patterns)
+                            const nameOrIdSuggestsImage = (model.id && model.id.toLowerCase().match(/image|dall-e|stable-?diffusion|midjourney|flux|ideogram|recraft/)) ||
+                                   (model.name && model.name.toLowerCase().match(/image|dall-e|stable-?diffusion|midjourney|flux|ideogram|recraft/));
+                            
+                            // Return true if ANY check passes
+                            return hasImageOutput || hasImagePricing || modalityIncludesImage || nameOrIdSuggestsImage;
                         });
                         
                         allOpenRouterImageModels = imageModels; // Store filtered image models
@@ -851,15 +869,28 @@ function snn_render_ai_settings() {
                             const option = document.createElement('option');
                             option.value = model.id;
                             let priceInfo = '';
-                            if (model.pricing && model.pricing.image) {
-                                const imageCost = (parseFloat(model.pricing.image) * 1000000).toFixed(6);
-                                priceInfo = ` | Image: $${imageCost}/M`;
-                            } else if (model.pricing && model.pricing.prompt && model.pricing.completion) {
-                                const promptCost = (parseFloat(model.pricing.prompt) * 1000000).toFixed(6);
-                                const completionCost = (parseFloat(model.pricing.completion) * 1000000).toFixed(6);
-                                priceInfo = ` | Prompt: $${promptCost}/M, Comp: $${completionCost}/M`;
+                            
+                            // Handle different pricing structures
+                            if (model.pricing) {
+                                if (model.pricing.image !== undefined && model.pricing.image !== null) {
+                                    const imageCost = (parseFloat(model.pricing.image) * 1000000).toFixed(6);
+                                    priceInfo = ` | Image: $${imageCost}/M`;
+                                } else if (model.pricing.prompt && model.pricing.completion) {
+                                    // Handle both nested (.cost) and direct pricing structures
+                                    const promptCost = model.pricing.prompt.cost 
+                                        ? (parseFloat(model.pricing.prompt.cost) * 1000000).toFixed(6)
+                                        : (parseFloat(model.pricing.prompt) * 1000000).toFixed(6);
+                                    const completionCost = model.pricing.completion.cost
+                                        ? (parseFloat(model.pricing.completion.cost) * 1000000).toFixed(6)
+                                        : (parseFloat(model.pricing.completion) * 1000000).toFixed(6);
+                                    priceInfo = ` | Prompt: $${promptCost}/M, Comp: $${completionCost}/M`;
+                                } else if (model.pricing.request) {
+                                    const requestCost = parseFloat(model.pricing.request).toFixed(6);
+                                    priceInfo = ` | Request: $${requestCost}`;
+                                }
                             }
-                            const providerInfo = model.top_provider ? ` | Provider: ${model.top_provider.name}` : '';
+                            
+                            const providerInfo = model.top_provider && model.top_provider.name ? ` | Provider: ${model.top_provider.name}` : '';
                             const modalityInfo = model.architecture && model.architecture.modality ? ` | ${model.architecture.modality}` : '';
                             option.text = `${model.name} (${model.id})${modalityInfo}${priceInfo}${providerInfo}`;
                             dataListEl.appendChild(option);
