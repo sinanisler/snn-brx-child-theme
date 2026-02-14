@@ -218,392 +218,63 @@ function snn_seo_ai_render_overlay() {
     </div>
     
     <style>
-    #snn-seo-ai-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 160000;
-    }
-    
-    .snn-seo-ai-overlay-backdrop {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
-        animation: snnFadeIn 0.2s ease;
-    }
-    
-    .snn-seo-ai-overlay-container {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        border-radius: 4px;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-        width: 90%;
-        max-width: 800px;
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        animation: snnSlideIn 0.3s ease;
-    }
-    
-    .snn-seo-ai-overlay-header {
-        padding: 20px 24px;
-        border-bottom: 1px solid #dcdcde;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .snn-seo-ai-overlay-header h2 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
-    }
-    
-    .snn-seo-ai-close {
-        background: none;
-        border: none;
-        font-size: 28px;
-        line-height: 1;
-        cursor: pointer;
-        color: #646970;
-        padding: 0;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 3px;
-    }
-    
-    .snn-seo-ai-close:hover {
-        background: #f0f0f1;
-        color: #000;
-    }
-    
-    .snn-seo-ai-overlay-body {
-        padding: 24px;
-        overflow-y: auto;
-        flex: 1;
-    }
-    
-    .snn-seo-ai-presets {
-        margin-bottom: 20px;
-    }
-    
-    .snn-seo-ai-presets label {
-        display: block;
-        margin-bottom: 10px;
-        font-weight: 600;
-        font-size: 14px;
-    }
-    
-    .snn-seo-ai-options {
-        margin-bottom: 20px;
-    }
-    
-    .snn-seo-ai-options > label {
-        display: block;
-        margin-bottom: 10px;
-        font-weight: 600;
-        font-size: 14px;
-    }
-    
-    .snn-seo-ai-mode {
-        margin-bottom: 20px;
-        padding: 12px;
-        background: #f6f7f7;
-        border-radius: 4px;
-        border-left: 3px solid #2271b1;
-    }
-    
-    .snn-seo-ai-checkboxes {
-        display: flex;
-        gap: 6px;
-    }
-    
-    .snn-checkbox-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        cursor: pointer;
-        padding: 4px 6px;
-        border-radius: 4px;
-        transition: all 0.2s;
-    }
-    
-    .snn-checkbox-label:hover {
-        background: #e5f2ff;
-    }
-    
-    .snn-checkbox-label input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-        margin: 0;
-    }
-    
-    .snn-seo-ai-preset-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-    
-    .snn-preset-btn {
-        padding: 4px 6px;
-        background: #fff;
-        border: 1px solid #2271b1;
-        color: #2271b1;
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 13px;
-        transition: all 0.2s;
-    }
-    
-    .snn-preset-btn:hover {
-        background: #f0f6fc;
-    }
-    
-    .snn-preset-btn.active {
-        background: #2271b1;
-        color: #fff;
-    }
-    
-    .snn-seo-ai-custom {
-        margin-bottom: 20px;
-    }
-    
-    .snn-seo-ai-custom label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        font-size: 14px;
-    }
-    
-    #snn-seo-custom-prompt {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #8c8f94;
-        border-radius: 3px;
-        font-size: 13px;
-        resize: vertical;
-    }
-    
-    #snn-seo-custom-prompt:focus {
-        border-color: #2271b1;
-        box-shadow: 0 0 0 1px #2271b1;
-        outline: none;
-    }
-    
-    .snn-seo-ai-results {
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 2px solid #2271b1;
-    }
-    
-    .snn-seo-result-item {
-        margin-bottom: 20px;
-        position: relative;
-    }
-    
-    .snn-seo-result-item label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        font-size: 14px;
-    }
-    
-    .snn-result-input {
-        width: 100%;
-        padding: 10px 12px;
-        border: 2px solid #2271b1;
-        border-radius: 3px;
-        font-size: 14px;
-        background: #f0f6fc;
-    }
-    
-    .snn-result-input:focus {
-        background: #fff;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.3);
-    }
-    
-    .snn-char-count {
-        position: absolute;
-        right: 12px;
-        top: 38px;
-        font-size: 11px;
-        color: #646970;
-        background: #fff;
-        padding: 2px 6px;
-        border-radius: 2px;
-    }
-    
-    .snn-seo-result-item:last-child .snn-char-count {
-        top: auto;
-        bottom: 12px;
-    }
-    
-    .snn-seo-ai-bulk-progress {
-        margin-top: 20px;
-        padding: 20px;
-        background: #f6f7f7;
-        border-radius: 4px;
-    }
-    
-    .snn-progress-text {
-        margin-bottom: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        text-align: center;
-    }
-    
-    .snn-progress-bar {
-        height: 24px;
-        background: #dcdcde;
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    .snn-progress-fill {
-        height: 100%;
-        background: #2271b1;
-        width: 0%;
-        transition: width 0.3s ease;
-    }
-    
-    .snn-seo-ai-bulk-results {
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 2px solid #2271b1;
-    }
-    
-    .snn-bulk-item {
-        background: #f0f6fc;
-        border: 2px solid #2271b1;
-        border-radius: 4px;
-        padding: 16px;
-        margin-bottom: 16px;
-    }
-    
-    .snn-bulk-item-header {
-        font-weight: 600;
-        font-size: 14px;
-        margin-bottom: 12px;
-        color: #1d2327;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .snn-bulk-item-title {
-        flex: 1;
-    }
-    
-    .snn-bulk-item-regenerate {
-        padding: 4px 12px;
-        background: #2271b1;
-        color: #fff;
-        border: none;
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 12px;
-        transition: background 0.2s;
-    }
-    
-    .snn-bulk-item-regenerate:hover {
-        background: #135e96;
-    }
-    
-    .snn-bulk-item-regenerate:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    
-    .snn-bulk-field {
-        margin-bottom: 12px;
-    }
-    
-    .snn-bulk-field:last-child {
-        margin-bottom: 0;
-    }
-    
-    .snn-bulk-field label {
-        display: block;
-        font-size: 12px;
-        font-weight: 600;
-        margin-bottom: 4px;
-        color: #646970;
-    }
-    
-    .snn-bulk-field input,
-    .snn-bulk-field textarea {
-        width: 100%;
-        padding: 8px 10px;
-        border: 1px solid #8c8f94;
-        border-radius: 3px;
-        font-size: 13px;
-        background: #fff;
-    }
-    
-    .snn-bulk-field input:focus,
-    .snn-bulk-field textarea:focus {
-        border-color: #2271b1;
-        outline: none;
-        box-shadow: 0 0 0 1px #2271b1;
-    }
-    
-    .snn-bulk-field textarea {
-        resize: vertical;
-        min-height: 60px;
-    }
-    
-    .snn-bulk-field-count {
-        float: right;
-        font-size: 11px;
-        color: #646970;
-    }
-    
-    .snn-seo-ai-overlay-footer {
-        padding: 16px 24px;
-        border-top: 1px solid #dcdcde;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-    }
-    
-    .snn-seo-ai-overlay-footer .button {
-        min-width: 100px;
-    }
-    
-    .snn-seo-ai-overlay-footer .button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    
-    @keyframes snnFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    @keyframes snnSlideIn {
-        from {
-            opacity: 0;
-            transform: translate(-50%, -45%);
-        }
-        to {
-            opacity: 1;
-            transform: translate(-50%, -50%);
-        }
-    }
+   
+#snn-seo-ai-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 160000; }
+.snn-seo-ai-overlay-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); animation: snnFadeIn 0.2s ease; }
+.snn-seo-ai-overlay-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 4px; box-shadow: 0 5px 25px rgba(0,0,0,0.3); width: 90%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; animation: snnSlideIn 0.3s ease; }
+.snn-seo-ai-overlay-header { padding: 20px 24px; border-bottom: 1px solid #dcdcde; display: flex; justify-content: space-between; align-items: center; }
+.snn-seo-ai-overlay-header h2 { margin: 0; font-size: 18px; font-weight: 600; }
+.snn-seo-ai-close { background: none; border: none; font-size: 28px; line-height: 1; cursor: pointer; color: #646970; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 3px; }
+.snn-seo-ai-close:hover { background: #f0f0f1; color: #000; }
+.snn-seo-ai-overlay-body { padding: 24px; overflow-y: auto; flex: 1; }
+.snn-seo-ai-presets { margin-bottom: 20px; }
+.snn-seo-ai-presets label { display: block; margin-bottom: 10px; font-weight: 600; font-size: 14px; }
+.snn-seo-ai-options { margin-bottom: 20px; }
+.snn-seo-ai-options > label { display: block; margin-bottom: 10px; font-weight: 600; font-size: 14px; }
+.snn-seo-ai-mode { margin-bottom: 20px; padding: 12px; background: #f6f7f7; border-radius: 4px; border-left: 3px solid #2271b1; }
+.snn-seo-ai-checkboxes { display: flex; gap: 6px; }
+.snn-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: all 0.2s; }
+.snn-checkbox-label:hover { background: #e5f2ff; }
+.snn-checkbox-label input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; margin: 0; }
+.snn-seo-ai-preset-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.snn-preset-btn { padding: 4px 6px; background: #fff; border: 1px solid #2271b1; color: #2271b1; border-radius: 3px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+.snn-preset-btn:hover { background: #f0f6fc; }
+.snn-preset-btn.active { background: #2271b1; color: #fff; }
+.snn-seo-ai-custom { margin-bottom: 20px; }
+.snn-seo-ai-custom label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+#snn-seo-custom-prompt { width: 100%; padding: 8px 12px; border: 1px solid #8c8f94; border-radius: 3px; font-size: 13px; resize: vertical; }
+#snn-seo-custom-prompt:focus { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; outline: none; }
+.snn-seo-ai-results { margin-top: 20px; padding-top: 20px; border-top: 2px solid #2271b1; }
+.snn-seo-result-item { margin-bottom: 20px; position: relative; }
+.snn-seo-result-item label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
+.snn-result-input { width: 100%; padding: 10px 12px; border: 2px solid #2271b1; border-radius: 3px; font-size: 14px; background: #f0f6fc; }
+.snn-result-input:focus { background: #fff; outline: none; box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.3); }
+.snn-char-count { position: absolute; right: 12px; top: 38px; font-size: 11px; color: #646970; background: #fff; padding: 2px 6px; border-radius: 2px; }
+.snn-seo-result-item:last-child .snn-char-count { top: auto; bottom: 12px; }
+.snn-seo-ai-bulk-progress { margin-top: 20px; padding: 20px; background: #f6f7f7; border-radius: 4px; }
+.snn-progress-text { margin-bottom: 10px; font-size: 14px; font-weight: 600; text-align: center; }
+.snn-progress-bar { height: 24px; background: #dcdcde; border-radius: 12px; overflow: hidden; }
+.snn-progress-fill { height: 100%; background: #2271b1; width: 0%; transition: width 0.3s ease; }
+.snn-seo-ai-bulk-results { margin-top: 20px; padding-top: 20px; border-top: 2px solid #2271b1; }
+.snn-bulk-item { background: #f0f6fc; border: 2px solid #2271b1; border-radius: 4px; padding: 16px; margin-bottom: 16px; }
+.snn-bulk-item-header { font-weight: 600; font-size: 14px; margin-bottom: 12px; color: #1d2327; display: flex; justify-content: space-between; align-items: center; }
+.snn-bulk-item-title { flex: 1; }
+.snn-bulk-item-regenerate { padding: 4px 12px; background: #2271b1; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
+.snn-bulk-item-regenerate:hover { background: #135e96; }
+.snn-bulk-item-regenerate:disabled { opacity: 0.5; cursor: not-allowed; }
+.snn-bulk-field { margin-bottom: 12px; }
+.snn-bulk-field:last-child { margin-bottom: 0; }
+.snn-bulk-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #646970; }
+.snn-bulk-field input, .snn-bulk-field textarea { width: 100%; padding: 8px 10px; border: 1px solid #8c8f94; border-radius: 3px; font-size: 13px; background: #fff; }
+.snn-bulk-field input:focus, .snn-bulk-field textarea:focus { border-color: #2271b1; outline: none; box-shadow: 0 0 0 1px #2271b1; }
+.snn-bulk-field textarea { resize: vertical; min-height: 60px; }
+.snn-bulk-field-count { float: right; font-size: 11px; color: #646970; }
+.snn-seo-ai-overlay-footer { padding: 16px 24px; border-top: 1px solid #dcdcde; display: flex; justify-content: flex-end; gap: 10px; }
+.snn-seo-ai-overlay-footer .button { min-width: 100px; }
+.snn-seo-ai-overlay-footer .button:disabled { opacity: 0.5; cursor: not-allowed; }
+@keyframes snnFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes snnSlideIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+
     </style>
     
     <script>
