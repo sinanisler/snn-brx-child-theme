@@ -1068,16 +1068,23 @@ function snn_add_block_editor_ai_panel() {
 
                         // Check if images array exists (primary method for image models)
                         if (message.images && message.images.length > 0) {
-                            generatedImageUrl = message.images[0].url;
+                            // Handle both {url: "..."} and {image_url: {url: "..."}} structures
+                            if (message.images[0].image_url && message.images[0].image_url.url) {
+                                generatedImageUrl = message.images[0].image_url.url;
+                            } else if (message.images[0].url) {
+                                generatedImageUrl = message.images[0].url;
+                            }
                         }
-                        // Fallback: try to extract from content if it's a markdown URL
-                        else if (message.content) {
+                        // Fallback: try to extract from content if it's a markdown URL or data URL
+                        if (!generatedImageUrl && message.content) {
                             const content = message.content;
-                            const markdownMatch = content.match(/!\[.*?\]\((https?:\/\/.*?)\)/);
+                            // Try markdown format first
+                            const markdownMatch = content.match(/!\[.*?\]\(((?:https?:\/\/|data:image\/).*?)\)/);
                             if (markdownMatch && markdownMatch[1]) {
                                 generatedImageUrl = markdownMatch[1];
                             } else {
-                                const urlMatch = content.match(/(https?:\/\/[^\s]+)/);
+                                // Try plain URL or data URL
+                                const urlMatch = content.match(/((?:https?:\/\/|data:image\/)[^\s]+)/);
                                 if (urlMatch && urlMatch[1]) {
                                     generatedImageUrl = urlMatch[1];
                                 }
@@ -1184,7 +1191,7 @@ function snn_save_ai_image_handler() {
         return;
     }
 
-    $image_url = isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '';
+    $image_url = isset($_POST['image_url']) ? $_POST['image_url'] : '';
     $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
 
     if (empty($image_url)) {
@@ -1202,16 +1209,62 @@ function snn_save_ai_image_handler() {
     require_once(ABSPATH . 'wp-admin/includes/media.php');
     require_once(ABSPATH . 'wp-admin/includes/image.php');
 
-    $tmp = download_url($image_url);
+    $tmp = '';
+    $file_extension = 'png';
 
-    if (is_wp_error($tmp)) {
-        wp_send_json_error('Failed to download image: ' . $tmp->get_error_message());
-        return;
+    // Check if it's a base64 data URL
+    if (strpos($image_url, 'data:image/') === 0) {
+        // Parse the data URL
+        if (preg_match('/^data:image\/(\w+);base64,(.+)$/', $image_url, $matches)) {
+            $file_extension = $matches[1];
+            $base64_data = $matches[2];
+
+            // Decode base64 data
+            $image_data = base64_decode($base64_data);
+
+            if ($image_data === false) {
+                wp_send_json_error('Failed to decode base64 image data');
+                return;
+            }
+
+            // Create temporary file
+            $tmp = wp_tempnam();
+            if (!$tmp) {
+                wp_send_json_error('Failed to create temporary file');
+                return;
+            }
+
+            // Write decoded data to temp file
+            $write_result = file_put_contents($tmp, $image_data);
+            if ($write_result === false) {
+                @unlink($tmp);
+                wp_send_json_error('Failed to write image data to temporary file');
+                return;
+            }
+        } else {
+            wp_send_json_error('Invalid base64 image data format');
+            return;
+        }
+    } else {
+        // Regular HTTP/HTTPS URL - download it
+        $image_url = esc_url_raw($image_url);
+        $tmp = download_url($image_url);
+
+        if (is_wp_error($tmp)) {
+            wp_send_json_error('Failed to download image: ' . $tmp->get_error_message());
+            return;
+        }
+
+        // Try to detect extension from URL
+        $path_info = pathinfo(parse_url($image_url, PHP_URL_PATH));
+        if (isset($path_info['extension'])) {
+            $file_extension = $path_info['extension'];
+        }
     }
 
     // Prepare file array
     $file_array = array(
-        'name' => 'ai-generated-image-' . time() . '.png',
+        'name' => 'ai-generated-image-' . time() . '.' . $file_extension,
         'tmp_name' => $tmp
     );
 
