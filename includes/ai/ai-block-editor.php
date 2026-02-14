@@ -1121,7 +1121,7 @@ function snn_add_block_editor_ai_panel() {
             imageRegenerateButton.addEventListener('click', generateImage);
 
             // Function to compress image using canvas
-            async function compressImage(imageUrl, maxWidth = 1920, maxHeight = 1080, quality = 0.85, format = 'image/webp') {
+            async function compressImage(imageUrl, maxWidth = 1920, maxHeight = 1080, quality = 0.75, format = 'image/webp') {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
@@ -1201,7 +1201,7 @@ function snn_add_block_editor_ai_panel() {
                         const format = supportsWebP ? 'image/webp' : 'image/jpeg';
 
                         console.log('Compressing image to', format);
-                        imageToSend = await compressImage(generatedImageUrl, 1920, 1080, 0.85, format);
+                        imageToSend = await compressImage(generatedImageUrl, 1920, 1080, 0.75, format);
                         console.log('Image compressed successfully');
                     } catch (compressionError) {
                         console.warn('Image compression failed, using original:', compressionError);
