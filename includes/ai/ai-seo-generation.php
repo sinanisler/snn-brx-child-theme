@@ -1218,7 +1218,7 @@ function snn_seo_ai_meta_box_buttons($post) {
     ?>
     <div style="margin-top: 15px;">
         <button type="button" class="button button-large" id="snn-seo-ai-generate-btn" >
-            <?php _e('Generate with AI ✨', 'snn'); ?>
+            <?php _e('Generate Content with AI ✨', 'snn'); ?>
         </button>
     </div>
     
