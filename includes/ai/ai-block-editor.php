@@ -1120,6 +1120,68 @@ function snn_add_block_editor_ai_panel() {
             imageSubmitButton.addEventListener('click', generateImage);
             imageRegenerateButton.addEventListener('click', generateImage);
 
+            // Function to compress image using canvas
+            async function compressImage(imageUrl, maxWidth = 1920, maxHeight = 1080, quality = 0.85, format = 'image/webp') {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+
+                    img.onload = () => {
+                        // Calculate new dimensions while maintaining aspect ratio
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth || height > maxHeight) {
+                            const aspectRatio = width / height;
+                            if (width > height) {
+                                width = maxWidth;
+                                height = Math.round(width / aspectRatio);
+                            } else {
+                                height = maxHeight;
+                                width = Math.round(height * aspectRatio);
+                            }
+                        }
+
+                        // Create canvas and draw image
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Convert to blob with compression
+                        canvas.toBlob((blob) => {
+                            if (!blob) {
+                                reject(new Error('Failed to compress image'));
+                                return;
+                            }
+
+                            // Convert blob to base64
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                resolve(reader.result);
+                            };
+                            reader.onerror = () => {
+                                reject(new Error('Failed to read compressed image'));
+                            };
+                            reader.readAsDataURL(blob);
+                        }, format, quality);
+                    };
+
+                    img.onerror = () => {
+                        reject(new Error('Failed to load image for compression'));
+                    };
+
+                    // Handle both regular URLs and data URLs
+                    if (imageUrl.startsWith('data:')) {
+                        img.src = imageUrl;
+                    } else {
+                        // For external URLs, we might need a proxy or CORS
+                        img.src = imageUrl;
+                    }
+                });
+            }
+
             imageSaveButton.addEventListener('click', async () => {
                 if (!generatedImageUrl) {
                     alert('No image to save.');
@@ -1127,9 +1189,27 @@ function snn_add_block_editor_ai_panel() {
                 }
 
                 imageSaveButton.disabled = true;
-                imageSaveButton.textContent = 'Saving...';
+                imageSaveButton.textContent = 'Compressing...';
 
                 try {
+                    // Compress the image before sending
+                    let imageToSend = generatedImageUrl;
+
+                    try {
+                        // Try to compress - use WebP if supported, otherwise JPEG
+                        const supportsWebP = document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0;
+                        const format = supportsWebP ? 'image/webp' : 'image/jpeg';
+
+                        console.log('Compressing image to', format);
+                        imageToSend = await compressImage(generatedImageUrl, 1920, 1080, 0.85, format);
+                        console.log('Image compressed successfully');
+                    } catch (compressionError) {
+                        console.warn('Image compression failed, using original:', compressionError);
+                        // Continue with original image if compression fails
+                    }
+
+                    imageSaveButton.textContent = 'Saving...';
+
                     const response = await fetch(config.ajaxUrl, {
                         method: 'POST',
                         headers: {
@@ -1138,7 +1218,7 @@ function snn_add_block_editor_ai_panel() {
                         body: new URLSearchParams({
                             action: 'snn_save_ai_image',
                             nonce: config.nonce,
-                            image_url: generatedImageUrl,
+                            image_url: imageToSend,
                             post_id: config.postId
                         })
                     });
@@ -1146,7 +1226,6 @@ function snn_add_block_editor_ai_panel() {
                     const result = await response.json();
 
                     if (result.success) {
-                        alert('Image saved successfully as featured image!');
                         hideImageModal();
 
                         // Refresh the featured image section
