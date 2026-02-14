@@ -218,127 +218,394 @@ function snn_seo_ai_render_overlay() {
     </div>
     
     <style>
-   
-#snn-seo-ai-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 160000; }
-.snn-seo-ai-overlay-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); animation: snnFadeIn 0.2s ease; }
-.snn-seo-ai-overlay-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border-radius: 4px; box-shadow: 0 5px 25px rgba(0,0,0,0.3); width: 90%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; animation: snnSlideIn 0.3s ease; }
-.snn-seo-ai-overlay-header { padding: 20px 24px; border-bottom: 1px solid #dcdcde; display: flex; justify-content: space-between; align-items: center; }
-.snn-seo-ai-overlay-header h2 { margin: 0; font-size: 18px; font-weight: 600; }
-.snn-seo-ai-close { background: none; border: none; font-size: 28px; line-height: 1; cursor: pointer; color: #646970; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 3px; }
-.snn-seo-ai-close:hover { background: #f0f0f1; color: #000; }
-.snn-seo-ai-overlay-body { padding: 24px; overflow-y: auto; flex: 1; }
-.snn-seo-ai-presets { margin-bottom: 20px; }
-.snn-seo-ai-presets label { display: block; margin-bottom: 10px; font-weight: 600; font-size: 14px; }
-.snn-seo-ai-options { margin-bottom: 20px; }
-.snn-seo-ai-options > label { display: block; margin-bottom: 10px; font-weight: 600; font-size: 14px; }
-.snn-seo-ai-mode { margin-bottom: 20px; padding: 12px; background: #f6f7f7; border-radius: 4px; border-left: 3px solid #2271b1; }
-.snn-seo-ai-checkboxes { display: flex; gap: 6px; }
-.snn-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: all 0.2s; }
-.snn-checkbox-label:hover { background: #e5f2ff; }
-.snn-checkbox-label input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; margin: 0; }
-.snn-seo-ai-preset-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
-.snn-preset-btn { padding: 4px 6px; background: #fff; border: 1px solid #2271b1; color: #2271b1; border-radius: 3px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-.snn-preset-btn:hover { background: #f0f6fc; }
-.snn-preset-btn.active { background: #2271b1; color: #fff; }
-.snn-seo-ai-custom { margin-bottom: 20px; }
-.snn-seo-ai-custom label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
-#snn-seo-custom-prompt { width: 100%; padding: 8px 12px; border: 1px solid #8c8f94; border-radius: 3px; font-size: 13px; resize: vertical; }
-#snn-seo-custom-prompt:focus { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; outline: none; }
-.snn-seo-ai-results { margin-top: 20px; padding-top: 20px; border-top: 2px solid #2271b1; }
-.snn-seo-result-item { margin-bottom: 20px; position: relative; }
-.snn-seo-result-item label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
-.snn-result-input { width: 100%; padding: 10px 12px; border: 2px solid #2271b1; border-radius: 3px; font-size: 14px; background: #f0f6fc; }
-.snn-result-input:focus { background: #fff; outline: none; box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.3); }
-.snn-char-count { position: absolute; right: 12px; top: 38px; font-size: 11px; color: #646970; background: #fff; padding: 2px 6px; border-radius: 2px; }
-.snn-seo-result-item:last-child .snn-char-count { top: auto; bottom: 12px; }
-.snn-seo-ai-bulk-progress { margin-top: 20px; padding: 20px; background: #f6f7f7; border-radius: 4px; }
-.snn-progress-text { margin-bottom: 10px; font-size: 14px; font-weight: 600; text-align: center; }
-.snn-progress-bar { height: 24px; background: #dcdcde; border-radius: 12px; overflow: hidden; }
-.snn-progress-fill { height: 100%; background: #2271b1; width: 0%; transition: width 0.3s ease; }
-.snn-seo-ai-bulk-results { margin-top: 20px; padding-top: 20px; border-top: 2px solid #2271b1; }
-.snn-bulk-item { background: #f0f6fc; border: 2px solid #2271b1; border-radius: 4px; padding: 16px; margin-bottom: 16px; }
-.snn-bulk-item-header { font-weight: 600; font-size: 14px; margin-bottom: 12px; color: #1d2327; display: flex; justify-content: space-between; align-items: center; }
-.snn-bulk-item-title { flex: 1; }
-.snn-bulk-item-regenerate { padding: 4px 12px; background: #2271b1; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; transition: background 0.2s; }
-.snn-bulk-item-regenerate:hover { background: #135e96; }
-.snn-bulk-item-regenerate:disabled { opacity: 0.5; cursor: not-allowed; }
-.snn-bulk-field { margin-bottom: 12px; }
-.snn-bulk-field:last-child { margin-bottom: 0; }
-.snn-bulk-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #646970; }
-.snn-bulk-field input, .snn-bulk-field textarea { width: 100%; padding: 8px 10px; border: 1px solid #8c8f94; border-radius: 3px; font-size: 13px; background: #fff; }
-.snn-bulk-field input:focus, .snn-bulk-field textarea:focus { border-color: #2271b1; outline: none; box-shadow: 0 0 0 1px #2271b1; }
-.snn-bulk-field textarea { resize: vertical; min-height: 60px; }
-.snn-bulk-field-count { float: right; font-size: 11px; color: #646970; }
-.snn-seo-ai-overlay-footer { padding: 16px 24px; border-top: 1px solid #dcdcde; display: flex; justify-content: flex-end; gap: 10px; }
-.snn-seo-ai-overlay-footer .button { min-width: 100px; }
-.snn-seo-ai-overlay-footer .button:disabled { opacity: 0.5; cursor: not-allowed; }
-@keyframes snnFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes snnSlideIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
-
+    #snn-seo-ai-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 160000;
+    }
+    
+    .snn-seo-ai-overlay-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        animation: snnFadeIn 0.2s ease;
+    }
+    
+    .snn-seo-ai-overlay-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff;
+        border-radius: 4px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        animation: snnSlideIn 0.3s ease;
+    }
+    
+    .snn-seo-ai-overlay-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #dcdcde;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .snn-seo-ai-overlay-header h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .snn-seo-ai-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+        color: #646970;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 3px;
+    }
+    
+    .snn-seo-ai-close:hover {
+        background: #f0f0f1;
+        color: #000;
+    }
+    
+    .snn-seo-ai-overlay-body {
+        padding: 24px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    
+    .snn-seo-ai-presets {
+        margin-bottom: 20px;
+    }
+    
+    .snn-seo-ai-presets label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .snn-seo-ai-options {
+        margin-bottom: 20px;
+    }
+    
+    .snn-seo-ai-options > label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .snn-seo-ai-mode {
+        margin-bottom: 20px;
+        padding: 12px;
+        background: #f6f7f7;
+        border-radius: 4px;
+        border-left: 3px solid #2271b1;
+    }
+    
+    .snn-seo-ai-checkboxes {
+        display: flex;
+        gap: 6px;
+    }
+    
+    .snn-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    
+    .snn-checkbox-label:hover {
+        background: #e5f2ff;
+    }
+    
+    .snn-checkbox-label input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        margin: 0;
+    }
+    
+    .snn-seo-ai-preset-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .snn-preset-btn {
+        padding: 4px 6px;
+        background: #fff;
+        border: 1px solid #2271b1;
+        color: #2271b1;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s;
+    }
+    
+    .snn-preset-btn:hover {
+        background: #f0f6fc;
+    }
+    
+    .snn-preset-btn.active {
+        background: #2271b1;
+        color: #fff;
+    }
+    
+    .snn-seo-ai-custom {
+        margin-bottom: 20px;
+    }
+    
+    .snn-seo-ai-custom label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    #snn-seo-custom-prompt {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #8c8f94;
+        border-radius: 3px;
+        font-size: 13px;
+        resize: vertical;
+    }
+    
+    #snn-seo-custom-prompt:focus {
+        border-color: #2271b1;
+        box-shadow: 0 0 0 1px #2271b1;
+        outline: none;
+    }
+    
+    .snn-seo-ai-results {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #2271b1;
+    }
+    
+    .snn-seo-result-item {
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .snn-seo-result-item label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .snn-result-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #2271b1;
+        border-radius: 3px;
+        font-size: 14px;
+        background: #f0f6fc;
+    }
+    
+    .snn-result-input:focus {
+        background: #fff;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.3);
+    }
+    
+    .snn-char-count {
+        position: absolute;
+        right: 12px;
+        top: 38px;
+        font-size: 11px;
+        color: #646970;
+        background: #fff;
+        padding: 2px 6px;
+        border-radius: 2px;
+    }
+    
+    .snn-seo-result-item:last-child .snn-char-count {
+        top: auto;
+        bottom: 12px;
+    }
+    
+    .snn-seo-ai-bulk-progress {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f6f7f7;
+        border-radius: 4px;
+    }
+    
+    .snn-progress-text {
+        margin-bottom: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+    }
+    
+    .snn-progress-bar {
+        height: 24px;
+        background: #dcdcde;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .snn-progress-fill {
+        height: 100%;
+        background: #2271b1;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    
+    .snn-seo-ai-bulk-results {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #2271b1;
+    }
+    
+    .snn-bulk-item {
+        background: #f0f6fc;
+        border: 2px solid #2271b1;
+        border-radius: 4px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .snn-bulk-item-header {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 12px;
+        color: #1d2327;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .snn-bulk-item-title {
+        flex: 1;
+    }
+    
+    .snn-bulk-item-regenerate {
+        padding: 4px 12px;
+        background: #2271b1;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.2s;
+    }
+    
+    .snn-bulk-item-regenerate:hover {
+        background: #135e96;
+    }
+    
+    .snn-bulk-item-regenerate:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .snn-bulk-field {
+        margin-bottom: 12px;
+    }
+    
+    .snn-bulk-field:last-child {
+        margin-bottom: 0;
+    }
+    
+    .snn-bulk-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #646970;
+    }
+    
+    .snn-bulk-field input,
+    .snn-bulk-field textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #8c8f94;
+        border-radius: 3px;
+        font-size: 13px;
+        background: #fff;
+    }
+    
+    .snn-bulk-field input:focus,
+    .snn-bulk-field textarea:focus {
+        border-color: #2271b1;
+        outline: none;
+        box-shadow: 0 0 0 1px #2271b1;
+    }
+    
+    .snn-bulk-field textarea {
+        resize: vertical;
+        min-height: 60px;
+    }
+    
+    .snn-bulk-field-count {
+        float: right;
+        font-size: 11px;
+        color: #646970;
+    }
+    
+    .snn-seo-ai-overlay-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #dcdcde;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .snn-seo-ai-overlay-footer .button {
+        min-width: 100px;
+    }
+    
+    .snn-seo-ai-overlay-footer .button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    @keyframes snnFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes snnSlideIn {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -45%);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+    }
     </style>
-
-    <!-- AI Image Generation Overlay -->
-    <div id="snn-ai-image-overlay" style="display: none;">
-        <div class="snn-seo-ai-overlay-backdrop"></div>
-        <div class="snn-seo-ai-overlay-container">
-            <div class="snn-seo-ai-overlay-header">
-                <h2><?php _e('AI Image Generation', 'snn'); ?></h2>
-                <button class="snn-seo-ai-close snn-image-close">&times;</button>
-            </div>
-
-            <div class="snn-seo-ai-overlay-body">
-
-                <!-- Include in Prompt -->
-                <div class="snn-seo-ai-options">
-                    <label><?php _e('Include in Prompt:', 'snn'); ?></label>
-                    <div class="snn-seo-ai-checkboxes">
-                        <label class="snn-checkbox-label">
-                            <input type="checkbox" id="snn-image-include-title" checked />
-                            <?php _e('Title', 'snn'); ?>
-                        </label>
-                        <label class="snn-checkbox-label">
-                            <input type="checkbox" id="snn-image-include-content" checked />
-                            <?php _e('Content', 'snn'); ?>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Action Presets -->
-                <div class="snn-seo-ai-presets">
-                    <label><?php _e('Action Preset:', 'snn'); ?></label>
-                    <div class="snn-ai-image-preset-buttons">
-                        <?php foreach ($action_presets as $preset): ?>
-                            <button type="button" class="snn-preset-btn snn-image-preset-btn" data-prompt="<?php echo esc_attr($preset['prompt']); ?>">
-                                <?php echo esc_html($preset['name']); ?>
-                            </button>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <!-- Custom Prompt -->
-                <div class="snn-seo-ai-custom">
-                    <label for="snn-image-custom-prompt"><?php _e('Image Description (Optional):', 'snn'); ?></label>
-                    <textarea id="snn-image-custom-prompt" rows="3" placeholder="<?php _e('Describe the image you want to generate...', 'snn'); ?>"></textarea>
-                </div>
-
-                <!-- Image Preview -->
-                <div class="snn-ai-image-preview" style="display: none;">
-                    <label><?php _e('Generated Image:', 'snn'); ?></label>
-                    <div class="snn-ai-image-container" style="text-align: center; margin-top: 10px;">
-                        <img id="snn-ai-generated-image" src="" alt="Generated Image" style="max-width: 100%; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="snn-seo-ai-overlay-footer">
-                <button type="button" class="button button-large snn-image-cancel"><?php _e('Cancel', 'snn'); ?></button>
-                <button type="button" class="button button-large snn-image-generate"><?php _e('Generate Image', 'snn'); ?></button>
-                <button type="button" class="button button-large snn-image-regenerate" style="display: none;"><?php _e('Regenerate', 'snn'); ?></button>
-                <button type="button" class="button button-large snn-image-save" style="display: none;"><?php _e('Save as Featured Image', 'snn'); ?></button>
-            </div>
-        </div>
-    </div>
-
+    
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof snnSeoAiConfig === 'undefined') return;
@@ -1245,251 +1512,6 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
                 body: formData
             });
         }
-
-        // ==================== AI IMAGE GENERATION ====================
-
-        const imageOverlay = document.getElementById('snn-ai-image-overlay');
-        const imageCloseBtn = document.querySelector('.snn-image-close');
-        const imageCancelBtn = document.querySelector('.snn-image-cancel');
-        const imageGenerateBtn = document.querySelector('.snn-image-generate');
-        const imageRegenerateBtn = document.querySelector('.snn-image-regenerate');
-        const imageSaveBtn = document.querySelector('.snn-image-save');
-        const imageIncludeTitle = document.getElementById('snn-image-include-title');
-        const imageIncludeContent = document.getElementById('snn-image-include-content');
-        const imageCustomPrompt = document.getElementById('snn-image-custom-prompt');
-        const imagePreview = document.querySelector('.snn-ai-image-preview');
-        const generatedImage = document.getElementById('snn-ai-generated-image');
-        const imagePresetButtons = document.querySelectorAll('.snn-image-preset-btn');
-
-        let imageSelectedPresets = [];
-        let currentImageUrl = '';
-        let currentImagePostData = null;
-
-        // Image preset selection
-        imagePresetButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.classList.toggle('active');
-                const prompt = this.dataset.prompt;
-
-                if (this.classList.contains('active')) {
-                    if (!imageSelectedPresets.includes(prompt)) {
-                        imageSelectedPresets.push(prompt);
-                    }
-                } else {
-                    imageSelectedPresets = imageSelectedPresets.filter(p => p !== prompt);
-                }
-            });
-        });
-
-        // Open image overlay
-        window.snnSeoAiOpenImageOverlay = function(data) {
-            currentImagePostData = data;
-            imageSelectedPresets = [];
-            currentImageUrl = '';
-
-            // Reset UI
-            imagePresetButtons.forEach(btn => btn.classList.remove('active'));
-            if (imageCustomPrompt) imageCustomPrompt.value = '';
-            hideElement(imagePreview);
-            if (generatedImage) generatedImage.src = '';
-            showElement(imageGenerateBtn);
-            if (imageGenerateBtn) {
-                imageGenerateBtn.disabled = false;
-                imageGenerateBtn.textContent = config.strings.generate || 'Generate Image';
-            }
-            hideElement(imageRegenerateBtn);
-            hideElement(imageSaveBtn);
-
-            // Show checkboxes only if data exists
-            if (imageIncludeTitle) {
-                if (!data.title || data.title.trim() === '') {
-                    imageIncludeTitle.checked = false;
-                    imageIncludeTitle.disabled = true;
-                    imageIncludeTitle.parentElement.style.opacity = '0.5';
-                } else {
-                    imageIncludeTitle.checked = true;
-                    imageIncludeTitle.disabled = false;
-                    imageIncludeTitle.parentElement.style.opacity = '1';
-                }
-            }
-
-            if (imageIncludeContent) {
-                if (!data.content || data.content.trim() === '') {
-                    imageIncludeContent.checked = false;
-                    imageIncludeContent.disabled = true;
-                    imageIncludeContent.parentElement.style.opacity = '0.5';
-                } else {
-                    imageIncludeContent.checked = true;
-                    imageIncludeContent.disabled = false;
-                    imageIncludeContent.parentElement.style.opacity = '1';
-                }
-            }
-
-            fadeIn(imageOverlay, 200);
-        };
-
-        // Close image overlay
-        function closeImageOverlay() {
-            fadeOut(imageOverlay, 200);
-            currentImagePostData = null;
-        }
-
-        if (imageCloseBtn) imageCloseBtn.addEventListener('click', closeImageOverlay);
-        if (imageCancelBtn) imageCancelBtn.addEventListener('click', closeImageOverlay);
-
-        const imageBackdrop = imageOverlay?.querySelector('.snn-seo-ai-overlay-backdrop');
-        if (imageBackdrop) {
-            imageBackdrop.addEventListener('click', function(e) {
-                if (e.target === this) closeImageOverlay();
-            });
-        }
-
-        // Build image prompt
-        function buildImagePrompt() {
-            let promptParts = [];
-
-            // Add selected content
-            if (imageIncludeTitle && imageIncludeTitle.checked && currentImagePostData.title) {
-                promptParts.push(`Title: ${currentImagePostData.title}`);
-            }
-
-            if (imageIncludeContent && imageIncludeContent.checked && currentImagePostData.content) {
-                promptParts.push(`Content: ${currentImagePostData.content.substring(0, 1000)}`);
-            }
-
-            // Add presets
-            if (imageSelectedPresets.length > 0) {
-                promptParts.push(`Style instructions: ${imageSelectedPresets.join(', ')}`);
-            }
-
-            // Add custom prompt
-            const customText = imageCustomPrompt ? imageCustomPrompt.value.trim() : '';
-            if (customText) {
-                promptParts.push(`Additional instructions: ${customText}`);
-            }
-
-            if (promptParts.length === 0) {
-                return 'Generate a professional, high-quality image';
-            }
-
-            return `Generate a professional, high-quality image based on: ${promptParts.join('. ')}`;
-        }
-
-        // Generate image
-        async function generateImageAI() {
-            const prompt = buildImagePrompt();
-
-            if (imageGenerateBtn) {
-                imageGenerateBtn.disabled = true;
-                imageGenerateBtn.textContent = config.strings.generating || 'Generating...';
-            }
-
-            try {
-                // Call AI API for image generation
-                const formData = new FormData();
-                formData.append('action', 'snn_ai_generate_image');
-                formData.append('nonce', config.nonce);
-                formData.append('prompt', prompt);
-
-                const response = await fetch(config.ajaxUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success && data.data.image_url) {
-                    currentImageUrl = data.data.image_url;
-                    if (generatedImage) generatedImage.src = currentImageUrl;
-                    fadeIn(imagePreview);
-                    hideElement(imageGenerateBtn);
-                    showElement(imageRegenerateBtn);
-                    showElement(imageSaveBtn);
-                } else {
-                    throw new Error(data.data || 'Failed to generate image');
-                }
-            } catch (error) {
-                console.error('Image generation error:', error);
-                alert(config.strings.error + ': ' + error.message);
-                if (imageGenerateBtn) {
-                    imageGenerateBtn.disabled = false;
-                    imageGenerateBtn.textContent = config.strings.generate || 'Generate Image';
-                }
-            }
-        }
-
-        // Regenerate image
-        async function regenerateImageAI() {
-            if (imageRegenerateBtn) {
-                imageRegenerateBtn.disabled = true;
-                imageRegenerateBtn.textContent = config.strings.regenerating || 'Regenerating...';
-            }
-
-            try {
-                await generateImageAI();
-            } finally {
-                if (imageRegenerateBtn) {
-                    imageRegenerateBtn.disabled = false;
-                    imageRegenerateBtn.textContent = config.strings.regenerate || 'Regenerate';
-                }
-            }
-        }
-
-        // Save image
-        async function saveImageAI() {
-            if (!currentImageUrl || !currentImagePostData) {
-                alert('No image to save');
-                return;
-            }
-
-            if (imageSaveBtn) {
-                imageSaveBtn.disabled = true;
-                imageSaveBtn.textContent = 'Saving...';
-            }
-
-            try {
-                const formData = new FormData();
-                formData.append('action', 'snn_ai_save_featured_image');
-                formData.append('nonce', config.nonce);
-                formData.append('post_id', currentImagePostData.postId);
-                formData.append('image_url', currentImageUrl);
-
-                const response = await fetch(config.ajaxUrl, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert(config.strings.success || 'Image saved successfully as featured image!');
-                    closeImageOverlay();
-                    location.reload();
-                } else {
-                    throw new Error(data.data || 'Failed to save image');
-                }
-            } catch (error) {
-                console.error('Save error:', error);
-                alert('Error saving image: ' + error.message);
-                if (imageSaveBtn) {
-                    imageSaveBtn.disabled = false;
-                    imageSaveBtn.textContent = config.strings.save || 'Save as Featured Image';
-                }
-            }
-        }
-
-        // Event listeners
-        if (imageGenerateBtn) {
-            imageGenerateBtn.addEventListener('click', generateImageAI);
-        }
-
-        if (imageRegenerateBtn) {
-            imageRegenerateBtn.addEventListener('click', regenerateImageAI);
-        }
-
-        if (imageSaveBtn) {
-            imageSaveBtn.addEventListener('click', saveImageAI);
-        }
     });
     </script>
     <?php
@@ -1523,12 +1545,9 @@ function snn_seo_ai_meta_box_buttons($post) {
     }
     
     ?>
-    <div style="margin-top: 15px; display: flex; gap: 10px;">
+    <div style="margin-top: 15px;">
         <button type="button" class="button button-large" id="snn-seo-ai-generate-btn" >
-            <?php _e('Generate Content with AI ✨', 'snn'); ?>
-        </button>
-        <button type="button" class="button button-large" id="snn-seo-ai-generate-image-btn" >
-            <?php _e('Generate Image with AI 🎨', 'snn'); ?>
+            <?php _e('Generate with AI ✨', 'snn'); ?>
         </button>
     </div>
     
@@ -1545,21 +1564,6 @@ function snn_seo_ai_meta_box_buttons($post) {
 
                 if (typeof window.snnSeoAiOpenOverlay === 'function') {
                     window.snnSeoAiOpenOverlay('single', {
-                        postId: postId,
-                        title: postTitle,
-                        content: postContent
-                    });
-                }
-            });
-        }
-
-        const generateImageBtn = document.getElementById('snn-seo-ai-generate-image-btn');
-        if (generateImageBtn) {
-            generateImageBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                if (typeof window.snnSeoAiOpenImageOverlay === 'function') {
-                    window.snnSeoAiOpenImageOverlay({
                         postId: postId,
                         title: postTitle,
                         content: postContent
@@ -1828,204 +1832,8 @@ function snn_seo_ai_init() {
     if (!snn_seo_ai_is_enabled()) {
         return;
     }
-
+    
     // Add buttons after meta box is rendered
     add_action('snn_seo_meta_box_after_fields', 'snn_seo_ai_meta_box_buttons');
 }
 add_action('init', 'snn_seo_ai_init');
-
-/**
- * AJAX: Generate AI image
- */
-function snn_ai_generate_image_handler() {
-    check_ajax_referer('snn_seo_ai_nonce', 'nonce');
-
-    if (!current_user_can('edit_posts')) {
-        wp_send_json_error('Insufficient permissions');
-    }
-
-    $prompt = isset($_POST['prompt']) ? sanitize_textarea_field($_POST['prompt']) : '';
-
-    if (empty($prompt)) {
-        wp_send_json_error('Prompt is required');
-    }
-
-    // Get AI configuration
-    if (!function_exists('snn_get_ai_api_config')) {
-        wp_send_json_error('AI configuration not available');
-    }
-
-    $config = snn_get_ai_api_config();
-
-    if (empty($config['apiKey']) || empty($config['imageConfig']['image_model'])) {
-        wp_send_json_error('AI image model not configured. Please configure the image model in AI settings.');
-    }
-
-    try {
-        // Prepare the API request for image generation
-        $api_endpoint = 'https://openrouter.ai/api/v1/chat/completions';
-        $image_model = $config['imageConfig']['image_model'];
-        $aspect_ratio = $config['imageConfig']['aspect_ratio'];
-        $image_size = $config['imageConfig']['image_size'];
-
-        // Convert aspect ratio to dimensions
-        $dimensions = snn_ai_get_image_dimensions($aspect_ratio, $image_size);
-
-        // Build the request
-        $request_body = array(
-            'model' => $image_model,
-            'messages' => array(
-                array(
-                    'role' => 'user',
-                    'content' => $prompt
-                )
-            )
-        );
-
-        // If the model supports image size parameters, add them
-        if (!empty($dimensions)) {
-            $request_body['max_tokens'] = 1000; // For image generation
-        }
-
-        $response = wp_remote_post($api_endpoint, array(
-            'timeout' => 60,
-            'headers' => array(
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $config['apiKey']
-            ),
-            'body' => json_encode($request_body)
-        ));
-
-        if (is_wp_error($response)) {
-            wp_send_json_error('API request failed: ' . $response->get_error_message());
-        }
-
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        // Check if we got a valid response
-        if (isset($data['choices'][0]['message']['content'])) {
-            $content = $data['choices'][0]['message']['content'];
-
-            // Try to extract image URL from the response
-            // OpenRouter image models may return URLs in different formats
-            if (preg_match('/(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/i', $content, $matches)) {
-                $image_url = $matches[1];
-                wp_send_json_success(array('image_url' => $image_url));
-            } else {
-                wp_send_json_error('No image URL found in API response. Response: ' . $content);
-            }
-        } elseif (isset($data['data'][0]['url'])) {
-            // Alternative response format
-            wp_send_json_success(array('image_url' => $data['data'][0]['url']));
-        } else {
-            wp_send_json_error('Unexpected API response format: ' . json_encode($data));
-        }
-
-    } catch (Exception $e) {
-        wp_send_json_error('Error generating image: ' . $e->getMessage());
-    }
-}
-add_action('wp_ajax_snn_ai_generate_image', 'snn_ai_generate_image_handler');
-
-/**
- * Helper function to convert aspect ratio and size to dimensions
- */
-function snn_ai_get_image_dimensions($aspect_ratio, $size) {
-    $sizes = array(
-        '1K' => 1024,
-        '2K' => 2048,
-        '4K' => 4096
-    );
-
-    $base_width = isset($sizes[$size]) ? $sizes[$size] : 1024;
-
-    // Parse aspect ratio
-    $ratio_parts = explode(':', $aspect_ratio);
-    if (count($ratio_parts) !== 2) {
-        return array('width' => $base_width, 'height' => $base_width);
-    }
-
-    $ratio_w = (float) $ratio_parts[0];
-    $ratio_h = (float) $ratio_parts[1];
-
-    if ($ratio_w > $ratio_h) {
-        $width = $base_width;
-        $height = (int) ($base_width * ($ratio_h / $ratio_w));
-    } else {
-        $height = $base_width;
-        $width = (int) ($base_width * ($ratio_w / $ratio_h));
-    }
-
-    return array('width' => $width, 'height' => $height);
-}
-
-/**
- * AJAX: Save AI-generated image as featured image
- */
-function snn_ai_save_featured_image_handler() {
-    check_ajax_referer('snn_seo_ai_nonce', 'nonce');
-
-    if (!current_user_can('edit_posts')) {
-        wp_send_json_error('Insufficient permissions');
-    }
-
-    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-    $image_url = isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '';
-
-    if (!$post_id || !$image_url) {
-        wp_send_json_error('Missing post ID or image URL');
-    }
-
-    // Verify post exists
-    $post = get_post($post_id);
-    if (!$post) {
-        wp_send_json_error('Post not found');
-    }
-
-    // Download the image
-    require_once(ABSPATH . 'wp-admin/includes/file.php');
-    require_once(ABSPATH . 'wp-admin/includes/media.php');
-    require_once(ABSPATH . 'wp-admin/includes/image.php');
-
-    $tmp = download_url($image_url);
-
-    if (is_wp_error($tmp)) {
-        wp_send_json_error('Failed to download image: ' . $tmp->get_error_message());
-    }
-
-    // Get file extension
-    $extension = pathinfo(parse_url($image_url, PHP_URL_PATH), PATHINFO_EXTENSION);
-    if (empty($extension)) {
-        $extension = 'jpg';
-    }
-
-    // Prepare file array
-    $file_array = array(
-        'name' => 'ai-generated-' . time() . '.' . $extension,
-        'tmp_name' => $tmp
-    );
-
-    // Upload the file to WordPress media library
-    $attachment_id = media_handle_sideload($file_array, $post_id, 'AI Generated Image');
-
-    // Clean up temp file
-    @unlink($tmp);
-
-    if (is_wp_error($attachment_id)) {
-        wp_send_json_error('Failed to upload image: ' . $attachment_id->get_error_message());
-    }
-
-    // Set as featured image
-    $result = set_post_thumbnail($post_id, $attachment_id);
-
-    if ($result) {
-        wp_send_json_success(array(
-            'attachment_id' => $attachment_id,
-            'message' => 'Image saved as featured image successfully'
-        ));
-    } else {
-        wp_send_json_error('Failed to set featured image');
-    }
-}
-add_action('wp_ajax_snn_ai_save_featured_image', 'snn_ai_save_featured_image_handler');
