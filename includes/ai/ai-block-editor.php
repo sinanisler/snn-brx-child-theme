@@ -1242,7 +1242,7 @@ function snn_add_block_editor_ai_panel() {
 
             // Function to compress image using canvas with transparency support
             // WebP supports both transparency and compression, so we use it exclusively
-            async function compressImage(imageUrl, maxWidth = 1920, maxHeight = 1080, quality = 0.75) {
+            async function compressImage(imageUrl, maxWidth = 1920, maxHeight = 1080, quality = 0.90) {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
