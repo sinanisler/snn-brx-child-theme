@@ -375,7 +375,7 @@ function snn_add_block_editor_ai_panel() {
                 button.id = 'snn-ai-summary-button';
                 button.type = 'button';
                 button.className = 'snn-block-ai-panel-button button';
-                button.textContent = 'Generate with AI ✨';
+                button.textContent = 'Generate Content with AI ✨';
                 button.onclick = showModal;
 
                 buttonContainer.appendChild(button);
