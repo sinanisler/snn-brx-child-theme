@@ -98,6 +98,13 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
+    add_settings_field(
+        'enable_admin_bar_toggle',
+        __('Enable Admin Bar Toggle on Frontend', 'snn'),
+        'snn_enable_admin_bar_toggle_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
 
     add_settings_field(
         'disable_dashboard_widgets',
@@ -131,6 +138,7 @@ function snn_sanitize_other_settings($input) {
     $sanitized['disable_comments'] = isset($input['disable_comments']) && $input['disable_comments'] ? 1 : 0;
     $sanitized['disable_comments_completely'] = isset($input['disable_comments_completely']) && $input['disable_comments_completely'] ? 1 : 0;
     $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
+    $sanitized['enable_admin_bar_toggle'] = isset($input['enable_admin_bar_toggle']) && $input['enable_admin_bar_toggle'] ? 1 : 0;
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
 
     if (isset($input['dashboard_custom_metabox_content'])) {
@@ -219,6 +227,21 @@ function snn_enable_draft_revision_callback() {
     <p>
         <?php _e('Enabling this will add "Create Revision" and "Sync with Original" quick links to your posts.', 'snn'); ?><br>
         <?php _e('This allows you to create draft revisions of posts, edit them, and sync them back to the original when ready.', 'snn'); ?>
+    </p>
+    <?php
+}
+
+function snn_enable_admin_bar_toggle_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_other_settings[enable_admin_bar_toggle]" value="1" <?php checked(1, isset($options['enable_admin_bar_toggle']) ? $options['enable_admin_bar_toggle'] : 0); ?>>
+        <?php _e('Enable admin bar toggle functionality on frontend', 'snn'); ?>
+    </label>
+    <p>
+        <?php _e('Enabling this adds a toggle button to the admin bar and keyboard shortcut (Ctrl+I) to show/hide the admin bar on the frontend.', 'snn'); ?><br>
+        <?php _e('The visibility state is saved in your browser and persists across page loads. Useful for taking screenshots or viewing the site without the admin bar.', 'snn'); ?><br>
+        <?php _e('<strong>Important:</strong> Once hidden, you can only show it again using the Ctrl+I keyboard shortcut, so make sure to remember it!', 'snn'); ?>
     </p>
     <?php
 }
@@ -450,3 +473,73 @@ function snn_display_custom_dashboard_metabox() {
         echo do_shortcode($content);
     }
 }
+
+/**
+ * Add admin bar toggle script to frontend footer.
+ */
+function snn_admin_bar_toggle_script() {
+    $options = get_option('snn_other_settings');
+    if (!isset($options['enable_admin_bar_toggle']) || !$options['enable_admin_bar_toggle']) {
+        return;
+    }
+
+    if (!is_admin() && is_user_logged_in()) {
+        ?>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const hideButton = document.querySelector('#wp-admin-bar-hide-admin-bar');
+          const STORAGE_KEY = 'wp_admin_bar_hidden';
+
+          // Add tooltip to the button
+          if (hideButton) {
+            hideButton.setAttribute('title', 'Toggle Admin Bar (Ctrl+I)');
+          }
+
+          // Function to toggle admin bar visibility
+          function toggleAdminBar(hide) {
+            const adminBar = document.querySelector('#wpadminbar');
+            const html = document.documentElement;
+
+            if (adminBar) {
+              if (hide) {
+                adminBar.style.display = 'none';
+                html.style.setProperty('margin-top', '0px', 'important');
+                html.style.setProperty('--wp-admin--admin-bar--height', '0px');
+                localStorage.setItem(STORAGE_KEY, 'true');
+              } else {
+                adminBar.style.display = '';
+                html.style.removeProperty('margin-top');
+                html.style.removeProperty('--wp-admin--admin-bar--height');
+                localStorage.setItem(STORAGE_KEY, 'false');
+              }
+            }
+          }
+
+          // Check localStorage on page load and apply saved state
+          const isHidden = localStorage.getItem(STORAGE_KEY) === 'true';
+          if (isHidden) {
+            toggleAdminBar(true);
+          }
+
+          // Button click handler
+          if (hideButton) {
+            hideButton.addEventListener('click', function() {
+              const currentlyHidden = localStorage.getItem(STORAGE_KEY) === 'true';
+              toggleAdminBar(!currentlyHidden);
+            });
+          }
+
+          // Ctrl+I keyboard shortcut
+          document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'i') {
+              e.preventDefault();
+              const currentlyHidden = localStorage.getItem(STORAGE_KEY) === 'true';
+              toggleAdminBar(!currentlyHidden);
+            }
+          });
+        });
+        </script>
+        <?php
+    }
+}
+add_action('wp_footer', 'snn_admin_bar_toggle_script');
