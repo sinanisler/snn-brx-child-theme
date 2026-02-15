@@ -15,55 +15,9 @@ class SNN_Query_Nestable extends Element {
 
     // ADDED: Static stack to track post context in nested queries
     private static $post_context_stack = [];
-    
-    // ADDED: Store the query loop object IDs for Bricks dynamic data context
-    private static $query_loop_post_id = null;
 
     public function get_label() {
         return esc_html__( 'Query (Nestable)', 'snn' );
-    }
-    
-    /**
-     * Hook into Bricks' dynamic data system to use our loop post ID
-     */
-    public function __construct( $element = [] ) {
-        parent::__construct( $element );
-        
-        // Filter the post ID that Bricks uses for dynamic data rendering
-        // Use very high priority to override other filters
-        add_filter( 'bricks/dynamic_data/post_id', [ $this, 'get_loop_post_id' ], 999, 3 );
-        
-        // Also hook into the content rendering to ensure dynamic tags work
-        add_filter( 'bricks/frontend/render_data', [ $this, 'force_loop_context_in_content' ], 5, 3 );
-    }
-    
-    /**
-     * Return the current loop post ID for Bricks dynamic data
-     */
-    public function get_loop_post_id( $post_id, $element = null, $context = 'text' ) {
-        // If we're inside our query loop, use our loop post ID
-        if ( self::$query_loop_post_id !== null ) {
-            return self::$query_loop_post_id;
-        }
-        return $post_id;
-    }
-    
-    /**
-     * Force loop context when rendering child element content
-     */
-    public function force_loop_context_in_content( $content, $post_or_element, $element = null ) {
-        // If we're in a query loop, make sure global $post is set correctly
-        if ( self::$query_loop_post_id !== null ) {
-            global $post;
-            // Ensure the global $post matches our loop post ID
-            if ( ! $post || $post->ID !== self::$query_loop_post_id ) {
-                $post = get_post( self::$query_loop_post_id );
-                if ( $post ) {
-                    setup_postdata( $post );
-                }
-            }
-        }
-        return $content;
     }
 
     public function set_controls() {
@@ -629,10 +583,9 @@ class SNN_Query_Nestable extends Element {
                 echo '<div ' . $this->render_attributes( '_root' ) . '>';
             }
 
-            // Store original query and post for Bricks dynamic data
-            global $wp_query, $post;
+            // Store original query for Bricks dynamic data
+            global $wp_query;
             $original_query = $wp_query;
-            $original_post = $post;
             
             // Temporarily replace global query for Bricks dynamic data to work
             $wp_query = $posts_query;
@@ -640,37 +593,18 @@ class SNN_Query_Nestable extends Element {
             // Loop through posts
             while ( $posts_query->have_posts() ) {
                 $posts_query->the_post();
-                
-                // CRITICAL: Explicitly set global $post and setup post data
-                // This ensures Bricks' dynamic data system recognizes the loop context
-                global $post;
-                $current_post_id = $post->ID;
-                
-                // Explicitly setup post data - critical for Bricks native tags
-                setup_postdata( $post );
-                
-                // CRITICAL: Set the loop post ID for Bricks dynamic data filter
-                // This makes {post_url}, {post_title} etc. work in child elements
-                self::$query_loop_post_id = $current_post_id;
+                $current_post_id = get_the_ID();
 
                 // CRITICAL: Push current post ID onto context stack BEFORE rendering children
                 // This ensures nested queries can access the correct parent post ID via {post_id}
                 self::$post_context_stack[] = $current_post_id;
 
-                // DEBUG: Show comprehensive context information
+                // REMOVED: setup_postdata( $current_post_id ); 
+                // Reason: the_post() already does this. Calling it again with ID causes issues.
+
+                // DEBUG: Show if children are being rendered
                 if ( $debug_mode ) {
-                    echo '<div style="background: #ffffcc; padding: 10px; margin: 10px 0; border: 2px solid #333;">';
-                    echo '<strong>🔄 LOOP CONTEXT FOR POST:</strong><br>';
-                    echo '&nbsp;&nbsp;• Post ID: ' . $current_post_id . '<br>';
-                    echo '&nbsp;&nbsp;• Post Title: ' . esc_html( get_the_title() ) . '<br>';
-                    echo '&nbsp;&nbsp;• Post Slug: ' . esc_html( $post->post_name ) . '<br>';
-                    echo '&nbsp;&nbsp;• Post URL: ' . esc_url( get_permalink() ) . '<br>';
-                    echo '&nbsp;&nbsp;• Global $post->ID: ' . ( isset($post->ID) ? $post->ID : '<span style="color:red;">NOT SET</span>' ) . '<br>';
-                    echo '&nbsp;&nbsp;• get_the_ID(): ' . get_the_ID() . '<br>';
-                    echo '&nbsp;&nbsp;• $wp_query->post->ID: ' . ( isset($wp_query->post->ID) ? $wp_query->post->ID : '<span style="color:red;">NOT SET</span>' ) . '<br>';
-                    echo '&nbsp;&nbsp;• in_the_loop(): ' . ( in_the_loop() ? '<span style="color:green;">YES</span>' : '<span style="color:red;">NO</span>' ) . '<br>';
-                    echo '&nbsp;&nbsp;• self::$query_loop_post_id: ' . ( self::$query_loop_post_id ?? '<span style="color:red;">NOT SET</span>' ) . '<br>';
-                    echo '</div>';
+                    echo '<div style="background: #ff0; padding: 10px; margin: 10px 0; border: 2px solid #000;">RENDERING CHILDREN FOR POST ID: ' . $current_post_id . '</div>';
                 }
 
                 // Render nested children for each post
@@ -680,22 +614,13 @@ class SNN_Query_Nestable extends Element {
                 // CRITICAL: Pop post ID from context stack AFTER rendering children
                 // This restores the correct context for any parent query
                 array_pop( self::$post_context_stack );
-                
-                // Clear the loop post ID
-                self::$query_loop_post_id = null;
             }
 
             // Reset post data
             wp_reset_postdata();
             
-            // Restore original query and post
+            // Restore original query
             $wp_query = $original_query;
-            if ( isset( $original_post ) ) {
-                $post = $original_post;
-                if ( $original_post ) {
-                    setup_postdata( $original_post );
-                }
-            }
 
             // Output wrapper closing tag
             if ( ! $no_wrapper ) {
