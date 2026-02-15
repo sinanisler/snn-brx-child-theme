@@ -30,7 +30,11 @@ class SNN_Query_Nestable extends Element {
         parent::__construct( $element );
         
         // Filter the post ID that Bricks uses for dynamic data rendering
-        add_filter( 'bricks/dynamic_data/post_id', [ $this, 'get_loop_post_id' ], 10, 3 );
+        // Use very high priority to override other filters
+        add_filter( 'bricks/dynamic_data/post_id', [ $this, 'get_loop_post_id' ], 999, 3 );
+        
+        // Also hook into the content rendering to ensure dynamic tags work
+        add_filter( 'bricks/frontend/render_data', [ $this, 'force_loop_context_in_content' ], 5, 3 );
     }
     
     /**
@@ -42,6 +46,24 @@ class SNN_Query_Nestable extends Element {
             return self::$query_loop_post_id;
         }
         return $post_id;
+    }
+    
+    /**
+     * Force loop context when rendering child element content
+     */
+    public function force_loop_context_in_content( $content, $post_or_element, $element = null ) {
+        // If we're in a query loop, make sure global $post is set correctly
+        if ( self::$query_loop_post_id !== null ) {
+            global $post;
+            // Ensure the global $post matches our loop post ID
+            if ( ! $post || $post->ID !== self::$query_loop_post_id ) {
+                $post = get_post( self::$query_loop_post_id );
+                if ( $post ) {
+                    setup_postdata( $post );
+                }
+            }
+        }
+        return $content;
     }
 
     public function set_controls() {
