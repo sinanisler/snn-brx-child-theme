@@ -145,6 +145,7 @@ function snn_custom_fields_page_callback() {
                                     <option value="number"    <?php selected($field_type, 'number'); ?>><?php esc_html_e('Number', 'snn'); ?></option>
                                     <option value="double_text"    <?php selected($field_type, 'double_text'); ?>><?php esc_html_e('Double Text', 'snn'); ?></option>
                                     <option value="textarea"  <?php selected($field_type, 'textarea'); ?>><?php esc_html_e('Textarea', 'snn'); ?></option>
+                                    <option value="double_textarea"  <?php selected($field_type, 'double_textarea'); ?>><?php esc_html_e('Double Textarea', 'snn'); ?></option>
                                     <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>><?php esc_html_e('Rich Text', 'snn'); ?></option>
                                     <option value="basic_rich_text" <?php selected($field_type, 'basic_rich_text'); ?>><?php esc_html_e('Basic Rich Text', 'snn'); ?></option>
                                     <option value="media"     <?php selected($field_type, 'media'); ?>><?php esc_html_e('Media', 'snn'); ?></option>
@@ -192,15 +193,15 @@ function snn_custom_fields_page_callback() {
                                 <label><?php esc_html_e('Author', 'snn'); ?></label>
                                 <input type="checkbox" class="author-checkbox" name="custom_fields[<?php echo $index; ?>][author]" value="1"  
                                        <?php checked(!empty($field['author'])); 
-                                       echo ($field_type === 'double_text') ? ' disabled' : ''; ?>
-                                       title="<?php echo ($field_type === 'double_text') ? esc_attr__('Double text field cannot be assigned to Author', 'snn') : ''; ?>" />
+                                       echo (in_array($field_type, ['double_text', 'double_textarea'])) ? ' disabled' : ''; ?>
+                                       title="<?php echo (in_array($field_type, ['double_text', 'double_textarea'])) ? esc_attr__('This field type cannot be assigned to Author', 'snn') : ''; ?>" />
                             </div>
                              <div class="field-group">
                                 <label><?php esc_html_e('Options Page', 'snn'); ?></label>
                                 <input type="checkbox" class="options-page-checkbox" name="custom_fields[<?php echo $index; ?>][options_page]" value="1"  
                                        <?php checked(!empty($field['options_page'])); 
-                                       echo ($field_type === 'double_text') ? ' disabled' : ''; ?>
-                                       title="<?php echo ($field_type === 'double_text') ? esc_attr__('Double text field cannot be assigned to Options Page', 'snn') : ''; ?>" />
+                                       echo (in_array($field_type, ['double_text', 'double_textarea'])) ? ' disabled' : ''; ?>
+                                       title="<?php echo (in_array($field_type, ['double_text', 'double_textarea'])) ? esc_attr__('This field type cannot be assigned to Options Page', 'snn') : ''; ?>" />
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Repeater', 'snn'); ?></label>
@@ -285,11 +286,11 @@ function snn_custom_fields_page_callback() {
                 const authorCheckbox = row.querySelector('.author-checkbox');
                 const optionsCheckbox = row.querySelector('.options-page-checkbox');
                 if (!typeSelect || !authorCheckbox || !optionsCheckbox) return;
-                const disable = (typeSelect.value === 'double_text');
+                const disable = ['double_text', 'double_textarea'].includes(typeSelect.value);
                 authorCheckbox.disabled = disable;
                 optionsCheckbox.disabled = disable;
-                authorCheckbox.title = disable ? '<?php echo esc_js(__('Double text field cannot be assigned to Author', 'snn')); ?>' : '';
-                optionsCheckbox.title = disable ? '<?php echo esc_js(__('Double text field cannot be assigned to Options Page', 'snn')); ?>' : '';
+                authorCheckbox.title = disable ? '<?php echo esc_js(__('This field type cannot be assigned to Author', 'snn')); ?>' : '';
+                optionsCheckbox.title = disable ? '<?php echo esc_js(__('This field type cannot be assigned to Options Page', 'snn')); ?>' : '';
                 if (disable) {
                     authorCheckbox.checked = false;
                     optionsCheckbox.checked = false;
@@ -408,6 +409,7 @@ function snn_custom_fields_page_callback() {
                             <option value="number"><?php esc_html_e('Number', 'snn'); ?></option>
                             <option value="double_text"><?php esc_html_e('Double Text', 'snn'); ?></option>
                             <option value="textarea"><?php esc_html_e('Textarea', 'snn'); ?></option>
+                            <option value="double_textarea"><?php esc_html_e('Double Textarea', 'snn'); ?></option>
                             <option value="rich_text"><?php esc_html_e('Rich Text', 'snn'); ?></option>
                             <option value="basic_rich_text"><?php esc_html_e('Basic Rich Text', 'snn'); ?></option>
                             <option value="media"><?php esc_html_e('Media', 'snn'); ?></option>
@@ -1110,6 +1112,17 @@ function snn_render_metabox_content($post, $metabox) {
         min-width: 120px;
         max-width: 300px;
     }
+    .snn-double-textarea-wrapper {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .snn-double-textarea-wrapper textarea {
+        flex: 1;
+        min-width: 200px;
+        min-height: 80px;
+    }
     .repeater-container {
         margin-top: 5px;
     }
@@ -1282,6 +1295,47 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             echo '<input type="text" id="' . esc_attr($id_attribute_base . '_2')
                  . '" name="' . esc_attr($name_attr_2) . '" value="' . esc_attr($value2) 
                  . '" placeholder="' . esc_attr__('Input 2', 'snn') . '" style="flex:1;min-width:120px;"' . $disabled_attr . ' />';
+            echo '</div>';
+            break;
+
+        case 'double_textarea':
+            // Double textarea field: two textarea inputs side by side
+            // Value structure: array with two elements [textarea1, textarea2]
+            $value1 = '';
+            $value2 = '';
+            if (is_array($value) && count($value) >= 2) {
+                $value1 = $value[0];
+                $value2 = $value[1];
+            }
+            
+            // Convert arrays to JSON strings for display if needed
+            if (is_array($value1)) {
+                $value1 = json_encode($value1, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+            if (is_array($value2)) {
+                $value2 = json_encode($value2, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+            
+            // Create unique names for the two textareas
+            $name_attr_1 = '';
+            $name_attr_2 = '';
+            
+            if (!empty($field['repeater'])) {
+                $currentIndex = $is_template ? '__index__' : intval($index);
+                $name_attr_1 = $prefix . '[' . $base_field_part . '][' . $currentIndex . '][0]';
+                $name_attr_2 = $prefix . '[' . $base_field_part . '][' . $currentIndex . '][1]';
+            } else {
+                $name_attr_1 = $prefix . '[' . $base_field_part . '][0]';
+                $name_attr_2 = $prefix . '[' . $base_field_part . '][1]';
+            }
+            
+            echo '<div class="snn-double-textarea-wrapper" style="display:flex;gap:10px;flex-wrap:wrap;">';
+            echo '<textarea id="' . esc_attr($id_attribute_base . '_1')
+                 . '" name="' . esc_attr($name_attr_1) . '" placeholder="' . esc_attr__('Textarea 1', 'snn') 
+                 . '" style="flex:1;min-width:200px;min-height:80px;"' . $disabled_attr . '>' . esc_textarea($value1) . '</textarea>';
+            echo '<textarea id="' . esc_attr($id_attribute_base . '_2')
+                 . '" name="' . esc_attr($name_attr_2) . '" placeholder="' . esc_attr__('Textarea 2', 'snn') 
+                 . '" style="flex:1;min-width:200px;min-height:80px;"' . $disabled_attr . '>' . esc_textarea($value2) . '</textarea>';
             echo '</div>';
             break;
 
@@ -1723,6 +1777,45 @@ function snn_save_custom_fields_meta($post_id) {
                         if (count($raw_value) >= 2) {
                             $val1 = sanitize_text_field($raw_value[0]);
                             $val2 = sanitize_text_field($raw_value[1]);
+                            if ($val1 !== '' || $val2 !== '') {
+                                update_post_meta($post_id, $field_name, [$val1, $val2]);
+                            } else {
+                                delete_post_meta($post_id, $field_name);
+                            }
+                        } else {
+                            delete_post_meta($post_id, $field_name);
+                        }
+                    }
+                } else {
+                    delete_post_meta($post_id, $field_name);
+                }
+            } elseif ($field['type'] === 'double_textarea') {
+                // Special handling for double_textarea field (similar to double_text but with textarea sanitization)
+                if (is_array($raw_value)) {
+                    // Check if it's a repeater (nested arrays) or single double_textarea
+                    if (!empty($field['repeater'])) {
+                        // Repeater mode: array of pairs [[val1, val2], [val3, val4], ...]
+                        $sanitized_rows = [];
+                        foreach ($raw_value as $row_data) {
+                            if (is_array($row_data) && count($row_data) >= 2) {
+                                $val1 = wp_kses_post($row_data[0]);
+                                $val2 = wp_kses_post($row_data[1]);
+                                // Only save rows where at least one field has data
+                                if ($val1 !== '' || $val2 !== '') {
+                                    $sanitized_rows[] = [$val1, $val2];
+                                }
+                            }
+                        }
+                        if (!empty($sanitized_rows)) {
+                            update_post_meta($post_id, $field_name, $sanitized_rows);
+                        } else {
+                            delete_post_meta($post_id, $field_name);
+                        }
+                    } else {
+                        // Non-repeater mode: single pair [val1, val2]
+                        if (count($raw_value) >= 2) {
+                            $val1 = wp_kses_post($raw_value[0]);
+                            $val2 = wp_kses_post($raw_value[1]);
                             if ($val1 !== '' || $val2 !== '') {
                                 update_post_meta($post_id, $field_name, [$val1, $val2]);
                             } else {
@@ -2188,6 +2281,13 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
             // Double text returns an array of two text values
             if (is_array($value) && count($value) >= 2) {
                 return [sanitize_text_field($value[0]), sanitize_text_field($value[1])];
+            }
+            return ['', ''];
+
+        case 'double_textarea':
+            // Double textarea returns an array of two textarea values
+            if (is_array($value) && count($value) >= 2) {
+                return [wp_kses_post($value[0]), wp_kses_post($value[1])];
             }
             return ['', ''];
 
