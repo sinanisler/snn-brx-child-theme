@@ -588,6 +588,10 @@ class SNN_Query_Nestable extends Element {
             $original_query = $wp_query;
             $original_post = $post;
             
+            // CRITICAL: Store the original loop object ID for Bricks Query system
+            $original_loop_id = Query::is_looping() ? Query::$loop_object_id : null;
+            $original_loop_type = Query::is_looping() ? Query::$loop_object_type : null;
+            
             // Temporarily replace global query for Bricks dynamic data to work
             $wp_query = $posts_query;
 
@@ -603,6 +607,11 @@ class SNN_Query_Nestable extends Element {
                 // Explicitly setup post data - critical for Bricks native tags
                 // Even though the_post() calls this, Bricks needs explicit context
                 setup_postdata( $post );
+
+                // CRITICAL: Tell Bricks we're in a query loop with this specific post
+                // This makes Bricks' native dynamic tags work properly
+                Query::$loop_object_type = 'post';
+                Query::$loop_object_id = $current_post_id;
 
                 // CRITICAL: Push current post ID onto context stack BEFORE rendering children
                 // This ensures nested queries can access the correct parent post ID via {post_id}
@@ -620,6 +629,9 @@ class SNN_Query_Nestable extends Element {
                     echo '&nbsp;&nbsp;• get_the_ID(): ' . get_the_ID() . '<br>';
                     echo '&nbsp;&nbsp;• $wp_query->post->ID: ' . ( isset($wp_query->post->ID) ? $wp_query->post->ID : '<span style="color:red;">NOT SET</span>' ) . '<br>';
                     echo '&nbsp;&nbsp;• in_the_loop(): ' . ( in_the_loop() ? '<span style="color:green;">YES</span>' : '<span style="color:red;">NO</span>' ) . '<br>';
+                    echo '&nbsp;&nbsp;• Query::$loop_object_type: ' . ( Query::$loop_object_type ?? '<span style="color:red;">NOT SET</span>' ) . '<br>';
+                    echo '&nbsp;&nbsp;• Query::$loop_object_id: ' . ( Query::$loop_object_id ?? '<span style="color:red;">NOT SET</span>' ) . '<br>';
+                    echo '&nbsp;&nbsp;• Query::is_looping(): ' . ( Query::is_looping() ? '<span style="color:green;">YES</span>' : '<span style="color:red;">NO</span>' ) . '<br>';
                     echo '</div>';
                 }
 
@@ -642,6 +654,16 @@ class SNN_Query_Nestable extends Element {
                 if ( $original_post ) {
                     setup_postdata( $original_post );
                 }
+            }
+            
+            // CRITICAL: Restore Bricks' original query loop context
+            if ( $original_loop_id !== null ) {
+                Query::$loop_object_id = $original_loop_id;
+                Query::$loop_object_type = $original_loop_type;
+            } else {
+                // Clear loop context if there wasn't one before
+                Query::$loop_object_id = null;
+                Query::$loop_object_type = null;
             }
 
             // Output wrapper closing tag
