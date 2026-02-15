@@ -13,7 +13,7 @@
  *    - Allows Bricks Query Loop to fetch double text/textarea repeater data from post meta.
  *
  * 2. **Custom Dynamic Data Tags for Double Text/Textarea Repeater Items**
- *    - Registers two dynamic data tags per field: `{snn_cf_fieldname_1}` and `{snn_cf_fieldname_2}`.
+ *    - Registers two dynamic data tags per field: `{snn_cf_fieldname_0}` and `{snn_cf_fieldname_1}`.
  *    - Enables output of the first or second text/textarea value from the double field.
  *    - Works inside query loop context for repeaters.
  *
@@ -38,8 +38,8 @@
  *
  * 6. **Usage**
  *    - In Bricks Builder, enable Query Loop on a container and select the double text/textarea repeater query type.
- *    - Use `{snn_cf_fieldname_1}` to output the first text/textarea value.
- *    - Use `{snn_cf_fieldname_2}` to output the second text/textarea value.
+ *    - Use `{snn_cf_fieldname_0}` to output the first text/textarea value.
+ *    - Use `{snn_cf_fieldname_1}` to output the second text/textarea value.
  *    - Works in repeater loops and as fallback to first item outside loops.
  *
  * Author: SNN Team
@@ -124,7 +124,7 @@ add_filter('bricks/query/loop_object', function($loop_object, $loop_key, $query_
 
 /**
  * Step 1: Register custom SNN double text/textarea repeater dynamic data tags
- * Creates two tags per field: fieldname_1 and fieldname_2
+ * Creates two tags per field: fieldname_0 and fieldname_1
  */
 add_filter('bricks/dynamic_tags_list', function($tags) {
     $custom_fields = get_option('snn_custom_fields', []);
@@ -135,16 +135,16 @@ add_filter('bricks/dynamic_tags_list', function($tags) {
             $field_name = $field['name'];
             $field_label = !empty($field['label']) ? $field['label'] : ucwords(str_replace('_', ' ', $field_name));
             
-            // Register tag for first text/textarea value
+            // Register tag for first text/textarea value (index 0)
             $tags[] = [
-                'name'  => '{snn_cf_' . $field_name . '_1}',
+                'name'  => '{snn_cf_' . $field_name . '_0}',
                 'label' => $field_label . ' - Value 1',
                 'group' => 'SNN',
             ];
             
-            // Register tag for second text/textarea value
+            // Register tag for second text/textarea value (index 1)
             $tags[] = [
-                'name'  => '{snn_cf_' . $field_name . '_2}',
+                'name'  => '{snn_cf_' . $field_name . '_1}',
                 'label' => $field_label . ' - Value 2',
                 'group' => 'SNN',
             ];
@@ -170,19 +170,19 @@ add_filter('bricks/dynamic_data/render_tag', function($tag, $post, $context = 't
     // Remove curly braces to get clean tag name
     $clean_tag = str_replace(['{', '}'], '', $tag);
     
-    // Check if this is one of our SNN double text/textarea tags (ends with _1 or _2)
-    if (strpos($clean_tag, 'snn_cf_') !== 0 || !preg_match('/_(1|2)$/', $clean_tag)) {
+    // Check if this is one of our SNN double text/textarea tags (ends with _0 or _1)
+    if (strpos($clean_tag, 'snn_cf_') !== 0 || !preg_match('/_(0|1)$/', $clean_tag)) {
         return $tag; // Not our tag, return unchanged
     }
     
-    // Extract field name and index (1 or 2)
-    preg_match('/^snn_cf_(.+)_(1|2)$/', $clean_tag, $matches);
+    // Extract field name and index (0 or 1)
+    preg_match('/^snn_cf_(.+)_(0|1)$/', $clean_tag, $matches);
     if (!$matches) {
         return $tag;
     }
     
     $field_name = $matches[1];
-    $index = (int)$matches[2]; // 1 or 2
+    $index = (int)$matches[2]; // 0 or 1
     
     // Check if this is a registered double_text or double_textarea field
     if (!snn_is_double_field_repeater($field_name)) {
@@ -209,18 +209,18 @@ add_filter('bricks/dynamic_data/render_content', function($content, $post, $cont
         return $content;
     }
     
-    // Use regex to find all our double text tags (ending with _1 or _2)
-    preg_match_all('/{(snn_cf_[^}]+_(1|2))}/', $content, $matches);
+    // Use regex to find all our double text tags (ending with _0 or _1)
+    preg_match_all('/{(snn_cf_[^}]+_(0|1))}/', $content, $matches);
     
     if (empty($matches[0])) {
         return $content;
     }
     
     foreach ($matches[0] as $key => $full_tag) {
-        $clean_tag = $matches[1][$key]; // snn_cf_fieldname_1 or snn_cf_fieldname_2
+        $clean_tag = $matches[1][$key]; // snn_cf_fieldname_0 or snn_cf_fieldname_1
         
         // Extract field name and index
-        preg_match('/^snn_cf_(.+)_(1|2)$/', $clean_tag, $field_matches);
+        preg_match('/^snn_cf_(.+)_(0|1)$/', $clean_tag, $field_matches);
         if (!$field_matches) {
             continue;
         }
@@ -280,15 +280,15 @@ function snn_is_double_field_repeater($field_name) {
  * Helper function to get double text/textarea field value
  * 
  * @param string $field_name The field name
- * @param int $index 1 or 2 (which value to return)
+ * @param int $index 0 or 1 (which value to return)
  * @param object $post Post object
  * @return string The text/textarea value
  */
 function snn_get_double_field_value($field_name, $index, $post = null) {
     global $snn_current_double_text_item, $snn_current_double_text_field;
     
-    // Array index (0 or 1)
-    $array_index = $index - 1;
+    // Use index directly (0 or 1)
+    $array_index = $index;
     
     // Check if we're currently in a double text repeater loop context
     if (!empty($snn_current_double_text_item) && !empty($snn_current_double_text_field)) {
