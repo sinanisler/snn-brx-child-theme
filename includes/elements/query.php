@@ -15,9 +15,33 @@ class SNN_Query_Nestable extends Element {
 
     // ADDED: Static stack to track post context in nested queries
     private static $post_context_stack = [];
+    
+    // ADDED: Store the query loop object IDs for Bricks dynamic data context
+    private static $query_loop_post_id = null;
 
     public function get_label() {
         return esc_html__( 'Query (Nestable)', 'snn' );
+    }
+    
+    /**
+     * Hook into Bricks' dynamic data system to use our loop post ID
+     */
+    public function __construct( $element = [] ) {
+        parent::__construct( $element );
+        
+        // Filter the post ID that Bricks uses for dynamic data rendering
+        add_filter( 'bricks/dynamic_data/post_id', [ $this, 'get_loop_post_id' ], 10, 3 );
+    }
+    
+    /**
+     * Return the current loop post ID for Bricks dynamic data
+     */
+    public function get_loop_post_id( $post_id, $element = null, $context = 'text' ) {
+        // If we're inside our query loop, use our loop post ID
+        if ( self::$query_loop_post_id !== null ) {
+            return self::$query_loop_post_id;
+        }
+        return $post_id;
     }
 
     public function set_controls() {
@@ -588,10 +612,6 @@ class SNN_Query_Nestable extends Element {
             $original_query = $wp_query;
             $original_post = $post;
             
-            // CRITICAL: Store the original loop object ID for Bricks Query system
-            $original_loop_id = Query::is_looping() ? Query::$loop_object_id : null;
-            $original_loop_type = Query::is_looping() ? Query::$loop_object_type : null;
-            
             // Temporarily replace global query for Bricks dynamic data to work
             $wp_query = $posts_query;
 
@@ -605,13 +625,11 @@ class SNN_Query_Nestable extends Element {
                 $current_post_id = $post->ID;
                 
                 // Explicitly setup post data - critical for Bricks native tags
-                // Even though the_post() calls this, Bricks needs explicit context
                 setup_postdata( $post );
-
-                // CRITICAL: Tell Bricks we're in a query loop with this specific post
-                // This makes Bricks' native dynamic tags work properly
-                Query::$loop_object_type = 'post';
-                Query::$loop_object_id = $current_post_id;
+                
+                // CRITICAL: Set the loop post ID for Bricks dynamic data filter
+                // This makes {post_url}, {post_title} etc. work in child elements
+                self::$query_loop_post_id = $current_post_id;
 
                 // CRITICAL: Push current post ID onto context stack BEFORE rendering children
                 // This ensures nested queries can access the correct parent post ID via {post_id}
@@ -629,9 +647,7 @@ class SNN_Query_Nestable extends Element {
                     echo '&nbsp;&nbsp;• get_the_ID(): ' . get_the_ID() . '<br>';
                     echo '&nbsp;&nbsp;• $wp_query->post->ID: ' . ( isset($wp_query->post->ID) ? $wp_query->post->ID : '<span style="color:red;">NOT SET</span>' ) . '<br>';
                     echo '&nbsp;&nbsp;• in_the_loop(): ' . ( in_the_loop() ? '<span style="color:green;">YES</span>' : '<span style="color:red;">NO</span>' ) . '<br>';
-                    echo '&nbsp;&nbsp;• Query::$loop_object_type: ' . ( Query::$loop_object_type ?? '<span style="color:red;">NOT SET</span>' ) . '<br>';
-                    echo '&nbsp;&nbsp;• Query::$loop_object_id: ' . ( Query::$loop_object_id ?? '<span style="color:red;">NOT SET</span>' ) . '<br>';
-                    echo '&nbsp;&nbsp;• Query::is_looping(): ' . ( Query::is_looping() ? '<span style="color:green;">YES</span>' : '<span style="color:red;">NO</span>' ) . '<br>';
+                    echo '&nbsp;&nbsp;• self::$query_loop_post_id: ' . ( self::$query_loop_post_id ?? '<span style="color:red;">NOT SET</span>' ) . '<br>';
                     echo '</div>';
                 }
 
@@ -642,6 +658,9 @@ class SNN_Query_Nestable extends Element {
                 // CRITICAL: Pop post ID from context stack AFTER rendering children
                 // This restores the correct context for any parent query
                 array_pop( self::$post_context_stack );
+                
+                // Clear the loop post ID
+                self::$query_loop_post_id = null;
             }
 
             // Reset post data
@@ -654,16 +673,6 @@ class SNN_Query_Nestable extends Element {
                 if ( $original_post ) {
                     setup_postdata( $original_post );
                 }
-            }
-            
-            // CRITICAL: Restore Bricks' original query loop context
-            if ( $original_loop_id !== null ) {
-                Query::$loop_object_id = $original_loop_id;
-                Query::$loop_object_type = $original_loop_type;
-            } else {
-                // Clear loop context if there wasn't one before
-                Query::$loop_object_id = null;
-                Query::$loop_object_type = null;
             }
 
             // Output wrapper closing tag
