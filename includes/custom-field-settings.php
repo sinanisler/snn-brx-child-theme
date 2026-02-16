@@ -1852,11 +1852,11 @@ function snn_save_custom_fields_meta($post_id) {
                     }
                 }
             }
-        } else { 
+        } else {
             if ($field['type'] === 'true_false') {
-                update_post_meta($post_id, $field_name, '0'); 
-            } elseif ($field['type'] === 'checkbox') {
-                delete_post_meta($post_id, $field_name); 
+                update_post_meta($post_id, $field_name, '0');
+            } elseif ($field['type'] === 'checkbox' || !empty($field['repeater'])) {
+                delete_post_meta($post_id, $field_name);
             }
         }
     }
