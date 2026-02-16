@@ -326,10 +326,18 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
     // Step 3: SMTP Protocol Test with STARTTLS support
     error_log("SMTP TEST: Testing SMTP protocol handshake");
 
-    // Read greeting
-    $greeting = fgets($connection, 512);
+    // Read greeting (Handle multi-line greetings properly)
+    $greeting = '';
+    while ($line = fgets($connection, 512)) {
+        $greeting .= $line;
+        // If the 4th character is a space, it's the last line of the response
+        if (substr($line, 3, 1) === ' ') {
+            break;
+        }
+    }
     error_log("SMTP TEST: Server greeting: " . trim($greeting));
 
+    // Check the very first 3 characters of the collected greeting
     if (!$greeting || substr($greeting, 0, 3) !== '220') {
         fclose($connection);
         return array(
@@ -366,7 +374,15 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
         error_log("SMTP TEST: Initiating STARTTLS");
 
         fputs($connection, "STARTTLS\r\n");
-        $starttls_response = fgets($connection, 512);
+        // Read STARTTLS response (Handle multi-line responses properly)
+        $starttls_response = '';
+        while ($line = fgets($connection, 512)) {
+            $starttls_response .= $line;
+            // If the 4th character is a space, it's the last line of the response
+            if (substr($line, 3, 1) === ' ') {
+                break;
+            }
+        }
         error_log("SMTP TEST: STARTTLS response: " . trim($starttls_response));
 
         if (substr($starttls_response, 0, 3) !== '220') {
