@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 
 add_action('admin_menu', 'custom_smtp_add_admin_menu');
