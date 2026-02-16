@@ -255,70 +255,112 @@ function custom_smtp_enqueue_scripts($hook) {
  * @return array Array with 'success' (bool) and 'message' (string) keys
  */
 function custom_smtp_comprehensive_connection_test($host, $port, $encryption = 'none', $username = '', $password = '') {
-    // Step 1: DNS Resolution Check
-    error_log("SMTP TEST: Checking DNS resolution for $host");
-    $ip = gethostbyname($host);
-    if ($ip === $host && !filter_var($host, FILTER_VALIDATE_IP)) {
-        error_log("SMTP TEST: DNS resolution failed for $host");
+    // Validate inputs first
+    if (empty($host)) {
         return array(
             'success' => false,
-            'message' => sprintf(
-                __('DNS Resolution Failed: Could not resolve hostname "%s". Please verify the SMTP host is correct.', 'snn'),
-                esc_html($host)
-            )
+            'message' => __('SMTP host is required. Please configure your SMTP settings.', 'snn')
         );
     }
-    error_log("SMTP TEST: DNS resolved $host to $ip");
 
-    // Step 2: Basic Port Connectivity
-    error_log("SMTP TEST: Testing basic port connectivity to $host:$port");
-    $errno = 0;
-    $errstr = '';
-    $timeout = 5;
-
-    // Use SSL/TLS context if encryption is set
-    $context = stream_context_create();
-    if (strtolower($encryption) === 'ssl') {
-        stream_context_set_option($context, 'ssl', 'verify_peer', false);
-        stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
-        $connection = @stream_socket_client("ssl://$host:$port", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
-    } else {
-        $connection = @fsockopen($host, $port, $errno, $errstr, $timeout);
+    if (empty($port) || !is_numeric($port)) {
+        return array(
+            'success' => false,
+            'message' => __('Valid SMTP port is required. Please configure your SMTP settings.', 'snn')
+        );
     }
 
-    if (!is_resource($connection)) {
-        error_log("SMTP TEST: Port connection failed. Error ($errno): $errstr");
+    // Set up error handler to capture PHP warnings and errors
+    $php_errors = array();
+    set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$php_errors) {
+        $php_errors[] = "[$errno] $errstr (Line: $errline)";
+        error_log("SMTP TEST: PHP Error captured - [$errno] $errstr in $errfile on line $errline");
+        return true; // Prevent default PHP error handler
+    });
 
-        // Provide specific error messages based on common error codes
-        if ($errno === 110 || $errno === 60) {
+    try {
+        // Step 1: DNS Resolution Check
+        error_log("SMTP TEST: Checking DNS resolution for $host");
+        $ip = gethostbyname($host);
+        if ($ip === $host && !filter_var($host, FILTER_VALIDATE_IP)) {
+            restore_error_handler();
+            error_log("SMTP TEST: DNS resolution failed for $host");
             return array(
                 'success' => false,
                 'message' => sprintf(
-                    __('Connection Timeout: Could not connect to %s on port %d. The port may be blocked by your hosting firewall or the server is not responding.', 'snn'),
-                    esc_html($host),
-                    esc_html($port)
-                )
-            );
-        } elseif ($errno === 111 || $errno === 61) {
-            return array(
-                'success' => false,
-                'message' => sprintf(
-                    __('Connection Refused: Server %s refused connection on port %d. Verify the port number is correct and the SMTP service is running.', 'snn'),
-                    esc_html($host),
-                    esc_html($port)
-                )
-            );
-        } else {
-            return array(
-                'success' => false,
-                'message' => sprintf(
-                    __('Connection Failed: Could not connect to %s on port %d. Error: %s', 'snn'),
-                    esc_html($host),
-                    esc_html($port),
-                    esc_html($errstr)
+                    __('DNS Resolution Failed: Could not resolve hostname "%s". Please verify the SMTP host is correct.', 'snn'),
+                    esc_html($host)
                 )
             );
         }
+        error_log("SMTP TEST: DNS resolved $host to $ip");
+
+        // Step 2: Basic Port Connectivity
+        error_log("SMTP TEST: Testing basic port connectivity to $host:$port");
+        $errno = 0;
+        $errstr = '';
+        $timeout = 5;
+
+        // Use SSL/TLS context if encryption is set
+        $context = stream_context_create();
+        if (strtolower($encryption) === 'ssl') {
+            stream_context_set_option($context, 'ssl', 'verify_peer', false);
+            stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
+            $connection = @stream_socket_client("ssl://$host:$port", $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
+        } else {
+            $connection = @fsockopen($host, $port, $errno, $errstr, $timeout);
+        }
+    } catch (Exception $e) {
+        restore_error_handler();
+        error_log("SMTP TEST: Exception caught during connection - " . $e->getMessage());
+
+        return array(
+            'success' => false,
+            'message' => sprintf(
+                __('Connection Exception: %s', 'snn'),
+                esc_html($e->getMessage())
+            )
+        );
+    }
+
+    if (!is_resource($connection)) {
+        restore_error_handler();
+        error_log("SMTP TEST: Port connection failed. Error ($errno): $errstr");
+
+        // Build error message with PHP errors if any
+        $error_msg = '';
+
+        // Provide specific error messages based on common error codes
+        if ($errno === 110 || $errno === 60) {
+            $error_msg = sprintf(
+                __('Connection Timeout: Could not connect to %s on port %d. The port may be blocked by your hosting firewall or the server is not responding.', 'snn'),
+                esc_html($host),
+                esc_html($port)
+            );
+        } elseif ($errno === 111 || $errno === 61) {
+            $error_msg = sprintf(
+                __('Connection Refused: Server %s refused connection on port %d. Verify the port number is correct and the SMTP service is running.', 'snn'),
+                esc_html($host),
+                esc_html($port)
+            );
+        } else {
+            $error_msg = sprintf(
+                __('Connection Failed: Could not connect to %s on port %d. Error: %s', 'snn'),
+                esc_html($host),
+                esc_html($port),
+                esc_html($errstr)
+            );
+        }
+
+        // Append PHP errors if any were captured
+        if (!empty($php_errors)) {
+            $error_msg .= '<br/><br/><strong>' . __('Additional PHP Errors:', 'snn') . '</strong><br/>' . implode('<br/>', array_map('esc_html', $php_errors));
+        }
+
+        return array(
+            'success' => false,
+            'message' => $error_msg
+        );
     }
 
     error_log("SMTP TEST: Port connection successful");
@@ -340,6 +382,7 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
     // Check the very first 3 characters of the collected greeting
     if (!$greeting || substr($greeting, 0, 3) !== '220') {
         fclose($connection);
+        restore_error_handler();
         return array(
             'success' => false,
             'message' => sprintf(
@@ -360,6 +403,7 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
 
     if (substr($ehlo_response, 0, 3) !== '250') {
         fclose($connection);
+        restore_error_handler();
         return array(
             'success' => false,
             'message' => sprintf(
@@ -387,6 +431,7 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
 
         if (substr($starttls_response, 0, 3) !== '220') {
             fclose($connection);
+            restore_error_handler();
             return array(
                 'success' => false,
                 'message' => sprintf(
@@ -400,6 +445,7 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
         $crypto_result = stream_socket_enable_crypto($connection, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
         if (!$crypto_result) {
             fclose($connection);
+            restore_error_handler();
             return array(
                 'success' => false,
                 'message' => __('TLS Encryption Failed: Could not establish secure TLS connection. The server\'s SSL certificate may be invalid or expired.', 'snn')
@@ -424,6 +470,7 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
 
         if (substr($auth_response, 0, 3) !== '334') {
             fclose($connection);
+            restore_error_handler();
             return array(
                 'success' => false,
                 'message' => sprintf(
@@ -440,6 +487,7 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
 
         if (substr($user_response, 0, 3) !== '334') {
             fclose($connection);
+            restore_error_handler();
             return array(
                 'success' => false,
                 'message' => sprintf(
@@ -456,6 +504,7 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
 
         if (substr($pass_response, 0, 3) !== '235') {
             fclose($connection);
+            restore_error_handler();
 
             // Check for specific authentication failure codes
             if (substr($pass_response, 0, 3) === '535') {
@@ -481,10 +530,20 @@ function custom_smtp_comprehensive_connection_test($host, $port, $encryption = '
     fputs($connection, "QUIT\r\n");
     fclose($connection);
 
+    // Restore error handler
+    restore_error_handler();
+
     error_log("SMTP TEST: All checks passed successfully");
+
+    // Build success message with any PHP warnings if captured
+    $success_msg = __('Connection test successful! All checks passed.', 'snn');
+    if (!empty($php_errors)) {
+        $success_msg .= '<br/><br/><strong>' . __('Note - PHP Warnings encountered:', 'snn') . '</strong><br/>' . implode('<br/>', array_map('esc_html', $php_errors));
+    }
+
     return array(
         'success' => true,
-        'message' => __('Connection test successful! All checks passed.', 'snn')
+        'message' => $success_msg
     );
 }
 
@@ -547,6 +606,24 @@ function custom_smtp_handle_test_email_submission() {
         error_log("SMTP TEST: Comprehensive connection test passed.");
     }
 
+    // Capture wp_mail errors using a temporary hook
+    $mail_error = null;
+    $mail_error_handler = function($wp_error) use (&$mail_error) {
+        $mail_error = $wp_error;
+        error_log("SMTP TEST: wp_mail_failed triggered - " . $wp_error->get_error_message());
+    };
+    add_action('wp_mail_failed', $mail_error_handler);
+
+    // Capture PHPMailer exceptions and errors
+    $phpmailer_errors = array();
+    $phpmailer_error_handler = function($phpmailer) use (&$phpmailer_errors) {
+        if (!empty($phpmailer->ErrorInfo)) {
+            $phpmailer_errors[] = $phpmailer->ErrorInfo;
+            error_log("SMTP TEST: PHPMailer ErrorInfo - " . $phpmailer->ErrorInfo);
+        }
+    };
+    add_action('phpmailer_init', $phpmailer_error_handler, 999);
+
     // Attempt to send email using wp_mail()
     $subject = __('SMTP Test Email', 'snn');
     $message = __('This is a test email sent via your SMTP settings.', 'snn');
@@ -554,6 +631,10 @@ function custom_smtp_handle_test_email_submission() {
 
     error_log("SMTP TEST: Calling wp_mail() now...");
     $sent = wp_mail($to, $subject, $message, $headers);
+
+    // Remove temporary hooks
+    remove_action('wp_mail_failed', $mail_error_handler);
+    remove_action('phpmailer_init', $phpmailer_error_handler, 999);
 
     if ($sent) {
         add_settings_error(
@@ -567,10 +648,46 @@ function custom_smtp_handle_test_email_submission() {
         );
         error_log("SMTP TEST: wp_mail() succeeded.");
     } else {
+        // Build detailed error message from all available error sources
+        $error_details = array();
+
+        // Get WP_Error details if available
+        if ($mail_error && is_wp_error($mail_error)) {
+            $error_details[] = '<strong>' . __('WordPress Error:', 'snn') . '</strong> ' . esc_html($mail_error->get_error_message());
+
+            // Get all error data if available
+            $error_data = $mail_error->get_error_data();
+            if (!empty($error_data)) {
+                if (is_array($error_data)) {
+                    foreach ($error_data as $key => $value) {
+                        if (is_string($value)) {
+                            $error_details[] = esc_html($key) . ': ' . esc_html($value);
+                        }
+                    }
+                } else if (is_string($error_data)) {
+                    $error_details[] = esc_html($error_data);
+                }
+            }
+        }
+
+        // Get PHPMailer errors if available
+        if (!empty($phpmailer_errors)) {
+            foreach ($phpmailer_errors as $phpmailer_error) {
+                $error_details[] = '<strong>' . __('PHPMailer Error:', 'snn') . '</strong> ' . esc_html($phpmailer_error);
+            }
+        }
+
+        // If we have detailed errors, show them; otherwise show generic message
+        if (!empty($error_details)) {
+            $error_message = __('Failed to send test email. Details:', 'snn') . '<br/><br/>' . implode('<br/>', $error_details);
+        } else {
+            $error_message = __('Failed to send test email. No specific error details were captured. Check your SMTP settings or server error logs.', 'snn');
+        }
+
         add_settings_error(
             'custom_smtp_test_email',
             'custom_smtp_test_email_failed',
-            __('Failed to send test email. Check your SMTP settings or logs for more information.', 'snn'),
+            $error_message,
             'error'
         );
         error_log("SMTP TEST: wp_mail() FAILED.");
