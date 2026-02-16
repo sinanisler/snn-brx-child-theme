@@ -507,6 +507,30 @@ function snn_display_custom_dashboard_metabox() {
 }
 
 /**
+ * Add toggle button to admin bar on frontend.
+ */
+add_action('admin_bar_menu', function($wp_admin_bar) {
+    $options = get_option('snn_other_settings');
+    if (!isset($options['enable_admin_bar_toggle']) || !$options['enable_admin_bar_toggle']) {
+        return;
+    }
+
+    // Only add button on frontend for logged-in users
+    if (!is_admin() && is_user_logged_in()) {
+        $wp_admin_bar->add_node(array(
+            'id'     => 'hide-admin-bar',
+            'title'  => '<span style="font-family: dashicons" class="dashicons dashicons-arrow-up-alt2"></span> ',
+            'href'   => '#',
+            'parent' => 'top-secondary',
+            'meta'   => array(
+                'class' => 'hide-admin-bar',
+                'title' => 'Toggle Admin Bar (Ctrl+I)',
+            ),
+        ));
+    }
+}, 999);
+
+/**
  * Add admin bar toggle script to frontend footer.
  */
 function snn_admin_bar_toggle_script() {
@@ -521,11 +545,6 @@ function snn_admin_bar_toggle_script() {
         document.addEventListener('DOMContentLoaded', function() {
           const hideButton = document.querySelector('#wp-admin-bar-hide-admin-bar');
           const STORAGE_KEY = 'wp_admin_bar_hidden';
-
-          // Add tooltip to the button
-          if (hideButton) {
-            hideButton.setAttribute('title', 'Toggle Admin Bar (Ctrl+I)');
-          }
 
           // Function to toggle admin bar visibility
           function toggleAdminBar(hide) {
@@ -555,7 +574,8 @@ function snn_admin_bar_toggle_script() {
 
           // Button click handler
           if (hideButton) {
-            hideButton.addEventListener('click', function() {
+            hideButton.addEventListener('click', function(e) {
+              e.preventDefault();
               const currentlyHidden = localStorage.getItem(STORAGE_KEY) === 'true';
               toggleAdminBar(!currentlyHidden);
             });
