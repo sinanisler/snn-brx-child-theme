@@ -107,6 +107,14 @@ function snn_register_other_settings() {
     );
 
     add_settings_field(
+        'disable_admin_bar_roles',
+        __('Disable Admin Bar for Selected User Roles', 'snn'),
+        'snn_disable_admin_bar_roles_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
+    add_settings_field(
         'disable_dashboard_widgets',
         __('Disable Default Dashboard Widgets', 'snn'),
         'snn_disable_dashboard_widgets_callback',
@@ -139,6 +147,7 @@ function snn_sanitize_other_settings($input) {
     $sanitized['disable_comments_completely'] = isset($input['disable_comments_completely']) && $input['disable_comments_completely'] ? 1 : 0;
     $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
     $sanitized['enable_admin_bar_toggle'] = isset($input['enable_admin_bar_toggle']) && $input['enable_admin_bar_toggle'] ? 1 : 0;
+    $sanitized['disable_admin_bar_roles'] = isset($input['disable_admin_bar_roles']) && is_array($input['disable_admin_bar_roles']) ? array_map('sanitize_text_field', $input['disable_admin_bar_roles']) : array();
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
 
     if (isset($input['dashboard_custom_metabox_content'])) {
@@ -242,6 +251,29 @@ function snn_enable_admin_bar_toggle_callback() {
         <?php _e('Enabling this adds a toggle button to the admin bar and keyboard shortcut (Ctrl+I) to show/hide the admin bar on the frontend.', 'snn'); ?><br>
         <?php _e('The visibility state is saved in your browser and persists across page loads. Useful for taking screenshots or viewing the site without the admin bar.', 'snn'); ?><br>
         <?php _e('<strong>Important:</strong> Once hidden, you can only show it again using the Ctrl+I keyboard shortcut, so make sure to remember it!', 'snn'); ?>
+    </p>
+    <?php
+}
+
+function snn_disable_admin_bar_roles_callback() {
+    $options = get_option('snn_other_settings');
+    $selected_roles = isset($options['disable_admin_bar_roles']) ? $options['disable_admin_bar_roles'] : array();
+    
+    global $wp_roles;
+    $all_roles = $wp_roles->roles;
+    
+    foreach ($all_roles as $role_key => $role) {
+        $checked = in_array($role_key, $selected_roles) ? 'checked' : '';
+        ?>
+        <label style="display: block; margin-bottom: 5px;">
+            <input type="checkbox" name="snn_other_settings[disable_admin_bar_roles][]" value="<?php echo esc_attr($role_key); ?>" <?php echo $checked; ?>>
+            <?php echo esc_html($role['name']); ?>
+        </label>
+        <?php
+    }
+    ?>
+    <p>
+        <?php _e('Select the user roles for which the admin bar should be disabled on the frontend.', 'snn'); ?>
     </p>
     <?php
 }
@@ -543,3 +575,22 @@ function snn_admin_bar_toggle_script() {
     }
 }
 add_action('wp_footer', 'snn_admin_bar_toggle_script');
+
+/**
+ * Disable admin bar for selected user roles.
+ */
+function snn_disable_admin_bar_for_roles() {
+    $options = get_option('snn_other_settings');
+    if (isset($options['disable_admin_bar_roles']) && !empty($options['disable_admin_bar_roles'])) {
+        $current_user = wp_get_current_user();
+        $user_roles = $current_user->roles;
+        
+        foreach ($user_roles as $role) {
+            if (in_array($role, $options['disable_admin_bar_roles'])) {
+                show_admin_bar(false);
+                break;
+            }
+        }
+    }
+}
+add_action('after_setup_theme', 'snn_disable_admin_bar_for_roles');
