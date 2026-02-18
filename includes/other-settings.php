@@ -130,6 +130,14 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
+    add_settings_field(
+        'enable_admin_mega_menu',
+        __('Enable Admin Mega Menu in Admin Bar', 'snn'),
+        'snn_enable_admin_mega_menu_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -149,6 +157,7 @@ function snn_sanitize_other_settings($input) {
     $sanitized['enable_admin_bar_toggle'] = isset($input['enable_admin_bar_toggle']) && $input['enable_admin_bar_toggle'] ? 1 : 0;
     $sanitized['disable_admin_bar_roles'] = isset($input['disable_admin_bar_roles']) && is_array($input['disable_admin_bar_roles']) ? array_map('sanitize_text_field', $input['disable_admin_bar_roles']) : array();
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
+    $sanitized['enable_admin_mega_menu'] = isset($input['enable_admin_mega_menu']) && $input['enable_admin_mega_menu'] ? 1 : 0;
 
     if (isset($input['dashboard_custom_metabox_content'])) {
         $sanitized['dashboard_custom_metabox_content'] = $input['dashboard_custom_metabox_content'];
@@ -614,3 +623,317 @@ function snn_disable_admin_bar_for_roles() {
     }
 }
 add_action('after_setup_theme', 'snn_disable_admin_bar_for_roles');
+
+/**
+ * Settings field callback for Admin Mega Menu.
+ */
+function snn_enable_admin_mega_menu_callback() {
+    $options = get_option('snn_other_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="snn_other_settings[enable_admin_mega_menu]" value="1" <?php checked(1, isset($options['enable_admin_mega_menu']) ? $options['enable_admin_mega_menu'] : 0); ?>>
+        <?php _e('Add a mega menu icon as the first item in the admin bar (admins only)', 'snn'); ?>
+    </label>
+    <p>
+        <?php _e('When enabled, a menu icon appears as the very first item in the admin bar on both frontend and backend. Hovering it reveals all WordPress admin menus and submenus dynamically.', 'snn'); ?>
+    </p>
+    <?php
+}
+
+/**
+ * Build a clean menu data array from the global $menu and $submenu.
+ */
+function snn_build_admin_menu_data($menu, $submenu) {
+    $menu_data = array();
+
+    if (!is_array($menu)) return $menu_data;
+
+    ksort($menu);
+
+    foreach ($menu as $item) {
+        // Skip separators
+        if (empty($item[0]) || (isset($item[4]) && strpos($item[4], 'wp-menu-separator') !== false)) {
+            continue;
+        }
+
+        // Skip if current user lacks the required capability
+        if (isset($item[1]) && !current_user_can($item[1])) {
+            continue;
+        }
+
+        $slug  = $item[2];
+        $title = preg_replace('/<span[^>]*>.*?<\/span>/is', '', $item[0]);
+        $title = wp_strip_all_tags($title);
+        $title = trim($title);
+
+        if (empty($title)) continue;
+
+        // Resolve URL
+        if (strpos($slug, 'http') === 0 || strpos($slug, '//') === 0) {
+            $url = $slug;
+        } elseif (strpos($slug, '.php') !== false) {
+            $url = admin_url($slug);
+        } else {
+            $url = admin_url('admin.php?page=' . $slug);
+        }
+
+        $menu_item = array(
+            'title'    => $title,
+            'url'      => $url,
+            'slug'     => $slug,
+            'submenus' => array(),
+        );
+
+        // Collect submenus
+        if (isset($submenu[$slug]) && is_array($submenu[$slug])) {
+            foreach ($submenu[$slug] as $sub_item) {
+                if (empty($sub_item[0])) continue;
+                if (isset($sub_item[1]) && !current_user_can($sub_item[1])) continue;
+
+                $sub_title = preg_replace('/<span[^>]*>.*?<\/span>/is', '', $sub_item[0]);
+                $sub_title = wp_strip_all_tags($sub_title);
+                $sub_title = trim($sub_title);
+
+                if (empty($sub_title)) continue;
+
+                $sub_slug = $sub_item[2];
+
+                if (strpos($sub_slug, 'http') === 0 || strpos($sub_slug, '//') === 0) {
+                    $sub_url = $sub_slug;
+                } elseif (strpos($sub_slug, '.php') !== false) {
+                    $sub_url = admin_url($sub_slug);
+                } else {
+                    $sub_url = admin_url('admin.php?page=' . $sub_slug);
+                }
+
+                $menu_item['submenus'][] = array(
+                    'title' => $sub_title,
+                    'url'   => $sub_url,
+                );
+            }
+        }
+
+        $menu_data[] = $menu_item;
+    }
+
+    return $menu_data;
+}
+
+/**
+ * Add the mega menu parent node as the very first item in the admin bar.
+ */
+add_action('admin_bar_menu', function($wp_admin_bar) {
+    $options = get_option('snn_other_settings');
+    if (!isset($options['enable_admin_mega_menu']) || !$options['enable_admin_mega_menu']) {
+        return;
+    }
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    $wp_admin_bar->add_node(array(
+        'id'    => 'snn-admin-mega-menu',
+        'title' => '<span class="dashicons dashicons-menu" style="font-family:dashicons;font-size:20px;line-height:32px;vertical-align:top;"></span>',
+        'href'  => admin_url(),
+        'meta'  => array(
+            'class' => 'snn-admin-mega-menu-node',
+        ),
+    ));
+}, -1);
+
+/**
+ * Output CSS + JS for the mega menu dropdown (admin and frontend).
+ */
+function snn_admin_mega_menu_output() {
+    $options = get_option('snn_other_settings');
+    if (!isset($options['enable_admin_mega_menu']) || !$options['enable_admin_mega_menu']) {
+        return;
+    }
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    if (is_admin()) {
+        global $menu, $submenu;
+        $menu_data = snn_build_admin_menu_data($menu, $submenu);
+        // Persist for frontend use
+        update_option('snn_admin_menu_structure', $menu_data, 'no');
+    } else {
+        $menu_data = get_option('snn_admin_menu_structure', array());
+    }
+
+    if (empty($menu_data)) return;
+    ?>
+    <style>
+    #wp-admin-bar-snn-admin-mega-menu {
+        position: relative !important;
+    }
+    #wp-admin-bar-snn-admin-mega-menu > .ab-item {
+        cursor: pointer !important;
+        padding: 0 10px !important;
+    }
+    #wp-admin-bar-snn-admin-mega-menu > .ab-item .dashicons {
+        line-height: 32px !important;
+        height: 32px !important;
+        font-size: 20px !important;
+        margin: 0 !important;
+        vertical-align: top !important;
+    }
+    .snn-mega-dropdown {
+        position: absolute;
+        top: 32px;
+        left: 0;
+        background: #1d2327;
+        border: 1px solid #3c434a;
+        min-width: 230px;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+        overflow-x: visible;
+        z-index: 100001;
+        display: none;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+    }
+    #wp-admin-bar-snn-admin-mega-menu:hover .snn-mega-dropdown {
+        display: block;
+    }
+    .snn-mega-dropdown ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .snn-mega-dropdown > ul > li {
+        position: relative;
+        border-bottom: 1px solid #2c3338;
+    }
+    .snn-mega-dropdown > ul > li:last-child {
+        border-bottom: none;
+    }
+    .snn-mega-dropdown > ul > li > a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 14px;
+        color: #c3c4c7;
+        text-decoration: none;
+        font-size: 13px;
+        white-space: nowrap;
+        gap: 10px;
+    }
+    .snn-mega-dropdown > ul > li:hover > a {
+        background: #2c3338;
+        color: #72aee6;
+    }
+    .snn-mega-dropdown > ul > li > a .snn-mega-arrow {
+        font-size: 9px;
+        opacity: 0.45;
+        flex-shrink: 0;
+    }
+    .snn-mega-sub-menu {
+        position: absolute;
+        left: 100%;
+        top: -1px;
+        background: #1d2327;
+        border: 1px solid #3c434a;
+        min-width: 210px;
+        display: none;
+        box-shadow: 4px 4px 18px rgba(0,0,0,0.45);
+        z-index: 100002;
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+    }
+    .snn-mega-dropdown > ul > li:hover > .snn-mega-sub-menu {
+        display: block;
+    }
+    .snn-mega-sub-menu li {
+        border-bottom: 1px solid #2c3338;
+    }
+    .snn-mega-sub-menu li:last-child {
+        border-bottom: none;
+    }
+    .snn-mega-sub-menu li a {
+        display: block;
+        padding: 8px 14px;
+        color: #c3c4c7;
+        text-decoration: none;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .snn-mega-sub-menu li a:hover {
+        background: #2c3338;
+        color: #72aee6;
+    }
+    </style>
+    <script>
+    (function() {
+        var snnMenuData = <?php echo wp_json_encode($menu_data); ?>;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var menuNode = document.getElementById('wp-admin-bar-snn-admin-mega-menu');
+            if (!menuNode) return;
+
+            // Build dropdown
+            var dropdown = document.createElement('div');
+            dropdown.className = 'snn-mega-dropdown';
+
+            var ul = document.createElement('ul');
+
+            snnMenuData.forEach(function(item) {
+                var li = document.createElement('li');
+                var a  = document.createElement('a');
+                a.href = item.url;
+
+                var titleSpan = document.createElement('span');
+                titleSpan.textContent = item.title;
+                a.appendChild(titleSpan);
+
+                if (item.submenus && item.submenus.length > 0) {
+                    var arrow = document.createElement('span');
+                    arrow.className = 'snn-mega-arrow';
+                    arrow.innerHTML = '&#9658;';
+                    a.appendChild(arrow);
+
+                    var subUl = document.createElement('ul');
+                    subUl.className = 'snn-mega-sub-menu';
+
+                    item.submenus.forEach(function(sub) {
+                        var subLi = document.createElement('li');
+                        var subA  = document.createElement('a');
+                        subA.href = sub.url;
+                        subA.textContent = sub.title;
+                        subLi.appendChild(subA);
+                        subUl.appendChild(subLi);
+                    });
+
+                    li.appendChild(a);
+                    li.appendChild(subUl);
+                } else {
+                    li.appendChild(a);
+                }
+
+                ul.appendChild(li);
+            });
+
+            dropdown.appendChild(ul);
+            menuNode.appendChild(dropdown);
+
+            // Flip submenu to the left if it overflows the right edge of the viewport
+            ul.querySelectorAll('li').forEach(function(li) {
+                li.addEventListener('mouseenter', function() {
+                    var sub = li.querySelector('.snn-mega-sub-menu');
+                    if (!sub) return;
+                    sub.style.left  = '100%';
+                    sub.style.right = 'auto';
+                    var rect = sub.getBoundingClientRect();
+                    if (rect.right > window.innerWidth) {
+                        sub.style.left  = 'auto';
+                        sub.style.right = '100%';
+                    }
+                });
+            });
+        });
+    })();
+    </script>
+    <?php
+}
+add_action('admin_footer', 'snn_admin_mega_menu_output', 999);
+add_action('wp_footer',    'snn_admin_mega_menu_output');
