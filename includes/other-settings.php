@@ -720,7 +720,7 @@ function snn_build_admin_menu_data($menu, $submenu) {
 }
 
 /**
- * Add the mega menu parent node as the very first item in the admin bar.
+ * Add the mega menu node (3rd position) and populate all admin menu items natively.
  */
 add_action('admin_bar_menu', function($wp_admin_bar) {
     $options = get_option('snn_other_settings');
@@ -731,209 +731,43 @@ add_action('admin_bar_menu', function($wp_admin_bar) {
         return;
     }
 
+    // Parent node — icon only, no label
     $wp_admin_bar->add_node(array(
         'id'    => 'snn-admin-mega-menu',
         'title' => '<span class="dashicons dashicons-menu" style="font-family:dashicons;font-size:20px;line-height:32px;vertical-align:top;"></span>',
         'href'  => admin_url(),
-        'meta'  => array(
-            'class' => 'snn-admin-mega-menu-node',
-        ),
     ));
-}, -1);
 
-/**
- * Output CSS + JS for the mega menu dropdown (admin and frontend).
- */
-function snn_admin_mega_menu_output() {
-    $options = get_option('snn_other_settings');
-    if (!isset($options['enable_admin_mega_menu']) || !$options['enable_admin_mega_menu']) {
-        return;
-    }
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-
+    // On admin pages use live globals and persist for frontend; on frontend read stored data
     if (is_admin()) {
         global $menu, $submenu;
         $menu_data = snn_build_admin_menu_data($menu, $submenu);
-        // Persist for frontend use
         update_option('snn_admin_menu_structure', $menu_data, 'no');
     } else {
         $menu_data = get_option('snn_admin_menu_structure', array());
     }
 
     if (empty($menu_data)) return;
-    ?>
-    <style>
-    #wp-admin-bar-snn-admin-mega-menu {
-        position: relative !important;
-    }
-    #wp-admin-bar-snn-admin-mega-menu > .ab-item {
-        cursor: pointer !important;
-        padding: 0 10px !important;
-    }
-    #wp-admin-bar-snn-admin-mega-menu > .ab-item .dashicons {
-        line-height: 32px !important;
-        height: 32px !important;
-        font-size: 20px !important;
-        margin: 0 !important;
-        vertical-align: top !important;
-    }
-    .snn-mega-dropdown {
-        position: absolute;
-        top: 32px;
-        left: 0;
-        background: #1d2327;
-        border: 1px solid #3c434a;
-        min-width: 230px;
-        max-height: calc(100vh - 40px);
-        overflow-y: auto;
-        overflow-x: visible;
-        z-index: 100001;
-        display: none;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.45);
-    }
-    #wp-admin-bar-snn-admin-mega-menu:hover .snn-mega-dropdown {
-        display: block;
-    }
-    .snn-mega-dropdown ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-    .snn-mega-dropdown > ul > li {
-        position: relative;
-        border-bottom: 1px solid #2c3338;
-    }
-    .snn-mega-dropdown > ul > li:last-child {
-        border-bottom: none;
-    }
-    .snn-mega-dropdown > ul > li > a {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 9px 14px;
-        color: #c3c4c7;
-        text-decoration: none;
-        font-size: 13px;
-        white-space: nowrap;
-        gap: 10px;
-    }
-    .snn-mega-dropdown > ul > li:hover > a {
-        background: #2c3338;
-        color: #72aee6;
-    }
-    .snn-mega-dropdown > ul > li > a .snn-mega-arrow {
-        font-size: 9px;
-        opacity: 0.45;
-        flex-shrink: 0;
-    }
-    .snn-mega-sub-menu {
-        position: absolute;
-        left: 100%;
-        top: -1px;
-        background: #1d2327;
-        border: 1px solid #3c434a;
-        min-width: 210px;
-        display: none;
-        box-shadow: 4px 4px 18px rgba(0,0,0,0.45);
-        z-index: 100002;
-        max-height: calc(100vh - 40px);
-        overflow-y: auto;
-    }
-    .snn-mega-dropdown > ul > li:hover > .snn-mega-sub-menu {
-        display: block;
-    }
-    .snn-mega-sub-menu li {
-        border-bottom: 1px solid #2c3338;
-    }
-    .snn-mega-sub-menu li:last-child {
-        border-bottom: none;
-    }
-    .snn-mega-sub-menu li a {
-        display: block;
-        padding: 8px 14px;
-        color: #c3c4c7;
-        text-decoration: none;
-        font-size: 12px;
-        white-space: nowrap;
-    }
-    .snn-mega-sub-menu li a:hover {
-        background: #2c3338;
-        color: #72aee6;
-    }
-    </style>
-    <script>
-    (function() {
-        var snnMenuData = <?php echo wp_json_encode($menu_data); ?>;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            var menuNode = document.getElementById('wp-admin-bar-snn-admin-mega-menu');
-            if (!menuNode) return;
+    // Add every top-level menu item as a child node
+    foreach ($menu_data as $i => $item) {
+        $node_id = 'snn-mega-' . $i;
 
-            // Build dropdown
-            var dropdown = document.createElement('div');
-            dropdown.className = 'snn-mega-dropdown';
+        $wp_admin_bar->add_node(array(
+            'id'     => $node_id,
+            'parent' => 'snn-admin-mega-menu',
+            'title'  => esc_html($item['title']),
+            'href'   => esc_url($item['url']),
+        ));
 
-            var ul = document.createElement('ul');
-
-            snnMenuData.forEach(function(item) {
-                var li = document.createElement('li');
-                var a  = document.createElement('a');
-                a.href = item.url;
-
-                var titleSpan = document.createElement('span');
-                titleSpan.textContent = item.title;
-                a.appendChild(titleSpan);
-
-                if (item.submenus && item.submenus.length > 0) {
-                    var arrow = document.createElement('span');
-                    arrow.className = 'snn-mega-arrow';
-                    arrow.innerHTML = '&#9658;';
-                    a.appendChild(arrow);
-
-                    var subUl = document.createElement('ul');
-                    subUl.className = 'snn-mega-sub-menu';
-
-                    item.submenus.forEach(function(sub) {
-                        var subLi = document.createElement('li');
-                        var subA  = document.createElement('a');
-                        subA.href = sub.url;
-                        subA.textContent = sub.title;
-                        subLi.appendChild(subA);
-                        subUl.appendChild(subLi);
-                    });
-
-                    li.appendChild(a);
-                    li.appendChild(subUl);
-                } else {
-                    li.appendChild(a);
-                }
-
-                ul.appendChild(li);
-            });
-
-            dropdown.appendChild(ul);
-            menuNode.appendChild(dropdown);
-
-            // Flip submenu to the left if it overflows the right edge of the viewport
-            ul.querySelectorAll('li').forEach(function(li) {
-                li.addEventListener('mouseenter', function() {
-                    var sub = li.querySelector('.snn-mega-sub-menu');
-                    if (!sub) return;
-                    sub.style.left  = '100%';
-                    sub.style.right = 'auto';
-                    var rect = sub.getBoundingClientRect();
-                    if (rect.right > window.innerWidth) {
-                        sub.style.left  = 'auto';
-                        sub.style.right = '100%';
-                    }
-                });
-            });
-        });
-    })();
-    </script>
-    <?php
-}
-add_action('admin_footer', 'snn_admin_mega_menu_output', 999);
-add_action('wp_footer',    'snn_admin_mega_menu_output');
+        // Add submenu items as grandchild nodes — WP renders these as a nested flyout
+        foreach ($item['submenus'] as $j => $sub) {
+            $wp_admin_bar->add_node(array(
+                'id'     => $node_id . '-' . $j,
+                'parent' => $node_id,
+                'title'  => esc_html($sub['title']),
+                'href'   => esc_url($sub['url']),
+            ));
+        }
+    }
+}, 25);
