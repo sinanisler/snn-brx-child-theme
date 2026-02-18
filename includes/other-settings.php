@@ -138,6 +138,14 @@ function snn_register_other_settings() {
         'snn_other_settings_section'
     );
 
+    add_settings_field(
+        'admin_mega_menu_priority',
+        __('Admin Mega Menu Position Priority', 'snn'),
+        'snn_admin_mega_menu_priority_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
 }
 add_action('admin_init', 'snn_register_other_settings');
 
@@ -158,6 +166,7 @@ function snn_sanitize_other_settings($input) {
     $sanitized['disable_admin_bar_roles'] = isset($input['disable_admin_bar_roles']) && is_array($input['disable_admin_bar_roles']) ? array_map('sanitize_text_field', $input['disable_admin_bar_roles']) : array();
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
     $sanitized['enable_admin_mega_menu'] = isset($input['enable_admin_mega_menu']) && $input['enable_admin_mega_menu'] ? 1 : 0;
+    $sanitized['admin_mega_menu_priority'] = isset($input['admin_mega_menu_priority']) && $input['admin_mega_menu_priority'] !== '' ? intval($input['admin_mega_menu_priority']) : 35;
 
     if (isset($input['dashboard_custom_metabox_content'])) {
         $sanitized['dashboard_custom_metabox_content'] = $input['dashboard_custom_metabox_content'];
@@ -659,6 +668,20 @@ function snn_enable_admin_mega_menu_callback() {
 }
 
 /**
+ * Settings field callback for Admin Mega Menu priority.
+ */
+function snn_admin_mega_menu_priority_callback() {
+    $options = get_option('snn_other_settings');
+    $value = isset($options['admin_mega_menu_priority']) && $options['admin_mega_menu_priority'] !== '' ? intval($options['admin_mega_menu_priority']) : 35;
+    ?>
+    <input type="number" name="snn_other_settings[admin_mega_menu_priority]" value="<?php echo esc_attr($value); ?>" min="1" max="999" style="width:80px;">
+    <p>
+        <?php _e('Controls the position of the mega menu in the admin bar. Lower numbers appear earlier (e.g. 1 = first), higher numbers appear later (e.g. 99 = near end). Default: 35.', 'snn'); ?>
+    </p>
+    <?php
+}
+
+/**
  * Build a clean menu data array from the global $menu and $submenu.
  */
 function snn_build_admin_menu_data($menu, $submenu) {
@@ -756,6 +779,8 @@ add_action('admin_bar_menu', function($wp_admin_bar) {
 /**
  * Add the mega menu node and populate all admin menu items on the frontend.
  */
+$_snn_mega_opts     = get_option('snn_other_settings', array());
+$_snn_mega_priority = isset($_snn_mega_opts['admin_mega_menu_priority']) && $_snn_mega_opts['admin_mega_menu_priority'] !== '' ? intval($_snn_mega_opts['admin_mega_menu_priority']) : 35;
 add_action('admin_bar_menu', function($wp_admin_bar) {
     $options = get_option('snn_other_settings');
     if (!isset($options['enable_admin_mega_menu']) || !$options['enable_admin_mega_menu']) {
@@ -803,4 +828,4 @@ add_action('admin_bar_menu', function($wp_admin_bar) {
             ));
         }
     }
-}, 35);
+}, $_snn_mega_priority);
