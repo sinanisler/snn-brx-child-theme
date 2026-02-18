@@ -803,4 +803,4 @@ add_action('admin_bar_menu', function($wp_admin_bar) {
             ));
         }
     }
-}, 25);
+}, 30);
