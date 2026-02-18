@@ -773,7 +773,7 @@ add_action('admin_bar_menu', function($wp_admin_bar) {
     // Parent node — icon only, no label
     $wp_admin_bar->add_node(array(
         'id'    => 'snn-admin-mega-menu',
-        'title' => '<span class="dashicons dashicons-menu" style="font-family:dashicons;font-size:20px;line-height:32px;vertical-align:top;"></span>',
+        'title' => '<span class="dashicons dashicons-menu" style="font-family:dashicons;font-size:25px;line-height:32px;vertical-align:top; color: #9ca2a7;"></span>',
         'href'  => admin_url(),
     ));
 
