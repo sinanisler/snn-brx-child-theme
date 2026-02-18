@@ -606,6 +606,21 @@ function snn_admin_bar_toggle_script() {
 add_action('wp_footer', 'snn_admin_bar_toggle_script');
 
 /**
+ * Add mega menu CSS to frontend.
+ */
+function snn_admin_mega_menu_styles() {
+    $options = get_option('snn_other_settings');
+    if (!isset($options['enable_admin_mega_menu']) || !$options['enable_admin_mega_menu']) {
+        return;
+    }
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    echo '<style>#wp-admin-bar-snn-admin-mega-menu li{line-height:1}</style>';
+}
+add_action('wp_head', 'snn_admin_mega_menu_styles');
+
+/**
  * Disable admin bar for selected user roles.
  */
 function snn_disable_admin_bar_for_roles() {
@@ -720,7 +735,23 @@ function snn_build_admin_menu_data($menu, $submenu) {
 }
 
 /**
- * Add the mega menu node (3rd position) and populate all admin menu items natively.
+ * Persist admin menu structure to DB so it can be used on the frontend.
+ */
+add_action('admin_bar_menu', function($wp_admin_bar) {
+    $options = get_option('snn_other_settings');
+    if (!isset($options['enable_admin_mega_menu']) || !$options['enable_admin_mega_menu']) {
+        return;
+    }
+    if (!current_user_can('manage_options') || !is_admin()) {
+        return;
+    }
+    global $menu, $submenu;
+    $menu_data = snn_build_admin_menu_data($menu, $submenu);
+    update_option('snn_admin_menu_structure', $menu_data, 'no');
+}, 25);
+
+/**
+ * Add the mega menu node and populate all admin menu items on the frontend.
  */
 add_action('admin_bar_menu', function($wp_admin_bar) {
     $options = get_option('snn_other_settings');
@@ -731,6 +762,11 @@ add_action('admin_bar_menu', function($wp_admin_bar) {
         return;
     }
 
+    // Only show on frontend, not in wp-admin
+    if (is_admin()) {
+        return;
+    }
+
     // Parent node — icon only, no label
     $wp_admin_bar->add_node(array(
         'id'    => 'snn-admin-mega-menu',
@@ -738,14 +774,8 @@ add_action('admin_bar_menu', function($wp_admin_bar) {
         'href'  => admin_url(),
     ));
 
-    // On admin pages use live globals and persist for frontend; on frontend read stored data
-    if (is_admin()) {
-        global $menu, $submenu;
-        $menu_data = snn_build_admin_menu_data($menu, $submenu);
-        update_option('snn_admin_menu_structure', $menu_data, 'no');
-    } else {
-        $menu_data = get_option('snn_admin_menu_structure', array());
-    }
+    // On frontend read stored data
+    $menu_data = get_option('snn_admin_menu_structure', array());
 
     if (empty($menu_data)) return;
 
