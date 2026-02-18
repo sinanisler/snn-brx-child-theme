@@ -1,4 +1,4 @@
-<?php
+<?php 
 // The Page for Interactions and Animations Settings
 function snn_add_interactions_page() {
     add_submenu_page(
