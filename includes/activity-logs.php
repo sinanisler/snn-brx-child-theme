@@ -112,6 +112,7 @@ function snn_get_log_severity_info() {
         'admin_email_changed'     => array( 'level' => 'critical', 'desc' => __( 'Critical: Admin email changes affect site notifications', 'snn' ) ),
         'xmlrpc_access'           => array( 'level' => 'critical', 'desc' => __( 'Critical: XML-RPC is often targeted by attackers', 'snn' ) ),
         'rest_api_auth'           => array( 'level' => 'critical', 'desc' => __( 'Critical: REST API authentication failures may indicate attacks', 'snn' ) ),
+        'rest_api_requests'       => array( 'level' => 'important', 'desc' => __( 'Important: Track all REST API write/read requests dynamically (endpoint, method, user, body, params)', 'snn' ) ),
         'theme_installed'         => array( 'level' => 'critical', 'desc' => __( 'Critical: New theme installations can introduce security risks', 'snn' ) ),
         
         // YELLOW - Important Operational
@@ -234,6 +235,7 @@ function snn_get_logging_options() {
             'application_password'  => __( 'Application Password Events', 'snn' ),
             'xmlrpc_access'         => __( 'XML-RPC Access', 'snn' ),
             'rest_api_auth'         => __( 'REST API Authentication Failures', 'snn' ),
+            'rest_api_requests'     => __( 'REST API Requests (All Endpoints)', 'snn' ),
             'site_url_changed'      => __( 'Site URL Changes', 'snn' ),
             'admin_email_changed'   => __( 'Admin Email Changes', 'snn' ),
         ),
@@ -945,6 +947,90 @@ add_filter( 'rest_authentication_errors', function( $result ) {
     }
     return $result;
 }, 99 );
+
+// REST API — dynamic tracking of all endpoints
+add_action( 'rest_api_init', function() {
+    if ( ! get_option( 'snn_activity_log_enable' ) ) {
+        return;
+    }
+    if ( ! snn_is_log_type_enabled( 'rest_api_requests' ) ) {
+        return;
+    }
+
+    add_filter( 'rest_pre_dispatch', function( $result, $server, $request ) {
+        // Skip internal/no-method requests
+        $method = $request->get_method();
+        if ( empty( $method ) ) {
+            return $result;
+        }
+
+        $route  = $request->get_route();
+
+        // Build a human-readable action label
+        $action = 'REST API: ' . strtoupper( $method ) . ' ' . $route;
+
+        // Collect query parameters
+        $query_params = $request->get_query_params();
+        // Remove internal WP REST params that clutter logs
+        unset( $query_params['_wpnonce'], $query_params['_locale'] );
+
+        // Collect body params for write operations
+        $body_params = array();
+        if ( in_array( $method, array( 'POST', 'PUT', 'PATCH', 'DELETE' ), true ) ) {
+            $body_params = $request->get_body_params();
+            // Sanitize: remove sensitive fields
+            foreach ( array( 'password', 'pass', 'user_pass', 'secret', 'token', 'key', 'auth' ) as $sensitive ) {
+                if ( isset( $body_params[ $sensitive ] ) ) {
+                    $body_params[ $sensitive ] = '***REDACTED***';
+                }
+            }
+            // Also scrub JSON body
+            $json_params = $request->get_json_params();
+            if ( is_array( $json_params ) ) {
+                foreach ( array( 'password', 'pass', 'user_pass', 'secret', 'token', 'key', 'auth' ) as $sensitive ) {
+                    if ( isset( $json_params[ $sensitive ] ) ) {
+                        $json_params[ $sensitive ] = '***REDACTED***';
+                    }
+                }
+                if ( ! empty( $json_params ) ) {
+                    $body_params = array_merge( $body_params, $json_params );
+                }
+            }
+        }
+
+        // Build detail string
+        $details = 'Method: ' . strtoupper( $method ) . "\n";
+        $details .= 'Route: ' . $route . "\n";
+        $details .= 'Namespace: ' . ( preg_match( '#^/([^/]+)#', $route, $m ) ? $m[1] : 'unknown' ) . "\n";
+
+        if ( ! empty( $query_params ) ) {
+            $formatted_qp = array();
+            foreach ( $query_params as $k => $v ) {
+                $formatted_qp[] = $k . '=' . ( is_array( $v ) ? implode( ',', $v ) : $v );
+            }
+            $details .= 'Query Params: ' . implode( ' | ', $formatted_qp ) . "\n";
+        }
+
+        if ( ! empty( $body_params ) ) {
+            $formatted_bp = array();
+            foreach ( $body_params as $k => $v ) {
+                if ( is_array( $v ) || is_object( $v ) ) {
+                    $v = wp_json_encode( $v );
+                }
+                // Truncate very large values
+                if ( is_string( $v ) && strlen( $v ) > 300 ) {
+                    $v = substr( $v, 0, 300 ) . '...[truncated]';
+                }
+                $formatted_bp[] = $k . ': ' . $v;
+            }
+            $details .= 'Body: ' . implode( ' | ', $formatted_bp ) . "\n";
+        }
+
+        snn_log_user_activity( $action, $details, 0, 'rest_api_requests' );
+
+        return $result;
+    }, 10, 3 );
+}, 5 );
 
 // Cron executed - logs when WP cron runs
 add_action( 'wp_loaded', function() {
