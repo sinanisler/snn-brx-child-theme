@@ -246,6 +246,14 @@ class SNN_Video_Player_Element extends Element {
             'default' => 'rgba(0, 0, 0, 0.8)',
 			'inline'=> true,
         ];
+
+        $this->controls['enable_video_seo_meta'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Enable Video SEO Meta Tags', 'snn' ),
+            'type'        => 'checkbox',
+            'default'     => false,
+            'description' => esc_html__( 'Adds VideoObject microdata meta tags to the page <head> to help Google understand your video. Outputs: video name (page title), thumbnailUrl (poster image or featured image), uploadDate (post published date), contentUrl (video file URL), embedUrl (current page URL), and the site language. Enables rich video results in Google Search.', 'snn' ),
+        ];
     }
 
     public function render() {
@@ -421,6 +429,40 @@ class SNN_Video_Player_Element extends Element {
         $autoplay           = ! empty( $settings['autoplay'] );
         $muted              = ! empty( $settings['muted'] );
         $loop               = ! empty( $settings['loop'] );
+
+        // Video SEO meta tags via wp_head hook
+        if ( ! empty( $settings['enable_video_seo_meta'] ) && ! is_admin() ) {
+            $seo_video_url      = $video_url;
+            $seo_poster_url     = $poster_url;
+            $seo_post_id        = get_queried_object_id();
+            $seo_post           = get_post( $seo_post_id );
+            $seo_title          = $seo_post ? get_the_title( $seo_post_id ) : get_bloginfo( 'name' );
+            $seo_upload_date    = $seo_post ? get_the_date( 'c', $seo_post_id ) : '';
+            $seo_page_url       = get_permalink( $seo_post_id ) ?: home_url( add_query_arg( [] ) );
+            $seo_lang           = get_bloginfo( 'language' );
+
+            // Fallback thumbnail: featured image if poster is empty
+            if ( empty( $seo_poster_url ) && $seo_post_id && has_post_thumbnail( $seo_post_id ) ) {
+                $seo_poster_url = get_the_post_thumbnail_url( $seo_post_id, 'full' );
+            }
+
+            $video_seo_html  = '<span itemscope itemtype="https://schema.org/VideoObject" style="display:none;">' . "\n";
+            $video_seo_html .= '  <meta itemprop="name" content="' . esc_attr( $seo_title ) . '" />' . "\n";
+            $video_seo_html .= '  <meta itemprop="contentUrl" content="' . esc_url( $seo_video_url ) . '" />' . "\n";
+            if ( ! empty( $seo_poster_url ) ) {
+                $video_seo_html .= '  <meta itemprop="thumbnailUrl" content="' . esc_url( $seo_poster_url ) . '" />' . "\n";
+            }
+            if ( ! empty( $seo_upload_date ) ) {
+                $video_seo_html .= '  <meta itemprop="uploadDate" content="' . esc_attr( $seo_upload_date ) . '" />' . "\n";
+            }
+            if ( ! empty( $seo_page_url ) ) {
+                $video_seo_html .= '  <link itemprop="embedUrl" href="' . esc_url( $seo_page_url ) . '" />' . "\n";
+            }
+            if ( ! empty( $seo_lang ) ) {
+                $video_seo_html .= '  <meta itemprop="inLanguage" content="' . esc_attr( $seo_lang ) . '" />' . "\n";
+            }
+            $video_seo_html .= '</span>' . "\n";
+        }
         $disable_autohide = ! empty( $settings['disable_autohide'] );
 
         $player_height      = $settings['player_height'] ?? '400px';
@@ -1588,6 +1630,9 @@ class SNN_Video_Player_Element extends Element {
         })();
         </script>
         <?php
+        if ( ! empty( $video_seo_html ) ) {
+            echo $video_seo_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        }
         echo "</div>";
     }
 }
