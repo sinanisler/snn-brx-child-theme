@@ -287,6 +287,7 @@ function snn_enable_page_transitions_callback() {
                 <label><?php _e('Transition Type', 'snn'); ?>:
                     <select name="snn_interactions_settings[page_transition_type]" class="transitions-select">
                         <option value="wipe-down" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-down'); ?>><?php _e('Wipe Down (Top to Bottom)', 'snn'); ?></option>
+                        <option value="wipe-down-soft" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-down-soft'); ?>><?php _e('Wipe Down Soft Edge (Fade Leading Edge)', 'snn'); ?></option>
                         <option value="wipe-up" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-up'); ?>><?php _e('Wipe Up (Bottom to Top)', 'snn'); ?></option>
                         <option value="wipe-left" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-left'); ?>><?php _e('Wipe Left (Right to Left)', 'snn'); ?></option>
                         <option value="wipe-right" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'wipe-right'); ?>><?php _e('Wipe Right (Left to Right)', 'snn'); ?></option>
@@ -512,6 +513,32 @@ function snn_enqueue_page_transitions() {
             @keyframes snn-wipe-down {
                 from { clip-path: inset(0 0 100% 0); }
                 to { clip-path: inset(0 0 0 0); }
+            }
+            ";
+        } elseif ($transition_type === 'wipe-down-soft') {
+            // Wipe Down Soft Edge: same direction as Wipe Down but the leading
+            // edge fades in the new page instead of cutting sharply.
+            // Uses @property to interpolate a custom property inside mask-image.
+            $inline_css .= "
+            @property --snn-wipe-y {
+                syntax: '<percentage>';
+                inherits: false;
+                initial-value: -25%;
+            }
+
+            ::view-transition-old(root) {
+                animation: none;
+                z-index: -1;
+            }
+            ::view-transition-new(root) {
+                animation: snn-wipe-down-soft var(--snn-transition-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+                z-index: 1;
+                mask-image: linear-gradient(to bottom, black calc(var(--snn-wipe-y) - 25%), transparent var(--snn-wipe-y));
+            }
+
+            @keyframes snn-wipe-down-soft {
+                from { --snn-wipe-y: -25%; }
+                to   { --snn-wipe-y: 125%; }
             }
             ";
         } elseif ($transition_type === 'wipe-up') {
