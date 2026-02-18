@@ -128,7 +128,8 @@ function snn_render_clamp_calculator_section() {
     }
 
     .snn-clamp-container .save-btn {
-        background-color: #10b981; /* Green color for save button */
+        background-color: var(--builder-color-accent);
+        color: black;
     }
 
     @media (min-width: 640px) {
