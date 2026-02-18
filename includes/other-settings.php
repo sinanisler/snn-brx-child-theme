@@ -616,7 +616,10 @@ function snn_admin_mega_menu_styles() {
     if (!current_user_can('manage_options')) {
         return;
     }
-    echo '<style>#wp-admin-bar-snn-admin-mega-menu li a{line-height:1 !important; height:18px; }</style>';
+    echo '<style>
+    #wp-admin-bar-snn-admin-mega-menu li {line-height:1 !important; height:auto !important; }
+    #wp-admin-bar-snn-admin-mega-menu li a{line-height:1 !important; height:18px !important; }
+    </style>';
 }
 add_action('wp_head', 'snn_admin_mega_menu_styles');
 
