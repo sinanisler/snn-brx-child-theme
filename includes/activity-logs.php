@@ -112,7 +112,11 @@ function snn_get_log_severity_info() {
         'admin_email_changed'     => array( 'level' => 'critical', 'desc' => __( 'Critical: Admin email changes affect site notifications', 'snn' ) ),
         'xmlrpc_access'           => array( 'level' => 'critical', 'desc' => __( 'Critical: XML-RPC is often targeted by attackers', 'snn' ) ),
         'rest_api_auth'           => array( 'level' => 'critical', 'desc' => __( 'Critical: REST API authentication failures may indicate attacks', 'snn' ) ),
-        'rest_api_requests'       => array( 'level' => 'important', 'desc' => __( 'Important: Track all REST API write/read requests dynamically (endpoint, method, user, body, params)', 'snn' ) ),
+        'rest_api_get'            => array( 'level' => 'low',       'desc' => __( 'Low: Track REST API GET requests (read queries — high volume)', 'snn' ) ),
+        'rest_api_post'           => array( 'level' => 'important', 'desc' => __( 'Important: Track REST API POST requests (create operations)', 'snn' ) ),
+        'rest_api_put'            => array( 'level' => 'important', 'desc' => __( 'Important: Track REST API PUT requests (full update operations)', 'snn' ) ),
+        'rest_api_patch'          => array( 'level' => 'important', 'desc' => __( 'Important: Track REST API PATCH requests (partial update operations)', 'snn' ) ),
+        'rest_api_delete'         => array( 'level' => 'critical', 'desc' => __( 'Critical: Track REST API DELETE requests (delete operations)', 'snn' ) ),
         'theme_installed'         => array( 'level' => 'critical', 'desc' => __( 'Critical: New theme installations can introduce security risks', 'snn' ) ),
         
         // YELLOW - Important Operational
@@ -235,7 +239,11 @@ function snn_get_logging_options() {
             'application_password'  => __( 'Application Password Events', 'snn' ),
             'xmlrpc_access'         => __( 'XML-RPC Access', 'snn' ),
             'rest_api_auth'         => __( 'REST API Authentication Failures', 'snn' ),
-            'rest_api_requests'     => __( 'REST API Requests (All Endpoints)', 'snn' ),
+            'rest_api_get'          => __( 'REST API GET Requests', 'snn' ),
+            'rest_api_post'         => __( 'REST API POST Requests', 'snn' ),
+            'rest_api_put'          => __( 'REST API PUT Requests', 'snn' ),
+            'rest_api_patch'        => __( 'REST API PATCH Requests', 'snn' ),
+            'rest_api_delete'       => __( 'REST API DELETE Requests', 'snn' ),
             'site_url_changed'      => __( 'Site URL Changes', 'snn' ),
             'admin_email_changed'   => __( 'Admin Email Changes', 'snn' ),
         ),
@@ -948,26 +956,47 @@ add_filter( 'rest_authentication_errors', function( $result ) {
     return $result;
 }, 99 );
 
-// REST API — dynamic tracking of all endpoints
+// REST API — dynamic per-method tracking of all endpoints
+// Each HTTP method (GET, POST, PUT, PATCH, DELETE) can be toggled independently.
 add_action( 'rest_api_init', function() {
     if ( ! get_option( 'snn_activity_log_enable' ) ) {
         return;
     }
-    if ( ! snn_is_log_type_enabled( 'rest_api_requests' ) ) {
+
+    // Map HTTP methods to their log-type keys
+    $method_log_map = array(
+        'GET'    => 'rest_api_get',
+        'POST'   => 'rest_api_post',
+        'PUT'    => 'rest_api_put',
+        'PATCH'  => 'rest_api_patch',
+        'DELETE' => 'rest_api_delete',
+    );
+
+    // Only register the filter if at least one method is enabled
+    $any_enabled = false;
+    foreach ( $method_log_map as $log_type ) {
+        if ( snn_is_log_type_enabled( $log_type ) ) {
+            $any_enabled = true;
+            break;
+        }
+    }
+    if ( ! $any_enabled ) {
         return;
     }
 
-    add_filter( 'rest_pre_dispatch', function( $result, $server, $request ) {
-        // Skip internal/no-method requests
-        $method = $request->get_method();
-        if ( empty( $method ) ) {
+    add_filter( 'rest_pre_dispatch', function( $result, $server, $request ) use ( $method_log_map ) {
+        $method   = strtoupper( $request->get_method() );
+        $log_type = isset( $method_log_map[ $method ] ) ? $method_log_map[ $method ] : '';
+
+        // Skip if this method has no log type or is disabled
+        if ( empty( $log_type ) || ! snn_is_log_type_enabled( $log_type ) ) {
             return $result;
         }
 
         $route  = $request->get_route();
 
         // Build a human-readable action label
-        $action = 'REST API: ' . strtoupper( $method ) . ' ' . $route;
+        $action = 'REST API ' . $method . ': ' . $route;
 
         // Collect query parameters
         $query_params = $request->get_query_params();
@@ -999,7 +1028,7 @@ add_action( 'rest_api_init', function() {
         }
 
         // Build detail string
-        $details = 'Method: ' . strtoupper( $method ) . "\n";
+        $details  = 'Method: ' . $method . "\n";
         $details .= 'Route: ' . $route . "\n";
         $details .= 'Namespace: ' . ( preg_match( '#^/([^/]+)#', $route, $m ) ? $m[1] : 'unknown' ) . "\n";
 
@@ -1026,7 +1055,7 @@ add_action( 'rest_api_init', function() {
             $details .= 'Body: ' . implode( ' | ', $formatted_bp ) . "\n";
         }
 
-        snn_log_user_activity( $action, $details, 0, 'rest_api_requests' );
+        snn_log_user_activity( $action, $details, 0, $log_type );
 
         return $result;
     }, 10, 3 );
