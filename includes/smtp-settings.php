@@ -242,6 +242,240 @@ function custom_smtp_enqueue_scripts($hook) {
         return;
     }
     wp_enqueue_script('jquery');
+    wp_localize_script('jquery', 'snnSmtpTest', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce'   => wp_create_nonce('custom_smtp_ajax_test_nonce'),
+    ));
+}
+
+
+add_action('wp_ajax_custom_smtp_ajax_test', 'custom_smtp_ajax_test_handler');
+function custom_smtp_ajax_test_handler() {
+    check_ajax_referer('custom_smtp_ajax_test_nonce', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json(array('success' => false, 'logs' => array(array('type' => 'error', 'message' => 'Unauthorized')), 'settings' => array(), 'email_sent' => false));
+    }
+
+    $to = isset($_POST['test_email']) ? sanitize_email(wp_unslash($_POST['test_email'])) : '';
+    if (empty($to)) {
+        $to = get_option('admin_email');
+    }
+
+    $logs    = array();
+    $options = get_option('custom_smtp_settings', array());
+
+    $smtp_enabled = !empty($options['enable_smtp']);
+    $host         = $options['smtp_host'] ?? '';
+    $port         = $options['smtp_port'] ?? 25;
+    $encryption   = $options['smtp_encryption'] ?? 'none';
+    $username     = $options['smtp_username'] ?? '';
+    $password     = $options['smtp_password'] ?? '';
+
+    $settings = array(
+        'SMTP Enabled'  => $smtp_enabled ? 'Yes' : 'No',
+        'Host'          => $host ?: '(not set)',
+        'Port'          => (int) $port,
+        'Encryption'    => strtoupper($encryption),
+        'Username'      => $username ?: '(not set)',
+        'Password'      => !empty($password) ? '(set)' : '(not set)',
+        'Recipient'     => $to,
+    );
+
+    $logs[] = array('type' => 'info', 'message' => 'Test started — recipient: ' . $to);
+
+    if ($smtp_enabled) {
+        $logs[] = array('type' => 'info', 'message' => 'SMTP is enabled. Running connection checks...');
+
+        // Validate host
+        if (empty($host)) {
+            $logs[] = array('type' => 'error', 'message' => 'SMTP host is empty. Please configure it.');
+            wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+        }
+
+        // DNS
+        $logs[] = array('type' => 'info', 'message' => 'Resolving DNS for: ' . $host);
+        $ip = gethostbyname($host);
+        if ($ip === $host && !filter_var($host, FILTER_VALIDATE_IP)) {
+            $logs[] = array('type' => 'error', 'message' => 'DNS resolution failed for "' . $host . '". Check hostname.');
+            wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+        }
+        $logs[] = array('type' => 'success', 'message' => 'DNS resolved: ' . $host . ' → ' . $ip);
+
+        // Port connectivity
+        $logs[] = array('type' => 'info', 'message' => 'Connecting to ' . $host . ':' . $port . ' (encryption: ' . strtoupper($encryption) . ')...');
+        $conn_errno  = 0;
+        $conn_errstr = '';
+        $timeout     = 5;
+        $context     = stream_context_create();
+
+        if (strtolower($encryption) === 'ssl') {
+            stream_context_set_option($context, 'ssl', 'verify_peer', false);
+            stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
+            $connection = @stream_socket_client("ssl://{$host}:{$port}", $conn_errno, $conn_errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
+        } else {
+            $connection = @fsockopen($host, $port, $conn_errno, $conn_errstr, $timeout);
+        }
+
+        if (!is_resource($connection)) {
+            if ($conn_errno === 110 || $conn_errno === 60) {
+                $logs[] = array('type' => 'error', 'message' => 'Connection timeout to ' . $host . ':' . $port . '. Port may be blocked by firewall.');
+            } elseif ($conn_errno === 111 || $conn_errno === 61) {
+                $logs[] = array('type' => 'error', 'message' => 'Connection refused by ' . $host . ':' . $port . '. Check port and SMTP service.');
+            } else {
+                $logs[] = array('type' => 'error', 'message' => 'Connection failed to ' . $host . ':' . $port . '. Error (' . $conn_errno . '): ' . $conn_errstr);
+            }
+            wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+        }
+        $logs[] = array('type' => 'success', 'message' => 'Socket connection established to ' . $host . ':' . $port);
+
+        // SMTP greeting
+        $greeting = '';
+        while ($line = fgets($connection, 512)) {
+            $greeting .= $line;
+            if (substr($line, 3, 1) === ' ') break;
+        }
+        if (!$greeting || substr($greeting, 0, 3) !== '220') {
+            fclose($connection);
+            $logs[] = array('type' => 'error', 'message' => 'Bad SMTP greeting. Response: ' . trim($greeting));
+            wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+        }
+        $logs[] = array('type' => 'info', 'message' => 'Server greeting: ' . trim($greeting));
+
+        // EHLO
+        fputs($connection, "EHLO localhost\r\n");
+        $ehlo_response = '';
+        while ($line = fgets($connection, 512)) {
+            $ehlo_response .= $line;
+            if (substr($line, 3, 1) === ' ') break;
+        }
+        if (substr($ehlo_response, 0, 3) !== '250') {
+            fclose($connection);
+            $logs[] = array('type' => 'error', 'message' => 'EHLO rejected. Response: ' . trim($ehlo_response));
+            wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+        }
+        $logs[] = array('type' => 'success', 'message' => 'EHLO handshake OK.');
+
+        // STARTTLS
+        if (strtolower($encryption) === 'tls') {
+            $logs[] = array('type' => 'info', 'message' => 'Initiating STARTTLS...');
+            fputs($connection, "STARTTLS\r\n");
+            $starttls_response = '';
+            while ($line = fgets($connection, 512)) {
+                $starttls_response .= $line;
+                if (substr($line, 3, 1) === ' ') break;
+            }
+            if (substr($starttls_response, 0, 3) !== '220') {
+                fclose($connection);
+                $logs[] = array('type' => 'error', 'message' => 'STARTTLS failed. Response: ' . trim($starttls_response));
+                wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+            }
+            $crypto_result = stream_socket_enable_crypto($connection, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            if (!$crypto_result) {
+                fclose($connection);
+                $logs[] = array('type' => 'error', 'message' => 'TLS encryption failed. SSL certificate may be invalid or expired.');
+                wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+            }
+            $logs[] = array('type' => 'success', 'message' => 'TLS encryption established.');
+            fputs($connection, "EHLO localhost\r\n");
+            while ($line = fgets($connection, 512)) {
+                if (substr($line, 3, 1) === ' ') break;
+            }
+        }
+
+        // Auth
+        if (!empty($username) && !empty($password)) {
+            $logs[] = array('type' => 'info', 'message' => 'Authenticating as: ' . $username);
+            fputs($connection, "AUTH LOGIN\r\n");
+            $auth_response = fgets($connection, 512);
+            if (substr($auth_response, 0, 3) !== '334') {
+                fclose($connection);
+                $logs[] = array('type' => 'error', 'message' => 'AUTH LOGIN not accepted. Response: ' . trim($auth_response));
+                wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+            }
+            fputs($connection, base64_encode($username) . "\r\n");
+            $user_response = fgets($connection, 512);
+            if (substr($user_response, 0, 3) !== '334') {
+                fclose($connection);
+                $logs[] = array('type' => 'error', 'message' => 'Username rejected. Response: ' . trim($user_response));
+                wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+            }
+            fputs($connection, base64_encode($password) . "\r\n");
+            $pass_response = fgets($connection, 512);
+            if (substr($pass_response, 0, 3) !== '235') {
+                fclose($connection);
+                if (substr($pass_response, 0, 3) === '535') {
+                    $logs[] = array('type' => 'error', 'message' => 'Authentication failed: Invalid username or password.');
+                } else {
+                    $logs[] = array('type' => 'error', 'message' => 'Credentials rejected. Response: ' . trim($pass_response));
+                }
+                wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings, 'email_sent' => false));
+            }
+            $logs[] = array('type' => 'success', 'message' => 'SMTP authentication successful.');
+        } else {
+            $logs[] = array('type' => 'warning', 'message' => 'No credentials provided — skipping auth step.');
+        }
+
+        fputs($connection, "QUIT\r\n");
+        fclose($connection);
+        $logs[] = array('type' => 'success', 'message' => 'Connection test passed. Sending email via wp_mail()...');
+
+    } else {
+        $logs[] = array('type' => 'warning', 'message' => 'SMTP is disabled — using PHP mail() instead.');
+        $logs[] = array('type' => 'info', 'message' => 'Sending email via wp_mail()...');
+    }
+
+    // Capture wp_mail errors
+    $mail_error      = null;
+    $mail_error_fn   = function ($wp_error) use (&$mail_error) { $mail_error = $wp_error; };
+    add_action('wp_mail_failed', $mail_error_fn);
+
+    $phpmailer_errors  = array();
+    $phpmailer_error_fn = function ($phpmailer) use (&$phpmailer_errors) {
+        if (!empty($phpmailer->ErrorInfo)) {
+            $phpmailer_errors[] = $phpmailer->ErrorInfo;
+        }
+    };
+    add_action('phpmailer_init', $phpmailer_error_fn, 999);
+
+    $sent = wp_mail($to, __('SMTP Test Email', 'snn'), __('This is a test email sent via your SMTP settings.', 'snn'), array('Content-Type: text/html; charset=UTF-8'));
+
+    remove_action('wp_mail_failed', $mail_error_fn);
+    remove_action('phpmailer_init', $phpmailer_error_fn, 999);
+
+    if ($sent) {
+        $logs[] = array('type' => 'success', 'message' => 'Email sent successfully to ' . $to . '!');
+    } else {
+        if ($mail_error && is_wp_error($mail_error)) {
+            $logs[] = array('type' => 'error', 'message' => 'WordPress mail error: ' . $mail_error->get_error_message());
+            $error_data = $mail_error->get_error_data();
+            if (!empty($error_data)) {
+                if (is_array($error_data)) {
+                    foreach ($error_data as $k => $v) {
+                        if (is_string($v)) {
+                            $logs[] = array('type' => 'error', 'message' => $k . ': ' . $v);
+                        }
+                    }
+                } elseif (is_string($error_data)) {
+                    $logs[] = array('type' => 'error', 'message' => $error_data);
+                }
+            }
+        }
+        foreach ($phpmailer_errors as $pe) {
+            $logs[] = array('type' => 'error', 'message' => 'PHPMailer: ' . $pe);
+        }
+        if (empty($mail_error) && empty($phpmailer_errors)) {
+            $logs[] = array('type' => 'error', 'message' => 'wp_mail() returned false but no specific error was captured. Check server logs.');
+        }
+    }
+
+    wp_send_json(array(
+        'success'    => $sent,
+        'logs'       => $logs,
+        'settings'   => $settings,
+        'email_sent' => $sent,
+        'recipient'  => $to,
+    ));
 }
 
 /**
@@ -696,11 +930,6 @@ function custom_smtp_handle_test_email_submission() {
 
 
 function custom_smtp_settings_page() {
-    // Process test email submission before rendering the page.
-    custom_smtp_handle_test_email_submission();
-
-    // Display any admin notices (including errors set above).
-    settings_errors('custom_smtp_test_email');
     ?>
     <div class="wrap">
         <h1><?php _e('Mail SMTP Settings', 'snn'); ?></h1>
@@ -715,26 +944,189 @@ function custom_smtp_settings_page() {
         <hr />
 
         <h2><?php _e('Send Test Email', 'snn'); ?></h2>
-        <p><?php _e('Use the form below to send a test email to any email address, using the configured SMTP settings.', 'snn'); ?></p>
-        <form method="post">
-            <?php wp_nonce_field('custom_smtp_send_test_email_action', 'custom_smtp_send_test_email_nonce'); ?>
-            <table class="form-table">
-                <tr>
-                    <th scope="row"><?php _e('Recipient Email', 'snn'); ?></th>
-                    <td>
-                        <input 
-                            type="email" 
-                            name="test_email_address" 
-                            value="" 
-                            placeholder="<?php echo esc_attr__('you@example.com', 'snn'); ?>" 
-                            size="40" 
-                        />
-                    </td>
-                </tr>
-            </table>
-            <input type="hidden" name="custom_smtp_send_test_email" value="1" />
-            <input type="submit" class="button button-primary" value="<?php esc_attr_e('Send Test Email', 'snn'); ?>" />
-        </form>
+        <p><?php _e('Send a test email using the saved SMTP settings. The log below will show every step in real time.', 'snn'); ?></p>
+
+        <table class="form-table">
+            <tr>
+                <th scope="row"><label for="snn_test_email_addr"><?php _e('Recipient Email', 'snn'); ?></label></th>
+                <td>
+                    <input
+                        type="email"
+                        id="snn_test_email_addr"
+                        value=""
+                        placeholder="<?php echo esc_attr__('you@example.com', 'snn'); ?>"
+                        size="40"
+                    />
+                </td>
+            </tr>
+        </table>
+        <button id="snn_run_smtp_test" class="button button-primary"><?php _e('Send Test Email', 'snn'); ?></button>
+
+        <div id="snn_smtp_log_wrap" style="display:none; margin-top:20px;">
+            <div id="snn_smtp_log_box" style="
+                position: relative;
+                background: #1e1e1e;
+                color: #d4d4d4;
+                font-family: monospace;
+                font-size: 12px;
+                line-height: 1.7;
+                padding: 14px 16px;
+                border-radius: 6px;
+                max-height: 400px;
+                overflow-y: auto;
+                border: 2px solid #444;
+            ">
+                <button id="snn_smtp_copy_btn" title="Copy log" style="
+                    position: sticky;
+                    float: right;
+                    top: 0;
+                    right: 0;
+                    background: #3a3a3a;
+                    color: #ccc;
+                    border: 1px solid #555;
+                    border-radius: 4px;
+                    padding: 3px 10px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    z-index: 10;
+                    margin-bottom: 8px;
+                ">Copy</button>
+                <div id="snn_smtp_log_entries"></div>
+            </div>
+
+            <div id="snn_smtp_settings_box" style="margin-top: 12px; padding: 12px 16px; border-radius: 6px; border: 2px solid #ccc; font-size: 13px;">
+                <strong><?php _e('Settings used:', 'snn'); ?></strong>
+                <table id="snn_smtp_settings_table" style="margin-top: 8px; border-collapse: collapse; width: auto;">
+                </table>
+            </div>
+        </div>
+
+        <script>
+        (function($) {
+            var logData = [];
+
+            function escHtml(str) {
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+            }
+
+            function colorForType(type) {
+                switch (type) {
+                    case 'success': return '#4ec94e';
+                    case 'error':   return '#f47878';
+                    case 'warning': return '#f5c842';
+                    default:        return '#8bbcf5';
+                }
+            }
+
+            function prefixForType(type) {
+                switch (type) {
+                    case 'success': return '[OK]    ';
+                    case 'error':   return '[ERROR] ';
+                    case 'warning': return '[WARN]  ';
+                    default:        return '[INFO]  ';
+                }
+            }
+
+            function renderLog(logs) {
+                logData = logs;
+                var html = '';
+                $.each(logs, function(i, entry) {
+                    var color  = colorForType(entry.type);
+                    var prefix = prefixForType(entry.type);
+                    html += '<div style="color:' + color + '; white-space: pre-wrap; word-break: break-all;">'
+                          + escHtml(prefix + entry.message)
+                          + '</div>';
+                });
+                $('#snn_smtp_log_entries').html(html);
+            }
+
+            function renderSettings(settings, success) {
+                var borderColor = success ? '#4ec94e' : '#f47878';
+                var bgColor     = success ? '#f0fff0' : '#fff0f0';
+                $('#snn_smtp_settings_box').css({
+                    'border-color': borderColor,
+                    'background':   bgColor
+                });
+                var rows = '';
+                $.each(settings, function(key, val) {
+                    rows += '<tr>'
+                          + '<td style="padding: 2px 12px 2px 0; color: #555; font-weight: 600;">' + escHtml(key) + '</td>'
+                          + '<td style="padding: 2px 0;">' + escHtml(val) + '</td>'
+                          + '</tr>';
+                });
+                $('#snn_smtp_settings_table').html(rows);
+            }
+
+            function addLog(type, message) {
+                var entry = {type: type, message: message};
+                logData.push(entry);
+                var color  = colorForType(type);
+                var prefix = prefixForType(type);
+                var div = $('<div>').css({
+                    color: color,
+                    'white-space': 'pre-wrap',
+                    'word-break': 'break-all'
+                }).text(prefix + message);
+                $('#snn_smtp_log_entries').append(div);
+                var box = document.getElementById('snn_smtp_log_box');
+                box.scrollTop = box.scrollHeight;
+            }
+
+            $('#snn_run_smtp_test').on('click', function() {
+                var $btn    = $(this);
+                var toEmail = $('#snn_test_email_addr').val();
+
+                $btn.prop('disabled', true).text('<?php echo esc_js(__('Sending...', 'snn')); ?>');
+                logData = [];
+                $('#snn_smtp_log_entries').empty();
+                $('#snn_smtp_log_wrap').show();
+                addLog('info', 'Initiating test...');
+
+                $.post(snnSmtpTest.ajaxurl, {
+                    action:     'custom_smtp_ajax_test',
+                    nonce:      snnSmtpTest.nonce,
+                    test_email: toEmail
+                }, function(response) {
+                    renderLog(response.logs);
+                    renderSettings(response.settings, response.success);
+                }).fail(function(xhr) {
+                    addLog('error', 'AJAX request failed (' + xhr.status + ' ' + xhr.statusText + ')');
+                    $('#snn_smtp_settings_box').css({'border-color': '#f47878', 'background': '#fff0f0'});
+                }).always(function() {
+                    $btn.prop('disabled', false).text('<?php echo esc_js(__('Send Test Email', 'snn')); ?>');
+                    var box = document.getElementById('snn_smtp_log_box');
+                    if (box) box.scrollTop = box.scrollHeight;
+                });
+            });
+
+            $('#snn_smtp_copy_btn').on('click', function() {
+                var $btn = $(this);
+                var text = logData.map(function(e) {
+                    return prefixForType(e.type) + e.message;
+                }).join('\n');
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        $btn.text('Copied!');
+                        setTimeout(function() { $btn.text('Copy'); }, 2000);
+                    });
+                } else {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity  = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    $btn.text('Copied!');
+                    setTimeout(function() { $btn.text('Copy'); }, 2000);
+                }
+            });
+        })(jQuery);
+        </script>
     </div>
     <?php
 }
