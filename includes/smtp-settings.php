@@ -123,6 +123,7 @@ function custom_smtp_smtp_host_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
     <input type='text' name='custom_smtp_settings[smtp_host]' value='<?php echo esc_attr($options['smtp_host'] ?? ''); ?>' size='50'>
+    <p class="description"><?php _e('Your mail server address. e.g. smtp.gmail.com, mail.yourdomain.com', 'snn'); ?></p>
     <?php
 }
 
@@ -135,6 +136,7 @@ function custom_smtp_smtp_encryption_render() {
         <option value='ssl' <?php selected($options['smtp_encryption'] ?? '', 'ssl'); ?>><?php _e('SSL', 'snn'); ?></option>
         <option value='tls' <?php selected($options['smtp_encryption'] ?? '', 'tls'); ?>><?php _e('TLS', 'snn'); ?></option>
     </select>
+    <p class="description"><?php _e('Use SSL (port 465) or TLS (port 587). Most modern providers require TLS.', 'snn'); ?></p>
     <script>
         function updateSMTPPort() {
             var encryption = document.getElementById('smtp_encryption').value;
@@ -174,6 +176,7 @@ function custom_smtp_smtp_username_render() {
     <input type='text' name='custom_smtp_settings[smtp_username]' 
         value='<?php echo esc_attr($options['smtp_username'] ?? ''); ?>' 
         size='50'>
+    <p class="description"><?php _e('Must be a full email address. e.g. you@yourdomain.com', 'snn'); ?></p>
     <?php
 }
 
@@ -184,6 +187,7 @@ function custom_smtp_smtp_password_render() {
     <input type='password' name='custom_smtp_settings[smtp_password]' 
         value='<?php echo esc_attr($options['smtp_password'] ?? ''); ?>' 
         size='50'>
+    <p class="description"><?php _e('Your email account password. For Gmail/Google Workspace use an App Password, not your regular password.', 'snn'); ?></p>
     <?php
 }
 
