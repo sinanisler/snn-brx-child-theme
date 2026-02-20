@@ -242,10 +242,6 @@ function custom_smtp_enqueue_scripts($hook) {
         return;
     }
     wp_enqueue_script('jquery');
-    wp_localize_script('jquery', 'snnSmtpTest', array(
-        'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce'   => wp_create_nonce('custom_smtp_ajax_test_nonce'),
-    ));
 }
 
 
@@ -1002,6 +998,10 @@ function custom_smtp_settings_page() {
         </div>
 
         <script>
+        var snnSmtpTest = {
+            ajaxurl: <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>,
+            nonce:   <?php echo wp_json_encode(wp_create_nonce('custom_smtp_ajax_test_nonce')); ?>
+        };
         (function($) {
             var logData = [];
 
