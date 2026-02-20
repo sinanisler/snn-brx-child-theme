@@ -123,7 +123,7 @@ function custom_smtp_smtp_host_render() {
     $options = get_option('custom_smtp_settings', array());
     ?>
     <input type='text' name='custom_smtp_settings[smtp_host]' value='<?php echo esc_attr($options['smtp_host'] ?? ''); ?>' size='50'>
-    <p class="description"><?php _e('Your mail server address. e.g. smtp.gmail.com, mail.yourdomain.com', 'snn'); ?></p>
+    <p class="description"><?php _e('Your mail server address. mail.yourdomain.com', 'snn'); ?></p>
     <?php
 }
 
@@ -141,14 +141,12 @@ function custom_smtp_smtp_encryption_render() {
         function updateSMTPPort() {
             var encryption = document.getElementById('smtp_encryption').value;
             var portField = document.getElementsByName('custom_smtp_settings[smtp_port]')[0];
-            
-            // Only update if field is empty
-            if (!portField.value) {
-                if (encryption === 'ssl') {
-                    portField.value = 465;
-                } else if (encryption === 'tls') {
-                    portField.value = 587;
-                }
+            if (encryption === 'ssl') {
+                portField.value = 465;
+            } else if (encryption === 'tls') {
+                portField.value = 587;
+            } else {
+                portField.value = 25;
             }
         }
         document.addEventListener('DOMContentLoaded', function() {
@@ -176,7 +174,7 @@ function custom_smtp_smtp_username_render() {
     <input type='text' name='custom_smtp_settings[smtp_username]' 
         value='<?php echo esc_attr($options['smtp_username'] ?? ''); ?>' 
         size='50'>
-    <p class="description"><?php _e('Must be a full email address. e.g. you@yourdomain.com', 'snn'); ?></p>
+    <p class="description"><?php _e('Must be a full email address. you@yourdomain.com', 'snn'); ?></p>
     <?php
 }
 
@@ -187,7 +185,7 @@ function custom_smtp_smtp_password_render() {
     <input type='password' name='custom_smtp_settings[smtp_password]' 
         value='<?php echo esc_attr($options['smtp_password'] ?? ''); ?>' 
         size='50'>
-    <p class="description"><?php _e('Your email account password. For Gmail/Google Workspace use an App Password, not your regular password.', 'snn'); ?></p>
+    <p class="description"><?php _e('Your email account password.', 'snn'); ?></p>
     <?php
 }
 
