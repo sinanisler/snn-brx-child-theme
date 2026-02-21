@@ -111,18 +111,6 @@ function get_child_post_count($property = '') {
 
     $query_post_type = $post_type_override !== null ? $post_type_override : $current_post->post_type;
 
-    // level_0: count all root-level posts (post_parent = 0) of the given type globally
-    if ($max_depth === 0) {
-        $args = [
-            'post_type'      => $query_post_type,
-            'post_parent'    => 0,
-            'posts_per_page' => -1,
-            'post_status'    => 'publish',
-            'fields'         => 'ids',
-        ];
-        return count(get_posts($args));
-    }
-
     return count_children_recursive($current_post_id, $query_post_type, $max_depth);
 }
 
