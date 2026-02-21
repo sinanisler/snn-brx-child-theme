@@ -123,6 +123,7 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/current-post-custom-field-ou
 require_once SNN_PATH . 'includes/dynamic-data-tags/current-author.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/get_id_from_url_output_content.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/parent-child-count.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/parent-post-count.php';
 
 
 // Utils
