@@ -3,93 +3,131 @@
  * ----------------------------------------
  * Child Post Count Dynamic Tag Module
  * ----------------------------------------
- * Usage: {get_childs_post_count} or {get_childs_post_count:level_n}
+ * Usage:
+ *   {get_childs_post_count}
+ *   {get_childs_post_count:level_n}
+ *   {get_childs_post_count:post_type}
+ *   {get_childs_post_count:post_type:level_n}
  *
  * Supported Properties and Outputs:
- * - (default): Returns the total count of all child posts (all levels)
- * - level_1: Returns the count of direct children (1st level only)
- * - level_2: Returns the count of children up to 2 levels deep
- * - level_n: Returns the count of children up to n levels deep (e.g., level_3, level_4, etc.)
+ * - (default)            : Total count of all child posts, any level (same post type as parent)
+ * - level_n              : Count of children at exactly level n (same post type as parent)
+ * - post_type            : Total count of all child posts of specified post type (all levels)
+ * - post_type:level_n    : Count of children of specified post type at exactly level n
  *
- * Logic:
- * - Gets the current post's ID
- * - Counts child posts based on the specified depth level
- * - Returns the count as a number
+ * Works inside and outside Bricks query loops (falls back to queried object on single views).
  * ----------------------------------------
  */
 
 // Step 1: Register the dynamic tags with Bricks Builder.
 add_filter('bricks/dynamic_tags_list', 'add_child_post_count_tags_to_builder');
 function add_child_post_count_tags_to_builder($tags) {
-    $properties = [
-        ''        => 'Child Post Count (All Levels)',
-        'level_1' => 'Child Post Count (Level 1)',
-        'level_2' => 'Child Post Count (Level 2)',
-        'level_3' => 'Child Post Count (Level 3)',
-        'level_4' => 'Child Post Count (Level 4)',
-        'level_5' => 'Child Post Count (Level 5)',
+    $levels = [
+        ''        => 'All Levels',
+        'level_1' => 'Level 1',
+        'level_2' => 'Level 2',
+        'level_3' => 'Level 3',
+        'level_4' => 'Level 4',
+        'level_5' => 'Level 5',
     ];
 
-    foreach ($properties as $property => $label) {
-        $tag_name = $property ? "{get_childs_post_count:$property}" : '{get_childs_post_count}';
+    // Generic tags (uses current post's post type)
+    foreach ($levels as $level => $level_label) {
+        $tag_name = $level ? "{get_childs_post_count:$level}" : '{get_childs_post_count}';
         $tags[] = [
             'name'  => $tag_name,
-            'label' => $label,
+            'label' => "Child Post Count ($level_label)",
             'group' => 'SNN',
         ];
+    }
+
+    // Post-type-specific tags (works outside loops too)
+    $post_types = get_post_types(['public' => true], 'objects');
+    foreach ($post_types as $pt) {
+        foreach ($levels as $level => $level_label) {
+            $tag_name = $level
+                ? "{get_childs_post_count:{$pt->name}:$level}"
+                : "{get_childs_post_count:{$pt->name}}";
+            $tags[] = [
+                'name'  => $tag_name,
+                'label' => "Child Post Count: {$pt->label} ($level_label)",
+                'group' => 'SNN',
+            ];
+        }
     }
 
     return $tags;
 }
 
-// Step 2: Get child post count based on the specified depth level.
+// Step 2: Get child post count based on the specified depth level and/or post type.
 function get_child_post_count($property = '') {
-    // Get the current post ID
+    // Get current post ID — works inside loops
     $current_post_id = get_the_ID();
+
+    // Fallback for use outside of loops on single post/page views
+    if (!$current_post_id) {
+        $queried = get_queried_object();
+        if ($queried instanceof WP_Post) {
+            $current_post_id = $queried->ID;
+        }
+    }
 
     if (!$current_post_id) {
         return 0;
     }
 
-    // Get the current post object
     $current_post = get_post($current_post_id);
 
     if (!$current_post) {
         return 0;
     }
 
-    // Determine the max depth level
-    $max_depth = null;
+    $post_type_override = null;
+    $max_depth          = null;
 
-    if (!empty($property) && strpos($property, 'level_') === 0) {
-        // Extract the level number (e.g., "level_2" -> 2)
-        $level_number = str_replace('level_', '', $property);
-        if (is_numeric($level_number)) {
-            $max_depth = (int)$level_number;
+    if (!empty($property)) {
+        if (strpos($property, ':') !== false) {
+            // Format: "post_type:level_n"
+            $parts              = explode(':', $property, 2);
+            $post_type_override = trim($parts[0]);
+            $level_part         = trim($parts[1]);
+            if (strpos($level_part, 'level_') === 0) {
+                $level_number = substr($level_part, 6); // strip "level_"
+                if (is_numeric($level_number)) {
+                    $max_depth = (int) $level_number;
+                }
+            }
+        } elseif (strpos($property, 'level_') === 0) {
+            // Format: "level_n" — same post type, specific depth
+            $level_number = substr($property, 6);
+            if (is_numeric($level_number)) {
+                $max_depth = (int) $level_number;
+            }
+        } else {
+            // Format: "post_type" — specified type, all levels
+            $post_type_override = $property;
         }
     }
 
-    // Count children recursively
-    $count = count_children_recursive($current_post_id, $current_post->post_type, $max_depth);
+    $query_post_type = $post_type_override !== null ? $post_type_override : $current_post->post_type;
 
-    return $count;
+    return count_children_recursive($current_post_id, $query_post_type, $max_depth);
 }
 
-// Helper function to count children recursively
+// Helper function to count children recursively.
 function count_children_recursive($parent_id, $post_type, $max_depth = null, $current_depth = 1) {
-    // Query for direct children
     $args = [
         'post_type'      => $post_type,
         'post_parent'    => $parent_id,
         'posts_per_page' => -1,
         'post_status'    => 'publish',
-        'fields'         => 'ids', // Only get IDs for better performance
+        'fields'         => 'ids',
     ];
 
     $children = get_posts($args);
-    $count = 0;
+    $count    = 0;
 
-    // If max_depth is null, count ALL descendants (cumulative)
+    // No depth limit — count ALL descendants
     if ($max_depth === null) {
         $count = count($children);
         foreach ($children as $child_id) {
@@ -98,13 +136,11 @@ function count_children_recursive($parent_id, $post_type, $max_depth = null, $cu
         return $count;
     }
 
-    // If max_depth is set, only count children AT that specific depth (not cumulative)
+    // Depth limit — count only children AT exactly that depth
     if ($current_depth === $max_depth) {
-        // We're at the target depth, count these children
         return count($children);
     }
 
-    // We're not at the target depth yet, keep going deeper
     if ($current_depth < $max_depth) {
         foreach ($children as $child_id) {
             $count += count_children_recursive($child_id, $post_type, $max_depth, $current_depth + 1);
@@ -117,27 +153,21 @@ function count_children_recursive($parent_id, $post_type, $max_depth = null, $cu
 // Step 3: Render the dynamic tag in Bricks Builder.
 add_filter('bricks/dynamic_data/render_tag', 'render_child_post_count_tag', 20, 3);
 function render_child_post_count_tag($tag, $post, $context = 'text') {
-    // Ensure that $tag is a string before processing.
     if (is_string($tag)) {
-        // Match {get_childs_post_count} or {get_childs_post_count:property}
         if (strpos($tag, '{get_childs_post_count') === 0) {
-            // Extract the property from the tag
             if (preg_match('/{get_childs_post_count:([^}]+)}/', $tag, $matches)) {
-                $property = trim($matches[1]);
-                return get_child_post_count($property);
+                return get_child_post_count(trim($matches[1]));
             } elseif ($tag === '{get_childs_post_count}') {
                 return get_child_post_count();
             }
         }
     }
 
-    // If $tag is an array, iterate through and process each element.
     if (is_array($tag)) {
         foreach ($tag as $key => $value) {
             if (is_string($value) && strpos($value, '{get_childs_post_count') === 0) {
                 if (preg_match('/{get_childs_post_count:([^}]+)}/', $value, $matches)) {
-                    $property = trim($matches[1]);
-                    $tag[$key] = get_child_post_count($property);
+                    $tag[$key] = get_child_post_count(trim($matches[1]));
                 } elseif ($value === '{get_childs_post_count}') {
                     $tag[$key] = get_child_post_count();
                 }
@@ -146,11 +176,10 @@ function render_child_post_count_tag($tag, $post, $context = 'text') {
         return $tag;
     }
 
-    // Return the original tag if it doesn't match the expected pattern.
     return $tag;
 }
 
-// Step 4: Replace placeholders in dynamic content dynamically.
+// Step 4: Replace placeholders in dynamic content.
 add_filter('bricks/dynamic_data/render_content', 'replace_child_post_count_in_content', 20, 3);
 add_filter('bricks/frontend/render_data', 'replace_child_post_count_in_content', 20, 2);
 function replace_child_post_count_in_content($content, $post, $context = 'text') {
@@ -158,14 +187,12 @@ function replace_child_post_count_in_content($content, $post, $context = 'text')
         return $content;
     }
 
-    // Match all {get_childs_post_count} and {get_childs_post_count:property} tags
     preg_match_all('/{get_childs_post_count(?::([^}]+))?}/', $content, $matches);
 
     if (!empty($matches[0])) {
         foreach ($matches[0] as $index => $full_match) {
             $property = isset($matches[1][$index]) && $matches[1][$index] ? $matches[1][$index] : '';
-            $value = get_child_post_count($property);
-            $content = str_replace($full_match, $value, $content);
+            $content  = str_replace($full_match, get_child_post_count($property), $content);
         }
     }
 
