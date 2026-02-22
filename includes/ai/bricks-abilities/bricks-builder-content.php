@@ -85,6 +85,25 @@ When user asks for a "homepage" or "full page", you MUST create multiple section
 - Fourth call: CTA/Footer section
 DO NOT try to cram everything into one giant structure. Each section should be its own separate call.
 
+✏️ EDITING EXISTING CONTENT? Use action_type "patch_element" — NOT "replace"!
+When the user asks to change/rename/edit a specific element (e.g. "change the heading", "update the button text"):
+  WRONG ❌: action_type "replace" — this WIPES THE ENTIRE PAGE
+  CORRECT ✅: action_type "patch_element" — updates ONE element, leaves everything else untouched
+
+patch_element usage:
+  { "action_type": "patch_element", "find_by": { "type": "text_content", "value": "old heading text" }, "updates": { "text": "New heading text" } }
+  Or by element ID from the page context:
+  { "action_type": "patch_element", "element_id": "abc123", "updates": { "text": "New heading text" } }
+
+- find_by.type options: "text_content" (search by current text), "element_type" (search by element name)
+- updates keys: "text" (new text content), "image_url" (new image src), "bricks_settings" (native Bricks settings to merge)
+- No "structure" property needed for patch_element!
+
+DECISION RULE:
+  User says "change X to Y"  →  patch_element
+  User says "add a section"  →  append (default)
+  User says "clear the page" →  replace (only then!)
+
 🎨 CREATIVE MODE: Define ANY layout structure you can imagine!
 
 HOW IT WORKS:
@@ -951,12 +970,35 @@ Think of the user\'s request, design the structure visually in your mind, verify
                     ),
                     'action_type' => array(
                         'type'        => 'string',
-                        'enum'        => array( 'replace', 'append', 'prepend' ),
+                        'enum'        => array( 'replace', 'append', 'prepend', 'patch_element' ),
                         'default'     => 'append',
+                        'description' => 'append = add new section to page (DEFAULT). replace = WIPE ALL and rebuild (DANGEROUS - only for fresh start). prepend = add to top. patch_element = update ONE specific element without touching anything else (use for edits).',
                     ),
                     'post_id' => array(
                         'type'        => 'integer',
                         'description' => 'Optional Post ID.',
+                    ),
+                    'element_id' => array(
+                        'type'        => 'string',
+                        'description' => 'For patch_element only: the Bricks element ID to update (available from page context snapshot).',
+                    ),
+                    'find_by' => array(
+                        'type'        => 'object',
+                        'description' => 'For patch_element only: find an element by criteria. Properties: type ("text_content" or "element_type"), value (the search string), index (optional 0-based index when multiple matches exist).',
+                        'properties'  => array(
+                            'type'  => array( 'type' => 'string', 'enum' => array( 'text_content', 'element_type' ) ),
+                            'value' => array( 'type' => 'string' ),
+                            'index' => array( 'type' => 'integer' ),
+                        ),
+                    ),
+                    'updates' => array(
+                        'type'        => 'object',
+                        'description' => 'For patch_element only: what to change. Properties: text (new text content for heading/text-basic/button), image_url (new image src URL), bricks_settings (object of native Bricks settings keys to merge into element settings).',
+                        'properties'  => array(
+                            'text'            => array( 'type' => 'string' ),
+                            'image_url'       => array( 'type' => 'string' ),
+                            'bricks_settings' => array( 'type' => 'object' ),
+                        ),
                     ),
                 ),
             ),
@@ -972,9 +1014,9 @@ Think of the user\'s request, design the structure visually in your mind, verify
                 ),
             ),
             'execute_callback' => function( $input ) {
-                $structure = $input['structure'];
-                $action_type = $input['action_type'] ?? 'append';
-                $post_id = $input['post_id'] ?? null;
+                $structure    = $input['structure']    ?? null;
+                $action_type  = $input['action_type']  ?? 'append';
+                $post_id      = $input['post_id']      ?? null;
 
                 if ( ! current_user_can( 'edit_posts' ) ) {
                     return new WP_Error( 'permission_denied', __( 'You do not have permission to edit posts.', 'snn' ) );
@@ -988,6 +1030,44 @@ Think of the user\'s request, design the structure visually in your mind, verify
                     if ( ! current_user_can( 'edit_post', $post_id ) ) {
                         return new WP_Error( 'permission_denied', __( 'You do not have permission to edit this post.', 'snn' ) );
                     }
+                }
+
+                // -------------------------------------------------------
+                // PATCH ELEMENT: surgical update of one specific element
+                // -------------------------------------------------------
+                if ( $action_type === 'patch_element' ) {
+                    $element_id = $input['element_id'] ?? null;
+                    $find_by    = $input['find_by']    ?? null;
+                    $updates    = $input['updates']    ?? array();
+
+                    if ( empty( $element_id ) && empty( $find_by ) ) {
+                        return new WP_Error( 'missing_target', __( 'patch_element requires either element_id or find_by.', 'snn' ) );
+                    }
+                    if ( empty( $updates ) ) {
+                        return new WP_Error( 'missing_updates', __( 'patch_element requires an updates object with at least one property to change.', 'snn' ) );
+                    }
+
+                    $client_command = array(
+                        'type'       => 'bricks_patch_element',
+                        'element_id' => $element_id,
+                        'find_by'    => $find_by,
+                        'updates'    => $updates,
+                        'post_id'    => $post_id,
+                    );
+
+                    return array(
+                        'success'                => true,
+                        'message'                => __( 'Patch command ready. Targeting specific element for update.', 'snn' ),
+                        'requires_client_update' => true,
+                        'client_command'         => $client_command,
+                    );
+                }
+
+                // -------------------------------------------------------
+                // GENERATE / REPLACE / APPEND: build new Bricks elements
+                // -------------------------------------------------------
+                if ( ! $structure ) {
+                    return new WP_Error( 'missing_structure', __( 'The structure property is required for append, prepend, and replace actions.', 'snn' ) );
                 }
 
                 // Use the new creative builder system

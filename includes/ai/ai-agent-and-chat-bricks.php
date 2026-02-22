@@ -571,6 +571,73 @@ class SNN_Bricks_Chat_Overlay {
                             error: `Failed to add section: ${error.message}`
                         };
                     }
+                },
+
+                /**
+                 * Patch a single element — find it by ID or by text content,
+                 * then apply targeted updates without touching anything else.
+                 */
+                patchElement(command) {
+                    const state = this.getState();
+                    if (!state || !state.content) {
+                        return { success: false, error: 'Bricks state not available' };
+                    }
+
+                    const { element_id, find_by, updates } = command;
+
+                    // Walk every element in the flat content array and return the first match
+                    function findInFlat(elements, elId, findBy, matchIndex) {
+                        let typeCounter = 0;
+                        for (const el of elements) {
+                            if (elId && el.id === elId) return el;
+                            if (findBy) {
+                                if (findBy.type === 'text_content') {
+                                    const raw = (el.settings && (el.settings.text || el.settings.content)) || '';
+                                    const cleaned = raw.replace(/<[^>]*>/g, '').trim().toLowerCase();
+                                    if (cleaned && cleaned.includes(findBy.value.toLowerCase())) return el;
+                                } else if (findBy.type === 'element_type') {
+                                    if (el.name === findBy.value) {
+                                        const wantIndex = typeof matchIndex === 'number' ? matchIndex : 0;
+                                        if (typeCounter === wantIndex) return el;
+                                        typeCounter++;
+                                    }
+                                }
+                            }
+                        }
+                        return null;
+                    }
+
+                    const idx = find_by && find_by.index != null ? find_by.index : 0;
+                    const target = findInFlat(state.content, element_id, find_by, idx);
+
+                    if (!target) {
+                        const hint = element_id ? `id="${element_id}"` : JSON.stringify(find_by);
+                        return { success: false, error: `Element not found (searched: ${hint}). Check the page elements snapshot in context.` };
+                    }
+
+                    // Apply text / content update
+                    if (updates.text != null) {
+                        target.settings.text = updates.text;
+                    }
+
+                    // Apply image URL update
+                    if (updates.image_url != null) {
+                        if (!target.settings.image) target.settings.image = {};
+                        target.settings.image.url = updates.image_url;
+                        if (!target.settings.image.size) target.settings.image.size = 'full';
+                    }
+
+                    // Merge any native Bricks settings (keys like _typography, _background, etc.)
+                    if (updates.bricks_settings && typeof updates.bricks_settings === 'object') {
+                        Object.assign(target.settings, updates.bricks_settings);
+                    }
+
+                    debugLog(`✅ Patched element [${target.id}] (${target.name})`, updates);
+
+                    return {
+                        success: true,
+                        message: `Patched element [${target.id}] (${target.name})`
+                    };
                 }
             };
 
@@ -1112,8 +1179,19 @@ class SNN_Bricks_Chat_Overlay {
                 }
 
                 const currentContent = BricksHelper.getCurrentContent();
-                if (currentContent) {
-                    bricksContext += `- Current Page Elements: ${currentContent.elementCount}\n\n`;
+                if (currentContent && currentContent.elementCount > 0) {
+                    bricksContext += `**CURRENT PAGE ELEMENTS (${currentContent.elementCount} total):**\n`;
+                    bricksContext += `Use these IDs with action_type "patch_element" to edit a specific element without touching anything else.\n`;
+                    const snapshot = (currentContent.elements || []).slice(0, 60).map(el => {
+                        const textRaw = (el.settings && (el.settings.text || el.settings.content)) || '';
+                        const text = textRaw.replace(/<[^>]*>/g, '').trim().slice(0, 80);
+                        return text
+                            ? `  [${el.id}] ${el.name}: "${text}${textRaw.replace(/<[^>]*>/g,'').trim().length > 80 ? '...' : ''}"`
+                            : `  [${el.id}] ${el.name}`;
+                    }).join('\n');
+                    bricksContext += snapshot + '\n\n';
+                } else if (currentContent) {
+                    bricksContext += `- Current Page Elements: 0 (blank page)\n\n`;
                 }
 
                 bricksContext += `**BRICKS CONTENT FORMAT:**\n`;
@@ -1178,10 +1256,18 @@ class SNN_Bricks_Chat_Overlay {
                 bricksContext += `- If design uses custom graphics, suggest placeholder images or similar alternatives\n`;
                 bricksContext += `- Maintain responsive design principles even when replicating desktop designs\n\n`;
 
-                bricksContext += `**AVAILABLE OPERATIONS:**\n`;
-                bricksContext += `1. Replace entire page content (use for "create new page" requests)\n`;
-                bricksContext += `2. Update specific section (use for "change the hero section" requests)\n`;
-                bricksContext += `3. Add new section (use for "add a testimonials section" requests)\n\n`;
+                bricksContext += `**AVAILABLE OPERATIONS & WHEN TO USE THEM:**\n`;
+                bricksContext += `⚠️ CRITICAL DECISION RULE — read before every ability call:\n`;
+                bricksContext += `1. User asks to CHANGE / EDIT / UPDATE something specific → use action_type "patch_element" (NEVER replace)\n`;
+                bricksContext += `2. User asks to ADD a new section → use action_type "append" (default)\n`;
+                bricksContext += `3. User wants content at the TOP → use action_type "prepend"\n`;
+                bricksContext += `4. User explicitly wants a FRESH START / blank page → use action_type "replace" (DANGEROUS — destroys all sections)\n\n`;
+                bricksContext += `✏️ PATCH ELEMENT — editing a single element without touching the rest:\n`;
+                bricksContext += `  • Use find_by.type "text_content" to locate by the element's current text:\n`;
+                bricksContext += `    { action_type: "patch_element", find_by: { type: "text_content", value: "old heading" }, updates: { text: "New Heading" } }\n`;
+                bricksContext += `  • Or use element_id directly from the page snapshot above:\n`;
+                bricksContext += `    { action_type: "patch_element", element_id: "abc123", updates: { text: "New Heading" } }\n`;
+                bricksContext += `  • updates can contain: text (string), image_url (string), bricks_settings (native Bricks settings object)\n\n`;
 
                 if (ChatState.abilities.length === 0) {
                     return `${basePrompt}${bricksContext}\n\nNote: No Bricks abilities currently available.`;
@@ -1270,7 +1356,7 @@ When the user asks for "6 sections", you must make 6 SEPARATE ability calls, eac
 
 **INPUT FORMAT REQUIREMENTS:**
 
-The ability expects:
+For adding/replacing sections (action_type: "append", "prepend", or "replace"):
 ` + '```json' + `
 {
   "input": {
@@ -1282,12 +1368,34 @@ The ability expects:
         "padding": "number",
         "fontSize": "number"
       },
-      "children": [
-        // nested child elements following same format
-      ]
+      "children": []
     },
-    "action_type": "append|prepend|replace",
+    "action_type": "append",
     "post_id": 12345
+  }
+}
+` + '```' + `
+
+For editing an existing element (action_type: "patch_element") — NO "structure" needed:
+` + '```json' + `
+{
+  "input": {
+    "action_type": "patch_element",
+    "find_by": { "type": "text_content", "value": "We Make Brands People Love" },
+    "updates": { "text": "We Build Digital Experiences That Matter" }
+  }
+}
+` + '```' + `
+Or target by element ID from the page snapshot:
+` + '```json' + `
+{
+  "input": {
+    "action_type": "patch_element",
+    "element_id": "abc123",
+    "updates": {
+      "text": "New Title",
+      "bricks_settings": { "_color": { "hex": "#FF6B35" } }
+    }
   }
 }
 ` + '```' + `
@@ -1657,6 +1765,9 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
 
                         case 'bricks_add_section':
                             return BricksHelper.addSection(command.content, command.position || 'append');
+
+                        case 'bricks_patch_element':
+                            return BricksHelper.patchElement(command);
 
                         case 'update_bricks_content':
                             // Legacy fallback - interpret action parameter
