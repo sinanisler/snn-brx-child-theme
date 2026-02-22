@@ -98,9 +98,15 @@ class SNN_Bricks_Chat_Overlay {
             }
         }
 
+        $element_types = array();
+        if ( class_exists( '\Bricks\Elements' ) && is_array( \Bricks\Elements::$elements ) ) {
+            $element_types = array_values( array_keys( \Bricks\Elements::$elements ) );
+        }
+
         wp_send_json_success( array(
-            'globalColors' => $global_colors,
-            'elements'     => $elements,
+            'globalColors'       => $global_colors,
+            'elements'           => $elements,
+            'registeredElements' => $element_types,
         ) );
     }
 
@@ -284,6 +290,14 @@ class SNN_Bricks_Chat_Overlay {
 
             const debugLog = (...args) => { if (DEBUG_MODE) console.log('[BricksAI]', ...args); };
 
+            const DEFAULT_ELEMENT_TYPES = [
+                'section', 'container', 'block', 'div',
+                'heading', 'text-basic', 'text', 'rich-text',
+                'button', 'image', 'icon', 'icon-box',
+                'divider', 'spacer', 'accordion', 'tabs',
+                'slider', 'form', 'video', 'nav', 'code', 'svg'
+            ];
+
             const ChatState = {
                 messages:         [],
                 isOpen:           false,
@@ -293,6 +307,8 @@ class SNN_Bricks_Chat_Overlay {
                 attachedImages:   [],
                 bricksVueState:   null,
                 bricksSchema:     null,
+                bricksElements:   [],    // registered element type names
+                bricksSchemaDef:  null,  // JSON Schema built from live registry
             };
 
             /* =================================================================
@@ -452,6 +468,105 @@ class SNN_Bricks_Chat_Overlay {
 
                 ChatState.bricksSchema = { globalColors: globalColors, sizeVars: sizeVars };
                 debugLog('Schema loaded from Vue state – colors:', globalColors.length, '| sizeVars:', sizeVars.length);
+
+                loadElementTypes(s);
+            }
+
+            /* =================================================================
+             * ELEMENT TYPE DISCOVERY
+             * =============================================================== */
+
+            function loadElementTypes(vueState) {
+                var elementTypes = null;
+
+                // Source 1: Bricks Vue reactive state (s.elements keyed by element name)
+                if (vueState && vueState.elements && typeof vueState.elements === 'object') {
+                    var keys = Object.keys(vueState.elements).filter(function(k) { return k.length > 0; });
+                    if (keys.length > 0) {
+                        elementTypes = keys;
+                        debugLog('Element types from Vue state:', keys.length);
+                    }
+                }
+
+                // Source 2: window.bricksData (Bricks global JS object)
+                if (!elementTypes && window.bricksData && window.bricksData.elements) {
+                    var bkeys = Object.keys(window.bricksData.elements).filter(function(k) { return k.length > 0; });
+                    if (bkeys.length > 0) {
+                        elementTypes = bkeys;
+                        debugLog('Element types from bricksData:', bkeys.length);
+                    }
+                }
+
+                if (elementTypes) {
+                    ChatState.bricksElements  = elementTypes;
+                    ChatState.bricksSchemaDef = buildBricksSchema(elementTypes);
+                } else {
+                    // Source 3: PHP AJAX (Bricks PHP registry via \Bricks\Elements::$elements)
+                    loadElementTypesViaAjax();
+                }
+            }
+
+            function loadElementTypesViaAjax() {
+                $.ajax({
+                    url:  snnBricksChatConfig.ajaxUrl,
+                    type: 'POST',
+                    data: {
+                        action:  'snn_bricks_get_schema',
+                        nonce:   snnBricksChatConfig.nonce,
+                        post_id: snnBricksChatConfig.postId
+                    },
+                    success: function(r) {
+                        var types = (r.success && Array.isArray(r.data.registeredElements) && r.data.registeredElements.length)
+                            ? r.data.registeredElements
+                            : DEFAULT_ELEMENT_TYPES;
+                        ChatState.bricksElements  = types;
+                        ChatState.bricksSchemaDef = buildBricksSchema(types);
+                        debugLog('Element types via AJAX:', types.length);
+                    },
+                    error: function() {
+                        ChatState.bricksElements  = DEFAULT_ELEMENT_TYPES;
+                        ChatState.bricksSchemaDef = buildBricksSchema(DEFAULT_ELEMENT_TYPES);
+                        debugLog('Element types: AJAX failed, using hardcoded fallback');
+                    }
+                });
+            }
+
+            function buildBricksSchema(elementTypes) {
+                return {
+                    type: 'object',
+                    required: ['action_type', 'sections'],
+                    properties: {
+                        action_type: {
+                            type: 'string',
+                            enum: ['replace', 'append', 'prepend'],
+                            description: 'replace clears the page, append adds after, prepend adds before'
+                        },
+                        sections: {
+                            type: 'array',
+                            description: 'Top-level Bricks element nodes. Each node can contain nested children.',
+                            items: {
+                                type: 'object',
+                                required: ['type', 'settings', 'children'],
+                                properties: {
+                                    type: {
+                                        type: 'string',
+                                        enum: elementTypes,
+                                        description: 'Registered Bricks element type name'
+                                    },
+                                    settings: {
+                                        type: 'object',
+                                        description: 'Native Bricks settings keys (_padding, _typography, _background, etc). Append :hover/:mobile_landscape for state variants.'
+                                    },
+                                    children: {
+                                        type: 'array',
+                                        description: 'Nested child element nodes (same structure, recursively)',
+                                        items: { type: 'object' }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
             }
 
             /* =================================================================
@@ -834,24 +949,28 @@ class SNN_Bricks_Chat_Overlay {
                 const colors  = schema.globalColors || [];
                 const sizes   = schema.sizeVars    || [];
 
-                /* Build color reference table for prompt */
+                /* Color reference */
                 const colorRef = colors.length
-                    ? colors.map(function(c) {
-                        return c.raw + ' -> light: ' + c.light + ' | id: "' + c.id + '"';
-                      }).join('\n')
+                    ? colors.map(function(c) { return c.raw + ' -> light: ' + c.light + ' | id: "' + c.id + '"'; }).join('\n')
                     : '(no palette – use static hex values)';
 
-                /* Build size reference table for prompt */
+                /* Size reference */
                 const sizeRef = sizes.length
                     ? sizes.map(function(v) { return v.var + ' = ' + v.value; }).join('  |  ')
                     : '(no size variables – use px values)';
 
+                /* Element types from live Bricks registry (or fallback) */
+                const elementTypes = ChatState.bricksElements.length
+                    ? ChatState.bricksElements.join(', ')
+                    : DEFAULT_ELEMENT_TYPES.join(', ');
+
                 const systemPrompt =
-                    'You are a strict JSON compiler for Bricks Builder (WordPress page builder) element trees.\n' +
-                    'Output ONLY a single ```json ... ``` block. Zero prose. Zero extra markdown.\n\n' +
+                    'You are a strict JSON compiler for Bricks Builder (WordPress page builder).\n' +
+                    'Output ONLY a raw JSON object. No prose. No code blocks. No markdown.\n' +
+                    'Your output is parsed directly with JSON.parse() — any non-JSON text will cause an error.\n\n' +
 
                     '══════════════════════════════════════════════\n' +
-                    'SITE COLOR PALETTE (use these — do NOT invent colors)\n' +
+                    'SITE COLOR PALETTE (use — do NOT invent colors)\n' +
                     '══════════════════════════════════════════════\n' +
                     colorRef + '\n\n' +
 
@@ -861,204 +980,71 @@ class SNN_Bricks_Chat_Overlay {
                     sizeRef + '\n\n' +
 
                     '══════════════════════════════════════════════\n' +
-                    'OUTPUT FORMAT\n' +
+                    'OUTPUT SCHEMA\n' +
                     '══════════════════════════════════════════════\n' +
-                    '```json\n' +
-                    '{\n' +
-                    '  "action_type": "replace|append|prepend",\n' +
-                    '  "sections": [ /* top-level section nodes */ ]\n' +
-                    '}\n' +
-                    '```\n\n' +
-                    'action_type: "replace" clears page, "append" adds after, "prepend" adds before.\n\n' +
+                    '{ "action_type": "replace|append|prepend", "sections": [ <nodes> ] }\n\n' +
+                    'NODE: { "type": "<element>", "settings": { ... }, "children": [ <nodes> ] }\n\n' +
+                    'VALID TYPES (live Bricks registry):\n' +
+                    elementTypes + '\n\n' +
+                    'HIERARCHY: section → container → block/div → content elements\n\n' +
 
                     '══════════════════════════════════════════════\n' +
-                    'NODE FORMAT\n' +
+                    'SETTINGS — NATIVE BRICKS KEYS (preferred over _cssCustom)\n' +
                     '══════════════════════════════════════════════\n' +
-                    '{ "type": "<name>", "settings": { ... }, "children": [] }\n\n' +
-                    'VALID TYPES:\n' +
-                    '  Layout : section  container  block  div\n' +
-                    '  Text   : heading  text-basic  text\n' +
-                    '  Action : button\n' +
-                    '  Media  : image  icon  icon-box\n' +
-                    '  Other  : divider\n\n' +
-                    'HIERARCHY (mandatory):\n' +
-                    '  section -> container -> block/div -> content elements\n\n' +
-
-                    '══════════════════════════════════════════════\n' +
-                    'SETTINGS — NATIVE BRICKS KEYS (USE THESE as primary)\n' +
-                    '══════════════════════════════════════════════\n' +
-                    'These are the real Bricks Builder settings keys. Use them ALWAYS in preference to CSS.\n\n' +
-
-                    '• _padding / _margin:\n' +
-                    '  {"_padding": {"top":"var(--size-100)","bottom":"var(--size-100)"}}\n' +
-                    '  {"_padding": {"top":"var(--size-50)","right":"40px","bottom":"var(--size-50)","left":"40px"}}\n' +
-                    '  {"_margin": {"bottom":"-30"}}   // negative values OK without units for px\n\n' +
-
-                    '• _typography:\n' +
-                    '  {"_typography": {"font-size":"var(--size-50)","font-weight":"300","line-height":"1.3","color":{"id":"gnkmru","raw":"var(--c2)","light":"hsl(215 95% 40%)"}}}\n' +
-                    '  Responsive variant: {"_typography:mobile_landscape": {"font-size":"var(--size-36)"}}\n\n' +
-
-                    '• _background:\n' +
-                    '  Solid color  : {"_background": {"color": {"id":"dwvvob","raw":"var(--c1)","light":"hsl(210 13% 6%)"}}}\n' +
-                    '  Static rgba  : {"_background": {"color": {"raw": "rgba(233,233,233,0.23)"}}}\n' +
-                    '  No background: omit _background entirely\n\n' +
-
-                    '• _border:\n' +
-                    '  {"_border": {"radius":{"top":"var(--size-18)","right":"var(--size-18)","bottom":"var(--size-18)","left":"var(--size-18)"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"id":"kysrnm","raw":"var(--c1-l-9)","light":"rgb(211,211,212)"}}}\n\n' +
-
-                    '• Layout (flex is default; set _display only when using grid):\n' +
-                    '  {"_display":"grid", "_gridTemplateColumns":"1fr 1fr", "_gridGap":"var(--size-100)"}\n' +
-                    '  {"_direction":"row", "_columnGap":"var(--size-24)", "_rowGap":"var(--size-24)"}\n' +
-                    '  {"_justifyContent":"center", "_alignItems":"center", "_flexWrap":"wrap"}\n' +
-                    '  Responsive: {"_gridTemplateColumns:mobile_landscape":"1fr", "_gridTemplateColumns:tablet_portrait":"1fr"}\n\n' +
-
-                    '• Sizing:\n' +
-                    '  {"_widthMax":"770"}  // max-width in px (no unit)\n' +
-                    '  {"_width":"300"}     // fixed width in px (no unit); or "100%" with %\n' +
-                    '  {"_height":"80vh"}   // height with unit\n' +
-                    '  {"_heightMin":"440"} // min-height in px (no unit)\n' +
-                    '  {"_overflow":"hidden"}\n\n' +
-
-                    '• _gradient (overlay on block/section):\n' +
-                    '  {"_gradient":{"applyTo":"overlay","gradientType":"radial","radialPosition":"top right",\n' +
-                    '   "colors":[{"id":"a","color":{"raw":"var(--c2-d-8)","light":"rgb(1,23,54)"}},{"id":"b","color":{"raw":"var(--c2-d-10)","light":"rgb(0,8,18)"},"stop":"33"}]}}\n\n' +
-
-                    '• button-specific:\n' +
-                    '  "style":"primary"  // gives base button styles\n' +
-                    '  "link":{"type":"url","url":"#"} or {"type":"external","url":"https://...","newTab":true}\n' +
-                    '  "icon":{"library":"fontawesomeSolid","icon":"fas fa-arrow-right"}, "iconPosition":"left"\n' +
-                    '  {"_typography:hover":{"color":{"id":"aoskmp","raw":"var(--c3)"}}}\n' +
-                    '  {"_background:hover":{"color":{"raw":"var(--c2-d-10)"}}}\n' +
-                    '  {"_border:hover":{"color":{...}}}\n\n' +
-
-                    '• image:\n' +
-                    '  {"image":{"external":"https://source.unsplash.com/800x600/?modern,technology,dark","id":0}, "_width":"100%"}\n' +
-                    '  // Choose Unsplash keywords matching the section mood, e.g.:\n' +
-                    '  // abstract,dark,texture | modern,architecture,minimalist | nature,green,outdoor | luxury,gold,elegant\n\n' +
-
-                    '• icon:\n' +
-                    '  {"icon":{"library":"fontawesomeSolid","icon":"fas fa-bolt"},"iconColor":{"id":"gnkmru","raw":"var(--c2)","light":"hsl(215 95% 40%)"},"iconSize":"24","_width":"60","_height":"60","_display":"flex","_justifyContent":"center","_alignItems":"center"}\n\n' +
-
-                    '• icon-box:\n' +
-                    '  {"icon":{"library":"fontawesomeSolid","icon":"fas fa-check"},"content":"<p>Text here</p>","direction":"row","gap":"20","iconSize":"16","iconColor":{...},"iconBackgroundColor":{...},"iconBorder":{"radius":{"top":"100","right":"100","bottom":"100","left":"100"}},"iconPadding":{"top":"8","right":"8","bottom":"8","left":"8"}}\n\n' +
+                    '_padding/_margin : {"top":"var(--size-50)","right":"40px","bottom":"var(--size-50)","left":"40px"}\n' +
+                    '_typography      : {"font-size":"var(--size-50)","font-weight":"700","line-height":"1.3","color":{"id":"xxx","raw":"var(--c2)","light":"hsl(...)"}, "text-align":"center"}\n' +
+                    '_background      : {"color":{"id":"xxx","raw":"var(--c1)","light":"hsl(...)"}}  OR  {"color":{"raw":"rgba(0,0,0,0.5)"}}\n' +
+                    '_border          : {"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{...}}\n' +
+                    '_display         : "grid"  |  _gridTemplateColumns: "1fr 1fr"  |  _gridGap: "var(--size-50)"\n' +
+                    '_direction       : "row"  |  _columnGap: "var(--size-24)"  |  _rowGap: "var(--size-24)"\n' +
+                    '_justifyContent  : "center"  |  _alignItems: "center"  |  _flexWrap: "wrap"\n' +
+                    '_widthMax        : "1200" (px, no unit)  |  _width: "100%"  |  _height: "80vh"  |  _heightMin: "440"\n' +
+                    '_gradient        : {"applyTo":"overlay","gradientType":"linear","colors":[{"id":"a","color":{"raw":"var(--c1)"}},{"id":"b","color":{"raw":"transparent"}}]}\n' +
+                    'button           : "text":"...", "style":"primary", "link":{"type":"url","url":"#"}, "icon":{"library":"fontawesomeSolid","icon":"fas fa-arrow-right"}, "iconPosition":"left"\n' +
+                    'heading          : "text":"...", "tag":"h1"\n' +
+                    'image            : "image":{"external":"https://source.unsplash.com/800x600/?keyword1,keyword2","id":0}\n' +
+                    'icon             : "icon":{"library":"fontawesomeSolid","icon":"fas fa-bolt"}, "iconColor":{...}, "iconSize":"24"\n' +
+                    'icon-box         : "icon":{...}, "content":"<p>...</p>", "direction":"row", "gap":"20", "iconSize":"16"\n\n' +
 
                     '══════════════════════════════════════════════\n' +
-                    '_cssCustom — ONLY for things native keys CANNOT do\n' +
+                    'STATE & BREAKPOINT SUFFIXES (append to any settings key)\n' +
                     '══════════════════════════════════════════════\n' +
-                    'Use %root% as the element selector. NEVER put layout/spacing/color in _cssCustom when a native key exists.\n\n' +
-                    'OK uses:\n' +
-                    '  Child element styles  : "%root% em { color: var(--c2); }"\n' +
-                    '  Hover on child        : "%root%:hover i { transform: translateX(5px); }"\n' +
-                    '  CSS transitions       : "%root% i { transition: 0.3s; }"\n' +
-                    '  Keyframe animations   : "%root% { animation: moveY 4s ease-in-out infinite; }"\n' +
-                    '  backdrop-filter       : "%root% { backdrop-filter: blur(5px); }"\n' +
-                    '  CSS transform on root : "%root% { transform: translateY(-5px); }"\n' +
-                    '  Pseudo-elements       : "%root%::after { content: \'\'; ... }"\n\n' +
-                    'FORBIDDEN in _cssCustom (use native keys instead):\n' +
-                    '  padding, margin, background-color, color (on the root element itself),\n' +
-                    '  display, flex-direction, gap, grid-template-columns,\n' +
-                    '  max-width, width, height, font-size, font-weight\n\n' +
+                    'hover:            "_background:hover", "_typography:hover"\n' +
+                    'active:           "_background:active"\n' +
+                    'mobile landscape: "_padding:mobile_landscape", "_typography:mobile_landscape"\n' +
+                    'mobile portrait:  "_padding:mobile_portrait"\n' +
+                    'tablet portrait:  "_gridTemplateColumns:tablet_portrait"\n' +
+                    'tablet landscape: "_gridTemplateColumns:tablet_landscape"\n\n' +
+
+                    '_cssCustom — ONLY for: child selectors, hover-on-children, transitions, animations, backdrop-filter, pseudo-elements.\n' +
+                    'Use %root% as selector. NEVER put padding/margin/color/display/gap/width/height/font-size in _cssCustom.\n\n' +
 
                     '══════════════════════════════════════════════\n' +
-                    'FULL EXAMPLE — SaaS hero + 2-col feature section\n' +
+                    'EXAMPLE (hero + feature card)\n' +
                     '══════════════════════════════════════════════\n' +
-                    '```json\n' +
-                    '{\n' +
-                    '  "action_type": "replace",\n' +
-                    '  "sections": [\n' +
-                    '    {\n' +
-                    '      "type": "section",\n' +
-                    '      "settings": {\n' +
-                    '        "_background": {"color": {"id": "dwvvob", "raw": "var(--c1)", "light": "hsl(210 13% 6%)"}},\n' +
-                    '        "_padding": {"top": "var(--size-100)", "bottom": "var(--size-100)"},\n' +
-                    '        "_padding:mobile_landscape": {"top": "var(--size-50)", "bottom": "var(--size-50)"}\n' +
-                    '      },\n' +
-                    '      "children": [\n' +
-                    '        {\n' +
-                    '          "type": "container",\n' +
-                    '          "settings": {\n' +
-                    '            "_widthMax": "1200",\n' +
-                    '            "_justifyContent": "center",\n' +
-                    '            "_alignItems": "center",\n' +
-                    '            "_typography": {"text-align": "center"},\n' +
-                    '            "_rowGap": "var(--size-24)"\n' +
-                    '          },\n' +
-                    '          "children": [\n' +
-                    '            {\n' +
-                    '              "type": "heading",\n' +
-                    '              "settings": {\n' +
-                    '                "text": "Build the <em>Future</em> Today",\n' +
-                    '                "tag": "h1",\n' +
-                    '                "_typography": {"font-size": "var(--size-50)", "font-weight": "700", "color": {"id": "aoskmp", "raw": "var(--c3)", "light": "hsl(0,0%,100%)"}},\n' +
-                    '                "_typography:mobile_landscape": {"font-size": "var(--size-36)"},\n' +
-                    '                "_cssCustom": "%root% em { color: var(--c2); }"\n' +
-                    '              },\n' +
-                    '              "children": []\n' +
-                    '            },\n' +
-                    '            {\n' +
-                    '              "type": "text-basic",\n' +
-                    '              "settings": {\n' +
-                    '                "text": "A modern platform that accelerates your growth.",\n' +
-                    '                "_widthMax": "560",\n' +
-                    '                "_typography": {"line-height": "1.7", "color": {"id": "icjfiu", "raw": "var(--c1-l-5)", "light": "rgb(123,124,125)"}}\n' +
-                    '              },\n' +
-                    '              "children": []\n' +
-                    '            },\n' +
-                    '            {\n' +
-                    '              "type": "block",\n' +
-                    '              "settings": {"_direction": "row", "_columnGap": "var(--size-10)", "_rowGap": "var(--size-10)", "_justifyContent": "center"},\n' +
-                    '              "children": [\n' +
-                    '                {"type":"button","settings":{"text":"Get Started","style":"primary","link":{"type":"url","url":"#"},"_padding":{"left":"var(--size-36)","right":"var(--size-36)"}},"children":[]},\n' +
-                    '                {"type":"button","settings":{"text":"See Demo","style":"primary","link":{"type":"url","url":"#"},"_background":{"color":{"raw":"transparent"}},"_border":{"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"id":"kysrnm","raw":"var(--c1-l-9)","light":"rgb(211,211,212)"}},"_padding":{"left":"var(--size-36)","right":"var(--size-36)"}},"children":[]}\n' +
-                    '              ]\n' +
-                    '            }\n' +
-                    '          ]\n' +
-                    '        }\n' +
-                    '      ]\n' +
-                    '    },\n' +
-                    '    {\n' +
-                    '      "type": "section",\n' +
-                    '      "settings": {\n' +
-                    '        "_background": {"color": {"raw": "rgba(233,233,233,0.23)"}},\n' +
-                    '        "_padding": {"top": "var(--size-100)", "bottom": "var(--size-100)"}\n' +
-                    '      },\n' +
-                    '      "children": [\n' +
-                    '        {\n' +
-                    '          "type": "container",\n' +
-                    '          "settings": {"_display": "grid", "_gridTemplateColumns": "1fr 1fr", "_gridGap": "var(--size-100)", "_gridTemplateColumns:mobile_landscape": "1fr"},\n' +
-                    '          "children": [\n' +
-                    '            {\n' +
-                    '              "type": "block",\n' +
-                    '              "settings": {"_rowGap": "var(--size-24)"},\n' +
-                    '              "children": [\n' +
-                    '                {"type":"heading","settings":{"text":"Feature One","tag":"h2","_typography":{"font-size":"var(--size-36)","font-weight":"300"}},"children":[]},\n' +
-                    '                {"type":"text-basic","settings":{"text":"Description of the feature.","_typography":{"line-height":"2"}},"children":[]}\n' +
-                    '              ]\n' +
-                    '            },\n' +
-                    '            {\n' +
-                    '              "type": "block",\n' +
-                    '              "settings": {\n' +
-                    '                "_background": {"color": {"id": "dwvvob", "raw": "var(--c1)", "light": "hsl(210 13% 6%)"}},\n' +
-                    '                "_border": {"radius": {"top": "var(--size-18)", "right": "var(--size-18)", "bottom": "var(--size-18)", "left": "var(--size-18)"}},\n' +
-                    '                "_padding": {"top": "var(--size-50)", "right": "var(--size-50)", "bottom": "var(--size-50)", "left": "var(--size-50)"},\n' +
-                    '                "_typography": {"color": {"id": "aoskmp", "raw": "var(--c3)", "light": "hsl(0,0%,100%)"}},\n' +
-                    '                "_justifyContent": "center",\n' +
-                    '                "_alignItems": "center"\n' +
-                    '              },\n' +
-                    '              "children": [\n' +
-                    '                {"type":"heading","settings":{"text":"Result","tag":"h3","_typography":{"font-size":"var(--size-50)","font-weight":"700"}},"children":[]}\n' +
-                    '              ]\n' +
-                    '            }\n' +
-                    '          ]\n' +
-                    '        }\n' +
-                    '      ]\n' +
-                    '    }\n' +
-                    '  ]\n' +
-                    '}\n' +
-                    '```\n\n' +
-                    'Compile the design brief below. Use the site palette and size variables above wherever possible. ' +
-                    'Use native Bricks settings as primary. _cssCustom only for child selectors, hover-on-children, transitions, animations, backdrop-filter. ' +
-                    'Output ONLY the ```json block.';
+                    '{"action_type":"replace","sections":[' +
+                        '{"type":"section","settings":{"_background":{"color":{"id":"dwvvob","raw":"var(--c1)","light":"hsl(210 13% 6%)"}},"_padding":{"top":"var(--size-100)","bottom":"var(--size-100)"},"_padding:mobile_landscape":{"top":"var(--size-50)","bottom":"var(--size-50)"}},"children":[' +
+                            '{"type":"container","settings":{"_widthMax":"1200","_justifyContent":"center","_alignItems":"center","_rowGap":"var(--size-24)","_typography":{"text-align":"center"}},"children":[' +
+                                '{"type":"heading","settings":{"text":"Build the <em>Future</em> Today","tag":"h1","_typography":{"font-size":"var(--size-50)","font-weight":"700","color":{"id":"aoskmp","raw":"var(--c3)","light":"hsl(0,0%,100%)"}},"_typography:mobile_landscape":{"font-size":"var(--size-36)"},"_cssCustom":"%root% em { color: var(--c2); }"},"children":[]},' +
+                                '{"type":"text-basic","settings":{"text":"A modern platform that accelerates your growth.","_widthMax":"560","_typography":{"line-height":"1.7","color":{"id":"icjfiu","raw":"var(--c1-l-5)","light":"rgb(123,124,125)"}}},"children":[]},' +
+                                '{"type":"button","settings":{"text":"Get Started","style":"primary","link":{"type":"url","url":"#"},"_padding":{"left":"var(--size-36)","right":"var(--size-36)"}},"children":[]}' +
+                            ']}' +
+                        ']},' +
+                        '{"type":"section","settings":{"_background":{"color":{"raw":"rgba(233,233,233,0.23)"}},"_padding":{"top":"var(--size-100)","bottom":"var(--size-100)"}},"children":[' +
+                            '{"type":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr","_gridGap":"var(--size-50)","_gridTemplateColumns:mobile_landscape":"1fr"},"children":[' +
+                                '{"type":"block","settings":{"_rowGap":"var(--size-24)"},"children":[' +
+                                    '{"type":"heading","settings":{"text":"Feature One","tag":"h2","_typography":{"font-size":"var(--size-36)","font-weight":"600"}},"children":[]},' +
+                                    '{"type":"text-basic","settings":{"text":"Description of the feature.","_typography":{"line-height":"1.8"}},"children":[]}' +
+                                ']},' +
+                                '{"type":"block","settings":{"_background":{"color":{"id":"dwvvob","raw":"var(--c1)","light":"hsl(210 13% 6%)"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}},"_padding":{"top":"var(--size-50)","right":"var(--size-50)","bottom":"var(--size-50)","left":"var(--size-50)"},"_typography":{"color":{"id":"aoskmp","raw":"var(--c3)","light":"hsl(0,0%,100%)"}},"_justifyContent":"center","_alignItems":"center"},"children":[' +
+                                    '{"type":"heading","settings":{"text":"50k+","tag":"h3","_typography":{"font-size":"var(--size-50)","font-weight":"700"}},"children":[]}' +
+                                ']}' +
+                            ']}' +
+                        ']}' +
+                    ']}\n\n' +
+                    'Compile the design brief below. Use site palette and size variables wherever possible. ' +
+                    'Use native Bricks settings as primary. _cssCustom only for child selectors, transitions, animations, backdrop-filter. ' +
+                    'Output ONLY the raw JSON object — no code blocks, no explanation.';
 
                 return [
                     { role: 'system', content: systemPrompt },
@@ -1111,18 +1097,26 @@ class SNN_Bricks_Chat_Overlay {
                 const temperature = agentType === 'compiler' ? 0.15 : 0.75;
                 const maxTokens   = cfg.maxTokens || (agentType === 'compiler' ? 6000 : 2000);
 
+                const requestBody = {
+                    model:       cfg.model,
+                    messages:    messages,
+                    temperature: temperature,
+                    max_tokens:  maxTokens
+                };
+
+                // Compiler: force valid JSON output so we can JSON.parse() directly
+                // json_object is broadly supported across OpenRouter models; ignored gracefully if not
+                if (agentType === 'compiler') {
+                    requestBody.response_format = { type: 'json_object' };
+                }
+
                 const resp = await fetch(cfg.apiEndpoint, {
                     method:  'POST',
                     headers: {
                         'Content-Type':  'application/json',
                         'Authorization': 'Bearer ' + cfg.apiKey
                     },
-                    body: JSON.stringify({
-                        model:       cfg.model,
-                        messages:    messages,
-                        temperature: temperature,
-                        max_tokens:  maxTokens
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (resp.status === 429 && retryCount < 3) {
@@ -1149,16 +1143,30 @@ class SNN_Bricks_Chat_Overlay {
              * =============================================================== */
 
             function parseCompilerOutput(response) {
-                const match = response.match(/```json\s*([\s\S]*?)\s*```/);
-                if (!match) {
-                    return { error: 'No ```json block found in compiler response.' };
-                }
-
                 let parsed;
+                const raw = (response || '').trim();
+
+                // Tier 1: direct JSON — works when response_format: json_object is honoured
                 try {
-                    parsed = JSON.parse(match[1]);
-                } catch (e) {
-                    return { error: 'JSON parse error: ' + e.message };
+                    parsed = JSON.parse(raw);
+                } catch (e1) {
+                    // Tier 2: extract from ```json ... ``` block (model ignored response_format)
+                    const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+                    if (fenceMatch) {
+                        try { parsed = JSON.parse(fenceMatch[1]); } catch (e2) { /* fall through */ }
+                    }
+
+                    // Tier 3: find first { ... } object in response (last resort)
+                    if (!parsed) {
+                        const objMatch = raw.match(/\{[\s\S]*\}/);
+                        if (objMatch) {
+                            try { parsed = JSON.parse(objMatch[0]); } catch (e3) { /* fall through */ }
+                        }
+                    }
+
+                    if (!parsed) {
+                        return { error: 'No valid JSON found in compiler response. Raw start: ' + raw.substring(0, 120) };
+                    }
                 }
 
                 if (!parsed.sections || !Array.isArray(parsed.sections)) {
