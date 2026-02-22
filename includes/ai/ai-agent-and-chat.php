@@ -644,30 +644,14 @@ class SNN_Chat_Overlay {
                     </tbody>
                 </table>
 
-                <?php submit_button( __('Save Settings', 'snn'), 'primary', 'snn_ai_agent_settings_submit' ); ?>
-            </form>
+                <hr style="margin: 40px 0;">
 
-            <hr style="margin: 40px 0;">
+                <!-- Available Abilities -->
+                <h2><?php echo esc_html__('Available WordPress Abilities', 'snn'); ?></h2>
+                <p><?php echo esc_html__('Select which abilities the AI agent can use. Newly added abilities are automatically enabled by default.', 'snn'); ?></p>
 
-            <!-- Available Abilities -->
-            <h2><?php echo esc_html__('Available WordPress Abilities', 'snn'); ?></h2>
-            <p><?php echo esc_html__('Select which abilities the AI agent can use. Newly added abilities are automatically enabled by default.', 'snn'); ?></p>
+                <?php if ( ! empty( $abilities ) && is_array( $abilities ) ) : ?>
 
-            <?php if ( ! empty( $abilities ) && is_array( $abilities ) ) : ?>
-                
-
-                <form method="post" action="">
-                    <?php wp_nonce_field( 'snn_ai_agent_settings_action', 'snn_ai_agent_settings_nonce' ); ?>
-                    
-                    <!-- Hidden fields to preserve other settings -->
-                    <input type="hidden" name="snn_ai_agent_enabled" value="<?php echo $enabled ? '1' : '0'; ?>">
-                    <input type="hidden" name="snn_ai_agent_system_prompt" value="<?php echo esc_attr( $system_prompt ); ?>">
-                    <input type="hidden" name="snn_ai_agent_token_count" value="<?php echo esc_attr( $token_count ); ?>">
-                    <input type="hidden" name="snn_ai_agent_debug_mode" value="<?php echo $debug_mode ? '1' : '0'; ?>">
-                    <input type="hidden" name="snn_ai_agent_max_retries" value="<?php echo esc_attr( $max_retries ); ?>">
-                    <input type="hidden" name="snn_ai_agent_max_history" value="<?php echo esc_attr( $max_history ); ?>">
-                    <input type="hidden" name="snn_ai_agent_chat_width" value="<?php echo esc_attr( $chat_width ); ?>">
-                    
                     <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 4px; max-width: 800px;">
                         <p style="margin-top: 0;">
                             <button type="button" id="snn-select-all-abilities" class="button" style="margin-right: 10px;">
@@ -701,9 +685,6 @@ class SNN_Chat_Overlay {
                         </div>
                     </div>
                     
-                    <?php submit_button( __('Save Ability Settings', 'snn'), 'primary', 'snn_ai_agent_settings_submit', true, array( 'style' => 'margin-top: 20px;' ) ); ?>
-                </form>
-
                 <script>
                 jQuery(document).ready(function($) {
                     $('#snn-select-all-abilities').on('click', function() {
@@ -715,14 +696,17 @@ class SNN_Chat_Overlay {
                     });
                 });
                 </script>
-            <?php else : ?>
+                <?php else : ?>
                 <div class="notice notice-warning inline">
                     <p>
                         <strong><?php echo esc_html__('No abilities found.', 'snn'); ?></strong><br>
                         <?php echo esc_html__('Make sure WordPress 6.9+ is installed and abilities are registered with show_in_rest enabled.', 'snn'); ?>
                     </p>
                 </div>
-            <?php endif; ?>
+                <?php endif; ?>
+
+                <?php submit_button( __('Save Settings', 'snn'), 'primary', 'snn_ai_agent_settings_submit' ); ?>
+            </form>
 
             <hr style="margin: 40px 0;">
 
@@ -1097,6 +1081,7 @@ class SNN_Chat_Overlay {
                 'debugMode'         => $this->is_debug_enabled(),
                 'maxRetries'        => $this->get_max_retries(),
                 'maxHistory'        => $this->get_max_history(),
+                'settingsUrl'       => admin_url( 'admin.php?page=snn-ai-agent-settings' ),
             ),
         ) );
     }
@@ -1556,6 +1541,11 @@ class SNN_Chat_Overlay {
              * Load available abilities from API
              */
             async function loadAbilities() {
+                // Show immediate warning if no abilities are configured in settings
+                if (ENABLED_ABILITIES.length === 0) {
+                    showAbilitiesWarning();
+                }
+
                 try {
                     const response = await fetch(snnChatConfig.restUrl + 'abilities', {
                         headers: {
@@ -1575,8 +1565,10 @@ class SNN_Chat_Overlay {
                         if (ChatState.abilities.length > 0) {
                             debugLog('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
                             debugLog('Full abilities data:', ChatState.abilities);
+                            clearAbilitiesWarning();
                         } else {
                             console.warn('No abilities enabled or found. Check AI Agent settings.');
+                            showAbilitiesWarning();
                         }
                     } else {
                         console.error('Failed to load abilities:', response.status, await response.text());
@@ -1585,6 +1577,28 @@ class SNN_Chat_Overlay {
                     console.error('Failed to load abilities:', error);
                     console.error('Make sure WordPress 6.9+ is installed and Abilities API is available');
                 }
+            }
+
+            /**
+             * Show warning banner when no abilities are enabled
+             */
+            function showAbilitiesWarning() {
+                if ($('#snn-abilities-warning').length) return; // already shown
+                const settingsUrl = (snnChatConfig.settings && snnChatConfig.settings.settingsUrl) ? snnChatConfig.settings.settingsUrl : '';
+                const $warning = $(`
+                    <div id="snn-abilities-warning" style="margin:8px;padding:10px 14px;background:#fff8e5;border:1px solid #f0c33c;border-radius:4px;font-size:13px;line-height:1.5;">
+                        <strong>⚠️ No abilities enabled.</strong> The AI agent cannot execute any actions.<br>
+                        <a href="${settingsUrl}" style="color:#b45309;">Enable abilities in AI Agent Settings →</a>
+                    </div>
+                `);
+                $('#snn-chat-messages').prepend($warning);
+            }
+
+            /**
+             * Remove abilities warning
+             */
+            function clearAbilitiesWarning() {
+                $('#snn-abilities-warning').remove();
             }
 
             /**

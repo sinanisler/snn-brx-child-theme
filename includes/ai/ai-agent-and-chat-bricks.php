@@ -99,6 +99,7 @@ class SNN_Bricks_Chat_Overlay {
                 'debugMode'         => $main_chat->is_debug_enabled(),
                 'maxRetries'        => $main_chat->get_max_retries(),
                 'maxHistory'        => $main_chat->get_max_history(),
+                'settingsUrl'       => admin_url( 'admin.php?page=snn-ai-agent-settings' ),
             ),
         ) );
 
@@ -831,6 +832,11 @@ class SNN_Bricks_Chat_Overlay {
              * Load available abilities from API
              */
             async function loadAbilities() {
+                // Show immediate warning if no abilities are configured in settings
+                if (ENABLED_ABILITIES.length === 0) {
+                    showAbilitiesWarning();
+                }
+
                 try {
                     const response = await fetch(snnBricksChatConfig.restUrl + 'abilities', {
                         headers: {
@@ -851,11 +857,37 @@ class SNN_Bricks_Chat_Overlay {
                         debugLog('✅ Loaded Bricks abilities:', ChatState.abilities.length);
                         if (ChatState.abilities.length > 0) {
                             debugLog('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
+                            clearAbilitiesWarning();
+                        } else {
+                            console.warn('No Bricks abilities enabled or found. Check AI Agent settings.');
+                            showAbilitiesWarning();
                         }
                     }
                 } catch (error) {
                     console.error('Failed to load abilities:', error);
                 }
+            }
+
+            /**
+             * Show warning banner when no abilities are enabled
+             */
+            function showAbilitiesWarning() {
+                if ($('#snn-bricks-abilities-warning').length) return; // already shown
+                const settingsUrl = (snnBricksChatConfig.settings && snnBricksChatConfig.settings.settingsUrl) ? snnBricksChatConfig.settings.settingsUrl : '';
+                const $warning = $(`
+                    <div id="snn-bricks-abilities-warning" style="margin:8px;padding:10px 14px;background:#fff8e5;border:1px solid #f0c33c;border-radius:4px;font-size:13px;line-height:1.5;">
+                        <strong>⚠️ No abilities enabled.</strong> The AI agent cannot execute any actions.<br>
+                        <a href="${settingsUrl}" target="_blank" style="color:#b45309;">Enable abilities in AI Agent Settings →</a>
+                    </div>
+                `);
+                $('#snn-bricks-chat-messages').prepend($warning);
+            }
+
+            /**
+             * Remove abilities warning
+             */
+            function clearAbilitiesWarning() {
+                $('#snn-bricks-abilities-warning').remove();
             }
 
             /**
