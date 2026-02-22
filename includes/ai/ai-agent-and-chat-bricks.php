@@ -722,35 +722,71 @@ class SNN_Bricks_Chat_Overlay {
                 const colors  = schema.globalColors || [];
                 const sizes   = schema.sizeVars    || [];
 
-                const colorList = colors.length
-                    ? colors.map(function(c) { return c.raw + ' (' + c.light + ')'; }).join('  |  ')
-                    : 'No palette found – use professional standard colors like #0d0d0d, #ffffff, #2563eb, #7c3aed.';
+                /* Show each var name alongside its resolved value so the AI can judge visually */
+                const colorBlock = colors.length
+                    ? colors.map(function(c) {
+                        return (c.raw || '') + '  =  ' + (c.light || '');
+                      }).join('\n')
+                    : null;
 
-                const sizeList = sizes.length
-                    ? sizes.map(function(v) { return v.var + '=' + v.value; }).join('  ')
-                    : 'No size variables – use values in px or rem.';
+                const sizeBlock = sizes.length
+                    ? sizes.map(function(v) { return v.var + '  =  ' + v.value; }).join('\n')
+                    : null;
+
+                const hasPalette = !!colorBlock;
+                const hasSizes   = !!sizeBlock;
 
                 const pageSummary = BricksHelper.getCurrentContentSummary();
 
                 const systemPrompt =
-                    'You are a senior UI/UX designer specialising in modern web design for WordPress / Bricks Builder pages.\n\n' +
-                    'Task: Given the user\'s request, write a detailed DESIGN BRIEF describing exactly what to build.\n\n' +
-                    'Include in your brief:\n' +
-                    '1. Number of sections and their purpose (hero, features, testimonials, CTA, etc.)\n' +
-                    '2. Each section: which background color variable to use, layout type and column proportions\n' +
-                    '3. Typography: heading sizes (prefer size vars), font weights, which color variable to use\n' +
-                    '4. Content: exact placeholder text for all headings, subheadings, paragraphs, button labels\n' +
-                    '5. Images: sizes and picsum.photos placeholder dimensions\n' +
-                    '6. Spacing: section padding (prefer size vars), element gaps\n' +
-                    '7. Card details if applicable: border-radius, internal padding, border style\n\n' +
-                    'AVAILABLE SITE COLOR VARIABLES:\n' + colorList + '\n\n' +
-                    'AVAILABLE SIZE VARIABLES:\n' + sizeList + '\n\n' +
-                    'CURRENT PAGE:\n' + pageSummary + '\n\n' +
-                    'RULES:\n' +
-                    '- Prefer the site color variables above for all colors. Fall back to static hex only if no suitable match.\n' +
-                    '- Prefer the size variables above for padding, gap, font-size. Fall back to px values only if no match.\n' +
-                    '- Do NOT output JSON or code. Plain text / markdown only.\n' +
-                    '- Write the brief directly without saying "I will generate..."';
+                    'You are a senior UI/UX designer for WordPress / Bricks Builder pages.\n\n' +
+                    'Your job: write a DESIGN BRIEF that the next AI (a JSON compiler) will use to build the page.\n\n' +
+
+                    ( hasPalette
+                        ? '╔══════════════════════════════════════════════╗\n' +
+                          '  THIS SITE\'S COLOR PALETTE — YOU MUST USE THESE\n' +
+                          '╚══════════════════════════════════════════════╝\n' +
+                          colorBlock + '\n\n' +
+                          '⚠️  MANDATORY COLOR RULE:\n' +
+                          'Every color you mention in the brief MUST be written as the var() name above.\n' +
+                          'NEVER write a hex code like #ffffff or #0d0d0d when the palette is available.\n' +
+                          'Example: write "background: var(--c1)" NOT "background: #0a0a0a"\n' +
+                          'Example: write "heading color: var(--c3)" NOT "heading color: white"\n' +
+                          'Example: write "accent button: var(--c2)" NOT "button color: #7c3aed"\n\n'
+                        : 'No color palette found – use descriptive color names (dark, white, accent-blue, etc.).\n\n'
+                    ) +
+
+                    ( hasSizes
+                        ? '╔══════════════════════════════════════════════╗\n' +
+                          '  THIS SITE\'S SPACING / SIZE VARIABLES — USE THESE\n' +
+                          '╚══════════════════════════════════════════════╝\n' +
+                          sizeBlock + '\n\n' +
+                          '⚠️  MANDATORY SIZE RULE:\n' +
+                          'Every padding, gap, font-size, and spacing value MUST be written as the var() name.\n' +
+                          'NEVER write "80px" or "2rem" when a matching variable exists.\n' +
+                          'Example: section padding → "var(--size-100)" NOT "80px"\n' +
+                          'Example: h1 font-size → "var(--size-50)" NOT "48px"\n' +
+                          'Example: card gap → "var(--size-24)" NOT "24px"\n\n'
+                        : 'No size variables found – use px values.\n\n'
+                    ) +
+
+                    'CURRENT PAGE STATE:\n' + pageSummary + '\n\n' +
+
+                    '══════════════════════════════════════════════\n' +
+                    'BRIEF STRUCTURE — cover all of these:\n' +
+                    '══════════════════════════════════════════════\n' +
+                    '1. Sections: how many, each section\'s purpose\n' +
+                    '2. Each section\'s background (use var() name), layout (flex col / 2-col grid / etc.)\n' +
+                    '3. Typography: heading tag (h1/h2), font-size (use var()), font-weight, color (use var())\n' +
+                    '4. Full placeholder copy for every heading, paragraph, and button label\n' +
+                    '5. Images: picsum.photos dimensions\n' +
+                    '6. Spacing: section _padding (var()), element _rowGap / _columnGap (var())\n' +
+                    '7. Cards: border-radius, internal _padding, border color (use var() like var(--c1-l-9))\n\n' +
+
+                    'OUTPUT RULES:\n' +
+                    '- No JSON, no code blocks. Plain text / markdown paragraphs only.\n' +
+                    '- Start writing the brief immediately – do not say "I will generate..." or any preamble.\n' +
+                    '- Every color and size reference MUST use var() notation if palette/sizes are available above.';
 
                 const userContent = [];
                 if (userMessage) userContent.push({ type: 'text', text: userMessage });
