@@ -1718,7 +1718,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
             /**
              * Collapse long messages with a Read more / Read less toggle
              */
-            const READ_MORE_THRESHOLD = 100; // px
+            const READ_MORE_THRESHOLD = 70; // px
 
             function applyReadMore($message) {
                 const $body = $message.find('.snn-msg-body');
@@ -2016,7 +2016,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
 .snn-bricks-chat-message-user { background: #161a1d; color: #fff; margin-left: auto; }
 .snn-bricks-chat-message-assistant { background: #fff; border: 1px solid #e0e0e0; margin-right: auto; }
 .snn-bricks-chat-message-error { background: #fee; color: #c33; border: 1px solid #fcc; }
-.snn-bricks-chat-message.is-collapsed .snn-msg-body { max-height: 100px; overflow: hidden; position: relative; }
+.snn-bricks-chat-message.is-collapsed .snn-msg-body { max-height: 70px; overflow: hidden; position: relative; }
 .snn-bricks-chat-message.is-collapsed .snn-msg-body::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(to bottom, transparent, var(--snn-msg-fade, #fff)); pointer-events: none; }
 .snn-bricks-chat-message-user.is-collapsed .snn-msg-body::after { --snn-msg-fade: #161a1d; }
 .snn-bricks-chat-message-error.is-collapsed .snn-msg-body::after { --snn-msg-fade: #fee; }
