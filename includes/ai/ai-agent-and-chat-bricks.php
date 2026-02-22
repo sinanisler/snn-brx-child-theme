@@ -1870,19 +1870,22 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
              */
             const READ_MORE_THRESHOLD = 70; // px
 
-            function applyReadMore($message) {
+            function applyReadMore($message, isLatest) {
                 const $body = $message.find('.snn-msg-body');
                 if (!$body.length) return;
 
                 // Use setTimeout so the DOM has rendered and offsetHeight is accurate
                 setTimeout(function() {
                     if ($body[0].scrollHeight > READ_MORE_THRESHOLD) {
-                        $message.addClass('is-collapsed');
-                        const $btn = $('<button>').addClass('snn-msg-toggle').text('▼ Read more');
+                        const startExpanded = !!isLatest;
+                        if (!startExpanded) {
+                            $message.addClass('is-collapsed');
+                        }
+                        const $btn = $('<button>').addClass('snn-msg-toggle').text(startExpanded ? '▲ Collapse' : '▼ Read more');
                         $btn.on('click', function() {
                             if ($message.hasClass('is-collapsed')) {
                                 $message.removeClass('is-collapsed');
-                                $btn.text('▲ Read less');
+                                $btn.text('▲ Collapse');
                             } else {
                                 $message.addClass('is-collapsed');
                                 $btn.text('▼ Read more');
@@ -2057,7 +2060,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                 $message.append($body);
 
                 $messages.append($message);
-                applyReadMore($message);
+                applyReadMore($message, true);
                 scrollToBottom();
             }
 
@@ -2188,14 +2191,15 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                             ChatState.messages = response.data.messages;
                             ChatState.currentSessionId = sessionId;
 
-                            response.data.messages.forEach(function(msg) {
+                            const historyMsgs = response.data.messages;
+                            historyMsgs.forEach(function(msg, idx) {
                                 const $message = $('<div>')
                                     .addClass('snn-bricks-chat-message')
                                     .addClass('snn-bricks-chat-message-' + msg.role);
                                 const $body = $('<div>').addClass('snn-msg-body').html(formatMessage(msg.content));
                                 $message.append($body);
                                 $('#snn-bricks-chat-messages').append($message);
-                                applyReadMore($message);
+                                applyReadMore($message, idx === historyMsgs.length - 1);
                             });
 
                             scrollToBottom();
