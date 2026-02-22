@@ -221,31 +221,7 @@ add_filter('retrieve_password_message', function ($message, $key, $user_login, $
 }, 10, 4);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. ADMIN NOTICE: Custom login active but XML-RPC still enabled
-//    XML-RPC can expose login credentials, bypassing the custom URL protection.
-// ─────────────────────────────────────────────────────────────────────────────
-
-add_action('admin_notices', function () {
-    if (!snn_custom_login_is_enabled())      return;
-    if (!current_user_can('manage_options')) return;
-
-    $options = get_option('snn_security_options', array());
-    if (!empty($options['disable_xmlrpc']))  return; // already disabled, no warning needed
-
-    $url = admin_url('admin.php?page=snn-security');
-    ?>
-    <div class="notice notice-warning is-dismissible">
-        <p>
-            <strong><?php esc_html_e('Security Warning:', 'snn'); ?></strong>
-            <?php esc_html_e('Custom Login URL is active but XML-RPC is still enabled. XML-RPC can expose login credentials and bypass your custom login URL protection. We strongly recommend disabling XML-RPC.', 'snn'); ?>
-            <a href="<?php echo esc_url($url); ?>" style="margin-left: 6px;"><?php esc_html_e('Go to Security Settings →', 'snn'); ?></a>
-        </p>
-    </div>
-    <?php
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 6. SETTINGS FIELD
+// 5. SETTINGS FIELD
 //    Registered via admin_init — adds the checkbox + slug input to the
 //    Security Settings admin page.
 // ─────────────────────────────────────────────────────────────────────────────
