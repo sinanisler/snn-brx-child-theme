@@ -208,7 +208,7 @@ class SNN_Bricks_Chat_Overlay {
                     <div class="snn-bricks-chat-welcome">
                         <h3><?php printf( esc_html__( 'Hello, %s!', 'snn' ), esc_html( wp_get_current_user()->display_name ) ); ?></h3>
                         <p><?php esc_html_e( 'Describe the page or section you want to create.', 'snn' ); ?></p>
-                        <p><small><?php esc_html_e( 'Dual-Core: Designer -> Compiler -> Inject', 'snn' ); ?></small></p>
+                        <p><small><?php esc_html_e( 'Triple-Core: Designer → Art Director → Compiler → Inject', 'snn' ); ?></small></p>
                     </div>
                 </div>
 
@@ -268,13 +268,14 @@ class SNN_Bricks_Chat_Overlay {
              * =============================================================== */
 
             const AgentState = {
-                IDLE:      'idle',
-                DESIGNING: 'designing',
-                COMPILING: 'compiling',
-                INJECTING: 'injecting',
-                RETRYING:  'retrying',
-                DONE:      'done',
-                ERROR:     'error'
+                IDLE:          'idle',
+                DESIGNING:     'designing',
+                ART_DIRECTING: 'art-directing',
+                COMPILING:     'compiling',
+                INJECTING:     'injecting',
+                RETRYING:      'retrying',
+                DONE:          'done',
+                ERROR:         'error'
             };
 
             const MAX_RETRIES = snnBricksChatConfig.settings.maxRetries || 3;
@@ -640,13 +641,22 @@ class SNN_Bricks_Chat_Overlay {
                     const blueprint    = await callAI(designerMsgs, 'designer');
 
                     debugLog('Blueprint received:', blueprint.substring(0, 150));
-                    addMessage('assistant', '**Design Blueprint:**\n\n' + blueprint);
+
+                    /* ---- PHASE 1.5: ART DIRECTOR -------------------------- */
+                    setAgentState(AgentState.ART_DIRECTING);
+                    debugLog('Phase 1.5: Art Director...');
+
+                    const artDirectorMsgs   = buildArtDirectorMessages(blueprint);
+                    const enrichedBlueprint = await callAI(artDirectorMsgs, 'artdirector');
+
+                    debugLog('Art-directed blueprint:', enrichedBlueprint.substring(0, 150));
+                    addMessage('assistant', '**Design Blueprint (Art-Directed):**\n\n' + enrichedBlueprint);
 
                     /* ---- PHASE 2: COMPILER -------------------------------- */
                     setAgentState(AgentState.COMPILING);
                     debugLog('Phase 2: Compiler...');
 
-                    const compilerMsgs  = buildCompilerMessages(blueprint, userMessage);
+                    const compilerMsgs  = buildCompilerMessages(enrichedBlueprint, userMessage);
                     let compilerResp    = await callAI(compilerMsgs, 'compiler');
 
                     /* ---- PHASE 3: INJECT (with retry) --------------------- */
@@ -779,7 +789,11 @@ class SNN_Bricks_Chat_Overlay {
                     '2. Each section\'s background (use var() name), layout (flex col / 2-col grid / etc.)\n' +
                     '3. Typography: heading tag (h1/h2), font-size (use var()), font-weight, color (use var())\n' +
                     '4. Full placeholder copy for every heading, paragraph, and button label\n' +
-                    '5. Images: picsum.photos dimensions\n' +
+                    '5. Images: Unsplash Source API with mood-matching keywords — format: https://source.unsplash.com/WIDTHxHEIGHT/?keyword1,keyword2\n' +
+                    '   Example dark/tech: https://source.unsplash.com/800x600/?abstract,dark,texture\n' +
+                    '   Example minimal:   https://source.unsplash.com/1200x600/?modern,architecture,minimalist\n' +
+                    '   Example luxury:    https://source.unsplash.com/800x600/?luxury,gold,interior\n' +
+                    '   Always choose keywords that match the section\'s design mood and colour palette.\n' +
                     '6. Spacing: section _padding (var()), element _rowGap / _columnGap (var())\n' +
                     '7. Cards: border-radius, internal _padding, border color (use var() like var(--c1-l-9))\n\n' +
 
@@ -918,7 +932,9 @@ class SNN_Bricks_Chat_Overlay {
                     '  {"_border:hover":{"color":{...}}}\n\n' +
 
                     '• image:\n' +
-                    '  {"image":{"external":"https://picsum.photos/800/600","id":0}, "_width":"100%"}\n\n' +
+                    '  {"image":{"external":"https://source.unsplash.com/800x600/?modern,technology,dark","id":0}, "_width":"100%"}\n' +
+                    '  // Choose Unsplash keywords matching the section mood, e.g.:\n' +
+                    '  // abstract,dark,texture | modern,architecture,minimalist | nature,green,outdoor | luxury,gold,elegant\n\n' +
 
                     '• icon:\n' +
                     '  {"icon":{"library":"fontawesomeSolid","icon":"fas fa-bolt"},"iconColor":{"id":"gnkmru","raw":"var(--c2)","light":"hsl(215 95% 40%)"},"iconSize":"24","_width":"60","_height":"60","_display":"flex","_justifyContent":"center","_alignItems":"center"}\n\n' +
@@ -1053,6 +1069,35 @@ class SNN_Bricks_Chat_Overlay {
             }
 
             /* =================================================================
+             * ART DIRECTOR MESSAGES
+             * =============================================================== */
+
+            function buildArtDirectorMessages(blueprint) {
+                const systemPrompt =
+                    'You are a bold, opinionated Art Director reviewing a UI design brief for a Bricks Builder page.\n\n' +
+                    'Your sole job is to REWRITE the brief in plain text — bolder, more dramatic, more visually rich.\n\n' +
+                    '✦ ENHANCE — apply ALL of the following rules:\n' +
+                    '  1. CONTRAST: Push heading/background contrast to its maximum. If mid-tones are used, go darker or brighter.\n' +
+                    '  2. TYPOGRAPHY DRAMA: Increase the largest heading size by at least one step (e.g., var(--size-50) → var(--size-64)). Increase font-weight (400 → 700, 300 → 600). Consider adding an oversized decorative element or stat number.\n' +
+                    '  3. LAYOUT DYNAMICS: Break boxy symmetry. Suggest an asymmetric split (60/40), an overlapping card that bleeds into the next section, or a full-bleed image hero. Avoid all-equal-columns wherever possible.\n' +
+                    '  4. DEPTH & LAYERING: Add at least one overlapping element using negative margin, z-index, or a floating badge/ribbon. Suggest a gradient overlay or subtle noise texture via _cssCustom on a relevant section.\n' +
+                    '  5. SPACING: Increase vertical whitespace between sections by roughly 30% — generous padding makes layouts feel premium.\n' +
+                    '  6. IMAGES: Replace any generic image placeholders with specific Unsplash Source URLs using mood-matching keywords (e.g., https://source.unsplash.com/800x600/?luxury,hotel,interior). The URL format is https://source.unsplash.com/WIDTHxHEIGHT/?keyword1,keyword2.\n' +
+                    '  7. MICRO-DETAILS: Add a 0.3s ease hover transform on the primary CTA button, one FontAwesome icon accent, and a subtle decorative divider or ruling line.\n\n' +
+                    'STRICT RULES:\n' +
+                    '- Preserve all var() color and size variable names from the original brief — do NOT invent new variable names.\n' +
+                    '- Preserve the intended action_type (replace / append / prepend).\n' +
+                    '- Output plain text / markdown ONLY. No JSON. No code blocks.\n' +
+                    '- Begin immediately with "# Art-Directed Brief" — no preamble.\n' +
+                    '- Be prescriptive and specific: the JSON compiler will follow your exact measurements, colours, and layout instructions.';
+
+                return [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user',   content: '--- ORIGINAL DESIGN BRIEF ---\n\n' + blueprint + '\n\nEnhance this brief now. Be bold and specific.' }
+                ];
+            }
+
+            /* =================================================================
              * CALL AI
              * =============================================================== */
 
@@ -1146,8 +1191,9 @@ class SNN_Bricks_Chat_Overlay {
                 ChatState.currentState = state;
 
                 const badges = {
-                    'designing': { label: 'DESIGNING', cls: 'badge-design' },
-                    'compiling': { label: 'COMPILING', cls: 'badge-compile' },
+                    'designing':     { label: 'DESIGNING',    cls: 'badge-design'  },
+                    'art-directing': { label: 'ART DIRECTOR', cls: 'badge-artdir'  },
+                    'compiling':     { label: 'COMPILING',    cls: 'badge-compile' },
                     'injecting': { label: 'INJECTING', cls: 'badge-inject' },
                     'retrying':  { label: 'RETRYING',  cls: 'badge-retry'  },
                     'done':      { label: 'DONE',      cls: 'badge-done'   },
@@ -1326,6 +1372,7 @@ class SNN_Bricks_Chat_Overlay {
 .snn-bricks-chat-btn:hover { background: rgba(255,255,255,.3); }
 .snn-bricks-state-badge { display: none; font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; margin-left: 4px; }
 .badge-design  { background: #7c3aed; color: #fff; }
+.badge-artdir  { background: #db2777; color: #fff; }
 .badge-compile { background: #2563eb; color: #fff; }
 .badge-inject  { background: #0891b2; color: #fff; }
 .badge-retry   { background: #d97706; color: #fff; }
