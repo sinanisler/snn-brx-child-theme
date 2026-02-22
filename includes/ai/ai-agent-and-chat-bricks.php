@@ -51,32 +51,6 @@ class SNN_Bricks_Chat_Overlay {
 
         // Render overlay HTML on frontend
         add_action( 'wp_footer', array( $this, 'render_overlay' ), 999 );
-        
-        // Setup ajax handler for schema loading
-        add_action( 'wp_ajax_snn_bricks_get_schema', array( $this, 'ajax_get_schema' ) );
-    }
-
-    public function ajax_get_schema() {
-        // Provide the schema dynamically so the AI developer agent knows exactly what to generate.
-        $schema = [
-            'hierarchy_rules' => [
-                'section' => 'Top level. Only use padding-top and padding-bottom (never horizontal).',
-                'container' => 'Inside section. Controls max-width. Use gap, flexDirection, alignItems, justifyContent.',
-                'block' => 'Flex wrap width 100%. Row structural component.',
-                'div' => 'General purpose wrapper, flex, and grid.'
-            ],
-            'elements' => [
-                'section' => ['_padding', '_margin', 'background', '_css'],
-                'container' => ['_width', 'justifyContent', 'alignItems', 'gap', 'flexDirection', 'flexWrap', '_padding', '_css'],
-                'block' => ['_width', 'justifyContent', 'alignItems', 'gap', 'flexDirection', '_css'],
-                'div' => ['_width', 'justifyContent', 'alignItems', 'gap', 'flexDirection', '_css'],
-                'heading' => ['text', 'tag', '_typography', 'color', '_css'],
-                'text' => ['text', '_typography', 'color', '_css'],
-                'image' => ['image', '_aspectRatio', '_objectFit', '_css'],
-                'button' => ['text', 'link', 'style', 'background', '_typography', '_css']
-            ]
-        ];
-        wp_send_json_success( $schema );
     }
 
     /**
@@ -303,9 +277,6 @@ class SNN_Bricks_Chat_Overlay {
             // Agent states enum
             const AgentState = {
                 IDLE: 'idle',
-                DESIGNING: 'designing',
-                COMPILING: 'compiling',
-                PATCHING: 'patching',
                 THINKING: 'thinking',
                 EXECUTING: 'executing',
                 INTERPRETING: 'interpreting',
@@ -352,8 +323,7 @@ class SNN_Bricks_Chat_Overlay {
                 lastError: null,
                 pendingOperation: null,
                 bricksState: null,
-                attachedImages: [],
-                bricksSchema: null
+                attachedImages: []
             };
 
             // Bricks Builder Integration
@@ -403,58 +373,6 @@ class SNN_Bricks_Chat_Overlay {
                         elements: state.content,
                         elementCount: state.content ? state.content.length : 0
                     };
-                },
-                
-                generateId() {
-                    return 'brxe-' + Math.random().toString(36).substr(2, 6);
-                },
-
-                applyDeltaPatches(patchesList) {
-                    const state = this.getState();
-                    if(!state) throw new Error('Bricks Vue state unavailable');
-
-                    patchesList.forEach(patch => {
-                        // Flatten nested JSON tree into Bricks flat array format.
-                        // Bricks requires: flat array where each element has
-                        //   id: "brxe-XXXXXX"  (unique string)
-                        //   parent: 0 (root) OR "brxe-XXXXXX" (parent id string)
-                        //   children: ["brxe-XXXXXX", ...]  (array of child id STRINGS, NOT objects)
-                        //   name: "section" | "container" | "block" | "heading" etc.
-                        //   settings: {}
-                        const flatElements = [];
-
-                        const flattenTree = (el, parentId) => {
-                            if (!el || typeof el !== 'object') return null;
-                            const id = this.generateId();
-                            const flatEl = {
-                                id: id,
-                                name: el.name || 'div',
-                                parent: (parentId !== undefined && parentId !== null) ? parentId : 0,
-                                children: [],
-                                settings: (el.settings && typeof el.settings === 'object') ? el.settings : {}
-                            };
-                            if (el.children && Array.isArray(el.children)) {
-                                el.children.forEach(childEl => {
-                                    if (childEl && typeof childEl === 'object') {
-                                        const childId = flattenTree(childEl, id);
-                                        if (childId) flatEl.children.push(childId);
-                                    }
-                                });
-                            }
-                            flatElements.push(flatEl);
-                            return id;
-                        };
-
-                        const roots = Array.isArray(patch.elements) ? patch.elements : [patch.elements];
-                        roots.forEach(el => flattenTree(el, 0));
-
-                        if (patch.action === 'replace_all') {
-                            state.content.splice(0, state.content.length);
-                        }
-                        flatElements.forEach(el => state.content.push(el));
-                    });
-
-                    return true;
                 },
 
                 /**
@@ -655,16 +573,6 @@ class SNN_Bricks_Chat_Overlay {
 
             // Initialize when DOM is ready
             $(document).ready(function() {
-                // Fetch schema first
-                $.post(snnBricksChatConfig.ajaxUrl, {
-                    action: 'snn_bricks_get_schema'
-                }, function(response) {
-                    if(response.success) {
-                        ChatState.bricksSchema = response.data;
-                        debugLog('✅ Bricks Engine Schema loaded.');
-                    }
-                });
-
                 // Wait for Bricks to be fully loaded
                 const initInterval = setInterval(function() {
                     if (BricksHelper.isAvailable()) {
@@ -1017,12 +925,13 @@ class SNN_Bricks_Chat_Overlay {
             }
 
             /**
-             * Process message with AI agent (DUAL-CORE ARCHITECTURE)
+             * Process message with AI agent
              */
             async function processWithAI(userMessage, images = []) {
                 ChatState.isProcessing = true;
                 ChatState.recoveryAttempts = 0;
                 showTyping();
+                setAgentState(AgentState.THINKING);
 
                 try {
                     ChatState.pendingOperation = {
@@ -1031,174 +940,110 @@ class SNN_Bricks_Chat_Overlay {
                         timestamp: Date.now()
                     };
 
-                    // ---- CORE 1: DESIGNER AGENT ----
-                    setAgentState(AgentState.DESIGNING);
-
-                    addMessage('assistant', '🎨 <strong>Designing layout blueprint...</strong>');
-
-                    const designerPrompt = `You are a world-class Bricks Builder Web Designer.
-The user is requesting a layout design.
-Analyze the request and optionally any provided images.
-Create a detailed "Layout Blueprint" focusing on visual hierarchy, typography, colors, and space.
-Do NOT generate JSON here. Use descriptive sections explaining:
-- Hierarchy (Section -> Container -> Block -> content elements)
-- Flex directions and gaps per element
-- Background colors, padding strategy
-- Typography choices (font-size in px, weight, color in hex)
-- Exact text content for headings, paragraphs, button labels
-Be precise and specific so a compiler can turn it into JSON perfectly.`;
-
+                    // Prepare conversation context
                     const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
-                        const msg = { role: m.role === 'user' ? 'user' : 'assistant' };
-                        // Handle messages with images mapping
+                        const msg = {
+                            role: m.role === 'user' ? 'user' : 'assistant'
+                        };
+
+                        // Handle messages with images
                         if (m.images && m.images.length > 0) {
                             msg.content = [];
                             if (m.content && m.content !== '(Image attached)') {
-                                msg.content.push({ type: 'text', text: m.content });
+                                msg.content.push({
+                                    type: 'text',
+                                    text: m.content
+                                });
                             }
                             m.images.forEach(img => {
-                                msg.content.push({ type: 'image_url', image_url: { url: img.data } });
+                                msg.content.push({
+                                    type: 'image_url',
+                                    image_url: {
+                                        url: img.data
+                                    }
+                                });
                             });
                         } else {
                             msg.content = m.content;
                         }
+
                         return msg;
                     });
 
-                    const designerMessages = [
-                        { role: 'system', content: designerPrompt },
+                    // Build AI prompt with Bricks-specific abilities
+                    const systemPrompt = buildSystemPrompt();
+                    const messages = [
+                        { role: 'system', content: systemPrompt },
                         ...context
                     ];
 
+                    // Add current user message with images if any
                     if (images.length > 0) {
-                        const currentMsg = { role: 'user', content: [] };
-                        if (userMessage) currentMsg.content.push({ type: 'text', text: userMessage });
-                        images.forEach(img => currentMsg.content.push({ type: 'image_url', image_url: { url: img.data } }));
-                        
-                        // Push dynamically if not in context
-                        if(designerMessages.length === 0 || designerMessages[designerMessages.length - 1].role !== 'user') {
-                            designerMessages.push(currentMsg);
-                        } else if(designerMessages[designerMessages.length - 1].role === 'user' && !Array.isArray(designerMessages[designerMessages.length - 1].content)) {
-                             // replace text with multimodality content
-                             designerMessages[designerMessages.length - 1] = currentMsg;
+                        const currentMsg = {
+                            role: 'user',
+                            content: []
+                        };
+
+                        if (userMessage) {
+                            currentMsg.content.push({
+                                type: 'text',
+                                text: userMessage
+                            });
                         }
-                    } else {
-                       if(designerMessages.length === 0 || designerMessages[designerMessages.length - 1].role !== 'user') {
-                            designerMessages.push({ role: 'user', content: userMessage });
-                       }
+
+                        images.forEach(img => {
+                            currentMsg.content.push({
+                                type: 'image_url',
+                                image_url: {
+                                    url: img.data
+                                }
+                            });
+                        });
+
+                        // Only add if not already in context
+                        if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+                            messages.push(currentMsg);
+                        }
                     }
 
-                    const blueprint = await callAI(designerMessages);
-                    addMessage('assistant', `<strong>🎨 Designer blueprint ready.</strong><br><em>Compiling to Bricks JSON...</em>`);
-                    debugLog('Designer blueprint:', blueprint);
-                    
-                    // ---- CORE 2: COMPILER AGENT ----
-                    setAgentState(AgentState.COMPILING);
-
-                    const devPrompt = `You are a strict Bricks Builder JSON compiler.
-Convert the Layout Blueprint below into a nested element tree JSON.
-
-OUTPUT FORMAT — return ONLY this raw JSON object, no markdown fences, no extra text:
-{
-  "action": "append",
-  "elements": [
-    {
-      "name": "section",
-      "settings": { "_padding": { "top": "80", "bottom": "80" } },
-      "children": [
-        {
-          "name": "container",
-          "settings": { "_width": "1200", "gap": "40", "flexDirection": "row", "alignItems": "center", "justifyContent": "space-between" },
-          "children": [
-            {
-              "name": "block",
-              "settings": { "gap": "20", "flexDirection": "column" },
-              "children": [
-                { "name": "heading", "settings": { "text": "Your Heading", "tag": "h1", "_typography": { "font-size": "56px", "font-weight": "700", "color": { "raw": "#000000" } } }, "children": [] },
-                { "name": "text", "settings": { "text": "<p>Your paragraph text here.</p>", "_typography": { "font-size": "18px", "color": { "raw": "#555555" } } }, "children": [] },
-                { "name": "button", "settings": { "text": "Click Me", "style": "primary" }, "children": [] }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-
-SETTINGS REFERENCE:
-- section._padding: { "top": "80", "bottom": "80" }  — NEVER add left/right padding to sections
-- section background color: { "background": { "color": { "raw": "#000000" } } }
-- container._width: "1200"  (number as string, no px)
-- container.gap: "40"  (number as string)
-- container.flexDirection: "row" | "column"
-- container.alignItems: "center" | "flex-start" | "flex-end"
-- container.justifyContent: "center" | "space-between" | "flex-start"
-- block.gap: "24"
-- block.flexDirection: "column" | "row"
-- heading.text: "Your text"  (plain string)
-- heading.tag: "h1" | "h2" | "h3"
-- heading._typography.font-size: "48px"  (include px)
-- heading._typography.font-weight: "700"
-- heading._typography.color: { "raw": "#000000" }
-- text.text: "<p>Paragraph text</p>"  (wrap in p tags)
-- image._aspectRatio: "16/9"  — always also add _objectFit: "cover"
-- button.text: "Button Label"
-
-RULES:
-1. Return ONLY the raw JSON. Do NOT wrap in markdown fences.
-2. "action" must be "replace_all" (if replacing whole page) or "append".
-3. Never add "id" or "parent" fields — those are auto-generated.
-4. All numbers must be strings: "80" not 80.
-5. section > container > block > content elements (heading/text/image/button)
-
-LAYOUT BLUEPRINT:
-${blueprint}`;
-
-                    const devMessages = [
-                        {role: 'system', content: 'You are a JSON compiler tool. Return ONLY raw JSON starting with { and ending with }.'},
-                        {role: 'user', content: devPrompt}
-                    ];
-                    
-                    const jsonResRaw = await callAI(devMessages);
-                    
-                    // Robust JSON extraction — strip any code fences then find {…} boundaries
-                    let jsonStr = jsonResRaw.trim();
-                    jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
-                    const firstBrace = jsonStr.indexOf('{');
-                    const lastBrace  = jsonStr.lastIndexOf('}');
-                    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-                        jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
-                    }
-                    debugLog('Compiler raw JSON:', jsonStr.substring(0, 300));
-
-                    let parsedData;
-                    try {
-                        parsedData = JSON.parse(jsonStr);
-                    } catch(e) {
-                        throw new Error('Compiler failed to produce valid JSON: ' + e.message + ' — raw: ' + jsonStr.substring(0, 200));
-                    }
-                    
-                    // ---- UPDATE REACTIVE STATE ----
-                    setAgentState(AgentState.PATCHING);
-                    addMessage('assistant', '🔧 <strong>Patching Bricks state...</strong>');
-
-                    const rootCount = Array.isArray(parsedData.elements) ? parsedData.elements.length : 1;
-                    const applied = BricksHelper.applyDeltaPatches([parsedData]);
-
-                    if (applied) {
-                        const totalFlat = BricksHelper.getState() ? BricksHelper.getState().content.length : '?';
-                        addMessage('assistant', `✅ <strong>Done!</strong> Injected <strong>${rootCount}</strong> root section(s) → <strong>${totalFlat}</strong> total elements in page.`);
-                        setAgentState(AgentState.DONE);
-                    }
-                    
+                    // Call AI API
+                    const aiResponse = await callAI(messages);
                     hideTyping();
+
+                    debugLog('AI Response:', aiResponse);
+
+                    // Check for empty response
+                    if (!aiResponse || aiResponse.trim() === '') {
+                        throw new Error('AI returned empty response. Please try again.');
+                    }
+
+                    // Extract abilities from response
+                    const abilities = extractAbilitiesFromResponse(aiResponse);
+
+                    if (abilities.length > 0) {
+                        // Show initial AI message
+                        let initialMessage = aiResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                        if (initialMessage) {
+                            addMessage('assistant', initialMessage);
+                        }
+
+                        // Execute abilities sequentially
+                        await executeAbilitiesSequentially(messages, abilities);
+                        await provideFinalSummary(messages, abilities);
+                    } else {
+                        // No abilities, just show response
+                        addMessage('assistant', aiResponse);
+                    }
+
+                    setAgentState(AgentState.DONE);
                     ChatState.pendingOperation = null;
                     autoSaveConversation();
 
                 } catch (error) {
                     hideTyping();
+
                     const recovered = await attemptRecovery(error, userMessage);
+
                     if (!recovered) {
                         let errorMessage = 'Sorry, something went wrong: ' + error.message;
                         addMessage('error', errorMessage);
@@ -1889,24 +1734,9 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
             function setAgentState(state, metadata = null) {
                 ChatState.currentState = state;
                 const $stateText = $('#snn-bricks-chat-state-text');
-                const badge = $('#snn-bricks-agent-state-badge');
 
                 let stateMessage = '';
-                let badgeClass = 'idle';
-                
                 switch(state) {
-                    case AgentState.DESIGNING:
-                        stateMessage = 'Designing layout signature...';
-                        badgeClass = 'designing';
-                        break;
-                    case AgentState.COMPILING:
-                        stateMessage = 'Compiling to Bricks schema...';
-                        badgeClass = 'compiling';
-                        break;
-                    case AgentState.PATCHING:
-                        stateMessage = 'Patching elements...';
-                        badgeClass = 'patching';
-                        break;
                     case AgentState.THINKING:
                         stateMessage = 'Thinking...';
                         break;
@@ -1924,19 +1754,8 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                     case AgentState.ERROR:
                         stateMessage = 'Error occurred';
                         setTimeout(() => setAgentState(AgentState.IDLE), 3000);
-                        badgeClass = 'error';
-                        break;
-                    case AgentState.IDLE:
-                        badgeClass = 'idle';
                         break;
                 }
-
-                badge.text(state.toUpperCase());
-                
-                // Keep the dashicons and badge span in header text
-                const currentBadgeClass = badge.attr('class').split(' ').filter(c => c !== 'snn-bricks-agent-state-badge')[0];
-                if(currentBadgeClass) badge.removeClass(currentBadgeClass);
-                badge.addClass(badgeClass);
 
                 if (stateMessage) {
                     $stateText.text(stateMessage).show();
@@ -2153,11 +1972,6 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
 .snn-bricks-chat-controls { display: flex; gap: 4px; }
 .snn-bricks-chat-btn { background: rgba(255, 255, 255, 0.2); border: none; color: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display:flex; justify-content: center; align-items: center; }
 .snn-bricks-chat-btn:hover { background: rgba(255, 255, 255, 0.3); }
-.snn-bricks-agent-state-badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #333; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-.snn-bricks-agent-state-badge.designing { background: #8b5cf6; color: white; }
-.snn-bricks-agent-state-badge.compiling { background: #3b82f6; color: white; }
-.snn-bricks-agent-state-badge.patching { background: #eab308; color: white; }
-.snn-bricks-agent-state-badge.idle { background: #10b981; color: white; }
 .snn-bricks-chat-plus { font-size: 24px; }
 .snn-bricks-chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #f9f9f9; font-size:14px; }
 .snn-bricks-chat-welcome { text-align: center; padding: 40px 20px; color: #666; }
