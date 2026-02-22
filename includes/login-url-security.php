@@ -114,6 +114,23 @@ function snn_serve_custom_login_slug() {
     // Set SCRIPT_NAME so wp-login.php generates correct form action URLs
     $_SERVER['SCRIPT_NAME'] = '/' . $slug;
 
+    // PHP 8.x raises E_WARNING for undefined variables that wp-login.php
+    // intentionally leaves unset in certain code paths (e.g. $user_login,
+    // $error on first page load). Suppress only those specific warnings so
+    // they don't leak into the login page HTML.
+    set_error_handler( function ( $errno, $errstr, $errfile ) {
+        if ( $errno === E_WARNING
+            && basename( $errfile ) === 'wp-login.php'
+            && strpos( $errstr, 'Undefined variable' ) !== false
+        ) {
+            return true; // silently swallow this warning
+        }
+        return false; // everything else: let the default handler run
+    } );
+    // Restore the previous handler on shutdown (wp-login.php exits, so a
+    // normal restore_error_handler() call after require is never reached).
+    register_shutdown_function( 'restore_error_handler' );
+
     // Load WordPress's actual login page — all actions (login, logout,
     // lostpassword, rp, resetpass, register, postpass) work automatically
     require_once ABSPATH . 'wp-login.php';
