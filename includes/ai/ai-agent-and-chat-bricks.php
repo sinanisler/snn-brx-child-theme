@@ -991,20 +991,25 @@ class SNN_Bricks_Chat_Overlay {
                     '══════════════════════════════════════════════\n' +
                     'SETTINGS — NATIVE BRICKS KEYS (preferred over _cssCustom)\n' +
                     '══════════════════════════════════════════════\n' +
-                    '_padding/_margin : {"top":"var(--size-50)","right":"40px","bottom":"var(--size-50)","left":"40px"}\n' +
-                    '_typography      : {"font-size":"var(--size-50)","font-weight":"700","line-height":"1.3","color":{"id":"xxx","raw":"var(--c2)","light":"hsl(...)"}, "text-align":"center"}\n' +
-                    '_background      : {"color":{"id":"xxx","raw":"var(--c1)","light":"hsl(...)"}}  OR  {"color":{"raw":"rgba(0,0,0,0.5)"}}\n' +
-                    '_border          : {"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{...}}\n' +
+                    '_padding/_margin : {"top":"var(--size-50)","right":"var(--size-50)","bottom":"var(--size-50)","left":"var(--size-50)"}  |  negative gap: {"bottom":"-30"}\n' +
+                    '_typography      : {"font-size":"var(--size-50)","font-weight":"300","line-height":"1.4","color":{"id":"xxx","raw":"var(--c2)","light":"hsl(...)"},"text-align":"center","text-transform":"uppercase","letter-spacing":"1"}\n' +
+                    '_background      : {"color":{"id":"xxx","raw":"var(--c1)","light":"hsl(...)"}}  OR  {"color":{"raw":"rgba(233,233,233,0.33)"}}\n' +
+                    '_border          : {"radius":{"top":"16","right":"16","bottom":"16","left":"16"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{...}}\n' +
                     '_display         : "grid"  |  _gridTemplateColumns: "1fr 1fr"  |  _gridGap: "var(--size-50)"\n' +
-                    '_direction       : "row"  |  _columnGap: "var(--size-24)"  |  _rowGap: "var(--size-24)"\n' +
-                    '_justifyContent  : "center"  |  _alignItems: "center"  |  _flexWrap: "wrap"\n' +
-                    '_widthMax        : "1200" (px, no unit)  |  _width: "100%"  |  _height: "80vh"  |  _heightMin: "440"\n' +
-                    '_gradient        : {"applyTo":"overlay","gradientType":"linear","colors":[{"id":"a","color":{"raw":"var(--c1)"}},{"id":"b","color":{"raw":"transparent"}}]}\n' +
-                    'button           : "text":"...", "style":"primary", "link":{"type":"url","url":"#"}, "icon":{"library":"fontawesomeSolid","icon":"fas fa-arrow-right"}, "iconPosition":"left"\n' +
-                    'heading          : "text":"...", "tag":"h1"\n' +
+                    '_direction       : "row"  |  _columnGap: "var(--size-10)"  |  _rowGap: "var(--size-24)"\n' +
+                    '_justifyContent  : "center"  |  _alignItems: "center"\n' +
+                    '_widthMax        : "1200"  |  _width: "100%"  |  _height: "80vh"  |  _overflow: "hidden"  (always set on gradient cards)\n' +
+                    '_order           : "_order:mobile_landscape":"-1"  (reorder block first on mobile)\n' +
+                    '_gradient radial : {"applyTo":"overlay","gradientType":"radial","radialPosition":"top right","colors":[{"id":"a","color":{"raw":"var(--c2-d-8)"}},{"id":"b","color":{"raw":"var(--c2-d-10)"},"stop":"33"}]}\n' +
+                    'button primary   : "text":"...", "style":"primary", "_padding":{"top":"20","bottom":"20","left":"var(--size-36)","right":"var(--size-36)"}, "_background:hover":{"color":{"raw":"color-mix(in srgb, var(--c2) 100%, #000 20%)"}}, "icon":{"library":"fontawesomeSolid","icon":"fas fa-arrow-right"},"iconPosition":"left","_cssCustom":"%root% i{transition:0.4s} %root%:hover i{transform:translateX(5px)}"\n' +
+                    'button outline   : same as primary + "_background":{"color":{"raw":"var(--c3)"}}, "_typography":{"color":{"raw":"var(--c2)"},"font-weight":"500"}, "_border":{...1px solid var(--c1-l-9)...}, "_border:hover":{"color":{"raw":"var(--c1)"}}, "_typography:hover":{"color":{"raw":"var(--c1)"}}\n' +
+                    'heading          : "text":"Build <em>Something</em> Great","tag":"h1","_cssCustom":"%root% em { color: var(--c2); }"\n' +
+                    'section-label    : type "text-basic", _typography {uppercase, letter-spacing:"1", color:var(--c2), font-weight:"600", line-height:"1"}, "_margin":{"bottom":"-30"}  — place BEFORE every h2 heading\n' +
                     'image            : "image":{"external":"https://source.unsplash.com/800x600/?keyword1,keyword2","id":0}\n' +
                     'icon             : "icon":{"library":"fontawesomeSolid","icon":"fas fa-bolt"}, "iconColor":{...}, "iconSize":"24"\n' +
-                    'icon-box         : "icon":{...}, "content":"<p>...</p>", "direction":"row", "gap":"20", "iconSize":"16"\n\n' +
+                    'icon-box feature : "icon":{...}, "content":"<p>...</p>", "direction":"row", "gap":"20", "iconSize":"24"\n' +
+                    'icon-box check   : "icon":{"library":"fontawesomeSolid","icon":"fas fa-check"}, "content":"<p><strong>Point</strong>. Detail.</p>", "direction":"row","gap":"20","iconSize":"16","iconMargin":{"top":"5"},"iconColor":{"raw":"var(--c2)"},"iconBackgroundColor":{"raw":"var(--c2-l-10)"},"iconBorder":{"radius":{"top":"100","right":"100","bottom":"100","left":"100"}},"iconPadding":{"top":"8","right":"8","bottom":"8","left":"8"}\n' +
+                    'dark-card block  : _background var(--c2-d-10) + _gradient radial overlay + _overflow:"hidden" + _typography color:var(--c3) + _border radius 16\n\n' +
 
                     '══════════════════════════════════════════════\n' +
                     'STATE & BREAKPOINT SUFFIXES (append to any settings key)\n' +
@@ -1020,24 +1025,41 @@ class SNN_Bricks_Chat_Overlay {
                     'Use %root% as selector. NEVER put padding/margin/color/display/gap/width/height/font-size in _cssCustom.\n\n' +
 
                     '══════════════════════════════════════════════\n' +
-                    'EXAMPLE (hero + feature card)\n' +
+                    'EXAMPLE (hero + features with dark card + checklist)\n' +
                     '══════════════════════════════════════════════\n' +
                     '{"action_type":"replace","sections":[' +
-                        '{"type":"section","settings":{"_background":{"color":{"id":"dwvvob","raw":"var(--c1)","light":"hsl(210 13% 6%)"}},"_padding":{"top":"var(--size-100)","bottom":"var(--size-100)"},"_padding:mobile_landscape":{"top":"var(--size-50)","bottom":"var(--size-50)"}},"children":[' +
-                            '{"type":"container","settings":{"_widthMax":"1200","_justifyContent":"center","_alignItems":"center","_rowGap":"var(--size-24)","_typography":{"text-align":"center"}},"children":[' +
-                                '{"type":"heading","settings":{"text":"Build the <em>Future</em> Today","tag":"h1","_typography":{"font-size":"var(--size-50)","font-weight":"700","color":{"id":"aoskmp","raw":"var(--c3)","light":"hsl(0,0%,100%)"}},"_typography:mobile_landscape":{"font-size":"var(--size-36)"},"_cssCustom":"%root% em { color: var(--c2); }"},"children":[]},' +
-                                '{"type":"text-basic","settings":{"text":"A modern platform that accelerates your growth.","_widthMax":"560","_typography":{"line-height":"1.7","color":{"id":"icjfiu","raw":"var(--c1-l-5)","light":"rgb(123,124,125)"}}},"children":[]},' +
-                                '{"type":"button","settings":{"text":"Get Started","style":"primary","link":{"type":"url","url":"#"},"_padding":{"left":"var(--size-36)","right":"var(--size-36)"}},"children":[]}' +
+                        '{"type":"section","settings":{"_padding":{"top":"var(--size-200)","bottom":"var(--size-200)"},"_padding:mobile_landscape":{"top":"var(--size-100)","bottom":"var(--size-100)"}},"children":[' +
+                            '{"type":"container","settings":{"_display":"grid","_gridTemplateColumns":"1.3fr 0.7fr","_gridGap":"var(--size-100)","_alignItems":"center","_gridTemplateColumns:mobile_landscape":"1fr"},"children":[' +
+                                '{"type":"block","settings":{"_rowGap":"var(--size-24)"},"children":[' +
+                                    '{"type":"text-basic","settings":{"text":"PLATFORM","_typography":{"font-weight":"600","text-transform":"uppercase","letter-spacing":"1","color":{"id":"gnkmru","raw":"var(--c2)"},"line-height":"1"},"_margin":{"bottom":"-30"}},"children":[]},' +
+                                    '{"type":"heading","settings":{"text":"Build the <em>Future</em> Today","tag":"h1","_typography":{"font-size":"var(--size-50)","font-weight":"300"},"_typography:mobile_landscape":{"font-size":"var(--size-36)"},"_cssCustom":"%root% em { color: var(--c2); }"},"children":[]},' +
+                                    '{"type":"text-basic","settings":{"text":"A modern platform that accelerates your growth.","_typography":{"line-height":"2"}},"children":[]},' +
+                                    '{"type":"block","settings":{"_direction":"row","_columnGap":"var(--size-10)","_rowGap":"var(--size-10)"},"children":[' +
+                                        '{"type":"button","settings":{"text":"Get Started","style":"primary","link":{"type":"url","url":"#"},"_padding":{"top":"20","bottom":"20","left":"var(--size-36)","right":"var(--size-36)"},"icon":{"library":"fontawesomeSolid","icon":"fas fa-arrow-right"},"iconPosition":"left","_background:hover":{"color":{"raw":"color-mix(in srgb, var(--c2) 100%, #000 20%)"}},"_cssCustom":"%root% i{transition:0.4s} %root%:hover i{transform:translateX(5px)}"},"children":[]},' +
+                                        '{"type":"button","settings":{"text":"Learn More","style":"primary","link":{"type":"url","url":"#"},"_padding":{"top":"20","bottom":"20","left":"var(--size-36)","right":"var(--size-36)"},"_background":{"color":{"id":"aoskmp","raw":"var(--c3)"}},"_typography":{"color":{"id":"gnkmru","raw":"var(--c2)"},"font-weight":"500"},"_border":{"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"id":"kysrnm","raw":"var(--c1-l-9)"}},"_border:hover":{"color":{"id":"dwvvob","raw":"var(--c1)"}},"_typography:hover":{"color":{"id":"dwvvob","raw":"var(--c1)"}}},"children":[]}' +
+                                    ']}' +
+                                ']},' +
+                                '{"type":"image","settings":{"image":{"external":"https://source.unsplash.com/800x600/?modern,abstract,minimal","id":0},"_border":{"radius":{"top":"16","right":"16","bottom":"16","left":"16"}}},"children":[]}' +
                             ']}' +
                         ']},' +
-                        '{"type":"section","settings":{"_background":{"color":{"raw":"rgba(233,233,233,0.23)"}},"_padding":{"top":"var(--size-100)","bottom":"var(--size-100)"}},"children":[' +
-                            '{"type":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr","_gridGap":"var(--size-50)","_gridTemplateColumns:mobile_landscape":"1fr"},"children":[' +
-                                '{"type":"block","settings":{"_rowGap":"var(--size-24)"},"children":[' +
-                                    '{"type":"heading","settings":{"text":"Feature One","tag":"h2","_typography":{"font-size":"var(--size-36)","font-weight":"600"}},"children":[]},' +
-                                    '{"type":"text-basic","settings":{"text":"Description of the feature.","_typography":{"line-height":"1.8"}},"children":[]}' +
+                        '{"type":"section","settings":{"_background":{"color":{"raw":"rgba(233,233,233,0.33)"}},"_padding":{"top":"var(--size-200)","bottom":"var(--size-200)"}},"children":[' +
+                            '{"type":"container","settings":{"_rowGap":"var(--size-100)"},"children":[' +
+                                '{"type":"block","settings":{"_typography":{"text-align":"center"},"_rowGap":"var(--size-10)","_alignItems":"center"},"children":[' +
+                                    '{"type":"text-basic","settings":{"text":"FEATURES","_typography":{"font-weight":"600","text-transform":"uppercase","letter-spacing":"1","color":{"id":"gnkmru","raw":"var(--c2)"},"line-height":"1"},"_margin":{"bottom":"-30"}},"children":[]},' +
+                                    '{"type":"heading","settings":{"text":"Everything you <em>need</em>","tag":"h2","_typography":{"font-weight":"300","font-size":"var(--size-50)"},"_cssCustom":"%root% em { color: var(--c2); }"},"children":[]}' +
                                 ']},' +
-                                '{"type":"block","settings":{"_background":{"color":{"id":"dwvvob","raw":"var(--c1)","light":"hsl(210 13% 6%)"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}},"_padding":{"top":"var(--size-50)","right":"var(--size-50)","bottom":"var(--size-50)","left":"var(--size-50)"},"_typography":{"color":{"id":"aoskmp","raw":"var(--c3)","light":"hsl(0,0%,100%)"}},"_justifyContent":"center","_alignItems":"center"},"children":[' +
-                                    '{"type":"heading","settings":{"text":"50k+","tag":"h3","_typography":{"font-size":"var(--size-50)","font-weight":"700"}},"children":[]}' +
+                                '{"type":"block","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr","_gridGap":"var(--size-50)","_gridTemplateColumns:mobile_landscape":"1fr"},"children":[' +
+                                    '{"type":"block","settings":{"_rowGap":"var(--size-36)"},"children":[' +
+                                        '{"type":"text","settings":{"text":"<p>Feature description paragraph.</p>","_typography":{"line-height":"2"}},"children":[]},' +
+                                        '{"type":"block","settings":{"_rowGap":"10"},"children":[' +
+                                            '{"type":"icon-box","settings":{"icon":{"library":"fontawesomeSolid","icon":"fas fa-check"},"content":"<p><strong>Point one</strong>. Explanation here.</p>","direction":"row","gap":"20","iconSize":"16","iconMargin":{"top":"5"},"iconColor":{"id":"gnkmru","raw":"var(--c2)"},"iconBackgroundColor":{"id":"wtkcqc","raw":"var(--c2-l-10)"},"iconBorder":{"radius":{"top":"100","right":"100","bottom":"100","left":"100"}},"iconPadding":{"top":"8","right":"8","bottom":"8","left":"8"}},"children":[]},' +
+                                            '{"type":"icon-box","settings":{"icon":{"library":"fontawesomeSolid","icon":"fas fa-check"},"content":"<p><strong>Point two</strong>. Explanation here.</p>","direction":"row","gap":"20","iconSize":"16","iconMargin":{"top":"5"},"iconColor":{"id":"gnkmru","raw":"var(--c2)"},"iconBackgroundColor":{"id":"wtkcqc","raw":"var(--c2-l-10)"},"iconBorder":{"radius":{"top":"100","right":"100","bottom":"100","left":"100"}},"iconPadding":{"top":"8","right":"8","bottom":"8","left":"8"}},"children":[]}' +
+                                        ']}' +
+                                    ']},' +
+                                    '{"type":"block","settings":{"_padding":{"top":"var(--size-50)","right":"var(--size-50)","bottom":"var(--size-50)","left":"var(--size-50)"},"_background":{"color":{"id":"agpdxo","raw":"var(--c2-d-10)"}},"_typography":{"color":{"id":"aoskmp","raw":"var(--c3)"}},"_border":{"radius":{"top":"16","right":"16","bottom":"16","left":"16"}},"_gradient":{"applyTo":"overlay","gradientType":"radial","radialPosition":"top right","colors":[{"id":"a","color":{"id":"gkkewg","raw":"var(--c2-d-8)"}},{"id":"b","color":{"id":"agpdxo","raw":"var(--c2-d-10)"},"stop":"33"}]},"_overflow":"hidden","_justifyContent":"center","_alignItems":"center","_order:mobile_landscape":"-1"},"children":[' +
+                                        '{"type":"heading","settings":{"text":"50k+","tag":"h3","_typography":{"font-size":"var(--size-100)","font-weight":"700"}},"children":[]},' +
+                                        '{"type":"text-basic","settings":{"text":"Users worldwide","_typography":{"color":{"id":"ksgqoe","raw":"var(--c2-l-4)"}}},"children":[]}' +
+                                    ']}' +
                                 ']}' +
                             ']}' +
                         ']}' +
