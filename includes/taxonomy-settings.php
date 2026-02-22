@@ -24,7 +24,10 @@ function snn_render_taxonomies_page() {
     }
 
     if ( isset( $_POST['snn_taxonomies_nonce'] ) && wp_verify_nonce( $_POST['snn_taxonomies_nonce'], 'snn_save_taxonomies' ) ) {
-        if ( isset( $_POST['taxonomies'] ) && is_array( $_POST['taxonomies'] ) ) {
+        if ( ! isset( $_POST['taxonomies'] ) || ! is_array( $_POST['taxonomies'] ) || empty( $_POST['taxonomies'] ) ) {
+            update_option( 'snn_taxonomies', array() );
+            echo '<div class="updated"><p>' . esc_html__( 'Taxonomies saved successfully.', 'snn' ) . '</p></div>';
+        } else {
             $taxonomies = array();
             $slugs_seen = array();
 
@@ -66,6 +69,7 @@ function snn_render_taxonomies_page() {
             echo '<div class="updated"><p>' . esc_html__( 'Taxonomies saved successfully.', 'snn' ) . '</p></div>';
         }
     }
+
 
     // Retrieve existing taxonomies
     $taxonomies = get_option( 'snn_taxonomies', array() );
