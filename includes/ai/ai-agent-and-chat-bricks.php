@@ -1148,23 +1148,23 @@ class SNN_Bricks_Chat_Overlay {
                 bricksContext += `- Popular choices: Inter, Roboto, Poppins, Montserrat, Open Sans, Playfair Display, etc.\n`;
                 bricksContext += `- Choose fonts that match the design style and brand personality\n\n`;
 
-                bricksContext += `**SEMANTIC IMAGE PLACEHOLDERS — ALWAYS USE REAL URLs:**\n`;
+                bricksContext += `**SEMANTIC IMAGE PLACEHOLDERS — ALWAYS USE REAL PIXABAY IMAGES:**\n`;
                 bricksContext += `NEVER leave image src empty, use "image.jpg", or generic placeholder text.\n`;
-                bricksContext += `Use these URL patterns to get topic-relevant photos that make designs look real immediately:\n`;
-                bricksContext += `• Keyword-based (best for semantic relevance):\n`;
-                bricksContext += `  https://loremflickr.com/{WIDTH}/{HEIGHT}/{keyword1},{keyword2}\n`;
+                bricksContext += `Use the built-in Pixabay proxy to get high-quality, topic-relevant photos that make designs look real immediately.\n`;
+                bricksContext += `URL pattern: ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q={keywords}\n`;
+                bricksContext += `• Replace {keywords} with space-separated or + separated words relevant to the section content.\n`;
                 bricksContext += `  Examples:\n`;
-                bricksContext += `  - Bakery hero:       https://loremflickr.com/1200/600/bakery,bread,interior\n`;
-                bricksContext += `  - Restaurant food:   https://loremflickr.com/800/600/restaurant,food,gourmet\n`;
-                bricksContext += `  - Tech / SaaS:       https://loremflickr.com/800/450/technology,office,laptop\n`;
-                bricksContext += `  - Team portrait:     https://loremflickr.com/400/400/portrait,person,professional\n`;
-                bricksContext += `  - Fitness:           https://loremflickr.com/800/600/fitness,gym,workout\n`;
-                bricksContext += `  - Architecture:      https://loremflickr.com/1200/700/architecture,building,interior\n`;
-                bricksContext += `• Seeded (same seed = same image, great for consistent team/product shots):\n`;
-                bricksContext += `  https://picsum.photos/seed/{any-word}/{WIDTH}/{HEIGHT}\n`;
-                bricksContext += `  Examples: https://picsum.photos/seed/team-alice/400/400\n`;
-                bricksContext += `  (change the seed word to get different images)\n`;
-                bricksContext += `Set the URL in Bricks image element settings like this: {"src": "https://loremflickr.com/800/600/bakery,interior"}\n\n`;
+                bricksContext += `  - Bakery hero:     ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=bakery+bread+interior\n`;
+                bricksContext += `  - Restaurant food: ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=restaurant+food+gourmet\n`;
+                bricksContext += `  - Tech / SaaS:     ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=technology+office+laptop\n`;
+                bricksContext += `  - Team portrait:   ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=portrait+person+professional\n`;
+                bricksContext += `  - Fitness:         ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=fitness+gym+workout\n`;
+                bricksContext += `  - Architecture:    ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=architecture+building+interior\n`;
+                bricksContext += `  - Fashion:         ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=fashion+model+style\n`;
+                bricksContext += `  - Nature/Travel:   ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=nature+landscape+travel\n`;
+                bricksContext += `• Use different keyword combinations for each image to ensure variety across the page.\n`;
+                bricksContext += `• IMPORTANT: Use ONLY this proxy URL format — do NOT use loremflickr, picsum, or any other placeholder service.\n`;
+                bricksContext += `Set the URL in Bricks image element settings like this: {"src": "${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=bakery+bread+interior"}\n\n`;
 
                 bricksContext += `**IMAGE ANALYSIS & DESIGN RECREATION:**\n`;
                 bricksContext += `- Users can paste screenshots or upload design images (from Figma, Adobe XD, etc.)\n`;
@@ -2185,3 +2185,70 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
 
 // Initialize
 SNN_Bricks_Chat_Overlay::get_instance();
+
+/**
+ * Pixabay Image Proxy
+ *
+ * Accepts a ?q= keyword param, queries the Pixabay API, and redirects
+ * to the first matching photo URL so the AI can use it as a real image src.
+ * Accessible to logged-in users (Bricks builder requires login).
+ */
+add_action( 'wp_ajax_snn_pixabay_image',        'snn_pixabay_image_proxy_handler' );
+add_action( 'wp_ajax_nopriv_snn_pixabay_image', 'snn_pixabay_image_proxy_handler' );
+
+function snn_pixabay_image_proxy_handler() {
+    $q       = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : 'nature';
+    $api_key = get_option( 'snn_pixabay_api_key', '992766-a3c727d4146f5ede8718f2d24' );
+
+    // Build Unsplash fallback URL using the search keywords
+    $unsplash_keywords = urlencode( str_replace( '+', ',', $q ) );
+    $unsplash_fallback = 'https://source.unsplash.com/random/1280x720/?' . $unsplash_keywords;
+
+    $api_url = add_query_arg(
+        array(
+            'key'        => $api_key,
+            'q'          => urlencode( $q ),
+            'image_type' => 'photo',
+            'safesearch' => 'true',
+            'per_page'   => 5,
+            'order'      => 'popular',
+            'lang'       => 'en',
+        ),
+        'https://pixabay.com/api/'
+    );
+
+    $response = wp_remote_get( $api_url, array( 'timeout' => 10 ) );
+
+    if ( ! is_wp_error( $response ) ) {
+        $http_code       = wp_remote_retrieve_response_code( $response );
+        $rate_remaining  = (int) wp_remote_retrieve_header( $response, 'x-ratelimit-remaining' );
+        $rate_reset      = (int) wp_remote_retrieve_header( $response, 'x-ratelimit-reset' );
+
+        // Detect rate limit: HTTP 429 OR remaining quota is 0
+        $is_rate_limited = ( 429 === $http_code ) ||
+                           ( '' !== wp_remote_retrieve_header( $response, 'x-ratelimit-remaining' ) && $rate_remaining <= 0 );
+
+        if ( $is_rate_limited ) {
+            // Store reset time so we can log/debug if needed
+            if ( $rate_reset > 0 ) {
+                set_transient( 'snn_pixabay_rate_reset', time() + $rate_reset, $rate_reset );
+            }
+            wp_redirect( $unsplash_fallback );
+            exit;
+        }
+
+        $body = wp_remote_retrieve_body( $response );
+        $data = json_decode( $body, true );
+
+        if ( ! empty( $data['hits'] ) ) {
+            $hit       = $data['hits'][0];
+            $image_url = ! empty( $hit['largeImageURL'] ) ? $hit['largeImageURL'] : $hit['webformatURL'];
+            wp_redirect( $image_url );
+            exit;
+        }
+    }
+
+    // Fallback: Unsplash random image with keywords on any other failure
+    wp_redirect( $unsplash_fallback );
+    exit;
+}
