@@ -44,26 +44,10 @@ function snn_custom_login_url($scheme = null) {
 //    We redirect before wp-login.php outputs anything.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Block /wp-admin from leaking the custom slug.
-// WordPress calls wp_login_url() inside auth_redirect() to build the redirect
-// target for unauthenticated visitors — which would expose the secret slug.
-// We intercept that redirect and send them silently to the homepage instead.
-add_filter('auth_redirect', function ($login_url) {
-    if (!snn_custom_login_is_enabled()) {
-        return $login_url;
-    }
-    return home_url('/');
-}, 1);
-
 add_action('init', 'snn_block_direct_wplogin', 1);
 
 function snn_block_direct_wplogin() {
     if (!snn_custom_login_is_enabled()) {
-        return;
-    }
-
-    global $pagenow;
-    if ('wp-login.php' !== $pagenow) {
         return;
     }
 
@@ -73,6 +57,19 @@ function snn_block_direct_wplogin() {
         (defined('DOING_CRON') && DOING_CRON) ||
         (defined('WP_CLI')    && WP_CLI)
     ) {
+        return;
+    }
+
+    // Block unauthenticated /wp-admin access BEFORE auth_redirect() runs.
+    // auth_redirect() calls wp_login_url() which would expose the secret slug
+    // in the browser address bar. Redirect to homepage silently instead.
+    if (is_admin() && !is_user_logged_in()) {
+        wp_safe_redirect(home_url('/'));
+        exit;
+    }
+
+    global $pagenow;
+    if ('wp-login.php' !== $pagenow) {
         return;
     }
 
@@ -201,9 +198,12 @@ add_filter('register_url', function ($url) {
 // Catch any remaining wp-login.php redirects (e.g. ?checkemail=confirm after lost password)
 add_filter('wp_redirect', function ($location, $status) {
     if (!snn_custom_login_is_enabled()) return $location;
-    return strpos($location, 'wp-login.php') !== false
-        ? snn_rewrite_login_url($location)
-        : $location;
+
+    if (strpos($location, 'wp-login.php') !== false) {
+        return snn_rewrite_login_url($location);
+    }
+
+    return $location;
 }, 10, 2);
 
 // ─────────────────────────────────────────────────────────────────────────────
