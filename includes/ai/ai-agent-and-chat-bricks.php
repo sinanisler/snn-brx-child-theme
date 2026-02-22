@@ -1716,6 +1716,36 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
             }
 
             /**
+             * Collapse long messages with a Read more / Read less toggle
+             */
+            const READ_MORE_THRESHOLD = 100; // px
+
+            function applyReadMore($message) {
+                const $body = $message.find('.snn-msg-body');
+                if (!$body.length) return;
+
+                // Use setTimeout so the DOM has rendered and offsetHeight is accurate
+                setTimeout(function() {
+                    if ($body[0].scrollHeight > READ_MORE_THRESHOLD) {
+                        $message.addClass('is-collapsed');
+                        const $btn = $('<button>').addClass('snn-msg-toggle').text('▼ Read more');
+                        $btn.on('click', function() {
+                            if ($message.hasClass('is-collapsed')) {
+                                $message.removeClass('is-collapsed');
+                                $btn.text('▲ Read less');
+                            } else {
+                                $message.addClass('is-collapsed');
+                                $btn.text('▼ Read more');
+                                // Scroll message into view after collapsing
+                                $message[0].scrollIntoView({ block: 'nearest' });
+                            }
+                        });
+                        $message.append($btn);
+                    }
+                }, 0);
+            }
+
+            /**
              * Helper functions
              */
             function sleep(ms) {
@@ -1792,6 +1822,9 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                     .addClass('snn-bricks-chat-message')
                     .addClass('snn-bricks-chat-message-' + role);
 
+                // Wrap body content
+                const $body = $('<div>').addClass('snn-msg-body');
+
                 // Add images if present
                 if (message.images && message.images.length > 0) {
                     const $imagesDiv = $('<div>').addClass('snn-message-images');
@@ -1799,13 +1832,15 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                         const $img = $('<img>').attr('src', img.data).attr('alt', img.fileName || 'Attached image');
                         $imagesDiv.append($img);
                     });
-                    $message.append($imagesDiv);
+                    $body.append($imagesDiv);
                 }
 
                 // Add text content
-                $message.append($('<div>').html(formatMessage(content)));
+                $body.append($('<div>').html(formatMessage(content)));
+                $message.append($body);
 
                 $messages.append($message);
+                applyReadMore($message);
                 scrollToBottom();
             }
 
@@ -1939,9 +1974,11 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                             response.data.messages.forEach(function(msg) {
                                 const $message = $('<div>')
                                     .addClass('snn-bricks-chat-message')
-                                    .addClass('snn-bricks-chat-message-' + msg.role)
-                                    .html(formatMessage(msg.content));
+                                    .addClass('snn-bricks-chat-message-' + msg.role);
+                                const $body = $('<div>').addClass('snn-msg-body').html(formatMessage(msg.content));
+                                $message.append($body);
                                 $('#snn-bricks-chat-messages').append($message);
+                                applyReadMore($message);
                             });
 
                             scrollToBottom();
@@ -1975,10 +2012,19 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
 .snn-bricks-chat-plus { font-size: 24px; }
 .snn-bricks-chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #f9f9f9; font-size:14px; }
 .snn-bricks-chat-welcome { text-align: center; padding: 40px 20px; color: #666; }
-.snn-bricks-chat-message { margin-bottom: 4px; padding: 4px 8px; border-radius: 12px; max-width: 95%; }
+.snn-bricks-chat-message { margin-bottom: 4px; padding: 4px 8px; border-radius: 12px; max-width: 95%; position: relative; }
 .snn-bricks-chat-message-user { background: #161a1d; color: #fff; margin-left: auto; }
 .snn-bricks-chat-message-assistant { background: #fff; border: 1px solid #e0e0e0; margin-right: auto; }
 .snn-bricks-chat-message-error { background: #fee; color: #c33; border: 1px solid #fcc; }
+.snn-bricks-chat-message.is-collapsed .snn-msg-body { max-height: 100px; overflow: hidden; position: relative; }
+.snn-bricks-chat-message.is-collapsed .snn-msg-body::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(to bottom, transparent, var(--snn-msg-fade, #fff)); pointer-events: none; }
+.snn-bricks-chat-message-user.is-collapsed .snn-msg-body::after { --snn-msg-fade: #161a1d; }
+.snn-bricks-chat-message-error.is-collapsed .snn-msg-body::after { --snn-msg-fade: #fee; }
+.snn-msg-toggle { display: block; width: 100%; background: none; border: none; padding: 4px 0 2px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: center; opacity: 0.7; letter-spacing: 0.03em; }
+.snn-bricks-chat-message-user .snn-msg-toggle { color: #ccc; }
+.snn-bricks-chat-message-assistant .snn-msg-toggle { color: #555; }
+.snn-bricks-chat-message-error .snn-msg-toggle { color: #c33; }
+.snn-msg-toggle:hover { opacity: 1; }
 .snn-bricks-chat-typing { padding: 8px 16px; }
 .typing-dots { display: flex; gap: 4px; }
 .typing-dots span { width: 8px; height: 8px; border-radius: 50%; background: #999; animation: typing 1.4s infinite; }
