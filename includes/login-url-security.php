@@ -44,6 +44,17 @@ function snn_custom_login_url($scheme = null) {
 //    We redirect before wp-login.php outputs anything.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Block /wp-admin from leaking the custom slug.
+// WordPress calls wp_login_url() inside auth_redirect() to build the redirect
+// target for unauthenticated visitors — which would expose the secret slug.
+// We intercept that redirect and send them silently to the homepage instead.
+add_filter('auth_redirect', function ($login_url) {
+    if (!snn_custom_login_is_enabled()) {
+        return $login_url;
+    }
+    return home_url('/');
+}, 1);
+
 add_action('init', 'snn_block_direct_wplogin', 1);
 
 function snn_block_direct_wplogin() {
