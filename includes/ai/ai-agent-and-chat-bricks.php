@@ -419,25 +419,38 @@ class SNN_Bricks_Chat_Overlay {
             });
 
             /* =================================================================
-             * SCHEMA LOADER
+             * SCHEMA LOADER – reads directly from Bricks Vue reactive state
              * =============================================================== */
 
             function loadSchema() {
-                $.ajax({
-                    url:  snnBricksChatConfig.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action:  'snn_bricks_get_schema',
-                        nonce:   snnBricksChatConfig.nonce,
-                        post_id: snnBricksChatConfig.postId
-                    },
-                    success: function(resp) {
-                        if (resp.success) {
-                            ChatState.bricksSchema = resp.data;
-                            debugLog('Schema loaded, colors:', resp.data.globalColors.length);
+                const s = BricksHelper.getVueState();
+                if (!s) { debugLog('loadSchema: Vue state not ready'); return; }
+
+                /* --- Colors -------------------------------------------- */
+                const rawPalette  = s.colorPalette || [];
+                const globalColors = [];
+                rawPalette.forEach(function(palette) {
+                    const colors = palette.colors || palette;
+                    if (!Array.isArray(colors)) return;
+                    colors.forEach(function(c) {
+                        // Only include top-level named colors that have a raw var()
+                        if (c.raw && c.light) {
+                            globalColors.push({ id: c.id, raw: c.raw, light: c.light, name: c.name || c.raw });
                         }
+                    });
+                });
+
+                /* --- Size variables ------------------------------------ */
+                const rawVars     = s.globalVariables || [];
+                const sizeVars    = [];
+                rawVars.forEach(function(v) {
+                    if (v.name && v.value) {
+                        sizeVars.push({ name: v.name, var: 'var(--' + v.name + ')', value: v.value });
                     }
                 });
+
+                ChatState.bricksSchema = { globalColors: globalColors, sizeVars: sizeVars };
+                debugLog('Schema loaded from Vue state – colors:', globalColors.length, '| sizeVars:', sizeVars.length);
             }
 
             /* =================================================================
@@ -705,10 +718,17 @@ class SNN_Bricks_Chat_Overlay {
              * =============================================================== */
 
             function buildDesignerMessages(userMessage, images) {
-                const colors    = (ChatState.bricksSchema && ChatState.bricksSchema.globalColors) || [];
+                const schema  = ChatState.bricksSchema || {};
+                const colors  = schema.globalColors || [];
+                const sizes   = schema.sizeVars    || [];
+
                 const colorList = colors.length
-                    ? colors.slice(0, 12).map(function(c) { return (c.name || c.hex) + ': ' + c.hex; }).join(', ')
-                    : 'No custom palette - use professional standard colors.';
+                    ? colors.map(function(c) { return c.raw + ' (' + c.light + ')'; }).join('  |  ')
+                    : 'No palette found – use professional standard colors like #0d0d0d, #ffffff, #2563eb, #7c3aed.';
+
+                const sizeList = sizes.length
+                    ? sizes.map(function(v) { return v.var + '=' + v.value; }).join('  ')
+                    : 'No size variables – use values in px or rem.';
 
                 const pageSummary = BricksHelper.getCurrentContentSummary();
 
@@ -717,18 +737,19 @@ class SNN_Bricks_Chat_Overlay {
                     'Task: Given the user\'s request, write a detailed DESIGN BRIEF describing exactly what to build.\n\n' +
                     'Include in your brief:\n' +
                     '1. Number of sections and their purpose (hero, features, testimonials, CTA, etc.)\n' +
-                    '2. Each section: background color (exact hex), layout (flex column / 2-col grid / 3-col grid / etc.) and column proportions\n' +
-                    '3. Typography: font family, heading sizes in px, body sizes, font weights, text colors (exact hex)\n' +
+                    '2. Each section: which background color variable to use, layout type and column proportions\n' +
+                    '3. Typography: heading sizes (prefer size vars), font weights, which color variable to use\n' +
                     '4. Content: exact placeholder text for all headings, subheadings, paragraphs, button labels\n' +
-                    '5. Images: sizes, aspect ratios, and picsum.photos placeholder dimensions\n' +
-                    '6. Spacing: section padding top/bottom in px, gaps between elements\n' +
-                    '7. Card details if applicable: border-radius, box-shadow, internal padding\n\n' +
-                    'AVAILABLE SITE COLORS: ' + colorList + '\n\n' +
+                    '5. Images: sizes and picsum.photos placeholder dimensions\n' +
+                    '6. Spacing: section padding (prefer size vars), element gaps\n' +
+                    '7. Card details if applicable: border-radius, internal padding, border style\n\n' +
+                    'AVAILABLE SITE COLOR VARIABLES:\n' + colorList + '\n\n' +
+                    'AVAILABLE SIZE VARIABLES:\n' + sizeList + '\n\n' +
                     'CURRENT PAGE:\n' + pageSummary + '\n\n' +
                     'RULES:\n' +
-                    '- Use exact hex color values.\n' +
-                    '- Specify all font sizes as numbers in px.\n' +
-                    '- Do NOT output JSON or code. Plain text / markdown paragraphs only.\n' +
+                    '- Prefer the site color variables above for all colors. Fall back to static hex only if no suitable match.\n' +
+                    '- Prefer the size variables above for padding, gap, font-size. Fall back to px values only if no match.\n' +
+                    '- Do NOT output JSON or code. Plain text / markdown only.\n' +
                     '- Write the brief directly without saying "I will generate..."';
 
                 const userContent = [];
@@ -759,81 +780,223 @@ class SNN_Bricks_Chat_Overlay {
              * =============================================================== */
 
             function buildCompilerMessages(blueprint, originalRequest) {
-                const postId = snnBricksChatConfig.postId || 0;
+                const schema  = ChatState.bricksSchema || {};
+                const colors  = schema.globalColors || [];
+                const sizes   = schema.sizeVars    || [];
+
+                /* Build color reference table for prompt */
+                const colorRef = colors.length
+                    ? colors.map(function(c) {
+                        return c.raw + ' -> light: ' + c.light + ' | id: "' + c.id + '"';
+                      }).join('\n')
+                    : '(no palette – use static hex values)';
+
+                /* Build size reference table for prompt */
+                const sizeRef = sizes.length
+                    ? sizes.map(function(v) { return v.var + ' = ' + v.value; }).join('  |  ')
+                    : '(no size variables – use px values)';
 
                 const systemPrompt =
-                    'You are a strict JSON compiler for Bricks Builder page structures.\n' +
-                    'Your ONLY output must be a single JSON object wrapped in a ```json ... ``` code fence.\n' +
-                    'NO prose, NO explanations, NO markdown outside the fences.\n\n' +
-                    '================================================================\n' +
+                    'You are a strict JSON compiler for Bricks Builder (WordPress page builder) element trees.\n' +
+                    'Output ONLY a single ```json ... ``` block. Zero prose. Zero extra markdown.\n\n' +
+
+                    '══════════════════════════════════════════════\n' +
+                    'SITE COLOR PALETTE (use these — do NOT invent colors)\n' +
+                    '══════════════════════════════════════════════\n' +
+                    colorRef + '\n\n' +
+
+                    '══════════════════════════════════════════════\n' +
+                    'SITE SIZE VARIABLES (use for padding/gap/font-size)\n' +
+                    '══════════════════════════════════════════════\n' +
+                    sizeRef + '\n\n' +
+
+                    '══════════════════════════════════════════════\n' +
                     'OUTPUT FORMAT\n' +
-                    '================================================================\n' +
+                    '══════════════════════════════════════════════\n' +
                     '```json\n' +
                     '{\n' +
                     '  "action_type": "replace|append|prepend",\n' +
-                    '  "sections": [ /* array of top-level section nodes */ ]\n' +
+                    '  "sections": [ /* top-level section nodes */ ]\n' +
                     '}\n' +
                     '```\n\n' +
-                    'action_type:\n' +
-                    '  "replace"  = clear entire page and inject new content\n' +
-                    '  "append"   = add sections after existing content\n' +
-                    '  "prepend"  = add sections before existing content\n\n' +
-                    '================================================================\n' +
-                    'ELEMENT NODE FORMAT (every node must have exactly these keys)\n' +
-                    '================================================================\n' +
-                    '{ "type": "<name>", "settings": {}, "children": [] }\n\n' +
-                    '================================================================\n' +
-                    'VALID ELEMENT TYPES\n' +
-                    '================================================================\n' +
-                    'Layout  : section  container  block  div\n' +
-                    'Text    : heading  text-basic\n' +
-                    'Action  : button\n' +
-                    'Media   : image  video  icon  html\n' +
-                    'Other   : divider  list  shortcode\n\n' +
-                    'HIERARCHY RULE (mandatory):\n' +
+                    'action_type: "replace" clears page, "append" adds after, "prepend" adds before.\n\n' +
+
+                    '══════════════════════════════════════════════\n' +
+                    'NODE FORMAT\n' +
+                    '══════════════════════════════════════════════\n' +
+                    '{ "type": "<name>", "settings": { ... }, "children": [] }\n\n' +
+                    'VALID TYPES:\n' +
+                    '  Layout : section  container  block  div\n' +
+                    '  Text   : heading  text-basic  text\n' +
+                    '  Action : button\n' +
+                    '  Media  : image  icon  icon-box\n' +
+                    '  Other  : divider\n\n' +
+                    'HIERARCHY (mandatory):\n' +
                     '  section -> container -> block/div -> content elements\n\n' +
-                    '================================================================\n' +
-                    'SETTINGS RULES\n' +
-                    '================================================================\n\n' +
-                    'RULE 1 - ALL visual CSS goes in "_cssCustom" ONLY.\n' +
-                    'Use "%root%" to target the element wrapper. Standard CSS syntax.\n' +
-                    'Include responsive @media queries inside the same string.\n\n' +
-                    'Example:\n' +
-                    '"_cssCustom": "%root% { display: flex; flex-direction: column; gap: 32px; padding: 100px 20px; background-color: #0d0d0d; } @media (max-width: 768px) { %root% { padding: 60px 20px; } }"\n\n' +
-                    'RULE 2 - NEVER use these deprecated settings keys:\n' +
-                    '_padding _margin _typography _background _display _direction\n' +
-                    '_flexWrap _justifyContent _alignItems _gridTemplateColumns _gridGap\n' +
-                    '_columnGap _rowGap _width _height _widthMax _heightMin\n' +
-                    'PUT ALL CSS IN _cssCustom INSTEAD.\n\n' +
-                    'RULE 3 - Content settings (element-specific):\n' +
-                    '  heading    -> "text": "The Heading",  "tag": "h1"\n' +
-                    '  text-basic -> "text": "Paragraph content"\n' +
-                    '  button     -> "text": "Button Label",  "link": {"type":"url","url":"#"}\n' +
-                    '  image      -> "image": {"external":"https://picsum.photos/800/500","id":0}\n' +
-                    '  icon       -> "icon": {"library":"fontawesome","icon":"fas fa-star"}\n' +
-                    '  html       -> "code": "<div>custom HTML</div>"\n\n' +
-                    'RULE 4 - Every container inside a section MUST include centering CSS:\n' +
-                    '  _cssCustom: "%root% { max-width: 1200px; margin: 0 auto; padding: 0 20px; [other styles] }"\n\n' +
-                    'RULE 5 - Images always need sizing CSS:\n' +
-                    '  _cssCustom: "%root% img { width: 100%; height: 100%; object-fit: cover; display: block; }"\n\n' +
-                    '================================================================\n' +
-                    'EXAMPLE - Hero Section\n' +
-                    '================================================================\n' +
+
+                    '══════════════════════════════════════════════\n' +
+                    'SETTINGS — NATIVE BRICKS KEYS (USE THESE as primary)\n' +
+                    '══════════════════════════════════════════════\n' +
+                    'These are the real Bricks Builder settings keys. Use them ALWAYS in preference to CSS.\n\n' +
+
+                    '• _padding / _margin:\n' +
+                    '  {"_padding": {"top":"var(--size-100)","bottom":"var(--size-100)"}}\n' +
+                    '  {"_padding": {"top":"var(--size-50)","right":"40px","bottom":"var(--size-50)","left":"40px"}}\n' +
+                    '  {"_margin": {"bottom":"-30"}}   // negative values OK without units for px\n\n' +
+
+                    '• _typography:\n' +
+                    '  {"_typography": {"font-size":"var(--size-50)","font-weight":"300","line-height":"1.3","color":{"id":"gnkmru","raw":"var(--c2)","light":"hsl(215 95% 40%)"}}}\n' +
+                    '  Responsive variant: {"_typography:mobile_landscape": {"font-size":"var(--size-36)"}}\n\n' +
+
+                    '• _background:\n' +
+                    '  Solid color  : {"_background": {"color": {"id":"dwvvob","raw":"var(--c1)","light":"hsl(210 13% 6%)"}}}\n' +
+                    '  Static rgba  : {"_background": {"color": {"raw": "rgba(233,233,233,0.23)"}}}\n' +
+                    '  No background: omit _background entirely\n\n' +
+
+                    '• _border:\n' +
+                    '  {"_border": {"radius":{"top":"var(--size-18)","right":"var(--size-18)","bottom":"var(--size-18)","left":"var(--size-18)"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"id":"kysrnm","raw":"var(--c1-l-9)","light":"rgb(211,211,212)"}}}\n\n' +
+
+                    '• Layout (flex is default; set _display only when using grid):\n' +
+                    '  {"_display":"grid", "_gridTemplateColumns":"1fr 1fr", "_gridGap":"var(--size-100)"}\n' +
+                    '  {"_direction":"row", "_columnGap":"var(--size-24)", "_rowGap":"var(--size-24)"}\n' +
+                    '  {"_justifyContent":"center", "_alignItems":"center", "_flexWrap":"wrap"}\n' +
+                    '  Responsive: {"_gridTemplateColumns:mobile_landscape":"1fr", "_gridTemplateColumns:tablet_portrait":"1fr"}\n\n' +
+
+                    '• Sizing:\n' +
+                    '  {"_widthMax":"770"}  // max-width in px (no unit)\n' +
+                    '  {"_width":"300"}     // fixed width in px (no unit); or "100%" with %\n' +
+                    '  {"_height":"80vh"}   // height with unit\n' +
+                    '  {"_heightMin":"440"} // min-height in px (no unit)\n' +
+                    '  {"_overflow":"hidden"}\n\n' +
+
+                    '• _gradient (overlay on block/section):\n' +
+                    '  {"_gradient":{"applyTo":"overlay","gradientType":"radial","radialPosition":"top right",\n' +
+                    '   "colors":[{"id":"a","color":{"raw":"var(--c2-d-8)","light":"rgb(1,23,54)"}},{"id":"b","color":{"raw":"var(--c2-d-10)","light":"rgb(0,8,18)"},"stop":"33"}]}}\n\n' +
+
+                    '• button-specific:\n' +
+                    '  "style":"primary"  // gives base button styles\n' +
+                    '  "link":{"type":"url","url":"#"} or {"type":"external","url":"https://...","newTab":true}\n' +
+                    '  "icon":{"library":"fontawesomeSolid","icon":"fas fa-arrow-right"}, "iconPosition":"left"\n' +
+                    '  {"_typography:hover":{"color":{"id":"aoskmp","raw":"var(--c3)"}}}\n' +
+                    '  {"_background:hover":{"color":{"raw":"var(--c2-d-10)"}}}\n' +
+                    '  {"_border:hover":{"color":{...}}}\n\n' +
+
+                    '• image:\n' +
+                    '  {"image":{"external":"https://picsum.photos/800/600","id":0}, "_width":"100%"}\n\n' +
+
+                    '• icon:\n' +
+                    '  {"icon":{"library":"fontawesomeSolid","icon":"fas fa-bolt"},"iconColor":{"id":"gnkmru","raw":"var(--c2)","light":"hsl(215 95% 40%)"},"iconSize":"24","_width":"60","_height":"60","_display":"flex","_justifyContent":"center","_alignItems":"center"}\n\n' +
+
+                    '• icon-box:\n' +
+                    '  {"icon":{"library":"fontawesomeSolid","icon":"fas fa-check"},"content":"<p>Text here</p>","direction":"row","gap":"20","iconSize":"16","iconColor":{...},"iconBackgroundColor":{...},"iconBorder":{"radius":{"top":"100","right":"100","bottom":"100","left":"100"}},"iconPadding":{"top":"8","right":"8","bottom":"8","left":"8"}}\n\n' +
+
+                    '══════════════════════════════════════════════\n' +
+                    '_cssCustom — ONLY for things native keys CANNOT do\n' +
+                    '══════════════════════════════════════════════\n' +
+                    'Use %root% as the element selector. NEVER put layout/spacing/color in _cssCustom when a native key exists.\n\n' +
+                    'OK uses:\n' +
+                    '  Child element styles  : "%root% em { color: var(--c2); }"\n' +
+                    '  Hover on child        : "%root%:hover i { transform: translateX(5px); }"\n' +
+                    '  CSS transitions       : "%root% i { transition: 0.3s; }"\n' +
+                    '  Keyframe animations   : "%root% { animation: moveY 4s ease-in-out infinite; }"\n' +
+                    '  backdrop-filter       : "%root% { backdrop-filter: blur(5px); }"\n' +
+                    '  CSS transform on root : "%root% { transform: translateY(-5px); }"\n' +
+                    '  Pseudo-elements       : "%root%::after { content: \'\'; ... }"\n\n' +
+                    'FORBIDDEN in _cssCustom (use native keys instead):\n' +
+                    '  padding, margin, background-color, color (on the root element itself),\n' +
+                    '  display, flex-direction, gap, grid-template-columns,\n' +
+                    '  max-width, width, height, font-size, font-weight\n\n' +
+
+                    '══════════════════════════════════════════════\n' +
+                    'FULL EXAMPLE — SaaS hero + 2-col feature section\n' +
+                    '══════════════════════════════════════════════\n' +
                     '```json\n' +
                     '{\n' +
                     '  "action_type": "replace",\n' +
                     '  "sections": [\n' +
                     '    {\n' +
                     '      "type": "section",\n' +
-                    '      "settings": { "_cssCustom": "%root% { background-color: #0a0a0a; }" },\n' +
+                    '      "settings": {\n' +
+                    '        "_background": {"color": {"id": "dwvvob", "raw": "var(--c1)", "light": "hsl(210 13% 6%)"}},\n' +
+                    '        "_padding": {"top": "var(--size-100)", "bottom": "var(--size-100)"},\n' +
+                    '        "_padding:mobile_landscape": {"top": "var(--size-50)", "bottom": "var(--size-50)"}\n' +
+                    '      },\n' +
                     '      "children": [\n' +
                     '        {\n' +
                     '          "type": "container",\n' +
-                    '          "settings": { "_cssCustom": "%root% { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 32px; padding-top: 120px; padding-bottom: 120px; } @media (max-width: 768px) { %root% { padding-top: 80px; padding-bottom: 80px; } }" },\n' +
+                    '          "settings": {\n' +
+                    '            "_widthMax": "1200",\n' +
+                    '            "_justifyContent": "center",\n' +
+                    '            "_alignItems": "center",\n' +
+                    '            "_typography": {"text-align": "center"},\n' +
+                    '            "_rowGap": "var(--size-24)"\n' +
+                    '          },\n' +
                     '          "children": [\n' +
-                    '            { "type": "heading", "settings": { "text": "Build the Future Today", "tag": "h1", "_cssCustom": "%root% { font-size: 72px; font-weight: 900; color: #ffffff; line-height: 1.1; letter-spacing: -2px; } @media (max-width: 768px) { %root% { font-size: 42px; } }" }, "children": [] },\n' +
-                    '            { "type": "text-basic", "settings": { "text": "A modern platform that accelerates your growth.", "_cssCustom": "%root% { font-size: 20px; color: rgba(255,255,255,0.65); max-width: 560px; line-height: 1.7; }" }, "children": [] },\n' +
-                    '            { "type": "button", "settings": { "text": "Get Started Free", "_cssCustom": "%root% { background-color: #7c3aed; color: #ffffff; padding: 16px 40px; border-radius: 50px; font-size: 17px; font-weight: 600; cursor: pointer; border: none; }" }, "children": [] }\n' +
+                    '            {\n' +
+                    '              "type": "heading",\n' +
+                    '              "settings": {\n' +
+                    '                "text": "Build the <em>Future</em> Today",\n' +
+                    '                "tag": "h1",\n' +
+                    '                "_typography": {"font-size": "var(--size-50)", "font-weight": "700", "color": {"id": "aoskmp", "raw": "var(--c3)", "light": "hsl(0,0%,100%)"}},\n' +
+                    '                "_typography:mobile_landscape": {"font-size": "var(--size-36)"},\n' +
+                    '                "_cssCustom": "%root% em { color: var(--c2); }"\n' +
+                    '              },\n' +
+                    '              "children": []\n' +
+                    '            },\n' +
+                    '            {\n' +
+                    '              "type": "text-basic",\n' +
+                    '              "settings": {\n' +
+                    '                "text": "A modern platform that accelerates your growth.",\n' +
+                    '                "_widthMax": "560",\n' +
+                    '                "_typography": {"line-height": "1.7", "color": {"id": "icjfiu", "raw": "var(--c1-l-5)", "light": "rgb(123,124,125)"}}\n' +
+                    '              },\n' +
+                    '              "children": []\n' +
+                    '            },\n' +
+                    '            {\n' +
+                    '              "type": "block",\n' +
+                    '              "settings": {"_direction": "row", "_columnGap": "var(--size-10)", "_rowGap": "var(--size-10)", "_justifyContent": "center"},\n' +
+                    '              "children": [\n' +
+                    '                {"type":"button","settings":{"text":"Get Started","style":"primary","link":{"type":"url","url":"#"},"_padding":{"left":"var(--size-36)","right":"var(--size-36)"}},"children":[]},\n' +
+                    '                {"type":"button","settings":{"text":"See Demo","style":"primary","link":{"type":"url","url":"#"},"_background":{"color":{"raw":"transparent"}},"_border":{"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"id":"kysrnm","raw":"var(--c1-l-9)","light":"rgb(211,211,212)"}},"_padding":{"left":"var(--size-36)","right":"var(--size-36)"}},"children":[]}\n' +
+                    '              ]\n' +
+                    '            }\n' +
+                    '          ]\n' +
+                    '        }\n' +
+                    '      ]\n' +
+                    '    },\n' +
+                    '    {\n' +
+                    '      "type": "section",\n' +
+                    '      "settings": {\n' +
+                    '        "_background": {"color": {"raw": "rgba(233,233,233,0.23)"}},\n' +
+                    '        "_padding": {"top": "var(--size-100)", "bottom": "var(--size-100)"}\n' +
+                    '      },\n' +
+                    '      "children": [\n' +
+                    '        {\n' +
+                    '          "type": "container",\n' +
+                    '          "settings": {"_display": "grid", "_gridTemplateColumns": "1fr 1fr", "_gridGap": "var(--size-100)", "_gridTemplateColumns:mobile_landscape": "1fr"},\n' +
+                    '          "children": [\n' +
+                    '            {\n' +
+                    '              "type": "block",\n' +
+                    '              "settings": {"_rowGap": "var(--size-24)"},\n' +
+                    '              "children": [\n' +
+                    '                {"type":"heading","settings":{"text":"Feature One","tag":"h2","_typography":{"font-size":"var(--size-36)","font-weight":"300"}},"children":[]},\n' +
+                    '                {"type":"text-basic","settings":{"text":"Description of the feature.","_typography":{"line-height":"2"}},"children":[]}\n' +
+                    '              ]\n' +
+                    '            },\n' +
+                    '            {\n' +
+                    '              "type": "block",\n' +
+                    '              "settings": {\n' +
+                    '                "_background": {"color": {"id": "dwvvob", "raw": "var(--c1)", "light": "hsl(210 13% 6%)"}},\n' +
+                    '                "_border": {"radius": {"top": "var(--size-18)", "right": "var(--size-18)", "bottom": "var(--size-18)", "left": "var(--size-18)"}},\n' +
+                    '                "_padding": {"top": "var(--size-50)", "right": "var(--size-50)", "bottom": "var(--size-50)", "left": "var(--size-50)"},\n' +
+                    '                "_typography": {"color": {"id": "aoskmp", "raw": "var(--c3)", "light": "hsl(0,0%,100%)"}},\n' +
+                    '                "_justifyContent": "center",\n' +
+                    '                "_alignItems": "center"\n' +
+                    '              },\n' +
+                    '              "children": [\n' +
+                    '                {"type":"heading","settings":{"text":"Result","tag":"h3","_typography":{"font-size":"var(--size-50)","font-weight":"700"}},"children":[]}\n' +
+                    '              ]\n' +
+                    '            }\n' +
                     '          ]\n' +
                     '        }\n' +
                     '      ]\n' +
@@ -841,8 +1004,9 @@ class SNN_Bricks_Chat_Overlay {
                     '  ]\n' +
                     '}\n' +
                     '```\n\n' +
-                    'Current post ID: ' + postId + '\n' +
-                    'Translate the design brief into this exact JSON. Output ONLY the ```json block.';
+                    'Compile the design brief below. Use the site palette and size variables above wherever possible. ' +
+                    'Use native Bricks settings as primary. _cssCustom only for child selectors, hover-on-children, transitions, animations, backdrop-filter. ' +
+                    'Output ONLY the ```json block.';
 
                 return [
                     { role: 'system', content: systemPrompt },
