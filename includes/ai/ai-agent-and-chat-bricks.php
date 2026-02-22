@@ -216,6 +216,9 @@ class SNN_Bricks_Chat_Overlay {
                     </div>
                 </div>
 
+                <!-- Execution Checklist -->
+                <div class="snn-bricks-execution-checklist" id="snn-bricks-execution-checklist" style="display:none;"></div>
+
                 <!-- State Indicator -->
                 <div class="snn-bricks-chat-state-text" id="snn-bricks-chat-state-text"></div>
 
@@ -1145,6 +1148,24 @@ class SNN_Bricks_Chat_Overlay {
                 bricksContext += `- Popular choices: Inter, Roboto, Poppins, Montserrat, Open Sans, Playfair Display, etc.\n`;
                 bricksContext += `- Choose fonts that match the design style and brand personality\n\n`;
 
+                bricksContext += `**SEMANTIC IMAGE PLACEHOLDERS — ALWAYS USE REAL URLs:**\n`;
+                bricksContext += `NEVER leave image src empty, use "image.jpg", or generic placeholder text.\n`;
+                bricksContext += `Use these URL patterns to get topic-relevant photos that make designs look real immediately:\n`;
+                bricksContext += `• Keyword-based (best for semantic relevance):\n`;
+                bricksContext += `  https://loremflickr.com/{WIDTH}/{HEIGHT}/{keyword1},{keyword2}\n`;
+                bricksContext += `  Examples:\n`;
+                bricksContext += `  - Bakery hero:       https://loremflickr.com/1200/600/bakery,bread,interior\n`;
+                bricksContext += `  - Restaurant food:   https://loremflickr.com/800/600/restaurant,food,gourmet\n`;
+                bricksContext += `  - Tech / SaaS:       https://loremflickr.com/800/450/technology,office,laptop\n`;
+                bricksContext += `  - Team portrait:     https://loremflickr.com/400/400/portrait,person,professional\n`;
+                bricksContext += `  - Fitness:           https://loremflickr.com/800/600/fitness,gym,workout\n`;
+                bricksContext += `  - Architecture:      https://loremflickr.com/1200/700/architecture,building,interior\n`;
+                bricksContext += `• Seeded (same seed = same image, great for consistent team/product shots):\n`;
+                bricksContext += `  https://picsum.photos/seed/{any-word}/{WIDTH}/{HEIGHT}\n`;
+                bricksContext += `  Examples: https://picsum.photos/seed/team-alice/400/400\n`;
+                bricksContext += `  (change the seed word to get different images)\n`;
+                bricksContext += `Set the URL in Bricks image element settings like this: {"src": "https://loremflickr.com/800/600/bakery,interior"}\n\n`;
+
                 bricksContext += `**IMAGE ANALYSIS & DESIGN RECREATION:**\n`;
                 bricksContext += `- Users can paste screenshots or upload design images (from Figma, Adobe XD, etc.)\n`;
                 bricksContext += `- When you receive an image, carefully analyze:\n`;
@@ -1302,12 +1323,22 @@ Fix the EXACT issue mentioned in the error, don't just retry the same input.
 
 You MUST respond with regular text containing a JSON code block. DO NOT use function calling or tool calling.
 
+Each ability MUST include a "label" field: a short, human-readable name for that section (e.g. "Hero Section", "Features Grid", "Team Section", "Footer CTA"). This label is displayed in a live progress checklist shown to the user while building.
+
 Your response should look like this:
 ` + '```json' + `
 {
   "abilities": [
     {
       "name": "snn/generate-bricks-content",
+      "label": "Hero Section",
+      "input": {
+        "structure": {...}
+      }
+    },
+    {
+      "name": "snn/generate-bricks-content",
+      "label": "Features Grid",
       "input": {
         "structure": {...}
       }
@@ -1435,6 +1466,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
              */
             async function executeAbilitiesSequentially(conversationMessages, abilities) {
                 const totalAbilities = abilities.length;
+                initChecklist(abilities);
 
                 for (let i = 0; i < abilities.length; i++) {
                     let ability = abilities[i];
@@ -1453,6 +1485,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                             total: totalAbilities,
                             retry: retryCount > 0 ? retryCount : null
                         });
+                        updateChecklistItem(i, 'active');
 
                         debugLog(`Executing: ${ability.name} (${current}/${totalAbilities})`);
                         result = await executeAbility(ability.name, ability.input || {});
@@ -1486,6 +1519,9 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                         }
                     }
 
+                    // Update checklist item to final state
+                    updateChecklistItem(i, result && result.success ? 'done' : 'error');
+
                     // Show result
                     const resultHtml = formatSingleAbilityResult({
                         ability: ability.name,
@@ -1498,6 +1534,9 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                         await sleep(500);
                     }
                 }
+
+                // Hide checklist after a short delay so the user can see all checkmarks
+                clearChecklist(3000);
             }
 
             /**
@@ -1743,6 +1782,73 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                         $message.append($btn);
                     }
                 }, 0);
+            }
+
+            /**
+             * Extract a human-readable label for an ability for the checklist
+             */
+            function getAbilityChecklistLabel(ability, index) {
+                if (ability.label) return ability.label;
+                const input = ability.input || {};
+                const structure = input.structure || {};
+                function findHeading(node, depth) {
+                    if (!node || depth > 3) return null;
+                    if (node.type === 'heading' && node.content) return String(node.content).replace(/<[^>]*>/g, '').substring(0, 40);
+                    if (Array.isArray(node.children)) {
+                        for (const child of node.children) {
+                            const h = findHeading(child, depth + 1);
+                            if (h) return h;
+                        }
+                    }
+                    return null;
+                }
+                const heading = findHeading(structure, 0);
+                if (heading) return heading;
+                if (input.pattern_type) return input.pattern_type.charAt(0).toUpperCase() + input.pattern_type.slice(1) + ' Section';
+                if (structure.type) return structure.type.charAt(0).toUpperCase() + structure.type.slice(1) + ' ' + (index + 1);
+                return ability.name.split('/').pop() + ' ' + (index + 1);
+            }
+
+            /**
+             * Initialize execution checklist with all abilities listed as pending
+             */
+            function initChecklist(abilities) {
+                const $el = $('#snn-bricks-execution-checklist');
+                if (!$el.length || !abilities || abilities.length < 2) return;
+                let html = '<div class="snn-bricks-checklist-title">⚙ Building your design</div>';
+                abilities.forEach(function(ability, i) {
+                    const label = getAbilityChecklistLabel(ability, i);
+                    html += '<div class="snn-bricks-checklist-item" id="snn-checklist-item-' + i + '">' +
+                        '<span class="snn-bricks-checklist-icon">○</span>' +
+                        '<span class="snn-bricks-checklist-label">' + label + '</span>' +
+                        '</div>';
+                });
+                $el.html(html).show();
+                scrollToBottom();
+            }
+
+            /**
+             * Update a checklist item status: 'active' | 'done' | 'error'
+             */
+            function updateChecklistItem(index, status) {
+                const $item = $('#snn-checklist-item-' + index);
+                if (!$item.length) return;
+                $item.removeClass('is-done is-active is-error');
+                const icons = { active: '⏳', done: '✅', error: '❌' };
+                $item.find('.snn-bricks-checklist-icon').text(icons[status] || '○');
+                if (status === 'active') $item.addClass('is-active');
+                else if (status === 'done') $item.addClass('is-done');
+                else if (status === 'error') $item.addClass('is-error');
+                scrollToBottom();
+            }
+
+            /**
+             * Hide and clear checklist after a short delay
+             */
+            function clearChecklist(delay) {
+                setTimeout(function() {
+                    $('#snn-bricks-execution-checklist').hide().empty();
+                }, delay !== undefined ? delay : 2500);
             }
 
             /**
@@ -2062,6 +2168,17 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
 .ability-result.error { background: #fef2f2; }
 .result-data { color: #666; font-size: 12px; margin-top: 4px; }
 .result-error { color: #dc2626; font-size: 12px; }
+/* Execution Checklist */
+.snn-bricks-execution-checklist { padding: 10px 16px; background: #f0f4ff; border-top: 2px solid #c7d4ff; font-size: 13px; max-height: 220px; overflow-y: auto; }
+.snn-bricks-checklist-title { font-weight: 700; color: #3b4fa6; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; }
+.snn-bricks-checklist-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; color: #888; transition: color 0.2s; }
+.snn-bricks-checklist-item.is-done { color: #16a34a; }
+.snn-bricks-checklist-item.is-active { color: #2563eb; font-weight: 600; }
+.snn-bricks-checklist-item.is-error { color: #dc2626; }
+.snn-bricks-checklist-icon { width: 18px; flex-shrink: 0; text-align: center; font-size: 14px; }
+.snn-bricks-checklist-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snn-bricks-checklist-item.is-active .snn-bricks-checklist-icon { animation: snn-spin 1s linear infinite; display: inline-block; }
+@keyframes snn-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         ';
     }
 }
