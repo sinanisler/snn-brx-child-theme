@@ -414,28 +414,46 @@ class SNN_Bricks_Chat_Overlay {
                     if(!state) throw new Error('Bricks Vue state unavailable');
 
                     patchesList.forEach(patch => {
-                        const ensureIds = (el) => {
-                            if(!el.id) el.id = this.generateId();
-                            if(el.children && Array.isArray(el.children)) {
-                                el.children.forEach(ensureIds);
+                        // Flatten nested JSON tree into Bricks flat array format.
+                        // Bricks requires: flat array where each element has
+                        //   id: "brxe-XXXXXX"  (unique string)
+                        //   parent: 0 (root) OR "brxe-XXXXXX" (parent id string)
+                        //   children: ["brxe-XXXXXX", ...]  (array of child id STRINGS, NOT objects)
+                        //   name: "section" | "container" | "block" | "heading" etc.
+                        //   settings: {}
+                        const flatElements = [];
+
+                        const flattenTree = (el, parentId) => {
+                            if (!el || typeof el !== 'object') return null;
+                            const id = this.generateId();
+                            const flatEl = {
+                                id: id,
+                                name: el.name || 'div',
+                                parent: (parentId !== undefined && parentId !== null) ? parentId : 0,
+                                children: [],
+                                settings: (el.settings && typeof el.settings === 'object') ? el.settings : {}
+                            };
+                            if (el.children && Array.isArray(el.children)) {
+                                el.children.forEach(childEl => {
+                                    if (childEl && typeof childEl === 'object') {
+                                        const childId = flattenTree(childEl, id);
+                                        if (childId) flatEl.children.push(childId);
+                                    }
+                                });
                             }
-                            if(!el.settings) el.settings = {};
-                            return el;
+                            flatElements.push(flatEl);
+                            return id;
                         };
-                        
-                        let structuredElements = Array.isArray(patch.elements) ? patch.elements : [patch.elements];
-                        structuredElements = structuredElements.map(ensureIds);
+
+                        const roots = Array.isArray(patch.elements) ? patch.elements : [patch.elements];
+                        roots.forEach(el => flattenTree(el, 0));
 
                         if (patch.action === 'replace_all') {
                             state.content.splice(0, state.content.length);
-                            structuredElements.forEach(el => state.content.push(el));
-                        } else if (patch.action === 'append') {
-                            structuredElements.forEach(el => state.content.push(el));
-                        } else {
-                            structuredElements.forEach(el => state.content.push(el));
                         }
+                        flatElements.forEach(el => state.content.push(el));
                     });
-                    
+
                     return true;
                 },
 
@@ -1016,16 +1034,19 @@ class SNN_Bricks_Chat_Overlay {
                     // ---- CORE 1: DESIGNER AGENT ----
                     setAgentState(AgentState.DESIGNING);
 
+                    addMessage('assistant', '🎨 <strong>Designing layout blueprint...</strong>');
+
                     const designerPrompt = `You are a world-class Bricks Builder Web Designer.
-The user is requesting a layout design. 
+The user is requesting a layout design.
 Analyze the request and optionally any provided images.
 Create a detailed "Layout Blueprint" focusing on visual hierarchy, typography, colors, and space.
 Do NOT generate JSON here. Use descriptive sections explaining:
-- Hierarchy (Section -> Container -> Block)
-- Flex directions and gaps
-- Padding strategy
-- Typography choices
-Stay concise but highly descriptive of layout structures.`;
+- Hierarchy (Section -> Container -> Block -> content elements)
+- Flex directions and gaps per element
+- Background colors, padding strategy
+- Typography choices (font-size in px, weight, color in hex)
+- Exact text content for headings, paragraphs, button labels
+Be precise and specific so a compiler can turn it into JSON perfectly.`;
 
                     const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
                         const msg = { role: m.role === 'user' ? 'user' : 'assistant' };
@@ -1068,23 +1089,70 @@ Stay concise but highly descriptive of layout structures.`;
                     }
 
                     const blueprint = await callAI(designerMessages);
-                    addMessage('assistant', `<strong>🎨 Step 1: Designer Blueprint Done.</strong><br><em>Compiling strictly to Bricks JSON schema...</em>`);
+                    addMessage('assistant', `<strong>🎨 Designer blueprint ready.</strong><br><em>Compiling to Bricks JSON...</em>`);
+                    debugLog('Designer blueprint:', blueprint);
                     
                     // ---- CORE 2: COMPILER AGENT ----
                     setAgentState(AgentState.COMPILING);
 
-                    const devPrompt = `You are a strict Bricks Builder compiler.
-You must generate a component JSON tree precisely matching the Bricks schema mapping provided.
-NEVER use properties outside this schema.
-SCHEMA: ${JSON.stringify(ChatState.bricksSchema)}
+                    const devPrompt = `You are a strict Bricks Builder JSON compiler.
+Convert the Layout Blueprint below into a nested element tree JSON.
+
+OUTPUT FORMAT — return ONLY this raw JSON object, no markdown fences, no extra text:
+{
+  "action": "append",
+  "elements": [
+    {
+      "name": "section",
+      "settings": { "_padding": { "top": "80", "bottom": "80" } },
+      "children": [
+        {
+          "name": "container",
+          "settings": { "_width": "1200", "gap": "40", "flexDirection": "row", "alignItems": "center", "justifyContent": "space-between" },
+          "children": [
+            {
+              "name": "block",
+              "settings": { "gap": "20", "flexDirection": "column" },
+              "children": [
+                { "name": "heading", "settings": { "text": "Your Heading", "tag": "h1", "_typography": { "font-size": "56px", "font-weight": "700", "color": { "raw": "#000000" } } }, "children": [] },
+                { "name": "text", "settings": { "text": "<p>Your paragraph text here.</p>", "_typography": { "font-size": "18px", "color": { "raw": "#555555" } } }, "children": [] },
+                { "name": "button", "settings": { "text": "Click Me", "style": "primary" }, "children": [] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+SETTINGS REFERENCE:
+- section._padding: { "top": "80", "bottom": "80" }  — NEVER add left/right padding to sections
+- section background color: { "background": { "color": { "raw": "#000000" } } }
+- container._width: "1200"  (number as string, no px)
+- container.gap: "40"  (number as string)
+- container.flexDirection: "row" | "column"
+- container.alignItems: "center" | "flex-start" | "flex-end"
+- container.justifyContent: "center" | "space-between" | "flex-start"
+- block.gap: "24"
+- block.flexDirection: "column" | "row"
+- heading.text: "Your text"  (plain string)
+- heading.tag: "h1" | "h2" | "h3"
+- heading._typography.font-size: "48px"  (include px)
+- heading._typography.font-weight: "700"
+- heading._typography.color: { "raw": "#000000" }
+- text.text: "<p>Paragraph text</p>"  (wrap in p tags)
+- image._aspectRatio: "16/9"  — always also add _objectFit: "cover"
+- button.text: "Button Label"
 
 RULES:
-1. ONLY return valid JSON. Do not return markdown formatted text or explanations.
-2. The root object MUST be: { "action": "append", "elements": [ { ...element... } ] } or "replace_all".
-3. Valid names: "section", "container", "block", "heading", "text", "image", "button", "div".
-4. Element JSON structure: { "name": "...", "settings": { key: value }, "children": [ ... ] }
+1. Return ONLY the raw JSON. Do NOT wrap in markdown fences.
+2. "action" must be "replace_all" (if replacing whole page) or "append".
+3. Never add "id" or "parent" fields — those are auto-generated.
+4. All numbers must be strings: "80" not 80.
+5. section > container > block > content elements (heading/text/image/button)
 
-Match exactly this blueprint:
+LAYOUT BLUEPRINT:
 ${blueprint}`;
 
                     const devMessages = [
@@ -1094,26 +1162,33 @@ ${blueprint}`;
                     
                     const jsonResRaw = await callAI(devMessages);
                     
-                    // JSON parsing safety checks
+                    // Robust JSON extraction — strip any code fences then find {…} boundaries
                     let jsonStr = jsonResRaw.trim();
-                    if(jsonStr.startsWith('```json')) jsonStr = jsonStr.replace(/```json/g, '');
-                    if(jsonStr.startsWith('```')) jsonStr = jsonStr.replace(/```/g, '');
-                    if(jsonStr.endsWith('```')) jsonStr = jsonStr.replace(/```/g, '');
-                    
+                    jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+                    const firstBrace = jsonStr.indexOf('{');
+                    const lastBrace  = jsonStr.lastIndexOf('}');
+                    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                        jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+                    }
+                    debugLog('Compiler raw JSON:', jsonStr.substring(0, 300));
+
                     let parsedData;
                     try {
-                        parsedData = JSON.parse(jsonStr.trim());
+                        parsedData = JSON.parse(jsonStr);
                     } catch(e) {
-                         throw new Error("Compiler failed to produce valid JSON: " + e.message);
+                        throw new Error('Compiler failed to produce valid JSON: ' + e.message + ' — raw: ' + jsonStr.substring(0, 200));
                     }
                     
                     // ---- UPDATE REACTIVE STATE ----
                     setAgentState(AgentState.PATCHING);
-                    
+                    addMessage('assistant', '🔧 <strong>Patching Bricks state...</strong>');
+
+                    const rootCount = Array.isArray(parsedData.elements) ? parsedData.elements.length : 1;
                     const applied = BricksHelper.applyDeltaPatches([parsedData]);
-                    
-                    if(applied) {
-                        addMessage('assistant', `✅ <strong>Layout Patched!</strong> The builder state has been updated dynamically.`);
+
+                    if (applied) {
+                        const totalFlat = BricksHelper.getState() ? BricksHelper.getState().content.length : '?';
+                        addMessage('assistant', `✅ <strong>Done!</strong> Injected <strong>${rootCount}</strong> root section(s) → <strong>${totalFlat}</strong> total elements in page.`);
                         setAgentState(AgentState.DONE);
                     }
                     
