@@ -67,8 +67,16 @@ function custom_smtp_settings_init() {
 
     add_settings_field(
         'smtp_password',
-        __('SMTP Password', 'snn'),
+        __('SMTP Password / API Key', 'snn'),
         'custom_smtp_smtp_password_render',
+        'snn-smtp-settings',
+        'custom_smtp_settings_section'
+    );
+
+    add_settings_field(
+        'smtp_use_custom_from',
+        __('Custom From Email', 'snn'),
+        'custom_smtp_smtp_from_email_render',
         'snn-smtp-settings',
         'custom_smtp_settings_section'
     );
@@ -85,8 +93,10 @@ function custom_smtp_settings_sanitize($input) {
     // Always save the port value provided by the user
     $sanitized['smtp_port'] = intval($input['smtp_port'] ?? 25);
 
-    $sanitized['smtp_username'] = sanitize_text_field($input['smtp_username'] ?? '');
-    $sanitized['smtp_password'] = sanitize_text_field($input['smtp_password'] ?? '');
+    $sanitized['smtp_username']        = sanitize_text_field($input['smtp_username'] ?? '');
+    $sanitized['smtp_password']        = sanitize_text_field($input['smtp_password'] ?? '');
+    $sanitized['smtp_use_custom_from'] = isset($input['smtp_use_custom_from']) ? boolval($input['smtp_use_custom_from']) : false;
+    $sanitized['smtp_from_email']      = sanitize_email($input['smtp_from_email'] ?? '');
 
     return $sanitized;
 }
@@ -95,12 +105,17 @@ function custom_smtp_settings_sanitize($input) {
 function custom_smtp_settings_section_callback() {
     echo '<p>' . __('Simple SMTP Settings for bypassing PHP mailler or eliminating falling to spam issues.', 'snn') . '</p>';
     
-    // Check if admin email matches SMTP username
-    $options = get_option('custom_smtp_settings', array());
-    $admin_email = get_option('admin_email');
+    // Warn only when the username is an email address that differs from admin email
+    $options       = get_option('custom_smtp_settings', array());
+    $admin_email   = get_option('admin_email');
     $smtp_username = $options['smtp_username'] ?? '';
-    
-    if (!empty($smtp_username) && !empty($admin_email) && $smtp_username !== $admin_email) {
+
+    if (
+        !empty($smtp_username) &&
+        filter_var($smtp_username, FILTER_VALIDATE_EMAIL) &&
+        !empty($admin_email) &&
+        $smtp_username !== $admin_email
+    ) {
         echo '<div style="border: 2px solid #f0b849; background: #fff8e5; padding: 10px; margin: 10px 0; border-radius: 4px;">';
         echo '<p style="margin: 0; font-size: 13px; color: #856404;">';
         echo '<strong>⚠ ' . __('Warning:', 'snn') . '</strong> ';
@@ -174,7 +189,7 @@ function custom_smtp_smtp_username_render() {
     <input type='text' name='custom_smtp_settings[smtp_username]' 
         value='<?php echo esc_attr($options['smtp_username'] ?? ''); ?>' 
         size='50'>
-    <p class="description"><?php _e('Must be a full email address. you@yourdomain.com', 'snn'); ?></p>
+    <p class="description"><?php _e('Your SMTP username. Usually a full email address (you@yourdomain.com), but some API-based providers use a plain username (e.g. "emailit" or "apiuser").', 'snn'); ?></p>
     <?php
 }
 
@@ -185,7 +200,28 @@ function custom_smtp_smtp_password_render() {
     <input type='password' name='custom_smtp_settings[smtp_password]' 
         value='<?php echo esc_attr($options['smtp_password'] ?? ''); ?>' 
         size='50'>
-    <p class="description"><?php _e('Your email account password.', 'snn'); ?></p>
+    <p class="description"><?php _e('Your email account password or API key (some providers use an API key here instead of a regular password).', 'snn'); ?></p>
+    <?php
+}
+
+
+function custom_smtp_smtp_from_email_render() {
+    $options         = get_option('custom_smtp_settings', array());
+    $use_custom_from = !empty($options['smtp_use_custom_from']);
+    $from_email      = $options['smtp_from_email'] ?? '';
+    ?>
+    <label>
+        <input type='checkbox' id='smtp_use_custom_from' name='custom_smtp_settings[smtp_use_custom_from]'
+            <?php checked($use_custom_from, true); ?> value='1'
+            onchange="document.getElementById('smtp_from_email_row').style.display = this.checked ? '' : 'none';">
+        <?php _e('Use a custom From email address', 'snn'); ?>
+    </label>
+    <div id='smtp_from_email_row' style="margin-top: 8px; <?php echo $use_custom_from ? '' : 'display:none;'; ?>">
+        <input type='email' name='custom_smtp_settings[smtp_from_email]'
+            value='<?php echo esc_attr($from_email); ?>' size='50'
+            placeholder='you@yourdomain.com'>
+        <p class="description"><?php _e('Required when your SMTP username is not an email address (API-based providers). This address appears in the From header of sent emails.', 'snn'); ?></p>
+    </div>
     <?php
 }
 
@@ -220,9 +256,17 @@ function custom_smtp_phpmailer_init($phpmailer) {
             ? strtolower($options['smtp_encryption']) 
             : '';
 
-        // Set From to the same as username (or change as you see fit)
-        $phpmailer->From       = $options['smtp_username'] ?? '';
-        $phpmailer->FromName   = get_bloginfo('name');
+        // Determine From address: use custom From Email if enabled,
+        // otherwise fall back to username only when it is a valid email.
+        $use_custom_from = !empty($options['smtp_use_custom_from']);
+        $from_email      = $use_custom_from ? ($options['smtp_from_email'] ?? '') : '';
+        if (empty($from_email) && filter_var($options['smtp_username'] ?? '', FILTER_VALIDATE_EMAIL)) {
+            $from_email = $options['smtp_username'];
+        }
+        if (!empty($from_email)) {
+            $phpmailer->From = $from_email;
+        }
+        $phpmailer->FromName = get_bloginfo('name');
         
         // Set timeout to prevent hanging (10 seconds for connection, 10 for sending)
         $phpmailer->Timeout = 10;
@@ -263,12 +307,20 @@ function custom_smtp_ajax_test_handler() {
     $logs    = array();
     $options = get_option('custom_smtp_settings', array());
 
-    $smtp_enabled = !empty($options['enable_smtp']);
-    $host         = $options['smtp_host'] ?? '';
-    $port         = $options['smtp_port'] ?? 25;
-    $encryption   = $options['smtp_encryption'] ?? 'none';
-    $username     = $options['smtp_username'] ?? '';
-    $password     = $options['smtp_password'] ?? '';
+    $smtp_enabled    = !empty($options['enable_smtp']);
+    $host            = $options['smtp_host'] ?? '';
+    $port            = $options['smtp_port'] ?? 25;
+    $encryption      = $options['smtp_encryption'] ?? 'none';
+    $username        = $options['smtp_username'] ?? '';
+    $password        = $options['smtp_password'] ?? '';
+    $use_custom_from = !empty($options['smtp_use_custom_from']);
+    $custom_from     = $options['smtp_from_email'] ?? '';
+
+    // Resolve the effective From address (mirrors phpmailer_init logic)
+    $effective_from = $use_custom_from ? $custom_from : '';
+    if (empty($effective_from) && filter_var($username, FILTER_VALIDATE_EMAIL)) {
+        $effective_from = $username;
+    }
 
     $settings = array(
         'SMTP Enabled'  => $smtp_enabled ? 'Yes' : 'No',
@@ -277,6 +329,7 @@ function custom_smtp_ajax_test_handler() {
         'Encryption'    => strtoupper($encryption),
         'Username'      => $username ?: '(not set)',
         'Password'      => !empty($password) ? '(set)' : '(not set)',
+        'From Email'    => $effective_from ?: '(not set — WordPress default will be used)',
         'Recipient'     => $to,
     );
 
@@ -421,6 +474,17 @@ function custom_smtp_ajax_test_handler() {
     } else {
         $logs[] = array('type' => 'warning', 'message' => 'SMTP is disabled — using PHP mail() instead.');
         $logs[] = array('type' => 'info', 'message' => 'Sending email via wp_mail()...');
+    }
+
+    // Log the resolved From address so misconfigurations are visible
+    if (!empty($effective_from)) {
+        if ($use_custom_from) {
+            $logs[] = array('type' => 'info', 'message' => 'From address: ' . $effective_from . ' (custom From Email setting)');
+        } else {
+            $logs[] = array('type' => 'info', 'message' => 'From address: ' . $effective_from . ' (derived from SMTP username)');
+        }
+    } else {
+        $logs[] = array('type' => 'warning', 'message' => 'From address: not set — WordPress default will be used. If your SMTP username is not an email, enable Custom From Email.');
     }
 
     // Capture wp_mail errors
