@@ -74,6 +74,14 @@ function snn_register_editor_settings() {
         'snn-editor-settings',
         'snn_editor_settings_section'
     );
+
+    add_settings_field(
+        'comingsoon_bypass',
+        __('URL Coming Soon Bypass', 'snn'),
+        'snn_comingsoon_bypass_callback',
+        'snn-editor-settings',
+        'snn_editor_settings_section'
+    );
 }
 
 function snn_sanitize_editor_settings($input) {
@@ -86,6 +94,12 @@ function snn_sanitize_editor_settings($input) {
     $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
     $sanitized['make_compact_but_keep_icons'] = isset($input['make_compact_but_keep_icons']) && $input['make_compact_but_keep_icons'] ? 1 : 0;
     $sanitized['make_elements_wide'] = isset($input['make_elements_wide']) && $input['make_elements_wide'] ? 1 : 0;
+
+    // Sanitize coming soon bypass settings
+    $sanitized['comingsoon_bypass_enabled'] = isset($input['comingsoon_bypass_enabled']) && $input['comingsoon_bypass_enabled'] ? 1 : 0;
+    $raw_slug = isset($input['comingsoon_bypass_slug']) ? $input['comingsoon_bypass_slug'] : 'comingsoon_false';
+    $raw_slug = preg_replace('/[^a-zA-Z0-9_-]/', '', $raw_slug);
+    $sanitized['comingsoon_bypass_slug'] = $raw_slug !== '' ? $raw_slug : 'comingsoon_false';
 
     return $sanitized;
 }
@@ -231,3 +245,97 @@ function snn_add_inline_css_if_bricks_run() {
     }
 }
 add_action('wp_head', 'snn_add_inline_css_if_bricks_run');
+
+function snn_comingsoon_bypass_callback() {
+    $options = get_option('snn_editor_settings');
+    $enabled = isset($options['comingsoon_bypass_enabled']) ? $options['comingsoon_bypass_enabled'] : 0;
+    $slug    = isset($options['comingsoon_bypass_slug']) ? $options['comingsoon_bypass_slug'] : 'comingsoon_false';
+    ?>
+    <label>
+        <input type="checkbox" name="snn_editor_settings[comingsoon_bypass_enabled]" value="1" <?php checked(1, $enabled, true); ?>>
+        <?php _e('Enable URL Coming Soon Bypass', 'snn'); ?>
+    </label>
+    <br><br>
+    <label for="comingsoon_bypass_slug"><?php _e('Bypass Key (URL slug)', 'snn'); ?></label><br>
+    <input
+        type="text"
+        id="comingsoon_bypass_slug"
+        name="snn_editor_settings[comingsoon_bypass_slug]"
+        value="<?php echo esc_attr($slug); ?>"
+        style="width:300px;"
+        pattern="[a-zA-Z0-9_-]+"
+        placeholder="comingsoon_false"
+    >
+    <p class="description">
+        <?php _e('Only letters, numbers, <code>-</code> and <code>_</code> are allowed. Visit <code>/?key=YOUR_SLUG</code> to set the bypass cookie (valid 24 h).', 'snn'); ?>
+    </p>
+    <?php
+}
+
+// ── Coming Soon Bypass Logic ──────────────────────────────────────────────────
+
+define( 'SNN_BYPASS_COOKIE_NAME', 'bricks_bypass_maintenance' );
+
+function snn_bypass_token( $slug ) {
+    return hash_hmac( 'sha256', $slug, wp_salt( 'auth' ) );
+}
+
+add_action( 'template_redirect', 'snn_comingsoon_bypass_handle_url', 1 );
+function snn_comingsoon_bypass_handle_url() {
+    $options = get_option('snn_editor_settings');
+    if ( empty($options['comingsoon_bypass_enabled']) ) {
+        return;
+    }
+    $secret_key = isset($options['comingsoon_bypass_slug']) ? $options['comingsoon_bypass_slug'] : 'comingsoon_false';
+
+    // phpcs:ignore WordPress.Security.NonceVerification
+    if ( ! isset( $_GET['key'] ) ) {
+        return;
+    }
+    $supplied_key = sanitize_text_field( wp_unslash( $_GET['key'] ) );
+    if ( ! hash_equals( $secret_key, $supplied_key ) ) {
+        return;
+    }
+
+    $token   = snn_bypass_token( $secret_key );
+    $expires = time() + 86400; // 24 hours
+
+    setcookie(
+        SNN_BYPASS_COOKIE_NAME,
+        $token,
+        [
+            'expires'  => $expires,
+            'path'     => '/',
+            'secure'   => is_ssl(),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]
+    );
+
+    $clean_url = remove_query_arg( 'key' );
+    wp_safe_redirect( $clean_url, 302 );
+    exit;
+}
+
+add_filter( 'bricks/maintenance/should_apply', 'snn_comingsoon_bypass_check_cookie', 10, 2 );
+function snn_comingsoon_bypass_check_cookie( $should_apply, $mode ) {
+    if ( ! $should_apply ) {
+        return $should_apply;
+    }
+    $options = get_option('snn_editor_settings');
+    if ( empty($options['comingsoon_bypass_enabled']) ) {
+        return $should_apply;
+    }
+    $secret_key = isset($options['comingsoon_bypass_slug']) ? $options['comingsoon_bypass_slug'] : 'comingsoon_false';
+
+    if ( ! isset( $_COOKIE[ SNN_BYPASS_COOKIE_NAME ] ) ) {
+        return $should_apply;
+    }
+    $cookie_value   = sanitize_text_field( wp_unslash( $_COOKIE[ SNN_BYPASS_COOKIE_NAME ] ) );
+    $expected_token = snn_bypass_token( $secret_key );
+
+    if ( hash_equals( $expected_token, $cookie_value ) ) {
+        return false; // Bypass – show the real site.
+    }
+    return $should_apply;
+}
