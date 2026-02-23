@@ -1,7 +1,7 @@
 # SNN-BRX - Bricks Builder Child Theme
 
 <a href="https://github.com/sponsors/sinanisler">
-<img src="https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46" width="290" height="auto" />
+<img src="https://img.shields.io/badge/Consider_Supporting_My_Projects_❤-GitHub-d46" width="330" height="auto" />
 </a>
 
 
