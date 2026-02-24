@@ -1010,99 +1010,85 @@ class SNN_Bricks_Chat_Overlay {
                         timestamp: Date.now()
                     };
 
-                    // Prepare conversation context
+                    // Build conversation context (shared by all phases)
                     const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
-                        const msg = {
-                            role: m.role === 'user' ? 'user' : 'assistant'
-                        };
-
-                        // Handle messages with images
+                        const msg = { role: m.role === 'user' ? 'user' : 'assistant' };
                         if (m.images && m.images.length > 0) {
                             msg.content = [];
                             if (m.content && m.content !== '(Image attached)') {
-                                msg.content.push({
-                                    type: 'text',
-                                    text: m.content
-                                });
+                                msg.content.push({ type: 'text', text: m.content });
                             }
                             m.images.forEach(img => {
-                                msg.content.push({
-                                    type: 'image_url',
-                                    image_url: {
-                                        url: img.data
-                                    }
-                                });
+                                msg.content.push({ type: 'image_url', image_url: { url: img.data } });
                             });
                         } else {
                             msg.content = m.content;
                         }
-
                         return msg;
                     });
 
-                    // Build AI prompt with Bricks-specific abilities
-                    const systemPrompt = buildSystemPrompt();
-                    const messages = [
-                        { role: 'system', content: systemPrompt },
-                        ...context
-                    ];
-
-                    // Add current user message with images if any
+                    // Build the user message content (may include images)
+                    let userMsgContent;
                     if (images.length > 0) {
-                        const currentMsg = {
-                            role: 'user',
-                            content: []
-                        };
-
-                        if (userMessage) {
-                            currentMsg.content.push({
-                                type: 'text',
-                                text: userMessage
-                            });
-                        }
-
-                        images.forEach(img => {
-                            currentMsg.content.push({
-                                type: 'image_url',
-                                image_url: {
-                                    url: img.data
-                                }
-                            });
-                        });
-
-                        // Only add if not already in context
-                        if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
-                            messages.push(currentMsg);
-                        }
+                        userMsgContent = [];
+                        if (userMessage) userMsgContent.push({ type: 'text', text: userMessage });
+                        images.forEach(img => userMsgContent.push({ type: 'image_url', image_url: { url: img.data } }));
+                    } else {
+                        userMsgContent = userMessage;
                     }
 
-                    // Call AI API
-                    const aiResponse = await callAI(messages);
+                    // ── PHASE 1: Ask AI to produce a section plan ──────────────────────────
+                    const planMessages = [
+                        { role: 'system', content: buildPlanningPrompt() },
+                        ...context,
+                        { role: 'user', content: userMsgContent }
+                    ];
+
+                    const planResponse = await callAI(planMessages);
                     hideTyping();
+                    debugLog('Plan Response:', planResponse);
 
-                    debugLog('AI Response:', aiResponse);
-
-                    // Check for empty response
-                    if (!aiResponse || aiResponse.trim() === '') {
+                    if (!planResponse || planResponse.trim() === '') {
                         throw new Error('AI returned empty response. Please try again.');
                     }
 
-                    // Extract abilities from response
-                    const abilities = extractAbilitiesFromResponse(aiResponse);
+                    const plan = extractPlanFromResponse(planResponse);
 
-                    if (abilities.length > 0) {
-                        // Show initial AI message
-                        let initialMessage = aiResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
-                        if (initialMessage) {
-                            addMessage('assistant', initialMessage);
+                    // If the AI came back with 2+ sections → build section-by-section
+                    if (plan && plan.length >= 2) {
+                        debugLog(`Multi-section mode: ${plan.length} sections planned`);
+                        // Show the plan summary to the user
+                        const planText = planResponse.replace(/```json[\s\S]*?```/g, '').trim();
+                        if (planText) addMessage('assistant', planText);
+
+                        await executeSectionBySection(context, userMsgContent, plan, userMessage);
+
+                    } else {
+                        // ── Single-response mode (simple edits, questions, single section) ──
+                        const singleMessages = [
+                            { role: 'system', content: buildSystemPrompt() },
+                            ...context,
+                            { role: 'user', content: userMsgContent }
+                        ];
+
+                        const aiResponse = await callAI(singleMessages);
+                        hideTyping();
+                        debugLog('AI Response:', aiResponse);
+
+                        if (!aiResponse || aiResponse.trim() === '') {
+                            throw new Error('AI returned empty response. Please try again.');
                         }
 
-                        // Execute abilities sequentially
-                        await executeAbilitiesSequentially(messages, abilities);
-                        await provideFinalSummary(messages, abilities);
-                    } else {
-                        // No abilities, just show response
-                        addMessage('assistant', aiResponse);
+                        const abilities = extractAbilitiesFromResponse(aiResponse);
+
+                        if (abilities.length > 0) {
+                            let initialMessage = aiResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                            if (initialMessage) addMessage('assistant', initialMessage);
+                            await executeAbilitiesSequentially(singleMessages, abilities);
+                            await provideFinalSummary(singleMessages, abilities);
+                        } else {
+                            addMessage('assistant', aiResponse);
+                        }
                     }
 
                     setAgentState(AgentState.DONE);
@@ -1111,17 +1097,206 @@ class SNN_Bricks_Chat_Overlay {
 
                 } catch (error) {
                     hideTyping();
-
                     const recovered = await attemptRecovery(error, userMessage);
-
                     if (!recovered) {
-                        let errorMessage = 'Sorry, something went wrong: ' + error.message;
-                        addMessage('error', errorMessage);
+                        addMessage('error', 'Sorry, something went wrong: ' + error.message);
                         setAgentState(AgentState.ERROR, { error: error.message });
                     }
                 } finally {
                     ChatState.isProcessing = false;
                 }
+            }
+
+            /**
+             * Build a minimal planning-phase system prompt.
+             * The AI only needs to return a lightweight JSON section list —
+             * no ability calls, no full structures.
+             */
+            function buildPlanningPrompt() {
+                const basePrompt = snnBricksChatConfig.ai.systemPrompt || 'You are a helpful design assistant for Bricks Builder.';
+
+                return basePrompt + `
+
+=== PLANNING PHASE ===
+
+Your job in this turn is ONLY to analyse the user's request and decide how many page sections are needed.
+
+If the user is asking a simple question, wants to edit/change a single element, wants to add just one section, or is having a conversation → respond conversationally in plain text. Do NOT output a JSON plan.
+
+If the user is asking to build a multi-section page (homepage, landing page, full page, etc.) → respond with:
+1. A brief friendly intro sentence describing what you will build.
+2. Then a JSON code block containing the section plan.
+
+Plan JSON format:
+\`\`\`json
+{
+  "plan": [
+    {"label": "Hero Section",       "description": "Full-width hero with heading, subtext and CTA button. action_type: replace"},
+    {"label": "About Section",      "description": "Two-column layout, image left, text right. action_type: append"},
+    {"label": "Services Grid",      "description": "3-column card grid of services. action_type: append"},
+    {"label": "Testimonials",       "description": "Soft pink background with 3 customer quotes. action_type: append"},
+    {"label": "Newsletter Footer",  "description": "Email signup form and social links. action_type: append"}
+  ]
+}
+\`\`\`
+
+Rules:
+- Keep descriptions SHORT (one sentence each) — just enough to brief the designer.
+- Include the action_type in the description ("action_type: replace" for first, "action_type: append" for rest).
+- Do NOT include any Bricks JSON structure here. That comes in the next step.
+- Do NOT call any abilities. This is planning only.`;
+            }
+
+            /**
+             * Extract a section plan from the planning-phase AI response.
+             * Returns array of {label, description} objects, or null if no plan found.
+             */
+            function extractPlanFromResponse(response) {
+                const match = response.match(/```json\n?([\s\S]*?)\n?```/);
+                if (!match) return null;
+                try {
+                    const parsed = JSON.parse(match[1]);
+                    if (parsed.plan && Array.isArray(parsed.plan) && parsed.plan.length >= 2) {
+                        return parsed.plan;
+                    }
+                } catch (e) {
+                    debugLog('Plan parse error:', e);
+                }
+                return null;
+            }
+
+            /**
+             * Build the generation-phase system prompt for a single section.
+             */
+            function buildSectionGenerationPrompt(section, index, totalSections) {
+                return buildSystemPrompt() + `
+
+=== SECTION GENERATION PHASE ===
+
+You are building section ${index + 1} of ${totalSections}: **${section.label}**
+Description: ${section.description}
+
+CRITICAL RULES FOR THIS TURN:
+1. Generate ONLY this one section. Do NOT plan or describe other sections.
+2. Output exactly ONE ability call in your JSON block.
+3. Keep your response concise — one short sentence of intro, then the JSON.
+4. The label field must be: "${section.label}"
+5. Use action_type from the description (${section.description.includes('replace') ? '"replace"' : '"append"'}).
+
+Required response format:
+\`\`\`json
+{
+  "abilities": [
+    {
+      "name": "snn/generate-bricks-content",
+      "label": "${section.label}",
+      "input": {
+        "action_type": "${section.description.includes('replace') ? 'replace' : 'append'}",
+        "structure": { ... }
+      }
+    }
+  ]
+}
+\`\`\``;
+            }
+
+            /**
+             * Orchestrate section-by-section building.
+             * Makes one AI call per section, executes immediately after each.
+             */
+            async function executeSectionBySection(context, userMsgContent, plan, originalUserMessage) {
+                const total = plan.length;
+                initChecklist(plan);
+
+                for (let i = 0; i < plan.length; i++) {
+                    const section = plan[i];
+                    updateChecklistItem(i, 'active');
+
+                    setAgentState(AgentState.THINKING, {
+                        abilityName: section.label,
+                        current: i + 1,
+                        total: total
+                    });
+                    showTyping();
+
+                    let ability = null;
+                    let result = null;
+                    let retryCount = 0;
+
+                    while (retryCount <= MAX_RETRIES) {
+                        try {
+                            // Build generation messages for this section
+                            const genMessages = [
+                                { role: 'system', content: buildSectionGenerationPrompt(section, i, total) },
+                                ...context,
+                                { role: 'user', content: userMsgContent },
+                                // Remind AI which section we're on now
+                                { role: 'user', content: `Now generate section ${i + 1}/${total}: "${section.label}". ${section.description}` }
+                            ];
+
+                            const sectionResponse = await callAI(genMessages);
+                            hideTyping();
+                            debugLog(`Section ${i + 1} response:`, sectionResponse);
+
+                            const abilities = extractAbilitiesFromResponse(sectionResponse);
+
+                            if (abilities.length === 0) {
+                                throw new Error(`No ability found in response for section "${section.label}"`);
+                            }
+
+                            ability = abilities[0];
+                            setAgentState(AgentState.EXECUTING, { abilityName: section.label, current: i + 1, total: total });
+
+                            result = await executeAbility(ability.name, ability.input || {});
+
+                            if (result.success) {
+                                if (result.client_command && result.client_command.type) {
+                                    const clientResult = await executeClientCommand(result.client_command);
+                                    if (!clientResult.success) {
+                                        result.success = false;
+                                        result.error = clientResult.error;
+                                    }
+                                }
+                            }
+
+                            if (result.success) break;
+
+                            // Failed — ask AI to fix it
+                            if (retryCount < MAX_RETRIES) {
+                                const corrected = await retryWithAI(genMessages, ability, result.error);
+                                if (corrected) {
+                                    ability = corrected;
+                                    retryCount++;
+                                    showTyping();
+                                    continue;
+                                }
+                            }
+                            break;
+
+                        } catch (err) {
+                            hideTyping();
+                            debugLog(`Section ${i + 1} attempt ${retryCount + 1} error:`, err.message);
+                            result = { success: false, error: err.message };
+                            if (retryCount >= MAX_RETRIES) break;
+                            retryCount++;
+                            showTyping();
+                        }
+                    }
+
+                    updateChecklistItem(i, result && result.success ? 'done' : 'error');
+
+                    const resultHtml = formatSingleAbilityResult({
+                        ability: ability ? ability.name : 'snn/generate-bricks-content',
+                        result: result || { success: false, error: 'No response generated' },
+                        retries: retryCount
+                    });
+                    addMessage('assistant', resultHtml);
+
+                    if (i < plan.length - 1) await sleep(400);
+                }
+
+                clearChecklist(3000);
+                addMessage('assistant', `✅ Built all ${plan.length} sections for your page. Scroll the canvas to review the design.`);
             }
 
             /**
@@ -1461,7 +1636,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
             /**
              * Call AI API
              */
-            async function callAI(messages, retryCount = 0) {
+            async function callAI(messages, retryCount = 0, options = {}) {
                 const config = snnBricksChatConfig.ai;
 
                 if (!config.apiKey || !config.apiEndpoint) {
@@ -1475,7 +1650,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                         model: config.model,
                         messages: messages,
                         temperature: 0.7,
-                        max_tokens: config.maxTokens || 4000
+                        max_tokens: options.maxTokens || config.maxTokens || 4000
                     };
 
                     debugLog('Sending to AI:', {
@@ -1510,7 +1685,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                         });
 
                         await sleep(delay);
-                        return await callAI(messages, retryCount + 1);
+                        return await callAI(messages, retryCount + 1, options);
                     }
 
                     if (!response.ok) {
