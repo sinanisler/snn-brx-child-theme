@@ -267,7 +267,18 @@ function snn_comingsoon_bypass_callback() {
         placeholder="comingsoon_false"
     >
     <p class="description">
-        <?php _e('Only letters, numbers, <code>-</code> and <code>_</code> are allowed. Visit <code>/?key=YOUR_SLUG</code> to set the bypass cookie (valid 24 h).', 'snn'); ?>
+        <?php _e('Only letters, numbers, <code>-</code> and <code>_</code> are allowed.', 'snn'); ?>
+        <?php if (!empty($slug)): ?>
+            <br><strong><?php _e('Preview link:', 'snn'); ?></strong> 
+            <code style="background:#f0f0f1;padding:2px 6px;border-radius:3px;user-select:all;">
+                <a href="<?php echo esc_url(home_url('/?key=' . $slug)); ?>" target="_blank" style="text-decoration:none;color:inherit;">
+                    <?php echo esc_html(home_url('/?key=' . $slug)); ?>
+                </a>
+            </code>
+            <span style="color:#666;font-size:12px;"><?php _e('(valid 24 h)', 'snn'); ?></span>
+        <?php else: ?>
+            <br><?php _e('Visit <code>/?key=YOUR_SLUG</code> to set the bypass cookie (valid 24 h).', 'snn'); ?>
+        <?php endif; ?>
     </p>
     <?php
 }
