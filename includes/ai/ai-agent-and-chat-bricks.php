@@ -2235,7 +2235,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                 $message.append($body);
 
                 $messages.append($message);
-                applyReadMore($message, true);
+                applyReadMore($message, false);
                 scrollToBottom();
             }
 
@@ -2374,7 +2374,7 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
                                 const $body = $('<div>').addClass('snn-msg-body').html(formatMessage(msg.content));
                                 $message.append($body);
                                 $('#snn-bricks-chat-messages').append($message);
-                                applyReadMore($message, idx === historyMsgs.length - 1);
+                                applyReadMore($message, false);
                             });
 
                             scrollToBottom();
