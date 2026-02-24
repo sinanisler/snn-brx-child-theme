@@ -270,10 +270,8 @@ function snn_comingsoon_bypass_callback() {
         <?php _e('Only letters, numbers, <code>-</code> and <code>_</code> are allowed.', 'snn'); ?>
         <?php if (!empty($slug)): ?>
             <br><strong><?php _e('Preview link:', 'snn'); ?></strong> 
-            <code style="background:#f0f0f1;padding:2px 6px;border-radius:3px;user-select:all;">
-                <a href="<?php echo esc_url(home_url('/?key=' . $slug)); ?>" target="_blank" style="text-decoration:none;color:inherit;">
-                    <?php echo esc_html(home_url('/?key=' . $slug)); ?>
-                </a>
+            <code style="background:#f0f0f1;padding:4px 8px;border-radius:3px;user-select:all;cursor:text;">
+                <?php echo esc_html(home_url('/?key=' . $slug)); ?>
             </code>
             <span style="color:#666;font-size:12px;"><?php _e('(valid 24 h)', 'snn'); ?></span>
         <?php else: ?>
