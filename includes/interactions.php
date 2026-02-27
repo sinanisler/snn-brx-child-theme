@@ -310,6 +310,7 @@ function snn_enable_page_transitions_callback() {
                         <option value="zoom-in-scale" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'zoom-in-scale'); ?>><?php _e('Zoom In Scale', 'snn'); ?></option>
                         <option value="slide-push" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'slide-push'); ?>><?php _e('Slide Push (Carousel)', 'snn'); ?></option>
                         <option value="slide-over" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'slide-over'); ?>><?php _e('Slide Over Stack (iOS Style)', 'snn'); ?></option>
+                        <option value="random-mosaic-peel" <?php selected(isset($options['page_transition_type']) ? $options['page_transition_type'] : 'wipe-down', 'random-mosaic-peel'); ?>><?php _e('Random Mosaic Peel (Staggered Tiles)', 'snn'); ?></option>
                     </select>
                 </label>
                 <p class="description"><?php _e('Select the type of transition effect to use when navigating between pages. Default: Wipe Down', 'snn'); ?></p>
@@ -1120,6 +1121,165 @@ function snn_enqueue_page_transitions() {
 
             ::view-transition-image-pair(root) { isolation: isolate; }
             ";
+        } elseif ($transition_type === 'random-mosaic-peel') {
+            // Random Mosaic Peel: JS-driven, page splits into a grid and each square
+            // peels away in a random staggered order to reveal the new page.
+            // Disable native view transition — JavaScript handles everything.
+            $inline_css = "
+            .snn-mosaic-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                pointer-events: none;
+                z-index: 2147483647;
+            }
+            .snn-mosaic-sq {
+                position: absolute;
+                background: #111;
+                transform-origin: center;
+                will-change: transform, opacity;
+            }
+            ";
+
+            $sq_size = 60;
+            $sq_dur  = min(0.45, $duration * 0.4);
+
+            $inline_js = "
+(function() {
+    if (new URLSearchParams(window.location.search).get('bricks') === 'run') return;
+
+    var TOTAL = " . $duration . ";
+    var SZ    = " . $sq_size . ";
+    var SQDUR = " . $sq_dur . ";
+    var busy  = false;
+
+    function shuffle(a) {
+        for (var i = a.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+    }
+
+    function buildOverlay(mode) {
+        var cols  = Math.ceil(window.innerWidth  / SZ) + 1;
+        var rows  = Math.ceil(window.innerHeight / SZ) + 1;
+        var total = cols * rows;
+        var stagger = Math.max(0, TOTAL - SQDUR);
+
+        var order = [];
+        for (var n = 0; n < total; n++) order.push(n);
+        shuffle(order);
+
+        var ov   = document.createElement('div');
+        ov.className = 'snn-mosaic-overlay';
+        ov.setAttribute('aria-hidden', 'true');
+
+        var frag = document.createDocumentFragment();
+        var sqs  = [];
+
+        for (var i = 0; i < total; i++) {
+            var idx   = order[i];
+            var r     = Math.floor(idx / cols);
+            var c     = idx % cols;
+            var delay = (i / total) * stagger;
+
+            var sq = document.createElement('div');
+            sq.className = 'snn-mosaic-sq';
+            sq.style.left   = (c * SZ) + 'px';
+            sq.style.top    = (r * SZ) + 'px';
+            sq.style.width  = SZ + 'px';
+            sq.style.height = SZ + 'px';
+
+            if (mode === 'cover') {
+                sq.style.transform  = 'scale(0) rotate(30deg)';
+                sq.style.opacity    = '0';
+                sq.style.transition =
+                    'transform ' + SQDUR + 's cubic-bezier(0.2,0,0.2,1) ' + delay + 's,' +
+                    'opacity '   + (SQDUR * 0.25) + 's linear ' + delay + 's';
+            } else {
+                sq.style.transform  = 'scale(1) rotate(0deg)';
+                sq.style.opacity    = '1';
+                sq.style.transition =
+                    'transform ' + SQDUR + 's cubic-bezier(0.2,0,0.2,1) ' + delay + 's,' +
+                    'opacity '   + (SQDUR * 0.25) + 's linear ' + (delay + SQDUR * 0.75) + 's';
+            }
+            sqs.push(sq);
+            frag.appendChild(sq);
+        }
+        ov.appendChild(frag);
+        ov._sq = sqs;
+        return ov;
+    }
+
+    function fire(ov, mode) {
+        ov._sq.forEach(function(sq) {
+            if (mode === 'cover') {
+                sq.style.transform = 'scale(1) rotate(0deg)';
+                sq.style.opacity   = '1';
+            } else {
+                sq.style.transform = 'scale(0) rotate(-30deg)';
+                sq.style.opacity   = '0';
+            }
+        });
+    }
+
+    // Entry: uncover new page
+    if (sessionStorage.getItem('snn_mp')) {
+        sessionStorage.removeItem('snn_mp');
+        var ov = buildOverlay('uncover');
+        document.body.appendChild(ov);
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                fire(ov, 'uncover');
+                setTimeout(function() {
+                    if (ov.parentNode) ov.parentNode.removeChild(ov);
+                }, (TOTAL + 0.3) * 1000);
+            });
+        });
+    }
+
+    // Exit: cover old page then navigate
+    document.addEventListener('click', function(e) {
+        if (busy) return;
+        var link = e.target.closest ? e.target.closest('a') : (function() {
+            var el = e.target;
+            while (el && el.tagName !== 'A') el = el.parentNode;
+            return el && el.tagName === 'A' ? el : null;
+        }());
+        if (!link) return;
+
+        var href = link.getAttribute('href');
+        if (!href) return;
+        if (link.getAttribute('target') === '_blank') return;
+        if (/^[#?]|^(mailto|tel|javascript):/.test(href.trim())) return;
+
+        var dest;
+        try { dest = new URL(href, location.href); } catch(x) { return; }
+        if (dest.origin !== location.origin) return;
+        if (/\/wp-admin\//.test(dest.pathname)) return;
+
+        e.preventDefault();
+        busy = true;
+
+        var ov = buildOverlay('cover');
+        document.body.appendChild(ov);
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() { fire(ov, 'cover'); });
+        });
+
+        sessionStorage.setItem('snn_mp', '1');
+        setTimeout(function() { location.href = dest.href; }, (TOTAL + 0.05) * 1000);
+    }, true);
+})();
+            ";
+
+            wp_register_script('snn-mosaic-peel', false, [], null, true);
+            wp_enqueue_script('snn-mosaic-peel');
+            wp_add_inline_script('snn-mosaic-peel', $inline_js);
+
         } else {
             // Fade: Smooth Crossfade
             // mix-blend-mode: plus-lighter prevents the white background from bleeding through
