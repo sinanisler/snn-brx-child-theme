@@ -201,8 +201,11 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
 
     public function render() {
 
-        // Enqueue Lottie library
-        wp_enqueue_script('lottie-js', SNN_URL_ASSETS . 'js/lottie.min.js', array(), null, array('in_footer' => true));
+        // Enqueue Lottie library with defer strategy for better performance
+        wp_enqueue_script('lottie-js', SNN_URL_ASSETS . 'js/lottie.min.js', array(), null, array(
+            'in_footer' => true,
+            'strategy'  => 'defer', // Defer loading to prevent render blocking
+        ));
 
         // Existing Settings Retrieval
         // Check for external URL first, then fall back to uploaded file
@@ -270,12 +273,19 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
         ></div>
 
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        (function() {
+            function initLottieAnimation() {
+                // Check if lottie library is loaded
+                if (typeof lottie === 'undefined') {
+                    // Wait for lottie to be available
+                    setTimeout(initLottieAnimation, 50);
+                    return;
+                }
 
-            var autoplayOnViewport = '<?php echo esc_js($autoplay_on_viewport); ?>' === 'true';
-            var shouldAutoplay = '<?php echo esc_js($autoplay); ?>' === 'true';
+                var autoplayOnViewport = '<?php echo esc_js($autoplay_on_viewport); ?>' === 'true';
+                var shouldAutoplay = '<?php echo esc_js($autoplay); ?>' === 'true';
 
-            var lottieAnimation = lottie.loadAnimation({
+                var lottieAnimation = lottie.loadAnimation({
                 container: document.getElementById('<?php echo esc_js($animation_id); ?>'),
                 renderer: 'svg',
                 loop: <?php echo esc_js($loop); ?>,
@@ -394,7 +404,15 @@ class Custom_Element_LottieAnimation extends \Bricks\Element {
                     lottieAnimation.goToAndPlay(0, true);
                 });
             }
-        });
+        } // End of initLottieAnimation function
+            
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initLottieAnimation);
+        } else {
+            initLottieAnimation();
+        }
+        })();
         </script>
 
         <?php
