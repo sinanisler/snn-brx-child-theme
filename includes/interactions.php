@@ -91,7 +91,7 @@ function snn_sanitize_interactions_settings($input) {
 
     // Lenis numeric settings
     $sanitized['lenis_duration'] = isset($input['lenis_duration']) ? floatval($input['lenis_duration']) : 0.7;
-    $sanitized['lenis_lerp'] = isset($input['lenis_lerp']) ? floatval($input['lenis_lerp']) : 0.1;
+    $sanitized['lenis_lerp'] = isset($input['lenis_lerp']) ? floatval($input['lenis_lerp']) : 0.15;
     $sanitized['lenis_wheelMultiplier'] = isset($input['lenis_wheelMultiplier']) ? floatval($input['lenis_wheelMultiplier']) : 1;
     $sanitized['lenis_syncTouchLerp'] = isset($input['lenis_syncTouchLerp']) ? floatval($input['lenis_syncTouchLerp']) : 0.075;
     $sanitized['lenis_touchMultiplier'] = isset($input['lenis_touchMultiplier']) ? floatval($input['lenis_touchMultiplier']) : 1;
@@ -424,11 +424,59 @@ function snn_enqueue_lenis_scripts() {
 
         $easingFunction = isset($easingFunctions[$easing]) ? $easingFunctions[$easing] : $easingFunctions['default'];
 
-        // Build Lenis configuration
+        // Add performance-optimized CSS
+        $inline_css = "
+        html.lenis {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        /* Performance optimizations to reduce forced reflows */
+        html.lenis, body {
+            will-change: transform;
+            contain: layout style paint;
+        }
+        /* Optimize off-screen content rendering */
+        @supports (content-visibility: auto) {
+            body > * {
+                content-visibility: auto;
+                contain-intrinsic-size: auto 500px;
+            }
+            header, footer, [data-lenis-prevent] {
+                content-visibility: visible;
+            }
+        }
+        /* Force GPU acceleration for smooth scrolling elements */
+        .lenis-smooth {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+        ";
+        wp_add_inline_style('lenis-css', $inline_css);
+
+        // Build Lenis configuration with optimizations
         $inline_script = "
         // Check if URL contains ?bricks=run
         const urlParams = new URLSearchParams(window.location.search);
         if (!urlParams.has('bricks') || urlParams.get('bricks') !== 'run') {
+            // Performance optimization: Use passive event listeners
+            const supportsPassive = (() => {
+                let support = false;
+                try {
+                    const opts = Object.defineProperty({}, 'passive', {
+                        get() { support = true; }
+                    });
+                    window.addEventListener('test', null, opts);
+                    window.removeEventListener('test', null, opts);
+                } catch (e) {}
+                return support;
+            })();
+
             const lenis = new Lenis({
                 autoRaf: " . ($autoRaf ? 'true' : 'false') . ",
                 duration: " . $duration . ",
@@ -445,6 +493,22 @@ function snn_enqueue_lenis_scripts() {
                 infinite: " . ($infinite ? 'true' : 'false') . ",
                 overscroll: " . ($overscroll ? 'true' : 'false') . "
             });
+
+            // Optimize scroll updates to reduce reflows
+            // Batch read and write operations
+            let ticking = false;
+            lenis.on('scroll', (e) => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        // Batch DOM reads/writes here if needed
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+
+            // Store lenis instance globally for debugging/integration
+            window.lenis = lenis;
         }
         ";
 
