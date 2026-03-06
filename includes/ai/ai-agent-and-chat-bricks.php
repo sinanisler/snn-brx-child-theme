@@ -276,7 +276,7 @@ class SNN_Bricks_Chat_Overlay {
 
                 <!-- Support Link -->
                 <div class="snn-bricks-chat-support">
-                    <a href="https://sinanisler.com/github-support" target="_blank" data-balloon="If SNN-BRX saving you time and money consider supporting my projects monthly." data-balloon-length="medium">Consider Supporting SNN-BRX ❤</a>
+                    <a href="https://sinanisler.com/github-support" target="_blank" data-balloon="If SNN-BRX saving you time and money consider supporting the project monthly." data-balloon-length="medium">Consider Supporting SNN-BRX ❤</a>
                 </div>
 
                 <?php endif; ?>
