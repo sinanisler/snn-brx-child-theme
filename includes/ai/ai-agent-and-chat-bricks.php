@@ -647,7 +647,7 @@ class SNN_Bricks_Chat_Overlay {
                 const response = await callAI([
                     { role: 'system', content: buildPhase2SystemPrompt(sectionIndex, googleFonts) },
                     { role: 'user', content: 'Convert this ONE HTML section to Bricks Builder JSON.\nSection: "' + sectionLabel + '"\nReturn ONLY raw JSON — no markdown, no backticks, no explanation. Start with { end with }:\n\n' + sectionHtml }
-                ], 0, { maxTokens: 8000 });
+                ]);
 
                 let bricksData = extractBricksJSONFromResponse(response);
                 if (bricksData) return bricksData;
@@ -658,7 +658,7 @@ class SNN_Bricks_Chat_Overlay {
                     { role: 'user', content: 'Convert to Bricks JSON:\n\n' + sectionHtml },
                     { role: 'assistant', content: response },
                     { role: 'user', content: 'Invalid JSON. Return ONLY {"content":[...]}. No markdown, no code fences. Start with { end with }.' }
-                ], 0, { maxTokens: 8000 });
+                ]);
                 return extractBricksJSONFromResponse(retryResp);
             }
 
