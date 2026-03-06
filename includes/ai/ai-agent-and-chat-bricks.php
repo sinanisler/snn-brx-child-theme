@@ -445,70 +445,160 @@ class SNN_Bricks_Chat_Overlay {
             // PHASE 2 — Compile HTML Preview → Bricks JSON → Inject
             // ================================================================
 
-            async function compileAndBuild(actionType) {
+            /**
+             * Parse an HTML string into individual sections by landmark elements.
+             * Returns [{label, html}, ...]. Falls back to one entry if no landmarks found.
+             */
+            function parseHTMLIntoSections(html) {
+                const parser  = new DOMParser();
+                const doc     = parser.parseFromString(html, 'text/html');
+                const body    = doc.body;
+                const tags    = ['section','header','footer','nav','main','article'];
+                const results = [];
+                for (const child of Array.from(body.children)) {
+                    if (tags.includes(child.tagName.toLowerCase())) {
+                        const h   = child.querySelector('h1,h2,h3,h4');
+                        const lbl = child.getAttribute('aria-label')
+                                 || (h ? h.textContent.trim().slice(0, 50) : '')
+                                 || child.tagName.charAt(0).toUpperCase() + child.tagName.slice(1).toLowerCase();
+                        results.push({ label: lbl, html: child.outerHTML });
+                    }
+                }
+                if (!results.length) results.push({ label: 'Page Content', html });
+                return results;
+            }
+
+            /**
+             * Validate and auto-fix a Bricks JSON object before injection.
+             * Fixes duplicate IDs, missing parent fields, and orphaned elements.
+             */
+            function validateAndFixBricksJSON(data) {
+                const content = data.content;
+                if (!Array.isArray(content) || !content.length) {
+                    return { valid: false, data, errors: ['Empty content array'] };
+                }
+                const errors  = [];
+                let   fixed   = false;
+                const usedIds = new Set();
+                const idRemap = {};
+
+                function genId() {
+                    let id;
+                    do { id = Math.random().toString(36).slice(2, 8); } while (usedIds.has(id));
+                    return id;
+                }
+
+                // Pass 1: ensure each element has a unique id and a name
+                content.forEach(el => {
+                    if (!el.id) {
+                        el.id = genId(); usedIds.add(el.id); fixed = true;
+                    } else if (usedIds.has(el.id)) {
+                        const newId    = genId();
+                        idRemap[el.id] = newId;
+                        errors.push('Dup ID ' + el.id + '→' + newId);
+                        el.id = newId; usedIds.add(newId); fixed = true;
+                    } else {
+                        usedIds.add(el.id);
+                    }
+                    if (!el.name)            { el.name   = 'block'; fixed = true; }
+                    if (el.parent === undefined) { el.parent = 0;     fixed = true; }
+                });
+
+                // Pass 2: remap stale parent/children refs, orphan check
+                content.forEach(el => {
+                    if (el.parent && idRemap[el.parent]) { el.parent = idRemap[el.parent]; fixed = true; }
+                    if (el.parent !== 0 && !usedIds.has(el.parent)) {
+                        errors.push('Orphan ' + el.id + ' (parent ' + el.parent + ')→root');
+                        el.parent = 0; fixed = true;
+                    }
+                    if (el.children) el.children = el.children.map(c => idRemap[c] || c);
+                });
+
+                if (fixed) debugLog('JSON auto-fixed:', errors);
+                return { valid: true, fixed, data, errors };
+            }
+
+            /**
+             * Compile a single HTML section to Bricks JSON via AI.
+             * Performs one automatic retry on parse failure.
+             */
+            async function compileSingleSection(sectionHtml, sectionLabel) {
+                const response = await callAI([
+                    { role: 'system', content: buildPhase2SystemPrompt() },
+                    { role: 'user', content: 'Convert this ONE HTML section to Bricks Builder JSON.\nSection: "' + sectionLabel + '"\nReturn ONLY raw JSON — no markdown, no backticks, no explanation. Start with { end with }:\n\n' + sectionHtml }
+                ], 0, { maxTokens: 4000 });
+
+                let bricksData = extractBricksJSONFromResponse(response);
+                if (bricksData) return bricksData;
+
+                // One retry with stricter prompt
+                const retryResp = await callAI([
+                    { role: 'system', content: buildPhase2SystemPrompt() },
+                    { role: 'user', content: 'Convert to Bricks JSON:\n\n' + sectionHtml },
+                    { role: 'assistant', content: response },
+                    { role: 'user', content: 'Invalid JSON. Return ONLY {"content":[...]}. No markdown, no code fences. Start with { end with }.' }
+                ], 0, { maxTokens: 4000 });
+                return extractBricksJSONFromResponse(retryResp);
+            }
+
+            /**
+             * Main Phase 2 orchestrator: parses HTML into sections, compiles each
+             * one individually, and injects them into Bricks sequentially.
+             */
+            async function compileSectionBySection(actionType) {
                 if (!ChatState.currentHTMLPreview) return;
                 ChatState.isProcessing = true;
-                showTyping();
                 setAgentState('compiling');
-                addMessage('assistant', 'Compiling design to Bricks Builder format...');
-                try {
-                    const response = await callAI([
-                        { role: 'system', content: buildPhase2SystemPrompt() },
-                        { role: 'user', content: 'Convert this HTML design to Bricks Builder JSON.\nReturn ONLY the raw JSON object — no markdown, no backticks, no explanation. Start with { and end with }:\n\n```html\n' + ChatState.currentHTMLPreview + '\n```' }
-                    ], 0, { maxTokens: 8000 });
-                    hideTyping();
 
-                    const bricksData = extractBricksJSONFromResponse(response);
-                    if (bricksData) {
-                        const result = actionType === 'replace'
-                            ? BricksHelper.replaceAllContent(bricksData)
-                            : BricksHelper.addSection(bricksData, actionType);
-                        if (result.success) {
-                            addMessage('assistant', 'Design built in Bricks! Scroll the canvas to review the layout.');
-                            hideHTMLPreview();
-                            removeApproveBar();
-                            ChatState.previewMode        = null;
-                            ChatState.currentHTMLPreview = null;
+                const sections = parseHTMLIntoSections(ChatState.currentHTMLPreview);
+                const total    = sections.length;
+                addMessage('assistant', 'Building ' + total + ' section' + (total > 1 ? 's' : '') + ' — compiling one at a time...');
+
+                let builtCount = 0;
+                for (let i = 0; i < sections.length; i++) {
+                    const { label, html } = sections[i];
+                    setAgentState('compiling', 'Compiling "' + label + '" (' + (i + 1) + '/' + total + ')...');
+                    showTyping();
+                    try {
+                        const bricksData = await compileSingleSection(html, label);
+                        hideTyping();
+                        if (bricksData) {
+                            const { data } = validateAndFixBricksJSON(bricksData);
+                            const result   = (i === 0 && actionType === 'replace')
+                                ? BricksHelper.replaceAllContent(data)
+                                : BricksHelper.addSection(data, i === 0 ? actionType : 'append');
+                            if (result.success) {
+                                builtCount++;
+                                addMessage('assistant', '✓ "' + label + '" built (' + builtCount + '/' + total + ')');
+                            } else {
+                                addMessage('error', '✗ "' + label + '" inject failed: ' + result.error);
+                            }
                         } else {
-                            addMessage('error', 'Build failed: ' + result.error);
+                            addMessage('error', '✗ "' + label + '" — could not compile. Skipped.');
                         }
-                    } else {
-                        addMessage('assistant', 'Retrying compilation with stricter instructions...');
-                        await retryCompilation(actionType, response);
+                    } catch(e) {
+                        hideTyping();
+                        addMessage('error', '✗ "' + label + '" error: ' + e.message);
                     }
-                } catch(err) {
-                    hideTyping();
-                    addMessage('error', 'Compilation error: ' + err.message);
-                } finally {
-                    ChatState.isProcessing = false;
-                    setAgentState('idle');
+                }
+
+                ChatState.isProcessing = false;
+                setAgentState('idle');
+
+                if (builtCount > 0) {
+                    addMessage('assistant', 'Done! ' + builtCount + '/' + total + ' sections built in Bricks. Scroll the canvas to review.');
+                    hideHTMLPreview();
+                    removeApproveBar();
+                    ChatState.previewMode        = null;
+                    ChatState.currentHTMLPreview = null;
+                } else {
+                    addMessage('error', 'No sections could be compiled. Try simplifying or rephrasing your request.');
                 }
             }
 
-            async function retryCompilation(actionType, prevResponse) {
-                try {
-                    showTyping();
-                    const response = await callAI([
-                        { role: 'system', content: buildPhase2SystemPrompt() },
-                        { role: 'user', content: 'Convert this HTML to Bricks JSON:\n\n```html\n' + ChatState.currentHTMLPreview + '\n```' },
-                        { role: 'assistant', content: prevResponse },
-                        { role: 'user', content: 'The previous response could not be parsed as JSON. Return ONLY a valid JSON object: {"content":[...]}. No markdown, no code fences, no explanation. Start with { end with }.' }
-                    ], 0, { maxTokens: 8000 });
-                    hideTyping();
-                    const bricksData = extractBricksJSONFromResponse(response);
-                    if (bricksData) {
-                        const result = actionType === 'replace'
-                            ? BricksHelper.replaceAllContent(bricksData)
-                            : BricksHelper.addSection(bricksData, actionType);
-                        if (result.success) {
-                            addMessage('assistant', 'Design built in Bricks!');
-                            hideHTMLPreview(); removeApproveBar();
-                            ChatState.previewMode = null; ChatState.currentHTMLPreview = null;
-                        } else { addMessage('error', 'Build failed: ' + result.error); }
-                    } else {
-                        addMessage('error', 'Could not compile design. Try simplifying or rephrasing your request.');
-                    }
-                } catch(e) { hideTyping(); addMessage('error', 'Retry failed: ' + e.message); }
+            // Thin wrapper kept for backward compatibility (preview pane button, etc.)
+            async function compileAndBuild(actionType) {
+                await compileSectionBySection(actionType);
             }
 
             // ================================================================
@@ -547,20 +637,23 @@ class SNN_Bricks_Chat_Overlay {
 
             function addApproveBar() {
                 removeApproveBar();
+                const sections = parseHTMLIntoSections(ChatState.currentHTMLPreview || '');
+                const n        = sections.length;
+                const sLabel   = n === 1 ? '1 section' : n + ' sections';
                 const $bar = $('<div id="snn-approve-bar" class="snn-approve-bar">').html(
-                    '<span class="snn-approve-label">Preview ready — use left panel to review</span>' +
+                    '<span class="snn-approve-label">Preview ready — <strong>' + sLabel + '</strong> detected</span>' +
                     '<div class="snn-approve-actions">' +
                     '<select id="snn-approve-action-type" class="snn-approve-select">' +
                     '<option value="append" selected>Append</option>' +
                     '<option value="replace">Replace Page</option>' +
                     '<option value="prepend">Prepend</option>' +
                     '</select>' +
-                    '<button id="snn-approve-build-btn" class="snn-approve-build-btn">&#10003; Build in Bricks</button>' +
+                    '<button id="snn-approve-build-btn" class="snn-approve-build-btn">&#10003; Build ' + sLabel + '</button>' +
                     '</div>'
                 );
                 $('#snn-bricks-chat-messages').after($bar);
                 $('#snn-approve-build-btn').on('click', function() {
-                    compileAndBuild($('#snn-approve-action-type').val());
+                    compileSectionBySection($('#snn-approve-action-type').val());
                 });
             }
 
@@ -625,7 +718,12 @@ WHEN NOT TO GENERATE HTML:
             }
 
             function buildPhase2SystemPrompt() {
-                return `You are a Bricks Builder JSON compiler. Convert HTML/Tailwind into Bricks Builder JSON.
+                return `You are a Bricks Builder JSON compiler. You receive ONE HTML section and convert it to Bricks Builder JSON.
+
+TASK: Convert the provided HTML section to Bricks Builder JSON.
+- You are compiling ONE section at a time — not the whole page.
+- The output must contain exactly one top-level section element with parent:0.
+- Do NOT include other sections from memory or context.
 
 OUTPUT: Return ONLY a raw JSON object. No markdown, no backticks, no explanation.
 Start with { and end with }
@@ -635,64 +733,87 @@ SCHEMA: {"content":[...elements]}
 ELEMENT STRUCTURE:
 {"id":"abc123","name":"type","parent":"pid_or_0","children":["id1"],"settings":{...},"label":"optional"}
 
-IDs: 6 unique lowercase alphanumeric chars per element.
+IDs: 6 unique lowercase alphanumeric chars per element. Every element must have a DIFFERENT id.
 
 ELEMENT TYPES & SETTINGS:
 
-section (always parent:0):
-{"name":"section","parent":0,"children":["con1"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"hex":"#000"}}},"label":"Hero"}
+section (always parent:0, always one per output):
+{"id":"s1a2b3","name":"section","parent":0,"children":["c1a2b3"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"hex":"#0f172a"}}},"label":"Hero"}
 
-container (max-width wrapper + flex/grid layout):
-  col:  {"name":"container","settings":{"_direction":"column","_rowGap":"24","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"}}}
-  row:  {"name":"container","settings":{"_direction":"row","_columnGap":"20","_alignItems":"center"}}
-  grid: {"name":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"30"}}
+container (max-width wrapper OR flex/grid layout):
+  column wrapper: {"name":"container","settings":{"_direction":"column","_rowGap":"24","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"},"_padding":{"top":"0","right":"24","bottom":"0","left":"24"}}}
+  flex row:  {"name":"container","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_flexWrap":"wrap"}}
+  css grid:  {"name":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"32"}}
 
-block (nested div — cards, wrappers):
-{"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"hex":"#fff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}}}
+block (card wrapper, nested div — padding, background, border):
+{"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"hex":"#ffffff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"hex":"#e5e7eb"}}}}
 
-heading: {"name":"heading","settings":{"text":"Text","tag":"h1","_typography":{"font-size":"60","font-weight":"900","color":{"hex":"#fff"},"line-height":"1.1","text-align":"center"}}}
+heading: {"name":"heading","settings":{"text":"Text","tag":"h1","_typography":{"font-size":"60","font-weight":"900","color":{"hex":"#ffffff"},"line-height":"1.1","text-align":"center","font-family":"Playfair Display"}}}
 
-text-basic: {"name":"text-basic","settings":{"text":"Paragraph.","_typography":{"font-size":"18","line-height":"1.7","color":{"hex":"#666"}}}}
+text-basic: {"name":"text-basic","settings":{"text":"Paragraph content here.","_typography":{"font-size":"18","line-height":"1.7","color":{"hex":"#4b5563"}}}}
 
-button: {"name":"button","settings":{"text":"CTA","link":{"type":"external","url":"#"},"_background":{"color":{"hex":"#6366f1"}},"_typography":{"color":{"hex":"#fff"},"font-weight":"600","font-size":"16"},"_padding":{"top":"14","right":"28","bottom":"14","left":"28"},"_border":{"radius":{"top":"8","right":"8","bottom":"8","left":"8"}}}}
+button: {"name":"button","settings":{"text":"CTA Label","link":{"type":"external","url":"#"},"_background":{"color":{"hex":"#2563eb"}},"_typography":{"color":{"hex":"#ffffff"},"font-weight":"600","font-size":"16"},"_padding":{"top":"14","right":"28","bottom":"14","left":"28"},"_border":{"radius":{"top":"8","right":"8","bottom":"8","left":"8"}}}}
 
-image: {"name":"image","settings":{"image":{"url":"https://...","size":"full"},"_aspectRatio":"16/9","_objectFit":"cover","_width":"100%","_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}}}
+image: {"name":"image","settings":{"image":{"url":"https://example.com/img.jpg","size":"full"},"_aspectRatio":"16/9","_objectFit":"cover","_width":"100%","_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}}}
 
 icon: {"name":"icon","settings":{"icon":{"library":"themify","icon":"ti-star"},"_typography":{"font-size":"32","color":{"hex":"#f59e0b"}}}}
 
-KEY SETTINGS:
-_direction: "row"|"column"   (flex; default column)
+divider: {"name":"divider","settings":{"_margin":{"top":"24","bottom":"24"}}}
+
+KEY SETTINGS REFERENCE:
+_direction: "row"|"column"
 _display: "grid"
 _gridTemplateColumns: "1fr 1fr 1fr"
-_gridGap / _columnGap / _rowGap: "30"   (number strings, no px)
+_gridGap / _columnGap / _rowGap: "32"  (strings, no px)
 _justifyContent: "center"|"flex-start"|"flex-end"|"space-between"
 _alignItems: "center"|"flex-start"|"flex-end"
 _flexWrap: "wrap"
-_width:"100%"  _widthMax:"1200px"  _minHeight:"100vh"
-_padding:{"top":"40","right":"40","bottom":"40","left":"40"}
-_margin:{"left":"auto","right":"auto"}
-_background:{"color":{"hex":"#000000"}}
-_typography:{"font-size":"20","font-weight":"700","line-height":"1.7","letter-spacing":"0.05em","text-align":"center","color":{"hex":"#fff"},"font-family":"Poppins","text-transform":"uppercase"}
-_border:{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"hex":"#e5e7eb"}}
+_width: "100%"   _widthMax: "1200px"   _minHeight: "100vh"
+_padding: {"top":"40","right":"40","bottom":"40","left":"40"}
+_margin: {"top":"0","right":"auto","bottom":"0","left":"auto"}
+_background: {"color":{"hex":"#000000"}}
+_typography: {"font-size":"20","font-weight":"700","line-height":"1.6","letter-spacing":"0.05em","text-align":"center","color":{"hex":"#ffffff"},"font-family":"Inter","text-transform":"uppercase","font-style":"italic"}
+_border: {"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"hex":"#e5e7eb"}}
+_opacity: "0.8"  (string, 0–1 range)
+_overflow: "hidden"
+
+DARK SECTION BACKGROUND (bg-zinc-900, bg-gray-900, bg-slate-900):
+section settings → _background: {"color":{"hex":"#111827"}}
+
+GRADIENT BACKGROUND (bg-gradient-to-r from-blue-600 to-purple-600):
+_background: {"gradient":{"type":"linear","angle":"90","stops":[{"color":{"hex":"#2563eb"},"position":"0"},{"color":{"hex":"#9333ea"},"position":"100"}]}}
+
+BOX SHADOW (shadow-lg, shadow-xl):
+_boxShadow: {"values":[{"offsetX":"0","offsetY":"10","blur":"24","spread":"-3","color":{"hex":"#000000","alpha":0.1}}]}
+
+COL-SPAN (col-span-2 inside a 3-col grid):
+On the child block/container: _gridColumn: "span 2"
+
+RELATIVE POSITION WITH OVERFLOW HIDDEN (relative overflow-hidden):
+_position: "relative"   _overflow: "hidden"
 
 TAILWIND → BRICKS MAPPING:
-LAYOUT: flex flex-col→_direction:"column" | flex flex-row/flex→_direction:"row" | grid grid-cols-2→_display:"grid",_gridTemplateColumns:"1fr 1fr" | grid-cols-3→"1fr 1fr 1fr" | grid-cols-4→"1fr 1fr 1fr 1fr" | items-center→_alignItems:"center" | justify-center→_justifyContent:"center" | justify-between→_justifyContent:"space-between" | flex-wrap→_flexWrap:"wrap"
-GAP: gap-4→"16" gap-6→"24" gap-8→"32" gap-10→"40" gap-12→"48" gap-16→"64"
-SIZING: max-w-6xl→"1152px" max-w-5xl→"1024px" max-w-4xl→"896px" max-w-3xl→"768px" max-w-2xl→"672px" max-w-xl→"576px" | min-h-screen→_minHeight:"100vh" | w-full→_width:"100%"
-PADDING: p-4→"16" p-6→"24" p-8→"32" p-10→"40" p-12→"48" p-16→"64" | px-4→l/r"16" px-6→"24" px-8→"32" | py-8→t/b"32" py-12→"48" py-16→"64" py-20→"80" py-24→"96" py-32→"128"
-TYPOGRAPHY: text-sm→"14" text-base→"16" text-lg→"18" text-xl→"20" text-2xl→"24" text-3xl→"30" text-4xl→"36" text-5xl→"48" text-6xl→"60" text-7xl→"72" text-8xl→"96" | font-medium→"500" font-semibold→"600" font-bold→"700" font-extrabold→"800" font-black→"900" | text-center→text-align:"center" | leading-tight→"1.25" leading-relaxed→"1.625" | tracking-wide→"0.05em" tracking-wider→"0.1em" tracking-widest→"0.25em" | uppercase→text-transform:"uppercase"
-COLORS: bg-white→"#ffffff" bg-black→"#000000" bg-gray-50→"#f9fafb" bg-gray-100→"#f3f4f6" bg-gray-900→"#111827" bg-slate-900→"#0f172a" | text-white→"#ffffff" text-black→"#000000" text-gray-500→"#6b7280" text-gray-600→"#4b5563" text-gray-900→"#111827" | For bg-[#FF6B35] or text-[#FF6B35] use that exact hex
+LAYOUT: flex flex-col→_direction:"column" | flex/flex-row→_direction:"row" | grid grid-cols-2→_display:"grid",_gridTemplateColumns:"1fr 1fr" | grid-cols-3→"1fr 1fr 1fr" | grid-cols-4→"1fr 1fr 1fr 1fr" | items-center→_alignItems:"center" | justify-center→_justifyContent:"center" | justify-between→_justifyContent:"space-between" | flex-wrap→_flexWrap:"wrap" | col-span-2→_gridColumn:"span 2"
+GAP: gap-2→"8" gap-3→"12" gap-4→"16" gap-6→"24" gap-8→"32" gap-10→"40" gap-12→"48" gap-16→"64"
+SIZING: max-w-7xl→"1280px" max-w-6xl→"1152px" max-w-5xl→"1024px" max-w-4xl→"896px" max-w-3xl→"768px" max-w-2xl→"672px" max-w-xl→"576px" | min-h-screen→_minHeight:"100vh" | w-full→_width:"100%" | w-24→_width:"96px" | h-48→_height:"192px" h-64→_height:"256px" h-96→_height:"384px"
+PADDING: p-2→"8" p-3→"12" p-4→"16" p-6→"24" p-8→"32" p-10→"40" p-12→"48" p-16→"64" | px-4→l/r"16" px-6→"24" px-8→"32" px-16→"64" | py-4→t/b"16" py-8→"32" py-12→"48" py-16→"64" py-20→"80" py-24→"96" py-32→"128"
+MARGIN: mx-auto→left/right"auto" | mt-4→top"16" mt-6→"24" mt-8→"32" mb-4→bottom"16" mb-6→"24" mb-8→"32"
+TYPOGRAPHY: text-xs→"12" text-sm→"14" text-base→"16" text-lg→"18" text-xl→"20" text-2xl→"24" text-3xl→"30" text-4xl→"36" text-5xl→"48" text-6xl→"60" text-7xl→"72" text-8xl→"96" | font-medium→"500" font-semibold→"600" font-bold→"700" font-extrabold→"800" font-black→"900" | text-center→text-align:"center" text-right→"right" | leading-none→"1" leading-tight→"1.25" leading-snug→"1.375" leading-normal→"1.5" leading-relaxed→"1.625" leading-loose→"2" | tracking-tight→"-0.025em" tracking-wide→"0.05em" tracking-wider→"0.1em" tracking-widest→"0.25em" | uppercase→text-transform:"uppercase" | italic→font-style:"italic"
+COLORS: bg-white→"#ffffff" bg-black→"#000000" bg-gray-50→"#f9fafb" bg-gray-100→"#f3f4f6" bg-gray-200→"#e5e7eb" bg-gray-800→"#1f2937" bg-gray-900→"#111827" bg-slate-800→"#1e293b" bg-slate-900→"#0f172a" bg-zinc-900→"#18181b" bg-stone-100→"#f5f5f4" bg-stone-900→"#1c1917" bg-red-600→"#dc2626" bg-red-700→"#b91c1c" bg-blue-600→"#2563eb" bg-indigo-600→"#4f46e5" bg-green-500→"#22c55e" bg-yellow-400→"#facc15" bg-amber-500→"#f59e0b" bg-orange-500→"#f97316" bg-purple-600→"#9333ea" bg-pink-600→"#db2777" | text-white→"#ffffff" text-black→"#000000" text-gray-400→"#9ca3af" text-gray-500→"#6b7280" text-gray-600→"#4b5563" text-gray-700→"#374151" text-gray-900→"#111827" text-red-600→"#dc2626" text-red-700→"#b91c1c" text-blue-600→"#2563eb" text-indigo-600→"#4f46e5" text-green-600→"#16a34a" text-amber-500→"#f59e0b" text-yellow-400→"#facc15" text-orange-500→"#f97316" | bg-[#HEX] or text-[#HEX] → use that exact hex
 BORDER RADIUS: rounded→"4" rounded-md→"6" rounded-lg→"8" rounded-xl→"12" rounded-2xl→"16" rounded-3xl→"24" rounded-full→"9999"
+OPACITY: opacity-50→"0.5" opacity-60→"0.6" opacity-70→"0.7" opacity-80→"0.8" opacity-90→"0.9"
 
 STRUCTURE RULES:
-1. All SECTION elements have parent:0
-2. SECTION > CONTAINER (max-width + layout) > content/BLOCK elements
-3. BLOCK handles nested card/grid layouts inside containers
-4. Content elements (heading, text-basic, button, image, icon) have no children
-5. Section _padding: ONLY top and bottom (never left/right)
+1. Exactly ONE section element per output, always parent:0
+2. SECTION > CONTAINER (max-width + centering) > layout CONTAINER or BLOCK > leaf elements
+3. BLOCK = card/wrapper with padding/background; CONTAINER = layout (flex/grid) with no background
+4. Leaf elements (heading, text-basic, button, image, icon, divider) never have children
+5. Section _padding: ONLY top and bottom (never set left/right on section — set those on inner container)
 6. All numeric values are STRINGS without "px": "40" not "40px" not 40
-7. Generate unique 6-char IDs — every element must have a different ID
-8. Parent IDs must exactly match the actual parent element's id field`;
+7. Every element must have a unique 6-char lowercase alphanumeric id
+8. parent value must exactly match the id of the actual parent element (or 0 for section)
+9. Max nesting depth: section > container > block > leaf (4 levels). Never deeper.
+10. Never nest section inside section`;
             }
 
             // ================================================================
@@ -877,7 +998,7 @@ STRUCTURE RULES:
 
             function setAgentState(state, detail = '') {
                 const $t = $('#snn-bricks-chat-state-text');
-                const labels = { thinking: 'Thinking...', compiling: 'Compiling to Bricks...', recovering: detail || 'Recovering...', error: 'Error', idle: '' };
+                const labels = { thinking: 'Thinking...', compiling: detail || 'Compiling to Bricks...', recovering: detail || 'Recovering...', error: 'Error', idle: '' };
                 const lbl = labels[state] || '';
                 lbl ? $t.text(lbl).show() : $t.hide();
             }
