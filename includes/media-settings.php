@@ -352,9 +352,9 @@ function snn_add_custom_css_js_to_media_page() {
                 padding: 0;
             }
             #media-categories-list li {
-                padding: 10px 8px;
+                padding: 2px 8px;
                 background: #fff;
-                margin-bottom: 10px;
+                margin-bottom: 2px;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
