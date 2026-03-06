@@ -278,6 +278,12 @@ class SNN_Bricks_Chat_Overlay {
                         <span class="dashicons dashicons-arrow-up-alt2"></span>
                     </button>
                 </div>
+
+                <!-- Support Link -->
+                <div class="snn-bricks-chat-support">
+                    <a href="https://sinanisler.com/github-support" target="_blank" data-balloon="If my projects saving you time and money consider supporting my projects monthly." data-balloon-length="medium">Consider Supporting SNN-BRX ❤</a>
+                </div>
+
                 <?php endif; ?>
             </div>
         </div>
@@ -682,10 +688,12 @@ class SNN_Bricks_Chat_Overlay {
 
                 if (builtCount > 0) {
                     addMessage('assistant', 'Done! ' + builtCount + '/' + total + ' sections built in Bricks. Scroll the canvas to review.');
-                    hideHTMLPreview();
+                    // Keep preview visible so user can still compare the HTML
+                    // hideHTMLPreview();
                     removeApproveBar();
                     ChatState.previewMode        = null;
-                    ChatState.currentHTMLPreview = null;
+                    // Keep currentHTMLPreview so toggle button remains functional
+                    // ChatState.currentHTMLPreview = null;
                 } else {
                     addMessage('error', 'No sections could be compiled. Try simplifying or rephrasing your request.');
                 }
@@ -1635,6 +1643,10 @@ Responsive Grid:
 .snn-approve-select { padding: 4px 8px; border-radius: 6px; border: 1px solid #d1fae5; background: #fff; font-size: 12px; color: #374151; cursor: pointer; }
 .snn-approve-build-btn { background: #16a34a; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .snn-approve-build-btn:hover { background: #15803d; }
+/* Support link */
+.snn-bricks-chat-support { padding: 8px 12px; background: #f9f9f9; border-top: 1px solid #e0e0e0; text-align: center; }
+.snn-bricks-chat-support a { font-size: 14px; color: #666; text-decoration: none; transition: color 0.2s; }
+.snn-bricks-chat-support a:hover { color: #161a1d; }
         ';
     }
 }
