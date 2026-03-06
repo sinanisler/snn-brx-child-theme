@@ -619,6 +619,26 @@ class SNN_Bricks_Chat_Overlay {
                         errors.push('Removed legacy _css from ' + el.id);
                         fixed = true;
                     }
+
+                    // Fix incorrect gradient in _background.color.raw — convert to proper _gradient format
+                    const bgRaw = el.settings._background && el.settings._background.color && el.settings._background.color.raw;
+                    if (bgRaw && typeof bgRaw === 'string' && (bgRaw.includes('linear-gradient') || bgRaw.includes('radial-gradient'))) {
+                        const isRadial = bgRaw.startsWith('radial');
+                        const angleMatch = bgRaw.match(/(\d+)deg/);
+                        const colorMatches = [...bgRaw.matchAll(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/g)];
+                        if (colorMatches.length >= 2) {
+                            el.settings._gradient = {
+                                applyTo: 'overlay',
+                                gradientType: isRadial ? 'radial' : 'linear',
+                                ...((!isRadial && angleMatch) ? { angle: angleMatch[1] } : {}),
+                                colors: colorMatches.map((m, i) => ({ id: 'fx' + el.id + i, color: { raw: m[0] }, stop: String(Math.round(i / (colorMatches.length - 1) * 100)) }))
+                            };
+                            delete el.settings._background.color;
+                            if (!Object.keys(el.settings._background).length) delete el.settings._background;
+                            errors.push('Converted invalid gradient in _background.color.raw to _gradient for ' + el.id);
+                            fixed = true;
+                        }
+                    }
                 });
 
                 if (fixed || errors.length) debugLog('JSON validation:', { fixed, errors: errors.length });
@@ -972,8 +992,10 @@ Colors:
 
 Backgrounds:
   Solid: {"_background": {"color": {"raw": "#0f172a"}}}
-  Gradient: {"_background": {"color": {"raw": "linear-gradient(90deg, #2563eb 0%, #9333ea 100%)"}}}
   RGBA: {"_background": {"color": {"raw": "rgba(15, 23, 42, 0.95)"}}}
+  GRADIENT — use _gradient (NEVER put a CSS gradient string in _background.color.raw):
+    Linear: {"_gradient": {"applyTo": "overlay", "gradientType": "linear", "angle": "135", "colors": [{"id": "ga1", "color": {"raw": "#2563eb"}, "stop": "0"}, {"id": "ga2", "color": {"raw": "#9333ea"}, "stop": "100"}]}}
+    Radial:  {"_gradient": {"applyTo": "overlay", "gradientType": "radial", "colors": [{"id": "gb1", "color": {"raw": "#1e293b"}, "stop": "0"}, {"id": "gb2", "color": {"raw": "#050810"}, "stop": "100"}]}}
 
 Typography Colors:
   {"_typography": {"color": {"raw": "#ffffff"}, "font-size": "60"}}
@@ -1072,9 +1094,11 @@ SPACING:
 BACKGROUND:
   Solid color: _background: {"color": {"raw": "#000000"}}
   RGBA: _background: {"color": {"raw": "rgba(15, 23, 42, 0.9)"}}
-  Gradient: _background: {"color": {"raw": "linear-gradient(90deg, #2563eb 0%, #9333ea 100%)"}}
-  Complex gradient: _background: {"color": {"raw": "linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.95) 100%)"}}
   Image (still uses standard format): _background: {"image": {"url": "https://...", "size": "cover", "position": "center center"}}
+  GRADIENT — use _gradient property (NEVER use linear-gradient/radial-gradient inside _background.color.raw):
+    Linear:   _gradient: {"applyTo": "overlay", "gradientType": "linear", "angle": "135", "colors": [{"id": "ga1", "color": {"raw": "#2563eb"}, "stop": "0"}, {"id": "ga2", "color": {"raw": "#9333ea"}, "stop": "100"}]}
+    Radial:   _gradient: {"applyTo": "overlay", "gradientType": "radial", "colors": [{"id": "gb1", "color": {"raw": "#1e293b"}, "stop": "0"}, {"id": "gb2", "color": {"raw": "#050810"}, "stop": "100"}]}
+    applyTo: "overlay" | "background" — angle (string degrees, linear only) — stop (string %, optional)
 
 TYPOGRAPHY:
   _typography: {
@@ -1144,7 +1168,8 @@ PARSING INLINE CSS → BRICKS (USE RAW FORMAT):
   Extract from style="..." attributes and use raw format for CSS values:
   - background: #0f172a → _background: {"color": {"raw": "#0f172a"}}
   - background: rgba(15,23,42,0.9) → _background: {"color": {"raw": "rgba(15, 23, 42, 0.9)"}}
-  - background: linear-gradient(...) → _background: {"color": {"raw": "linear-gradient(...)"}}
+  - background: linear-gradient(90deg, #06b6d4, #3b82f6) → _gradient: {"applyTo": "overlay", "gradientType": "linear", "angle": "90", "colors": [{"id": "ga1", "color": {"raw": "#06b6d4"}, "stop": "0"}, {"id": "ga2", "color": {"raw": "#3b82f6"}, "stop": "100"}]}
+  - background: radial-gradient(circle at top, #1e293b, #050810) → _gradient: {"applyTo": "overlay", "gradientType": "radial", "colors": [{"id": "gb1", "color": {"raw": "#1e293b"}, "stop": "0"}, {"id": "gb2", "color": {"raw": "#050810"}, "stop": "100"}]}
   - padding: 40px 20px → _padding: {"top": "40", "right": "20", "bottom": "40", "left": "20"}
   - padding: 60px 0 → _padding: {"top": "60", "right": "0", "bottom": "60", "left": "0"}
   - font-size: 48px → _typography: {"font-size": "48"}
