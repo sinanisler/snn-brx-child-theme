@@ -87,18 +87,12 @@ class SNN_Bricks_Chat_Overlay {
 
         wp_localize_script( 'jquery', 'snnBricksChatConfig', array(
             'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
-            'restUrl'       => rest_url( 'wp-abilities/v1/' ),
-            'nonce'         => wp_create_nonce( 'wp_rest' ),
             'agentNonce'    => wp_create_nonce( 'snn_ai_agent_nonce' ),
-            'currentUserId' => get_current_user_id(),
-            'userName'      => wp_get_current_user()->display_name,
             'pageContext'   => $page_context,
             'ai'            => $ai_config,
             'settings'      => array(
-                'enabledAbilities'  => $main_chat->get_enabled_abilities(),
-                'debugMode'         => $main_chat->is_debug_enabled(),
-                'maxRetries'        => $main_chat->get_max_retries(),
-                'maxHistory'        => $main_chat->get_max_history(),
+                'debugMode'  => $main_chat->is_debug_enabled(),
+                'maxHistory' => $main_chat->get_max_history(),
             ),
         ) );
 
@@ -140,6 +134,26 @@ class SNN_Bricks_Chat_Overlay {
     public function render_overlay() {
         $main_chat = SNN_Chat_Overlay::get_instance();
         ?>
+        <!-- Design Preview Pane — left side, shown when HTML preview is active -->
+        <div id="snn-bricks-preview-pane" class="snn-bricks-preview-pane" style="display:none;">
+            <div class="snn-bricks-preview-header">
+                <div class="snn-bricks-preview-title">
+                    <span>Design Preview</span>
+                    <span class="snn-bricks-preview-badge">HTML / Tailwind</span>
+                </div>
+                <div class="snn-bricks-preview-controls">
+                    <select id="snn-preview-action-type" class="snn-preview-action-select">
+                        <option value="append" selected>Append Section</option>
+                        <option value="replace">Replace Page</option>
+                        <option value="prepend">Prepend Section</option>
+                    </select>
+                    <button id="snn-preview-approve-btn" class="snn-preview-approve-btn">&#10003; Build in Bricks</button>
+                    <button id="snn-preview-close-btn" class="snn-preview-close-btn" title="Hide preview">&times;</button>
+                </div>
+            </div>
+            <iframe id="snn-bricks-preview-iframe" class="snn-bricks-preview-iframe"></iframe>
+        </div>
+
         <div id="snn-bricks-chat-overlay" class="snn-bricks-chat-overlay" style="display: none;">
             <div class="snn-bricks-chat-container">
                 <!-- Header -->
@@ -155,6 +169,9 @@ class SNN_Bricks_Chat_Overlay {
                         </button>
                         <button class="snn-bricks-chat-btn snn-bricks-chat-history" title="Chat history" id="snn-bricks-chat-history-btn">
                             <span class="dashicons dashicons-backup"></span>
+                        </button>
+                        <button class="snn-bricks-chat-btn" id="snn-bricks-preview-toggle-btn" title="Toggle Design Preview" style="display:none;">
+                            <span style="font-size:15px;">&#128247;</span>
                         </button>
                         <button class="snn-bricks-chat-btn snn-bricks-chat-close" title="Close">
                             <span class="dashicons dashicons-no-alt"></span>
@@ -225,28 +242,20 @@ class SNN_Bricks_Chat_Overlay {
                 <!-- Quick Actions -->
                 <div class="snn-bricks-chat-quick-actions">
 
-<div class="snn-bricks-chat-quick-actions">
-
-    <button class="snn-bricks-quick-action-btn" data-message="The 'Artisan Bakery' E-Commerce Section 1 (Hero): {pattern_type: 'hero', content_description: 'Heading: Baked Daily With Love. Subtext: Sourdough and pastries delivered to your door. Button: Order Now.', action_type: 'replace', style_preference: 'playful'} Section 2 (About): {pattern_type: 'about', content_description: 'Our Story: 20 years of family recipes and organic local flour. Image of a bakery interior.', action_type: 'append'} Section 3 (Services): {pattern_type: 'services', layout_columns: 3, content_description: '1. Sourdough Loaves, 2. Sweet Pastries, 3. Morning Coffee.', action_type: 'append'} Section 4 (Testimonials): {pattern_type: 'testimonials', content_description: 'Reviews from local foodies about the crunch and flavor.', action_type: 'append'} Section 5 (CTA): {pattern_type: 'cta', content_description: 'Heading: Join the Bread Club. Button: Subscribe.', action_type: 'append'}">
+    <button class="snn-bricks-quick-action-btn" data-message="Design a complete homepage for an artisan bakery called 'Baked With Love'. Include: a full-viewport hero with a warm dark background, large heading 'Baked Daily With Love', subheading about sourdough and pastries, and a prominent CTA button; a 3-column services grid featuring Sourdough Loaves, Sweet Pastries, and Morning Coffee; a 2-column about section with our 20-year story and a bakery interior image; a 2-column testimonial section with customer reviews; and a dark CTA footer 'Join the Bread Club'. Use warm earthy tones (cream, brown, terracotta).">
     Bakery</button>
 
-    <button class="snn-bricks-quick-action-btn" data-message="The 'High-Growth' Fintech App Section 1 (Hero): {pattern_type: 'hero', content_description: 'Heading: Smart Money for Everyone. Subtext: Banking, investing, and saving in one simple app. Button: Download Now.', action_type: 'replace', style_preference: 'modern'} Section 2 (Stats): {pattern_type: 'stats', content_description: '$10B Managed, 5M+ Users, 120 Countries.', action_type: 'append'} Section 3 (About): {pattern_type: 'about', content_description: 'Bank-grade security. 24/7 fraud monitoring. Your wealth, protected.', action_type: 'append'} Section 4 (Testimonials): {pattern_type: 'testimonials', content_description: 'Real stories from users who reached their saving goals.', action_type: 'append'} Section 5 (FAQ): {pattern_type: 'faq', content_description: 'Questions about interest rates, card delivery, and crypto features.', action_type: 'append'}">
+    <button class="snn-bricks-quick-action-btn" data-message="Design a modern homepage for a fintech app called 'SmartPay'. Include: a dark hero section with gradient background, headline 'Smart Money for Everyone', subtext about all-in-one banking, and a Download Now CTA; a stats bar with $10B Managed, 5M+ Users, 120 Countries; a 2-column security/features section; a 2-column testimonials section with user success stories; and a newsletter/waitlist CTA section. Use a professional dark navy + electric blue color scheme.">
     Fintech</button>
 
-    <button class="snn-bricks-quick-action-btn" data-message="Creative Agency Portfolio Using the snn/generate-bricks-content ability, design a creative agency homepage with a playful modern style (#F5F0EB warm cream base, #FF6B35 orange accent, #1D1D1D near-black text). Call the ability separately for each section: Call 1 - Hero Section: Cream background, asymmetric 2-column grid (60%/40% using '1.5fr 1fr'). Left wider column has a casual bold heading 'We Make Brands People Love' font-size 64px font-weight 900, a body paragraph about creative strategy, and a single orange rounded button 'See Our Work' with 50px border-radius. Right column has an image placeholder with 20px border radius and subtle box-shadow. Padding 100px top/bottom. Call 2 - Logo Bar: White background strip, centered text 'Brands We have Partnered With' in small uppercase gray, then a horizontal row of 6 placeholder images (grayscale logo style, each roughly 120px wide). Compact padding 50px. Call 3 - Featured Work: Cream background, heading 'Featured Projects' centered, then a 2-column grid with 4 project cards (2 rows). Each card has a large image (aspect ratio 16/10) filling the top, project title heading below, category tag in small orange text, and a one-line description. White card background, soft shadow, 16px border radius. Gap 30px. Call 4 - Services Grid: White background, 2x2 grid of service blocks. Each block has an orange number ('01'-'04') font-size 42px font-weight 900, bold title ('Brand Strategy', 'Visual Identity', 'Digital Design', 'Motion & Video'), description paragraph, and a small orange 'Learn more →' text-link. Padding 40px per block, 30px gap. Call 5 - Team Section: Cream background, heading 'The Humans Behind the Magic' centered, then 4 team member cards in a row. Each card has a square image (aspect ratio 1/1, 16px border radius), name heading, quirky title in orange ('Chief Pixel Pusher', 'Idea Wrangler', 'Code Whisperer', 'Story Architect'), and a small horizontal row of 3 social icons (fontawesomeBrands: twitter, linkedin, dribbble). Call 6 - Contact Section: White background, 2-column grid. Left column has heading 'Got a Project in Mind?' font-size 42px, encouraging paragraph text, email 'hello@agency.com' and phone in orange text. Right column has a form element with name, email, message textarea fields and an orange 'Send Message' submit button.">
+    <button class="snn-bricks-quick-action-btn" data-message="Design a full creative agency homepage with a warm cream (#F5F0EB) and orange (#FF6B35) color palette. Include 6 sections: 1) Asymmetric hero — 60/40 grid, left has bold heading 'We Make Brands People Love', description, orange CTA button; right has a full-height agency photo. 2) Logo bar — white bg, 'Trusted By' text, grayscale client logos in a row. 3) Featured work — 2-column project cards with images, project names, category tags. 4) Services grid — 2x2 blocks with large orange numbers (01-04), service titles (Brand Strategy, Visual Identity, Digital Design, Motion), descriptions. 5) Team section — 4 team cards with square photos, names, quirky titles. 6) Contact — 2-column with contact info left, inquiry form right.">
     Agency</button>
 
-    <button class="snn-bricks-quick-action-btn" data-message="The 'E-Learning' Academy Section 1 (Hero): {patterntype: 'hero', contentdescription: 'Heading: Master New Skills. Subtext: Learn from industry experts at your own pace.', actiontype: 'replace', stylepreference: 'modern'} Section 2 (Services): {patterntype: 'services', layoutcolumns: 3, contentdescription: '1. Programming, 2. Digital Marketing, 3. Graphic Design.', actiontype: 'append'} Section 3 (Stats): {patterntype: 'stats', contentdescription: '500+ Courses, 50k Students, 4.9 Avg Rating.', actiontype: 'append'} Section 4 (Testimonials): {patterntype: 'testimonials', contentdescription: 'Success stories from graduates now working at top tech firms.', actiontype: 'append'} Section 5 (CTA): {patterntype: 'cta', contentdescription: 'Heading: Start learning for free. Button: Browse Catalog.', action_type: 'append'}">
+    <button class="snn-bricks-quick-action-btn" data-message="Design a modern e-learning academy homepage called 'SkillForge'. Include: a bold hero with dark background, heading 'Master New Skills', subtitle about expert-led online courses, two CTA buttons (Browse Courses, Watch Demo); a 3-column feature highlights with icons (Expert Instructors, Self-Paced Learning, Certificates); a stats bar (500+ Courses, 50K Students, 4.9/5 Rating); a 3-column course cards grid with thumbnails, titles, prices; a 2-column testimonials section; and a full-width CTA banner 'Start Learning Free Today'. Use deep navy + yellow accent colors.">
     Academy</button>
 
-    <button class="snn-bricks-quick-action-btn" data-message="The 'Gourmet' Michelin Star Restaurant Section 1 (Hero): {type: 'section', styles: {minHeight: '100vh', background: '#000'}, children: [{type: 'container', styles: {display: 'flex', flexDirection: 'column', alignItems: 'center'}, children: [{type: 'heading', content: 'The Art of Taste', styles: {fontSize: '80', color: '#fff'}}, {type: 'button', content: 'Reserve Table'}]}]} Section 2 (Menu Tabs): {type: 'tabs-nested', children: [{type: 'block', label: 'Menu', children: [{type: 'text-basic', content: 'Dinner'}, {type: 'text-basic', content: 'Wine List'}]}, {type: 'block', label: 'Content', children: [{type: 'list', items: [{title: 'Wagyu A5', meta: '$120'}]}, {type: 'list', items: [{title: '1945 Bordeaux', meta: '$2400'}]}]}]} Section 3 (Gallery Slider): {type: 'slider-nested', styles: {perPage: '3', autoplay: true}, children: [{type: 'image', content: 'dish1.jpg'}, {type: 'image', content: 'dish2.jpg'}, {type: 'image', content: 'interior.jpg'}]} Section 4 (About): {type: 'about', content_description: 'A culinary journey led by Chef Marco Rossi.', action_type: 'append'} Section 5 (CTA): {type: 'cta', content_description: 'Heading: A Night to Remember. Button: Book Now.', action_type: 'append'}">
+    <button class="snn-bricks-quick-action-btn" data-message="Design an elegant fine-dining restaurant homepage for 'Lumiere' restaurant. Include: a dramatic full-viewport hero with dark overlay on a food photo, centered heading 'The Art of Taste' in elegant serif font, subtitle, and 'Reserve a Table' button; a 3-column highlights section (Farm to Table, Sommelier Selected, Private Dining); a 2-column about section with chef photo and story; a featured dishes section with a 3-column grid of dish cards with images, names, and prices; a 2-column testimonials with quotes; and a CTA section with reservation form. Use black, gold (#C9A84C), and deep red color scheme.">
     Restaurant</button>
-
-
-
-</div>
-
-
 
                 </div>
 
@@ -277,2111 +286,712 @@ class SNN_Bricks_Chat_Overlay {
         (function($) {
             'use strict';
 
-            // Agent states enum
-            const AgentState = {
-                IDLE: 'idle',
-                THINKING: 'thinking',
-                EXECUTING: 'executing',
-                INTERPRETING: 'interpreting',
-                RETRYING: 'retrying',
-                RECOVERING: 'recovering',
-                DONE: 'done',
-                ERROR: 'error'
-            };
+            // ================================================================
+            // Configuration & State
+            // ================================================================
 
-            // Configuration from settings
-            const MAX_RETRIES = snnBricksChatConfig.settings.maxRetries || 3;
-            const MAX_HISTORY = snnBricksChatConfig.settings.maxHistory || 20;
-            const DEBUG_MODE = snnBricksChatConfig.settings.debugMode || false;
-            const ENABLED_ABILITIES = snnBricksChatConfig.settings.enabledAbilities || [];
+            const MAX_HISTORY       = snnBricksChatConfig.settings.maxHistory  || 20;
+            const DEBUG_MODE        = snnBricksChatConfig.settings.debugMode   || false;
+            const RECOVERY_CONFIG   = { maxRecoveryAttempts: 3, baseDelay: 2000, maxDelay: 30000, rateLimitDelay: 5000 };
+            const debugLog = (...a) => { if (DEBUG_MODE) console.log('[Bricks AI]', ...a); };
 
-            // Recovery configuration
-            const RECOVERY_CONFIG = {
-                maxRecoveryAttempts: 3,
-                baseDelay: 2000,
-                maxDelay: 30000,
-                rateLimitDelay: 5000
-            };
-
-            // Debug console wrapper
-            const debugLog = function(...args) {
-                if (DEBUG_MODE) {
-                    console.log('[Bricks AI]', ...args);
-                }
-            };
-
-            // Chat state
             const ChatState = {
-                messages: [],
-                abilities: [],
-                isOpen: false,
-                isProcessing: false,
-                abortController: null,
-                currentState: AgentState.IDLE,
-                currentAbility: null,
-                currentSessionId: null,
-                autoSaveTimer: null,
-                pageContext: snnBricksChatConfig.pageContext || { type: 'bricks_builder', details: {} },
-                recoveryAttempts: 0,
-                lastError: null,
-                pendingOperation: null,
-                bricksState: null,
-                attachedImages: []
+                messages: [], isOpen: false, isProcessing: false,
+                abortController: null, currentSessionId: null,
+                pageContext: snnBricksChatConfig.pageContext || {},
+                recoveryAttempts: 0, bricksState: null, attachedImages: [],
+                // Two-phase workflow
+                currentHTMLPreview: null, previewMode: null, previewPaneOpen: false
             };
 
-            // Bricks Builder Integration
+            // ================================================================
+            // Bricks Builder — Direct State Integration
+            // ================================================================
+
             const BricksHelper = {
-                /**
-                 * Check if Bricks reactive state is available
-                 */
                 isAvailable() {
                     try {
-                        const vueApp = document.querySelector("[data-v-app]");
-                        if (!vueApp || !vueApp.__vue_app__) return false;
-
-                        const state = vueApp.__vue_app__.config.globalProperties.$_state;
-                        return state && state.content;
-                    } catch (e) {
-                        console.error('Bricks state not available:', e);
-                        return false;
-                    }
+                        const a = document.querySelector('[data-v-app]');
+                        if (!a || !a.__vue_app__) return false;
+                        const s = a.__vue_app__.config.globalProperties.$_state;
+                        return !!(s && s.content);
+                    } catch(e) { return false; }
                 },
-
-                /**
-                 * Get Bricks reactive state
-                 */
                 getState() {
-                    if (ChatState.bricksState) {
-                        return ChatState.bricksState;
-                    }
-
+                    if (ChatState.bricksState) return ChatState.bricksState;
                     try {
-                        const vueApp = document.querySelector("[data-v-app]");
-                        ChatState.bricksState = vueApp.__vue_app__.config.globalProperties.$_state;
+                        const a = document.querySelector('[data-v-app]');
+                        ChatState.bricksState = a.__vue_app__.config.globalProperties.$_state;
                         return ChatState.bricksState;
-                    } catch (e) {
-                        console.error('Failed to get Bricks state:', e);
-                        return null;
-                    }
+                    } catch(e) { return null; }
                 },
-
-                /**
-                 * Get current page content
-                 */
                 getCurrentContent() {
-                    const state = this.getState();
-                    if (!state) return null;
-
-                    return {
-                        elements: state.content,
-                        elementCount: state.content ? state.content.length : 0
-                    };
+                    const s = this.getState();
+                    if (!s) return null;
+                    return { elements: s.content, elementCount: s.content ? s.content.length : 0 };
                 },
-
-                /**
-                 * Replace all page content
-                 */
-                replaceAllContent(bricksContent) {
-                    const state = this.getState();
-                    if (!state) {
-                        throw new Error('Bricks state not available');
-                    }
-
+                replaceAllContent(data) {
+                    const s = this.getState();
+                    if (!s) return { success: false, error: 'Bricks state not available' };
                     try {
-                        // Parse Bricks content if it's a string
-                        let contentData = typeof bricksContent === 'string'
-                            ? JSON.parse(bricksContent)
-                            : bricksContent;
-
-                        // Extract content array
-                        const newElements = contentData.content || contentData;
-
-                        if (!Array.isArray(newElements)) {
-                            throw new Error('Invalid content format: expected array of elements');
-                        }
-
-                        debugLog('Replacing all content with', newElements.length, 'elements');
-
-                        // Clear existing content
-                        state.content.splice(0, state.content.length);
-
-                        // Add new elements
-                        newElements.forEach(element => {
-                            state.content.push(element);
-                        });
-
-                        debugLog('✅ Content replaced successfully');
-
-                        return {
-                            success: true,
-                            message: `Replaced page with ${newElements.length} elements`
-                        };
-
-                    } catch (error) {
-                        console.error('Replace content error:', error);
-                        return {
-                            success: false,
-                            error: `Failed to replace content: ${error.message}`
-                        };
-                    }
+                        const d    = typeof data === 'string' ? JSON.parse(data) : data;
+                        const els  = d.content || d;
+                        if (!Array.isArray(els)) throw new Error('Invalid content format');
+                        s.content.splice(0, s.content.length);
+                        els.forEach(el => s.content.push(el));
+                        debugLog('Replaced with', els.length, 'elements');
+                        return { success: true, message: `Replaced page with ${els.length} elements` };
+                    } catch(e) { return { success: false, error: e.message }; }
                 },
-
-                /**
-                 * Update/replace a specific section
-                 */
-                updateSection(sectionIdentifier, bricksContent) {
-                    const state = this.getState();
-                    if (!state) {
-                        throw new Error('Bricks state not available');
-                    }
-
+                addSection(data, position = 'append') {
+                    const s = this.getState();
+                    if (!s) return { success: false, error: 'Bricks state not available' };
                     try {
-                        // Parse Bricks content
-                        let contentData = typeof bricksContent === 'string'
-                            ? JSON.parse(bricksContent)
-                            : bricksContent;
-
-                        const newElements = contentData.content || contentData;
-
-                        if (!Array.isArray(newElements)) {
-                            throw new Error('Invalid content format');
-                        }
-
-                        debugLog('Updating section:', sectionIdentifier);
-
-                        // Find the section by looking for a heading or section element with matching text
-                        const identifier = sectionIdentifier.toLowerCase();
-                        let sectionIndex = -1;
-                        let sectionEndIndex = -1;
-
-                        for (let i = 0; i < state.content.length; i++) {
-                            const element = state.content[i];
-
-                            // Check heading text
-                            if (element.name === 'heading' && element.settings && element.settings.text) {
-                                const text = element.settings.text.replace(/<[^>]*>/g, '').toLowerCase();
-                                if (text.includes(identifier) || identifier.includes(text)) {
-                                    sectionIndex = i;
-
-                                    // Find the end of this section (next heading or section element)
-                                    sectionEndIndex = i;
-                                    for (let j = i + 1; j < state.content.length; j++) {
-                                        const nextElement = state.content[j];
-                                        if (nextElement.name === 'heading' || nextElement.name === 'section') {
-                                            break;
-                                        }
-                                        sectionEndIndex = j;
-                                    }
-                                    break;
-                                }
-                            }
-
-                            // Check section element
-                            if (element.name === 'section') {
-                                // Could check section ID or other attributes
-                                // For now, just mark the section
-                            }
-                        }
-
-                        if (sectionIndex !== -1) {
-                            // Remove old section elements
-                            const removeCount = sectionEndIndex - sectionIndex + 1;
-                            state.content.splice(sectionIndex, removeCount);
-
-                            // Insert new elements at the same position
-                            newElements.forEach((element, index) => {
-                                state.content.splice(sectionIndex + index, 0, element);
-                            });
-
-                            debugLog(`✅ Updated section (removed ${removeCount}, added ${newElements.length})`);
-
-                            return {
-                                success: true,
-                                message: `Updated section "${sectionIdentifier}" with ${newElements.length} elements`
-                            };
-                        } else {
-                            // Section not found, append to end
-                            debugLog('⚠️ Section not found, appending to end');
-                            newElements.forEach(element => {
-                                state.content.push(element);
-                            });
-
-                            return {
-                                success: true,
-                                message: `Section "${sectionIdentifier}" not found. Added ${newElements.length} elements to the end.`,
-                                warning: 'Section not found - appended to end'
-                            };
-                        }
-
-                    } catch (error) {
-                        console.error('Update section error:', error);
-                        return {
-                            success: false,
-                            error: `Failed to update section: ${error.message}`
-                        };
-                    }
-                },
-
-                /**
-                 * Add new section (append or prepend)
-                 */
-                addSection(bricksContent, position = 'append') {
-                    const state = this.getState();
-                    if (!state) {
-                        throw new Error('Bricks state not available');
-                    }
-
-                    try {
-                        // Parse Bricks content
-                        let contentData = typeof bricksContent === 'string'
-                            ? JSON.parse(bricksContent)
-                            : bricksContent;
-
-                        const newElements = contentData.content || contentData;
-
-                        if (!Array.isArray(newElements)) {
-                            throw new Error('Invalid content format');
-                        }
-
-                        debugLog(`Adding ${newElements.length} elements (${position})`);
-
+                        const d   = typeof data === 'string' ? JSON.parse(data) : data;
+                        const els = d.content || d;
+                        if (!Array.isArray(els)) throw new Error('Invalid content format');
                         if (position === 'prepend') {
-                            // Insert at beginning
-                            newElements.reverse().forEach(element => {
-                                state.content.unshift(element);
-                            });
+                            [...els].reverse().forEach(el => s.content.unshift(el));
                         } else {
-                            // Append to end
-                            newElements.forEach(element => {
-                                state.content.push(element);
-                            });
+                            els.forEach(el => s.content.push(el));
                         }
-
-                        debugLog('✅ Section added successfully');
-
-                        return {
-                            success: true,
-                            message: `Added ${newElements.length} elements to ${position === 'prepend' ? 'beginning' : 'end'}`
-                        };
-
-                    } catch (error) {
-                        console.error('Add section error:', error);
-                        return {
-                            success: false,
-                            error: `Failed to add section: ${error.message}`
-                        };
-                    }
+                        debugLog('Added', els.length, 'elements', position);
+                        return { success: true, message: `Added ${els.length} elements (${position})` };
+                    } catch(e) { return { success: false, error: e.message }; }
                 },
-
-                /**
-                 * Patch a single element — find it by ID or by text content,
-                 * then apply targeted updates without touching anything else.
-                 */
-                patchElement(command) {
-                    const state = this.getState();
-                    if (!state || !state.content) {
-                        return { success: false, error: 'Bricks state not available' };
-                    }
-
-                    const { element_id, find_by, updates } = command;
-
-                    // Walk every element in the flat content array and return the first match
-                    function findInFlat(elements, elId, findBy, matchIndex) {
-                        let typeCounter = 0;
-                        for (const el of elements) {
-                            if (elId && el.id === elId) return el;
-                            if (findBy) {
-                                if (findBy.type === 'text_content') {
-                                    const raw = (el.settings && (el.settings.text || el.settings.content)) || '';
-                                    const cleaned = raw.replace(/<[^>]*>/g, '').trim().toLowerCase();
-                                    if (cleaned && cleaned.includes(findBy.value.toLowerCase())) return el;
-                                } else if (findBy.type === 'element_type') {
-                                    if (el.name === findBy.value) {
-                                        const wantIndex = typeof matchIndex === 'number' ? matchIndex : 0;
-                                        if (typeCounter === wantIndex) return el;
-                                        typeCounter++;
-                                    }
-                                }
+                patchElement(cmd) {
+                    const s = this.getState();
+                    if (!s || !s.content) return { success: false, error: 'Bricks state not available' };
+                    const { element_id, find_by, updates } = cmd;
+                    let typeCounter = 0, target = null;
+                    for (const el of s.content) {
+                        if (element_id && el.id === element_id) { target = el; break; }
+                        if (find_by) {
+                            if (find_by.type === 'text_content') {
+                                const raw = (el.settings && (el.settings.text || el.settings.content)) || '';
+                                if (raw.replace(/<[^>]*>/g, '').trim().toLowerCase().includes(find_by.value.toLowerCase())) { target = el; break; }
+                            } else if (find_by.type === 'element_type' && el.name === find_by.value) {
+                                if (typeCounter === (find_by.index || 0)) { target = el; break; }
+                                typeCounter++;
                             }
                         }
-                        return null;
                     }
-
-                    const idx = find_by && find_by.index != null ? find_by.index : 0;
-                    const target = findInFlat(state.content, element_id, find_by, idx);
-
-                    if (!target) {
-                        const hint = element_id ? `id="${element_id}"` : JSON.stringify(find_by);
-                        return { success: false, error: `Element not found (searched: ${hint}). Check the page elements snapshot in context.` };
-                    }
-
-                    // Apply text / content update
-                    if (updates.text != null) {
-                        target.settings.text = updates.text;
-                    }
-
-                    // Apply image URL update
-                    if (updates.image_url != null) {
-                        if (!target.settings.image) target.settings.image = {};
-                        target.settings.image.url = updates.image_url;
-                        if (!target.settings.image.size) target.settings.image.size = 'full';
-                    }
-
-                    // Merge any native Bricks settings (keys like _typography, _background, etc.)
-                    if (updates.bricks_settings && typeof updates.bricks_settings === 'object') {
-                        Object.assign(target.settings, updates.bricks_settings);
-                    }
-
-                    debugLog(`✅ Patched element [${target.id}] (${target.name})`, updates);
-
-                    return {
-                        success: true,
-                        message: `Patched element [${target.id}] (${target.name})`
-                    };
+                    if (!target) return { success: false, error: 'Element not found' };
+                    if (updates.text        != null) target.settings.text = updates.text;
+                    if (updates.image_url   != null) { if (!target.settings.image) target.settings.image = {}; target.settings.image.url = updates.image_url; }
+                    if (updates.bricks_settings) Object.assign(target.settings, updates.bricks_settings);
+                    return { success: true, message: `Patched [${target.id}]` };
                 }
             };
 
-            // Initialize when DOM is ready
+            // ================================================================
+            // Init
+            // ================================================================
+
             $(document).ready(function() {
-                // Wait for Bricks to be fully loaded
-                const initInterval = setInterval(function() {
+                const iv = setInterval(function() {
                     if (BricksHelper.isAvailable()) {
-                        clearInterval(initInterval);
-                        debugLog('✅ Bricks state available, initializing chat...');
+                        clearInterval(iv);
+                        debugLog('Bricks ready, initialising chat...');
                         initChat();
-                        loadAbilities();
                         addToolbarButton();
                     }
                 }, 500);
-
-                // Timeout after 10 seconds
-                setTimeout(function() {
-                    clearInterval(initInterval);
-                    if (!BricksHelper.isAvailable()) {
-                        console.error('Bricks state not available after 10 seconds');
-                    }
-                }, 10000);
+                setTimeout(() => clearInterval(iv), 10000);
             });
 
-            /**
-             * Add chat button to Bricks toolbar
-             */
-            function addToolbarButton() {
-                // Try multiple possible selectors for the Bricks toolbar
-                const possibleSelectors = [
-                    '.bricks-toolbar ul.end',
-                    'ul.group-wrapper.end',
-                    '.group-wrapper.end',
-                    '.bricks-toolbar ul.group-wrapper.end'
-                ];
+            // ================================================================
+            // PHASE 1 — HTML / Tailwind Design Generation
+            // ================================================================
 
-                let toolbar = null;
-                for (const selector of possibleSelectors) {
-                    toolbar = document.querySelector(selector);
-                    if (toolbar) {
-                        debugLog('✅ Toolbar found with selector:', selector);
-                        createToolbarButton(toolbar);
-                        return;
-                    }
-                }
-
-                // Toolbar doesn't exist yet, observe DOM for it
-                debugLog('Toolbar not found, observing DOM...');
-
-                const observer = new MutationObserver(function(mutations, obs) {
-                    for (const selector of possibleSelectors) {
-                        const toolbar = document.querySelector(selector);
-                        if (toolbar) {
-                            debugLog('✅ Toolbar found via observer:', selector);
-                            createToolbarButton(toolbar);
-                            obs.disconnect(); // Stop observing
-                            return;
-                        }
-                    }
-                });
-
-                // Start observing the document body for added nodes
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true
-                });
-
-                // Timeout after 15 seconds
-                setTimeout(function() {
-                    observer.disconnect();
-                    if (!document.querySelector('.snn-bricks-ai-toggle')) {
-                        //console.warn('Bricks toolbar not found after 15 seconds. Tried selectors:', possibleSelectors);
-                    }
-                }, 15000);
-            }
-
-            /**
-             * Create and append toolbar button
-             */
-            function createToolbarButton(toolbar) {
-                // Check if button already exists
-                if (document.querySelector('.snn-bricks-ai-toggle')) {
-                    debugLog('Toolbar button already exists');
-                    return;
-                }
-
-                const button = document.createElement('li');
-                button.className = 'snn-bricks-ai-toggle';
-                button.setAttribute('data-balloon', 'SNN AI Agent');
-                button.setAttribute('data-balloon-pos', 'bottom');
-                button.setAttribute('tabindex', '0');
-                button.innerHTML = `
-                    <span class="snn-ai-icon" style="font-size: 25px; background: linear-gradient(45deg, #2271b1, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; position: relative; line-height: 1.2; display: inline-block; cursor: pointer;">✦</span>
-                `;
-
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    toggleChat();
-                });
-
-                // Insert before the last item (second to last position)
-                if (toolbar.lastElementChild) {
-                    toolbar.insertBefore(button, toolbar.lastElementChild);
-                } else {
-                    toolbar.appendChild(button);
-                }
-                debugLog('✅ Toolbar button added');
-            }
-
-            /**
-             * Initialize chat interface
-             */
-            function initChat() {
-                // Toggle overlay
-                $('.snn-bricks-chat-close').on('click', function(e) {
-                    e.preventDefault();
-                    toggleChat();
-                });
-
-                // New chat button
-                $('#snn-bricks-chat-new-btn').on('click', function() {
-                    clearChat();
-                });
-
-                // History button
-                $('#snn-bricks-chat-history-btn').on('click', function() {
-                    toggleHistoryDropdown();
-                });
-
-                $('#snn-bricks-history-close').on('click', function() {
-                    $('#snn-bricks-chat-history-dropdown').hide();
-                });
-
-                // Send message
-                $('#snn-bricks-chat-send').on('click', sendMessage);
-
-                // Send on Enter (Shift+Enter for newline)
-                $('#snn-bricks-chat-input').on('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
-
-                // Auto-resize textarea
-                $('#snn-bricks-chat-input').on('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                });
-
-                // Quick action buttons
-                $('.snn-bricks-quick-action-btn').on('click', function() {
-                    const message = $(this).data('message');
-                    $('#snn-bricks-chat-input').val(message);
-                    sendMessage();
-                });
-
-                // Image attachment button
-                $('#snn-bricks-chat-attach-btn').on('click', function() {
-                    $('#snn-bricks-chat-file-input').click();
-                });
-
-                // File input change
-                $('#snn-bricks-chat-file-input').on('change', function(e) {
-                    handleFileSelect(e.target.files);
-                });
-
-                // Paste event for clipboard images
-                $('#snn-bricks-chat-input').on('paste', function(e) {
-                    handlePaste(e.originalEvent);
-                });
-
-                // Auto-save conversation periodically
-                setInterval(autoSaveConversation, 30000);
-            }
-
-            /**
-             * Toggle chat overlay
-             */
-            function toggleChat() {
-                ChatState.isOpen = !ChatState.isOpen;
-                $('#snn-bricks-chat-overlay').toggle();
-
-                if (ChatState.isOpen) {
-                    $('#snn-bricks-chat-input').focus();
-                }
-            }
-
-            /**
-             * Load available abilities from API
-             */
-            async function loadAbilities() {
-                try {
-                    const response = await fetch(snnBricksChatConfig.restUrl + 'abilities', {
-                        headers: {
-                            'X-WP-Nonce': snnBricksChatConfig.nonce
-                        }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        const allAbilities = Array.isArray(data) ? data : [];
-
-                        // Filter for Bricks-specific abilities and enabled abilities
-                        ChatState.abilities = allAbilities.filter(a =>
-                            ENABLED_ABILITIES.includes(a.name) &&
-                            (a.category === 'bricks' || a.name.includes('bricks'))
-                        );
-
-                        debugLog('✅ Loaded Bricks abilities:', ChatState.abilities.length);
-                        if (ChatState.abilities.length > 0) {
-                            debugLog('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
-                        }
-                    }
-                } catch (error) {
-                    console.error('Failed to load abilities:', error);
-                }
-            }
-
-            /**
-             * Handle file selection
-             */
-            async function handleFileSelect(files) {
-                if (!files || files.length === 0) return;
-
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    if (!file.type.startsWith('image/')) continue;
-
-                    try {
-                        const base64 = await fileToBase64(file);
-                        addImageAttachment(base64, file.name);
-                    } catch (error) {
-                        console.error('Failed to process image:', error);
-                    }
-                }
-
-                // Reset file input
-                $('#snn-bricks-chat-file-input').val('');
-            }
-
-            /**
-             * Handle clipboard paste
-             */
-            async function handlePaste(event) {
-                const items = event.clipboardData?.items;
-                if (!items) return;
-
-                for (let i = 0; i < items.length; i++) {
-                    const item = items[i];
-                    if (item.type.startsWith('image/')) {
-                        event.preventDefault();
-                        const file = item.getAsFile();
-                        if (file) {
-                            try {
-                                const base64 = await fileToBase64(file);
-                                addImageAttachment(base64, 'pasted-image.png');
-                            } catch (error) {
-                                console.error('Failed to process pasted image:', error);
-                            }
-                        }
-                    }
-                }
-            }
-
-            /**
-             * Convert file to base64
-             */
-            function fileToBase64(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            /**
-             * Add image attachment
-             */
-            function addImageAttachment(base64Data, fileName) {
-                const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                ChatState.attachedImages.push({
-                    id: imageId,
-                    data: base64Data,
-                    fileName: fileName
-                });
-
-                renderImagePreviews();
-                debugLog('Image attached:', fileName);
-            }
-
-            /**
-             * Remove image attachment
-             */
-            function removeImageAttachment(imageId) {
-                ChatState.attachedImages = ChatState.attachedImages.filter(img => img.id !== imageId);
-                renderImagePreviews();
-            }
-
-            /**
-             * Render image previews
-             */
-            function renderImagePreviews() {
-                const $preview = $('#snn-bricks-chat-image-preview');
-                $preview.empty();
-
-                if (ChatState.attachedImages.length === 0) {
-                    $preview.hide();
-                    return;
-                }
-
-                $preview.show();
-                ChatState.attachedImages.forEach(img => {
-                    const $imgWrapper = $('<div>').addClass('snn-image-preview-item');
-                    const $img = $('<img>').attr('src', img.data).attr('alt', img.fileName);
-                    const $remove = $('<button>').addClass('snn-image-preview-remove').html('×').attr('title', 'Remove image');
-
-                    $remove.on('click', function() {
-                        removeImageAttachment(img.id);
-                    });
-
-                    $imgWrapper.append($img).append($remove);
-                    $preview.append($imgWrapper);
-                });
-            }
-
-            /**
-             * Send user message
-             */
-            async function sendMessage() {
-                const input = $('#snn-bricks-chat-input');
-                const message = input.val().trim();
-                const hasImages = ChatState.attachedImages.length > 0;
-
-                if ((!message && !hasImages) || ChatState.isProcessing) {
-                    return;
-                }
-
-                // Add user message with images
-                const messageContent = message || '(Image attached)';
-                addMessage('user', messageContent, ChatState.attachedImages);
-                
-                // Save images for processing
-                const imagesToProcess = [...ChatState.attachedImages];
-                
-                // Clear input and images
-                input.val('').css('height', 'auto');
-                ChatState.attachedImages = [];
-                renderImagePreviews();
-
-                // Process with AI
-                await processWithAI(message, imagesToProcess);
-            }
-
-            /**
-             * Process message with AI agent
-             */
             async function processWithAI(userMessage, images = []) {
                 ChatState.isProcessing = true;
-                ChatState.recoveryAttempts = 0;
                 showTyping();
-                setAgentState(AgentState.THINKING);
-
+                setAgentState('thinking');
                 try {
-                    ChatState.pendingOperation = {
-                        type: 'processMessage',
-                        message: userMessage,
-                        timestamp: Date.now()
-                    };
-
-                    // Build conversation context (shared by all phases)
-                    const context = ChatState.messages.slice(-MAX_HISTORY).map(m => {
-                        const msg = { role: m.role === 'user' ? 'user' : 'assistant' };
-                        if (m.images && m.images.length > 0) {
-                            msg.content = [];
-                            if (m.content && m.content !== '(Image attached)') {
-                                msg.content.push({ type: 'text', text: m.content });
-                            }
-                            m.images.forEach(img => {
-                                msg.content.push({ type: 'image_url', image_url: { url: img.data } });
-                            });
-                        } else {
-                            msg.content = m.content;
-                        }
-                        return msg;
-                    });
-
-                    // Build the user message content (may include images)
-                    let userMsgContent;
-                    if (images.length > 0) {
-                        userMsgContent = [];
-                        if (userMessage) userMsgContent.push({ type: 'text', text: userMessage });
-                        images.forEach(img => userMsgContent.push({ type: 'image_url', image_url: { url: img.data } }));
-                    } else {
-                        userMsgContent = userMessage;
-                    }
-
-                    // ── PHASE 1: Ask AI to produce a section plan ──────────────────────────
-                    const planMessages = [
-                        { role: 'system', content: buildPlanningPrompt() },
+                    const context        = buildConversationContext();
+                    const userMsgContent = buildUserContent(userMessage, images);
+                    const response = await callAI([
+                        { role: 'system', content: buildPhase1SystemPrompt() },
                         ...context,
                         { role: 'user', content: userMsgContent }
-                    ];
-
-                    const planResponse = await callAI(planMessages);
+                    ]);
                     hideTyping();
-                    debugLog('Plan Response:', planResponse);
+                    if (!response || !response.trim()) throw new Error('AI returned empty response.');
 
-                    if (!planResponse || planResponse.trim() === '') {
-                        throw new Error('AI returned empty response. Please try again.');
-                    }
+                    const html     = extractHTMLFromResponse(response);
+                    const textPart = response.replace(/```html[\s\S]*?```/g, '').trim();
 
-                    const plan = extractPlanFromResponse(planResponse);
-
-                    // If the AI came back with 2+ sections → build section-by-section
-                    if (plan && plan.length >= 2) {
-                        debugLog(`Multi-section mode: ${plan.length} sections planned`);
-                        // Show the plan summary to the user
-                        const planText = planResponse.replace(/```json[\s\S]*?```/g, '').trim();
-                        if (planText) addMessage('assistant', planText);
-
-                        await executeSectionBySection(context, userMsgContent, plan, userMessage);
-
+                    if (html) {
+                        ChatState.currentHTMLPreview = html;
+                        ChatState.previewMode        = 'html';
+                        if (textPart) addMessage('assistant', textPart);
+                        showHTMLPreview(html);
+                        addApproveBar();
                     } else {
-                        // ── Single-response mode (simple edits, questions, single section) ──
-                        const singleMessages = [
-                            { role: 'system', content: buildSystemPrompt() },
-                            ...context,
-                            { role: 'user', content: userMsgContent }
-                        ];
-
-                        const aiResponse = await callAI(singleMessages);
-                        hideTyping();
-                        debugLog('AI Response:', aiResponse);
-
-                        if (!aiResponse || aiResponse.trim() === '') {
-                            throw new Error('AI returned empty response. Please try again.');
-                        }
-
-                        const abilities = extractAbilitiesFromResponse(aiResponse);
-
-                        if (abilities.length > 0) {
-                            let initialMessage = aiResponse.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
-                            if (initialMessage) addMessage('assistant', initialMessage);
-                            await executeAbilitiesSequentially(singleMessages, abilities);
-                            await provideFinalSummary(singleMessages, abilities);
-                        } else {
-                            addMessage('assistant', aiResponse);
-                        }
+                        addMessage('assistant', response);
                     }
-
-                    setAgentState(AgentState.DONE);
-                    ChatState.pendingOperation = null;
                     autoSaveConversation();
-
-                } catch (error) {
+                } catch(err) {
                     hideTyping();
-                    const recovered = await attemptRecovery(error, userMessage);
-                    if (!recovered) {
-                        addMessage('error', 'Sorry, something went wrong: ' + error.message);
-                        setAgentState(AgentState.ERROR, { error: error.message });
-                    }
+                    addMessage('error', 'Error: ' + err.message);
                 } finally {
                     ChatState.isProcessing = false;
+                    setAgentState('idle');
                 }
             }
 
-            /**
-             * Build a minimal planning-phase system prompt.
-             * The AI only needs to return a lightweight JSON section list —
-             * no ability calls, no full structures.
-             */
-            function buildPlanningPrompt() {
-                const basePrompt = snnBricksChatConfig.ai.systemPrompt || 'You are a helpful design assistant for Bricks Builder.';
+            // ================================================================
+            // PHASE 2 — Compile HTML Preview → Bricks JSON → Inject
+            // ================================================================
+
+            async function compileAndBuild(actionType) {
+                if (!ChatState.currentHTMLPreview) return;
+                ChatState.isProcessing = true;
+                showTyping();
+                setAgentState('compiling');
+                addMessage('assistant', 'Compiling design to Bricks Builder format...');
+                try {
+                    const response = await callAI([
+                        { role: 'system', content: buildPhase2SystemPrompt() },
+                        { role: 'user', content: 'Convert this HTML design to Bricks Builder JSON.\nReturn ONLY the raw JSON object — no markdown, no backticks, no explanation. Start with { and end with }:\n\n```html\n' + ChatState.currentHTMLPreview + '\n```' }
+                    ], 0, { maxTokens: 8000 });
+                    hideTyping();
+
+                    const bricksData = extractBricksJSONFromResponse(response);
+                    if (bricksData) {
+                        const result = actionType === 'replace'
+                            ? BricksHelper.replaceAllContent(bricksData)
+                            : BricksHelper.addSection(bricksData, actionType);
+                        if (result.success) {
+                            addMessage('assistant', 'Design built in Bricks! Scroll the canvas to review the layout.');
+                            hideHTMLPreview();
+                            removeApproveBar();
+                            ChatState.previewMode        = null;
+                            ChatState.currentHTMLPreview = null;
+                        } else {
+                            addMessage('error', 'Build failed: ' + result.error);
+                        }
+                    } else {
+                        addMessage('assistant', 'Retrying compilation with stricter instructions...');
+                        await retryCompilation(actionType, response);
+                    }
+                } catch(err) {
+                    hideTyping();
+                    addMessage('error', 'Compilation error: ' + err.message);
+                } finally {
+                    ChatState.isProcessing = false;
+                    setAgentState('idle');
+                }
+            }
+
+            async function retryCompilation(actionType, prevResponse) {
+                try {
+                    showTyping();
+                    const response = await callAI([
+                        { role: 'system', content: buildPhase2SystemPrompt() },
+                        { role: 'user', content: 'Convert this HTML to Bricks JSON:\n\n```html\n' + ChatState.currentHTMLPreview + '\n```' },
+                        { role: 'assistant', content: prevResponse },
+                        { role: 'user', content: 'The previous response could not be parsed as JSON. Return ONLY a valid JSON object: {"content":[...]}. No markdown, no code fences, no explanation. Start with { end with }.' }
+                    ], 0, { maxTokens: 8000 });
+                    hideTyping();
+                    const bricksData = extractBricksJSONFromResponse(response);
+                    if (bricksData) {
+                        const result = actionType === 'replace'
+                            ? BricksHelper.replaceAllContent(bricksData)
+                            : BricksHelper.addSection(bricksData, actionType);
+                        if (result.success) {
+                            addMessage('assistant', 'Design built in Bricks!');
+                            hideHTMLPreview(); removeApproveBar();
+                            ChatState.previewMode = null; ChatState.currentHTMLPreview = null;
+                        } else { addMessage('error', 'Build failed: ' + result.error); }
+                    } else {
+                        addMessage('error', 'Could not compile design. Try simplifying or rephrasing your request.');
+                    }
+                } catch(e) { hideTyping(); addMessage('error', 'Retry failed: ' + e.message); }
+            }
+
+            // ================================================================
+            // Preview Pane
+            // ================================================================
+
+            function showHTMLPreview(html) {
+                const iframe = document.getElementById('snn-bricks-preview-iframe');
+                iframe.srcdoc = buildPreviewHTML(html);
+                ChatState.previewPaneOpen = true;
+                $('#snn-bricks-preview-pane').show();
+                $('#snn-bricks-preview-toggle-btn').show().addClass('is-active');
+            }
+
+            function hideHTMLPreview() {
+                ChatState.previewPaneOpen = false;
+                $('#snn-bricks-preview-pane').hide();
+                $('#snn-bricks-preview-toggle-btn').removeClass('is-active');
+            }
+
+            function togglePreviewPane() {
+                if (ChatState.previewPaneOpen) {
+                    hideHTMLPreview();
+                } else if (ChatState.currentHTMLPreview) {
+                    showHTMLPreview(ChatState.currentHTMLPreview);
+                }
+            }
+
+            function buildPreviewHTML(html) {
+                return '<!DOCTYPE html><html lang="en"><head>' +
+                    '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+                    '<script src="https://cdn.tailwindcss.com"><\/script>' +
+                    '<style>*{box-sizing:border-box}body{margin:0;padding:0}<\/style>' +
+                    '</head><body>' + html + '</body></html>';
+            }
+
+            function addApproveBar() {
+                removeApproveBar();
+                const $bar = $('<div id="snn-approve-bar" class="snn-approve-bar">').html(
+                    '<span class="snn-approve-label">Preview ready — use left panel to review</span>' +
+                    '<div class="snn-approve-actions">' +
+                    '<select id="snn-approve-action-type" class="snn-approve-select">' +
+                    '<option value="append" selected>Append</option>' +
+                    '<option value="replace">Replace Page</option>' +
+                    '<option value="prepend">Prepend</option>' +
+                    '</select>' +
+                    '<button id="snn-approve-build-btn" class="snn-approve-build-btn">&#10003; Build in Bricks</button>' +
+                    '</div>'
+                );
+                $('#snn-bricks-chat-messages').after($bar);
+                $('#snn-approve-build-btn').on('click', function() {
+                    compileAndBuild($('#snn-approve-action-type').val());
+                });
+            }
+
+            function removeApproveBar() { $('#snn-approve-bar').remove(); }
+
+            // ================================================================
+            // System Prompts
+            // ================================================================
+
+            function buildPhase1SystemPrompt() {
+                const basePrompt   = snnBricksChatConfig.ai.systemPrompt || '';
+                const postTitle    = snnBricksChatConfig.pageContext?.details?.post_title || 'Unknown';
+                const postType     = snnBricksChatConfig.pageContext?.details?.post_type  || 'page';
+                const ajaxUrl      = snnBricksChatConfig.ajaxUrl;
+                const cc           = BricksHelper.getCurrentContent();
+                let pageSnap = '';
+                if (cc && cc.elementCount > 0) {
+                    const snap = (cc.elements || []).slice(0, 40).map(el => {
+                        const raw = (el.settings && (el.settings.text || el.settings.content)) || '';
+                        const txt = raw.replace(/<[^>]*>/g, '').trim().slice(0, 60);
+                        return txt ? `  [${el.id}] ${el.name}: "${txt}"` : `  [${el.id}] ${el.name}`;
+                    }).join('\n');
+                    pageSnap = `\nPage currently has ${cc.elementCount} elements:\n${snap}\n`;
+                }
 
                 return basePrompt + `
 
-=== PLANNING PHASE ===
+=== BRICKS BUILDER AI — DESIGN PHASE ===
+Currently editing: "${postTitle}" (${postType})
+${pageSnap}
+YOUR JOB:
+When the user requests a design, layout, page or section — generate a complete, beautiful HTML mockup using:
+- Tailwind CSS utility classes (loaded via CDN — no custom <style> blocks except Google Fonts @import)
+- Google Fonts (via <link> tag or @import in a <style> tag)
+- Real content — actual headings, descriptions, CTAs (no Lorem Ipsum for headings)
+- Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS (use different keywords for each image)
 
-Your job in this turn is ONLY to analyse the user's request and decide how many page sections are needed.
+OUTPUT FORMAT:
+1. Write 1–2 sentences describing the design
+2. Output the complete HTML in a \`\`\`html code block
 
-If the user is asking a simple question, wants to edit/change a single element, wants to add just one section, or is having a conversation → respond conversationally in plain text. Do NOT output a JSON plan.
+DESIGN QUALITY:
+- Stunning, professional color palettes matching the business type
+- Responsive with Tailwind breakpoints (sm:, md:, lg:, xl:)
+- Hover effects (hover: prefix) and transitions (transition, duration-300)
+- Strong typography hierarchy (large bold h1, clear h2, readable body)
+- Good color contrast, rounded corners, shadows, generous whitespace
+- Production-ready aesthetics — not a wireframe, a real design
 
-If the user is asking to build a multi-section page (homepage, landing page, full page, etc.) → respond with:
-1. A brief friendly intro sentence describing what you will build.
-2. Then a JSON code block containing the section plan.
+IMAGES:
+Use the Pixabay proxy with topic-specific keywords for each image:
+  Hero/banner: ${ajaxUrl}?action=snn_pixabay_image&q=TOPIC+background
+  Team photos:  ${ajaxUrl}?action=snn_pixabay_image&q=portrait+professional
+  Products:     ${ajaxUrl}?action=snn_pixabay_image&q=PRODUCT+photography
+  Interiors:    ${ajaxUrl}?action=snn_pixabay_image&q=PLACE+interior+design
 
-Plan JSON format:
-\`\`\`json
-{
-  "plan": [
-    {"label": "Hero Section",       "description": "Full-width hero with heading, subtext and CTA button. action_type: replace"},
-    {"label": "About Section",      "description": "Two-column layout, image left, text right. action_type: append"},
-    {"label": "Services Grid",      "description": "3-column card grid of services. action_type: append"},
-    {"label": "Testimonials",       "description": "Soft pink background with 3 customer quotes. action_type: append"},
-    {"label": "Newsletter Footer",  "description": "Email signup form and social links. action_type: append"}
-  ]
-}
-\`\`\`
-
-Rules:
-- Keep descriptions SHORT (one sentence each) — just enough to brief the designer.
-- Include the action_type in the description ("action_type: replace" for first, "action_type: append" for rest).
-- Do NOT include any Bricks JSON structure here. That comes in the next step.
-- Do NOT call any abilities. This is planning only.`;
+WHEN NOT TO GENERATE HTML:
+- User asks a question → respond in plain text only
+- User says "change X to Y" (editing existing element) → explain direct Bricks edit
+- User refines the preview ("make it darker / add a section") → generate FULL new replacement HTML
+- Unsure → ask a quick clarifying question`;
             }
 
-            /**
-             * Extract a section plan from the planning-phase AI response.
-             * Returns array of {label, description} objects, or null if no plan found.
-             */
-            function extractPlanFromResponse(response) {
-                const match = response.match(/```json\n?([\s\S]*?)\n?```/);
-                if (!match) return null;
-                try {
-                    const parsed = JSON.parse(match[1]);
-                    if (parsed.plan && Array.isArray(parsed.plan) && parsed.plan.length >= 2) {
-                        return parsed.plan;
-                    }
-                } catch (e) {
-                    debugLog('Plan parse error:', e);
-                }
+            function buildPhase2SystemPrompt() {
+                return `You are a Bricks Builder JSON compiler. Convert HTML/Tailwind into Bricks Builder JSON.
+
+OUTPUT: Return ONLY a raw JSON object. No markdown, no backticks, no explanation.
+Start with { and end with }
+
+SCHEMA: {"content":[...elements]}
+
+ELEMENT STRUCTURE:
+{"id":"abc123","name":"type","parent":"pid_or_0","children":["id1"],"settings":{...},"label":"optional"}
+
+IDs: 6 unique lowercase alphanumeric chars per element.
+
+ELEMENT TYPES & SETTINGS:
+
+section (always parent:0):
+{"name":"section","parent":0,"children":["con1"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"hex":"#000"}}},"label":"Hero"}
+
+container (max-width wrapper + flex/grid layout):
+  col:  {"name":"container","settings":{"_direction":"column","_rowGap":"24","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"}}}
+  row:  {"name":"container","settings":{"_direction":"row","_columnGap":"20","_alignItems":"center"}}
+  grid: {"name":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"30"}}
+
+block (nested div — cards, wrappers):
+{"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"hex":"#fff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}}}
+
+heading: {"name":"heading","settings":{"text":"Text","tag":"h1","_typography":{"font-size":"60","font-weight":"900","color":{"hex":"#fff"},"line-height":"1.1","text-align":"center"}}}
+
+text-basic: {"name":"text-basic","settings":{"text":"Paragraph.","_typography":{"font-size":"18","line-height":"1.7","color":{"hex":"#666"}}}}
+
+button: {"name":"button","settings":{"text":"CTA","link":{"type":"external","url":"#"},"_background":{"color":{"hex":"#6366f1"}},"_typography":{"color":{"hex":"#fff"},"font-weight":"600","font-size":"16"},"_padding":{"top":"14","right":"28","bottom":"14","left":"28"},"_border":{"radius":{"top":"8","right":"8","bottom":"8","left":"8"}}}}
+
+image: {"name":"image","settings":{"image":{"url":"https://...","size":"full"},"_aspectRatio":"16/9","_objectFit":"cover","_width":"100%","_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}}}
+
+icon: {"name":"icon","settings":{"icon":{"library":"themify","icon":"ti-star"},"_typography":{"font-size":"32","color":{"hex":"#f59e0b"}}}}
+
+KEY SETTINGS:
+_direction: "row"|"column"   (flex; default column)
+_display: "grid"
+_gridTemplateColumns: "1fr 1fr 1fr"
+_gridGap / _columnGap / _rowGap: "30"   (number strings, no px)
+_justifyContent: "center"|"flex-start"|"flex-end"|"space-between"
+_alignItems: "center"|"flex-start"|"flex-end"
+_flexWrap: "wrap"
+_width:"100%"  _widthMax:"1200px"  _minHeight:"100vh"
+_padding:{"top":"40","right":"40","bottom":"40","left":"40"}
+_margin:{"left":"auto","right":"auto"}
+_background:{"color":{"hex":"#000000"}}
+_typography:{"font-size":"20","font-weight":"700","line-height":"1.7","letter-spacing":"0.05em","text-align":"center","color":{"hex":"#fff"},"font-family":"Poppins","text-transform":"uppercase"}
+_border:{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"hex":"#e5e7eb"}}
+
+TAILWIND → BRICKS MAPPING:
+LAYOUT: flex flex-col→_direction:"column" | flex flex-row/flex→_direction:"row" | grid grid-cols-2→_display:"grid",_gridTemplateColumns:"1fr 1fr" | grid-cols-3→"1fr 1fr 1fr" | grid-cols-4→"1fr 1fr 1fr 1fr" | items-center→_alignItems:"center" | justify-center→_justifyContent:"center" | justify-between→_justifyContent:"space-between" | flex-wrap→_flexWrap:"wrap"
+GAP: gap-4→"16" gap-6→"24" gap-8→"32" gap-10→"40" gap-12→"48" gap-16→"64"
+SIZING: max-w-6xl→"1152px" max-w-5xl→"1024px" max-w-4xl→"896px" max-w-3xl→"768px" max-w-2xl→"672px" max-w-xl→"576px" | min-h-screen→_minHeight:"100vh" | w-full→_width:"100%"
+PADDING: p-4→"16" p-6→"24" p-8→"32" p-10→"40" p-12→"48" p-16→"64" | px-4→l/r"16" px-6→"24" px-8→"32" | py-8→t/b"32" py-12→"48" py-16→"64" py-20→"80" py-24→"96" py-32→"128"
+TYPOGRAPHY: text-sm→"14" text-base→"16" text-lg→"18" text-xl→"20" text-2xl→"24" text-3xl→"30" text-4xl→"36" text-5xl→"48" text-6xl→"60" text-7xl→"72" text-8xl→"96" | font-medium→"500" font-semibold→"600" font-bold→"700" font-extrabold→"800" font-black→"900" | text-center→text-align:"center" | leading-tight→"1.25" leading-relaxed→"1.625" | tracking-wide→"0.05em" tracking-wider→"0.1em" tracking-widest→"0.25em" | uppercase→text-transform:"uppercase"
+COLORS: bg-white→"#ffffff" bg-black→"#000000" bg-gray-50→"#f9fafb" bg-gray-100→"#f3f4f6" bg-gray-900→"#111827" bg-slate-900→"#0f172a" | text-white→"#ffffff" text-black→"#000000" text-gray-500→"#6b7280" text-gray-600→"#4b5563" text-gray-900→"#111827" | For bg-[#FF6B35] or text-[#FF6B35] use that exact hex
+BORDER RADIUS: rounded→"4" rounded-md→"6" rounded-lg→"8" rounded-xl→"12" rounded-2xl→"16" rounded-3xl→"24" rounded-full→"9999"
+
+STRUCTURE RULES:
+1. All SECTION elements have parent:0
+2. SECTION > CONTAINER (max-width + layout) > content/BLOCK elements
+3. BLOCK handles nested card/grid layouts inside containers
+4. Content elements (heading, text-basic, button, image, icon) have no children
+5. Section _padding: ONLY top and bottom (never left/right)
+6. All numeric values are STRINGS without "px": "40" not "40px" not 40
+7. Generate unique 6-char IDs — every element must have a different ID
+8. Parent IDs must exactly match the actual parent element's id field`;
+            }
+
+            // ================================================================
+            // Helpers
+            // ================================================================
+
+            function extractHTMLFromResponse(resp) {
+                const m = resp.match(/```html\n?([\s\S]*?)\n?```/);
+                return m ? m[1].trim() : null;
+            }
+
+            function extractBricksJSONFromResponse(resp) {
+                const cleaned = resp.trim();
+                try { const p = JSON.parse(cleaned); if (p.content && Array.isArray(p.content)) return p; } catch(e) {}
+                const m = cleaned.match(/\{[\s\S]*"content"\s*:\s*\[[\s\S]*\][\s\S]*\}/);
+                if (m) { try { const p = JSON.parse(m[0]); if (p.content && Array.isArray(p.content)) return p; } catch(e) {} }
                 return null;
             }
 
-            /**
-             * Build the generation-phase system prompt for a single section.
-             */
-            function buildSectionGenerationPrompt(section, index, totalSections) {
-                return buildSystemPrompt() + `
-
-=== SECTION GENERATION PHASE ===
-
-You are building section ${index + 1} of ${totalSections}: **${section.label}**
-Description: ${section.description}
-
-CRITICAL RULES FOR THIS TURN:
-1. Generate ONLY this one section. Do NOT plan or describe other sections.
-2. Output exactly ONE ability call in your JSON block.
-3. Keep your response concise — one short sentence of intro, then the JSON.
-4. The label field must be: "${section.label}"
-5. Use action_type from the description (${section.description.includes('replace') ? '"replace"' : '"append"'}).
-
-Required response format:
-\`\`\`json
-{
-  "abilities": [
-    {
-      "name": "snn/generate-bricks-content",
-      "label": "${section.label}",
-      "input": {
-        "action_type": "${section.description.includes('replace') ? 'replace' : 'append'}",
-        "structure": { ... }
-      }
-    }
-  ]
-}
-\`\`\``;
-            }
-
-            /**
-             * Orchestrate section-by-section building.
-             * Makes one AI call per section, executes immediately after each.
-             */
-            async function executeSectionBySection(context, userMsgContent, plan, originalUserMessage) {
-                const total = plan.length;
-                initChecklist(plan);
-
-                for (let i = 0; i < plan.length; i++) {
-                    const section = plan[i];
-                    updateChecklistItem(i, 'active');
-
-                    setAgentState(AgentState.THINKING, {
-                        abilityName: section.label,
-                        current: i + 1,
-                        total: total
-                    });
-                    showTyping();
-
-                    let ability = null;
-                    let result = null;
-                    let retryCount = 0;
-
-                    while (retryCount <= MAX_RETRIES) {
-                        try {
-                            // Build generation messages for this section
-                            const genMessages = [
-                                { role: 'system', content: buildSectionGenerationPrompt(section, i, total) },
-                                ...context,
-                                { role: 'user', content: userMsgContent },
-                                // Remind AI which section we're on now
-                                { role: 'user', content: `Now generate section ${i + 1}/${total}: "${section.label}". ${section.description}` }
-                            ];
-
-                            const sectionResponse = await callAI(genMessages);
-                            hideTyping();
-                            debugLog(`Section ${i + 1} response:`, sectionResponse);
-
-                            const abilities = extractAbilitiesFromResponse(sectionResponse);
-
-                            if (abilities.length === 0) {
-                                throw new Error(`No ability found in response for section "${section.label}"`);
-                            }
-
-                            ability = abilities[0];
-                            setAgentState(AgentState.EXECUTING, { abilityName: section.label, current: i + 1, total: total });
-
-                            result = await executeAbility(ability.name, ability.input || {});
-
-                            if (result.success) {
-                                if (result.client_command && result.client_command.type) {
-                                    const clientResult = await executeClientCommand(result.client_command);
-                                    if (!clientResult.success) {
-                                        result.success = false;
-                                        result.error = clientResult.error;
-                                    }
-                                }
-                            }
-
-                            if (result.success) break;
-
-                            // Failed — ask AI to fix it
-                            if (retryCount < MAX_RETRIES) {
-                                const corrected = await retryWithAI(genMessages, ability, result.error);
-                                if (corrected) {
-                                    ability = corrected;
-                                    retryCount++;
-                                    showTyping();
-                                    continue;
-                                }
-                            }
-                            break;
-
-                        } catch (err) {
-                            hideTyping();
-                            debugLog(`Section ${i + 1} attempt ${retryCount + 1} error:`, err.message);
-                            result = { success: false, error: err.message };
-                            if (retryCount >= MAX_RETRIES) break;
-                            retryCount++;
-                            showTyping();
-                        }
-                    }
-
-                    updateChecklistItem(i, result && result.success ? 'done' : 'error');
-
-                    const resultHtml = formatSingleAbilityResult({
-                        ability: ability ? ability.name : 'snn/generate-bricks-content',
-                        result: result || { success: false, error: 'No response generated' },
-                        retries: retryCount
-                    });
-                    addMessage('assistant', resultHtml);
-
-                    if (i < plan.length - 1) await sleep(400);
-                }
-
-                clearChecklist(3000);
-                addMessage('assistant', `✅ Built all ${plan.length} sections for your page. Scroll the canvas to review the design.`);
-            }
-
-            /**
-             * Attempt to recover from an error
-             */
-            async function attemptRecovery(error, userMessage) {
-                ChatState.recoveryAttempts++;
-
-                if (ChatState.recoveryAttempts > RECOVERY_CONFIG.maxRecoveryAttempts) {
-                    debugLog('❌ Max recovery attempts reached');
-                    return false;
-                }
-
-                debugLog(`🔄 Attempting recovery (${ChatState.recoveryAttempts}/${RECOVERY_CONFIG.maxRecoveryAttempts})...`);
-
-                let delay = RECOVERY_CONFIG.baseDelay;
-
-                if (error.message.includes('429') || error.message.includes('Rate limit')) {
-                    delay = RECOVERY_CONFIG.rateLimitDelay * Math.pow(2, ChatState.recoveryAttempts - 1);
-                } else if (error.message.includes('500') || error.message.includes('503')) {
-                    delay = RECOVERY_CONFIG.baseDelay * Math.pow(2, ChatState.recoveryAttempts - 1);
-                }
-
-                delay = Math.min(delay, RECOVERY_CONFIG.maxDelay);
-
-                setAgentState(AgentState.RECOVERING, {
-                    reason: error.message,
-                    delay: delay,
-                    attempt: ChatState.recoveryAttempts,
-                    maxAttempts: RECOVERY_CONFIG.maxRecoveryAttempts
+            function buildConversationContext() {
+                return ChatState.messages.slice(-MAX_HISTORY).map(m => {
+                    const msg = { role: m.role === 'user' ? 'user' : 'assistant' };
+                    if (m.images && m.images.length > 0) {
+                        msg.content = [];
+                        if (m.content && m.content !== '(Image attached)') msg.content.push({ type: 'text', text: m.content });
+                        m.images.forEach(img => msg.content.push({ type: 'image_url', image_url: { url: img.data } }));
+                    } else { msg.content = m.content; }
+                    return msg;
                 });
-
-                showTyping();
-                await sleep(delay);
-
-                // Retry the operation...
-                return false; // Simplified for now
             }
 
-            /**
-             * Build system prompt with Bricks-specific context
-             */
-            function buildSystemPrompt() {
-                const basePrompt = snnBricksChatConfig.ai.systemPrompt || 'You are a helpful design assistant for Bricks Builder.';
-
-                let bricksContext = `\n\n=== BRICKS BUILDER CONTEXT ===\n\n`;
-                bricksContext += `You are helping the user design pages using Bricks Builder, a visual page builder for WordPress.\n`;
-                bricksContext += `The user is currently editing: ${snnBricksChatConfig.pageContext.details.description || 'a page'}\n\n`;
-
-                if (snnBricksChatConfig.pageContext.details.post_id) {
-                    bricksContext += `**Currently Editing:**\n`;
-                    bricksContext += `- Post ID: ${snnBricksChatConfig.pageContext.details.post_id}\n`;
-                    bricksContext += `- Title: "${snnBricksChatConfig.pageContext.details.post_title}"\n`;
-                    bricksContext += `- Post Type: ${snnBricksChatConfig.pageContext.details.post_type}\n\n`;
-                }
-
-                const currentContent = BricksHelper.getCurrentContent();
-                if (currentContent && currentContent.elementCount > 0) {
-                    bricksContext += `**CURRENT PAGE ELEMENTS (${currentContent.elementCount} total):**\n`;
-                    bricksContext += `Use these IDs with action_type "patch_element" to edit a specific element without touching anything else.\n`;
-                    const snapshot = (currentContent.elements || []).slice(0, 60).map(el => {
-                        const textRaw = (el.settings && (el.settings.text || el.settings.content)) || '';
-                        const text = textRaw.replace(/<[^>]*>/g, '').trim().slice(0, 80);
-                        return text
-                            ? `  [${el.id}] ${el.name}: "${text}${textRaw.replace(/<[^>]*>/g,'').trim().length > 80 ? '...' : ''}"`
-                            : `  [${el.id}] ${el.name}`;
-                    }).join('\n');
-                    bricksContext += snapshot + '\n\n';
-                } else if (currentContent) {
-                    bricksContext += `- Current Page Elements: 0 (blank page)\n\n`;
-                }
-
-                bricksContext += `**BRICKS CONTENT FORMAT:**\n`;
-                bricksContext += `Bricks uses JSON structure with elements:\n`;
-                bricksContext += `- Each element has: id, name, parent, children, settings\n`;
-                bricksContext += `- Common elements: section, container, block, heading, text, image, button\n`;
-                bricksContext += `- Settings contain styling and content properties\n\n`;
-
-                bricksContext += `**DESIGN BEST PRACTICES (IMPORTANT!):**\n`;
-                bricksContext += `1. **Section Padding**: ONLY use top/bottom padding on sections, NEVER left/right\n`;
-                bricksContext += `   - ✅ Good: {"_padding":{"top":"100","bottom":"100"}}\n`;
-                bricksContext += `   - ❌ Bad: {"_padding":{"top":"100","right":"100","bottom":"100","left":"100"}}\n`;
-                bricksContext += `   - Left/right padding on sections looks amateur and unprofessional\n\n`;
-                bricksContext += `2. **Container Width**: Use container _width property to control content width\n`;
-                bricksContext += `   - Example: {"_width":"500"} on container element\n`;
-                bricksContext += `   - This is the proper way to make sections narrower\n\n`;
-                bricksContext += `3. **Responsive Design - MOBILE FIRST ALWAYS:**\n`;
-                bricksContext += `   - Add responsive breakpoint values for all grid/layout properties\n`;
-                bricksContext += `   - Use :mobile_landscape, :tablet_portrait, :tablet_landscape suffixes\n`;
-                bricksContext += `   - Example: {"_gridTemplateColumns":"1fr 1fr 1fr","_gridTemplateColumns:mobile_landscape":"1fr"}\n`;
-                bricksContext += `   - Always include mobile breakpoints for grid layouts\n`;
-                bricksContext += `   - Common mobile override: "_gridTemplateColumns:mobile_landscape":"1fr" (single column)\n\n`;
-                bricksContext += `4. **Image Aspect Ratio**: When using _aspectRatio on images, ALWAYS add _objectFit:"cover"\n`;
-                bricksContext += `   - ✅ Good: {"_aspectRatio":"1/1","_objectFit":"cover",...}\n`;
-                bricksContext += `   - This ensures images fill their container properly without distortion\n`;
-                bricksContext += `   - Common aspect ratios: "1/1" (square), "16/9" (landscape), "4/3", "3/2"\n\n`;
-
-                bricksContext += `**TYPOGRAPHY & FONTS:**\n`;
-                bricksContext += `- You can use ANY Google Font in your designs\n`;
-                bricksContext += `- Specify fonts in element settings using the 'typography' property\n`;
-                bricksContext += `- Example: { typography: { family: "Playfair Display" } }\n`;
-                bricksContext += `- Popular choices: Inter, Roboto, Poppins, Montserrat, Open Sans, Playfair Display, etc.\n`;
-                bricksContext += `- Choose fonts that match the design style and brand personality\n\n`;
-
-                bricksContext += `**SEMANTIC IMAGE PLACEHOLDERS — ALWAYS USE REAL PIXABAY IMAGES:**\n`;
-                bricksContext += `NEVER leave image src empty, use "image.jpg", or generic placeholder text.\n`;
-                bricksContext += `Use the built-in Pixabay proxy to get high-quality, topic-relevant photos that make designs look real immediately.\n`;
-                bricksContext += `URL pattern: ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q={keywords}\n`;
-                bricksContext += `• Replace {keywords} with space-separated or + separated words relevant to the section content.\n`;
-                bricksContext += `  Examples:\n`;
-                bricksContext += `  - Bakery hero:     ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=bakery+bread+interior\n`;
-                bricksContext += `  - Restaurant food: ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=restaurant+food+gourmet\n`;
-                bricksContext += `  - Tech / SaaS:     ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=technology+office+laptop\n`;
-                bricksContext += `  - Team portrait:   ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=portrait+person+professional\n`;
-                bricksContext += `  - Fitness:         ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=fitness+gym+workout\n`;
-                bricksContext += `  - Architecture:    ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=architecture+building+interior\n`;
-                bricksContext += `  - Fashion:         ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=fashion+model+style\n`;
-                bricksContext += `  - Nature/Travel:   ${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=nature+landscape+travel\n`;
-                bricksContext += `• Use different keyword combinations for each image to ensure variety across the page.\n`;
-                bricksContext += `• IMPORTANT: Use ONLY this proxy URL format — do NOT use loremflickr, picsum, or any other placeholder service.\n`;
-                bricksContext += `Set the URL in Bricks image element settings like this: {"src": "${snnBricksChatConfig.ajaxUrl}?action=snn_pixabay_image&q=bakery+bread+interior"}\n\n`;
-
-                bricksContext += `**IMAGE ANALYSIS & DESIGN RECREATION:**\n`;
-                bricksContext += `- Users can paste screenshots or upload design images (from Figma, Adobe XD, etc.)\n`;
-                bricksContext += `- When you receive an image, carefully analyze:\n`;
-                bricksContext += `  * Layout structure (sections, grids, columns)\n`;
-                bricksContext += `  * Typography (font styles, sizes, hierarchy)\n`;
-                bricksContext += `  * Colors (background, text, accents)\n`;
-                bricksContext += `  * Spacing (padding, margins, gaps)\n`;
-                bricksContext += `  * Visual elements (images, icons, shapes)\n`;
-                bricksContext += `- Recreate the design as faithfully as possible using Bricks elements\n`;
-                bricksContext += `- If design uses custom graphics, suggest placeholder images or similar alternatives\n`;
-                bricksContext += `- Maintain responsive design principles even when replicating desktop designs\n\n`;
-
-                bricksContext += `**AVAILABLE OPERATIONS & WHEN TO USE THEM:**\n`;
-                bricksContext += `⚠️ CRITICAL DECISION RULE — read before every ability call:\n`;
-                bricksContext += `1. User asks to CHANGE / EDIT / UPDATE something specific → use action_type "patch_element" (NEVER replace)\n`;
-                bricksContext += `2. User asks to ADD a new section → use action_type "append" (default)\n`;
-                bricksContext += `3. User wants content at the TOP → use action_type "prepend"\n`;
-                bricksContext += `4. User explicitly wants a FRESH START / blank page → use action_type "replace" (DANGEROUS — destroys all sections)\n\n`;
-                bricksContext += `✏️ PATCH ELEMENT — editing a single element without touching the rest:\n`;
-                bricksContext += `  • Use find_by.type "text_content" to locate by the element's current text:\n`;
-                bricksContext += `    { action_type: "patch_element", find_by: { type: "text_content", value: "old heading" }, updates: { text: "New Heading" } }\n`;
-                bricksContext += `  • Or use element_id directly from the page snapshot above:\n`;
-                bricksContext += `    { action_type: "patch_element", element_id: "abc123", updates: { text: "New Heading" } }\n`;
-                bricksContext += `  • updates can contain: text (string), image_url (string), bricks_settings (native Bricks settings object)\n\n`;
-
-                if (ChatState.abilities.length === 0) {
-                    return `${basePrompt}${bricksContext}\n\nNote: No Bricks abilities currently available.`;
-                }
-
-                // List available Bricks abilities
-                const abilitiesList = ChatState.abilities.map(ability => {
-                    return `- **${ability.name}**: ${ability.description || ability.label || 'No description'}`;
-                }).join('\n');
-
-                bricksContext += `**AVAILABLE BRICKS ABILITIES:**\n${abilitiesList}\n\n`;
-
-                return basePrompt + bricksContext + `
-
-=== CRITICAL: HOW TO USE ABILITIES CORRECTLY ===
-
-**EACH ABILITY CALL = ONE DISTINCT SECTION**
-
-When the user asks for "6 sections", you must make 6 SEPARATE ability calls, each with a UNIQUE description:
-
-❌ WRONG (generates 6 identical sections):
-` + '```json' + `
-{
-  "abilities": [
-    {"name": "snn/generate-bricks-content", "input": {"structure": {...}}},
-    {"name": "snn/generate-bricks-content", "input": {"structure": {...}}},
-    {"name": "snn/generate-bricks-content", "input": {"structure": {...}}}
-  ]
-}
-` + '```' + `
-
-✅ CORRECT (each call describes a different section):
-` + '```json' + `
-{
-  "abilities": [
-    {
-      "name": "snn/generate-bricks-content",
-      "input": {
-        "structure": {
-          "type": "section",
-          "styles": {"background": "#000000", "minHeight": "100vh", "padding": "80"},
-          "children": [{
-            "type": "container",
-            "styles": {"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "60"},
-            "children": [
-              {
-                "type": "block",
-                "styles": {"display": "flex", "flexDirection": "column", "gap": "24"},
-                "children": [
-                  {"type": "heading", "content": "Crypto Platform", "tag": "h1", "styles": {"fontSize": "120", "fontSize:mobile_landscape": "56", "fontWeight": "900", "color": "#ffffff"}}
-                ]
-              },
-              {
-                "type": "custom-html-css-script",
-                "content": "<div id='orb'></div><style>#orb{width:400px;height:400px;border-radius:50%;background:radial-gradient(circle, #34d399, #000);filter:blur(40px);animation:float 6s ease-in-out infinite;}@keyframes float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-30px)}}</style>"
-              }
-            ]
-          }]
-        }
-      }
-    },
-    {
-      "name": "snn/generate-bricks-content",
-      "input": {
-        "structure": {
-          "type": "section",
-          "styles": {"background": "#000000", "padding": "40"},
-          "children": [{
-            "type": "container",
-            "children": [{
-              "type": "block",
-              "styles": {"display": "flex", "flexDirection": "row", "gap": "20", "overflow": "hidden"},
-              "children": [
-                {"type": "text-basic", "content": "🪙 BTC +5.2%", "styles": {"color": "#34d399", "fontSize": "14", "fontWeight": "700"}},
-                {"type": "text-basic", "content": "🪙 ETH +3.8%", "styles": {"color": "#34d399", "fontSize": "14", "fontWeight": "700"}},
-                {"type": "text-basic", "content": "🪙 SOL +8.1%", "styles": {"color": "#34d399", "fontSize": "14", "fontWeight": "700"}}
-              ]
-            }]
-          }]
-        }
-      }
-    }
-  ]
-}
-` + '```' + `
-
-**INPUT FORMAT REQUIREMENTS:**
-
-For adding/replacing sections (action_type: "append", "prepend", or "replace"):
-` + '```json' + `
-{
-  "input": {
-    "structure": {
-      "type": "section|container|block|heading|text|image|etc",
-      "content": "text content for text elements",
-      "styles": {
-        "background": "#hexcolor",
-        "padding": "number",
-        "fontSize": "number"
-      },
-      "children": []
-    },
-    "action_type": "append",
-    "post_id": 12345
-  }
-}
-` + '```' + `
-
-For editing an existing element (action_type: "patch_element") — NO "structure" needed:
-` + '```json' + `
-{
-  "input": {
-    "action_type": "patch_element",
-    "find_by": { "type": "text_content", "value": "We Make Brands People Love" },
-    "updates": { "text": "We Build Digital Experiences That Matter" }
-  }
-}
-` + '```' + `
-Or target by element ID from the page snapshot:
-` + '```json' + `
-{
-  "input": {
-    "action_type": "patch_element",
-    "element_id": "abc123",
-    "updates": {
-      "text": "New Title",
-      "bricks_settings": { "_color": { "hex": "#FF6B35" } }
-    }
-  }
-}
-` + '```' + `
-
-**COMMON MISTAKES TO AVOID:**
-
-1. ❌ Missing "structure" wrapper: {"input": {"type": "section"}}
-   ✅ Correct: {"input": {"structure": {"type": "section"}}}
-
-2. ❌ Using "px" suffix: {"padding": "80px"}
-   ✅ Correct: {"padding": "80"}
-
-3. ❌ Missing flexDirection with display:flex
-   ✅ Always specify: {"display": "flex", "flexDirection": "row"} or "column"
-
-4. ❌ Multiple children without gap property
-   ✅ Always add gap: {"gap": "24", "children": [...]}
-
-5. ❌ Section with left/right padding
-   ✅ Only top/bottom: {"padding": {"top": "80", "bottom": "80"}}
-
-**WHEN ERRORS OCCUR:**
-
-If an ability fails, the error message will tell you what's wrong. Common issues:
-- "Invalid structure format" = missing required "structure" object
-- "Invalid element type" = used wrong type name
-- "Invalid style value" = used "px" or wrong format
-- "Missing gap property" = container/block has multiple children but no gap
-
-Fix the EXACT issue mentioned in the error, don't just retry the same input.
-
-**RESPONSE FORMAT:**
-
-You MUST respond with regular text containing a JSON code block. DO NOT use function calling or tool calling.
-
-Each ability MUST include a "label" field: a short, human-readable name for that section (e.g. "Hero Section", "Features Grid", "Team Section", "Footer CTA"). This label is displayed in a live progress checklist shown to the user while building.
-
-Your response should look like this:
-` + '```json' + `
-{
-  "abilities": [
-    {
-      "name": "snn/generate-bricks-content",
-      "label": "Hero Section",
-      "input": {
-        "structure": {...}
-      }
-    },
-    {
-      "name": "snn/generate-bricks-content",
-      "label": "Features Grid",
-      "input": {
-        "structure": {...}
-      }
-    }
-  ]
-}
-` + '```' + `
-
-IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... ` + '```' + `). Do not attempt to call functions or tools directly.`;
+            function buildUserContent(msg, imgs = []) {
+                if (!imgs.length) return msg;
+                const c = [];
+                if (msg) c.push({ type: 'text', text: msg });
+                imgs.forEach(img => c.push({ type: 'image_url', image_url: { url: img.data } }));
+                return c;
             }
 
-            /**
-             * Call AI API
-             */
-            async function callAI(messages, retryCount = 0, options = {}) {
-                const config = snnBricksChatConfig.ai;
+            // ================================================================
+            // Toolbar Button
+            // ================================================================
 
-                if (!config.apiKey || !config.apiEndpoint) {
-                    throw new Error('AI API not configured');
+            function addToolbarButton() {
+                const selectors = ['.bricks-toolbar ul.end','ul.group-wrapper.end','.group-wrapper.end'];
+                for (const sel of selectors) {
+                    const tb = document.querySelector(sel);
+                    if (tb) { createToolbarButton(tb); return; }
                 }
-
-                try {
-                    ChatState.abortController = new AbortController();
-
-                    const requestBody = {
-                        model: config.model,
-                        messages: messages,
-                        temperature: 0.7,
-                        max_tokens: options.maxTokens || config.maxTokens || 4000
-                    };
-
-                    debugLog('Sending to AI:', {
-                        model: requestBody.model,
-                        messageCount: messages.length,
-                        systemPromptLength: messages[0]?.content?.length || 0,
-                        maxTokens: requestBody.max_tokens
-                    });
-
-                    const response = await fetch(config.apiEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${config.apiKey}`
-                        },
-                        body: JSON.stringify(requestBody),
-                        signal: ChatState.abortController.signal
-                    });
-
-                    // Handle rate limiting
-                    if (response.status === 429 && retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {
-                        const delay = Math.min(
-                            RECOVERY_CONFIG.rateLimitDelay * Math.pow(2, retryCount),
-                            RECOVERY_CONFIG.maxDelay
-                        );
-
-                        setAgentState(AgentState.RECOVERING, {
-                            reason: 'Rate limit exceeded',
-                            delay: delay,
-                            attempt: retryCount + 1,
-                            maxAttempts: RECOVERY_CONFIG.maxRecoveryAttempts
-                        });
-
-                        await sleep(delay);
-                        return await callAI(messages, retryCount + 1, options);
+                const obs = new MutationObserver(function(_, o) {
+                    for (const sel of selectors) {
+                        const tb = document.querySelector(sel);
+                        if (tb) { createToolbarButton(tb); o.disconnect(); return; }
                     }
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        debugLog('API Error Response:', errorText);
-                        throw new Error(`AI API error: ${response.status} - ${errorText.substring(0, 200)}`);
-                    }
-
-                    const data = await response.json();
-                    debugLog('API Response Data:', data);
-
-                    ChatState.recoveryAttempts = 0;
-
-                    // Validate response structure
-                    if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
-                        debugLog('Invalid response structure:', data);
-                        throw new Error('Invalid AI API response structure');
-                    }
-
-                    const content = data.choices[0].message.content;
-
-                    if (!content || content.trim() === '') {
-                        debugLog('Empty content in response');
-                        throw new Error('AI returned empty content');
-                    }
-
-                    return content;
-
-                } catch (error) {
-                    if (error.name === 'AbortError') throw error;
-                    ChatState.lastError = error;
-                    throw error;
-                }
-            }
-
-            /**
-             * Extract abilities from AI response
-             */
-            function extractAbilitiesFromResponse(response) {
-                const abilities = [];
-                const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/);
-
-                if (!jsonMatch) {
-                    return abilities;
-                }
-
-                try {
-                    const parsed = JSON.parse(jsonMatch[1]);
-                    if (parsed.abilities && Array.isArray(parsed.abilities)) {
-                        return parsed.abilities;
-                    }
-                } catch (error) {
-                    console.error('Failed to parse abilities:', error);
-                }
-
-                return abilities;
-            }
-
-            /**
-             * Execute abilities sequentially
-             */
-            async function executeAbilitiesSequentially(conversationMessages, abilities) {
-                const totalAbilities = abilities.length;
-                initChecklist(abilities);
-
-                for (let i = 0; i < abilities.length; i++) {
-                    let ability = abilities[i];
-                    const current = i + 1;
-                    let retryCount = 0;
-                    let result = null;
-
-                    while (retryCount <= MAX_RETRIES) {
-                        showTyping();
-                        setAgentState(retryCount > 0 ? AgentState.RETRYING : AgentState.THINKING);
-                        await sleep(300);
-
-                        setAgentState(AgentState.EXECUTING, {
-                            abilityName: ability.name,
-                            current: current,
-                            total: totalAbilities,
-                            retry: retryCount > 0 ? retryCount : null
-                        });
-                        updateChecklistItem(i, 'active');
-
-                        debugLog(`Executing: ${ability.name} (${current}/${totalAbilities})`);
-                        result = await executeAbility(ability.name, ability.input || {});
-
-                        hideTyping();
-
-                        if (result.success) {
-                            // Check if this ability returns Bricks content that needs injection
-                            if (result.client_command && result.client_command.type) {
-                                debugLog('Executing client command:', result.client_command.type);
-                                const clientResult = await executeClientCommand(result.client_command);
-                                if (!clientResult.success) {
-                                    result.success = false;
-                                    result.error = clientResult.error;
-                                }
-                            }
-                            break;
-                        }
-
-                        if (retryCount < MAX_RETRIES) {
-                            const correctedAbility = await retryWithAI(conversationMessages, ability, result.error);
-                            if (correctedAbility) {
-                                ability = correctedAbility;
-                                retryCount++;
-                                continue;
-                            } else {
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // Update checklist item to final state
-                    updateChecklistItem(i, result && result.success ? 'done' : 'error');
-
-                    // Show result
-                    const resultHtml = formatSingleAbilityResult({
-                        ability: ability.name,
-                        result: result,
-                        retries: retryCount
-                    });
-                    addMessage('assistant', resultHtml, [{ ability: ability.name, result: result, retries: retryCount }]);
-
-                    if (i < abilities.length - 1) {
-                        await sleep(500);
-                    }
-                }
-
-                // Hide checklist after a short delay so the user can see all checkmarks
-                clearChecklist(3000);
-            }
-
-            /**
-             * Ask AI to retry with corrected input
-             */
-            async function retryWithAI(conversationMessages, failedAbility, errorMessage) {
-                try {
-                    showTyping();
-                    setAgentState(AgentState.RETRYING);
-
-                    // Provide detailed context about what failed
-                    let errorContext = `The ability "${failedAbility.name}" failed with this error:\n"${errorMessage}"\n\n`;
-
-                    // Add specific guidance based on error type
-                    if (errorMessage.includes('structure')) {
-                        errorContext += `ISSUE: The input is missing the required "structure" object.\n`;
-                        errorContext += `REQUIRED FORMAT:\n{"input": {"structure": {"type": "...", "children": [...]}}}\n\n`;
-                    } else if (errorMessage.includes('px')) {
-                        errorContext += `ISSUE: Style values should be plain numbers, not "px" strings.\n`;
-                        errorContext += `❌ Wrong: {"padding": "80px"}\n✅ Correct: {"padding": "80"}\n\n`;
-                    } else if (errorMessage.includes('gap')) {
-                        errorContext += `ISSUE: Containers/blocks with multiple children must have a "gap" property.\n`;
-                        errorContext += `✅ Add: {"gap": "24", "children": [...]}\n\n`;
-                    } else if (errorMessage.includes('flexDirection')) {
-                        errorContext += `ISSUE: Elements with display:flex must specify flexDirection.\n`;
-                        errorContext += `✅ Add: {"display": "flex", "flexDirection": "column"} or "row"\n\n`;
-                    }
-
-                    errorContext += `Your PREVIOUS (failed) input was:\n${JSON.stringify(failedAbility.input, null, 2)}\n\n`;
-                    errorContext += `Please provide CORRECTED input that fixes the specific issue mentioned above.\n`;
-                    errorContext += `Respond with ONLY a JSON code block with the corrected ability, or "CANNOT_FIX" if impossible.`;
-
-                    const retryMessages = [
-                        ...conversationMessages,
-                        {
-                            role: 'user',
-                            content: errorContext
-                        }
-                    ];
-
-                    const aiResponse = await callAI(retryMessages);
-                    hideTyping();
-
-                    if (aiResponse.includes('CANNOT_FIX')) {
-                        debugLog('AI cannot fix the error');
-                        return null;
-                    }
-
-                    const correctedAbilities = extractAbilitiesFromResponse(aiResponse);
-                    if (correctedAbilities.length > 0) {
-                        debugLog('✅ AI provided corrected input');
-                        return correctedAbilities[0];
-                    }
-
-                    debugLog('⚠️ AI response did not contain valid corrected input');
-                    return null;
-                } catch (error) {
-                    console.error('Retry failed:', error);
-                    hideTyping();
-                    return null;
-                }
-            }
-
-            /**
-             * Provide final summary
-             */
-            async function provideFinalSummary(conversationMessages, abilities) {
-                if (abilities.length <= 1) return;
-
-                try {
-                    showTyping();
-                    setAgentState(AgentState.THINKING);
-
-                    const executedList = abilities.map((a, i) =>
-                        `${i + 1}. ${a.name}`
-                    ).join('\n');
-
-                    const summaryMessages = [
-                        ...conversationMessages,
-                        {
-                            role: 'user',
-                            content: `All ${abilities.length} tasks completed:\n\n${executedList}\n\nProvide a brief summary (2-3 sentences).`
-                        }
-                    ];
-
-                    const summary = await callAI(summaryMessages);
-                    hideTyping();
-
-                    const cleanSummary = summary.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
-                    addMessage('assistant', '✅ ' + cleanSummary);
-
-                } catch (error) {
-                    console.error('Summary failed:', error);
-                    hideTyping();
-                }
-            }
-
-            /**
-             * Execute client-side command (Bricks content injection)
-             */
-            async function executeClientCommand(command) {
-                try {
-                    if (!command || !command.type) {
-                        return {
-                            success: false,
-                            error: 'Invalid client command'
-                        };
-                    }
-
-                    debugLog('Client command type:', command.type);
-
-                    switch (command.type) {
-                        case 'bricks_replace_all':
-                            return BricksHelper.replaceAllContent(command.content);
-
-                        case 'bricks_update_section':
-                            return BricksHelper.updateSection(command.section_identifier, command.content);
-
-                        case 'bricks_add_section':
-                            return BricksHelper.addSection(command.content, command.position || 'append');
-
-                        case 'bricks_patch_element':
-                            return BricksHelper.patchElement(command);
-
-                        case 'update_bricks_content':
-                            // Legacy fallback - interpret action parameter
-                            const action = command.action || 'append';
-                            if (action === 'replace') {
-                                return BricksHelper.replaceAllContent(command.content);
-                            } else {
-                                return BricksHelper.addSection(command.content, action === 'prepend' ? 'prepend' : 'append');
-                            }
-
-                        default:
-                            return {
-                                success: false,
-                                error: `Unknown command type: ${command.type}`
-                            };
-                    }
-
-                } catch (error) {
-                    console.error('Client command error:', error);
-                    return {
-                        success: false,
-                        error: error.message
-                    };
-                }
-            }
-
-            /**
-             * Execute a single ability
-             */
-            async function executeAbility(abilityName, input) {
-                try {
-                    const encodedName = abilityName.split('/').map(part => encodeURIComponent(part)).join('/');
-                    const apiUrl = snnBricksChatConfig.restUrl + 'abilities/' + encodedName + '/run';
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-WP-Nonce': snnBricksChatConfig.nonce
-                        },
-                        body: JSON.stringify({ input: input })
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        return { success: false, error: `HTTP ${response.status}: ${errorText}` };
-                    }
-
-                    const result = await response.json();
-
-                    // Normalize response
-                    if (typeof result.success !== 'undefined') {
-                        return result;
-                    }
-
-                    if (result.data !== undefined) {
-                        return { success: true, data: result.data };
-                    }
-
-                    return { success: true, data: result };
-
-                } catch (error) {
-                    console.error('Execution error:', error);
-                    return { success: false, error: error.message };
-                }
-            }
-
-            /**
-             * Format single ability result
-             */
-            function formatSingleAbilityResult(r) {
-                const success = r.result.success;
-                const status = success ? '✅' : '❌';
-                const retries = r.retries || 0;
-
-                let html = '<div class="ability-results">';
-                html += `<div class="ability-result ${success ? 'success' : 'error'}">`;
-                html += `<strong>${status} ${r.ability}</strong>`;
-
-                if (success) {
-                    let successMsg = 'Content injected into page';
-                    if (retries > 0) {
-                        successMsg += ` (after ${retries} ${retries === 1 ? 'retry' : 'retries'})`;
-                    }
-                    html += `<div class="result-data">${successMsg}</div>`;
-                } else {
-                    let errorMsg = r.result.error || 'Unknown error';
-                    if (retries > 0) {
-                        errorMsg = `Failed after ${retries} ${retries === 1 ? 'retry' : 'retries'}: ${errorMsg}`;
-                    }
-                    html += `<div class="result-error">${errorMsg}</div>`;
-                }
-
-                html += '</div></div>';
-                return html;
-            }
-
-            /**
-             * Collapse long messages with a Read more / Read less toggle
-             */
-            const READ_MORE_THRESHOLD = 70; // px
-
-            function applyReadMore($message, isLatest) {
-                const $body = $message.find('.snn-msg-body');
-                if (!$body.length) return;
-
-                // Use setTimeout so the DOM has rendered and offsetHeight is accurate
-                setTimeout(function() {
-                    if ($body[0].scrollHeight > READ_MORE_THRESHOLD) {
-                        const startExpanded = !!isLatest;
-                        if (!startExpanded) {
-                            $message.addClass('is-collapsed');
-                        }
-                        const $btn = $('<button>').addClass('snn-msg-toggle').text(startExpanded ? '▲ Collapse' : '▼ Read more');
-                        $btn.on('click', function() {
-                            if ($message.hasClass('is-collapsed')) {
-                                $message.removeClass('is-collapsed');
-                                $btn.text('▲ Collapse');
-                            } else {
-                                $message.addClass('is-collapsed');
-                                $btn.text('▼ Read more');
-                                // Scroll message into view after collapsing
-                                $message[0].scrollIntoView({ block: 'nearest' });
-                            }
-                        });
-                        $message.append($btn);
-                    }
-                }, 0);
-            }
-
-            /**
-             * Extract a human-readable label for an ability for the checklist
-             */
-            function getAbilityChecklistLabel(ability, index) {
-                if (ability.label) return ability.label;
-                const input = ability.input || {};
-                const structure = input.structure || {};
-                function findHeading(node, depth) {
-                    if (!node || depth > 3) return null;
-                    if (node.type === 'heading' && node.content) return String(node.content).replace(/<[^>]*>/g, '').substring(0, 40);
-                    if (Array.isArray(node.children)) {
-                        for (const child of node.children) {
-                            const h = findHeading(child, depth + 1);
-                            if (h) return h;
-                        }
-                    }
-                    return null;
-                }
-                const heading = findHeading(structure, 0);
-                if (heading) return heading;
-                if (input.pattern_type) return input.pattern_type.charAt(0).toUpperCase() + input.pattern_type.slice(1) + ' Section';
-                if (structure.type) return structure.type.charAt(0).toUpperCase() + structure.type.slice(1) + ' ' + (index + 1);
-                return ability.name.split('/').pop() + ' ' + (index + 1);
-            }
-
-            /**
-             * Initialize execution checklist with all abilities listed as pending
-             */
-            function initChecklist(abilities) {
-                const $el = $('#snn-bricks-execution-checklist');
-                if (!$el.length || !abilities || abilities.length < 2) return;
-                let html = '<div class="snn-bricks-checklist-title">⚙ Building your design</div>';
-                abilities.forEach(function(ability, i) {
-                    const label = getAbilityChecklistLabel(ability, i);
-                    html += '<div class="snn-bricks-checklist-item" id="snn-checklist-item-' + i + '">' +
-                        '<span class="snn-bricks-checklist-icon">○</span>' +
-                        '<span class="snn-bricks-checklist-label">' + label + '</span>' +
-                        '</div>';
                 });
-                $el.html(html).show();
-                scrollToBottom();
+                obs.observe(document.body, { childList: true, subtree: true });
+                setTimeout(() => obs.disconnect(), 15000);
             }
 
-            /**
-             * Update a checklist item status: 'active' | 'done' | 'error'
-             */
-            function updateChecklistItem(index, status) {
-                const $item = $('#snn-checklist-item-' + index);
-                if (!$item.length) return;
-                $item.removeClass('is-done is-active is-error');
-                const icons = { active: '⏳', done: '✅', error: '❌' };
-                $item.find('.snn-bricks-checklist-icon').text(icons[status] || '○');
-                if (status === 'active') $item.addClass('is-active');
-                else if (status === 'done') $item.addClass('is-done');
-                else if (status === 'error') $item.addClass('is-error');
-                scrollToBottom();
+            function createToolbarButton(toolbar) {
+                if (document.querySelector('.snn-bricks-ai-toggle')) return;
+                const li = document.createElement('li');
+                li.className = 'snn-bricks-ai-toggle';
+                li.setAttribute('data-balloon', 'SNN AI Agent');
+                li.setAttribute('data-balloon-pos', 'bottom');
+                li.innerHTML = '<span style="font-size:22px;background:linear-gradient(45deg,#2271b1,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;cursor:pointer;line-height:1.2">&#9998;</span>';
+                li.addEventListener('click', e => { e.preventDefault(); toggleChat(); });
+                toolbar.lastElementChild ? toolbar.insertBefore(li, toolbar.lastElementChild) : toolbar.appendChild(li);
             }
 
-            /**
-             * Hide and clear checklist after a short delay
-             */
-            function clearChecklist(delay) {
-                setTimeout(function() {
-                    $('#snn-bricks-execution-checklist').hide().empty();
-                }, delay !== undefined ? delay : 2500);
+            // ================================================================
+            // Chat Interface
+            // ================================================================
+
+            function initChat() {
+                $('.snn-bricks-chat-close').on('click', e => { e.preventDefault(); toggleChat(); });
+                $('#snn-bricks-chat-new-btn').on('click', clearChat);
+                $('#snn-bricks-chat-history-btn').on('click', toggleHistoryDropdown);
+                $('#snn-bricks-history-close').on('click', () => $('#snn-bricks-chat-history-dropdown').hide());
+                $('#snn-bricks-chat-send').on('click', sendMessage);
+                $('#snn-bricks-preview-toggle-btn').on('click', togglePreviewPane);
+                // Preview pane header buttons
+                $('#snn-preview-approve-btn').on('click', function() { compileAndBuild($('#snn-preview-action-type').val()); });
+                $('#snn-preview-close-btn').on('click', hideHTMLPreview);
+                // Input
+                $('#snn-bricks-chat-input').on('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+                $('#snn-bricks-chat-input').on('input', function() { this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 120) + 'px'; });
+                // Quick actions
+                $('.snn-bricks-quick-action-btn').on('click', function() { $('#snn-bricks-chat-input').val($(this).data('message')); sendMessage(); });
+                // Images
+                $('#snn-bricks-chat-attach-btn').on('click', () => $('#snn-bricks-chat-file-input').click());
+                $('#snn-bricks-chat-file-input').on('change', e => handleFileSelect(e.target.files));
+                $('#snn-bricks-chat-input').on('paste', e => handlePaste(e.originalEvent));
+                setInterval(autoSaveConversation, 30000);
             }
 
-            /**
-             * Helper functions
-             */
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
+            function toggleChat() {
+                ChatState.isOpen = !ChatState.isOpen;
+                $('#snn-bricks-chat-overlay').toggle();
+                if (ChatState.isOpen) $('#snn-bricks-chat-input').focus();
             }
 
-            function showTyping() {
-                $('.snn-bricks-chat-typing').show();
-                scrollToBottom();
-            }
-
-            function hideTyping() {
-                $('.snn-bricks-chat-typing').hide();
-            }
-
-            function setAgentState(state, metadata = null) {
-                ChatState.currentState = state;
-                const $stateText = $('#snn-bricks-chat-state-text');
-
-                let stateMessage = '';
-                switch(state) {
-                    case AgentState.THINKING:
-                        stateMessage = 'Thinking...';
-                        break;
-                    case AgentState.EXECUTING:
-                        stateMessage = metadata && metadata.abilityName
-                            ? `Executing ${metadata.abilityName}...`
-                            : 'Executing...';
-                        break;
-                    case AgentState.RETRYING:
-                        stateMessage = 'Retrying...';
-                        break;
-                    case AgentState.RECOVERING:
-                        stateMessage = metadata ? `Recovering (${Math.ceil(metadata.delay/1000)}s)...` : 'Recovering...';
-                        break;
-                    case AgentState.ERROR:
-                        stateMessage = 'Error occurred';
-                        setTimeout(() => setAgentState(AgentState.IDLE), 3000);
-                        break;
-                }
-
-                if (stateMessage) {
-                    $stateText.text(stateMessage).show();
-                } else {
-                    $stateText.hide();
-                }
-            }
-
-            function addMessage(role, content, metadataOrImages = null) {
-                const message = {
-                    role: role,
-                    content: content,
-                    timestamp: Date.now()
-                };
-
-                // Handle images parameter (array of images) vs metadata
-                if (Array.isArray(metadataOrImages) && metadataOrImages.length > 0 && metadataOrImages[0].data) {
-                    message.images = metadataOrImages;
-                } else {
-                    message.metadata = metadataOrImages;
-                }
-
-                ChatState.messages.push(message);
-
-                const $messages = $('#snn-bricks-chat-messages');
-                const $welcome = $messages.find('.snn-bricks-chat-welcome');
-
-                if ($welcome.length) {
-                    $welcome.remove();
-                    $('.snn-bricks-chat-quick-actions').hide();
-                }
-
-                const $message = $('<div>')
-                    .addClass('snn-bricks-chat-message')
-                    .addClass('snn-bricks-chat-message-' + role);
-
-                // Wrap body content
-                const $body = $('<div>').addClass('snn-msg-body');
-
-                // Add images if present
-                if (message.images && message.images.length > 0) {
-                    const $imagesDiv = $('<div>').addClass('snn-message-images');
-                    message.images.forEach(img => {
-                        const $img = $('<img>').attr('src', img.data).attr('alt', img.fileName || 'Attached image');
-                        $imagesDiv.append($img);
-                    });
-                    $body.append($imagesDiv);
-                }
-
-                // Add text content
-                $body.append($('<div>').html(formatMessage(content)));
-                $message.append($body);
-
-                $messages.append($message);
-                applyReadMore($message, false);
-                scrollToBottom();
-            }
-
-            function formatMessage(content) {
-                if (content.includes('<div class="ability-results">')) {
-                    return content;
-                }
-
-                if (typeof markdown !== 'undefined' && markdown.toHTML) {
-                    try {
-                        return markdown.toHTML(content);
-                    } catch (e) {
-                        return content.replace(/\n/g, '<br>');
-                    }
-                }
-
-                return content.replace(/\n/g, '<br>');
-            }
-
-            function scrollToBottom() {
-                const $messages = $('#snn-bricks-chat-messages');
-                $messages.scrollTop($messages[0].scrollHeight);
-            }
-
-            function clearChat() {
-                ChatState.messages = [];
-                ChatState.currentSessionId = null;
+            async function sendMessage() {
+                const input = $('#snn-bricks-chat-input');
+                const msg   = input.val().trim();
+                const imgs  = ChatState.attachedImages;
+                if ((!msg && !imgs.length) || ChatState.isProcessing) return;
+                addMessage('user', msg || '(Image attached)', [...imgs]);
+                const saved = [...imgs];
+                input.val('').css('height', 'auto');
                 ChatState.attachedImages = [];
                 renderImagePreviews();
-                $('#snn-bricks-chat-messages').html(`
-                    <div class="snn-bricks-chat-welcome">
-                        <h3>Conversation cleared</h3>
-                        <p>Start a new conversation.</p>
-                    </div>
-                `);
+                await processWithAI(msg, saved);
+            }
+
+            // ================================================================
+            // AI API
+            // ================================================================
+
+            async function callAI(messages, retryCount = 0, opts = {}) {
+                const cfg = snnBricksChatConfig.ai;
+                if (!cfg.apiKey || !cfg.apiEndpoint) throw new Error('AI API not configured');
+                ChatState.abortController = new AbortController();
+                const body = { model: cfg.model, messages, temperature: 0.7, max_tokens: opts.maxTokens || cfg.maxTokens || 4000 };
+                debugLog('AI call:', body.model, messages.length, 'messages');
+                const resp = await fetch(cfg.apiEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
+                    body: JSON.stringify(body),
+                    signal: ChatState.abortController.signal
+                });
+                if (resp.status === 429 && retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {
+                    const delay = Math.min(RECOVERY_CONFIG.rateLimitDelay * Math.pow(2, retryCount), RECOVERY_CONFIG.maxDelay);
+                    setAgentState('recovering', `Rate limited — waiting ${Math.ceil(delay/1000)}s...`);
+                    await sleep(delay);
+                    return callAI(messages, retryCount + 1, opts);
+                }
+                if (!resp.ok) { const t = await resp.text(); throw new Error(`API error ${resp.status}: ${t.substring(0, 200)}`); }
+                const data = await resp.json();
+                if (!data?.choices?.[0]?.message?.content) throw new Error('Invalid API response');
+                return data.choices[0].message.content;
+            }
+
+            // ================================================================
+            // Messages
+            // ================================================================
+
+            function addMessage(role, content, images = null) {
+                const m = { role, content, timestamp: Date.now() };
+                if (Array.isArray(images) && images.length && images[0].data) m.images = images;
+                ChatState.messages.push(m);
+                const $msgs = $('#snn-bricks-chat-messages');
+                $msgs.find('.snn-bricks-chat-welcome').remove();
+                $('.snn-bricks-chat-quick-actions').hide();
+                const $msg  = $('<div>').addClass('snn-bricks-chat-message snn-bricks-chat-message-' + role);
+                const $body = $('<div>').addClass('snn-msg-body');
+                if (m.images) {
+                    const $imgs = $('<div>').addClass('snn-message-images');
+                    m.images.forEach(img => $imgs.append($('<img>').attr('src', img.data)));
+                    $body.append($imgs);
+                }
+                $body.append($('<div>').html(formatMessage(content)));
+                $msg.append($body);
+                $msgs.append($msg);
+                scrollToBottom();
+            }
+
+            function formatMessage(c) {
+                if (typeof markdown !== 'undefined' && markdown.toHTML) { try { return markdown.toHTML(c); } catch(e) {} }
+                return c.replace(/\n/g, '<br>');
+            }
+
+            function scrollToBottom() { const $m = $('#snn-bricks-chat-messages'); $m.scrollTop($m[0].scrollHeight); }
+
+            function clearChat() {
+                ChatState.messages = []; ChatState.currentSessionId = null;
+                ChatState.attachedImages = []; ChatState.currentHTMLPreview = null; ChatState.previewMode = null;
+                removeApproveBar(); hideHTMLPreview(); renderImagePreviews();
+                $('#snn-bricks-chat-messages').html('<div class="snn-bricks-chat-welcome"><h3>Conversation cleared</h3><p>Start a new conversation.</p></div>');
                 $('.snn-bricks-chat-quick-actions').show();
             }
 
-            function autoSaveConversation() {
-                if (ChatState.messages.length === 0) return;
+            function setAgentState(state, detail = '') {
+                const $t = $('#snn-bricks-chat-state-text');
+                const labels = { thinking: 'Thinking...', compiling: 'Compiling to Bricks...', recovering: detail || 'Recovering...', error: 'Error', idle: '' };
+                const lbl = labels[state] || '';
+                lbl ? $t.text(lbl).show() : $t.hide();
+            }
 
-                $.ajax({
-                    url: snnBricksChatConfig.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'snn_save_chat_history',
-                        nonce: snnBricksChatConfig.agentNonce,
-                        messages: JSON.stringify(ChatState.messages),
-                        session_id: ChatState.currentSessionId
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            ChatState.currentSessionId = response.data.session_id;
-                            //debugLog('✅ Chat saved');
-                        }
+            function showTyping() { $('.snn-bricks-chat-typing').show(); scrollToBottom(); }
+            function hideTyping() { $('.snn-bricks-chat-typing').hide(); }
+            function sleep(ms)    { return new Promise(r => setTimeout(r, ms)); }
+
+            // ================================================================
+            // Image Attachments
+            // ================================================================
+
+            async function handleFileSelect(files) {
+                if (!files || !files.length) return;
+                for (const f of Array.from(files)) {
+                    if (!f.type.startsWith('image/')) continue;
+                    try { addImageAttachment(await fileToBase64(f), f.name); } catch(e) {}
+                }
+                $('#snn-bricks-chat-file-input').val('');
+            }
+
+            async function handlePaste(ev) {
+                const items = ev.clipboardData?.items;
+                if (!items) return;
+                for (const item of Array.from(items)) {
+                    if (item.type.startsWith('image/')) {
+                        ev.preventDefault();
+                        const f = item.getAsFile();
+                        if (f) addImageAttachment(await fileToBase64(f), 'pasted.png');
                     }
+                }
+            }
+
+            function fileToBase64(f) {
+                return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+            }
+
+            function addImageAttachment(data, name) {
+                ChatState.attachedImages.push({ id: 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2,9), data, fileName: name });
+                renderImagePreviews();
+            }
+
+            function removeImageAttachment(id) {
+                ChatState.attachedImages = ChatState.attachedImages.filter(i => i.id !== id);
+                renderImagePreviews();
+            }
+
+            function renderImagePreviews() {
+                const $p = $('#snn-bricks-chat-image-preview');
+                $p.empty();
+                if (!ChatState.attachedImages.length) { $p.hide(); return; }
+                $p.show();
+                ChatState.attachedImages.forEach(img => {
+                    const $w = $('<div>').addClass('snn-image-preview-item');
+                    const $r = $('<button>').addClass('snn-image-preview-remove').html('&times;').on('click', () => removeImageAttachment(img.id));
+                    $w.append($('<img>').attr('src', img.data)).append($r);
+                    $p.append($w);
+                });
+            }
+
+            // ================================================================
+            // Chat History
+            // ================================================================
+
+            function autoSaveConversation() {
+                if (!ChatState.messages.length) return;
+                $.ajax({ url: snnBricksChatConfig.ajaxUrl, type: 'POST',
+                    data: { action: 'snn_save_chat_history', nonce: snnBricksChatConfig.agentNonce, messages: JSON.stringify(ChatState.messages), session_id: ChatState.currentSessionId },
+                    success: r => { if (r.success) ChatState.currentSessionId = r.data.session_id; }
                 });
             }
 
             function toggleHistoryDropdown() {
-                const $dropdown = $('#snn-bricks-chat-history-dropdown');
-                if ($dropdown.is(':visible')) {
-                    $dropdown.hide();
-                    return;
-                }
-                loadChatHistories();
-                $dropdown.show();
+                const $d = $('#snn-bricks-chat-history-dropdown');
+                if ($d.is(':visible')) { $d.hide(); return; }
+                loadChatHistories(); $d.show();
             }
 
             function loadChatHistories() {
-                const $list = $('#snn-bricks-history-list');
-                $list.html('<div class="snn-bricks-history-loading">Loading...</div>');
-
-                $.ajax({
-                    url: snnBricksChatConfig.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'snn_get_chat_histories',
-                        nonce: snnBricksChatConfig.agentNonce
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            renderHistoryList(response.data.histories);
-                        }
-                    }
+                const $l = $('#snn-bricks-history-list');
+                $l.html('<div class="snn-bricks-history-loading">Loading...</div>');
+                $.ajax({ url: snnBricksChatConfig.ajaxUrl, type: 'POST',
+                    data: { action: 'snn_get_chat_histories', nonce: snnBricksChatConfig.agentNonce },
+                    success: r => { if (r.success) renderHistoryList(r.data.histories); }
                 });
             }
 
             function renderHistoryList(histories) {
-                const $list = $('#snn-bricks-history-list');
-
-                if (histories.length === 0) {
-                    $list.html('<div class="snn-bricks-history-empty">No history</div>');
-                    return;
-                }
-
-                let html = '';
-                histories.forEach(function(history) {
-                    html += `<div class="snn-bricks-history-item" data-session-id="${history.session_id}">
-                        <div class="snn-bricks-history-title">${history.title}</div>
-                        <div class="snn-bricks-history-meta">${history.message_count} messages</div>
-                    </div>`;
-                });
-
-                $list.html(html);
-
-                $('.snn-bricks-history-item').on('click', function() {
-                    const sessionId = $(this).data('session-id');
-                    loadChatSession(sessionId);
-                    $('#snn-bricks-chat-history-dropdown').hide();
-                });
+                const $l = $('#snn-bricks-history-list');
+                if (!histories || !histories.length) { $l.html('<div class="snn-bricks-history-empty">No history</div>'); return; }
+                $l.html(histories.map(h =>
+                    `<div class="snn-bricks-history-item" data-session-id="${h.session_id}"><div class="snn-bricks-history-title">${h.title}</div><div class="snn-bricks-history-meta">${h.message_count} messages</div></div>`
+                ).join(''));
+                $('.snn-bricks-history-item').on('click', function() { loadChatSession($(this).data('session-id')); $('#snn-bricks-chat-history-dropdown').hide(); });
             }
 
             function loadChatSession(sessionId) {
-                $.ajax({
-                    url: snnBricksChatConfig.ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'snn_load_chat_history',
-                        nonce: snnBricksChatConfig.agentNonce,
-                        session_id: sessionId
-                    },
-                    success: function(response) {
-                        if (response.success && response.data.messages) {
-                            $('#snn-bricks-chat-messages').empty();
-                            $('.snn-bricks-chat-quick-actions').hide();
-
-                            ChatState.messages = response.data.messages;
-                            ChatState.currentSessionId = sessionId;
-
-                            const historyMsgs = response.data.messages;
-                            historyMsgs.forEach(function(msg, idx) {
-                                const $message = $('<div>')
-                                    .addClass('snn-bricks-chat-message')
-                                    .addClass('snn-bricks-chat-message-' + msg.role);
+                $.ajax({ url: snnBricksChatConfig.ajaxUrl, type: 'POST',
+                    data: { action: 'snn_load_chat_history', nonce: snnBricksChatConfig.agentNonce, session_id: sessionId },
+                    success: function(r) {
+                        if (r.success && r.data.messages) {
+                            $('#snn-bricks-chat-messages').empty(); $('.snn-bricks-chat-quick-actions').hide();
+                            ChatState.messages = r.data.messages; ChatState.currentSessionId = sessionId;
+                            r.data.messages.forEach(function(msg) {
+                                const $msg  = $('<div>').addClass('snn-bricks-chat-message snn-bricks-chat-message-' + msg.role);
                                 const $body = $('<div>').addClass('snn-msg-body').html(formatMessage(msg.content));
-                                $message.append($body);
-                                $('#snn-bricks-chat-messages').append($message);
-                                applyReadMore($message, false);
+                                $msg.append($body); $('#snn-bricks-chat-messages').append($msg);
                             });
-
                             scrollToBottom();
                         }
                     }
                 });
             }
+
 
         })(jQuery);
         </script>
@@ -2452,23 +1062,28 @@ IMPORTANT: Always wrap your JSON in markdown code fences (` + '```json' + ` ... 
 .snn-bricks-history-item:hover { background: #f9f9f9; }
 .snn-bricks-history-title { font-weight: 600; margin-bottom: 4px; }
 .snn-bricks-history-meta { font-size: 12px; color: #666; }
-.ability-results {   }
-.ability-result { padding: 4px 8px;   border-radius: 6px; font-size: 13px; }
-.ability-result.success { background: #f0f9ff; }
-.ability-result.error { background: #fef2f2; }
-.result-data { color: #666; font-size: 12px; margin-top: 4px; }
-.result-error { color: #dc2626; font-size: 12px; }
-/* Execution Checklist */
-.snn-bricks-execution-checklist { padding: 10px 16px; background: #f0f4ff; border-top: 2px solid #c7d4ff; font-size: 13px; max-height: 220px; overflow-y: auto; }
-.snn-bricks-checklist-title { font-weight: 700; color: #3b4fa6; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; }
-.snn-bricks-checklist-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; color: #888; transition: color 0.2s; }
-.snn-bricks-checklist-item.is-done { color: #16a34a; }
-.snn-bricks-checklist-item.is-active { color: #2563eb; font-weight: 600; }
-.snn-bricks-checklist-item.is-error { color: #dc2626; }
-.snn-bricks-checklist-icon { width: 18px; flex-shrink: 0; text-align: center; font-size: 14px; }
-.snn-bricks-checklist-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.snn-bricks-checklist-item.is-active .snn-bricks-checklist-icon { animation: snn-spin 1s linear infinite; display: inline-block; }
-@keyframes snn-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* Design Preview Pane — left of chat overlay */
+.snn-bricks-preview-pane { position: fixed; top: 0; left: 0; right: 400px; bottom: 0; z-index: 999998; background: #fff; display: flex; flex-direction: column; box-shadow: 2px 0 8px rgba(0,0,0,0.12); }
+.snn-bricks-preview-header { background: #1e293b; color: #fff; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-shrink: 0; }
+.snn-bricks-preview-title { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.snn-bricks-preview-badge { background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+.snn-bricks-preview-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.snn-preview-action-select { padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: #fff; font-size: 12px; cursor: pointer; }
+.snn-preview-action-select option { background: #1e293b; color: #fff; }
+.snn-preview-approve-btn { background: #22c55e; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.snn-preview-approve-btn:hover { background: #16a34a; }
+.snn-preview-close-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 26px; height: 26px; border-radius: 5px; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.snn-preview-close-btn:hover { background: rgba(255,255,255,0.25); }
+.snn-bricks-preview-iframe { flex: 1; border: none; width: 100%; }
+/* Preview toggle button active state */
+.snn-bricks-chat-btn.is-active { background: #22c55e !important; }
+/* Approve bar inside chat */
+.snn-approve-bar { background: #f0fdf4; border-top: 2px solid #22c55e; border-bottom: 1px solid #dcfce7; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; flex-shrink: 0; }
+.snn-approve-label { color: #15803d; font-weight: 600; font-size: 12px; }
+.snn-approve-actions { display: flex; align-items: center; gap: 6px; }
+.snn-approve-select { padding: 4px 8px; border-radius: 6px; border: 1px solid #d1fae5; background: #fff; font-size: 12px; color: #374151; cursor: pointer; }
+.snn-approve-build-btn { background: #16a34a; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.snn-approve-build-btn:hover { background: #15803d; }
         ';
     }
 }
