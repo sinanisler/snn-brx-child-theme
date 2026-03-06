@@ -823,35 +823,65 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
 - Every distinct visual section MUST be a DIRECT child of <body> using semantic HTML5 tags: <section>, <header>, <footer>, <nav>
 - NEVER wrap sections inside <main>, <div>, or any container — each section must be a direct body child
 - Content inside <main> is treated as ONE single section (avoid unless intended)
-- Use clean semantic structure: <section> → <div class="container"> → <div class="grid"> → <div class="card"> → <h2>, <p>, <button>
-- Simple, semantic class names OK for structure ONLY: \"container\", \"card\", \"grid\", \"wrapper\" — but ALL visual styling MUST be inline
-- This flat structure allows each section to be compiled independently into Bricks Builder elements
+- MANDATORY: Add data-bricks attributes to ALL structural elements to guide Phase 2 compilation:
+  * <section data-bricks="section"> — top-level wrapper
+  * <div data-bricks="container"> — layout/centering wrapper (use for flex/grid containers)
+  * <div data-bricks="block"> — styled wrapper/card (use for boxes with padding, background, borders)
+  * <h1 data-bricks="heading">, <h2 data-bricks="heading">, etc. — headings
+  * <p data-bricks="text-basic"> — body text/paragraphs
+  * <button data-bricks="button"> — buttons/CTAs
+  * <img data-bricks="image"> — images
+- Use clean semantic structure: <section data-bricks="section"> → <div data-bricks="container"> → <div data-bricks="block"> → <h2 data-bricks="heading">, <p data-bricks="text-basic">, <button data-bricks="button">
+- Simple, semantic class names OK for structure reference: \"container\", \"card\", \"grid\", \"wrapper\" — but ALL visual styling MUST be inline
+- This flat structure with data-bricks tagging allows each section to be compiled accurately into Bricks Builder elements
 
-LAYOUT PATTERNS (all via inline styles):
+LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
 
 Centered container:
-  <div style=\"max-width: 1200px; margin: 0 auto; padding: 0 24px;\">
+  <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
 
 Flex column layout:
-  <div style=\"display: flex; flex-direction: column; gap: 32px; align-items: center;\">
+  <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
 
-Flex row layout:
-  <div style=\"display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between; flex-wrap: wrap;\">
+Flex row layout (NO FLEX-WRAP — use Grid instead for multi-column):
+  <div data-bricks="container" style="display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between;">
 
-Grid layout (3 columns):
-  <div style=\"display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;\">
+Grid layout (2 columns — PREFERRED for side-by-side content):
+  <div data-bricks="container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px;">
+
+Grid layout (3 columns — PREFERRED for feature grids):
+  <div data-bricks="container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
 
 Card with padding and shadow:
-  <div style=\"background: #ffffff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\">
+  <div data-bricks="block" style="background: #ffffff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
 
-EXAMPLE COMPLETE STRUCTURE:
+STRICT LAYOUT RULES:
+✓ USE CSS GRID for all side-by-side layouts (2-column heroes, 3-column features, 4-column grids)
+✓ NEVER use flex-wrap for macro layouts — it causes desktop wrapping issues
+✓ Use Flexbox only for single-direction layouts (vertical stacks, simple horizontal bars)
+✓ Grid syntax: display: grid; grid-template-columns: repeat(N, 1fr); gap: 32px;
+✓ For asymmetric layouts: grid-template-columns: 2fr 1fr; (60/40 split) or 1fr 2fr; (40/60 split)
+
+EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
 <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
 
-<section style=\"background: #0f172a; padding: 80px 0;\">
-  <div class=\"container\" style=\"max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;\">
-    <h1 style=\"font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;\">Premium Heading</h1>
-    <p style=\"font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: #cbd5e1; line-height: 1.7; text-align: center; max-width: 700px; margin: 0;\">Supporting description with readable line height and proper spacing.</p>
-    <button style=\"background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;\">Call to Action</button>
+<section data-bricks="section" style="background: #0f172a; padding: 80px 0;">
+  <div data-bricks="container" class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
+    <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;">Premium Heading</h1>
+    <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: rgba(203, 213, 225, 1); line-height: 1.7; text-align: center; max-width: 700px; margin: 0;">Supporting description with readable line height and proper spacing.</p>
+    <button data-bricks="button" style="background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;">Call to Action</button>
+  </div>
+</section>
+
+EXAMPLE 2-COLUMN GRID HERO (NO FLEX-WRAP):
+<section data-bricks="section" style="background: #f5f0eb; padding: 100px 0;">
+  <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
+    <div data-bricks="block" style="display: flex; flex-direction: column; gap: 24px;">
+      <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; color: #111827; line-height: 1.1; margin: 0;">We Make Brands People Love</h1>
+      <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; color: #4b5563; line-height: 1.7; margin: 0;">Creative studio specializing in bold brand identities and digital experiences.</p>
+      <button data-bricks="button" style="background: #ff6b35; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 16px 32px; border: none; border-radius: 8px; cursor: pointer;">View Our Work</button>
+    </div>
+    <img data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover; border-radius: 12px;" />
   </div>
 </section>
 
@@ -877,6 +907,8 @@ TASK: Convert the provided HTML section to Bricks Builder JSON.
 - You are compiling ONE section at a time — not the whole page
 - The output must contain exactly one top-level section element with parent:0
 - Parse ALL inline style attributes and convert them accurately to Bricks settings
+- CRITICAL: Use RAW CSS values via {"raw": "..."} format for all CSS properties — this is your PRIMARY method
+- Parse data-bricks attributes to determine exact element types (section/container/block)
 - Never invent content or add sections from memory
 ${fontContext}
 OUTPUT: Return ONLY valid JSON. No markdown, no backticks, no explanation. Start with { and end with }
@@ -905,36 +937,70 @@ ID FORMAT: Every element MUST have a unique 6-character lowercase alphanumeric i
 
 ELEMENT TYPES & CORE SETTINGS:
 
+=== RAW CSS VALUE FORMAT (PRIMARY METHOD) ===
+For ALL CSS properties, you can use the {"raw": "css-value"} format to pass native CSS directly:
+
+Colors:
+  OLD: {"color": {"hex": "#ff0000", "alpha": "0.5"}}
+  NEW: {"color": {"raw": "rgba(255, 0, 0, 0.5)"}} ✓ PREFERRED
+  Also: {"color": {"raw": "#ff0000"}} or {"color": {"raw": "rgb(255, 0, 0)"}}
+
+Backgrounds:
+  Solid: {"_background": {"color": {"raw": "#0f172a"}}}
+  Gradient: {"_background": {"color": {"raw": "linear-gradient(90deg, #2563eb 0%, #9333ea 100%)"}}}
+  RGBA: {"_background": {"color": {"raw": "rgba(15, 23, 42, 0.95)"}}}
+
+Typography Colors:
+  {"_typography": {"color": {"raw": "#ffffff"}, "font-size": "60"}}
+  {"_typography": {"color": {"raw": "rgba(255, 255, 255, 0.8)"}}}
+
+Border Colors:
+  {"_border": {"color": {"raw": "#e5e7eb"}, "style": "solid"}}
+
+Box Shadow Colors:
+  {"_boxShadow": {"values": [{"color": {"raw": "rgba(0, 0, 0, 0.1)"}, "offsetX": "0", "offsetY": "4"}]}}
+
+WHEN TO USE RAW:
+- Any color value (hex, rgb, rgba, hsl)
+- Any gradient (linear-gradient, radial-gradient)
+- Complex CSS values that don't fit standard schema
+- Whenever you see inline CSS — copy it directly as {"raw": "value"}
+
+WHEN TO USE STANDARD FORMAT:
+- Simple numeric values: "_padding": {"top": "40"}
+- Layout properties: "_direction": "column", "_display": "grid"
+- Font families: "font-family": "Inter" (no quotes in value)
+
 section (always parent:0, ONE per output):
-  {"id":"s${sectionIndex}_sec001","name":"section","parent":0,"children":["s${sectionIndex}_con001"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"hex":"#0f172a"}}},"label":"Hero Section"}
+  {"id":"s${sectionIndex}_sec001","name":"section","parent":0,"children":["s${sectionIndex}_con001"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"raw":"#0f172a"}}},"label":"Hero Section"}
   - Section padding: ONLY top/bottom (never left/right)
-  - Background: solid color, gradient, image, video
+  - Background: use raw format for colors, gradients, rgba
 
 container (layout wrapper — flex or grid):
   Flex column: {"name":"container","settings":{"_direction":"column","_rowGap":"24","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"},"_padding":{"left":"24","right":"24"}}}
-  Flex row: {"name":"container","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_justifyContent":"space-between","_flexWrap":"wrap"}}
+  Flex row: {"name":"container","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_justifyContent":"space-between"}}
   CSS Grid: {"name":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"32","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"}}}
 
 block (wrapper element — card, box, div with styling):
-  {"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"hex":"#ffffff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"hex":"#e5e7eb"}}}}
+  {"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"raw":"#ffffff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"raw":"#e5e7eb"}}}}
 
 heading:
-  {"name":"heading","settings":{"text":"Your Heading Text","tag":"h1","_typography":{"font-size":"60","font-weight":"900","color":{"hex":"#ffffff"},"line-height":"1.1","text-align":"center","font-family":"Playfair Display","letter-spacing":"-1px"},"_margin":{"bottom":"20"}}}
+  {"name":"heading","settings":{"text":"Your Heading Text","tag":"h1","_typography":{"font-size":"60","font-weight":"900","color":{"raw":"#ffffff"},"line-height":"1.1","text-align":"center","font-family":"Playfair Display","letter-spacing":"-1px"},"_margin":{"bottom":"20"}}}
 
 text-basic:
-  {"name":"text-basic","settings":{"text":"Paragraph or body text content goes here.","_typography":{"font-size":"18","line-height":"1.7","color":{"hex":"#4b5563"},"font-family":"Inter"}}}
+  {"name":"text-basic","settings":{"text":"Paragraph or body text content goes here.","_typography":{"font-size":"18","line-height":"1.7","color":{"raw":"#4b5563"},"font-family":"Inter"}}}
 
 button:
-  {"name":"button","settings":{"text":"Button Label","link":{"type":"external","url":"#"},"_background":{"color":{"hex":"#2563eb"}},"_typography":{"color":{"hex":"#ffffff"},"font-weight":"600","font-size":"16","font-family":"Inter"},"_padding":{"top":"14","right":"28","bottom":"14","left":"28"},"_border":{"radius":{"top":"8","right":"8","bottom":"8","left":"8"}}}}
+  {"name":"button","settings":{"text":"Button Label","link":{"type":"external","url":"#"},"_background":{"color":{"raw":"#2563eb"}},"_typography":{"color":{"raw":"#ffffff"},"font-weight":"600","font-size":"16","font-family":"Inter"},"_padding":{"top":"14","right":"28","bottom":"14","left":"28"},"_border":{"radius":{"top":"8","right":"8","bottom":"8","left":"8"}}}}
 
 image:
   {"name":"image","settings":{"image":{"url":"https://example.com/image.jpg","size":"full"},"_width":"100%","_height":"400px","_objectFit":"cover","_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}}}
 
 icon:
-  {"name":"icon","settings":{"icon":{"library":"themify","icon":"ti-star"},"_typography":{"font-size":"32","color":{"hex":"#f59e0b"}}}}
+  {"name":"icon","settings":{"icon":{"library":"themify","icon":"ti-star"},"_typography":{"font-size":"32","color":{"raw":"#f59e0b"}}}}
 
 divider:
-  {"name":"divider","settings":{"_height":"1px","_background":{"color":{"hex":"#e5e7eb"}},"_margin":{"top":"24","bottom":"24"}}}
+  {"name":"divider","settings":{"_height":"1px","_background":{"color":{"raw":"#e5e7eb"}},"_margin":{"top":"24","bottom":"24"}}}
 
 KEY SETTINGS REFERENCE (values are STRINGS without "px" unless specified):
 
@@ -966,9 +1032,11 @@ SPACING:
   _margin: {"top":"0","right":"auto","bottom":"0","left":"auto"}  (use "auto" for centering)
 
 BACKGROUND:
-  Solid: _background: {"color":{"hex":"#000000"}}
-  Gradient: _background: {"gradient":{"type":"linear","angle":"90","stops":[{"color":{"hex":"#2563eb"},"position":"0"},{"color":{"hex":"#9333ea"},"position":"100"}]}}
-  Image: _background: {"image":{"url":"https://...","size":"cover","position":"center center"}}
+  Solid color: _background: {"color": {"raw": "#000000"}}
+  RGBA: _background: {"color": {"raw": "rgba(15, 23, 42, 0.9)"}}
+  Gradient: _background: {"color": {"raw": "linear-gradient(90deg, #2563eb 0%, #9333ea 100%)"}}
+  Complex gradient: _background: {"color": {"raw": "linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.95) 100%)"}}
+  Image (still uses standard format): _background: {"image": {"url": "https://...", "size": "cover", "position": "center center"}}
 
 TYPOGRAPHY:
   _typography: {
@@ -980,20 +1048,20 @@ TYPOGRAPHY:
     "text-align": "left"|"center"|"right",
     "text-transform": "none"|"uppercase"|"lowercase"|"capitalize",
     "font-style": "normal"|"italic",
-    "color": {"hex":"#000000"}
+    "color": {"raw": "#000000"|"rgba(0, 0, 0, 0.8)"|"rgb(255, 255, 255)"}
   }
 
 BORDER:
   _border: {
-    "radius": {"top":"12","right":"12","bottom":"12","left":"12"},
-    "width": {"top":"1","right":"1","bottom":"1","left":"1"},
+    "radius": {"top": "12", "right": "12", "bottom": "12", "left": "12"},
+    "width": {"top": "1", "right": "1", "bottom": "1", "left": "1"},
     "style": "solid"|"dashed"|"dotted"|"none",
-    "color": {"hex":"#e5e7eb"}
+    "color": {"raw": "#e5e7eb"|"rgba(229, 231, 235, 0.5)"}
   }
 
 BOX SHADOW:
-  _boxShadow: {"values":[{"offsetX":"0","offsetY":"4","blur":"6","spread":"0","color":{"hex":"#000000","alpha":0.1}}]}
-  Multiple shadows: {"values":[{...shadow1},{...shadow2}]}
+  Simple: _boxShadow: {"values": [{"offsetX": "0", "offsetY": "4", "blur": "6", "spread": "0", "color": {"raw": "rgba(0, 0, 0, 0.1)"}}]}
+  Multiple: _boxShadow: {"values": [{"offsetX": "0", "offsetY": "4", "blur": "6", "color": {"raw": "rgba(0, 0, 0, 0.1)"}}, {"offsetX": "0", "offsetY": "10", "blur": "20", "color": {"raw": "rgba(0, 0, 0, 0.05)"}}]}
 
 POSITION:
   _position: "relative"|"absolute"|"fixed"|"sticky"
@@ -1024,20 +1092,35 @@ CUSTOM CSS (_cssGlobal and _css):
   Replace "abc123" with actual element id
   Use custom CSS for: hover states, transforms, animations, complex selectors, pseudo-elements
 
-PARSING INLINE CSS → BRICKS:
-  Extract from style="..." attributes:
-  - background: #0f172a → _background:{"color":{"hex":"#0f172a"}}
-  - padding: 40px 20px → _padding:{"top":"40","right":"20","bottom":"40","left":"20"}
-  - padding: 60px 0 → _padding:{"top":"60","right":"0","bottom":"60","left":"0"}
-  - font-size: 48px → _typography:{"font-size":"48"}
-  - font-family: 'Inter', sans-serif → _typography:{"font-family":"Inter"}
-  - color: #ffffff → _typography:{"color":{"hex":"#ffffff"}}
+PARSING INLINE CSS → BRICKS (USE RAW FORMAT):
+  Extract from style="..." attributes and use raw format for CSS values:
+  - background: #0f172a → _background: {"color": {"raw": "#0f172a"}}
+  - background: rgba(15,23,42,0.9) → _background: {"color": {"raw": "rgba(15, 23, 42, 0.9)"}}
+  - background: linear-gradient(...) → _background: {"color": {"raw": "linear-gradient(...)"}}
+  - padding: 40px 20px → _padding: {"top": "40", "right": "20", "bottom": "40", "left": "20"}
+  - padding: 60px 0 → _padding: {"top": "60", "right": "0", "bottom": "60", "left": "0"}
+  - font-size: 48px → _typography: {"font-size": "48"}
+  - font-family: 'Inter', sans-serif → _typography: {"font-family": "Inter"}
+  - color: #ffffff → _typography: {"color": {"raw": "#ffffff"}}
+  - color: rgba(255,255,255,0.8) → _typography: {"color": {"raw": "rgba(255, 255, 255, 0.8)"}}
   - display: flex → _display: "flex"
   - flex-direction: column → _direction: "column"
-  - gap: 32px → _columnGap:"32" or _rowGap:"32" depending on flex-direction
-  - border-radius: 12px → _border:{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}
-  - box-shadow: 0 4px 6px rgba(0,0,0,0.1) → _boxShadow:{"values":[{"offsetX":"0","offsetY":"4","blur":"6","spread":"0","color":{"hex":"#000000","alpha":0.1}}]}
+  - gap: 32px → _columnGap: "32" or _rowGap: "32" depending on flex-direction
+  - border-radius: 12px → _border: {"radius": {"top": "12", "right": "12", "bottom": "12", "left": "12"}}
+  - border-color: #e5e7eb → _border: {"color": {"raw": "#e5e7eb"}}
+  - box-shadow: 0 4px 6px rgba(0,0,0,0.1) → _boxShadow: {"values": [{"offsetX": "0", "offsetY": "4", "blur": "6", "spread": "0", "color": {"raw": "rgba(0, 0, 0, 0.1)"}}]}
   - transform, transition, :hover → use _cssGlobal or _css
+
+DATA-BRICKS ATTRIBUTE PARSING:
+  The HTML will contain data-bricks attributes that tell you the EXACT element type:
+  - <section data-bricks="section"> → {"name": "section"}
+  - <div data-bricks="container"> → {"name": "container"}
+  - <div data-bricks="block"> → {"name": "block"}
+  - <h1 data-bricks="heading"> → {"name": "heading"}
+  - <p data-bricks="text-basic"> → {"name": "text-basic"}
+  - <button data-bricks="button"> → {"name": "button"}
+  - <img data-bricks="image"> → {"name": "image"}
+  CRITICAL: Respect the data-bricks attribute — it ensures correct Bricks hierarchy (Section > Container > Block/Elements)
 
 For properties not directly mappable to Bricks (transforms, advanced animations, pseudo-classes), use _cssGlobal:
   Example: style="transform: scale(1.05); transition: transform 0.3s;"
@@ -1050,8 +1133,10 @@ STRUCTURE RULES:
 4. Leaf elements (heading, text-basic, button, image, icon, divider) NEVER have children
 5. Every element needs unique id, correct parent reference
 6. All numeric property values are STRINGS without units: "40" not "40px" not 40
-7. Max nesting: 4–5 levels deep maximum
-8. parent value must exactly match an element's id (or 0 for section)
+7. Use {"raw": "css-value"} format for ALL color values and complex CSS
+8. Parse data-bricks attributes to determine element types — respect the structural hints
+9. Max nesting: 4–5 levels deep maximum
+10. parent value must exactly match an element's id (or 0 for section)
 
 VALIDATION CHECKLIST:
 ✓ Unique IDs with s${sectionIndex}_ prefix
