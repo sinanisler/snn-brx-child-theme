@@ -1377,7 +1377,7 @@ Complex pseudo-element selectors:
                 if (document.querySelector('.snn-bricks-ai-toggle')) return;
                 const li = document.createElement('li');
                 li.className = 'snn-bricks-ai-toggle';
-                li.setAttribute('data-balloon', 'SNN AI Agent');
+                li.setAttribute('data-balloon', 'SNN Agent');
                 li.setAttribute('data-balloon-pos', 'bottom');
                 li.innerHTML = '<span style="font-size:22px;background:linear-gradient(45deg,#2271b1,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;cursor:pointer;line-height:1.2">✦</span>';
                 li.addEventListener('click', e => { e.preventDefault(); toggleChat(); });
