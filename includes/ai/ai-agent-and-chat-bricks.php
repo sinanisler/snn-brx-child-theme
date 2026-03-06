@@ -503,7 +503,7 @@ class SNN_Bricks_Chat_Overlay {
                 let   fixed   = false;
                 const localIds = new Set();
                 const idRemap = {};
-                const leafTypes = new Set(['heading', 'text-basic', 'button', 'image', 'icon', 'divider']);
+                const leafTypes = new Set(['heading', 'text-basic', 'button', 'image', 'icon', 'divider', 'custom-html-css-script']);
 
                 function genId() {
                     let id;
@@ -876,9 +876,12 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <p data-bricks="text-basic"> — body text/paragraphs
   * <button data-bricks="button"> — buttons/CTAs
   * <img data-bricks="image"> — images
+  * <div data-bricks="custom-html-css-script"> — raw HTML/CSS/JS component (use ONLY when standard elements cannot achieve the result, e.g. animated SVGs, canvas, complex interactive widgets, or embed code)
 - Use clean semantic structure: <section data-bricks="section"> → <div data-bricks="container"> → <div data-bricks="block"> → <h2 data-bricks="heading">, <p data-bricks="text-basic">, <button data-bricks="button">
 - Simple, semantic class names OK for structure reference: \"container\", \"card\", \"grid\", \"wrapper\" — but ALL visual styling MUST be inline
 - This flat structure with data-bricks tagging allows each section to be compiled accurately into Bricks Builder elements
+- NOTE: custom CSS (via _cssCustom) can be added to ANY element — prefer this over custom-html-css-script when possible
+- WHEN TO USE custom-html-css-script: only for components truly impossible with standard elements (SVG animations, canvas, iframes, complex JS widgets). For everything else, use block + _cssCustom.
 
 LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
 
@@ -963,7 +966,7 @@ SCHEMA: {"content":[/* array of element objects */]}
 ELEMENT STRUCTURE:
 {
   "id": "s1abc123",
-  "name": "section"|"container"|"block"|"heading"|"text-basic"|"button"|"image"|"icon"|"divider",
+  "name": "section"|"container"|"block"|"heading"|"text-basic"|"button"|"image"|"icon"|"divider"|"custom-html-css-script",
   "parent": "parent_id" or 0,
   "children": ["child_id1", "child_id2"],
   "settings": {
@@ -1061,6 +1064,18 @@ icon:
 
 divider:
   {"name":"divider","settings":{"_height":"1px","_background":{"color":{"raw":"#e5e7eb"}},"_margin":{"top":"24","bottom":"24"}}}
+
+custom-html-css-script (USE ONLY when standard elements cannot achieve the result — SVG animations, canvas, iframes, complex JS widgets):
+  {"name":"custom-html-css-script","parent":"parent_id","children":[],"settings":{"content":"<div>Your HTML here</div>\n<style>\n/* scoped CSS */\n</style>\n<script>\n// JS if needed\n</script>"}}
+  - "content" holds the full raw HTML/CSS/JS string
+  - Treat it as a leaf element — no children array items, children must be []
+  - Can receive _cssCustom like any element for additional scoped CSS
+
+CUSTOM CSS (_cssCustom — available on ALL elements):
+  Use _cssCustom to add arbitrary CSS scoped to the element's generated class (.brxe-ID):
+  "_cssCustom": "#brxe-abc123 { mix-blend-mode: multiply; filter: blur(2px); }"
+  - Preferred over custom-html-css-script for pure CSS effects
+  - Use when the needed style has no native Bricks setting (mix-blend-mode, filter, clip-path, etc.)
 
 KEY SETTINGS REFERENCE (values are STRINGS without "px" unless specified):
 
@@ -1195,6 +1210,7 @@ DATA-BRICKS ATTRIBUTE PARSING:
   - <p data-bricks="text-basic"> → {"name": "text-basic"}
   - <button data-bricks="button"> → {"name": "button"}
   - <img data-bricks="image"> → {"name": "image"}
+  - <div data-bricks="custom-html-css-script"> → {"name": "custom-html-css-script"} — place all inner HTML/CSS/JS in settings.content
   CRITICAL: Respect the data-bricks attribute — it ensures correct Bricks hierarchy (Section > Container > Block/Elements)
 
 For transforms and complex animations only, use _cssGlobal:
