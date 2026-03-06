@@ -453,15 +453,34 @@ class SNN_Bricks_Chat_Overlay {
                 const parser  = new DOMParser();
                 const doc     = parser.parseFromString(html, 'text/html');
                 const body    = doc.body;
-                const tags    = ['section','header','footer','nav','main','article'];
+                const semTags = new Set(['section','header','footer','nav','article']);
                 const results = [];
+
+                function getLabel(el) {
+                    const h = el.querySelector('h1,h2,h3,h4');
+                    return el.getAttribute('aria-label')
+                        || (h ? h.textContent.trim().slice(0, 50) : '')
+                        || el.tagName.charAt(0).toUpperCase() + el.tagName.slice(1).toLowerCase();
+                }
+
                 for (const child of Array.from(body.children)) {
-                    if (tags.includes(child.tagName.toLowerCase())) {
-                        const h   = child.querySelector('h1,h2,h3,h4');
-                        const lbl = child.getAttribute('aria-label')
-                                 || (h ? h.textContent.trim().slice(0, 50) : '')
-                                 || child.tagName.charAt(0).toUpperCase() + child.tagName.slice(1).toLowerCase();
-                        results.push({ label: lbl, html: child.outerHTML });
+                    const tag = child.tagName.toLowerCase();
+                    if (tag === 'main') {
+                        // Recurse into <main> — extract its direct block children as separate sections
+                        const inner = Array.from(child.children).filter(el => {
+                            const t = el.tagName.toLowerCase();
+                            return semTags.has(t) || (t === 'div' && el.children.length > 0);
+                        });
+                        if (inner.length >= 2) {
+                            inner.forEach(el => results.push({ label: getLabel(el), html: el.outerHTML }));
+                        } else {
+                            results.push({ label: getLabel(child), html: child.outerHTML });
+                        }
+                    } else if (semTags.has(tag)) {
+                        results.push({ label: getLabel(child), html: child.outerHTML });
+                    } else if (tag === 'div' && child.children.length > 0) {
+                        // Capture meaningful top-level divs (e.g. ticker bars, announcement bands)
+                        results.push({ label: getLabel(child), html: child.outerHTML });
                     }
                 }
                 if (!results.length) results.push({ label: 'Page Content', html });
@@ -526,7 +545,7 @@ class SNN_Bricks_Chat_Overlay {
                 const response = await callAI([
                     { role: 'system', content: buildPhase2SystemPrompt() },
                     { role: 'user', content: 'Convert this ONE HTML section to Bricks Builder JSON.\nSection: "' + sectionLabel + '"\nReturn ONLY raw JSON — no markdown, no backticks, no explanation. Start with { end with }:\n\n' + sectionHtml }
-                ], 0, { maxTokens: 4000 });
+                ], 0, { maxTokens: 8000 });
 
                 let bricksData = extractBricksJSONFromResponse(response);
                 if (bricksData) return bricksData;
@@ -537,7 +556,7 @@ class SNN_Bricks_Chat_Overlay {
                     { role: 'user', content: 'Convert to Bricks JSON:\n\n' + sectionHtml },
                     { role: 'assistant', content: response },
                     { role: 'user', content: 'Invalid JSON. Return ONLY {"content":[...]}. No markdown, no code fences. Start with { end with }.' }
-                ], 0, { maxTokens: 4000 });
+                ], 0, { maxTokens: 8000 });
                 return extractBricksJSONFromResponse(retryResp);
             }
 
@@ -709,6 +728,12 @@ Use the Pixabay proxy with topic-specific keywords for each image:
   Team photos:  ${ajaxUrl}?action=snn_pixabay_image&q=portrait+professional
   Products:     ${ajaxUrl}?action=snn_pixabay_image&q=PRODUCT+photography
   Interiors:    ${ajaxUrl}?action=snn_pixabay_image&q=PLACE+interior+design
+
+HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
+- Every distinct visual section MUST be a DIRECT child of <body> using <section>, <header>, or <footer> tags
+- NEVER wrap sections inside <main> or any other container — content inside <main> is treated as ONE single section
+- The breaking news ticker, hero, world report, opinion, lifestyle etc. must each be a separate <section> or <div> directly under <body>
+- This flat structure allows each section to be compiled independently into Bricks Builder
 
 WHEN NOT TO GENERATE HTML:
 - User asks a question → respond in plain text only
