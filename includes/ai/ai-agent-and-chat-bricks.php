@@ -139,7 +139,7 @@ class SNN_Bricks_Chat_Overlay {
             <div class="snn-bricks-preview-header">
                 <div class="snn-bricks-preview-title">
                     <span>Design Preview</span>
-                    <span class="snn-bricks-preview-badge">HTML / Tailwind</span>
+                    <span class="snn-bricks-preview-badge">HTML + CSS</span>
                 </div>
                 <div class="snn-bricks-preview-controls">
                     <select id="snn-preview-action-type" class="snn-preview-action-select">
@@ -403,7 +403,7 @@ class SNN_Bricks_Chat_Overlay {
             });
 
             // ================================================================
-            // PHASE 1 — HTML / Tailwind Design Generation
+            // PHASE 1 — HTML + Native CSS Design Generation
             // ================================================================
 
             async function processWithAI(userMessage, images = []) {
@@ -490,8 +490,8 @@ class SNN_Bricks_Chat_Overlay {
             }
 
             /**
-             * Validate and auto-fix a Bricks JSON object before injection.
-             * Fixes duplicate IDs, missing parent fields, and orphaned elements.
+             * Enhanced validation and auto-fix for Bricks JSON object before injection.
+             * Fixes duplicate IDs, missing parent fields, orphaned elements, missing settings, and validates structure.
              */
             function validateAndFixBricksJSON(data, globalIdSet = ChatState.globalUsedIds) {
                 const content = data.content;
@@ -502,6 +502,7 @@ class SNN_Bricks_Chat_Overlay {
                 let   fixed   = false;
                 const localIds = new Set();
                 const idRemap = {};
+                const leafTypes = new Set(['heading', 'text-basic', 'button', 'image', 'icon', 'divider']);
 
                 function genId() {
                     let id;
@@ -509,35 +510,94 @@ class SNN_Bricks_Chat_Overlay {
                     return id;
                 }
 
-                // Pass 1: ensure each element has a unique id (locally AND globally) and a name
+                // Pass 1: ensure each element has required fields and unique id
                 content.forEach(el => {
+                    // Fix missing or duplicate IDs
                     if (!el.id) {
                         el.id = genId(); localIds.add(el.id); globalIdSet.add(el.id); fixed = true;
+                        errors.push('Added missing ID: ' + el.id);
                     } else if (localIds.has(el.id) || globalIdSet.has(el.id)) {
                         const oldId = el.id;
                         const newId = genId();
                         idRemap[el.id] = newId;
-                        errors.push('Dup ID ' + oldId + '→' + newId + ' (conflict)');
+                        errors.push('Dup ID ' + oldId + '→' + newId);
                         el.id = newId; localIds.add(newId); globalIdSet.add(newId); fixed = true;
                     } else {
                         localIds.add(el.id);
                         globalIdSet.add(el.id);
                     }
-                    if (!el.name)            { el.name   = 'block'; fixed = true; }
-                    if (el.parent === undefined) { el.parent = 0;     fixed = true; }
+                    
+                    // Fix missing name
+                    if (!el.name) { el.name = 'block'; fixed = true; errors.push('Added missing name to ' + el.id); }
+                    
+                    // Fix missing parent
+                    if (el.parent === undefined) { el.parent = 0; fixed = true; }
+                    
+                    // Ensure settings object exists
+                    if (!el.settings) { el.settings = {}; fixed = true; }
+                    
+                    // Ensure children array exists for non-leaf elements
+                    if (!leafTypes.has(el.name) && !el.children) { el.children = []; fixed = true; }
+                    
+                    // Remove children from leaf elements
+                    if (leafTypes.has(el.name) && el.children) {
+                        errors.push('Removed children from leaf element ' + el.id + ' (' + el.name + ')');
+                        delete el.children;
+                        fixed = true;
+                    }
                 });
 
-                // Pass 2: remap stale parent/children refs, orphan check
+                // Pass 2: remap stale parent/children refs and validate structure
                 content.forEach(el => {
+                    // Remap parent references
                     if (el.parent && idRemap[el.parent]) { el.parent = idRemap[el.parent]; fixed = true; }
+                    
+                    // Check for orphaned elements
                     if (el.parent !== 0 && !localIds.has(el.parent)) {
-                        errors.push('Orphan ' + el.id + ' (parent ' + el.parent + ')→root');
+                        errors.push('Orphan ' + el.id + ' (invalid parent ' + el.parent + ')→root');
                         el.parent = 0; fixed = true;
                     }
-                    if (el.children) el.children = el.children.map(c => idRemap[c] || c);
+                    
+                    // Remap children references
+                    if (el.children) {
+                        el.children = el.children.map(c => idRemap[c] || c).filter(c => localIds.has(c));
+                        if (el.children.length === 0 && !leafTypes.has(el.name)) {
+                            // Container with no children — might be intentional, just note it
+                            debugLog('Empty container:', el.id, el.name);
+                        }
+                    }
                 });
 
-                if (fixed) debugLog('JSON auto-fixed:', errors);
+                // Pass 3: Validate settings structure
+                content.forEach(el => {
+                    // Convert string number properties to strings if needed
+                    if (el.settings._padding && typeof el.settings._padding === 'object') {
+                        ['top', 'right', 'bottom', 'left'].forEach(side => {
+                            if (el.settings._padding[side] !== undefined && typeof el.settings._padding[side] !== 'string') {
+                                el.settings._padding[side] = String(el.settings._padding[side]);
+                                fixed = true;
+                            }
+                        });
+                    }
+                    
+                    // Same for margin
+                    if (el.settings._margin && typeof el.settings._margin === 'object') {
+                        ['top', 'right', 'bottom', 'left'].forEach(side => {
+                            if (el.settings._margin[side] !== undefined && typeof el.settings._margin[side] !== 'string') {
+                                el.settings._margin[side] = String(el.settings._margin[side]);
+                                fixed = true;
+                            }
+                        });
+                    }
+                    
+                    // Validate typography font-size is string
+                    if (el.settings._typography?.['font-size'] && typeof el.settings._typography['font-size'] !== 'string') {
+                        el.settings._typography['font-size'] = String(el.settings._typography['font-size']);
+                        fixed = true;
+                    }
+                });
+
+                if (fixed || errors.length) debugLog('JSON validation:', { fixed, errors: errors.length });
                 return { valid: true, fixed, data, errors };
             }
 
@@ -665,8 +725,7 @@ class SNN_Bricks_Chat_Overlay {
             function buildPreviewHTML(html) {
                 return '<!DOCTYPE html><html lang="en"><head>' +
                     '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-                    '<script src="https://cdn.tailwindcss.com"><\/script>' +
-                    '<style>*{box-sizing:border-box}body{margin:0;padding:0}<\/style>' +
+                    '<style>*{box-sizing:border-box;margin:0;padding:0}body{margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}<\/style>' +
                     '</head><body>' + html + '</body></html>';
             }
 
@@ -721,166 +780,390 @@ Currently editing: "${postTitle}" (${postType})
 ${pageSnap}
 YOUR JOB:
 When the user requests a design, layout, page or section — generate a complete, beautiful HTML mockup using:
-- INLINE CSS STYLES (style="...") — NO Tailwind, NO external CSS classes
-- Google Fonts (@import in <style> tag at top)
-- Real content — actual headings, descriptions, CTAs (no Lorem Ipsum for headings)
-- Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS (use different keywords for each image)
+- ONLY INLINE CSS STYLES (style="...") — ABSOLUTELY NO Tailwind, NO class-based utility frameworks, NO external CSS classes except simple semantic names like "container", "card", "grid"
+- Google Fonts (@import in <style> tag at top of body)
+- Real, production-quality content — actual headings, descriptions, CTAs (no Lorem Ipsum for main content)
+- Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS (use different, specific keywords for each image)
 
 OUTPUT FORMAT:
-1. Write 1–2 sentences describing the design
+1. Write 1–2 sentences describing the design approach and color palette
 2. Output the complete HTML in a \`\`\`html code block
 
-STYLING RULES (CRITICAL):
-- Use INLINE style attributes on every element: <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px;">
-- Include Google Fonts at top: <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');</style>
-- Specify ALL styles explicitly: font-family, font-size, font-weight, color, line-height, letter-spacing, text-align, padding, margin, background, border-radius, etc.
-- Use full CSS property names: padding: 40px 20px (not p-4)
-- Colors as hex: #111827 or #ffffff
-- Sizes in px: font-size: 48px, padding: 60px 0, gap: 32px
-- Font families with fallbacks: 'Playfair Display', serif or 'Inter', sans-serif
+STYLING RULES (CRITICAL — NO SHORTCUTS):
+- Use INLINE style="..." attributes on EVERY visual element
+- Example: <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px; margin: 0 0 20px 0;">
+- Include Google Fonts: <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
+- Specify ALL visual properties: font-family, font-size, font-weight, color, line-height, letter-spacing, text-align, padding, margin, background, background-color, border, border-radius, box-shadow, opacity, display, flex properties, grid properties, width, height, max-width, object-fit, position, top, left, right, bottom, z-index, transform, transition
+- Use standard CSS property names only: padding: 40px 20px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px
+- Colors MUST be hex codes: #111827, #ffffff, #2563eb, rgba(0,0,0,0.1) for transparency
+- All sizes MUST include units: font-size: 48px; padding: 60px 0; gap: 32px; width: 100%; max-width: 1200px
+- Font stacks with fallbacks: 'Playfair Display', serif OR 'Inter', sans-serif OR 'Lato', sans-serif
+- NO UTILITY CLASSES: Never use Tailwind, Bootstrap, or any utility class framework syntax
+- ALL LAYOUT via inline styles: display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 24px;
+- ALL GRID via inline styles: display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
 
 DESIGN QUALITY:
 - Stunning, professional color palettes matching the business type
-- Responsive-ready structure (mobile will be handled by Bricks)
-- Strong typography hierarchy (large bold h1, clear h2, readable body)
-- Good color contrast, rounded corners, shadows, generous whitespace
-- Production-ready aesthetics — not a wireframe, a real design
+- Responsive-ready structure (mobile breakpoints will be handled by Bricks)
+- Strong typography hierarchy (large bold h1, clear h2, readable body text)
+- Excellent color contrast for accessibility
+- Modern aesthetics: rounded corners, subtle shadows, generous whitespace, smooth transitions
+- Production-ready design — not a wireframe or mockup, but a real design
 
 IMAGES:
-Use the Pixabay proxy with topic-specific keywords for each image:
-  Hero/banner: ${ajaxUrl}?action=snn_pixabay_image&q=TOPIC+background
-  Team photos:  ${ajaxUrl}?action=snn_pixabay_image&q=portrait+professional
-  Products:     ${ajaxUrl}?action=snn_pixabay_image&q=PRODUCT+photography
-  Interiors:    ${ajaxUrl}?action=snn_pixabay_image&q=PLACE+interior+design
+Use the Pixabay proxy with topic-specific, descriptive keywords for each image:
+  Hero/banner:     ${ajaxUrl}?action=snn_pixabay_image&q=TOPIC+hero+background
+  Team photos:     ${ajaxUrl}?action=snn_pixabay_image&q=portrait+professional+business
+  Products:        ${ajaxUrl}?action=snn_pixabay_image&q=PRODUCT+photography+commercial
+  Food/Restaurant: ${ajaxUrl}?action=snn_pixabay_image&q=gourmet+DISH+food+styling
+  Interiors:       ${ajaxUrl}?action=snn_pixabay_image&q=PLACE+interior+design+modern
+  Technology:      ${ajaxUrl}?action=snn_pixabay_image&q=technology+digital+abstract
 
 HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
-- Every distinct visual section MUST be a DIRECT child of <body> using <section>, <header>, or <footer> tags
-- NEVER wrap sections inside <main> or any other container — content inside <main> is treated as ONE single section
-- Use semantic structure: <section> → <div class="container"> → <div class="card"> → <h1>, <p>, <button>
-- Simple class names OK for structure ("container", "card", "grid") but ALL styling must be inline
-- This flat structure allows each section to be compiled independently into Bricks Builder
+- Every distinct visual section MUST be a DIRECT child of <body> using semantic HTML5 tags: <section>, <header>, <footer>, <nav>
+- NEVER wrap sections inside <main>, <div>, or any container — each section must be a direct body child
+- Content inside <main> is treated as ONE single section (avoid unless intended)
+- Use clean semantic structure: <section> → <div class="container"> → <div class="grid"> → <div class="card"> → <h2>, <p>, <button>
+- Simple, semantic class names OK for structure ONLY: \"container\", \"card\", \"grid\", \"wrapper\" — but ALL visual styling MUST be inline
+- This flat structure allows each section to be compiled independently into Bricks Builder elements
 
-EXAMPLE STRUCTURE:
-<style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');</style>
-<section style="background: #111827; padding: 80px 0;">
-  <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
-    <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px;">Heading</h1>
-    <p style="font-size: 18px; color: #9ca3af; line-height: 1.7; text-align: center; max-width: 700px;">Description text</p>
+LAYOUT PATTERNS (all via inline styles):
+
+Centered container:
+  <div style=\"max-width: 1200px; margin: 0 auto; padding: 0 24px;\">
+
+Flex column layout:
+  <div style=\"display: flex; flex-direction: column; gap: 32px; align-items: center;\">
+
+Flex row layout:
+  <div style=\"display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between; flex-wrap: wrap;\">
+
+Grid layout (3 columns):
+  <div style=\"display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;\">
+
+Card with padding and shadow:
+  <div style=\"background: #ffffff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\">
+
+EXAMPLE COMPLETE STRUCTURE:
+<style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
+
+<section style=\"background: #0f172a; padding: 80px 0;\">
+  <div class=\"container\" style=\"max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;\">
+    <h1 style=\"font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;\">Premium Heading</h1>
+    <p style=\"font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: #cbd5e1; line-height: 1.7; text-align: center; max-width: 700px; margin: 0;\">Supporting description with readable line height and proper spacing.</p>
+    <button style=\"background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;\">Call to Action</button>
   </div>
 </section>
 
 WHEN NOT TO GENERATE HTML:
 - User asks a question → respond in plain text only
-- User says "change X to Y" (editing existing element) → explain direct Bricks edit
-- User refines the preview ("make it darker / add a section") → generate FULL new replacement HTML
-- Unsure → ask a quick clarifying question`;
+- User says \"change X to Y\" (editing existing element) → explain that direct Bricks edit is better
+- User refines the preview (\"make it darker\" / \"add a testimonials section\") → generate complete NEW replacement HTML incorporating their changes
+- Unsure about intent → ask ONE clarifying question, then proceed with best interpretation
+
+CRITICAL REMINDERS:
+✓ ONLY inline styles — NO class-based styling frameworks
+✓ Every visual property explicitly defined in style=\"...\"
+✓ Sections as direct <body> children for independent compilation
+✓ Real content, real images, production-ready design quality
+✓ Semantic HTML structure with descriptive class names for structure only`;
             }
 
             function buildPhase2SystemPrompt(sectionIndex, googleFonts) {
-                const fontContext = googleFonts ? `\nGOOGLE FONTS DETECTED:\n${googleFonts}\nUSE these font families in _typography settings.\n` : '';
-                return `You are a Bricks Builder JSON compiler. You receive ONE HTML section with INLINE CSS styles and convert it to Bricks Builder JSON.
+                const fontContext = googleFonts ? `\nGOOGLE FONTS DETECTED:\n${googleFonts}\nUSE these font families in _typography settings (without quotes, just the font name).\n` : '';
+                return `You are an expert Bricks Builder JSON compiler. You receive ONE HTML section with INLINE CSS styles and convert it to valid Bricks Builder JSON.
 
 TASK: Convert the provided HTML section to Bricks Builder JSON.
-- You are compiling ONE section at a time — not the whole page.
-- The output must contain exactly one top-level section element with parent:0.
-- Do NOT include other sections from memory or context.
-- Parse ALL inline style attributes and convert them to Bricks settings.
+- You are compiling ONE section at a time — not the whole page
+- The output must contain exactly one top-level section element with parent:0
+- Parse ALL inline style attributes and convert them accurately to Bricks settings
+- Never invent content or add sections from memory
 ${fontContext}
-OUTPUT: Return ONLY a raw JSON object. No markdown, no backticks, no explanation.
-Start with { and end with }
+OUTPUT: Return ONLY valid JSON. No markdown, no backticks, no explanation. Start with { and end with }
 
-SCHEMA: {"content":[...elements]}
+SCHEMA: {"content":[/* array of element objects */]}
 
 ELEMENT STRUCTURE:
-{"id":"abc123","name":"type","parent":"pid_or_0","children":["id1"],"settings":{...},"label":"optional"}
+{
+  "id": "s1abc123",
+  "name": "section"|"container"|"block"|"heading"|"text-basic"|"button"|"image"|"icon"|"divider",
+  "parent": "parent_id" or 0,
+  "children": ["child_id1", "child_id2"],
+  "settings": {
+    /* element-specific settings */
+    "_cssGlobal": "custom CSS rules applied globally to element across all breakpoints",
+    "_css": {
+      "desktop": ".brxe-abc123 { custom: rules; }",
+      "tablet-portrait": ".brxe-abc123 { mobile-specific: rules; }",
+      "mobile-landscape": ".brxe-abc123 { phone: rules; }"
+    }
+  },
+  "label": "optional descriptive label"
+}
 
-IDs: 6 unique lowercase alphanumeric chars per element. Every element must have a DIFFERENT id.
-IMPORTANT: Prefix all IDs with "s${sectionIndex}_" to ensure uniqueness across sections (e.g., "s${sectionIndex}_abc123").
+ID FORMAT: Every element MUST have a unique 6-character lowercase alphanumeric id, prefixed with "s${sectionIndex}_" (e.g., "s${sectionIndex}_abc123", "s${sectionIndex}_def456").
 
-ELEMENT TYPES & SETTINGS:
+ELEMENT TYPES & CORE SETTINGS:
 
-section (always parent:0, always one per output):
-{"id":"s1a2b3","name":"section","parent":0,"children":["c1a2b3"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"hex":"#0f172a"}}},"label":"Hero"}
+section (always parent:0, ONE per output):
+  {"id":"s${sectionIndex}_sec001","name":"section","parent":0,"children":["s${sectionIndex}_con001"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"hex":"#0f172a"}}},"label":"Hero Section"}
+  - Section padding: ONLY top/bottom (never left/right)
+  - Background: solid color, gradient, image, video
 
-container (max-width wrapper OR flex/grid layout):
-  column wrapper: {"name":"container","settings":{"_direction":"column","_rowGap":"24","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"},"_padding":{"top":"0","right":"24","bottom":"0","left":"24"}}}
-  flex row:  {"name":"container","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_flexWrap":"wrap"}}
-  css grid:  {"name":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"32"}}
+container (layout wrapper — flex or grid):
+  Flex column: {"name":"container","settings":{"_direction":"column","_rowGap":"24","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"},"_padding":{"left":"24","right":"24"}}}
+  Flex row: {"name":"container","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_justifyContent":"space-between","_flexWrap":"wrap"}}
+  CSS Grid: {"name":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"32","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"}}}
 
-block (card wrapper, nested div — padding, background, border):
-{"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"hex":"#ffffff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"hex":"#e5e7eb"}}}}
+block (wrapper element — card, box, div with styling):
+  {"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"hex":"#ffffff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"hex":"#e5e7eb"}}}}
 
-heading: {"name":"heading","settings":{"text":"Text","tag":"h1","_typography":{"font-size":"60","font-weight":"900","color":{"hex":"#ffffff"},"line-height":"1.1","text-align":"center","font-family":"Playfair Display"}}}
+heading:
+  {"name":"heading","settings":{"text":"Your Heading Text","tag":"h1","_typography":{"font-size":"60","font-weight":"900","color":{"hex":"#ffffff"},"line-height":"1.1","text-align":"center","font-family":"Playfair Display","letter-spacing":"-1px"},"_margin":{"bottom":"20"}}}
 
-text-basic: {"name":"text-basic","settings":{"text":"Paragraph content here.","_typography":{"font-size":"18","line-height":"1.7","color":{"hex":"#4b5563"}}}}
+text-basic:
+  {"name":"text-basic","settings":{"text":"Paragraph or body text content goes here.","_typography":{"font-size":"18","line-height":"1.7","color":{"hex":"#4b5563"},"font-family":"Inter"}}}
 
-button: {"name":"button","settings":{"text":"CTA Label","link":{"type":"external","url":"#"},"_background":{"color":{"hex":"#2563eb"}},"_typography":{"color":{"hex":"#ffffff"},"font-weight":"600","font-size":"16"},"_padding":{"top":"14","right":"28","bottom":"14","left":"28"},"_border":{"radius":{"top":"8","right":"8","bottom":"8","left":"8"}}}}
+button:
+  {"name":"button","settings":{"text":"Button Label","link":{"type":"external","url":"#"},"_background":{"color":{"hex":"#2563eb"}},"_typography":{"color":{"hex":"#ffffff"},"font-weight":"600","font-size":"16","font-family":"Inter"},"_padding":{"top":"14","right":"28","bottom":"14","left":"28"},"_border":{"radius":{"top":"8","right":"8","bottom":"8","left":"8"}}}}
 
-image: {"name":"image","settings":{"image":{"url":"https://example.com/img.jpg","size":"full"},"_aspectRatio":"16/9","_objectFit":"cover","_width":"100%","_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}}}
+image:
+  {"name":"image","settings":{"image":{"url":"https://example.com/image.jpg","size":"full"},"_width":"100%","_height":"400px","_objectFit":"cover","_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}}}
 
-icon: {"name":"icon","settings":{"icon":{"library":"themify","icon":"ti-star"},"_typography":{"font-size":"32","color":{"hex":"#f59e0b"}}}}
+icon:
+  {"name":"icon","settings":{"icon":{"library":"themify","icon":"ti-star"},"_typography":{"font-size":"32","color":{"hex":"#f59e0b"}}}}
 
-divider: {"name":"divider","settings":{"_margin":{"top":"24","bottom":"24"}}}
+divider:
+  {"name":"divider","settings":{"_height":"1px","_background":{"color":{"hex":"#e5e7eb"}},"_margin":{"top":"24","bottom":"24"}}}
 
-KEY SETTINGS REFERENCE:
-_direction: "row"|"column"
-_display: "grid"
-_gridTemplateColumns: "1fr 1fr 1fr"
-_gridGap / _columnGap / _rowGap: "32"  (strings, no px)
-_justifyContent: "center"|"flex-start"|"flex-end"|"space-between"
-_alignItems: "center"|"flex-start"|"flex-end"
-_flexWrap: "wrap"
-_width: "100%"   _widthMax: "1200px"   _minHeight: "100vh"
-_padding: {"top":"40","right":"40","bottom":"40","left":"40"}
-_margin: {"top":"0","right":"auto","bottom":"0","left":"auto"}
-_background: {"color":{"hex":"#000000"}}
-_typography: {"font-size":"20","font-weight":"700","line-height":"1.6","letter-spacing":"0.05em","text-align":"center","color":{"hex":"#ffffff"},"font-family":"Inter","text-transform":"uppercase","font-style":"italic"}
-_border: {"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"hex":"#e5e7eb"}}
-_opacity: "0.8"  (string, 0–1 range)
-_overflow: "hidden"
+KEY SETTINGS REFERENCE (values are STRINGS without "px" unless specified):
 
-DARK SECTION BACKGROUND (bg-zinc-900, bg-gray-900, bg-slate-900):
-section settings → _background: {"color":{"hex":"#111827"}}
+LAYOUT & FLEXBOX:
+  _direction: "row"|"column"
+  _display: "flex"|"grid"|"block"|"inline-block"
+  _columnGap: "32"  (string, no units)
+  _rowGap: "24"
+  _justifyContent: "center"|"flex-start"|"flex-end"|"space-between"|"space-around"
+  _alignItems: "center"|"flex-start"|"flex-end"|"stretch"
+  _flexWrap: "wrap"|"nowrap"
+  
+CSS GRID:
+  _gridTemplateColumns: "1fr 1fr 1fr"|"repeat(3, 1fr)"|"2fr 1fr"
+  _gridTemplateRows: "auto"|"200px 200px"
+  _gridGap: "32"
+  _gridColumn: "span 2"|"1 / 3"
+  _gridRow: "span 2"|"1 / 2"
 
-GRADIENT BACKGROUND (bg-gradient-to-r from-blue-600 to-purple-600):
-_background: {"gradient":{"type":"linear","angle":"90","stops":[{"color":{"hex":"#2563eb"},"position":"0"},{"color":{"hex":"#9333ea"},"position":"100"}]}}
+SIZING:
+  _width: "100%"|"50%"|"400px"
+  _widthMax: "1200px"|"900px"
+  _widthMin: "300px"
+  _height: "400px"|"100vh"|"auto"
+  _minHeight: "500px"|"100vh"
+  
+SPACING:
+  _padding: {"top":"40","right":"40","bottom":"40","left":"40"}  (individual sides as strings)
+  _margin: {"top":"0","right":"auto","bottom":"0","left":"auto"}  (use "auto" for centering)
 
-BOX SHADOW (shadow-lg, shadow-xl):
-_boxShadow: {"values":[{"offsetX":"0","offsetY":"10","blur":"24","spread":"-3","color":{"hex":"#000000","alpha":0.1}}]}
+BACKGROUND:
+  Solid: _background: {"color":{"hex":"#000000"}}
+  Gradient: _background: {"gradient":{"type":"linear","angle":"90","stops":[{"color":{"hex":"#2563eb"},"position":"0"},{"color":{"hex":"#9333ea"},"position":"100"}]}}
+  Image: _background: {"image":{"url":"https://...","size":"cover","position":"center center"}}
 
-COL-SPAN (col-span-2 inside a 3-col grid):
-On the child block/container: _gridColumn: "span 2"
+TYPOGRAPHY:
+  _typography: {
+    "font-family": "Playfair Display"|"Inter"|"Lora" (NO quotes in value),
+    "font-size": "20",
+    "font-weight": "400"|"500"|"600"|"700"|"800"|"900",
+    "line-height": "1.5"|"1.7",
+    "letter-spacing": "0"|"-1px"|"0.05em",
+    "text-align": "left"|"center"|"right",
+    "text-transform": "none"|"uppercase"|"lowercase"|"capitalize",
+    "font-style": "normal"|"italic",
+    "color": {"hex":"#000000"}
+  }
 
-RELATIVE POSITION WITH OVERFLOW HIDDEN (relative overflow-hidden):
-_position: "relative"   _overflow: "hidden"
+BORDER:
+  _border: {
+    "radius": {"top":"12","right":"12","bottom":"12","left":"12"},
+    "width": {"top":"1","right":"1","bottom":"1","left":"1"},
+    "style": "solid"|"dashed"|"dotted"|"none",
+    "color": {"hex":"#e5e7eb"}
+  }
 
-TAILWIND → BRICKS MAPPING:
-LAYOUT: flex flex-col→_direction:"column" | flex/flex-row→_direction:"row" | grid grid-cols-2→_display:"grid",_gridTemplateColumns:"1fr 1fr" | grid-cols-3→"1fr 1fr 1fr" | grid-cols-4→"1fr 1fr 1fr 1fr" | items-center→_alignItems:"center" | justify-center→_justifyContent:"center" | justify-between→_justifyContent:"space-between" | flex-wrap→_flexWrap:"wrap" | col-span-2→_gridColumn:"span 2"
-GAP: gap-2→"8" gap-3→"12" gap-4→"16" gap-6→"24" gap-8→"32" gap-10→"40" gap-12→"48" gap-16→"64"
-SIZING: max-w-7xl→"1280px" max-w-6xl→"1152px" max-w-5xl→"1024px" max-w-4xl→"896px" max-w-3xl→"768px" max-w-2xl→"672px" max-w-xl→"576px" | min-h-screen→_minHeight:"100vh" | w-full→_width:"100%" | w-24→_width:"96px" | h-48→_height:"192px" h-64→_height:"256px" h-96→_height:"384px"
-PADDING: p-2→"8" p-3→"12" p-4→"16" p-6→"24" p-8→"32" p-10→"40" p-12→"48" p-16→"64" | px-4→l/r"16" px-6→"24" px-8→"32" px-16→"64" | py-4→t/b"16" py-8→"32" py-12→"48" py-16→"64" py-20→"80" py-24→"96" py-32→"128"
-MARGIN: mx-auto→left/right"auto" | mt-4→top"16" mt-6→"24" mt-8→"32" mb-4→bottom"16" mb-6→"24" mb-8→"32"
-TYPOGRAPHY: text-xs→"12" text-sm→"14" text-base→"16" text-lg→"18" text-xl→"20" text-2xl→"24" text-3xl→"30" text-4xl→"36" text-5xl→"48" text-6xl→"60" text-7xl→"72" text-8xl→"96" | font-medium→"500" font-semibold→"600" font-bold→"700" font-extrabold→"800" font-black→"900" | text-center→text-align:"center" text-right→"right" | leading-none→"1" leading-tight→"1.25" leading-snug→"1.375" leading-normal→"1.5" leading-relaxed→"1.625" leading-loose→"2" | tracking-tight→"-0.025em" tracking-wide→"0.05em" tracking-wider→"0.1em" tracking-widest→"0.25em" | uppercase→text-transform:"uppercase" | italic→font-style:"italic"
-COLORS: bg-white→"#ffffff" bg-black→"#000000" bg-gray-50→"#f9fafb" bg-gray-100→"#f3f4f6" bg-gray-200→"#e5e7eb" bg-gray-800→"#1f2937" bg-gray-900→"#111827" bg-slate-800→"#1e293b" bg-slate-900→"#0f172a" bg-zinc-900→"#18181b" bg-stone-100→"#f5f5f4" bg-stone-900→"#1c1917" bg-red-600→"#dc2626" bg-red-700→"#b91c1c" bg-blue-600→"#2563eb" bg-indigo-600→"#4f46e5" bg-green-500→"#22c55e" bg-yellow-400→"#facc15" bg-amber-500→"#f59e0b" bg-orange-500→"#f97316" bg-purple-600→"#9333ea" bg-pink-600→"#db2777" | text-white→"#ffffff" text-black→"#000000" text-gray-400→"#9ca3af" text-gray-500→"#6b7280" text-gray-600→"#4b5563" text-gray-700→"#374151" text-gray-900→"#111827" text-red-600→"#dc2626" text-red-700→"#b91c1c" text-blue-600→"#2563eb" text-indigo-600→"#4f46e5" text-green-600→"#16a34a" text-amber-500→"#f59e0b" text-yellow-400→"#facc15" text-orange-500→"#f97316" | bg-[#HEX] or text-[#HEX] → use that exact hex
-BORDER RADIUS: rounded→"4" rounded-md→"6" rounded-lg→"8" rounded-xl→"12" rounded-2xl→"16" rounded-3xl→"24" rounded-full→"9999"
-OPACITY: opacity-50→"0.5" opacity-60→"0.6" opacity-70→"0.7" opacity-80→"0.8" opacity-90→"0.9"
+BOX SHADOW:
+  _boxShadow: {"values":[{"offsetX":"0","offsetY":"4","blur":"6","spread":"0","color":{"hex":"#000000","alpha":0.1}}]}
+  Multiple shadows: {"values":[{...shadow1},{...shadow2}]}
+
+POSITION:
+  _position: "relative"|"absolute"|"fixed"|"sticky"
+  _top: "0"|"20px"
+  _left: "0"|"50%"
+  _right: "0"
+  _bottom: "0"
+  _zIndex: "10"|"100"
+
+MISC:
+  _opacity: "0.8"  (string, 0–1)
+  _overflow: "hidden"|"visible"|"auto"|"scroll"
+  _aspectRatio: "16/9"|"4/3"|"1/1"
+  _objectFit: "cover"|"contain"|"fill"|"none"
+
+CUSTOM CSS (_cssGlobal and _css):
+  Use _cssGlobal for simple, global custom CSS rules:
+    "_cssGlobal": ".brxe-abc123 { transform: translateY(-5px); transition: all 0.3s ease; } .brxe-abc123:hover { box-shadow: 0 8px 16px rgba(0,0,0,0.2); }"
+  
+  Use _css for responsive breakpoints:
+    "_css": {
+      "desktop": ".brxe-abc123 { font-size: 24px; }",
+      "tablet-portrait": ".brxe-abc123 { font-size: 20px; padding: 16px; }",
+      "mobile-landscape": ".brxe-abc123 { font-size: 16px; padding: 12px; }"
+    }
+  
+  Breakpoints available: desktop, tablet-portrait, tablet-landscape, mobile-portrait, mobile-landscape
+  Replace "abc123" with actual element id
+  Use custom CSS for: hover states, transforms, animations, complex selectors, pseudo-elements
+
+PARSING INLINE CSS → BRICKS:
+  Extract from style="..." attributes:
+  - background: #0f172a → _background:{"color":{"hex":"#0f172a"}}
+  - padding: 40px 20px → _padding:{"top":"40","right":"20","bottom":"40","left":"20"}
+  - padding: 60px 0 → _padding:{"top":"60","right":"0","bottom":"60","left":"0"}
+  - font-size: 48px → _typography:{"font-size":"48"}
+  - font-family: 'Inter', sans-serif → _typography:{"font-family":"Inter"}
+  - color: #ffffff → _typography:{"color":{"hex":"#ffffff"}}
+  - display: flex → _display: "flex"
+  - flex-direction: column → _direction: "column"
+  - gap: 32px → _columnGap:"32" or _rowGap:"32" depending on flex-direction
+  - border-radius: 12px → _border:{"radius":{"top":"12","right":"12","bottom":"12","left":"12"}}
+  - box-shadow: 0 4px 6px rgba(0,0,0,0.1) → _boxShadow:{"values":[{"offsetX":"0","offsetY":"4","blur":"6","spread":"0","color":{"hex":"#000000","alpha":0.1}}]}
+  - transform, transition, :hover → use _cssGlobal or _css
+
+For properties not directly mappable to Bricks (transforms, advanced animations, pseudo-classes), use _cssGlobal:
+  Example: style="transform: scale(1.05); transition: transform 0.3s;"
+  → "_cssGlobal": ".brxe-abc123 { transform: scale(1.05); transition: transform 0.3s; }"
 
 STRUCTURE RULES:
-1. Exactly ONE section element per output, always parent:0
-2. SECTION > CONTAINER (max-width + centering) > layout CONTAINER or BLOCK > leaf elements
-3. BLOCK = card/wrapper with padding/background; CONTAINER = layout (flex/grid) with no background
-4. Leaf elements (heading, text-basic, button, image, icon, divider) never have children
-5. Section _padding: ONLY top and bottom (never set left/right on section — set those on inner container)
-6. All numeric values are STRINGS without "px": "40" not "40px" not 40
-7. Every element must have a unique 6-char lowercase alphanumeric id
-8. parent value must exactly match the id of the actual parent element (or 0 for section)
-9. Max nesting depth: section > container > block > leaf (4 levels). Never deeper.
-10. Never nest section inside section`;
+1. ONE section element per output (parent:0)
+2. Section → Container (centering/max-width) → Container (layout) or Block (card) → Leaf elements
+3. Block = styled wrapper (padding, background, border). Container = layout (flex/grid, no visual styling)
+4. Leaf elements (heading, text-basic, button, image, icon, divider) NEVER have children
+5. Every element needs unique id, correct parent reference
+6. All numeric property values are STRINGS without units: "40" not "40px" not 40
+7. Max nesting: 4–5 levels deep maximum
+8. parent value must exactly match an element's id (or 0 for section)
+
+VALIDATION CHECKLIST:
+✓ Unique IDs with s${sectionIndex}_ prefix
+✓ Valid parent-child relationships  
+✓ No orphaned elements
+✓ All properties as strings
+✓ Proper hex colors
+✓ Font families without quotes in value
+✓ ONE section with parent:0
+✓ Leaf elements have no children
+
+RESPONSIVE DESIGN:
+Use _css object for breakpoint-specific styles when needed:
+Available breakpoints: desktop, tablet-portrait, tablet-landscape, mobile-portrait, mobile-landscape
+
+Example — Responsive typography:
+{
+  "name": "heading",
+  "settings": {
+    "text": "Responsive Heading",
+    "_typography": {"font-size": "60", "font-weight": "900"},
+    "_css": {
+      "desktop": ".brxe-abc123 h1 { font-size: 60px; }",
+      "tablet-portrait": ".brxe-abc123 h1 { font-size: 48px; }",
+      "mobile-landscape": ".brxe-abc123 h1 { font-size: 36px; }"
+    }
+  }
+}
+
+Example — Responsive padding/layout:
+{
+  "name": "container",
+  "settings": {
+    "_padding": {"top": "80", "bottom": "80"},
+    "_css": {
+      "tablet-portrait": ".brxe-def456 { padding-top: 60px; padding-bottom: 60px; }",
+      "mobile-landscape": ".brxe-def456 { padding-top: 40px; padding-bottom: 40px; }"
+    }
+  }
+}
+
+ADVANCED CSS EXAMPLES:
+
+Hover effects:
+"_cssGlobal": ".brxe-btn001 { transition: all 0.3s ease; } .brxe-btn001:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }"
+
+Animations:
+"_cssGlobal": "@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } .brxe-card001 { animation: fadeIn 0.5s ease-out; }"
+
+Complex selectors:
+"_cssGlobal": ".brxe-nav001 > * + * { margin-left: 24px; } .brxe-card001::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); opacity: 0.1; }"
+
+Responsive Grid:
+{
+  "name": "container",
+  "settings": {
+    "_display": "grid",
+    "_gridTemplateColumns": "repeat(3, 1fr)",
+    "_gridGap": "32",
+    "_css": {
+      "tablet-portrait": ".brxe-grid001 { grid-template-columns: repeat(2, 1fr); gap: 24px; }",
+      "mobile-landscape": ".brxe-grid001 { grid-template-columns: 1fr; gap: 16px; }"
+    }
+  }
+}`;
+            }
             }
 
             // ================================================================
             // Helpers
             // ================================================================
+
+            /**
+             * Parse inline CSS from style attribute into structured object
+             * Example: "padding: 20px 10px; color: #fff" → {padding: "20px 10px", color: "#fff"}
+             */
+            function parseInlineCSS(styleString) {
+                if (!styleString || typeof styleString !== 'string') return {};
+                const styles = {};
+                styleString.split(';').forEach(rule => {
+                    const colonIndex = rule.indexOf(':');
+                    if (colonIndex === -1) return;
+                    const prop = rule.substring(0, colonIndex).trim();
+                    const value = rule.substring(colonIndex + 1).trim();
+                    if (prop && value) styles[prop] = value;
+                });
+                return styles;
+            }
+
+            /**
+             * Extract CSS value and convert to Bricks format
+             * Example: "48px" → "48", "1.5em" → "1.5", "#ffffff" → "#ffffff"
+             */
+            function extractNumericValue(cssValue) {
+                if (!cssValue) return '';
+                const match = cssValue.match(/^([\d.]+)(?:px|em|rem|%)?$/);
+                return match ? match[1] : cssValue;
+            }
+
+            /**
+             * Parse padding/margin shorthand into object
+             * Example: "20px 10px" → {top:"20",right:"10",bottom:"20",left:"10"}
+             */
+            function parseBoxModel(value) {
+                if (!value) return {};
+                const parts = value.trim().split(/\s+/).map(extractNumericValue);
+                if (parts.length === 1) return {top:parts[0],right:parts[0],bottom:parts[0],left:parts[0]};
+                if (parts.length === 2) return {top:parts[0],right:parts[1],bottom:parts[0],left:parts[1]};
+                if (parts.length === 3) return {top:parts[0],right:parts[1],bottom:parts[2],left:parts[1]};
+                if (parts.length === 4) return {top:parts[0],right:parts[1],bottom:parts[2],left:parts[3]};
+                return {};
+            }
 
             function extractHTMLFromResponse(resp) {
                 const m = resp.match(/```html\n?([\s\S]*?)\n?```/);
