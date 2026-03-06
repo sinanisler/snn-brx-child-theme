@@ -276,7 +276,7 @@ class SNN_Bricks_Chat_Overlay {
 
                 <!-- Support Link -->
                 <div class="snn-bricks-chat-support">
-                    <a href="https://sinanisler.com/github-support" target="_blank" data-balloon="If my projects saving you time and money consider supporting my projects monthly." data-balloon-length="medium">Consider Supporting SNN-BRX ❤</a>
+                    <a href="https://sinanisler.com/github-support" target="_blank" data-balloon="If SNN-BRX saving you time and money consider supporting my projects monthly." data-balloon-length="medium">Consider Supporting SNN-BRX ❤</a>
                 </div>
 
                 <?php endif; ?>
@@ -1005,6 +1005,19 @@ container (layout wrapper — flex or grid):
   Flex column: {"name":"container","settings":{"_direction":"column","_rowGap":"24","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"},"_padding":{"left":"24","right":"24"}}}
   Flex row: {"name":"container","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_justifyContent":"space-between"}}
   CSS Grid: {"name":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"32","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"}}}
+
+STRICT NESTING RULES — NEVER VIOLATE:
+  - NEVER place a container inside another container. container cannot be a child of container.
+  - NEVER mix container and block as siblings inside the same parent container.
+  - The ONLY valid hierarchy is: section > container > [block | heading | text-basic | button | image | icon | divider]
+  - container children must be: block, heading, text-basic, button, image, icon, divider — NEVER another container.
+  - block children must be: heading, text-basic, button, image, icon, divider — NEVER container or block.
+  - If you need a two-column layout: section > container (grid/flex-row) > block > [elements]
+  - If you need centered content: section > container (max-width centered) > [elements directly]
+  - WRONG: section > container > block + container  ← FORBIDDEN
+  - WRONG: section > container > container          ← FORBIDDEN
+  - RIGHT: section > container > block              ← CORRECT
+  - RIGHT: section > container > heading            ← CORRECT
 
 block (wrapper element — card, box, div with styling):
   {"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"raw":"#ffffff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"raw":"#e5e7eb"}}}}
