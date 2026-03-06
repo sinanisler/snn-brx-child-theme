@@ -601,6 +601,29 @@ class SNN_Bricks_Chat_Overlay {
                         el.settings._typography['font-size'] = String(el.settings._typography['font-size']);
                         fixed = true;
                     }
+
+                    // Clean up _cssGlobal: strip properties now handled natively
+                    if (el.settings._cssGlobal && typeof el.settings._cssGlobal === 'string') {
+                        el.settings._cssGlobal = el.settings._cssGlobal
+                            .replace(/cursor:\s*pointer;?/g, '')        // Handled natively
+                            .replace(/transition:[^;]+;?/g, '')         // Now using _cssTransition
+                            .replace(/@media[^{]+\{[^}]+\}/g, '')       // Strip media queries (use native suffixes)
+                            .trim();
+
+                        // If the rule block is empty after cleanup, remove it
+                        if (el.settings._cssGlobal.match(/^[^{]+\{\s*\}\s*$/) || el.settings._cssGlobal === '') {
+                            delete el.settings._cssGlobal;
+                            errors.push('Removed empty _cssGlobal from ' + el.id);
+                            fixed = true;
+                        }
+                    }
+
+                    // Remove old _css objects (AI hallucination from old training — use native suffixes instead)
+                    if (el.settings._css) {
+                        delete el.settings._css;
+                        errors.push('Removed legacy _css from ' + el.id);
+                        fixed = true;
+                    }
                 });
 
                 if (fixed || errors.length) debugLog('JSON validation:', { fixed, errors: errors.length });
@@ -817,6 +840,12 @@ DESIGN QUALITY:
 - Excellent color contrast for accessibility
 - Modern aesthetics: rounded corners, subtle shadows, generous whitespace, smooth transitions
 - Production-ready design — not a wireframe or mockup, but a real design
+
+HOVER & TRANSITIONS (inline style cannot handle :hover — use data attributes instead):
+- To add hover background: data-hover-background="#darkred"
+- To add hover transform: data-hover-transform="translateY(-4px)"
+- Include a base transition in the inline style: style="... transition: all 0.3s ease;"
+- Example button: <button data-bricks="button" data-hover-background="#1d4ed8" data-hover-transform="translateY(-2px)" style="background: #2563eb; color: #fff; transition: all 0.3s ease; ...">CTA</button>
 
 IMAGES:
 Use the Pixabay proxy with topic-specific, descriptive keywords for each image:
@@ -1085,20 +1114,30 @@ MISC:
   _aspectRatio: "16/9"|"4/3"|"1/1"
   _objectFit: "cover"|"contain"|"fill"|"none"
 
-CUSTOM CSS (_cssGlobal and _css):
-  Use _cssGlobal for simple, global custom CSS rules:
-    "_cssGlobal": ".brxe-abc123 { transform: translateY(-5px); transition: all 0.3s ease; } .brxe-abc123:hover { box-shadow: 0 8px 16px rgba(0,0,0,0.2); }"
-  
-  Use _css for responsive breakpoints:
-    "_css": {
-      "desktop": ".brxe-abc123 { font-size: 24px; }",
-      "tablet-portrait": ".brxe-abc123 { font-size: 20px; padding: 16px; }",
-      "mobile-landscape": ".brxe-abc123 { font-size: 16px; padding: 12px; }"
+CUSTOM CSS (_cssGlobal only — for animations and complex selectors):
+  Use _cssGlobal ONLY for @keyframes animations and advanced pseudo-element selectors.
+  Do NOT use _cssGlobal for transitions (use _cssTransition), hover (use native hover suffixes), or media queries (use native breakpoint suffixes).
+    "_cssGlobal": "@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } .brxe-card001 { animation: fadeIn 0.5s ease-out; }"
+
+  Complex selectors (pseudo-elements only):
+    "_cssGlobal": ".brxe-nav001 > * + * { margin-left: 24px; } .brxe-card001::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); opacity: 0.1; }"
+
+TRANSITIONS & HOVER STATES (NATIVE SUFFIXES — NO _cssGlobal):
+  Transitions: "_cssTransition": "all 0.3s ease"
+  Hover Background: data-hover-background="darkred" in HTML → "_background:hover": {"color": {"raw": "darkred"}}
+  Hover Transform: data-hover-transform="translateY(-2px)" in HTML → "_transform:hover": "translateY(-2px)"
+  Hover Box Shadow: → "_boxShadow:hover": {"values": [{"offsetX": "0", "offsetY": "8", "blur": "16", "spread": "0", "color": {"raw": "rgba(0,0,0,0.2)"}}]}
+
+  Example — Button with hover:
+  {
+    "name": "button",
+    "settings": {
+      "_background": {"color": {"raw": "#2563eb"}},
+      "_background:hover": {"color": {"raw": "#1d4ed8"}},
+      "_transform:hover": "translateY(-2px)",
+      "_cssTransition": "all 0.3s ease"
     }
-  
-  Breakpoints available: desktop, tablet-portrait, tablet-landscape, mobile-portrait, mobile-landscape
-  Replace "abc123" with actual element id
-  Use custom CSS for: hover states, transforms, animations, complex selectors, pseudo-elements
+  }
 
 PARSING INLINE CSS → BRICKS (USE RAW FORMAT):
   Extract from style="..." attributes and use raw format for CSS values:
@@ -1117,7 +1156,9 @@ PARSING INLINE CSS → BRICKS (USE RAW FORMAT):
   - border-radius: 12px → _border: {"radius": {"top": "12", "right": "12", "bottom": "12", "left": "12"}}
   - border-color: #e5e7eb → _border: {"color": {"raw": "#e5e7eb"}}
   - box-shadow: 0 4px 6px rgba(0,0,0,0.1) → _boxShadow: {"values": [{"offsetX": "0", "offsetY": "4", "blur": "6", "spread": "0", "color": {"raw": "rgba(0, 0, 0, 0.1)"}}]}
-  - transform, transition, :hover → use _cssGlobal or _css
+  - transition: all 0.3s ease → "_cssTransition": "all 0.3s ease"
+  - transform: scale(1.05) → "_cssGlobal": ".brxe-abc123 { transform: scale(1.05); }"
+  - :hover states → use "_background:hover", "_transform:hover", "_boxShadow:hover" native suffixes (see TRANSITIONS & HOVER STATES section)
 
 DATA-BRICKS ATTRIBUTE PARSING:
   The HTML will contain data-bricks attributes that tell you the EXACT element type:
@@ -1130,9 +1171,10 @@ DATA-BRICKS ATTRIBUTE PARSING:
   - <img data-bricks="image"> → {"name": "image"}
   CRITICAL: Respect the data-bricks attribute — it ensures correct Bricks hierarchy (Section > Container > Block/Elements)
 
-For properties not directly mappable to Bricks (transforms, advanced animations, pseudo-classes), use _cssGlobal:
-  Example: style="transform: scale(1.05); transition: transform 0.3s;"
-  → "_cssGlobal": ".brxe-abc123 { transform: scale(1.05); transition: transform 0.3s; }"
+For transforms and complex animations only, use _cssGlobal:
+  Example: style="transform: scale(1.05);"
+  → "_cssGlobal": ".brxe-abc123 { transform: scale(1.05); }"
+  Transitions belong in "_cssTransition". Hover states belong in native hover suffix keys.
 
 STRUCTURE RULES:
 1. ONE section element per output (parent:0)
@@ -1156,21 +1198,22 @@ VALIDATION CHECKLIST:
 ✓ ONE section with parent:0
 ✓ Leaf elements have no children
 
-RESPONSIVE DESIGN:
-Use _css object for breakpoint-specific styles when needed:
-Available breakpoints: desktop, tablet-portrait, tablet-landscape, mobile-portrait, mobile-landscape
+RESPONSIVE DESIGN (NATIVE BREAKPOINT SUFFIXES — NO _css OBJECT, NO MEDIA QUERIES):
+Do NOT write media queries. Do NOT use _css object. To change a style on a smaller screen, duplicate the property key and append the breakpoint suffix: :tablet_portrait, :mobile_landscape, or :mobile_portrait.
 
-Example — Responsive typography:
+Available suffixes (append to any settings key):
+  :tablet_portrait  — screens ≤ 1024px
+  :mobile_landscape — screens ≤ 767px
+  :mobile_portrait  — screens ≤ 479px
+
+Example — Responsive typography (font-size 60+):
 {
   "name": "heading",
   "settings": {
     "text": "Responsive Heading",
     "_typography": {"font-size": "60", "font-weight": "900"},
-    "_css": {
-      "desktop": ".brxe-abc123 h1 { font-size: 60px; }",
-      "tablet-portrait": ".brxe-abc123 h1 { font-size: 48px; }",
-      "mobile-landscape": ".brxe-abc123 h1 { font-size: 36px; }"
-    }
+    "_typography:tablet_portrait": {"font-size": "48"},
+    "_typography:mobile_landscape": {"font-size": "36"}
   }
 }
 
@@ -1179,37 +1222,56 @@ Example — Responsive padding/layout:
   "name": "container",
   "settings": {
     "_padding": {"top": "80", "bottom": "80"},
-    "_css": {
-      "tablet-portrait": ".brxe-def456 { padding-top: 60px; padding-bottom: 60px; }",
-      "mobile-landscape": ".brxe-def456 { padding-top: 40px; padding-bottom: 40px; }"
-    }
+    "_padding:tablet_portrait": {"top": "60", "bottom": "60"},
+    "_padding:mobile_landscape": {"top": "40", "bottom": "40"}
   }
 }
 
-ADVANCED CSS EXAMPLES:
-
-Hover effects:
-"_cssGlobal": ".brxe-btn001 { transition: all 0.3s ease; } .brxe-btn001:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }"
-
-Animations:
-"_cssGlobal": "@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } .brxe-card001 { animation: fadeIn 0.5s ease-out; }"
-
-Complex selectors:
-"_cssGlobal": ".brxe-nav001 > * + * { margin-left: 24px; } .brxe-card001::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); opacity: 0.1; }"
-
-Responsive Grid:
+Example — Responsive Grid (3+ columns MUST include tablet/mobile variants):
 {
   "name": "container",
   "settings": {
     "_display": "grid",
     "_gridTemplateColumns": "repeat(3, 1fr)",
+    "_gridTemplateColumns:tablet_portrait": "repeat(2, 1fr)",
+    "_gridTemplateColumns:mobile_landscape": "1fr",
     "_gridGap": "32",
-    "_css": {
-      "tablet-portrait": ".brxe-grid001 { grid-template-columns: repeat(2, 1fr); gap: 24px; }",
-      "mobile-landscape": ".brxe-grid001 { grid-template-columns: 1fr; gap: 16px; }"
-    }
+    "_gridGap:mobile_landscape": "16"
   }
-}`;
+}
+
+Example — Responsive flex direction:
+{
+  "name": "container",
+  "settings": {
+    "_display": "flex",
+    "_direction": "row",
+    "_direction:mobile_landscape": "column",
+    "_columnGap": "32",
+    "_columnGap:mobile_landscape": "16"
+  }
+}
+
+AUTOMATIC RESPONSIVE RULES (apply these always):
+- If _typography font-size is 60+: MUST add :tablet_portrait (48) and :mobile_landscape (36)
+- If grid has 3+ columns: MUST add :tablet_portrait (2 cols) and :mobile_landscape (1 col)
+- If grid has 2 columns: MUST add :mobile_landscape (1 col)
+- If flex row has gap 32+: MUST add :mobile_landscape with reduced gap (16)
+- If flex-direction is row with large items: MUST add :mobile_landscape column
+
+STRICT 1:1 DOM MAPPING & POSITIONING:
+NEVER merge or delete HTML nodes into CSS pseudo-elements (::before/::after). Every HTML tag provided must become its own Bricks JSON object with its own entry in the content array.
+For absolutely positioned elements (position: absolute in inline style), map natively:
+  "_position": "absolute", "_top": "20", "_right": "auto", "_bottom": "auto", "_left": "0", "_zIndex": "10"
+
+ADVANCED CSS EXAMPLES:
+
+Animations (use _cssGlobal for @keyframes only):
+"_cssGlobal": "@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } } .brxe-card001 { animation: fadeIn 0.5s ease-out; }"
+
+Complex pseudo-element selectors:
+"_cssGlobal": ".brxe-nav001 > * + * { margin-left: 24px; } .brxe-card001::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); opacity: 0.1; }"`;
+
             }
 
             // ================================================================
@@ -1644,9 +1706,9 @@ Responsive Grid:
 .snn-approve-build-btn { background: #16a34a; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .snn-approve-build-btn:hover { background: #15803d; }
 /* Support link */
-.snn-bricks-chat-support { padding: 8px 12px; background: #f9f9f9; border-top: 1px solid #e0e0e0; text-align: center; }
+.snn-bricks-chat-support { padding: 2px 12px; background: #f9f9f9; border-top: 1px solid #e0e0e0; text-align: center; }
 .snn-bricks-chat-support a { font-size: 14px; color: #666; text-decoration: none; transition: color 0.2s; }
-.snn-bricks-chat-support a:hover { color: #161a1d; }
+.snn-bricks-chat-support a:hover { color: #820808; }
         ';
     }
 }
