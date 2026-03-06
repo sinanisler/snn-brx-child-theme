@@ -1066,7 +1066,7 @@ divider:
   {"name":"divider","settings":{"_height":"1px","_background":{"color":{"raw":"#e5e7eb"}},"_margin":{"top":"24","bottom":"24"}}}
 
 custom-html-css-script (USE ONLY when standard elements cannot achieve the result — SVG animations, canvas, iframes, complex JS widgets):
-  {"name":"custom-html-css-script","parent":"parent_id","children":[],"settings":{"content":"<div>Your HTML here</div>\n<style>\n/* scoped CSS */\n</style>\n<script>\n// JS if needed\n</script>"}}
+  {"name":"custom-html-css-script","parent":"parent_id","children":[],"settings":{"content":"<div>Your HTML here</div>\n<style>\n/* scoped CSS */\n</style>\n<script>\n// JS if needed\n<\/script>"}}
   - "content" holds the full raw HTML/CSS/JS string
   - Treat it as a leaf element — no children array items, children must be []
   - Can receive _cssCustom like any element for additional scoped CSS
