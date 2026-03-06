@@ -301,7 +301,9 @@ class SNN_Bricks_Chat_Overlay {
                 pageContext: snnBricksChatConfig.pageContext || {},
                 recoveryAttempts: 0, bricksState: null, attachedImages: [],
                 // Two-phase workflow
-                currentHTMLPreview: null, previewMode: null, previewPaneOpen: false
+                currentHTMLPreview: null, previewMode: null, previewPaneOpen: false,
+                // Global ID tracker to prevent duplicates across sections
+                globalUsedIds: new Set()
             };
 
             // ================================================================
@@ -491,33 +493,35 @@ class SNN_Bricks_Chat_Overlay {
              * Validate and auto-fix a Bricks JSON object before injection.
              * Fixes duplicate IDs, missing parent fields, and orphaned elements.
              */
-            function validateAndFixBricksJSON(data) {
+            function validateAndFixBricksJSON(data, globalIdSet = ChatState.globalUsedIds) {
                 const content = data.content;
                 if (!Array.isArray(content) || !content.length) {
                     return { valid: false, data, errors: ['Empty content array'] };
                 }
                 const errors  = [];
                 let   fixed   = false;
-                const usedIds = new Set();
+                const localIds = new Set();
                 const idRemap = {};
 
                 function genId() {
                     let id;
-                    do { id = Math.random().toString(36).slice(2, 8); } while (usedIds.has(id));
+                    do { id = Math.random().toString(36).slice(2, 8); } while (localIds.has(id) || globalIdSet.has(id));
                     return id;
                 }
 
-                // Pass 1: ensure each element has a unique id and a name
+                // Pass 1: ensure each element has a unique id (locally AND globally) and a name
                 content.forEach(el => {
                     if (!el.id) {
-                        el.id = genId(); usedIds.add(el.id); fixed = true;
-                    } else if (usedIds.has(el.id)) {
-                        const newId    = genId();
+                        el.id = genId(); localIds.add(el.id); globalIdSet.add(el.id); fixed = true;
+                    } else if (localIds.has(el.id) || globalIdSet.has(el.id)) {
+                        const oldId = el.id;
+                        const newId = genId();
                         idRemap[el.id] = newId;
-                        errors.push('Dup ID ' + el.id + '→' + newId);
-                        el.id = newId; usedIds.add(newId); fixed = true;
+                        errors.push('Dup ID ' + oldId + '→' + newId + ' (conflict)');
+                        el.id = newId; localIds.add(newId); globalIdSet.add(newId); fixed = true;
                     } else {
-                        usedIds.add(el.id);
+                        localIds.add(el.id);
+                        globalIdSet.add(el.id);
                     }
                     if (!el.name)            { el.name   = 'block'; fixed = true; }
                     if (el.parent === undefined) { el.parent = 0;     fixed = true; }
@@ -526,7 +530,7 @@ class SNN_Bricks_Chat_Overlay {
                 // Pass 2: remap stale parent/children refs, orphan check
                 content.forEach(el => {
                     if (el.parent && idRemap[el.parent]) { el.parent = idRemap[el.parent]; fixed = true; }
-                    if (el.parent !== 0 && !usedIds.has(el.parent)) {
+                    if (el.parent !== 0 && !localIds.has(el.parent)) {
                         errors.push('Orphan ' + el.id + ' (parent ' + el.parent + ')→root');
                         el.parent = 0; fixed = true;
                     }
@@ -541,9 +545,18 @@ class SNN_Bricks_Chat_Overlay {
              * Compile a single HTML section to Bricks JSON via AI.
              * Performs one automatic retry on parse failure.
              */
-            async function compileSingleSection(sectionHtml, sectionLabel) {
+            /**
+             * Compile a single HTML section to Bricks JSON via AI.
+             * Performs one automatic retry on parse failure.
+             */
+            async function compileSingleSection(sectionHtml, sectionLabel, sectionIndex) {
+                // Extract Google Fonts from HTML
+                const fontMatch = sectionHtml.match(/@import\s+url\(['"]([^'"]+)['"]\)/i)  || 
+                                  ChatState.currentHTMLPreview.match(/@import\s+url\(['"]([^'"]+)['"]\)/i);
+                const googleFonts = fontMatch ? fontMatch[1] : '';
+                
                 const response = await callAI([
-                    { role: 'system', content: buildPhase2SystemPrompt() },
+                    { role: 'system', content: buildPhase2SystemPrompt(sectionIndex, googleFonts) },
                     { role: 'user', content: 'Convert this ONE HTML section to Bricks Builder JSON.\nSection: "' + sectionLabel + '"\nReturn ONLY raw JSON — no markdown, no backticks, no explanation. Start with { end with }:\n\n' + sectionHtml }
                 ], 0, { maxTokens: 8000 });
 
@@ -552,7 +565,7 @@ class SNN_Bricks_Chat_Overlay {
 
                 // One retry with stricter prompt
                 const retryResp = await callAI([
-                    { role: 'system', content: buildPhase2SystemPrompt() },
+                    { role: 'system', content: buildPhase2SystemPrompt(sectionIndex, googleFonts) },
                     { role: 'user', content: 'Convert to Bricks JSON:\n\n' + sectionHtml },
                     { role: 'assistant', content: response },
                     { role: 'user', content: 'Invalid JSON. Return ONLY {"content":[...]}. No markdown, no code fences. Start with { end with }.' }
@@ -569,6 +582,9 @@ class SNN_Bricks_Chat_Overlay {
                 ChatState.isProcessing = true;
                 setAgentState('compiling');
 
+                // Reset global ID tracker for this compilation session
+                ChatState.globalUsedIds.clear();
+
                 const sections = parseHTMLIntoSections(ChatState.currentHTMLPreview);
                 const total    = sections.length;
                 addMessage('assistant', 'Building ' + total + ' section' + (total > 1 ? 's' : '') + ' — compiling one at a time...');
@@ -579,7 +595,7 @@ class SNN_Bricks_Chat_Overlay {
                     setAgentState('compiling', 'Compiling "' + label + '" (' + (i + 1) + '/' + total + ')...');
                     showTyping();
                     try {
-                        const bricksData = await compileSingleSection(html, label);
+                        const bricksData = await compileSingleSection(html, label, i + 1);
                         hideTyping();
                         if (bricksData) {
                             const { data } = validateAndFixBricksJSON(bricksData);
@@ -705,8 +721,8 @@ Currently editing: "${postTitle}" (${postType})
 ${pageSnap}
 YOUR JOB:
 When the user requests a design, layout, page or section — generate a complete, beautiful HTML mockup using:
-- Tailwind CSS utility classes (loaded via CDN — no custom <style> blocks except Google Fonts @import)
-- Google Fonts (via <link> tag or @import in a <style> tag)
+- INLINE CSS STYLES (style="...") — NO Tailwind, NO external CSS classes
+- Google Fonts (@import in <style> tag at top)
 - Real content — actual headings, descriptions, CTAs (no Lorem Ipsum for headings)
 - Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS (use different keywords for each image)
 
@@ -714,10 +730,18 @@ OUTPUT FORMAT:
 1. Write 1–2 sentences describing the design
 2. Output the complete HTML in a \`\`\`html code block
 
+STYLING RULES (CRITICAL):
+- Use INLINE style attributes on every element: <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px;">
+- Include Google Fonts at top: <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');</style>
+- Specify ALL styles explicitly: font-family, font-size, font-weight, color, line-height, letter-spacing, text-align, padding, margin, background, border-radius, etc.
+- Use full CSS property names: padding: 40px 20px (not p-4)
+- Colors as hex: #111827 or #ffffff
+- Sizes in px: font-size: 48px, padding: 60px 0, gap: 32px
+- Font families with fallbacks: 'Playfair Display', serif or 'Inter', sans-serif
+
 DESIGN QUALITY:
 - Stunning, professional color palettes matching the business type
-- Responsive with Tailwind breakpoints (sm:, md:, lg:, xl:)
-- Hover effects (hover: prefix) and transitions (transition, duration-300)
+- Responsive-ready structure (mobile will be handled by Bricks)
 - Strong typography hierarchy (large bold h1, clear h2, readable body)
 - Good color contrast, rounded corners, shadows, generous whitespace
 - Production-ready aesthetics — not a wireframe, a real design
@@ -732,8 +756,18 @@ Use the Pixabay proxy with topic-specific keywords for each image:
 HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
 - Every distinct visual section MUST be a DIRECT child of <body> using <section>, <header>, or <footer> tags
 - NEVER wrap sections inside <main> or any other container — content inside <main> is treated as ONE single section
-- The breaking news ticker, hero, world report, opinion, lifestyle etc. must each be a separate <section> or <div> directly under <body>
+- Use semantic structure: <section> → <div class="container"> → <div class="card"> → <h1>, <p>, <button>
+- Simple class names OK for structure ("container", "card", "grid") but ALL styling must be inline
 - This flat structure allows each section to be compiled independently into Bricks Builder
+
+EXAMPLE STRUCTURE:
+<style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');</style>
+<section style="background: #111827; padding: 80px 0;">
+  <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
+    <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px;">Heading</h1>
+    <p style="font-size: 18px; color: #9ca3af; line-height: 1.7; text-align: center; max-width: 700px;">Description text</p>
+  </div>
+</section>
 
 WHEN NOT TO GENERATE HTML:
 - User asks a question → respond in plain text only
@@ -742,14 +776,16 @@ WHEN NOT TO GENERATE HTML:
 - Unsure → ask a quick clarifying question`;
             }
 
-            function buildPhase2SystemPrompt() {
-                return `You are a Bricks Builder JSON compiler. You receive ONE HTML section and convert it to Bricks Builder JSON.
+            function buildPhase2SystemPrompt(sectionIndex, googleFonts) {
+                const fontContext = googleFonts ? `\nGOOGLE FONTS DETECTED:\n${googleFonts}\nUSE these font families in _typography settings.\n` : '';
+                return `You are a Bricks Builder JSON compiler. You receive ONE HTML section with INLINE CSS styles and convert it to Bricks Builder JSON.
 
 TASK: Convert the provided HTML section to Bricks Builder JSON.
 - You are compiling ONE section at a time — not the whole page.
 - The output must contain exactly one top-level section element with parent:0.
 - Do NOT include other sections from memory or context.
-
+- Parse ALL inline style attributes and convert them to Bricks settings.
+${fontContext}
 OUTPUT: Return ONLY a raw JSON object. No markdown, no backticks, no explanation.
 Start with { and end with }
 
@@ -759,6 +795,7 @@ ELEMENT STRUCTURE:
 {"id":"abc123","name":"type","parent":"pid_or_0","children":["id1"],"settings":{...},"label":"optional"}
 
 IDs: 6 unique lowercase alphanumeric chars per element. Every element must have a DIFFERENT id.
+IMPORTANT: Prefix all IDs with "s${sectionIndex}_" to ensure uniqueness across sections (e.g., "s${sectionIndex}_abc123").
 
 ELEMENT TYPES & SETTINGS:
 
@@ -1016,6 +1053,7 @@ STRUCTURE RULES:
             function clearChat() {
                 ChatState.messages = []; ChatState.currentSessionId = null;
                 ChatState.attachedImages = []; ChatState.currentHTMLPreview = null; ChatState.previewMode = null;
+                ChatState.globalUsedIds.clear(); // Reset ID tracker
                 removeApproveBar(); hideHTMLPreview(); renderImagePreviews();
                 $('#snn-bricks-chat-messages').html('<div class="snn-bricks-chat-welcome"><h3>Conversation cleared</h3><p>Start a new conversation.</p></div>');
                 $('.snn-bricks-chat-quick-actions').show();
