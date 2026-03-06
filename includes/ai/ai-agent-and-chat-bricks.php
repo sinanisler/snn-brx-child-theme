@@ -941,7 +941,7 @@ STRUCTURE RULES:
                 li.className = 'snn-bricks-ai-toggle';
                 li.setAttribute('data-balloon', 'SNN AI Agent');
                 li.setAttribute('data-balloon-pos', 'bottom');
-                li.innerHTML = '<span style="font-size:22px;background:linear-gradient(45deg,#2271b1,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;cursor:pointer;line-height:1.2">&#9998;</span>';
+                li.innerHTML = '<span style="font-size:22px;background:linear-gradient(45deg,#2271b1,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;cursor:pointer;line-height:1.2">✦</span>';
                 li.addEventListener('click', e => { e.preventDefault(); toggleChat(); });
                 toolbar.lastElementChild ? toolbar.insertBefore(li, toolbar.lastElementChild) : toolbar.appendChild(li);
             }
