@@ -142,11 +142,6 @@ class SNN_Bricks_Chat_Overlay {
                     <span class="snn-bricks-preview-badge">HTML + CSS</span>
                 </div>
                 <div class="snn-bricks-preview-controls">
-                    <select id="snn-preview-action-type" class="snn-preview-action-select">
-                        <option value="append" selected>Append Section</option>
-                        <option value="replace">Replace Page</option>
-                        <option value="prepend">Prepend Section</option>
-                    </select>
                     <button id="snn-preview-approve-btn" class="snn-preview-approve-btn">&#10003; Build in Bricks</button>
                     <button id="snn-preview-close-btn" class="snn-preview-close-btn" title="Hide preview">&times;</button>
                 </div>
@@ -767,18 +762,11 @@ class SNN_Bricks_Chat_Overlay {
                 const sLabel   = n === 1 ? '1 section' : n + ' sections';
                 const $bar = $('<div id="snn-approve-bar" class="snn-approve-bar">').html(
                     '<span class="snn-approve-label">Preview ready — <strong>' + sLabel + '</strong> detected</span>' +
-                    '<div class="snn-approve-actions">' +
-                    '<select id="snn-approve-action-type" class="snn-approve-select">' +
-                    '<option value="append" selected>Append</option>' +
-                    '<option value="replace">Replace Page</option>' +
-                    '<option value="prepend">Prepend</option>' +
-                    '</select>' +
-                    '<button id="snn-approve-build-btn" class="snn-approve-build-btn">&#10003; Build ' + sLabel + '</button>' +
-                    '</div>'
+                    '<button id="snn-approve-build-btn" class="snn-approve-build-btn">&#10003; Build ' + sLabel + '</button>'
                 );
                 $('#snn-bricks-chat-messages').after($bar);
                 $('#snn-approve-build-btn').on('click', function() {
-                    compileSectionBySection($('#snn-approve-action-type').val());
+                    compileSectionBySection('append');
                 });
             }
 
@@ -1395,7 +1383,7 @@ Complex pseudo-element selectors:
                 $('#snn-bricks-chat-send').on('click', sendMessage);
                 $('#snn-bricks-preview-toggle-btn').on('click', togglePreviewPane);
                 // Preview pane header buttons
-                $('#snn-preview-approve-btn').on('click', function() { compileAndBuild($('#snn-preview-action-type').val()); });
+                $('#snn-preview-approve-btn').on('click', function() { compileAndBuild('append'); });
                 $('#snn-preview-close-btn').on('click', hideHTMLPreview);
                 // Input
                 $('#snn-bricks-chat-input').on('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
@@ -1689,8 +1677,6 @@ Complex pseudo-element selectors:
 .snn-bricks-preview-title { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; white-space: nowrap; }
 .snn-bricks-preview-badge { background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
 .snn-bricks-preview-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.snn-preview-action-select { padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: #fff; font-size: 12px; cursor: pointer; }
-.snn-preview-action-select option { background: #1e293b; color: #fff; }
 .snn-preview-approve-btn { background: #22c55e; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .snn-preview-approve-btn:hover { background: #16a34a; }
 .snn-preview-close-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 26px; height: 26px; border-radius: 5px; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -1702,7 +1688,6 @@ Complex pseudo-element selectors:
 .snn-approve-bar { background: #f0fdf4; border-top: 2px solid #22c55e; border-bottom: 1px solid #dcfce7; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; flex-shrink: 0; }
 .snn-approve-label { color: #15803d; font-weight: 600; font-size: 12px; }
 .snn-approve-actions { display: flex; align-items: center; gap: 6px; }
-.snn-approve-select { padding: 4px 8px; border-radius: 6px; border: 1px solid #d1fae5; background: #fff; font-size: 12px; color: #374151; cursor: pointer; }
 .snn-approve-build-btn { background: #16a34a; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .snn-approve-build-btn:hover { background: #15803d; }
 /* Support link */
