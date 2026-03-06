@@ -344,9 +344,16 @@ Fitness</button>
                         const d    = typeof data === 'string' ? JSON.parse(data) : data;
                         const els  = d.content || d;
                         if (!Array.isArray(els)) throw new Error('Invalid content format');
-                        s.content.splice(0, s.content.length);
-                        els.forEach(el => s.content.push(el));
+                        // Reassign the array reference so Vue's reactivity system picks up the
+                        // change correctly and Bricks re-initialises all canvas event listeners.
+                        s.content = [...els];
                         debugLog('Replaced with', els.length, 'elements');
+                        // Force Bricks to re-render the canvas and re-attach drag/edit listeners
+                        setTimeout(() => {
+                            if (window.bricksCore?.builder?.canvas?.render) {
+                                window.bricksCore.builder.canvas.render();
+                            }
+                        }, 150);
                         return { success: true, message: `Replaced page with ${els.length} elements` };
                     } catch(e) { return { success: false, error: e.message }; }
                 },
@@ -357,12 +364,20 @@ Fitness</button>
                         const d   = typeof data === 'string' ? JSON.parse(data) : data;
                         const els = d.content || d;
                         if (!Array.isArray(els)) throw new Error('Invalid content format');
+                        // Reassign the array reference (not mutate in place) so Vue reactivity
+                        // fires fully and Bricks re-initialises all canvas event listeners.
                         if (position === 'prepend') {
-                            [...els].reverse().forEach(el => s.content.unshift(el));
+                            s.content = [...els, ...s.content];
                         } else {
-                            els.forEach(el => s.content.push(el));
+                            s.content = [...s.content, ...els];
                         }
                         debugLog('Added', els.length, 'elements', position);
+                        // Force Bricks to re-render the canvas and re-attach drag/edit listeners
+                        setTimeout(() => {
+                            if (window.bricksCore?.builder?.canvas?.render) {
+                                window.bricksCore.builder.canvas.render();
+                            }
+                        }, 150);
                         return { success: true, message: `Added ${els.length} elements (${position})` };
                     } catch(e) { return { success: false, error: e.message }; }
                 },
@@ -540,16 +555,14 @@ Fitness</button>
                     
                     // Ensure settings object exists
                     if (!el.settings) { el.settings = {}; fixed = true; }
-                    
-                    // Ensure children array exists for non-leaf elements
-                    if (!leafTypes.has(el.name) && !el.children) { el.children = []; fixed = true; }
-                    
-                    // Remove children from leaf elements
-                    if (leafTypes.has(el.name) && el.children) {
-                        errors.push('Removed children from leaf element ' + el.id + ' (' + el.name + ')');
-                        delete el.children;
-                        fixed = true;
-                    }
+
+                    // Bricks requires children:[] on EVERY element — even leaf nodes.
+                    // Deleting it causes Vue's recursive renderer to iterate undefined,
+                    // producing silent JS errors that break all canvas event listeners.
+                    if (!el.children || !Array.isArray(el.children)) { el.children = []; fixed = true; }
+
+                    // Ensure themeStyles array exists (required by Bricks for image/block elements)
+                    if (!el.themeStyles) { el.themeStyles = []; fixed = true; }
                 });
 
                 // Pass 2: remap stale parent/children refs and validate structure
@@ -640,6 +653,24 @@ Fitness</button>
                             delete el.settings._background.color;
                             if (!Object.keys(el.settings._background).length) delete el.settings._background;
                             errors.push('Converted invalid gradient in _background.color.raw to _gradient for ' + el.id);
+                            fixed = true;
+                        }
+                    }
+                });
+
+                // FINAL PASS: Rebuild children arrays entirely from parent declarations.
+                // This guarantees bidirectional parent↔children consistency so Bricks'
+                // tree parser never sees a mismatch and crashes the canvas event system.
+                const idMap = {};
+                content.forEach(el => { idMap[el.id] = el; el.children = []; });
+                content.forEach(el => {
+                    if (el.parent !== 0 && el.parent !== '0') {
+                        if (idMap[el.parent]) {
+                            idMap[el.parent].children.push(el.id);
+                        } else {
+                            // Rescue orphan: send to root so it renders rather than crashing
+                            errors.push('Orphan rescue (final pass): ' + el.id + ' → root');
+                            el.parent = 0;
                             fixed = true;
                         }
                     }
