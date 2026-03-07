@@ -1690,8 +1690,9 @@ CRITICAL REMINDERS:
                     }
 
                     // CSS default for flex-direction is 'row', but Bricks Builder defaults to 'column'.
-                    // Explicitly set 'row' when flex is used without a direction, to match CSS behavior.
-                    if (bricksElement.settings._display === 'flex' && !bricksElement.settings._direction) {
+                    // Always force 'row' when flex/inline-flex is set without an explicit direction,
+                    // so HTML generations work correctly without spelling out flex-direction every time.
+                    if ((bricksElement.settings._display === 'flex' || bricksElement.settings._display === 'inline-flex') && !bricksElement.settings._direction) {
                         bricksElement.settings._direction = 'row';
                     }
                     
@@ -1926,7 +1927,7 @@ CRITICAL REMINDERS:
                     // ── Flex rows: stack to column on mobile ──
                     // ALL flex rows get stacked — not just large-gap ones.
                     // This matches real-world mobile design expectations.
-                    if (settings._display === 'flex' && settings._direction === 'row') {
+                    if ((settings._display === 'flex' || settings._display === 'inline-flex') && settings._direction === 'row') {
                         if (!settings['_direction:mobile_landscape'])
                             settings['_direction:mobile_landscape'] = 'column';
 
