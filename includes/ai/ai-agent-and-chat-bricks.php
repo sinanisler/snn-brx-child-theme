@@ -1363,9 +1363,9 @@ CRITICAL REMINDERS:
                 // Parse box shadow
                 function parseBoxShadow(value) {
                     if (!value || value === 'none') return null;
-                    // Simple parser for: offsetX offsetY blur spread color
+                    // Parse box-shadow: offsetX offsetY blur spread color
+                    // Bricks format: { values: {offsetX, offsetY, blur, spread}, color: {raw: color} }
                     const parts = value.split(/\s+/);
-                    const values = [];
                     let offsetX = '0', offsetY = '0', blur = '0', spread = '0', color = 'rgba(0,0,0,0.1)';
                     
                     if (parts.length >= 2) {
@@ -1375,23 +1375,31 @@ CRITICAL REMINDERS:
                     if (parts.length >= 3) blur = extractNumeric(parts[2]);
                     if (parts.length >= 4) {
                         // Check if parts[3] is a color or spread
-                        if (parts[3].startsWith('#') || parts[3].startsWith('rgba') || parts[3].startsWith('rgb')) {
+                        if (parts[3].startsWith('#') || parts[3].startsWith('rgba') || parts[3].startsWith('rgb') || parts[3].startsWith('hsl')) {
                             color = parts[3];
+                            // If rgba/rgb/hsl with spaces, join the rest
+                            if (parts[3].includes('(') && !parts[3].includes(')')) {
+                                color = parts.slice(3).join(' ');
+                            }
                         } else {
                             spread = extractNumeric(parts[3]);
-                            if (parts.length >= 5) color = parts.slice(4).join(' ');
+                            if (parts.length >= 5) {
+                                // Get the color (might have spaces in rgba)
+                                color = parts.slice(4).join(' ');
+                            }
                         }
                     }
                     
-                    values.push({
-                        offsetX: offsetX,
-                        offsetY: offsetY,
-                        blur: blur,
-                        spread: spread,
+                    // Return Bricks format: values object + separate color object
+                    return {
+                        values: {
+                            offsetX: offsetX,
+                            offsetY: offsetY,
+                            blur: blur,
+                            spread: spread
+                        },
                         color: { raw: color }
-                    });
-                    
-                    return { values };
+                    };
                 }
                 
                 // Parse border — handles rgba/rgb with spaces correctly
