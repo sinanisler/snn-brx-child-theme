@@ -1483,6 +1483,12 @@ Complex pseudo-element selectors:
                 $('#snn-bricks-chat-attach-btn').on('click', () => $('#snn-bricks-chat-file-input').click());
                 $('#snn-bricks-chat-file-input').on('change', e => handleFileSelect(e.target.files));
                 $('#snn-bricks-chat-input').on('paste', e => handlePaste(e.originalEvent));
+                // Message collapse toggle
+                $('#snn-bricks-chat-messages').on('click', '.snn-msg-toggle', function() {
+                    const $msg = $(this).closest('.snn-bricks-chat-message');
+                    $msg.toggleClass('is-collapsed');
+                    $(this).text($msg.hasClass('is-collapsed') ? 'Show More ▾' : 'Show Less ▴');
+                });
                 setInterval(autoSaveConversation, 30000);
             }
 
@@ -1554,6 +1560,13 @@ Complex pseudo-element selectors:
                 $body.append($('<div>').html(formatMessage(content)));
                 $msg.append($body);
                 $msgs.append($msg);
+                // Auto-collapse if rendered height exceeds 70px
+                setTimeout(function() {
+                    if ($body[0].scrollHeight > 70) {
+                        $msg.addClass('is-collapsed');
+                        $msg.append($('<button class="snn-msg-toggle">Show More ▾</button>'));
+                    }
+                }, 0);
                 scrollToBottom();
             }
 
