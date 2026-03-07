@@ -894,48 +894,95 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
 - Every distinct visual section MUST be a DIRECT child of <body> using semantic HTML5 tags: <section>, <header>, <footer>, <nav>
 - NEVER wrap sections inside <main>, <div>, or any container — each section must be a direct body child
 - Content inside <main> is treated as ONE single section (avoid unless intended)
-- MANDATORY: Add data-bricks attributes to ALL structural elements to guide Phase 2 compilation:
-  * <section data-bricks="section"> — top-level wrapper
-  * <div data-bricks="container"> — the MAIN centering wrapper. Use ONLY ONCE per section as the DIRECT child of <section>. NEVER use container for inner layouts, grids, or flex columns.
-  * <div data-bricks="block"> — use for ALL inner layouts, grids, flex columns/rows, and styled cards/boxes. NEVER use container for inner layouts — always use block.
-  * <h1 data-bricks="heading">, <h2 data-bricks="heading">, etc. — headings
-  * <p data-bricks="text-basic"> — body text/paragraphs
-  * <button data-bricks="button"> — buttons/CTAs
-  * <img data-bricks="image"> — images
-  * <div data-bricks="custom-html-css-script"> — raw HTML/CSS/JS component (use ONLY when standard elements cannot achieve the result, e.g. animated SVGs, canvas, complex interactive widgets, or embed code)
-- Use clean semantic structure: <section data-bricks="section"> → <div data-bricks="container"> → <div data-bricks="block"> → <h2 data-bricks="heading">, <p data-bricks="text-basic">, <button data-bricks="button">
-- Simple, semantic class names OK for structure reference: \"container\", \"card\", \"grid\", \"wrapper\" — but ALL visual styling MUST be inline
-- This flat structure with data-bricks tagging allows each section to be compiled accurately into Bricks Builder elements
-- NOTE: custom CSS (via _cssCustom) can be added to ANY element — prefer this over custom-html-css-script when possible
-- WHEN TO USE custom-html-css-script: only for components truly impossible with standard elements (SVG animations, canvas, iframes, complex JS widgets). For everything else, use block + _cssCustom.
-- CONTAINER RULE: container is a SINGLETON per section — one per section, centering only. ALL grids, flex rows, flex columns, and inner layout wrappers MUST use block, never container.
+- MANDATORY: Add data-bricks attributes to ALL structural elements to guide compilation:
+  * <section data-bricks="section"> — top-level section wrapper
+  * <div data-bricks="container"> — centering wrapper. Use ONLY ONCE per section as the DIRECT child of <section>. NEVER use for inner layouts.
+  * <div data-bricks="block"> — ALL inner layouts, grids, flex columns/rows, cards, boxes. This is the universal layout element.
+  * <h1 data-bricks="heading"> through <h6 data-bricks="heading"> — headings (tag attr sets h1/h2/etc.)
+  * <p data-bricks="text-basic"> — body text. Can contain inline HTML: <strong>, <em>, <a>, <br>
+  * <a data-bricks="text-link"> — text link with optional icon. Set href for the link URL.
+  * <button data-bricks="button"> — buttons/CTAs. Set href for link URL.
+  * <img data-bricks="image"> — images (src, alt, object-fit, aspect-ratio all supported)
+  * <ul data-bricks="text-basic"> or <ol data-bricks="text-basic"> — lists (rendered as native HTML inside text-basic)
+  * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
+
+COMMON STYLES — ALL BRICKS ELEMENTS SHARE THESE (apply via inline style on any element type):
+  Box model:    padding, margin (shorthand and individual sides)
+  Typography:   font-family, font-size, font-weight, font-style, line-height, letter-spacing,
+                text-align, text-transform, text-decoration, color, white-space, word-break
+  Background:   background-color, background-image, background-size (cover/contain/200px),
+                background-position, background-repeat, background-attachment, background-blend-mode
+  Border:       border, border-radius (all 4 corners), border-top/right/bottom/left individually,
+                border-width, border-style, border-color, individual border-radius corners
+  Shadow:       box-shadow
+  Sizing:       width, height, min-width, max-width, min-height, max-height, aspect-ratio
+  Position:     position (relative/absolute/fixed/sticky), top, right, bottom, left, z-index
+  Display:      display (flex/grid/block/inline-block), overflow, opacity, visibility
+  Flexbox:      flex-direction, justify-content, align-items, align-content, align-self,
+                flex-wrap, flex-grow, flex-shrink, flex-basis, gap, column-gap, row-gap, order
+  Grid:         grid-template-columns, grid-template-rows, grid-gap, grid-column, grid-row,
+                grid-auto-flow, grid-auto-columns, grid-auto-rows, grid-area
+  Image:        object-fit, object-position
+
+RESPONSIVE BREAKPOINTS — Supported breakpoint suffixes (auto-applied by compiler for common patterns):
+  :tablet_portrait — applies at tablet portrait (e.g. _padding:tablet_portrait)
+  :mobile_landscape — applies at mobile landscape (e.g. _gridTemplateColumns:mobile_landscape)
+  The compiler AUTOMATICALLY applies responsive rules for:
+  - Large fonts (48px+) scaled down at tablet/mobile
+  - 2+ column grids stacked to 1fr on mobile
+  - Flex rows stacked to column direction on mobile
+  - Large padding reduced on tablet and mobile
+
+- Use clean semantic structure: <section data-bricks="section"> → <div data-bricks="container"> → <div data-bricks="block"> → content elements
+- ALL visual styling MUST be inline style="..." — no class-based frameworks
+- CONTAINER RULE: one container per section (centering only). ALL inner layouts use block.
 
 LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
 
 Centered section wrapper (ONLY ONE PER SECTION — direct child of section):
   <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
 
-Flex column layout (INNER LAYOUT — use block, NOT container):
+Flex column layout (use block):
   <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
 
-Flex row layout (INNER LAYOUT — use block, NOT container):
+Flex row layout (use block):
   <div data-bricks="block" style="display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between;">
 
-Grid layout 2 columns (INNER LAYOUT — use block, NOT container):
+Flex item with align-self (any element can have align-self):
+  <div data-bricks="block" style="align-self: flex-start; flex-grow: 1;">
+
+Grid 2 columns (use block):
   <div data-bricks="block" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px;">
 
-Grid layout 3 columns (INNER LAYOUT — use block, NOT container):
+Grid 3 columns (use block):
   <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
+
+Grid 4 columns (use block):
+  <div data-bricks="block" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+
+Asymmetric grid (60/40):
+  <div data-bricks="block" style="display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
 
 Card with padding and shadow:
   <div data-bricks="block" style="background: #ffffff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
 
+Background image with overlay (use block):
+  <div data-bricks="block" style="background-image: url(...); background-size: cover; background-position: center; background-repeat: no-repeat; position: relative;">
+
+Individual border sides (any element):
+  <div data-bricks="block" style="border-left: 4px solid #E11D48; padding-left: 24px;">
+  <div data-bricks="block" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+
+Text link element:
+  <a data-bricks="text-link" href="#link" style="color: #2563eb; font-size: 16px; font-weight: 600;">Read More</a>
+
 STRICT LAYOUT RULES:
-✓ USE CSS GRID for all side-by-side layouts (2-column heroes, 3-column features, 4-column grids)
-✓ NEVER use flex-wrap for macro layouts — it causes desktop wrapping issues
-✓ Use Flexbox only for single-direction layouts (vertical stacks, simple horizontal bars)
+✓ USE CSS GRID for all side-by-side layouts (heroes, feature grids, card grids)
+✓ NEVER use flex-wrap for macro layouts — causes desktop wrapping issues
+✓ Use Flexbox for single-direction layouts (vertical stacks, horizontal bars, icon rows)
 ✓ Grid syntax: display: grid; grid-template-columns: repeat(N, 1fr); gap: 32px;
-✓ For asymmetric layouts: grid-template-columns: 2fr 1fr; (60/40 split) or 1fr 2fr; (40/60 split)
+✓ For asymmetric layouts: grid-template-columns: 2fr 1fr; OR 3fr 2fr; OR 1fr 2fr;
+✓ align-self works on ANY element inside a flex or grid container
 
 EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
 <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
@@ -1034,20 +1081,36 @@ CRITICAL REMINDERS:
                 
                 // Layout & Flexbox
                 'display':          { type: 'direct', target: '_display' },
-                'flex-direction':   { type: 'direct', target: '_direction', map: {'row': 'row', 'column': 'column'} },
+                'flex-direction':   { type: 'direct', target: '_direction', map: {'row': 'row', 'column': 'column', 'row-reverse': 'row-reverse', 'column-reverse': 'column-reverse'} },
                 'justify-content':  { type: 'direct', target: '_justifyContent' },
                 'align-items':      { type: 'direct', target: '_alignItems' },
+                'align-content':    { type: 'direct', target: '_alignContent' },
+                'align-self':       { type: 'direct', target: '_alignSelf' },
+                'justify-self':     { type: 'direct', target: '_justifySelf' },
                 'flex-wrap':        { type: 'direct', target: '_flexWrap' },
+                'flex-grow':        { type: 'direct', target: '_flexGrow' },
+                'flex-shrink':      { type: 'direct', target: '_flexShrink' },
+                'flex-basis':       { type: 'direct', target: '_flexBasis' },
+                'order':            { type: 'direct', target: '_order' },
                 'gap':              { type: 'gapHandler' }, // Special: distributes to _columnGap/_rowGap
                 'column-gap':       { type: 'numeric', target: '_columnGap' },
                 'row-gap':          { type: 'numeric', target: '_rowGap' },
-                
+
                 // Grid
                 'grid-template-columns': { type: 'direct', target: '_gridTemplateColumns' },
                 'grid-template-rows':    { type: 'direct', target: '_gridTemplateRows' },
+                'grid-template-areas':   { type: 'direct', target: '_gridTemplateAreas' },
                 'grid-gap':              { type: 'numeric', target: '_gridGap' },
                 'grid-column':           { type: 'direct', target: '_gridColumn' },
                 'grid-row':              { type: 'direct', target: '_gridRow' },
+                'grid-area':             { type: 'direct', target: '_gridArea' },
+                'grid-auto-flow':        { type: 'direct', target: '_direction' }, // maps to same _direction as flex-direction
+                'grid-auto-columns':     { type: 'direct', target: '_gridAutoColumns' },
+                'grid-auto-rows':        { type: 'direct', target: '_gridAutoRows' },
+                'grid-column-start':     { type: 'direct', target: '_gridColumnStart' },
+                'grid-column-end':       { type: 'direct', target: '_gridColumnEnd' },
+                'grid-row-start':        { type: 'direct', target: '_gridRowStart' },
+                'grid-row-end':          { type: 'direct', target: '_gridRowEnd' },
                 
                 // Sizing
                 'width':            { type: 'direct', target: '_width' },
@@ -1058,11 +1121,14 @@ CRITICAL REMINDERS:
                 'max-height':       { type: 'direct', target: '_maxHeight' },
                 
                 // Background (will use raw format)
-                'background':       { type: 'backgroundHandler' },
-                'background-color': { type: 'backgroundColor' },
-                'background-image': { type: 'backgroundImage' },
-                'background-size':  { type: 'ignore' }, // Handled by backgroundImage
-                'background-position': { type: 'ignore' }, // Handled by backgroundImage
+                'background':            { type: 'backgroundHandler' },
+                'background-color':      { type: 'backgroundColor' },
+                'background-image':      { type: 'backgroundImage' },
+                'background-size':       { type: 'backgroundSize' },
+                'background-position':   { type: 'backgroundPosition' },
+                'background-repeat':     { type: 'backgroundRepeat' },
+                'background-attachment': { type: 'backgroundAttachment' },
+                'background-blend-mode': { type: 'backgroundBlendMode' },
                 
                 // Typography (goes into _typography object)
                 'font-family':      { type: 'typography', target: 'font-family', transform: 'cleanFontFamily' },
@@ -1076,8 +1142,16 @@ CRITICAL REMINDERS:
                 'color':            { type: 'typography', target: 'color', transform: 'raw' },
                 
                 // Border
-                'border-radius':    { type: 'borderRadius' },
+                'border-radius':             { type: 'borderRadius' },
+                'border-top-left-radius':    { type: 'borderRadiusCorner', corner: 'top' },
+                'border-top-right-radius':   { type: 'borderRadiusCorner', corner: 'right' },
+                'border-bottom-right-radius':{ type: 'borderRadiusCorner', corner: 'bottom' },
+                'border-bottom-left-radius': { type: 'borderRadiusCorner', corner: 'left' },
                 'border':           { type: 'borderHandler' },
+                'border-top':       { type: 'borderSide', side: 'top' },
+                'border-right':     { type: 'borderSide', side: 'right' },
+                'border-bottom':    { type: 'borderSide', side: 'bottom' },
+                'border-left':      { type: 'borderSide', side: 'left' },
                 'border-width':     { type: 'borderWidth' },
                 'border-style':     { type: 'borderStyle' },
                 'border-color':     { type: 'borderColor' },
@@ -1096,16 +1170,31 @@ CRITICAL REMINDERS:
                 // Misc
                 'opacity':          { type: 'direct', target: '_opacity' },
                 'overflow':         { type: 'direct', target: '_overflow' },
+                'overflow-x':       { type: 'direct', target: '_overflowX' },
+                'overflow-y':       { type: 'direct', target: '_overflowY' },
                 'object-fit':       { type: 'direct', target: '_objectFit' },
                 'object-position':  { type: 'direct', target: '_objectPosition' },
                 'aspect-ratio':     { type: 'direct', target: '_aspectRatio' },
                 'cursor':           { type: 'ignore' }, // Not needed in Bricks
                 'transition':       { type: 'direct', target: '_cssTransition' },
                 'transform':        { type: 'cssGlobal' }, // Use _cssGlobal for transforms
-                
-                // Ignored (handled elsewhere or not needed)
-                'text-decoration':  { type: 'ignore' },
+                'visibility':       { type: 'direct', target: '_visibility' },
+                'pointer-events':   { type: 'ignore' },
+
+                // Text extras — goes into _cssGlobal (Bricks has no native mapping for these)
+                'text-decoration':  { type: 'cssGlobal' },
+                'white-space':      { type: 'cssGlobal' },
+                'word-break':       { type: 'cssGlobal' },
+                'text-overflow':    { type: 'cssGlobal' },
+                'line-clamp':       { type: 'cssGlobal' },
+                '-webkit-line-clamp': { type: 'cssGlobal' },
+                'text-shadow':      { type: 'cssGlobal' },
+
+                // Ignored
                 'outline':          { type: 'ignore' },
+                'list-style':       { type: 'ignore' },
+                'box-sizing':       { type: 'ignore' },
+                'vertical-align':   { type: 'ignore' },
             };
 
             /**
@@ -1265,13 +1354,18 @@ CRITICAL REMINDERS:
                     };
                 }
                 
-                // Parse border-radius
+                // Parse border-radius — handles 1/2/3/4 value shorthand
+                // Bricks uses radius corners as: top=top-left, right=top-right, bottom=bottom-right, left=bottom-left
                 function parseBorderRadius(value) {
                     if (!value) return null;
-                    const numeric = extractNumeric(value);
-                    return {
-                        radius: { top: numeric, right: numeric, bottom: numeric, left: numeric }
-                    };
+                    // Handle "50%" or "100px" (single value) or shorthand
+                    const parts = value.trim().split(/\s+/).map(v => extractNumeric(v));
+                    let tl, tr, br, bl;
+                    if (parts.length === 1)      { tl = tr = br = bl = parts[0]; }
+                    else if (parts.length === 2)  { tl = br = parts[0]; tr = bl = parts[1]; }
+                    else if (parts.length === 3)  { tl = parts[0]; tr = bl = parts[1]; br = parts[2]; }
+                    else                          { tl = parts[0]; tr = parts[1]; br = parts[2]; bl = parts[3]; }
+                    return { radius: { top: tl, right: tr, bottom: br, left: bl } };
                 }
                 
                 // Parse gradient from CSS
@@ -1400,35 +1494,83 @@ CRITICAL REMINDERS:
                                     Object.assign(settings._border, radius);
                                 }
                                 break;
-                                
+
+                            case 'borderRadiusCorner':
+                                if (!settings._border) settings._border = {};
+                                if (!settings._border.radius) settings._border.radius = {};
+                                settings._border.radius[mapping.corner] = extractNumeric(value);
+                                break;
+
                             case 'borderStyle':
                                 if (!settings._border) settings._border = {};
                                 settings._border.style = value;
                                 break;
-                                
+
                             case 'borderWidth':
                                 const borderWidthVal = extractNumeric(value);
                                 if (!settings._border) settings._border = {};
                                 settings._border.width = {
-                                    top: borderWidthVal,
-                                    right: borderWidthVal,
-                                    bottom: borderWidthVal,
-                                    left: borderWidthVal
+                                    top: borderWidthVal, right: borderWidthVal,
+                                    bottom: borderWidthVal, left: borderWidthVal
                                 };
                                 break;
-                                
+
                             case 'borderColor':
                                 if (!settings._border) settings._border = {};
                                 settings._border.color = { raw: value };
                                 break;
-                                
+
                             case 'borderHandler':
                                 const border = parseBorder(value);
                                 if (border) settings._border = border;
                                 break;
-                                
+
+                            case 'borderSide': {
+                                // e.g. border-top: 2px solid #000
+                                const sideResult = parseBorder(value);
+                                if (sideResult) {
+                                    if (!settings._border) settings._border = {};
+                                    if (!settings._border.width) settings._border.width = { top:'0', right:'0', bottom:'0', left:'0' };
+                                    settings._border.width[mapping.side] = sideResult.width.top;
+                                    if (!settings._border.style) settings._border.style = sideResult.style;
+                                    if (!settings._border.color) settings._border.color = sideResult.color;
+                                }
+                                break;
+                            }
+
+                            case 'backgroundSize': {
+                                if (!settings._background) settings._background = {};
+                                if (value === 'cover' || value === 'contain') {
+                                    settings._background.size = value;
+                                } else {
+                                    settings._background.size = 'custom';
+                                    settings._background.custom = value;
+                                }
+                                break;
+                            }
+
+                            case 'backgroundPosition':
+                                if (!settings._background) settings._background = {};
+                                settings._background.position = value;
+                                break;
+
+                            case 'backgroundRepeat':
+                                if (!settings._background) settings._background = {};
+                                settings._background.repeat = value;
+                                break;
+
+                            case 'backgroundAttachment':
+                                if (!settings._background) settings._background = {};
+                                settings._background.attachment = value;
+                                break;
+
+                            case 'backgroundBlendMode':
+                                if (!settings._background) settings._background = {};
+                                settings._background.blendMode = value;
+                                break;
+
                             case 'cssGlobal':
-                                // For transforms and complex CSS
+                                // For transforms, text-decoration, and complex CSS without native Bricks mapping
                                 if (!settings._cssGlobal) settings._cssGlobal = '';
                                 settings._cssGlobal += ` ${prop}: ${value};`;
                                 break;
@@ -1450,21 +1592,39 @@ CRITICAL REMINDERS:
                     // Determine Bricks element type from data-bricks attribute or tag name
                     let bricksName = element.getAttribute('data-bricks');
                     if (!bricksName) {
-                        // Fallback mapping
+                        // Fallback tag → Bricks element mapping
+                        // Note: all basic Bricks elements share the same style settings
+                        // (padding, margin, typography, background, border, shadow, position, sizing, flex/grid)
+                        // so the CSS → settings conversion applies uniformly to all element types.
                         const tagMap = {
                             'section': 'section',
                             'header': 'section',
                             'footer': 'section',
-                            'nav': 'section',
-                            'article': 'section',
+                            'nav': 'block',       // nav as block (section has strict Bricks constraints)
+                            'article': 'block',
+                            'aside': 'block',
+                            'main': 'block',
                             'div': 'block',
+                            'figure': 'block',
+                            'figcaption': 'text-basic',
                             'h1': 'heading', 'h2': 'heading', 'h3': 'heading',
                             'h4': 'heading', 'h5': 'heading', 'h6': 'heading',
                             'p': 'text-basic',
                             'span': 'text-basic',
+                            'strong': 'text-basic',
+                            'em': 'text-basic',
+                            'small': 'text-basic',
+                            'blockquote': 'text-basic',
                             'button': 'button',
-                            'a': 'button',
-                            'img': 'image'
+                            'a': 'text-link',     // anchors → text-link (has link + icon support)
+                            'img': 'image',
+                            'ul': 'text-basic',   // lists rendered as HTML in text-basic
+                            'ol': 'text-basic',
+                            'table': 'text-basic',
+                            'hr': 'block',
+                            'svg': 'custom-html-css-script',
+                            'canvas': 'custom-html-css-script',
+                            'iframe': 'custom-html-css-script',
                         };
                         bricksName = tagMap[tagName] || 'block';
                     }
@@ -1488,44 +1648,73 @@ CRITICAL REMINDERS:
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
                     
+                    // Helper: parse href to Bricks link object
+                    function parseLink(el) {
+                        const href = el.getAttribute('href') || el.getAttribute('data-href') || '#';
+                        return {
+                            type: (href.startsWith('#') || href.startsWith('/')) ? 'internal' : 'external',
+                            url: href
+                        };
+                    }
+
                     // Handle specific element types
+                    // All elements also share common style settings (_padding, _margin, _typography,
+                    // _background, _border, _boxShadow, _display, flex/grid props, _position, sizing)
+                    // handled above via stylesToBricksSettings. Here we set element-specific content fields.
                     switch (bricksName) {
                         case 'heading':
-                            bricksElement.settings.text = element.textContent.trim();
-                            bricksElement.settings.tag = tagName;
+                            bricksElement.settings.text = element.innerHTML.trim(); // allow inner <span> bold/italic
+                            bricksElement.settings.tag  = ['h1','h2','h3','h4','h5','h6'].includes(tagName) ? tagName : 'h2';
                             break;
-                            
+
                         case 'text-basic':
-                            bricksElement.settings.text = element.innerHTML.trim();
+                            // Preserve inner HTML (bold, italic, links, lists, etc.)
+                            bricksElement.settings.text = element.outerHTML.trim();
+                            // For ul/ol/table — treat as leaf (no children walked)
+                            if (['ul','ol','table','blockquote'].includes(tagName)) return bricksElement;
                             break;
-                            
-                        case 'button':
+
+                        case 'text':
+                            // Bricks "text" (rich text) element — wraps full innerHTML
+                            bricksElement.settings.text = '<p>' + element.innerHTML.trim() + '</p>';
+                            break;
+
+                        case 'text-link': {
                             bricksElement.settings.text = element.textContent.trim();
-                            const href = element.getAttribute('href');
-                            if (href) {
-                                bricksElement.settings.link = {
-                                    type: href.startsWith('#') ? 'internal' : 'external',
-                                    url: href
-                                };
-                            }
+                            bricksElement.settings.link = parseLink(element);
+                            // If it has an <img> child, let it be a button style
                             break;
-                            
-                        case 'image':
-                            const src = element.getAttribute('src');
-                            if (src) {
-                                bricksElement.settings.image = {
-                                    url: src,
-                                    size: 'full'
-                                };
-                            }
+                        }
+
+                        case 'button': {
+                            bricksElement.settings.text = element.textContent.trim();
+                            // data-href on <button>, href on <a>
+                            const btnHref = element.getAttribute('href') || element.getAttribute('data-href');
+                            if (btnHref) bricksElement.settings.link = parseLink(element);
+                            break;
+                        }
+
+                        case 'image': {
+                            const src = element.getAttribute('src') || element.getAttribute('data-src');
+                            if (src) bricksElement.settings.image = { url: src, size: 'full' };
                             const alt = element.getAttribute('alt');
                             if (alt) bricksElement.settings.alt = alt;
-                            break;
-                            
-                        case 'custom-html-css-script':
-                            bricksElement.settings.content = element.innerHTML;
-                            // No children for custom HTML elements
+                            // img is a void element — no children
                             return bricksElement;
+                        }
+
+                        case 'custom-html-css-script':
+                            bricksElement.settings.content = element.outerHTML;
+                            // Leaf element — no children walked
+                            return bricksElement;
+
+                        case 'section':
+                            // section/container/block — no content fields, children handled below
+                            break;
+
+                        default:
+                            // block, div, etc. — no content fields, children handled below
+                            break;
                     }
                     
                     // Handle data-hover attributes
@@ -1577,85 +1766,119 @@ CRITICAL REMINDERS:
              * STEP 3: Apply automatic responsive adjustments
              * - Large typography (60+) gets tablet and mobile variants
              * - Multi-column grids get responsive breakpoints
-             * - Flex rows get mobile column stacking
+             * - Flex rows get mobile column stacking (ALL flex rows, not just large-gap ones)
+             * - Padding/margin reduced on mobile
+             * Note: breakpoint suffix pattern is :tablet_portrait and :mobile_landscape
+             * This same pattern works for ALL Bricks element style settings since all
+             * basic elements share the same style tab (padding, margin, typography, background, border, etc.)
              */
             function applyResponsiveRules(contentArray) {
                 contentArray.forEach(element => {
                     const settings = element.settings;
-                    
-                    // Responsive typography for large headings
+
+                    // ── Typography: scale down large font sizes on smaller screens ──
                     if (settings._typography && settings._typography['font-size']) {
                         const fontSize = parseInt(settings._typography['font-size']);
-                        if (fontSize >= 60) {
-                            if (!settings['_typography:tablet_portrait']) {
-                                settings['_typography:tablet_portrait'] = { 'font-size': String(Math.round(fontSize * 0.8)) };
-                            }
-                            if (!settings['_typography:mobile_landscape']) {
+                        if (fontSize >= 72) {
+                            if (!settings['_typography:tablet_portrait'])
+                                settings['_typography:tablet_portrait'] = { 'font-size': String(Math.round(fontSize * 0.7)) };
+                            if (!settings['_typography:mobile_landscape'])
+                                settings['_typography:mobile_landscape'] = { 'font-size': String(Math.round(fontSize * 0.5)) };
+                        } else if (fontSize >= 48) {
+                            if (!settings['_typography:tablet_portrait'])
+                                settings['_typography:tablet_portrait'] = { 'font-size': String(Math.round(fontSize * 0.75)) };
+                            if (!settings['_typography:mobile_landscape'])
                                 settings['_typography:mobile_landscape'] = { 'font-size': String(Math.round(fontSize * 0.6)) };
-                            }
-                        } else if (fontSize >= 40) {
-                            if (!settings['_typography:mobile_landscape']) {
+                        } else if (fontSize >= 32) {
+                            if (!settings['_typography:mobile_landscape'])
                                 settings['_typography:mobile_landscape'] = { 'font-size': String(Math.round(fontSize * 0.75)) };
-                            }
                         }
                     }
-                    
-                    // Responsive grids
+
+                    // ── Grid: responsive column layouts ──
                     if (settings._gridTemplateColumns) {
                         const colMatch = settings._gridTemplateColumns.match(/repeat\((\d+),/);
-                        const colCount = colMatch ? parseInt(colMatch[1]) : (settings._gridTemplateColumns.match(/1fr/g) || []).length;
-                        
-                        if (colCount >= 3) {
-                            if (!settings['_gridTemplateColumns:tablet_portrait']) {
+                        // Count fractions in value (e.g. "1fr 2fr 1fr" = 3 columns)
+                        const frCount = (settings._gridTemplateColumns.match(/\d*fr/g) || []).length;
+                        const colCount = colMatch ? parseInt(colMatch[1]) : frCount;
+
+                        if (colCount >= 4) {
+                            if (!settings['_gridTemplateColumns:tablet_portrait'])
                                 settings['_gridTemplateColumns:tablet_portrait'] = 'repeat(2, 1fr)';
-                            }
-                            if (!settings['_gridTemplateColumns:mobile_landscape']) {
+                            if (!settings['_gridTemplateColumns:mobile_landscape'])
                                 settings['_gridTemplateColumns:mobile_landscape'] = '1fr';
-                            }
+                        } else if (colCount === 3) {
+                            if (!settings['_gridTemplateColumns:tablet_portrait'])
+                                settings['_gridTemplateColumns:tablet_portrait'] = 'repeat(2, 1fr)';
+                            if (!settings['_gridTemplateColumns:mobile_landscape'])
+                                settings['_gridTemplateColumns:mobile_landscape'] = '1fr';
                         } else if (colCount === 2) {
-                            if (!settings['_gridTemplateColumns:mobile_landscape']) {
+                            if (!settings['_gridTemplateColumns:mobile_landscape'])
                                 settings['_gridTemplateColumns:mobile_landscape'] = '1fr';
-                            }
                         }
-                        
+
                         // Reduce grid gap on mobile
-                        if (settings._gridGap && parseInt(settings._gridGap) > 20) {
-                            if (!settings['_gridGap:mobile_landscape']) {
-                                settings['_gridGap:mobile_landscape'] = String(Math.round(parseInt(settings._gridGap) * 0.5));
-                            }
+                        const gridGap = parseInt(settings._columnGap || settings._gridGap || 0);
+                        if (gridGap > 16) {
+                            if (!settings['_columnGap:mobile_landscape'])
+                                settings['_columnGap:mobile_landscape'] = String(Math.round(gridGap * 0.5));
+                            if (!settings['_rowGap:mobile_landscape'])
+                                settings['_rowGap:mobile_landscape'] = String(Math.round(gridGap * 0.5));
                         }
                     }
-                    
-                    // Responsive flex direction
-                    if (settings._direction === 'row' && settings._columnGap) {
-                        const gap = parseInt(settings._columnGap);
-                        if (gap >= 32) {
-                            if (!settings['_direction:mobile_landscape']) {
-                                settings['_direction:mobile_landscape'] = 'column';
-                            }
-                            if (!settings['_columnGap:mobile_landscape']) {
-                                settings['_columnGap:mobile_landscape'] = String(Math.round(gap * 0.5));
-                            }
-                        }
+
+                    // ── Flex rows: stack to column on mobile ──
+                    // ALL flex rows get stacked — not just large-gap ones.
+                    // This matches real-world mobile design expectations.
+                    if (settings._display === 'flex' && settings._direction === 'row') {
+                        if (!settings['_direction:mobile_landscape'])
+                            settings['_direction:mobile_landscape'] = 'column';
+
+                        // Reduce column gap (becomes vertical gap after stacking)
+                        const gap = parseInt(settings._columnGap || 0);
+                        if (gap > 16 && !settings['_columnGap:mobile_landscape'])
+                            settings['_columnGap:mobile_landscape'] = String(Math.round(gap * 0.5));
+
+                        // Reset justify-content so stacked items fill width
+                        if (settings._justifyContent && settings._justifyContent !== 'flex-start' && !settings['_justifyContent:mobile_landscape'])
+                            settings['_justifyContent:mobile_landscape'] = 'flex-start';
                     }
-                    
-                    // Responsive padding
+
+                    // ── Section padding: reduce on tablet and mobile ──
                     if (settings._padding) {
-                        const topPadding = parseInt(settings._padding.top || 0);
-                        if (topPadding >= 80) {
-                            if (!settings['_padding:tablet_portrait']) {
+                        const topPad    = parseInt(settings._padding.top    || 0);
+                        const botPad    = parseInt(settings._padding.bottom || topPad);
+                        const leftPad   = parseInt(settings._padding.left   || 0);
+                        const rightPad  = parseInt(settings._padding.right  || leftPad);
+
+                        if (topPad >= 80) {
+                            if (!settings['_padding:tablet_portrait'])
                                 settings['_padding:tablet_portrait'] = {
-                                    top: String(Math.round(topPadding * 0.75)),
-                                    bottom: String(Math.round(parseInt(settings._padding.bottom || topPadding) * 0.75))
+                                    top: String(Math.round(topPad * 0.7)),
+                                    bottom: String(Math.round(botPad * 0.7)),
+                                    left: settings._padding.left, right: settings._padding.right
                                 };
-                            }
-                            if (!settings['_padding:mobile_landscape']) {
+                            if (!settings['_padding:mobile_landscape'])
                                 settings['_padding:mobile_landscape'] = {
-                                    top: String(Math.round(topPadding * 0.5)),
-                                    bottom: String(Math.round(parseInt(settings._padding.bottom || topPadding) * 0.5))
+                                    top: String(Math.round(topPad * 0.5)),
+                                    bottom: String(Math.round(botPad * 0.5)),
+                                    left: leftPad > 20 ? String(Math.round(leftPad * 0.6)) : settings._padding.left,
+                                    right: rightPad > 20 ? String(Math.round(rightPad * 0.6)) : settings._padding.right
                                 };
-                            }
+                        } else if (topPad >= 40) {
+                            if (!settings['_padding:mobile_landscape'])
+                                settings['_padding:mobile_landscape'] = {
+                                    top: String(Math.round(topPad * 0.6)),
+                                    bottom: String(Math.round(botPad * 0.6)),
+                                    left: settings._padding.left, right: settings._padding.right
+                                };
                         }
+                    }
+
+                    // ── Width/max-width: full width on mobile ──
+                    if (settings._widthMax && settings._widthMax !== '100%') {
+                        if (!settings['_widthMax:mobile_landscape'])
+                            settings['_widthMax:mobile_landscape'] = '100%';
                     }
                 });
             }
