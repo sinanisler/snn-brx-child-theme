@@ -794,6 +794,7 @@ Fitness</button>
             function buildPreviewHTML(html) {
                 return '<!DOCTYPE html><html lang="en"><head>' +
                     '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+                    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">' +
                     '<style>*{box-sizing:border-box;margin:0;padding:0}body{margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}<\/style>' +
                     '</head><body>' + html + '</body></html>';
             }
@@ -903,8 +904,29 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <a data-bricks="text-link"> — text link with optional icon. Set href for the link URL.
   * <button data-bricks="button"> — buttons/CTAs. Set href for link URL.
   * <img data-bricks="image"> — images (src, alt, object-fit, aspect-ratio all supported)
+  * <i class="fas fa-ICON-NAME"> — standalone FontAwesome icon (solid). Bricks "icon" element.
+  * <i class="far fa-ICON-NAME"> or <i class="fa fa-ICON-NAME"> — FA Regular icon.
+  * <i class="fab fa-ICON-NAME"> — FA Brands icon (twitter, facebook, instagram, etc.)
   * <ul data-bricks="text-basic"> or <ol data-bricks="text-basic"> — lists (rendered as native HTML inside text-basic)
   * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
+
+FONTAWESOME ICONS — supported libraries:
+  Solid icons:   <i class="fas fa-arrow-right" style="font-size: 24px; color: #ff0000;"></i>
+  Regular icons: <i class="far fa-address-card" style="font-size: 20px; color: #333;"></i>
+  Brand icons:   <i class="fab fa-x-twitter" style="font-size: 20px; color: #000;"></i>
+  Available FA brand icon names (most common): fa-facebook, fa-facebook-square, fa-instagram, fa-x-twitter, fa-twitter, fa-linkedin, fa-youtube, fa-tiktok, fa-pinterest, fa-github, fa-discord, fa-whatsapp
+  Available FA solid icon names (examples): fa-arrow-right, fa-arrow-left, fa-check, fa-star, fa-heart, fa-phone, fa-envelope, fa-location-dot, fa-magnifying-glass, fa-bars, fa-xmark, fa-plus, fa-user, fa-cart-shopping, fa-play, fa-chevron-right, fa-bolt, fa-shield, fa-fire
+
+  Icons inside buttons — add data-icon attribute with the FA class string:
+  <button data-bricks="button" data-icon="fas fa-arrow-right" data-icon-position="right" data-icon-gap="10" style="...">Learn More</button>
+  <button data-bricks="button" data-icon="fas fa-cart-shopping" data-icon-position="left" data-icon-gap="8" style="...">Add to Cart</button>
+
+  Icons inside text-links — same data-icon approach:
+  <a data-bricks="text-link" href="#" data-icon="fas fa-arrow-right" data-icon-position="right" data-icon-gap="6" style="...">Read More</a>
+
+  Standalone icon element (uses inline style for size/color):
+  <i class="fas fa-star" style="font-size: 32px; color: #f59e0b;"></i>
+  <i class="fab fa-instagram" style="font-size: 24px; color: #E1306C;"></i>
 
 COMMON STYLES — ALL BRICKS ELEMENTS SHARE THESE (apply via inline style on any element type):
   Box model:    padding, margin (shorthand and individual sides)
@@ -1117,8 +1139,8 @@ CRITICAL REMINDERS:
                 'max-width':        { type: 'direct', target: '_widthMax' },
                 'min-width':        { type: 'direct', target: '_widthMin' },
                 'height':           { type: 'direct', target: '_height' },
-                'min-height':       { type: 'direct', target: '_minHeight' },
-                'max-height':       { type: 'direct', target: '_maxHeight' },
+                'min-height':       { type: 'direct', target: '_heightMin' },
+                'max-height':       { type: 'direct', target: '_heightMax' },
                 
                 // Background (will use raw format)
                 'background':            { type: 'backgroundHandler' },
@@ -1287,6 +1309,24 @@ CRITICAL REMINDERS:
                 function cleanFontFamily(fontFamily) {
                     if (!fontFamily) return '';
                     return fontFamily.replace(/['"]/g, '').split(',')[0].trim();
+                }
+
+                // Parse FontAwesome icon class string into Bricks icon object
+                // Supports: fas fa-icon (solid), far fa-icon / fa fa-icon (regular), fab fa-icon (brands)
+                function parseFaIcon(classString) {
+                    if (!classString) return null;
+                    const cls = classString.trim();
+                    // Must contain an 'fa-' icon name
+                    if (!cls.includes('fa-')) return null;
+                    let library = 'fontawesomeSolid';
+                    if (cls.includes('fab ') || cls.startsWith('fab')) {
+                        library = 'fontawesomeBrands';
+                    } else if (cls.includes('far ') || cls.startsWith('far')) {
+                        library = 'fontawesomeRegular';
+                    } else if ((cls.includes('fa ') || cls.startsWith('fa ')) && !cls.includes('fas ') && !cls.startsWith('fas')) {
+                        library = 'fontawesomeRegular';
+                    }
+                    return { library, icon: cls };
                 }
                 
                 // Parse box model (padding/margin) — handles shorthand
@@ -1618,6 +1658,7 @@ CRITICAL REMINDERS:
                             'button': 'button',
                             'a': 'text-link',     // anchors → text-link (has link + icon support)
                             'img': 'image',
+                            'i': 'icon',          // <i class="fas fa-..."> → Bricks icon element
                             'ul': 'text-basic',   // lists rendered as HTML in text-basic
                             'ol': 'text-basic',
                             'table': 'text-basic',
@@ -1686,18 +1727,64 @@ CRITICAL REMINDERS:
                             bricksElement.settings.text = '<p>' + element.innerHTML.trim() + '</p>';
                             break;
 
+                        case 'icon': {
+                            // Standalone FA icon element: <i class="fas fa-star" data-bricks="icon">
+                            // or just <i class="fas fa-star"> via tagMap
+                            const iClass = element.getAttribute('class') || '';
+                            const iconObj = parseFaIcon(iClass);
+                            if (iconObj) bricksElement.settings.icon = iconObj;
+                            // iconSize from font-size style (already parsed into _typography['font-size'])
+                            // Move it to iconSize (Bricks icon-specific field) if present
+                            if (bricksElement.settings._typography && bricksElement.settings._typography['font-size']) {
+                                bricksElement.settings.iconSize = bricksElement.settings._typography['font-size'];
+                                delete bricksElement.settings._typography['font-size'];
+                                if (!Object.keys(bricksElement.settings._typography).length) delete bricksElement.settings._typography;
+                            }
+                            // data-icon-size override
+                            if (element.getAttribute('data-icon-size')) bricksElement.settings.iconSize = element.getAttribute('data-icon-size');
+                            // iconColor from color style → move to iconColor
+                            if (bricksElement.settings._typography && bricksElement.settings._typography.color) {
+                                bricksElement.settings.iconColor = bricksElement.settings._typography.color;
+                                delete bricksElement.settings._typography.color;
+                                if (!Object.keys(bricksElement.settings._typography).length) delete bricksElement.settings._typography;
+                            }
+                            isLeaf = true; // icons have no meaningful children
+                            break;
+                        }
+
                         case 'text-link': {
+                            // Collect text, stripping any <i> icon children from the text content
+                            const linkIconEl = element.querySelector('i[class*="fa-"]');
                             bricksElement.settings.text = element.textContent.trim();
                             bricksElement.settings.link = parseLink(element);
-                            // If it has an <img> child, let it be a button style
+                            // Extract icon from <i> child or data-icon attribute
+                            const linkIconClass = element.getAttribute('data-icon') || (linkIconEl ? linkIconEl.getAttribute('class') : '');
+                            const linkIcon = parseFaIcon(linkIconClass);
+                            if (linkIcon) {
+                                bricksElement.settings.icon = linkIcon;
+                                if (element.getAttribute('data-icon-position')) bricksElement.settings.iconPosition = element.getAttribute('data-icon-position');
+                                if (element.getAttribute('data-icon-gap')) bricksElement.settings.iconGap = element.getAttribute('data-icon-gap');
+                            }
+                            isLeaf = true; // text-link content is text; don't recurse into <i> children
                             break;
                         }
 
                         case 'button': {
+                            // Collect text, stripping any <i> icon children from the text content
+                            const btnIconEl = element.querySelector('i[class*="fa-"]');
                             bricksElement.settings.text = element.textContent.trim();
                             // data-href on <button>, href on <a>
                             const btnHref = element.getAttribute('href') || element.getAttribute('data-href');
                             if (btnHref) bricksElement.settings.link = parseLink(element);
+                            // Extract icon from <i> child or data-icon attribute
+                            const btnIconClass = element.getAttribute('data-icon') || (btnIconEl ? btnIconEl.getAttribute('class') : '');
+                            const btnIcon = parseFaIcon(btnIconClass);
+                            if (btnIcon) {
+                                bricksElement.settings.icon = btnIcon;
+                                if (element.getAttribute('data-icon-position')) bricksElement.settings.iconPosition = element.getAttribute('data-icon-position');
+                                if (element.getAttribute('data-icon-gap')) bricksElement.settings.iconGap = element.getAttribute('data-icon-gap');
+                            }
+                            isLeaf = true; // don't recurse into button children (text/icon already captured)
                             break;
                         }
 
