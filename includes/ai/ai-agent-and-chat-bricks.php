@@ -566,6 +566,27 @@ Fitness</button>
                     }
                 });
 
+                // PASS 2b: Nesting failsafe — convert any container that is a child of another
+                // container or a child of a block into a block. 'container' must only ever be a
+                // direct child of 'section' (parent === 0 is the page root; the real section
+                // element will have parent 0 and name 'section').  We detect invalid containers
+                // by checking whether their parent element is also a container or a block.
+                {
+                    const nameMap = {};
+                    content.forEach(el => { nameMap[el.id] = el.name; });
+                    content.forEach(el => {
+                        if (el.name === 'container' && el.parent !== 0) {
+                            const parentName = nameMap[el.parent];
+                            if (parentName === 'container' || parentName === 'block') {
+                                errors.push('Nesting fix: converted rogue container ' + el.id + ' (parent ' + el.parent + ' is ' + parentName + ') → block');
+                                el.name = 'block';
+                                nameMap[el.id] = 'block';
+                                fixed = true;
+                            }
+                        }
+                    });
+                }
+
                 // PASS 3: Validate and clean settings
                 content.forEach(el => {
                     // Ensure numeric padding/margin values are strings
@@ -870,8 +891,8 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
 - Content inside <main> is treated as ONE single section (avoid unless intended)
 - MANDATORY: Add data-bricks attributes to ALL structural elements to guide Phase 2 compilation:
   * <section data-bricks="section"> — top-level wrapper
-  * <div data-bricks="container"> — layout/centering wrapper (use for flex/grid containers)
-  * <div data-bricks="block"> — styled wrapper/card (use for boxes with padding, background, borders)
+  * <div data-bricks="container"> — the MAIN centering wrapper. Use ONLY ONCE per section as the DIRECT child of <section>. NEVER use container for inner layouts, grids, or flex columns.
+  * <div data-bricks="block"> — use for ALL inner layouts, grids, flex columns/rows, and styled cards/boxes. NEVER use container for inner layouts — always use block.
   * <h1 data-bricks="heading">, <h2 data-bricks="heading">, etc. — headings
   * <p data-bricks="text-basic"> — body text/paragraphs
   * <button data-bricks="button"> — buttons/CTAs
@@ -882,23 +903,24 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
 - This flat structure with data-bricks tagging allows each section to be compiled accurately into Bricks Builder elements
 - NOTE: custom CSS (via _cssCustom) can be added to ANY element — prefer this over custom-html-css-script when possible
 - WHEN TO USE custom-html-css-script: only for components truly impossible with standard elements (SVG animations, canvas, iframes, complex JS widgets). For everything else, use block + _cssCustom.
+- CONTAINER RULE: container is a SINGLETON per section — one per section, centering only. ALL grids, flex rows, flex columns, and inner layout wrappers MUST use block, never container.
 
 LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
 
-Centered container:
+Centered section wrapper (ONLY ONE PER SECTION — direct child of section):
   <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
 
-Flex column layout:
-  <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
+Flex column layout (INNER LAYOUT — use block, NOT container):
+  <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
 
-Flex row layout (NO FLEX-WRAP — use Grid instead for multi-column):
-  <div data-bricks="container" style="display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between;">
+Flex row layout (INNER LAYOUT — use block, NOT container):
+  <div data-bricks="block" style="display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between;">
 
-Grid layout (2 columns — PREFERRED for side-by-side content):
-  <div data-bricks="container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px;">
+Grid layout 2 columns (INNER LAYOUT — use block, NOT container):
+  <div data-bricks="block" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px;">
 
-Grid layout (3 columns — PREFERRED for feature grids):
-  <div data-bricks="container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
+Grid layout 3 columns (INNER LAYOUT — use block, NOT container):
+  <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
 
 Card with padding and shadow:
   <div data-bricks="block" style="background: #ffffff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
@@ -914,22 +936,26 @@ EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
 <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
 
 <section data-bricks="section" style="background: #0f172a; padding: 80px 0;">
-  <div data-bricks="container" class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
-    <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;">Premium Heading</h1>
-    <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: rgba(203, 213, 225, 1); line-height: 1.7; text-align: center; max-width: 700px; margin: 0;">Supporting description with readable line height and proper spacing.</p>
-    <button data-bricks="button" style="background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;">Call to Action</button>
+  <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
+    <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
+      <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;">Premium Heading</h1>
+      <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: rgba(203, 213, 225, 1); line-height: 1.7; text-align: center; max-width: 700px; margin: 0;">Supporting description with readable line height and proper spacing.</p>
+      <button data-bricks="button" style="background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;">Call to Action</button>
+    </div>
   </div>
 </section>
 
-EXAMPLE 2-COLUMN GRID HERO (NO FLEX-WRAP):
+EXAMPLE 2-COLUMN GRID HERO (section > container > block[grid] > block[column]):
 <section data-bricks="section" style="background: #f5f0eb; padding: 100px 0;">
-  <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
-    <div data-bricks="block" style="display: flex; flex-direction: column; gap: 24px;">
-      <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; color: #111827; line-height: 1.1; margin: 0;">We Make Brands People Love</h1>
-      <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; color: #4b5563; line-height: 1.7; margin: 0;">Creative studio specializing in bold brand identities and digital experiences.</p>
-      <button data-bricks="button" style="background: #ff6b35; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 16px 32px; border: none; border-radius: 8px; cursor: pointer;">View Our Work</button>
+  <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
+    <div data-bricks="block" style="display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
+      <div data-bricks="block" style="display: flex; flex-direction: column; gap: 24px;">
+        <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; color: #111827; line-height: 1.1; margin: 0;">We Make Brands People Love</h1>
+        <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; color: #4b5563; line-height: 1.7; margin: 0;">Creative studio specializing in bold brand identities and digital experiences.</p>
+        <button data-bricks="button" style="background: #ff6b35; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 16px 32px; border: none; border-radius: 8px; cursor: pointer;">View Our Work</button>
+      </div>
+      <img data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover; border-radius: 12px;" />
     </div>
-    <img data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover; border-radius: 12px;" />
   </div>
 </section>
 
@@ -1026,23 +1052,27 @@ section (always parent:0, ONE per output):
   - Section padding: ONLY top/bottom (never left/right)
   - Background: use raw format for colors, gradients, rgba
 
-container (layout wrapper — flex or grid):
-  Flex column: {"name":"container","settings":{"_direction":"column","_rowGap":"24","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"},"_padding":{"left":"24","right":"24"}}}
-  Flex row: {"name":"container","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_justifyContent":"space-between"}}
-  CSS Grid: {"name":"container","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"32","_widthMax":"1200px","_margin":{"left":"auto","right":"auto"}}}
+container (centering wrapper ONLY — ONE per section, direct child of section):
+  Centered: {"name":"container","settings":{"_widthMax":"1200px","_margin":{"left":"auto","right":"auto"},"_padding":{"left":"24","right":"24"}}}
+  NEVER use container for flex or grid layouts — use block for all inner layouts.
+
+block (inner layout wrapper — flex, grid, card, column, row):
+  Flex column: {"name":"block","settings":{"_direction":"column","_rowGap":"24"}}
+  Flex row: {"name":"block","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_justifyContent":"space-between"}}
+  CSS Grid 3col: {"name":"block","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"32"}}
+  CSS Grid 2col: {"name":"block","settings":{"_display":"grid","_gridTemplateColumns":"repeat(2, 1fr)","_gridGap":"32"}}
 
 STRICT NESTING RULES — NEVER VIOLATE:
-  - NEVER place a container inside another container. container cannot be a child of container.
-  - NEVER mix container and block as siblings inside the same parent container.
-  - The ONLY valid hierarchy is: section > container > [block | heading | text-basic | button | image | icon | divider]
-  - container children must be: block, heading, text-basic, button, image, icon, divider — NEVER another container.
-  - block children must be: heading, text-basic, button, image, icon, divider — NEVER container or block.
-  - If you need a two-column layout: section > container (grid/flex-row) > block > [elements]
-  - If you need centered content: section > container (max-width centered) > [elements directly]
-  - WRONG: section > container > block + container  ← FORBIDDEN
-  - WRONG: section > container > container          ← FORBIDDEN
-  - RIGHT: section > container > block              ← CORRECT
-  - RIGHT: section > container > heading            ← CORRECT
+  - section children MUST be: container (ONLY ONE per section). Never place content directly in section without a container.
+  - container children can be: block, heading, text-basic, button, image, icon, divider. NEVER another container.
+  - block children can be: block (nested blocks are OK and expected for complex layouts), heading, text-basic, button, image, icon, divider. NEVER container inside a block.
+  - ABSOLUTELY NEVER place a container inside another container, or a container inside a block. 'container' elements ONLY go directly inside 'section' elements.
+  - If you need a two-column grid: section > container > block[display:grid] > block[column A] + block[column B]
+  - If you need centered stacked content: section > container > block[display:flex,flex-direction:column] > heading + text-basic + button
+  - WRONG: section > container > block > container  ← FORBIDDEN (container inside block)
+  - WRONG: section > container > container          ← FORBIDDEN (container inside container)
+  - RIGHT: section > container > block > block      ← CORRECT (nested blocks for layout)
+  - RIGHT: section > container > heading            ← CORRECT (direct children of container)
 
 block (wrapper element — card, box, div with styling):
   {"name":"block","settings":{"_direction":"column","_rowGap":"16","_padding":{"top":"32","right":"32","bottom":"32","left":"32"},"_background":{"color":{"raw":"#ffffff"}},"_border":{"radius":{"top":"12","right":"12","bottom":"12","left":"12"},"width":{"top":"1","right":"1","bottom":"1","left":"1"},"style":"solid","color":{"raw":"#e5e7eb"}}}}
