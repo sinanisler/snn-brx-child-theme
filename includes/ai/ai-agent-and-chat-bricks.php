@@ -2503,7 +2503,7 @@ add_action( 'wp_ajax_nopriv_snn_pixabay_image', 'snn_pixabay_image_proxy_handler
 
 function snn_pixabay_image_proxy_handler() {
     $q       = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : 'nature';
-    $api_key = get_option( 'snn_pixabay_api_key', '992766-a3c727d4146f5ede8718f2d24' );
+    $api_key = get_option( 'snn_pixabay_api_key', '' );
 
     // Build Unsplash fallback URL using the search keywords
     $unsplash_keywords = urlencode( str_replace( '+', ',', $q ) );
