@@ -521,162 +521,127 @@ Fitness</button>
                 const errors  = [];
                 let   fixed   = false;
                 const localIds = new Set();
-                const idRemap = {};
-                const leafTypes = new Set(['heading', 'text-basic', 'button', 'image', 'icon', 'divider', 'custom-html-css-script']);
+                const idRemap  = {};
+                const LETTERS  = 'abcdefghijklmnopqrstuvwxyz';
 
+                // Generate a Bricks-native ID: exactly 6 lowercase letters (matches Bricks' ^[a-z]{6}$ format)
+                // This ensures brxe-{id} CSS classes are parsed correctly by Bricks' canvas event system.
                 function genId() {
                     let id;
-                    do { id = Math.random().toString(36).slice(2, 8); } while (localIds.has(id) || globalIdSet.has(id));
+                    do {
+                        id = Array.from({ length: 6 }, () => LETTERS[Math.floor(Math.random() * 26)]).join('');
+                    } while (localIds.has(id) || globalIdSet.has(id));
                     return id;
                 }
 
-                // Pass 1: ensure each element has required fields and unique id
+                // PASS 1: Aggressively rewrite EVERY ID to a Bricks-native 6-letter ID.
+                // This prevents brxe-class mismatches that silently break right-click context menus.
                 content.forEach(el => {
-                    // Fix missing or duplicate IDs
-                    if (!el.id) {
-                        el.id = genId(); localIds.add(el.id); globalIdSet.add(el.id); fixed = true;
-                        errors.push('Added missing ID: ' + el.id);
-                    } else if (localIds.has(el.id) || globalIdSet.has(el.id)) {
-                        const oldId = el.id;
-                        const newId = genId();
-                        idRemap[el.id] = newId;
-                        errors.push('Dup ID ' + oldId + '→' + newId);
-                        el.id = newId; localIds.add(newId); globalIdSet.add(newId); fixed = true;
+                    const oldId = el.id || '';
+                    const newId = genId();
+                    idRemap[oldId] = newId;
+                    el.id = newId;
+                    localIds.add(newId);
+                    globalIdSet.add(newId);
+                    fixed = true;
+
+                    // Ensure required baseline fields
+                    if (!el.name)        { el.name = 'block'; }
+                    if (!el.settings)    { el.settings = {}; }
+                    if (!el.themeStyles) { el.themeStyles = []; }
+                    el.children = []; // Will be rebuilt in final pass
+                });
+
+                // PASS 2: Remap parent references to new IDs
+                content.forEach(el => {
+                    const rawParent = el.parent;
+                    if (rawParent === 0 || rawParent === '0' || rawParent === undefined || rawParent === null) {
+                        el.parent = 0;
+                    } else if (idRemap[rawParent]) {
+                        el.parent = idRemap[rawParent];
                     } else {
-                        localIds.add(el.id);
-                        globalIdSet.add(el.id);
+                        // Parent didn't exist in this batch — rescue to root
+                        errors.push('Orphan rescue: ' + el.id + ' (old parent ' + rawParent + ') → root');
+                        el.parent = 0;
                     }
-                    
-                    // Fix missing name
-                    if (!el.name) { el.name = 'block'; fixed = true; errors.push('Added missing name to ' + el.id); }
-                    
-                    // Fix missing parent
-                    if (el.parent === undefined) { el.parent = 0; fixed = true; }
-                    
-                    // Ensure settings object exists
-                    if (!el.settings) { el.settings = {}; fixed = true; }
-
-                    // Bricks requires children:[] on EVERY element — even leaf nodes.
-                    // Deleting it causes Vue's recursive renderer to iterate undefined,
-                    // producing silent JS errors that break all canvas event listeners.
-                    if (!el.children || !Array.isArray(el.children)) { el.children = []; fixed = true; }
-
-                    // Ensure themeStyles array exists (required by Bricks for image/block elements)
-                    if (!el.themeStyles) { el.themeStyles = []; fixed = true; }
                 });
 
-                // Pass 2: remap stale parent/children refs and validate structure
+                // PASS 3: Validate and clean settings
                 content.forEach(el => {
-                    // Remap parent references
-                    if (el.parent && idRemap[el.parent]) { el.parent = idRemap[el.parent]; fixed = true; }
-                    
-                    // Check for orphaned elements
-                    if (el.parent !== 0 && !localIds.has(el.parent)) {
-                        errors.push('Orphan ' + el.id + ' (invalid parent ' + el.parent + ')→root');
-                        el.parent = 0; fixed = true;
-                    }
-                    
-                    // Remap children references
-                    if (el.children) {
-                        el.children = el.children.map(c => idRemap[c] || c).filter(c => localIds.has(c));
-                        if (el.children.length === 0 && !leafTypes.has(el.name)) {
-                            // Container with no children — might be intentional, just note it
-                            debugLog('Empty container:', el.id, el.name);
+                    // Ensure numeric padding/margin values are strings
+                    ['_padding', '_margin'].forEach(prop => {
+                        if (el.settings[prop] && typeof el.settings[prop] === 'object') {
+                            ['top', 'right', 'bottom', 'left'].forEach(side => {
+                                if (el.settings[prop][side] !== undefined) {
+                                    el.settings[prop][side] = String(el.settings[prop][side]);
+                                }
+                            });
                         }
-                    }
-                });
+                    });
 
-                // Pass 3: Validate settings structure
-                content.forEach(el => {
-                    // Convert string number properties to strings if needed
-                    if (el.settings._padding && typeof el.settings._padding === 'object') {
-                        ['top', 'right', 'bottom', 'left'].forEach(side => {
-                            if (el.settings._padding[side] !== undefined && typeof el.settings._padding[side] !== 'string') {
-                                el.settings._padding[side] = String(el.settings._padding[side]);
-                                fixed = true;
-                            }
-                        });
-                    }
-                    
-                    // Same for margin
-                    if (el.settings._margin && typeof el.settings._margin === 'object') {
-                        ['top', 'right', 'bottom', 'left'].forEach(side => {
-                            if (el.settings._margin[side] !== undefined && typeof el.settings._margin[side] !== 'string') {
-                                el.settings._margin[side] = String(el.settings._margin[side]);
-                                fixed = true;
-                            }
-                        });
-                    }
-                    
                     // Validate typography font-size is string
                     if (el.settings._typography?.['font-size'] && typeof el.settings._typography['font-size'] !== 'string') {
                         el.settings._typography['font-size'] = String(el.settings._typography['font-size']);
-                        fixed = true;
                     }
 
                     // Clean up _cssGlobal: strip properties now handled natively
                     if (el.settings._cssGlobal && typeof el.settings._cssGlobal === 'string') {
                         el.settings._cssGlobal = el.settings._cssGlobal
-                            .replace(/cursor:\s*pointer;?/g, '')        // Handled natively
-                            .replace(/transition:[^;]+;?/g, '')         // Now using _cssTransition
-                            .replace(/@media[^{]+\{[^}]+\}/g, '')       // Strip media queries (use native suffixes)
+                            .replace(/cursor:\s*pointer;?/g, '')
+                            .replace(/transition:[^;]+;?/g, '')
+                            .replace(/@media[^{]+\{[^}]+\}/g, '')
                             .trim();
-
-                        // If the rule block is empty after cleanup, remove it
                         if (el.settings._cssGlobal.match(/^[^{]+\{\s*\}\s*$/) || el.settings._cssGlobal === '') {
                             delete el.settings._cssGlobal;
-                            errors.push('Removed empty _cssGlobal from ' + el.id);
                             fixed = true;
                         }
                     }
 
-                    // Remove old _css objects (AI hallucination from old training — use native suffixes instead)
+                    // Remove legacy _css object (use native breakpoint suffixes instead)
                     if (el.settings._css) {
                         delete el.settings._css;
                         errors.push('Removed legacy _css from ' + el.id);
                         fixed = true;
                     }
 
-                    // Fix incorrect gradient in _background.color.raw — convert to proper _gradient format
-                    const bgRaw = el.settings._background && el.settings._background.color && el.settings._background.color.raw;
+                    // Fix gradient in _background.color.raw — convert to proper _gradient format
+                    const bgRaw = el.settings._background?.color?.raw;
                     if (bgRaw && typeof bgRaw === 'string' && (bgRaw.includes('linear-gradient') || bgRaw.includes('radial-gradient'))) {
-                        const isRadial = bgRaw.startsWith('radial');
-                        const angleMatch = bgRaw.match(/(\d+)deg/);
+                        const isRadial     = bgRaw.startsWith('radial');
+                        const angleMatch   = bgRaw.match(/(\d+)deg/);
                         const colorMatches = [...bgRaw.matchAll(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/g)];
                         if (colorMatches.length >= 2) {
                             el.settings._gradient = {
                                 applyTo: 'overlay',
                                 gradientType: isRadial ? 'radial' : 'linear',
                                 ...((!isRadial && angleMatch) ? { angle: angleMatch[1] } : {}),
-                                colors: colorMatches.map((m, i) => ({ id: 'fx' + el.id + i, color: { raw: m[0] }, stop: String(Math.round(i / (colorMatches.length - 1) * 100)) }))
+                                colors: colorMatches.map((m, i) => ({ id: genId(), color: { raw: m[0] }, stop: String(Math.round(i / (colorMatches.length - 1) * 100)) }))
                             };
                             delete el.settings._background.color;
                             if (!Object.keys(el.settings._background).length) delete el.settings._background;
-                            errors.push('Converted invalid gradient in _background.color.raw to _gradient for ' + el.id);
+                            errors.push('Converted gradient in _background.color.raw → _gradient for ' + el.id);
                             fixed = true;
                         }
                     }
                 });
 
-                // FINAL PASS: Rebuild children arrays entirely from parent declarations.
-                // This guarantees bidirectional parent↔children consistency so Bricks'
-                // tree parser never sees a mismatch and crashes the canvas event system.
+                // FINAL PASS: Rebuild children arrays from parent declarations.
+                // Guarantees bidirectional parent↔children consistency for Bricks' tree parser.
                 const idMap = {};
-                content.forEach(el => { idMap[el.id] = el; el.children = []; });
+                content.forEach(el => { idMap[el.id] = el; });
                 content.forEach(el => {
                     if (el.parent !== 0 && el.parent !== '0') {
                         if (idMap[el.parent]) {
                             idMap[el.parent].children.push(el.id);
                         } else {
-                            // Rescue orphan: send to root so it renders rather than crashing
-                            errors.push('Orphan rescue (final pass): ' + el.id + ' → root');
+                            errors.push('Orphan final rescue: ' + el.id + ' → root');
                             el.parent = 0;
                             fixed = true;
                         }
                     }
                 });
 
-                if (fixed || errors.length) debugLog('JSON validation:', { fixed, errors: errors.length });
+                if (fixed || errors.length) debugLog('JSON validation:', { fixed, errors: errors.length, remapped: Object.keys(idRemap).length });
                 return { valid: true, fixed, data, errors };
             }
 
@@ -1016,7 +981,7 @@ ELEMENT STRUCTURE:
   "label": "optional descriptive label"
 }
 
-ID FORMAT: Every element MUST have a unique 6-character lowercase alphanumeric id, prefixed with "s${sectionIndex}_" (e.g., "s${sectionIndex}_abc123", "s${sectionIndex}_def456").
+ID FORMAT: Every element MUST have a unique 6-character lowercase LETTERS-ONLY id (e.g., "ujplph", "ecrtgx", "tvwsjo"). NO numbers, NO underscores, NO prefixes — letters a-z only, exactly 6 characters.
 
 ELEMENT TYPES & CORE SETTINGS:
 
@@ -1057,7 +1022,7 @@ WHEN TO USE STANDARD FORMAT:
 - Font families: "font-family": "Inter" (no quotes in value)
 
 section (always parent:0, ONE per output):
-  {"id":"s${sectionIndex}_sec001","name":"section","parent":0,"children":["s${sectionIndex}_con001"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"raw":"#0f172a"}}},"label":"Hero Section"}
+  {"id":"ujplph","name":"section","parent":0,"children":["ecrtgx"],"settings":{"_padding":{"top":"80","bottom":"80"},"_background":{"color":{"raw":"#0f172a"}}},"label":"Hero Section"}
   - Section padding: ONLY top/bottom (never left/right)
   - Background: use raw format for colors, gradients, rgba
 
@@ -1266,7 +1231,7 @@ STRUCTURE RULES:
 10. parent value must exactly match an element's id (or 0 for section)
 
 VALIDATION CHECKLIST:
-✓ Unique IDs with s${sectionIndex}_ prefix
+✓ Unique IDs: exactly 6 lowercase letters only (a-z), no numbers, no underscores
 ✓ Valid parent-child relationships  
 ✓ No orphaned elements
 ✓ All properties as strings
