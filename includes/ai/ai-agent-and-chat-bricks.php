@@ -964,10 +964,10 @@ LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
 Centered section wrapper (ONLY ONE PER SECTION — direct child of section):
   <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
 
-Flex column layout (use block):
+Flex column layout (use block) — ALWAYS specify flex-direction:
   <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
 
-Flex row layout (use block):
+Flex row layout (use block) — ALWAYS specify flex-direction:
   <div data-bricks="block" style="display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between;">
 
 Flex item with align-self (any element can have align-self):
@@ -1005,6 +1005,8 @@ STRICT LAYOUT RULES:
 ✓ Grid syntax: display: grid; grid-template-columns: repeat(N, 1fr); gap: 32px;
 ✓ For asymmetric layouts: grid-template-columns: 2fr 1fr; OR 3fr 2fr; OR 1fr 2fr;
 ✓ align-self works on ANY element inside a flex or grid container
+✓ **CRITICAL**: When using display: flex, ALWAYS explicitly set flex-direction: row OR flex-direction: column
+   (Bricks Builder defaults to column when not specified, so omitting it breaks row layouts)
 
 EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
 <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
@@ -1299,10 +1301,15 @@ CRITICAL REMINDERS:
                 }
                 
                 // Extract numeric value from CSS (e.g., "48px" → "48")
+                // More robust: strips any non-numeric trailing characters and validates
                 function extractNumeric(cssValue) {
                     if (!cssValue) return '';
-                    const match = String(cssValue).match(/^([\d.]+)(?:px|em|rem|%)?$/);
-                    return match ? match[1] : cssValue;
+                    const str = String(cssValue).trim();
+                    const match = str.match(/^([\d.]+)/);
+                    if (!match) return '';
+                    const num = match[1];
+                    // Validate it's a valid number
+                    return (!isNaN(parseFloat(num)) && isFinite(parseFloat(num))) ? num : '';
                 }
                 
                 // Clean font family (remove quotes)
@@ -1330,13 +1337,18 @@ CRITICAL REMINDERS:
                 }
                 
                 // Parse box model (padding/margin) — handles shorthand
+                // More robust: filters out non-numeric values and malformed entries
                 function parseBoxModelValue(value) {
                     if (!value) return {};
-                    const parts = value.trim().split(/\s+/).map(extractNumeric);
+                    const parts = value.trim().split(/\s+/)
+                        .map(p => extractNumeric(p))
+                        .filter(p => p && p !== '' && !isNaN(parseFloat(p))); // Filter out invalid values
+                    
+                    if (parts.length === 0) return {};
                     if (parts.length === 1) return {top:parts[0],right:parts[0],bottom:parts[0],left:parts[0]};
                     if (parts.length === 2) return {top:parts[0],right:parts[1],bottom:parts[0],left:parts[1]};
                     if (parts.length === 3) return {top:parts[0],right:parts[1],bottom:parts[2],left:parts[1]};
-                    if (parts.length === 4) return {top:parts[0],right:parts[1],bottom:parts[2],left:parts[3]};
+                    if (parts.length >= 4) return {top:parts[0],right:parts[1],bottom:parts[2],left:parts[3]};
                     return {};
                 }
                 
@@ -1374,18 +1386,32 @@ CRITICAL REMINDERS:
                     return { values };
                 }
                 
-                // Parse border
+                // Parse border — handles rgba/rgb with spaces correctly
                 function parseBorder(value) {
                     if (!value || value === 'none') return null;
-                    // Simple parser for: width style color
-                    const parts = value.split(/\s+/);
                     let width = '1', style = 'solid', color = '#000000';
                     
+                    // Extract rgba/rgb color first (before splitting by spaces)
+                    const rgbaMatch = value.match(/rgba?\([^)]+\)/);
+                    if (rgbaMatch) {
+                        color = rgbaMatch[0];
+                        value = value.replace(rgbaMatch[0], '').trim(); // Remove color from value
+                    }
+                    
+                    // Now split remaining parts and filter valid ones
+                    const parts = value.split(/\s+/).filter(p => p);
+                    
                     parts.forEach(part => {
-                        if (part.match(/^\d/)) width = extractNumeric(part);
-                        else if (['solid', 'dashed', 'dotted', 'double'].includes(part)) style = part;
-                        else if (part.startsWith('#') || part.startsWith('rgba') || part.startsWith('rgb')) color = part;
+                        if (part.match(/^\d/)) {
+                            const w = extractNumeric(part);
+                            if (w !== '') width = w; // Only set if valid
+                        }
+                        else if (['solid', 'dashed', 'dotted', 'double', 'none'].includes(part)) style = part;
+                        else if (part.startsWith('#')) color = part;
                     });
+                    
+                    // Validate width is a valid number
+                    if (width === '' || isNaN(parseFloat(width))) width = '1';
                     
                     return {
                         width: { top: width, right: width, bottom: width, left: width },
@@ -1689,12 +1715,10 @@ CRITICAL REMINDERS:
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
 
-                    // CSS default for flex-direction is 'row', but Bricks Builder defaults to 'column'.
-                    // Always force 'row' when flex/inline-flex is set without an explicit direction,
-                    // so HTML generations work correctly without spelling out flex-direction every time.
-                    if ((bricksElement.settings._display === 'flex' || bricksElement.settings._display === 'inline-flex') && !bricksElement.settings._direction) {
-                        bricksElement.settings._direction = 'row';
-                    }
+                    // REMOVED: Don't force flex-direction to 'row'.
+                    // Bricks Builder defaults to 'column' when flex-direction is not specified,
+                    // which matches common layout expectations. Only set _direction when
+                    // flex-direction is explicitly present in the HTML's inline styles.
                     
                     // Helper: parse href to Bricks link object
                     function parseLink(el) {
