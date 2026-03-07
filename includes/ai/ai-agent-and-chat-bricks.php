@@ -1647,6 +1647,12 @@ CRITICAL REMINDERS:
                         const bricksSettings = stylesToBricksSettings(cssStyles);
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
+
+                    // CSS default for flex-direction is 'row', but Bricks Builder defaults to 'column'.
+                    // Explicitly set 'row' when flex is used without a direction, to match CSS behavior.
+                    if (bricksElement.settings._display === 'flex' && !bricksElement.settings._direction) {
+                        bricksElement.settings._direction = 'row';
+                    }
                     
                     // Helper: parse href to Bricks link object
                     function parseLink(el) {
@@ -1661,6 +1667,7 @@ CRITICAL REMINDERS:
                     // All elements also share common style settings (_padding, _margin, _typography,
                     // _background, _border, _boxShadow, _display, flex/grid props, _position, sizing)
                     // handled above via stylesToBricksSettings. Here we set element-specific content fields.
+                    let isLeaf = false;
                     switch (bricksName) {
                         case 'heading':
                             bricksElement.settings.text = element.innerHTML.trim(); // allow inner <span> bold/italic
@@ -1699,14 +1706,14 @@ CRITICAL REMINDERS:
                             if (src) bricksElement.settings.image = { url: src, size: 'full' };
                             const alt = element.getAttribute('alt');
                             if (alt) bricksElement.settings.alt = alt;
-                            // img is a void element — no children
-                            return bricksElement;
+                            isLeaf = true; // img is a void element — no children
+                            break;
                         }
 
                         case 'custom-html-css-script':
                             bricksElement.settings.content = element.outerHTML;
-                            // Leaf element — no children walked
-                            return bricksElement;
+                            isLeaf = true; // Leaf element — no children walked
+                            break;
 
                         case 'section':
                             // section/container/block — no content fields, children handled below
@@ -1738,14 +1745,16 @@ CRITICAL REMINDERS:
                     
                     // Add to content array
                     content.push(bricksElement);
-                    
-                    // Process children recursively
-                    Array.from(element.children).forEach(child => {
-                        const childElement = elementToBricks(child, id);
-                        if (childElement) {
-                            bricksElement.children.push(childElement.id);
-                        }
-                    });
+
+                    // Process children recursively (skip for leaf elements like img, svg)
+                    if (!isLeaf) {
+                        Array.from(element.children).forEach(child => {
+                            const childElement = elementToBricks(child, id);
+                            if (childElement) {
+                                bricksElement.children.push(childElement.id);
+                            }
+                        });
+                    }
                     
                     return bricksElement;
                 }
