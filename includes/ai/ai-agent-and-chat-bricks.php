@@ -904,6 +904,7 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <a data-bricks="text-link"> — text link with optional icon. Set href for the link URL.
   * <button data-bricks="button"> — buttons/CTAs. Set href for link URL.
   * <img data-bricks="image"> — images (src, alt, object-fit, aspect-ratio all supported)
+  * <hr> — horizontal divider. Supports border-width (height), width, border-style (solid/dashed/dotted/groove), border-color, text-align/margin for alignment.
   * <i class="fas fa-ICON-NAME"> — standalone FontAwesome icon (solid). Bricks "icon" element.
   * <i class="far fa-ICON-NAME"> or <i class="fa fa-ICON-NAME"> — FA Regular icon.
   * <i class="fab fa-ICON-NAME"> — FA Brands icon (twitter, facebook, instagram, etc.)
@@ -998,6 +999,13 @@ Individual border sides (any element):
 Text link element:
   <a data-bricks="text-link" href="#link" style="color: #2563eb; font-size: 16px; font-weight: 600;">Read More</a>
 
+Horizontal dividers:
+  <hr style="border-top: 2px solid #e5e7eb; width: 100%;">
+  <hr style="border-top: 3px dashed #ff0000; width: 60px; text-align: center;">
+  <hr style="border-top: 1px dotted #666; width: 200px; margin-left: 0;">
+  <hr style="border-top: 4px groove #c9a44a; width: 80px; text-align: center;">
+  Note: Use border-top-width for height, border-top-style for style (solid/dashed/dotted/groove/ridge), border-top-color for color, text-align or margin-left/right for alignment
+
 STRICT LAYOUT RULES:
 ✓ USE CSS GRID for all side-by-side layouts (heroes, feature grids, card grids)
 ✓ NEVER use flex-wrap for macro layouts — causes desktop wrapping issues
@@ -1015,6 +1023,7 @@ EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
   <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
     <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
       <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;">Premium Heading</h1>
+      <hr style="border-top: 2px solid rgba(255, 255, 255, 0.2); width: 60px; text-align: center;">
       <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: rgba(203, 213, 225, 1); line-height: 1.7; text-align: center; max-width: 700px; margin: 0;">Supporting description with readable line height and proper spacing.</p>
       <button data-bricks="button" style="background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;">Call to Action</button>
     </div>
@@ -1688,7 +1697,7 @@ CRITICAL REMINDERS:
                             'ul': 'text-basic',   // lists rendered as HTML in text-basic
                             'ol': 'text-basic',
                             'table': 'text-basic',
-                            'hr': 'block',
+                            'hr': 'divider',       // horizontal rule → Bricks divider element
                             'svg': 'custom-html-css-script',
                             'canvas': 'custom-html-css-script',
                             'iframe': 'custom-html-css-script',
@@ -1819,6 +1828,69 @@ CRITICAL REMINDERS:
                             const alt = element.getAttribute('alt');
                             if (alt) bricksElement.settings.alt = alt;
                             isLeaf = true; // img is a void element — no children
+                            break;
+                        }
+
+                        case 'divider': {
+                            // HR element → Bricks divider with height, width, style, color, alignment
+                            // Extract from border styles and computed styles
+                            const styleAttr = element.getAttribute('style');
+                            const cssStyles = styleAttr ? parseInlineCSS(styleAttr) : {};
+                            
+                            // Height: from border-width, border-top-width, or height (default: 2)
+                            let height = '2';
+                            if (cssStyles['border-width']) {
+                                height = extractNumeric(cssStyles['border-width']) || '2';
+                            } else if (cssStyles['border-top-width']) {
+                                height = extractNumeric(cssStyles['border-top-width']) || '2';
+                            } else if (cssStyles['height']) {
+                                height = extractNumeric(cssStyles['height']) || '2';
+                            }
+                            bricksElement.settings.height = height;
+                            
+                            // Width: from width style (default: 100% or full container)
+                            if (cssStyles['width']) {
+                                bricksElement.settings.width = extractNumeric(cssStyles['width']);
+                            }
+                            
+                            // Style: from border-style (solid, dashed, dotted, double, groove, ridge, inset, outset)
+                            // Bricks supports: solid, dashed, dotted, double, groove, ridge, inset, outset
+                            let dividerStyle = 'solid';
+                            if (cssStyles['border-style']) {
+                                dividerStyle = cssStyles['border-style'];
+                            } else if (cssStyles['border-top-style']) {
+                                dividerStyle = cssStyles['border-top-style'];
+                            }
+                            bricksElement.settings.style = dividerStyle;
+                            
+                            // Color: from border-color, border-top-color, or color
+                            let dividerColor = null;
+                            if (cssStyles['border-color']) {
+                                dividerColor = { raw: cssStyles['border-color'] };
+                            } else if (cssStyles['border-top-color']) {
+                                dividerColor = { raw: cssStyles['border-top-color'] };
+                            } else if (cssStyles['color']) {
+                                dividerColor = { raw: cssStyles['color'] };
+                            }
+                            if (dividerColor) {
+                                bricksElement.settings.color = dividerColor;
+                            }
+                            
+                            // Alignment: from text-align or margin-left/right
+                            // Maps to justifyContent: flex-start (left), center, flex-end (right)
+                            let justifyContent = 'flex-start';
+                            if (cssStyles['text-align']) {
+                                const align = cssStyles['text-align'];
+                                if (align === 'center') justifyContent = 'center';
+                                else if (align === 'right') justifyContent = 'flex-end';
+                            } else if (cssStyles['margin-left'] === 'auto' && cssStyles['margin-right'] === 'auto') {
+                                justifyContent = 'center';
+                            } else if (cssStyles['margin-left'] === 'auto') {
+                                justifyContent = 'flex-end';
+                            }
+                            bricksElement.settings.justifyContent = justifyContent;
+                            
+                            isLeaf = true; // hr is a void element — no children
                             break;
                         }
 
