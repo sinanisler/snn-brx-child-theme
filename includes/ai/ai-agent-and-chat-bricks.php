@@ -1059,6 +1059,17 @@ container (centering wrapper ONLY — ONE per section, direct child of section):
 block (inner layout wrapper — flex, grid, card, column, row):
   Flex column: {"name":"block","settings":{"_direction":"column","_rowGap":"24"}}
   Flex row: {"name":"block","settings":{"_direction":"row","_columnGap":"32","_alignItems":"center","_justifyContent":"space-between"}}
+
+⚠ CRITICAL — FLEX DIRECTION DEFAULT:
+  Bricks Builder defaults to flex-direction: COLUMN when _direction is absent.
+  You MUST ALWAYS explicitly set "_direction": "row" for ANY horizontal layout.
+  NEVER rely on the default — always write it out:
+  - Buttons side-by-side → "_direction": "row" REQUIRED (without it they stack vertically)
+  - Two-column layouts via flex → "_direction": "row" REQUIRED
+  - Horizontal nav/icon rows → "_direction": "row" REQUIRED
+  - Inline tag/badge groups → "_direction": "row" REQUIRED
+  WRONG: {"_display":"flex","_columnGap":"16"}          ← buttons will stack as columns!
+  RIGHT: {"_display":"flex","_direction":"row","_columnGap":"16"}  ← buttons side by side
   CSS Grid 3col: {"name":"block","settings":{"_display":"grid","_gridTemplateColumns":"1fr 1fr 1fr","_gridGap":"32"}}
   CSS Grid 2col: {"name":"block","settings":{"_display":"grid","_gridTemplateColumns":"repeat(2, 1fr)","_gridGap":"32"}}
 
@@ -1222,6 +1233,7 @@ PARSING INLINE CSS → BRICKS (USE RAW FORMAT):
   - color: #ffffff → _typography: {"color": {"raw": "#ffffff"}}
   - color: rgba(255,255,255,0.8) → _typography: {"color": {"raw": "rgba(255, 255, 255, 0.8)"}}
   - display: flex → _display: "flex"
+  - flex-direction: row → _direction: "row"  ← ALWAYS include this; default is column so omitting it breaks layout
   - flex-direction: column → _direction: "column"
   - gap: 32px → _columnGap: "32" or _rowGap: "32" depending on flex-direction
   - border-radius: 12px → _border: {"radius": {"top": "12", "right": "12", "bottom": "12", "left": "12"}}
