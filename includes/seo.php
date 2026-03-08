@@ -1996,11 +1996,13 @@ function snn_seo_column_content($column, $post_id) {
     if ($column === 'snn_seo_meta_combined') {
         $custom_title = get_post_meta($post_id, '_snn_seo_title', true);
         $custom_desc = get_post_meta($post_id, '_snn_seo_description', true);
+        $post_noindex = get_post_meta($post_id, '_snn_seo_noindex', true);
         
         // Add hidden data for quick edit
         echo '<div class="snn-seo-inline-data" style="display:none;">';
         echo '<div class="snn_seo_meta_title">' . esc_html($custom_title) . '</div>';
         echo '<div class="snn_seo_meta_description">' . esc_html($custom_desc) . '</div>';
+        echo '<div class="snn_seo_noindex">' . esc_html($post_noindex) . '</div>';
         echo '</div>';
         
         echo '<div style="font-size: 12px; line-height: 1.5;">';
@@ -2096,6 +2098,12 @@ function snn_seo_quick_edit_custom_box($column_name, $post_type) {
                     <textarea name="snn_seo_meta_description" class="snn-seo-meta-description" rows="2" style="width: 100%; border: 1px solid #8c8f94; box-shadow: 0 0 0 transparent; border-radius: 3px; font-size: 13px; line-height: 1.5; padding: 4px;"></textarea>
                 </span>
             </label>
+            <div class="inline-edit-group" style="margin-top: 5px;">
+                <label class="alignleft">
+                    <input type="checkbox" name="snn_seo_noindex" class="snn-seo-noindex" value="1">
+                    <span class="checkbox-title"><?php _e('No Index', 'snn'); ?></span>
+                </label>
+            </div>
             <?php 
             if (!$snn_seo_quick_edit_nonce_added) {
                 wp_nonce_field('snn_seo_quick_edit', 'snn_seo_quick_edit_nonce');
@@ -2144,9 +2152,11 @@ function snn_seo_quick_edit_script() {
                 
                 var title = post_row.find('.snn-seo-inline-data .snn_seo_meta_title').text();
                 var desc = post_row.find('.snn-seo-inline-data .snn_seo_meta_description').text();
+                var noindex = post_row.find('.snn-seo-inline-data .snn_seo_noindex').text();
                 
                 edit_row.find('.snn-seo-meta-title').val(title);
                 edit_row.find('.snn-seo-meta-description').val(desc);
+                edit_row.find('.snn-seo-noindex').prop('checked', noindex === '1');
             }
         };
     });
