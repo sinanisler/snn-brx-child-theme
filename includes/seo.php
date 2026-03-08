@@ -2014,7 +2014,7 @@ function snn_seo_column_content($column, $post_id) {
             $title_color = $title_length > 60 ? '#dba617' : '#00a32a';
             echo '<div style="margin-bottom: 8px;">';
             echo '<strong style="color: #000;">' . esc_html($custom_title) . '</strong>';
-            echo '<br><span style="color: ' . esc_attr($title_color) . '; font-size: 11px;">' . sprintf(__('Title: %d chars', 'snn'), $title_length) . '</span>';
+            echo '<br><span style="color: ' . esc_attr($title_color) . '; font-size: 11px;">' . sprintf(__('%d chars', 'snn'), $title_length) . '</span>';
             echo '</div>';
         } else {
             // Get template title
@@ -2032,7 +2032,7 @@ function snn_seo_column_content($column, $post_id) {
             $preview = mb_strlen($custom_desc) > 80 ? mb_substr($custom_desc, 0, 80) . '...' : $custom_desc;
             echo '<div>';
             echo '<span style="color: #666;">' . esc_html($preview) . '</span>';
-            echo '<br><span style="color: ' . esc_attr($desc_color) . '; font-size: 11px;">' . sprintf(__('Desc: %d chars', 'snn'), $desc_length) . '</span>';
+            echo '<br><span style="color: ' . esc_attr($desc_color) . '; font-size: 11px;">' . sprintf(__('%d chars', 'snn'), $desc_length) . '</span>';
             echo '</div>';
         } else {
             // Get template description
