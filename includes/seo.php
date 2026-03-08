@@ -2031,6 +2031,14 @@ function snn_seo_column_content($column, $post_id) {
             echo '</div>';
         }
         
+        // Noindex indicator
+        $post_noindex = get_post_meta($post_id, '_snn_seo_noindex', true);
+        if ($post_noindex == '1') {
+            echo '<div style="margin-top: 6px;">';
+            echo '<span style="display: inline-block; background: #d63638; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.5px;">NOINDEX</span>';
+            echo '</div>';
+        }
+
         echo '</div>';
     }
 }
