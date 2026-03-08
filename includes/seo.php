@@ -1651,12 +1651,16 @@ function snn_seo_meta_box_callback($post) {
  * Save meta box data - IMPROVED VERSION
  */
 function snn_seo_save_meta_box($post_id) {
-    // Check nonce
-    if (!isset($_POST['snn_seo_meta_box_nonce'])) {
-        return;
+    // Check nonces (support both normal meta box and quick edit)
+    $is_valid_nonce = false;
+    
+    if (isset($_POST['snn_seo_meta_box_nonce']) && wp_verify_nonce($_POST['snn_seo_meta_box_nonce'], 'snn_seo_meta_box')) {
+        $is_valid_nonce = true;
+    } elseif (isset($_POST['snn_seo_quick_edit_nonce']) && wp_verify_nonce($_POST['snn_seo_quick_edit_nonce'], 'snn_seo_quick_edit')) {
+        $is_valid_nonce = true;
     }
     
-    if (!wp_verify_nonce($_POST['snn_seo_meta_box_nonce'], 'snn_seo_meta_box')) {
+    if (!$is_valid_nonce) {
         return;
     }
     
@@ -1993,6 +1997,12 @@ function snn_seo_column_content($column, $post_id) {
         $custom_title = get_post_meta($post_id, '_snn_seo_title', true);
         $custom_desc = get_post_meta($post_id, '_snn_seo_description', true);
         
+        // Add hidden data for quick edit
+        echo '<div class="snn-seo-inline-data" style="display:none;">';
+        echo '<div class="snn_seo_meta_title">' . esc_html($custom_title) . '</div>';
+        echo '<div class="snn_seo_meta_description">' . esc_html($custom_desc) . '</div>';
+        echo '</div>';
+        
         echo '<div style="font-size: 12px; line-height: 1.5;">';
         
         // Title section
@@ -2062,6 +2072,88 @@ function snn_seo_register_columns() {
     }
 }
 add_action('admin_init', 'snn_seo_register_columns');
+
+/**
+ * Add Quick Edit fields
+ */
+function snn_seo_quick_edit_custom_box($column_name, $post_type) {
+    if ($column_name !== 'snn_seo_meta_combined') return;
+    
+    static $snn_seo_quick_edit_nonce_added = false;
+    
+    ?>
+    <fieldset class="inline-edit-col-left inline-edit-snn-seo" style="clear: both; margin-top: 10px;">
+        <div class="inline-edit-col">
+            <label class="inline-edit-group">
+                <span class="title"><?php _e('SEO Title', 'snn'); ?></span>
+                <span class="input-text-wrap">
+                    <input type="text" name="snn_seo_meta_title" class="snn-seo-meta-title" value="" />
+                </span>
+            </label>
+            <label class="inline-edit-group" style="margin-top: 5px;">
+                <span class="title"><?php _e('SEO Desc', 'snn'); ?></span>
+                <span class="input-text-wrap">
+                    <textarea name="snn_seo_meta_description" class="snn-seo-meta-description" rows="2" style="width: 100%; border: 1px solid #8c8f94; box-shadow: 0 0 0 transparent; border-radius: 3px; font-size: 13px; line-height: 1.5; padding: 4px;"></textarea>
+                </span>
+            </label>
+            <?php 
+            if (!$snn_seo_quick_edit_nonce_added) {
+                wp_nonce_field('snn_seo_quick_edit', 'snn_seo_quick_edit_nonce');
+                $snn_seo_quick_edit_nonce_added = true;
+            }
+            ?>
+        </div>
+    </fieldset>
+    <?php
+}
+add_action('quick_edit_custom_box', 'snn_seo_quick_edit_custom_box', 10, 2);
+
+/**
+ * Populate Quick Edit fields via JS
+ */
+function snn_seo_quick_edit_script() {
+    $current_screen = get_current_screen();
+    if (!$current_screen || $current_screen->base !== 'edit') {
+        return;
+    }
+    
+    // Check if SEO is enabled for this post type
+    $post_types_enabled = get_option('snn_seo_post_types_enabled', []);
+    $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
+    if (!isset($post_types_enabled[$current_screen->post_type]) || !$post_types_enabled[$current_screen->post_type]) {
+        return;
+    }
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        if (typeof inlineEditPost === 'undefined') {
+            return;
+        }
+        
+        var wp_inline_edit = inlineEditPost.edit;
+        inlineEditPost.edit = function(id) {
+            wp_inline_edit.apply(this, arguments);
+            
+            if (typeof(id) == 'object') {
+                id = this.getId(id);
+            }
+            
+            if (id > 0) {
+                var edit_row = $('#edit-' + id);
+                var post_row = $('#post-' + id);
+                
+                var title = post_row.find('.snn-seo-inline-data .snn_seo_meta_title').text();
+                var desc = post_row.find('.snn-seo-inline-data .snn_seo_meta_description').text();
+                
+                edit_row.find('.snn-seo-meta-title').val(title);
+                edit_row.find('.snn-seo-meta-description').val(desc);
+            }
+        };
+    });
+    </script>
+    <?php
+}
+add_action('admin_print_footer_scripts', 'snn_seo_quick_edit_script');
 
 /**
  * XML Sitemap Generation
