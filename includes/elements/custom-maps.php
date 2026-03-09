@@ -403,7 +403,7 @@ class Custom_Element_OpenStreetMap extends \Bricks\Element {
 
             // Helper to create a Leaflet DivIcon using the provided icon HTML and color
             function createIcon(iconHtml, size, color, label) {
-                var styledIconHtml = '<div class="leaflet-icon-custom" aria-label="' + label + '" style="font-size:' + size + 'px; color:' + color + '; line-height:1;">' + iconHtml + '</div>';
+                var styledIconHtml = '<div class="leaflet-icon-custom" aria-label="' + label + '" style="font-size:' + size + 'px; color:' + color + '; fill: ' + color + ' ; line-height:1;">' + iconHtml + '</div>';
                 return L.divIcon({
                     html: styledIconHtml,
                     iconSize: [size + 10, size + 10],
