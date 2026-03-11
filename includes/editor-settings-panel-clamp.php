@@ -338,11 +338,6 @@ function snn_render_clamp_calculator_section() {
             return;
         }
         
-        if (maxSize <= minSize) {
-            document.getElementById("result").textContent = "Max size should be greater than min size.";
-            return;
-        }
-
         // --- Calculation ---
         const slope = (maxSize - minSize) / (maxViewport - minViewport);
         const base = minSize - slope * minViewport;
