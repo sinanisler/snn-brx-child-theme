@@ -241,7 +241,7 @@ function snn_options_page() {
             'snn_cookie_settings_enable_clarity_consent' => 'no',
             'snn_cookie_settings_preferences_title' => __('Cookie Preferences', 'snn'),
             'snn_cookie_settings_banner_description'   => __('This website uses cookies for analytics and functionality.', 'snn'),
-            'snn_cookie_settings_additional_description' => '<p style="text-align: center;"><a href="#">Imprint</a> - <a href="#">Privacy Policy</a></p>',
+            'snn_cookie_settings_additional_description' => '<p style="text-align: center;"><a href="#">' . __('Imprint', 'snn') . '</a> - <a href="#">' . __('Privacy Policy', 'snn') . '</a></p>',
             'snn_cookie_settings_enable_legal_text' => 'no',
             'snn_cookie_settings_accept_button'        => __('Accept', 'snn'),
             'snn_cookie_settings_deny_button'          => __('Deny', 'snn'),
