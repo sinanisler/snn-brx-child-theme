@@ -484,9 +484,7 @@ class Prefix_Element_Gsap_Text_Animations extends \Bricks\Element {
         ?>
         <script type="text/x-template" id="tmpl-bricks-element-gsap-text-animations">
             <component :is="element.settings.dom_element_tag || 'div'">
-                <div v-if="element.settings.text_content" class="snn-gsap-text-animations-wrapper">
-                    {{ element.settings.text_content }}
-                </div>
+                <div v-if="element.settings.text_content" class="snn-gsap-text-animations-wrapper" v-html="element.settings.text_content"></div>
                 <bricks-element-children :element="element"/>
             </component>
         </script>
