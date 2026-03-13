@@ -101,7 +101,7 @@ class SNN_Chat_Overlay {
      * Get token count setting
      */
     public function get_token_count() {
-        return absint( get_option( 'snn_ai_agent_token_count', 4000 ) );
+        return absint( get_option( 'snn_ai_agent_token_count', 16000 ) );
     }
 
     /**
@@ -559,7 +559,7 @@ class SNN_Chat_Overlay {
                                        class="regular-text">
                                 <p class="description">
                                     <?php echo esc_html__('Maximum number of tokens for AI responses. Higher values allow longer responses but cost more.', 'snn'); ?><br>
-                                    <strong><?php echo esc_html__('Default:', 'snn'); ?></strong> 4000 | <strong><?php echo esc_html__('Recommended range:', 'snn'); ?></strong> 1000-8000
+                                    <strong><?php echo esc_html__('Default:', 'snn'); ?></strong> 16000 | <strong><?php echo esc_html__('Recommended range:', 'snn'); ?></strong> 8000-16000
                                 </p>
                             </td>
                         </tr>
