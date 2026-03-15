@@ -140,6 +140,8 @@ function snn_seo_register_settings() {
     register_setting('snn_seo_settings_group', 'snn_seo_opengraph_default_image', ['type' => 'integer', 'default' => 0, 'sanitize_callback' => 'absint']);
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_titles');
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_descriptions');
+    register_setting('snn_seo_settings_group', 'snn_seo_robots_txt_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_robots_txt_content', ['type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field']);
 }
 add_action('admin_init', 'snn_seo_register_settings');
 
@@ -178,6 +180,8 @@ function snn_seo_handle_reset() {
         delete_option('snn_seo_opengraph_default_image');
         delete_option('snn_seo_post_meta_titles');
         delete_option('snn_seo_post_meta_descriptions');
+        delete_option('snn_seo_robots_txt_enabled');
+        delete_option('snn_seo_robots_txt_content');
         
         // Flush rewrite rules
         flush_rewrite_rules();
@@ -221,6 +225,9 @@ function snn_seo_settings_page_callback() {
     $sitemap_taxonomies = get_option('snn_seo_sitemap_taxonomies', []);
     $opengraph_enabled = get_option('snn_seo_opengraph_enabled', true);
     $opengraph_default_image = get_option('snn_seo_opengraph_default_image', 0);
+    $robots_txt_enabled = get_option('snn_seo_robots_txt_enabled', false);
+    $robots_txt_default = "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: " . home_url('/sitemap.xml');
+    $robots_txt_content = get_option('snn_seo_robots_txt_content', '');
 
     // Ensure arrays are actually arrays (fix for string/serialization issues)
     $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
@@ -650,6 +657,30 @@ function snn_seo_settings_page_callback() {
             </div>
 
             <?php endif; // End if SEO enabled ?>
+
+            <!-- Robots.txt Settings -->
+            <div class="snn-seo-section">
+                <h2><?php _e('Robots.txt', 'snn'); ?></h2>
+                <label>
+                    <input type="checkbox" name="snn_seo_robots_txt_enabled" value="1" <?php checked($robots_txt_enabled, 1); ?>>
+                    <strong><?php _e('Enable Custom Robots.txt', 'snn'); ?></strong>
+                </label>
+                <p class="description">
+                    <?php _e('Override the default WordPress robots.txt with custom content. Leave the textarea empty to use the recommended default shown as placeholder.', 'snn'); ?>
+                    &nbsp;<a href="https://www.robotstxt.org/robotstxt.html" target="_blank" rel="noopener noreferrer"><?php _e('Learn about robots.txt', 'snn'); ?></a>
+                </p>
+
+                <?php if ($robots_txt_enabled): ?>
+                <div style="margin-top: 15px;">
+                    <textarea name="snn_seo_robots_txt_content"
+                              style="width: 100%; height: 140px; font-family: monospace; font-size: 13px;"
+                              placeholder="<?php echo esc_attr($robots_txt_default); ?>"><?php echo esc_textarea($robots_txt_content); ?></textarea>
+                    <p class="description">
+                        <?php _e('Current robots.txt URL:', 'snn'); ?> <code><?php echo esc_html(home_url('/robots.txt')); ?></code>
+                    </p>
+                </div>
+                <?php endif; ?>
+            </div>
 
             <?php submit_button(__('Save SEO Settings', 'snn')); ?>
         </form>
@@ -2351,3 +2382,27 @@ function snn_seo_set_flush_transient() {
 }
 add_action('update_option_snn_seo_sitemap_enabled', 'snn_seo_set_flush_transient');
 add_action('update_option_snn_seo_enabled', 'snn_seo_set_flush_transient');
+
+/**
+ * Custom Robots.txt output
+ */
+function snn_seo_custom_robots_txt($output, $public) {
+    if (!get_option('snn_seo_robots_txt_enabled')) {
+        return $output;
+    }
+
+    $content = get_option('snn_seo_robots_txt_content', '');
+
+    if (!empty(trim($content))) {
+        return $content;
+    }
+
+    // Use recommended default if textarea is empty
+    $default  = "User-agent: *\n";
+    $default .= "Disallow: /wp-admin/\n";
+    $default .= "Allow: /wp-admin/admin-ajax.php\n\n";
+    $default .= "Sitemap: " . home_url('/sitemap.xml');
+
+    return $default;
+}
+add_filter('robots_txt', 'snn_seo_custom_robots_txt', 10, 2);
