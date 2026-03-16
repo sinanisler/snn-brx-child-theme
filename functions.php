@@ -168,6 +168,7 @@ add_action('init', function () {
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/profile-settings.php');
 
 \Bricks\Elements::register_element(SNN_PATH . 'includes/elements/lottie-animation.php');
+\Bricks\Elements::register_element(SNN_PATH . 'includes/elements/animated-section.php');
 
 
 // if GSAP setting is enabled Register Elements
