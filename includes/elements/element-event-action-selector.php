@@ -185,7 +185,7 @@ class Snn_Event_Action_Selector extends Element {
                     'label'       => esc_html__( 'Custom JS Function Body', 'snn' ),
                     'type'        => 'textarea',
                     'required'    => [['action', '=', ['Custom JS Function']]],
-                    'placeholder' => 'function(targets, event) { ... }',
+                    'placeholder' => 'window.scrollTo({ top: -1000, behavior: "smooth" });',
                 ],
                 'text_value' => [
                     'label'       => esc_html__( 'Text Value', 'snn' ),
