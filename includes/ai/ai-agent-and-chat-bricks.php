@@ -1057,35 +1057,7 @@ CRITICAL REMINDERS:
 ✓ Semantic HTML structure with descriptive class names for structure only`;
             }
 
-            /*
-             * ================================================================
-             * LEGACY CODE — Phase 2 AI Prompt (NO LONGER USED)
-             * ================================================================
-             * 
-             * This massive prompt system has been REPLACED by the JavaScript
-             * compiler (compileHtmlToBricksJson) which provides:
-             * - INSTANT compilation (milliseconds vs 10+ seconds)
-             * - ZERO API costs (no tokens consumed)
-             * - 100% RELIABLE output (no AI hallucinations)
-             * - PERFECT layout preservation (flex-direction, container boundaries)
-             * 
-             * Kept here for reference only. To re-enable AI compilation:
-             * 1. Uncomment this function
-             * 2. Restore the old compileSingleSection implementation
-             * 3. Replace callAI() calls in the compilation flow
-             * 
-             * DATE DEPRECATED: 2026-03-07
-             * ================================================================
-             */
             
-            /*
-            function buildPhase2SystemPrompt(sectionIndex, googleFonts) {
-                const fontContext = googleFonts ? `\nGOOGLE FONTS DETECTED:\n${googleFonts}\nUSE these font families in _typography settings (without quotes, just the font name).\n` : '';
-                return `You are an expert Bricks Builder JSON compiler...`;
-                // [Full prompt content omitted for brevity - see git history to restore]
-            }
-            */
-
             // ================================================================
             // Helpers
             // ================================================================
@@ -2505,10 +2477,6 @@ function snn_pixabay_image_proxy_handler() {
     $q       = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : 'nature';
     $api_key = get_option( 'snn_pixabay_api_key', '' );
 
-    // Build Unsplash fallback URL using the search keywords
-    $unsplash_keywords = urlencode( str_replace( '+', ',', $q ) );
-    $unsplash_fallback = 'https://source.unsplash.com/random/1280x720/?' . $unsplash_keywords;
-
     $api_url = add_query_arg(
         array(
             'key'        => $api_key,
@@ -2538,7 +2506,7 @@ function snn_pixabay_image_proxy_handler() {
             if ( $rate_reset > 0 ) {
                 set_transient( 'snn_pixabay_rate_reset', time() + $rate_reset, $rate_reset );
             }
-            wp_redirect( $unsplash_fallback );
+            status_header( 429 );
             exit;
         }
 
@@ -2553,7 +2521,7 @@ function snn_pixabay_image_proxy_handler() {
         }
     }
 
-    // Fallback: Unsplash random image with keywords on any other failure
-    wp_redirect( $unsplash_fallback );
+    // No results from Pixabay
+    status_header( 404 );
     exit;
 }
