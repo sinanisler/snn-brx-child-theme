@@ -2797,6 +2797,17 @@ function snn_save_image_to_library_handler() {
         wp_send_json_error( array( 'message' => 'Only HTTP/HTTPS URLs are allowed.' ) );
     }
 
+    // If this is a proxy/redirect URL (e.g. Pixabay proxy), resolve it to the final image URL.
+    // media_sideload_image() rejects URLs without a recognisable image extension, so we must
+    // follow the redirect first and pass the actual CDN URL (which ends in _1280.jpg, etc.).
+    $head_response = wp_remote_head( $url, array( 'timeout' => 10, 'redirection' => 0 ) );
+    if ( ! is_wp_error( $head_response ) ) {
+        $location = wp_remote_retrieve_header( $head_response, 'location' );
+        if ( ! empty( $location ) ) {
+            $url = $location;
+        }
+    }
+
     require_once ABSPATH . 'wp-admin/includes/media.php';
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
