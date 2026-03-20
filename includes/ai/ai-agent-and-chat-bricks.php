@@ -978,6 +978,18 @@ OUTPUT FORMAT:
 1. Write 1–2 sentences describing the design approach and color palette
 2. Output the complete HTML in a \`\`\`html code block
 
+🚨 CRITICAL STYLING REQUIREMENT — READ THIS FIRST:
+For animations, keyframes, webkit prefixes, pseudo-elements, or ANY advanced CSS:
+  ✅ CORRECT: <style data-style-id="snn-mario"> @keyframes jump {...} #snn-mario { animation: jump 2s; } </style>
+               <div id="snn-mario" data-bricks="block">
+  ❌ WRONG:   <style data-style-id="snn-game"> .mario { animation: jump 2s; } </style>  <!-- NO matching id! -->
+               <div class="mario">  <!-- NO id attribute! -->
+
+RULE: EVERY element with advanced CSS MUST have:
+  1. A unique id="snn-XXXX" attribute on the element
+  2. A matching <style data-style-id="snn-XXXX"> block using #snn-XXXX selector
+  3. If multiple elements need animation, create SEPARATE style blocks for EACH element
+
 STYLING RULES (CRITICAL — NO SHORTCUTS):
 - Use INLINE style="..." attributes for ALL standard CSS properties (padding, margin, display, flex/grid, colors, fonts, borders, shadows)
 - Example: <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px; margin: 0 0 20px 0;">
@@ -1039,43 +1051,53 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
 CUSTOM CSS — STYLE TAGS (MANDATORY for advanced CSS):
 ⚠️ CRITICAL: For ANY CSS that inline style="" cannot express, you MUST use <style data-style-id="snn-XXXX"> blocks.
 This includes: -webkit- prefixes, text-stroke, clip-path, filters, backdrop-filter, animations, keyframes,
-pseudo-elements (:before/:after/:hover/:focus), complex transforms, gradients with clip, mask properties,
-and any selector-based styling (child classes, nth-child, etc.).
+pseudo-elements (:before/:after/:hover/:focus), complex transforms, gradients with clip, mask properties.
 
-NEVER put these in a global <style> tag at the top. Each styled element MUST have its own <style data-style-id> block.
+🚫 FORBIDDEN PATTERNS (will break compilation):
+  ❌ WRONG: <style data-style-id="snn-styles"> .my-class { ... } </style>  <!-- orphaned style block, no matching id -->
+  ❌ WRONG: <style> .game-world { animation: ... } </style>  <!-- global style tag for element-specific CSS -->
+  ❌ WRONG: <div class="game-world"> <!-- element with custom CSS but NO id -->
 
-Pattern (MANDATORY for non-standard CSS):
-  1. Give the element a unique id: id="snn-XXXX" (use descriptive names: snn-hero-title, snn-card-1, snn-glow-btn)
-  2. Write a <style data-style-id="snn-XXXX"> block IMMEDIATELY BEFORE the element
-  3. Use #snn-XXXX as the selector (converted to %root% in Bricks)
-  4. Keep standard inline style="" for basic properties (drives the HTML preview)
+✅ MANDATORY PATTERN — EVERY element needing custom CSS MUST have a matching id:
+  1. Give the element a unique id: id="snn-XXXX" (descriptive: snn-hero-title, snn-card-1, snn-game-world)
+  2. Write <style data-style-id="snn-XXXX"> IMMEDIATELY BEFORE the element
+  3. Use #snn-XXXX selector (converted to %root% in Bricks)
+  4. Keep inline style="" for standard properties
 
-  Example 1 — text stroke effect (REQUIRED — cannot use inline style):
-    <style data-style-id="snn-luxury-title">
-      #snn-luxury-title { -webkit-text-stroke: 2px #d4af37; color: transparent; }
-    </style>
-    <h1 id="snn-luxury-title" data-bricks="heading" style="font-size: 72px; font-weight: 900;">Luxury</h1>
-
-  Example 2 — animations (REQUIRED — inline cannot handle @keyframes):
+  Example 1 — Single element with animation:
     <style data-style-id="snn-hero-section">
       @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
       #snn-hero-section { animation: fadeIn 1s ease-out; }
     </style>
     <section id="snn-hero-section" data-bricks="section" style="background: #000; padding: 100px 0;">
 
-  Example 3 — pseudo-elements (REQUIRED — inline cannot use ::before/::after):
-    <style data-style-id="snn-badge">
-      #snn-badge::before { content: "★"; margin-right: 6px; color: #f59e0b; }
+  Example 2 — Multiple animated elements (EACH gets its own style block):
+    <style data-style-id="snn-game-world">
+      @keyframes worldScroll { from { background-position: 0 0; } to { background-position: -1000px 0; } }
+      #snn-game-world { animation: worldScroll 10s linear infinite; }
     </style>
-    <span id="snn-badge" data-bricks="text-basic" style="font-size: 18px; font-weight: 700;">Premium</span>
+    <div id="snn-game-world" data-bricks="block" style="position: absolute; width: 200%; height: 100%;">
 
-  Example 4 — backdrop filters (REQUIRED — inline cannot use -webkit- prefixes reliably):
-    <style data-style-id="snn-glass-card">
-      #snn-glass-card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-    </style>
-    <div id="snn-glass-card" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px;">
+      <style data-style-id="snn-ground">
+        #snn-ground { background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 40px, #b8941f 40px, #b8941f 80px); }
+      </style>
+      <div id="snn-ground" data-bricks="block" style="position: absolute; bottom: 0; width: 100%; height: 60px;">
 
-  Example 5 — targeting multiple children (child classes + hover states):
+      <style data-style-id="snn-mario-char">
+        @keyframes marioJump { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-120px); } }
+        #snn-mario-char { animation: marioJump 3s infinite ease-in-out; }
+        #snn-mario-char::before { content: ""; position: absolute; top: 10px; right: 8px; width: 8px; height: 8px; background: white; }
+      </style>
+      <div id="snn-mario-char" data-bricks="block" style="position: absolute; bottom: 60px; left: 100px; width: 40px; height: 60px; background: #E63946;">
+
+      <style data-style-id="snn-coin">
+        @keyframes coinSpin { 0% { transform: scaleX(1); } 50% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
+        #snn-coin { animation: coinSpin 1s infinite; }
+      </style>
+      <div id="snn-coin" data-bricks="block" style="position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%;">
+    </div>
+
+  Example 3 — Parent targeting child classes (child classes, parent has id + style):
     <style data-style-id="snn-product-grid">
       #snn-product-grid .product-featured { border: 2px solid #d4af37; transform: scale(1.05); }
       #snn-product-grid .product-card:hover { background: #1a1a1a; color: #fff; transform: translateY(-4px); }
@@ -1085,18 +1107,29 @@ Pattern (MANDATORY for non-standard CSS):
       <div data-bricks="block" class="product-card" style="padding: 24px; border-radius: 12px; background: #f5f5f5;">...</div>
     </div>
 
-  Example 6 — complex effects (clip-path, mix-blend-mode, filter):
-    <style data-style-id="snn-hero-img">
-      #snn-hero-img { clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); filter: brightness(0.9) contrast(1.1); }
+  Example 4 — Text stroke / webkit effects:
+    <style data-style-id="snn-luxury-title">
+      #snn-luxury-title { -webkit-text-stroke: 2px #d4af37; color: transparent; }
     </style>
-    <img id="snn-hero-img" data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover;" />
+    <h1 id="snn-luxury-title" data-bricks="heading" style="font-size: 72px; font-weight: 900;">Luxury</h1>
+
+  Example 5 — Backdrop filters:
+    <style data-style-id="snn-glass-card">
+      #snn-glass-card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    </style>
+    <div id="snn-glass-card" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px;">
+
+🔑 KEY RULES:
+  1. EVERY <style data-style-id="X"> MUST have a matching element with id="X"
+  2. NEVER use class selectors at root level (\`.myclass\`) — always use #id or #id .child
+  3. For multiple elements with similar effects, create SEPARATE style blocks for EACH element
+  4. Parent-child pattern: parent gets id + style block with #parent-id .child-class selectors
 
 WHEN TO USE <style data-style-id> vs inline style="":
 ✓ Use inline style="" for: padding, margin, display, flex/grid props, font-size, font-weight, color, background-color,
   border, border-radius, box-shadow, width, height, position, top/left/right/bottom, z-index, opacity, object-fit
 ✓ Use <style data-style-id> for: -webkit-* props, text-stroke, animations, @keyframes, pseudo-elements (::before/::after),
-  pseudo-classes (:hover/:focus/:active), backdrop-filter, clip-path, mask, filter, transform with multiple values,
-  child selectors (.class), nth-child, complex gradients with clip
+  pseudo-classes (:hover/:focus/:active), backdrop-filter, clip-path, mask, filter, complex transforms
 
 The compiler converts #snn-XXXX → %root% in Bricks _cssCustom. Child classes are preserved as _cssClasses.
 IMPORTANT: Always keep inline style="" as well for basic properties — it drives the HTML preview.
@@ -1240,6 +1273,7 @@ EXAMPLE 2-COLUMN GRID HERO (section > container > block[grid] > block[column]):
 </section>
 
 EXAMPLE 3-ADVANCED EFFECTS (with <style data-style-id> for special effects):
+⚠️ NOTE: EACH element with custom CSS has its OWN <style data-style-id> block with matching id
 <style>@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap');</style>
 
 <style data-style-id="snn-hero-title">
@@ -1264,6 +1298,44 @@ EXAMPLE 3-ADVANCED EFFECTS (with <style data-style-id> for special effects):
       <div id="snn-glass-panel" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2);">
         <p data-bricks="text-basic" style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: #ffffff; margin: 0;">Glass morphism panel with blur effect</p>
       </div>
+    </div>
+  </div>
+</section>
+
+EXAMPLE 4-GAME/ANIMATION SCENE (multiple animated elements — EACH gets its own style block):
+<style>@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');</style>
+
+<style data-style-id="snn-game-world">
+  @keyframes worldScroll { from { background-position: 0 0; } to { background-position: -1000px 0; } }
+  #snn-game-world { position: absolute; width: 200%; height: 100%; animation: worldScroll 10s linear infinite; }
+</style>
+
+<style data-style-id="snn-ground">
+  #snn-ground { position: absolute; bottom: 0; width: 100%; height: 60px; background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 40px, #b8941f 40px, #b8941f 80px); border-top: 4px solid #fff; }
+</style>
+
+<style data-style-id="snn-mario-char">
+  @keyframes marioJump { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-120px); } }
+  #snn-mario-char { position: absolute; bottom: 60px; left: 100px; width: 40px; height: 60px; background: #E63946; border: 3px solid #fff; animation: marioJump 3s infinite ease-in-out; z-index: 100; }
+  #snn-mario-char::before { content: ""; position: absolute; top: 10px; right: 8px; width: 8px; height: 8px; background: white; }
+</style>
+
+<style data-style-id="snn-coin">
+  @keyframes coinSpin { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0); } }
+  #snn-coin { position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%; border: 2px solid #fff; animation: coinSpin 1s infinite; }
+</style>
+
+<section data-bricks="section" style="background: #0a0a0a; padding: 80px 0;">
+  <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
+    <div data-bricks="block" style="position: relative; height: 500px; background: #1a1a1a; border: 4px solid #333; border-radius: 24px; overflow: hidden;">
+      
+      <div id="snn-game-world" data-bricks="block">
+        <div id="snn-ground" data-bricks="block"></div>
+        <div id="snn-coin" data-bricks="block"></div>
+        <div id="snn-mario-char" data-bricks="block"></div>
+      </div>
+      
+      <p data-bricks="text-basic" style="position: absolute; top: 20px; left: 20px; font-family: 'Press Start 2P', cursive; color: #FFD700; font-size: 12px; z-index: 110; margin: 0;">SCORE: 004200</p>
     </div>
   </div>
 </section>
