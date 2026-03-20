@@ -1402,18 +1402,20 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 
                 // Layout & Flexbox
                 'display':          { type: 'direct', target: '_display' },
-                'flex-direction':   { type: 'direct', target: '_direction', map: {'row': 'row', 'column': 'column', 'row-reverse': 'row-reverse', 'column-reverse': 'column-reverse'} },
-                'justify-content':  { type: 'direct', target: '_justifyContent' },
-                'align-items':      { type: 'direct', target: '_alignItems' },
-                'align-content':    { type: 'direct', target: '_alignContent' },
+                'flex-direction':   { type: 'direct', target: '_direction', target2: '_flexDirection', map: {'row': 'row', 'column': 'column', 'row-reverse': 'row-reverse', 'column-reverse': 'column-reverse'} },
+                'justify-content':  { type: 'direct', target: '_justifyContent', target2: '_justifyContentGrid' },
+                'justify-items':    { type: 'direct', target: '_justifyItemsGrid' },
+                'align-items':      { type: 'direct', target: '_alignItems', target2: '_alignItemsGrid' },
+                'align-content':    { type: 'direct', target: '_alignContent', target2: '_alignContentGrid' },
                 'align-self':       { type: 'direct', target: '_alignSelf' },
-                'justify-self':     { type: 'direct', target: '_justifySelf' },
+                'justify-self':     { type: 'direct', target: '_gridItemJustifySelf' },
                 'flex-wrap':        { type: 'direct', target: '_flexWrap' },
                 'flex-grow':        { type: 'direct', target: '_flexGrow' },
                 'flex-shrink':      { type: 'direct', target: '_flexShrink' },
                 'flex-basis':       { type: 'direct', target: '_flexBasis' },
-                'order':            { type: 'direct', target: '_order' },
-                'gap':              { type: 'gapHandler' }, // Special: distributes to _columnGap/_rowGap
+                'flex':             { type: 'flexHandler' },
+                'order':            { type: 'numeric', target: '_order' },
+                'gap':              { type: 'gapHandler' }, // Special: distributes to _columnGap/_rowGap/_gap/_gridGap
                 'column-gap':       { type: 'numeric', target: '_columnGap' },
                 'row-gap':          { type: 'numeric', target: '_rowGap' },
 
@@ -1422,8 +1424,8 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 'grid-template-rows':    { type: 'direct', target: '_gridTemplateRows' },
                 'grid-template-areas':   { type: 'direct', target: '_gridTemplateAreas' },
                 'grid-gap':              { type: 'numeric', target: '_gridGap' },
-                'grid-column':           { type: 'direct', target: '_gridColumn' },
-                'grid-row':              { type: 'direct', target: '_gridRow' },
+                'grid-column':           { type: 'direct', target: '_gridItemColumnSpan' },
+                'grid-row':              { type: 'direct', target: '_gridItemRowSpan' },
                 'grid-area':             { type: 'direct', target: '_gridArea' },
                 'grid-auto-flow':        { type: 'direct', target: '_direction' }, // maps to same _direction as flex-direction
                 'grid-auto-columns':     { type: 'direct', target: '_gridAutoColumns' },
@@ -1496,14 +1498,18 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 'object-fit':       { type: 'direct', target: '_objectFit' },
                 'object-position':  { type: 'direct', target: '_objectPosition' },
                 'aspect-ratio':     { type: 'direct', target: '_aspectRatio' },
-                'cursor':           { type: 'ignore' }, // Not needed in Bricks
+                'cursor':           { type: 'direct', target: '_cursor' },
                 'transition':       { type: 'direct', target: '_cssTransition' },
-                'transform':        { type: 'cssGlobal' }, // Use _cssCustom for transforms
+                'transform':        { type: 'cssGlobal' }, // Use _cssCustom for transforms unless we parse it
                 'visibility':       { type: 'direct', target: '_visibility' },
-                'pointer-events':   { type: 'ignore' },
+                'pointer-events':   { type: 'direct', target: '_pointerEvents' },
+                'isolation':        { type: 'direct', target: '_isolation' },
+                'mix-blend-mode':   { type: 'direct', target: '_mixBlendMode' },
+                'filter':           { type: 'cssGlobal' }, // Complex value, use custom CSS
+                'backdrop-filter':  { type: 'cssGlobal' }, // Complex value, use custom CSS
 
                 // Text extras — goes into _cssCustom (Bricks has no native mapping for these)
-                'text-decoration':  { type: 'cssGlobal' },
+                'text-decoration':  { type: 'typography', target: 'text-decoration' },
                 'white-space':      { type: 'cssGlobal' },
                 'word-break':       { type: 'cssGlobal' },
                 'text-overflow':    { type: 'cssGlobal' },
@@ -1513,7 +1519,6 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
 
                 // Ignored
                 'outline':          { type: 'ignore' },
-                'list-style':       { type: 'ignore' },
                 'box-sizing':       { type: 'ignore' },
                 'vertical-align':   { type: 'ignore' },
             };
@@ -1816,10 +1821,14 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         switch (mapping.type) {
                             case 'direct':
                                 settings[mapping.target] = mapping.map ? mapping.map[value] || value : value;
+                                if (mapping.target2) {
+                                    settings[mapping.target2] = mapping.map ? mapping.map[value] || value : value;
+                                }
                                 break;
                                 
                             case 'numeric':
                                 settings[mapping.target] = extractNumeric(value);
+                                if (mapping.target2) settings[mapping.target2] = settings[mapping.target];
                                 break;
                                 
                             case 'boxModel':
@@ -1832,10 +1841,19 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                 break;
                                 
                             case 'gapHandler':
-                                // Distribute gap to both columnGap and rowGap
+                                // Distribute gap to columnGap, rowGap, gridGap and base gap
                                 const gapVal = extractNumeric(value);
                                 settings._columnGap = gapVal;
                                 settings._rowGap = gapVal;
+                                settings._gap = gapVal;
+                                settings._gridGap = gapVal;
+                                break;
+                                
+                            case 'flexHandler':
+                                const flexParts = value.trim().split(/\s+/);
+                                if (flexParts.length >= 1) settings._flexGrow = extractNumeric(flexParts[0]);
+                                if (flexParts.length >= 2) settings._flexShrink = extractNumeric(flexParts[1]);
+                                if (flexParts.length >= 3) settings._flexBasis = extractNumeric(flexParts.slice(2).join(' '));
                                 break;
                                 
                             case 'typography':
@@ -2097,19 +2115,70 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
                     
+                    // Map HTML ID (if not an auto-generated snn- id)
+                    const htmlId = element.getAttribute('id');
+                    if (htmlId && !htmlId.startsWith('snn-')) {
+                        bricksElement.settings._cssId = htmlId;
+                    }
+
+                    // Map standard HTML classes to Bricks custom classes
+                    const htmlClass = element.getAttribute('class');
+                    if (htmlClass) {
+                        const classes = htmlClass.split(/\s+/).filter(c => c && !c.startsWith('fa-') && !['fas','far','fab','fa'].includes(c)); // filter out font-awesome icons
+                        if (classes.length) {
+                            bricksElement.settings._cssClasses = classes.join(' ');
+                        }
+                    }
+
+                    // Map other HTML/data/aria attributes to Bricks custom attributes
+                    const customAttributes = [];
+                    const ignoredAttrs = new Set(['id', 'class', 'style', 'data-bricks', 'data-hover-background', 'data-hover-transform', 'data-icon', 'data-icon-position', 'data-icon-size', 'data-icon-gap', 'href', 'target', 'rel', 'src', 'alt', 'width', 'height']);
+                    for (const attr of element.attributes) {
+                        const name = attr.name;
+                        if (!ignoredAttrs.has(name) && !name.startsWith('snn-')) {
+                            customAttributes.push({
+                                _id: genId(),
+                                name: name,
+                                value: attr.value
+                            });
+                        }
+                    }
+                    if (customAttributes.length > 0) {
+                        bricksElement.settings._attributes = customAttributes;
+                    }
+
                     // Apply CSS default: flex-direction row for flex containers without explicit direction
                     // This creates intended layout from HTML since Bricks Block natively defaults to column
                     if (bricksElement.settings._display === 'flex' && !bricksElement.settings._direction) {
                         bricksElement.settings._direction = 'row';
                     }
-                    
+
+                    // Preserve semantic HTML tags for layout elements
+                    if (['block', 'div', 'container', 'section'].includes(bricksName)) {
+                        if (['main', 'article', 'header', 'footer', 'aside', 'nav', 'section', 'details', 'figure', 'figcaption', 'address', 'hgroup'].includes(tagName)) {
+                            bricksElement.settings.tag = tagName;
+                        } else if (tagName === 'a') {
+                            bricksElement.settings.tag = 'a';
+                            bricksElement.settings.link = parseLink(element);
+                        } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'].includes(tagName) && bricksName === 'block') {
+                             bricksElement.settings.tag = tagName;
+                        }
+                    }
+
                     // Helper: parse href to Bricks link object
                     function parseLink(el) {
                         const href = el.getAttribute('href') || el.getAttribute('data-href') || '#';
-                        return {
+                        const linkObj = {
                             type: (href.startsWith('#') || href.startsWith('/')) ? 'internal' : 'external',
                             url: href
                         };
+                        if (el.getAttribute('target') === '_blank') {
+                            linkObj.blank = true;
+                        }
+                        if (el.getAttribute('rel') === 'nofollow' || el.getAttribute('rel') === 'noopener') {
+                            linkObj.rel = el.getAttribute('rel');
+                        }
+                        return linkObj;
                     }
 
                     // Handle specific element types
