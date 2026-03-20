@@ -675,8 +675,8 @@ Fitness</button>
                     // Wrap _cssGlobal with proper Bricks selector if not already wrapped
                     if (el.settings._cssGlobal && typeof el.settings._cssGlobal === 'string') {
                         const cssGlobal = el.settings._cssGlobal.trim();
-                        // Check if already wrapped with #brxe-
-                        if (!cssGlobal.startsWith('#brxe-')) {
+                        // Check if already wrapped with %root%
+                        if (!cssGlobal.startsWith('%root%')) {
                             // Clean up and wrap
                             const cleanedCss = cssGlobal
                                 .replace(/cursor:\s*pointer;?/g, '')
@@ -684,19 +684,19 @@ Fitness</button>
                                 .replace(/@media[^{]+\{[^}]+\}/g, '')
                                 .trim();
                             if (cleanedCss) {
-                                el.settings._cssGlobal = `#brxe-${el.id} {\n  ${cleanedCss}\n}`;
+                                el.settings._cssGlobal = `%root% {\n  ${cleanedCss}\n}`;
                             } else {
                                 delete el.settings._cssGlobal;
                             }
                         }
                     }
-                    
+
                     // Wrap _cssCustom with proper Bricks selector if not already wrapped
                     if (el.settings._cssCustom && typeof el.settings._cssCustom === 'string') {
                         const cssCustom = el.settings._cssCustom.trim();
-                        // Check if already wrapped with #brxe-
-                        if (!cssCustom.startsWith('#brxe-')) {
-                            el.settings._cssCustom = `#brxe-${el.id} {\n  ${cssCustom}\n}`;
+                        // Check if already wrapped with %root%
+                        if (!cssCustom.startsWith('%root%')) {
+                            el.settings._cssCustom = `%root% {\n  ${cssCustom}\n}`;
                         }
                     }
 
@@ -1037,7 +1037,7 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
 CUSTOM CSS FOR UNSUPPORTED PROPERTIES:
 If you need to use CSS properties that Bricks doesn't natively support (backdrop-filter, filter, clip-path, etc.), use the custom-css attribute:
   Example: <div data-bricks="block" custom-css="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);" style="background: rgba(255,255,255,0.1); ...">
-  The custom-css content will be automatically wrapped with the element's ID selector.
+  The custom-css content will be automatically wrapped with %root% selector.
   Note: You still need inline style="" for preview rendering. custom-css is applied in Bricks only.
 
 FONTAWESOME ICONS — supported libraries:
@@ -1866,7 +1866,7 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     const customCss = element.getAttribute('custom-css');
                     if (customCss && customCss.trim()) {
                         const customCssRules = customCss.trim();
-                        bricksElement.settings._cssCustom = `#brxe-${id} {\n  ${customCssRules}\n}`;
+                        bricksElement.settings._cssCustom = `%root% {\n  ${customCssRules}\n}`;
                     }
 
                     // Apply Bricks default: flex-direction column for flex containers without explicit direction
