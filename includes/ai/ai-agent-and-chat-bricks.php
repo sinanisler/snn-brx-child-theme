@@ -1205,6 +1205,10 @@ Flex column layout (use block) — ALWAYS specify flex-direction:
 Flex row layout (use block) — ALWAYS specify flex-direction:
   <div data-bricks="block" style="display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between;">
 
+Shrink-wrapped containers (badges, pills, tags):
+  <div data-bricks="block" style="display: inline-flex; align-items: center; gap: 8px; width: max-content; padding: 4px 12px; border-radius: 50px;">
+  (CRITICAL: Always explicitely set width: max-content or width: auto for small inline blocks so they don't stretch to 100%)
+
 Flex item with align-self (any element can have align-self):
   <div data-bricks="block" style="align-self: flex-start; flex-grow: 1;">
 
@@ -1435,10 +1439,10 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 'grid-row-end':          { type: 'direct', target: '_gridRowEnd' },
                 
                 // Sizing
-                'width':            { type: 'direct', target: '_width' },
+                'width':            { type: 'direct', target: '_width', target2: '_widthMin' },
                 'max-width':        { type: 'direct', target: '_widthMax' },
                 'min-width':        { type: 'direct', target: '_widthMin' },
-                'height':           { type: 'direct', target: '_height' },
+                'height':           { type: 'direct', target: '_height', target2: '_heightMin' },
                 'min-height':       { type: 'direct', target: '_heightMin' },
                 'max-height':       { type: 'direct', target: '_heightMax' },
                 
