@@ -673,6 +673,7 @@ Fitness</button>
                     }
 
                     // Wrap _cssGlobal with proper Bricks selector if not already wrapped
+                    // Redirect _cssGlobal to _cssCustom as Bricks doesn't use _cssGlobal
                     if (el.settings._cssGlobal && typeof el.settings._cssGlobal === 'string') {
                         const cssGlobal = el.settings._cssGlobal.trim();
                         // Check if already wrapped with %root%
@@ -684,11 +685,12 @@ Fitness</button>
                                 .replace(/@media[^{]+\{[^}]+\}/g, '')
                                 .trim();
                             if (cleanedCss) {
-                                el.settings._cssGlobal = `%root% {\n  ${cleanedCss}\n}`;
-                            } else {
-                                delete el.settings._cssGlobal;
+                                el.settings._cssCustom = (el.settings._cssCustom || '') + `\n%root% {\n  ${cleanedCss}\n}`;
                             }
+                        } else {
+                            el.settings._cssCustom = (el.settings._cssCustom || '') + `\n${cssGlobal}`;
                         }
+                        delete el.settings._cssGlobal;
                     }
 
                     // Wrap _cssCustom with proper Bricks selector if not already wrapped
@@ -1496,11 +1498,11 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 'aspect-ratio':     { type: 'direct', target: '_aspectRatio' },
                 'cursor':           { type: 'ignore' }, // Not needed in Bricks
                 'transition':       { type: 'direct', target: '_cssTransition' },
-                'transform':        { type: 'cssGlobal' }, // Use _cssGlobal for transforms
+                'transform':        { type: 'cssGlobal' }, // Use _cssCustom for transforms
                 'visibility':       { type: 'direct', target: '_visibility' },
                 'pointer-events':   { type: 'ignore' },
 
-                // Text extras — goes into _cssGlobal (Bricks has no native mapping for these)
+                // Text extras — goes into _cssCustom (Bricks has no native mapping for these)
                 'text-decoration':  { type: 'cssGlobal' },
                 'white-space':      { type: 'cssGlobal' },
                 'word-break':       { type: 'cssGlobal' },
@@ -1609,18 +1611,27 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     return id;
                 }
                 
-                // Extract numeric value from CSS (e.g., "48px" → "48")
-                // More robust: strips any non-numeric trailing characters and validates
+                // Extract numeric/unit value from CSS (e.g., "-48px" -> "-48px", "50%" -> "50%", "auto" -> "auto")
+                // Preserves the unit and negative signs so Bricks can use variables or correct units.
                 function extractNumeric(cssValue) {
                     if (!cssValue) return '';
                     const str = String(cssValue).trim();
-                    const match = str.match(/^([\d.]+)/);
-                    if (!match) return '';
+                    if (str === 'auto' || str === 'none') return str;
+                    
+                    // Match a number with optional sign, decimal, and optional unit/variable support
+                    // Examples: "100%", "-20px", "1.5rem", "var(--spacing)", "calc(100% - 20px)"
+                    // If it starts with var, calc, clamp, min, max, just return it
+                    if (str.match(/^(var|calc|clamp|min|max)\(/)) return str;
+                    
+                    const match = str.match(/^([+-]?[\d.]+)(.*)$/);
+                    if (!match) return str;
+                    
                     const num = match[1];
-                    // Validate it's a valid number
-                    return (!isNaN(parseFloat(num)) && isFinite(parseFloat(num))) ? num : '';
+                    const unit = match[2];
+                    
+                    return (!isNaN(parseFloat(num)) && isFinite(parseFloat(num))) ? num + unit : '';
                 }
-                
+
                 // Clean font family (remove quotes)
                 function cleanFontFamily(fontFamily) {
                     if (!fontFamily) return '';
@@ -1646,12 +1657,12 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 }
                 
                 // Parse box model (padding/margin) — handles shorthand
-                // More robust: filters out non-numeric values and malformed entries
+                // robust handling of values including 'auto', units, and negatives.
                 function parseBoxModelValue(value) {
                     if (!value) return {};
                     const parts = value.trim().split(/\s+/)
                         .map(p => extractNumeric(p))
-                        .filter(p => p && p !== '' && !isNaN(parseFloat(p))); // Filter out invalid values
+                        .filter(p => p && p !== ''); 
                     
                     if (parts.length === 0) return {};
                     if (parts.length === 1) return {top:parts[0],right:parts[0],bottom:parts[0],left:parts[0]};
@@ -1705,7 +1716,10 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 
                 // Parse border — handles rgba/rgb with spaces correctly
                 function parseBorder(value) {
-                    if (!value || value === 'none') return null;
+                    if (!value) return null;
+                    if (value === 'none') {
+                        return { width: { top: '0', right: '0', bottom: '0', left: '0' }, style: 'none' };
+                    }
                     let width = '1', style = 'solid', color = '#000000';
                     
                     // Extract rgba/rgb color first (before splitting by spaces)
@@ -1719,7 +1733,7 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     const parts = value.split(/\s+/).filter(p => p);
                     
                     parts.forEach(part => {
-                        if (part.match(/^\d/)) {
+                        if (part.match(/^[0-9.]/)) {
                             const w = extractNumeric(part);
                             if (w !== '') width = w; // Only set if valid
                         }
@@ -1833,7 +1847,11 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                         typoValue = extractNumeric(value);
                                     }
                                 } else if (mapping.transform === 'cleanFontFamily') {
-                                    typoValue = cleanFontFamily(value);
+                                    const fontParts = value.replace(/['"]/g, '').split(',');
+                                    typoValue = fontParts[0].trim();
+                                    if (fontParts.length > 1) {
+                                        settings._typography['fallback'] = fontParts.slice(1).join(',').trim();
+                                    }
                                 } else if (mapping.transform === 'raw') {
                                     typoValue = { raw: value };
                                 }
@@ -1844,6 +1862,10 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                 if (value.includes('gradient')) {
                                     const grad = parseGradient(value);
                                     if (grad) settings._gradient = grad;
+                                    else {
+                                        if (!settings._cssCustom) settings._cssCustom = '';
+                                        settings._cssCustom += ` background-color: ${value};`;
+                                    }
                                 } else {
                                     if (!settings._background) settings._background = {};
                                     settings._background.color = { raw: value };
@@ -1855,9 +1877,10 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                 if (value.includes('linear-gradient') || value.includes('radial-gradient')) {
                                     const grad = parseGradient(value);
                                     if (grad) settings._gradient = grad;
-                                } else if (value.match(/^(#|rgba?|hsl)/)) {
-                                    if (!settings._background) settings._background = {};
-                                    settings._background.color = { raw: value };
+                                    else {
+                                        if (!settings._cssCustom) settings._cssCustom = '';
+                                        settings._cssCustom += ` background: ${value};`;
+                                    }
                                 } else if (value.startsWith('url(')) {
                                     // Background image
                                     const urlMatch = value.match(/url\(['"]?([^'"]+)['"]?\)/);
@@ -1865,20 +1888,35 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                         if (!settings._background) settings._background = {};
                                         settings._background.image = { url: urlMatch[1] };
                                     }
+                                } else {
+                                    if (!settings._background) settings._background = {};
+                                    settings._background.color = { raw: value };
                                 }
                                 break;
                                 
                             case 'backgroundImage':
-                                const urlMatch = value.match(/url\(['"]?([^'"]+)['"]?\)/);
-                                if (urlMatch) {
+                                const urlMatchImg = value.match(/url\(['"]?([^'"]+)['"]?\)/);
+                                if (urlMatchImg) {
                                     if (!settings._background) settings._background = {};
-                                    settings._background.image = { url: urlMatch[1] };
+                                    settings._background.image = { url: urlMatchImg[1] };
                                     // Check for size and position in cssStyles
                                     if (cssStyles['background-size']) {
                                         settings._background.image.size = cssStyles['background-size'];
                                     }
                                     if (cssStyles['background-position']) {
                                         settings._background.image.position = cssStyles['background-position'];
+                                    }
+                                } else {
+                                    if (value.includes('gradient')) {
+                                        const grad = parseGradient(value);
+                                        if (grad) settings._gradient = grad;
+                                        else {
+                                            if (!settings._cssCustom) settings._cssCustom = '';
+                                            settings._cssCustom += ` background-image: ${value};`;
+                                        }
+                                    } else {
+                                        if (!settings._cssCustom) settings._cssCustom = '';
+                                        settings._cssCustom += ` background-image: ${value};`;
                                     }
                                 }
                                 break;
@@ -1923,7 +1961,10 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
 
                             case 'borderHandler':
                                 const border = parseBorder(value);
-                                if (border) settings._border = border;
+                                if (border) {
+                                    if (!settings._border) settings._border = {};
+                                    Object.assign(settings._border, border);
+                                }
                                 break;
 
                             case 'borderSide': {
@@ -1931,10 +1972,12 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                 const sideResult = parseBorder(value);
                                 if (sideResult) {
                                     if (!settings._border) settings._border = {};
-                                    if (!settings._border.width) settings._border.width = { top:'0', right:'0', bottom:'0', left:'0' };
-                                    settings._border.width[mapping.side] = sideResult.width.top;
-                                    if (!settings._border.style) settings._border.style = sideResult.style;
-                                    if (!settings._border.color) settings._border.color = sideResult.color;
+                                    if (sideResult.width) {
+                                        if (!settings._border.width) settings._border.width = { top:'0', right:'0', bottom:'0', left:'0' };
+                                        settings._border.width[mapping.side] = sideResult.width.top;
+                                    }
+                                    if (!settings._border.style && sideResult.style) settings._border.style = sideResult.style;
+                                    if (!settings._border.color && sideResult.color) settings._border.color = sideResult.color;
                                 }
                                 break;
                             }
@@ -1972,8 +2015,8 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
 
                             case 'cssGlobal':
                                 // For transforms, text-decoration, and complex CSS without native Bricks mapping
-                                if (!settings._cssGlobal) settings._cssGlobal = '';
-                                settings._cssGlobal += ` ${prop}: ${value};`;
+                                if (!settings._cssCustom) settings._cssCustom = '';
+                                settings._cssCustom += ` ${prop}: ${value};`;
                                 break;
                         }
                     });
@@ -2308,10 +2351,27 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
 
                     // Process children recursively (skip for leaf elements like img, svg)
                     if (!isLeaf) {
-                        Array.from(element.children).forEach(child => {
-                            const childElement = elementToBricks(child, id);
-                            if (childElement) {
-                                bricksElement.children.push(childElement.id);
+                        Array.from(element.childNodes).forEach(child => {
+                            if (child.nodeType === 3) { // Text node
+                                const text = child.textContent.trim();
+                                if (text) {
+                                    const textId = genId();
+                                    const textElement = {
+                                        id: textId,
+                                        name: 'text-basic',
+                                        parent: id,
+                                        children: [],
+                                        settings: { text: text },
+                                        themeStyles: []
+                                    };
+                                    content.push(textElement);
+                                    bricksElement.children.push(textId);
+                                }
+                            } else if (child.nodeType === 1) { // Element node
+                                const childElement = elementToBricks(child, id);
+                                if (childElement) {
+                                    bricksElement.children.push(childElement.id);
+                                }
                             }
                         });
                     }
