@@ -803,8 +803,14 @@ Fitness</button>
                         const { data } = validateAndFixBricksJSON(bricksData);
                         // Collect image URLs for media library saving
                         (data.content || []).forEach(el => {
-                            if (el.settings.image?.url)                  builtImageUrls.push(el.settings.image.url);
-                            if (el.settings._background?.image?.url)     builtImageUrls.push(el.settings._background.image.url);
+                            if (el.settings.image?.url) {
+                                builtImageUrls.push(el.settings.image.url);
+                                console.log('[Bricks AI] 📸 Found img URL in [' + el.id + '] (' + el.name + '):', el.settings.image.url);
+                            }
+                            if (el.settings._background?.image?.url) {
+                                builtImageUrls.push(el.settings._background.image.url);
+                                console.log('[Bricks AI] 📸 Found bg-img URL in [' + el.id + '] (' + el.name + '):', el.settings._background.image.url);
+                            }
                         });
                         const result = (i === 0 && actionType === 'replace')
                             ? BricksHelper.replaceAllContent(data)
@@ -2406,13 +2412,44 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
             async function saveImagesToWPLibrary(imageUrls) {
                 if (!imageUrls || !imageUrls.length) return;
                 const hostname = window.location.hostname;
-                // Only save external URLs (skip already-local WP content URLs)
-                const external = [...new Set(imageUrls.filter(url => url && url.startsWith('http') && !url.includes(hostname)))];
-                if (!external.length) return;
+
+                // Log all collected URLs before filtering so we can see what was found
+                console.log('[Bricks AI] 📸 All image URLs collected from compiled sections (' + imageUrls.length + '):', imageUrls);
+
+                // Include:
+                //   1. Pixabay proxy URLs (same-host admin-ajax URLs that redirect to Pixabay CDN)
+                //   2. Truly external URLs (different hostname)
+                // Skip: already-local WP media URLs on the same host that are NOT proxy URLs
+                const external = [...new Set(imageUrls.filter(url => {
+                    if (!url || !url.startsWith('http')) {
+                        console.log('[Bricks AI] 📸 Skip (not http):', url);
+                        return false;
+                    }
+                    // Pixabay proxy lives on same host but must be saved (it redirects to actual CDN image)
+                    if (url.includes('action=snn_pixabay_image')) {
+                        console.log('[Bricks AI] 📸 Include (Pixabay proxy):', url);
+                        return true;
+                    }
+                    if (!url.includes(hostname)) {
+                        console.log('[Bricks AI] 📸 Include (external):', url);
+                        return true;
+                    }
+                    console.log('[Bricks AI] 📸 Skip (already local):', url);
+                    return false;
+                }))];
+
+                console.log('[Bricks AI] 📸 Images to save:', external.length, external);
+
+                if (!external.length) {
+                    console.log('[Bricks AI] 📸 No images to save (all local or none found).');
+                    return;
+                }
+
                 addMessage('assistant', '📸 Saving ' + external.length + ' image(s) to WordPress media library...');
                 setAgentState('saving', 'Saving ' + external.length + ' image(s)...');
                 let saved = 0, failed = 0;
                 for (const url of external) {
+                    console.log('[Bricks AI] 📸 Saving image →', url);
                     try {
                         const result = await $.ajax({
                             url: snnBricksChatConfig.ajaxUrl, type: 'POST',
@@ -2420,18 +2457,22 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         });
                         if (result.success) {
                             saved++;
+                            console.log('[Bricks AI] 📸 ✓ Saved:', url, '→', result.data.url, '(ID:', result.data.attachment_id + ')');
                             updateImageUrlInBricks(url, result.data.url);
                             debugLog('Image saved to media library:', result.data.url);
                         } else {
                             failed++;
+                            console.warn('[Bricks AI] 📸 ✗ Failed:', url, '—', result.data?.message);
                             debugLog('Image save failed:', url, result.data?.message);
                         }
                     } catch(e) {
                         failed++;
+                        console.error('[Bricks AI] 📸 ✗ Error saving:', url, e);
                         debugLog('Image save error:', url, e);
                     }
                 }
                 setAgentState('idle');
+                console.log('[Bricks AI] 📸 Save complete. Saved:', saved, '/ Failed:', failed, '/ Total:', external.length);
                 addMessage('assistant', saved > 0
                     ? '📸 ' + saved + '/' + external.length + ' image(s) saved to media library.' + (failed > 0 ? ' (' + failed + ' failed — external URLs kept)' : '')
                     : '⚠️ Images could not be saved to media library (' + failed + ' failed). They still appear in Bricks using external URLs.');
