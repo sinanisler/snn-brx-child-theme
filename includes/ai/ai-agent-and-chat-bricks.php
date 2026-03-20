@@ -676,19 +676,20 @@ Fitness</button>
                     // Redirect _cssGlobal to _cssCustom as Bricks doesn't use _cssGlobal
                     if (el.settings._cssGlobal && typeof el.settings._cssGlobal === 'string') {
                         const cssGlobal = el.settings._cssGlobal.trim();
-                        // Check if already wrapped with %root%
-                        if (!cssGlobal.startsWith('%root%')) {
-                            // Clean up and wrap
-                            const cleanedCss = cssGlobal
-                                .replace(/cursor:\s*pointer;?/g, '')
-                                .replace(/transition:[^;]+;?/g, '')
-                                .replace(/@media[^{]+\{[^}]+\}/g, '')
-                                .trim();
-                            if (cleanedCss) {
+                        // Clean up
+                        const cleanedCss = cssGlobal
+                            .replace(/cursor:\s*pointer;?/g, '')
+                            .replace(/transition:[^;]+;?/g, '')
+                            .replace(/@media[^{]+\{[^}]+\}/g, '')
+                            .trim();
+                            
+                        if (cleanedCss) {
+                            // Check if already wrapped with %root%
+                            if (!cleanedCss.includes('%root%')) {
                                 el.settings._cssCustom = (el.settings._cssCustom || '') + `\n%root% {\n  ${cleanedCss}\n}`;
+                            } else {
+                                el.settings._cssCustom = (el.settings._cssCustom || '') + `\n${cleanedCss}`;
                             }
-                        } else {
-                            el.settings._cssCustom = (el.settings._cssCustom || '') + `\n${cssGlobal}`;
                         }
                         delete el.settings._cssGlobal;
                     }
@@ -696,9 +697,12 @@ Fitness</button>
                     // Wrap _cssCustom with proper Bricks selector if not already wrapped
                     if (el.settings._cssCustom && typeof el.settings._cssCustom === 'string') {
                         const cssCustom = el.settings._cssCustom.trim();
-                        // Check if already wrapped with %root%
-                        if (!cssCustom.startsWith('%root%')) {
+                        // Only wrap if it doesn't already contain %root% or @keyframes
+                        if (!cssCustom.includes('%root%') && !cssCustom.includes('@keyframes') && !cssCustom.includes('@media')) {
                             el.settings._cssCustom = `%root% {\n  ${cssCustom}\n}`;
+                        } else if (cssCustom.startsWith('@keyframes') || cssCustom.startsWith('@media')) {
+                            // Leave keyframes/media queries outside, but ensure they are valid syntax
+                             el.settings._cssCustom = cssCustom;
                         }
                     }
 
@@ -2386,17 +2390,27 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         // Source 1: inline unknown CSS props (raw props → %root%{} block)
                         if (bricksElement.settings._cssCustom) {
                             const raw = bricksElement.settings._cssCustom.trim();
-                            if (raw) cssParts.push('%root% {\n  ' + raw + '\n}');
+                            if (raw) {
+                                if (!raw.includes('%root%') && !raw.includes('@keyframes')) {
+                                    cssParts.push('%root% {\n  ' + raw + '\n}');
+                                } else {
+                                    cssParts.push(raw);
+                                }
+                            }
                             delete bricksElement.settings._cssCustom;
                         }
 
                         // Source 2: custom-css attribute (raw props → %root%{} block)
                         const customCssAttr = element.getAttribute('custom-css');
                         if (customCssAttr && customCssAttr.trim()) {
-                            cssParts.push('%root% {\n  ' + customCssAttr.trim() + '\n}');
+                            const rawAttr = customCssAttr.trim();
+                            if (!rawAttr.includes('%root%') && !rawAttr.includes('@keyframes')) {
+                                cssParts.push('%root% {\n  ' + rawAttr + '\n}');
+                            } else {
+                                cssParts.push(rawAttr);
+                            }
                         }
 
-                        // Source 3: <style data-style-id="..."> linked to this element's id
                         const elemHtmlId = element.getAttribute('id');
                         if (elemHtmlId && styleIdMap[elemHtmlId]) {
                             const converted = convertStyleIdCss(styleIdMap[elemHtmlId], elemHtmlId);
