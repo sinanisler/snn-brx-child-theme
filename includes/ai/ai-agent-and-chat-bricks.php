@@ -1604,9 +1604,9 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                  */
                 function convertStyleIdCss(rawCss, htmlId) {
                     const escaped = htmlId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    return rawCss
-                        .replace(new RegExp('#' + escaped + '(?=[\\s,{.:#\\[>~+]|$)', 'g'), '%root%')
-                        .trim();
+                    const replaced = rawCss.replace(new RegExp('#' + escaped + '(?=[\\s,{.:#\\[>~+]|$)', 'g'), '%root%');
+                    // Strip leading spaces from each line, but KEEP \n so SCSS parser doesn't break
+                    return replaced.split('\n').map(line => line.trim()).filter(line => line).join('\n');
                 }
 
                 // Generate 6-letter Bricks ID
@@ -2387,12 +2387,16 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     {
                         const cssParts = [];
 
+                        // Helper to clean up custom CSS indentation without breaking \n structure
+                        // It removes leading whitespace from each line individually
+                        const cleanCss = (cssStr) => cssStr.split('\n').map(line => line.trim()).filter(line => line).join('\n');
+
                         // Source 1: inline unknown CSS props (raw props → %root%{} block)
                         if (bricksElement.settings._cssCustom) {
-                            const raw = bricksElement.settings._cssCustom.trim();
+                            const raw = cleanCss(bricksElement.settings._cssCustom);
                             if (raw) {
                                 if (!raw.includes('%root%') && !raw.includes('@keyframes')) {
-                                    cssParts.push('%root% {\n  ' + raw + '\n}');
+                                    cssParts.push('%root% {\n' + raw + '\n}');
                                 } else {
                                     cssParts.push(raw);
                                 }
@@ -2403,9 +2407,9 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         // Source 2: custom-css attribute (raw props → %root%{} block)
                         const customCssAttr = element.getAttribute('custom-css');
                         if (customCssAttr && customCssAttr.trim()) {
-                            const rawAttr = customCssAttr.trim();
+                            const rawAttr = cleanCss(customCssAttr);
                             if (!rawAttr.includes('%root%') && !rawAttr.includes('@keyframes')) {
-                                cssParts.push('%root% {\n  ' + rawAttr + '\n}');
+                                cssParts.push('%root% {\n' + rawAttr + '\n}');
                             } else {
                                 cssParts.push(rawAttr);
                             }
@@ -2418,7 +2422,7 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         }
 
                         if (cssParts.length) {
-                            bricksElement.settings._cssCustom = cssParts.join('\n');
+                            bricksElement.settings._cssCustom = cssParts.join('\n\n');
                         }
                     }
 
