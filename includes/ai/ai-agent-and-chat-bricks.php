@@ -2470,10 +2470,14 @@ SNN_Bricks_Chat_Overlay::get_instance();
  * to the first matching photo URL so the AI can use it as a real image src.
  * Accessible to logged-in users (Bricks builder requires login).
  */
-add_action( 'wp_ajax_snn_pixabay_image',        'snn_pixabay_image_proxy_handler' );
-add_action( 'wp_ajax_nopriv_snn_pixabay_image', 'snn_pixabay_image_proxy_handler' );
+add_action( 'wp_ajax_snn_pixabay_image', 'snn_pixabay_image_proxy_handler' );
 
 function snn_pixabay_image_proxy_handler() {
+    if ( ! current_user_can( 'edit_posts' ) ) {
+        status_header( 403 );
+        exit;
+    }
+
     $q       = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : 'nature';
     $api_key = get_option( 'snn_pixabay_api_key', '' );
 
