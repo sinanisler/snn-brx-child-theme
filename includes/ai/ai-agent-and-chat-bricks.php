@@ -1034,11 +1034,42 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <ul data-bricks="text-basic"> or <ol data-bricks="text-basic"> — lists (rendered as native HTML inside text-basic)
   * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
 
-CUSTOM CSS FOR UNSUPPORTED PROPERTIES:
-If you need to use CSS properties that Bricks doesn't natively support (backdrop-filter, filter, clip-path, etc.), use the custom-css attribute:
+CUSTOM CSS — STYLE TAGS (RECOMMENDED for advanced CSS):
+For any CSS that inline style="" cannot express — pseudo-elements, :hover, -webkit- prefixes, text-stroke,
+clip-path, filters, complex selectors, multiple children targeted from a parent — use <style data-style-id>:
+
+  1. Give the element a unique id: id="snn-XXXX" (any value, e.g. snn-hero, snn-title, snn-card-1)
+  2. Write a <style data-style-id="snn-XXXX"> block ANYWHERE in the section with #snn-XXXX as the selector:
+
+  Example — text stroke effect (impossible with inline styles):
+    <style data-style-id="snn-title">
+      #snn-title { -webkit-text-stroke: 2px #d4af37; color: transparent; }
+    </style>
+    <h1 id="snn-title" data-bricks="heading" style="font-size: 72px; font-weight: 900;">Luxury</h1>
+
+  Example — pseudo-elements (:before/:after):
+    <style data-style-id="snn-badge">
+      #snn-badge::before { content: "★"; margin-right: 6px; color: #f59e0b; }
+    </style>
+    <span id="snn-badge" data-bricks="text-basic" style="font-size: 18px; font-weight: 700;">Premium</span>
+
+  Example — targeting multiple children from a parent (like Bricks _cssCustom with _cssClasses):
+    <style data-style-id="snn-grid">
+      #snn-grid .card-featured { border: 2px solid #d4af37; transform: scale(1.05); }
+      #snn-grid .card-hover:hover { background: #1a1a1a; color: #fff; }
+    </style>
+    <div id="snn-grid" data-bricks="block" style="display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;">
+      <div data-bricks="block" class="card-featured" style="padding: 24px; border-radius: 12px; background: #fff;">...</div>
+      <div data-bricks="block" class="card-hover" style="padding: 24px; border-radius: 12px; background: #f5f5f5;">...</div>
+    </div>
+
+  The compiler converts #snn-XXXX → %root% in Bricks _cssCustom. Child classes are preserved as _cssClasses.
+  IMPORTANT: Always keep inline style="" as well — it drives the preview. The style tag applies in Bricks only.
+
+CUSTOM CSS — ATTRIBUTE (for simple single-element overrides):
   Example: <div data-bricks="block" custom-css="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);" style="background: rgba(255,255,255,0.1); ...">
-  The custom-css content will be automatically wrapped with %root% selector.
-  Note: You still need inline style="" for preview rendering. custom-css is applied in Bricks only.
+  The custom-css content is automatically wrapped with %root% selector.
+  Note: You still need inline style="" for preview rendering.
 
 FONTAWESOME ICONS — supported libraries:
   Solid icons:   <i class="fas fa-arrow-right" style="font-size: 24px; color: #ff0000;"></i>
@@ -1408,7 +1439,29 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 const content = [];
                 const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
                 const usedIds = new Set();
-                
+
+                // Build style-id map from <style data-style-id="..."> tags.
+                // These link a CSS block to an element by its HTML id attribute.
+                const styleIdMap = {};
+                doc.querySelectorAll('style[data-style-id]').forEach(styleEl => {
+                    const sid = styleEl.getAttribute('data-style-id');
+                    if (sid) styleIdMap[sid] = styleEl.textContent.trim();
+                });
+
+                /**
+                 * Convert raw CSS from a <style data-style-id> block into Bricks-ready CSS.
+                 * Replaces the original HTML id selector (#htmlId) with %root% so the CSS
+                 * maps to the compiled Bricks element. Child selectors are preserved:
+                 *   #snn-foo { color: red }             →  %root% { color: red }
+                 *   #snn-foo .bar { font-size: 12px }   →  %root% .bar { font-size: 12px }
+                 */
+                function convertStyleIdCss(rawCss, htmlId) {
+                    const escaped = htmlId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    return rawCss
+                        .replace(new RegExp('#' + escaped + '(?=[\\s,{.:#\\[>~+]|$)', 'g'), '%root%')
+                        .trim();
+                }
+
                 // Generate 6-letter Bricks ID
                 function genId() {
                     let id;
@@ -1862,13 +1915,6 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
                     
-                    // Parse custom-css attribute — maps to _cssCustom for properties not natively supported
-                    const customCss = element.getAttribute('custom-css');
-                    if (customCss && customCss.trim()) {
-                        const customCssRules = customCss.trim();
-                        bricksElement.settings._cssCustom = `%root% {\n  ${customCssRules}\n}`;
-                    }
-
                     // Apply Bricks default: flex-direction column for flex containers without explicit direction
                     // This matches Bricks Builder's native behavior
                     if (bricksElement.settings._display === 'flex' && !bricksElement.settings._direction) {
@@ -2078,6 +2124,49 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         }
                     }
                     
+                    // === Unified CSS Finalization ===
+                    // Combines three sources of custom CSS into a single _cssCustom string:
+                    //  1. Unknown inline CSS props accumulated by stylesToBricksSettings (raw, wrapped in %root%{})
+                    //  2. custom-css attribute (raw props, wrapped in %root%{})
+                    //  3. <style data-style-id="..."> linked CSS (already uses %root% selectors)
+                    {
+                        const cssParts = [];
+
+                        // Source 1: inline unknown CSS props (raw props → %root%{} block)
+                        if (bricksElement.settings._cssCustom) {
+                            const raw = bricksElement.settings._cssCustom.trim();
+                            if (raw) cssParts.push('%root% {\n  ' + raw + '\n}');
+                            delete bricksElement.settings._cssCustom;
+                        }
+
+                        // Source 2: custom-css attribute (raw props → %root%{} block)
+                        const customCssAttr = element.getAttribute('custom-css');
+                        if (customCssAttr && customCssAttr.trim()) {
+                            cssParts.push('%root% {\n  ' + customCssAttr.trim() + '\n}');
+                        }
+
+                        // Source 3: <style data-style-id="..."> linked to this element's id
+                        const elemHtmlId = element.getAttribute('id');
+                        if (elemHtmlId && styleIdMap[elemHtmlId]) {
+                            const converted = convertStyleIdCss(styleIdMap[elemHtmlId], elemHtmlId);
+                            if (converted) cssParts.push(converted);
+                        }
+
+                        if (cssParts.length) {
+                            bricksElement.settings._cssCustom = cssParts.join('\n');
+                        }
+                    }
+
+                    // Preserve HTML class names as Bricks _cssClasses (enables parent CSS targeting children by class)
+                    const elemClass = element.getAttribute('class');
+                    if (elemClass) {
+                        const classes = elemClass.trim().split(/\s+/)
+                            .filter(c => c && !c.startsWith('brxe-') && !c.startsWith('snn-'));
+                        if (classes.length) {
+                            bricksElement.settings._cssClasses = classes.join(' ');
+                        }
+                    }
+
                     // Add to content array
                     content.push(bricksElement);
 
