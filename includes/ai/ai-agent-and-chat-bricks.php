@@ -979,9 +979,11 @@ OUTPUT FORMAT:
 2. Output the complete HTML in a \`\`\`html code block
 
 STYLING RULES (CRITICAL — NO SHORTCUTS):
-- Use INLINE style="..." attributes on EVERY visual element
+- Use INLINE style="..." attributes for ALL standard CSS properties (padding, margin, display, flex/grid, colors, fonts, borders, shadows)
 - Example: <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px; margin: 0 0 20px 0;">
-- Include Google Fonts: <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
+- Include Google Fonts ONLY: <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
+- ⚠️ NEVER put animations, keyframes, webkit prefixes, or element-specific CSS in the global <style> tag
+- ⚠️ Use <style data-style-id="snn-XXXX"> blocks for advanced CSS (see CUSTOM CSS section below)
 - Specify ALL visual properties: font-family, font-size, font-weight, color, line-height, letter-spacing, text-align, padding, margin, background, background-color, border, border-radius, box-shadow, opacity, display, flex properties, grid properties, width, height, max-width, object-fit, position, top, left, right, bottom, z-index, transform, transition
 - Use standard CSS property names only: padding: 40px 20px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px
 - Colors MUST be hex codes: #111827, #ffffff, #2563eb, rgba(0,0,0,0.1) for transparency
@@ -1034,37 +1036,70 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <ul data-bricks="text-basic"> or <ol data-bricks="text-basic"> — lists (rendered as native HTML inside text-basic)
   * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
 
-CUSTOM CSS — STYLE TAGS (RECOMMENDED for advanced CSS):
-For any CSS that inline style="" cannot express — pseudo-elements, :hover, -webkit- prefixes, text-stroke,
-clip-path, filters, complex selectors, multiple children targeted from a parent — use <style data-style-id>:
+CUSTOM CSS — STYLE TAGS (MANDATORY for advanced CSS):
+⚠️ CRITICAL: For ANY CSS that inline style="" cannot express, you MUST use <style data-style-id="snn-XXXX"> blocks.
+This includes: -webkit- prefixes, text-stroke, clip-path, filters, backdrop-filter, animations, keyframes,
+pseudo-elements (:before/:after/:hover/:focus), complex transforms, gradients with clip, mask properties,
+and any selector-based styling (child classes, nth-child, etc.).
 
-  1. Give the element a unique id: id="snn-XXXX" (any value, e.g. snn-hero, snn-title, snn-card-1)
-  2. Write a <style data-style-id="snn-XXXX"> block ANYWHERE in the section with #snn-XXXX as the selector:
+NEVER put these in a global <style> tag at the top. Each styled element MUST have its own <style data-style-id> block.
 
-  Example — text stroke effect (impossible with inline styles):
-    <style data-style-id="snn-title">
-      #snn-title { -webkit-text-stroke: 2px #d4af37; color: transparent; }
+Pattern (MANDATORY for non-standard CSS):
+  1. Give the element a unique id: id="snn-XXXX" (use descriptive names: snn-hero-title, snn-card-1, snn-glow-btn)
+  2. Write a <style data-style-id="snn-XXXX"> block IMMEDIATELY BEFORE the element
+  3. Use #snn-XXXX as the selector (converted to %root% in Bricks)
+  4. Keep standard inline style="" for basic properties (drives the HTML preview)
+
+  Example 1 — text stroke effect (REQUIRED — cannot use inline style):
+    <style data-style-id="snn-luxury-title">
+      #snn-luxury-title { -webkit-text-stroke: 2px #d4af37; color: transparent; }
     </style>
-    <h1 id="snn-title" data-bricks="heading" style="font-size: 72px; font-weight: 900;">Luxury</h1>
+    <h1 id="snn-luxury-title" data-bricks="heading" style="font-size: 72px; font-weight: 900;">Luxury</h1>
 
-  Example — pseudo-elements (:before/:after):
+  Example 2 — animations (REQUIRED — inline cannot handle @keyframes):
+    <style data-style-id="snn-hero-section">
+      @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+      #snn-hero-section { animation: fadeIn 1s ease-out; }
+    </style>
+    <section id="snn-hero-section" data-bricks="section" style="background: #000; padding: 100px 0;">
+
+  Example 3 — pseudo-elements (REQUIRED — inline cannot use ::before/::after):
     <style data-style-id="snn-badge">
       #snn-badge::before { content: "★"; margin-right: 6px; color: #f59e0b; }
     </style>
     <span id="snn-badge" data-bricks="text-basic" style="font-size: 18px; font-weight: 700;">Premium</span>
 
-  Example — targeting multiple children from a parent (like Bricks _cssCustom with _cssClasses):
-    <style data-style-id="snn-grid">
-      #snn-grid .card-featured { border: 2px solid #d4af37; transform: scale(1.05); }
-      #snn-grid .card-hover:hover { background: #1a1a1a; color: #fff; }
+  Example 4 — backdrop filters (REQUIRED — inline cannot use -webkit- prefixes reliably):
+    <style data-style-id="snn-glass-card">
+      #snn-glass-card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     </style>
-    <div id="snn-grid" data-bricks="block" style="display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;">
-      <div data-bricks="block" class="card-featured" style="padding: 24px; border-radius: 12px; background: #fff;">...</div>
-      <div data-bricks="block" class="card-hover" style="padding: 24px; border-radius: 12px; background: #f5f5f5;">...</div>
+    <div id="snn-glass-card" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px;">
+
+  Example 5 — targeting multiple children (child classes + hover states):
+    <style data-style-id="snn-product-grid">
+      #snn-product-grid .product-featured { border: 2px solid #d4af37; transform: scale(1.05); }
+      #snn-product-grid .product-card:hover { background: #1a1a1a; color: #fff; transform: translateY(-4px); }
+    </style>
+    <div id="snn-product-grid" data-bricks="block" style="display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;">
+      <div data-bricks="block" class="product-featured" style="padding: 24px; border-radius: 12px; background: #fff;">...</div>
+      <div data-bricks="block" class="product-card" style="padding: 24px; border-radius: 12px; background: #f5f5f5;">...</div>
     </div>
 
-  The compiler converts #snn-XXXX → %root% in Bricks _cssCustom. Child classes are preserved as _cssClasses.
-  IMPORTANT: Always keep inline style="" as well — it drives the preview. The style tag applies in Bricks only.
+  Example 6 — complex effects (clip-path, mix-blend-mode, filter):
+    <style data-style-id="snn-hero-img">
+      #snn-hero-img { clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); filter: brightness(0.9) contrast(1.1); }
+    </style>
+    <img id="snn-hero-img" data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover;" />
+
+WHEN TO USE <style data-style-id> vs inline style="":
+✓ Use inline style="" for: padding, margin, display, flex/grid props, font-size, font-weight, color, background-color,
+  border, border-radius, box-shadow, width, height, position, top/left/right/bottom, z-index, opacity, object-fit
+✓ Use <style data-style-id> for: -webkit-* props, text-stroke, animations, @keyframes, pseudo-elements (::before/::after),
+  pseudo-classes (:hover/:focus/:active), backdrop-filter, clip-path, mask, filter, transform with multiple values,
+  child selectors (.class), nth-child, complex gradients with clip
+
+The compiler converts #snn-XXXX → %root% in Bricks _cssCustom. Child classes are preserved as _cssClasses.
+IMPORTANT: Always keep inline style="" as well for basic properties — it drives the HTML preview.
 
 CUSTOM CSS — ATTRIBUTE (for simple single-element overrides):
   Example: <div data-bricks="block" custom-css="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);" style="background: rgba(255,255,255,0.1); ...">
@@ -1200,6 +1235,35 @@ EXAMPLE 2-COLUMN GRID HERO (section > container > block[grid] > block[column]):
         <button data-bricks="button" style="background: #ff6b35; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 16px 32px; border: none; border-radius: 8px; cursor: pointer;">View Our Work</button>
       </div>
       <img data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover; border-radius: 12px;" />
+    </div>
+  </div>
+</section>
+
+EXAMPLE 3-ADVANCED EFFECTS (with <style data-style-id> for special effects):
+<style>@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap');</style>
+
+<style data-style-id="snn-hero-title">
+  @keyframes textGlow { 0%, 100% { text-shadow: 0 0 20px rgba(230, 57, 70, 0.5); } 50% { text-shadow: 0 0 40px rgba(230, 57, 70, 0.8), 0 0 10px #fff; } }
+  #snn-hero-title { animation: textGlow 3s infinite; }
+</style>
+
+<style data-style-id="snn-design-text">
+  #snn-design-text { color: transparent; -webkit-text-stroke: 1px #ffffff; }
+</style>
+
+<style data-style-id="snn-glass-panel">
+  #snn-glass-panel { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+</style>
+
+<section data-bricks="section" style="background: #0a0a0a; padding: 120px 0; position: relative;">
+  <div data-bricks="container" style="max-width: 1300px; margin: 0 auto; padding: 0 24px;">
+    <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
+      <h1 id="snn-hero-title" data-bricks="heading" style="font-family: 'Syncopate', sans-serif; font-size: 82px; font-weight: 700; color: #ffffff; line-height: 0.9; margin: 0; text-transform: uppercase;">
+        Next Gen<br><span id="snn-design-text">Design</span>
+      </h1>
+      <div id="snn-glass-panel" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2);">
+        <p data-bricks="text-basic" style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: #ffffff; margin: 0;">Glass morphism panel with blur effect</p>
+      </div>
     </div>
   </div>
 </section>
