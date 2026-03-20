@@ -69,7 +69,7 @@ class Prefix_Element_Toggle_Text extends Element {
         $unique_class = 'toggle-text-' . uniqid();
         $this->set_attribute( '_root', 'class', [ 'toggle-text-wrapper', $unique_class ] );
 
-        $text_content    = $this->element['settings']['text_content'] ?? esc_html__( 'Your content goes here...', 'snn' );
+        $text_content    = $this->settings['text_content'] ?? esc_html__( 'Your content goes here...', 'snn' );
         $text_height     = $this->settings['text_height'] ?? 100;
         $button_selector = $this->settings['button_selector'] ?? '';
 
