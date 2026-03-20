@@ -1190,14 +1190,14 @@ RESPONSIVE BREAKPOINTS — Supported breakpoint suffixes (auto-applied by compil
   - Flex rows stacked to column direction on mobile
   - Large padding reduced on tablet and mobile
 
-- Use clean semantic structure: <section data-bricks="section"> → <div data-bricks="container"> → <div data-bricks="block"> → content elements
+- Use clean, shallow semantic structure: <section data-bricks="section"> → <div data-bricks="container"> → content elements (blocks directly inside container). Avoid unnecessary wrapper blocks. Container itself can use flex or grid.
 - ALL visual styling MUST be inline style="..." — no class-based frameworks
-- CONTAINER RULE: one container per section (centering only). ALL inner layouts use block.
+- CONTAINER RULE: one container per section (for width & layout). Apply display: flex/grid directly to the container to avoid extra DOM depth.
 
 LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
 
 Centered section wrapper (ONLY ONE PER SECTION — direct child of section):
-  <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
+  <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px;">
 
 Flex column layout (use block) — ALWAYS specify flex-direction:
   <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
@@ -1208,13 +1208,13 @@ Flex row layout (use block) — ALWAYS specify flex-direction:
 Flex item with align-self (any element can have align-self):
   <div data-bricks="block" style="align-self: flex-start; flex-grow: 1;">
 
-Grid 2 columns (use block):
+Grid 2 columns (can be applied directly to container or use block):
   <div data-bricks="block" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px;">
 
-Grid 3 columns (use block):
+Grid 3 columns (can be applied directly to container or use block):
   <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
 
-Grid 4 columns (use block):
+Grid 4 columns (can be applied directly to container or use block):
   <div data-bricks="block" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
 
 Asymmetric grid (60/40):
@@ -1241,6 +1241,7 @@ Horizontal dividers:
   Note: Use border-top-width for height, border-top-style for style (solid/dashed/dotted/groove/ridge), border-top-color for color, text-align or margin-left/right for alignment
 
 STRICT LAYOUT RULES:
+✓ KEEP DOM SHALLOW: Apply display: flex or display: grid directly to the container to arrange its children. DO NOT wrap children in an extra block unless fundamentally required for structural grouping (e.g. grouped text inside a grid cell). Example: section > container (with grid) > block (column) + image.
 ✓ USE CSS GRID for all side-by-side layouts (heroes, feature grids, card grids)
 ✓ NEVER use flex-wrap for macro layouts — causes desktop wrapping issues
 ✓ Use Flexbox for single-direction layouts (vertical stacks, horizontal bars, icon rows)
@@ -1254,27 +1255,23 @@ EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
 <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
 
 <section data-bricks="section" style="background: #0f172a; padding: 80px 0;">
-  <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
-    <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
-      <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;">Premium Heading</h1>
-      <hr style="border-top: 2px solid rgba(255, 255, 255, 0.2); width: 60px; text-align: center;">
-      <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: rgba(203, 213, 225, 1); line-height: 1.7; text-align: center; max-width: 700px; margin: 0;">Supporting description with readable line height and proper spacing.</p>
-      <button data-bricks="button" style="background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;">Call to Action</button>
-    </div>
+  <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
+    <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;">Premium Heading</h1>
+    <hr style="border-top: 2px solid rgba(255, 255, 255, 0.2); width: 60px; text-align: center;">
+    <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: rgba(203, 213, 225, 1); line-height: 1.7; text-align: center; max-width: 700px; margin: 0;">Supporting description with readable line height and proper spacing.</p>
+    <button data-bricks="button" style="background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;">Call to Action</button>
   </div>
 </section>
 
-EXAMPLE 2-COLUMN GRID HERO (section > container > block[grid] > block[column]):
+EXAMPLE 2-COLUMN GRID HERO (section > container > block[column]):
 <section data-bricks="section" style="background: #f5f0eb; padding: 100px 0;">
-  <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
-    <div data-bricks="block" style="display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
-      <div data-bricks="block" style="display: flex; flex-direction: column; gap: 24px;">
-        <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; color: #111827; line-height: 1.1; margin: 0;">We Make Brands People Love</h1>
-        <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; color: #4b5563; line-height: 1.7; margin: 0;">Creative studio specializing in bold brand identities and digital experiences.</p>
-        <button data-bricks="button" style="background: #ff6b35; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 16px 32px; border: none; border-radius: 8px; cursor: pointer;">View Our Work</button>
-      </div>
-      <img data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover; border-radius: 12px;" />
+  <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
+    <div data-bricks="block" style="display: flex; flex-direction: column; gap: 24px;">
+      <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; color: #111827; line-height: 1.1; margin: 0;">We Make Brands People Love</h1>
+      <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; color: #4b5563; line-height: 1.7; margin: 0;">Creative studio specializing in bold brand identities and digital experiences.</p>
+      <button data-bricks="button" style="background: #ff6b35; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 16px 32px; border: none; border-radius: 8px; cursor: pointer;">View Our Work</button>
     </div>
+    <img data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover; border-radius: 12px;" />
   </div>
 </section>
 
@@ -1296,15 +1293,13 @@ EXAMPLE 3-ADVANCED EFFECTS (with <style data-style-id> for special effects):
 </style>
 
 <section data-bricks="section" style="background: #0a0a0a; padding: 120px 0; position: relative;">
-  <div data-bricks="container" style="max-width: 1300px; margin: 0 auto; padding: 0 24px;">
-    <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
+  <div data-bricks="container" style="max-width: 1300px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
       <h1 id="snn-hero-title" data-bricks="heading" style="font-family: 'Syncopate', sans-serif; font-size: 82px; font-weight: 700; color: #ffffff; line-height: 0.9; margin: 0; text-transform: uppercase;">
         Next Gen<br><span id="snn-design-text">Design</span>
       </h1>
       <div id="snn-glass-panel" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2);">
         <p data-bricks="text-basic" style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: #ffffff; margin: 0;">Glass morphism panel with blur effect</p>
       </div>
-    </div>
   </div>
 </section>
 
