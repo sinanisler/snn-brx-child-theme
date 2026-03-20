@@ -351,8 +351,10 @@ Fitness</button>
                         setTimeout(() => {
                             if (window.bricksCore?.builder?.canvas?.render) {
                                 window.bricksCore.builder.canvas.render();
+                                // Second render after an additional tick to catch late reactive updates
+                                requestAnimationFrame(() => window.bricksCore.builder.canvas.render());
                             }
-                        }, 150);
+                        }, 200); // bump from 150 → 200ms
                         return { success: true, message: `Replaced page with ${els.length} elements` };
                     } catch(e) { return { success: false, error: e.message }; }
                 },
@@ -375,8 +377,10 @@ Fitness</button>
                         setTimeout(() => {
                             if (window.bricksCore?.builder?.canvas?.render) {
                                 window.bricksCore.builder.canvas.render();
+                                // Second render after an additional tick to catch late reactive updates
+                                requestAnimationFrame(() => window.bricksCore.builder.canvas.render());
                             }
-                        }, 150);
+                        }, 200); // bump from 150 → 200ms
                         return { success: true, message: `Added ${els.length} elements (${position})` };
                     } catch(e) { return { success: false, error: e.message }; }
                 },
@@ -416,7 +420,13 @@ Fitness</button>
                     });
                     if (patched > 0) {
                         s.content = [...s.content]; // Trigger Vue reactivity
-                        setTimeout(() => { if (window.bricksCore?.builder?.canvas?.render) window.bricksCore.builder.canvas.render(); }, 150);
+                        setTimeout(() => {
+                            if (window.bricksCore?.builder?.canvas?.render) {
+                                window.bricksCore.builder.canvas.render();
+                                // Second render after an additional tick to catch late reactive updates
+                                requestAnimationFrame(() => window.bricksCore.builder.canvas.render());
+                            }
+                        }, 200); // bump from 150 → 200ms
                     }
                     return patched > 0
                         ? { success: true, message: `Patched ${patched} element(s)` }
@@ -662,16 +672,31 @@ Fitness</button>
                         el.settings._typography['font-size'] = String(el.settings._typography['font-size']);
                     }
 
-                    // Clean up _cssGlobal: strip properties now handled natively
+                    // Wrap _cssGlobal with proper Bricks selector if not already wrapped
                     if (el.settings._cssGlobal && typeof el.settings._cssGlobal === 'string') {
-                        el.settings._cssGlobal = el.settings._cssGlobal
-                            .replace(/cursor:\s*pointer;?/g, '')
-                            .replace(/transition:[^;]+;?/g, '')
-                            .replace(/@media[^{]+\{[^}]+\}/g, '')
-                            .trim();
-                        if (el.settings._cssGlobal.match(/^[^{]+\{\s*\}\s*$/) || el.settings._cssGlobal === '') {
-                            delete el.settings._cssGlobal;
-                            fixed = true;
+                        const cssGlobal = el.settings._cssGlobal.trim();
+                        // Check if already wrapped with #brxe-
+                        if (!cssGlobal.startsWith('#brxe-')) {
+                            // Clean up and wrap
+                            const cleanedCss = cssGlobal
+                                .replace(/cursor:\s*pointer;?/g, '')
+                                .replace(/transition:[^;]+;?/g, '')
+                                .replace(/@media[^{]+\{[^}]+\}/g, '')
+                                .trim();
+                            if (cleanedCss) {
+                                el.settings._cssGlobal = `#brxe-${el.id} {\n  ${cleanedCss}\n}`;
+                            } else {
+                                delete el.settings._cssGlobal;
+                            }
+                        }
+                    }
+                    
+                    // Wrap _cssCustom with proper Bricks selector if not already wrapped
+                    if (el.settings._cssCustom && typeof el.settings._cssCustom === 'string') {
+                        const cssCustom = el.settings._cssCustom.trim();
+                        // Check if already wrapped with #brxe-
+                        if (!cssCustom.startsWith('#brxe-')) {
+                            el.settings._cssCustom = `#brxe-${el.id} {\n  ${cssCustom}\n}`;
                         }
                     }
 
@@ -1008,6 +1033,12 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <i class="fab fa-ICON-NAME"> — FA Brands icon (twitter, facebook, instagram, etc.)
   * <ul data-bricks="text-basic"> or <ol data-bricks="text-basic"> — lists (rendered as native HTML inside text-basic)
   * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
+
+CUSTOM CSS FOR UNSUPPORTED PROPERTIES:
+If you need to use CSS properties that Bricks doesn't natively support (backdrop-filter, filter, clip-path, etc.), use the custom-css attribute:
+  Example: <div data-bricks="block" custom-css="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);" style="background: rgba(255,255,255,0.1); ...">
+  The custom-css content will be automatically wrapped with the element's ID selector.
+  Note: You still need inline style="" for preview rendering. custom-css is applied in Bricks only.
 
 FONTAWESOME ICONS — supported libraries:
   Solid icons:   <i class="fas fa-arrow-right" style="font-size: 24px; color: #ff0000;"></i>
@@ -1566,7 +1597,15 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         const value = cssStyles[prop];
                         const mapping = CSS_TO_BRICKS_MAP[prop];
                         
-                        if (!mapping || mapping.type === 'ignore') return;
+                        // If property not in map, add to _cssCustom (for unsupported CSS properties)
+                        if (!mapping) {
+                            if (!settings._cssCustom) settings._cssCustom = '';
+                            settings._cssCustom += ` ${prop}: ${value};`;
+                            return;
+                        }
+                        
+                        // Explicitly ignored properties (not needed in Bricks)
+                        if (mapping.type === 'ignore') return;
                         
                         switch (mapping.type) {
                             case 'direct':
@@ -1596,9 +1635,19 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                             case 'typography':
                                 if (!settings._typography) settings._typography = {};
                                 let typoValue = value;
-                                if (mapping.transform === 'numeric') typoValue = extractNumeric(value);
-                                else if (mapping.transform === 'cleanFontFamily') typoValue = cleanFontFamily(value);
-                                else if (mapping.transform === 'raw') typoValue = { raw: value };
+                                if (mapping.transform === 'numeric') {
+                                    // Handle clamp() — extract the max (last) value as the desktop size
+                                    if (value.includes('clamp(')) {
+                                        const clampMatch = value.match(/clamp\(\s*[^,]+,\s*[^,]+,\s*([^)]+)\s*\)/);
+                                        typoValue = clampMatch ? extractNumeric(clampMatch[1].trim()) : extractNumeric(value);
+                                    } else {
+                                        typoValue = extractNumeric(value);
+                                    }
+                                } else if (mapping.transform === 'cleanFontFamily') {
+                                    typoValue = cleanFontFamily(value);
+                                } else if (mapping.transform === 'raw') {
+                                    typoValue = { raw: value };
+                                }
                                 settings._typography[mapping.target] = typoValue;
                                 break;
                                 
@@ -1812,11 +1861,19 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         const bricksSettings = stylesToBricksSettings(cssStyles);
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
+                    
+                    // Parse custom-css attribute — maps to _cssCustom for properties not natively supported
+                    const customCss = element.getAttribute('custom-css');
+                    if (customCss && customCss.trim()) {
+                        const customCssRules = customCss.trim();
+                        bricksElement.settings._cssCustom = `#brxe-${id} {\n  ${customCssRules}\n}`;
+                    }
 
-                    // REMOVED: Don't force flex-direction to 'row'.
-                    // Bricks Builder defaults to 'column' when flex-direction is not specified,
-                    // which matches common layout expectations. Only set _direction when
-                    // flex-direction is explicitly present in the HTML's inline styles.
+                    // Apply Bricks default: flex-direction column for flex containers without explicit direction
+                    // This matches Bricks Builder's native behavior
+                    if (bricksElement.settings._display === 'flex' && !bricksElement.settings._direction) {
+                        bricksElement.settings._direction = 'column';
+                    }
                     
                     // Helper: parse href to Bricks link object
                     function parseLink(el) {
@@ -1836,13 +1893,18 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         case 'heading':
                             bricksElement.settings.text = element.innerHTML.trim(); // allow inner <span> bold/italic
                             bricksElement.settings.tag  = ['h1','h2','h3','h4','h5','h6'].includes(tagName) ? tagName : 'h2';
+                            isLeaf = true; // heading content is text — never separate Bricks elements
                             break;
 
                         case 'text-basic':
-                            // Preserve inner HTML (bold, italic, links, lists, etc.)
-                            bricksElement.settings.text = element.outerHTML.trim();
-                            // For ul/ol/table — treat as leaf (no children walked)
-                            if (['ul','ol','table','blockquote'].includes(tagName)) return bricksElement;
+                            // Lists/tables: outerHTML needed so Bricks renders the full markup
+                            if (['ul','ol','table','blockquote'].includes(tagName)) {
+                                bricksElement.settings.text = element.outerHTML.trim();
+                                return bricksElement; // leaf — no children
+                            }
+                            // p / span / strong / em / small: innerHTML only; styling comes from native _typography
+                            bricksElement.settings.text = element.innerHTML.trim();
+                            isLeaf = true; // don't recurse into inline children
                             break;
 
                         case 'text':
