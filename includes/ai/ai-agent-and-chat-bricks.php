@@ -2797,14 +2797,32 @@ function snn_save_image_to_library_handler() {
         wp_send_json_error( array( 'message' => 'Only HTTP/HTTPS URLs are allowed.' ) );
     }
 
-    // If this is a proxy/redirect URL (e.g. Pixabay proxy), resolve it to the final image URL.
-    // media_sideload_image() rejects URLs without a recognisable image extension, so we must
-    // follow the redirect first and pass the actual CDN URL (which ends in _1280.jpg, etc.).
-    $head_response = wp_remote_head( $url, array( 'timeout' => 10, 'redirection' => 0 ) );
-    if ( ! is_wp_error( $head_response ) ) {
-        $location = wp_remote_retrieve_header( $head_response, 'location' );
-        if ( ! empty( $location ) ) {
-            $url = $location;
+    // If this is a Pixabay proxy URL, resolve it directly via the Pixabay API.
+    // We cannot do a loopback HTTP HEAD to admin-ajax.php (it requires auth and would return 403).
+    // Instead, extract the 'q' param and call Pixabay directly — same logic as the proxy handler.
+    if ( strpos( $url, 'action=snn_pixabay_image' ) !== false ) {
+        $parsed_qs = array();
+        wp_parse_str( wp_parse_url( $url, PHP_URL_QUERY ), $parsed_qs );
+        $q       = sanitize_text_field( $parsed_qs['q'] ?? 'nature' );
+        $api_key = get_option( 'snn_pixabay_api_key', '' );
+
+        $api_url = add_query_arg( array(
+            'key'        => $api_key,
+            'q'          => urlencode( $q ),
+            'image_type' => 'photo',
+            'safesearch' => 'true',
+            'per_page'   => 5,
+            'order'      => 'popular',
+            'lang'       => 'en',
+        ), 'https://pixabay.com/api/' );
+
+        $api_response = wp_remote_get( $api_url, array( 'timeout' => 10 ) );
+        if ( ! is_wp_error( $api_response ) ) {
+            $pix_data = json_decode( wp_remote_retrieve_body( $api_response ), true );
+            if ( ! empty( $pix_data['hits'][0] ) ) {
+                $hit = $pix_data['hits'][0];
+                $url = ! empty( $hit['largeImageURL'] ) ? $hit['largeImageURL'] : $hit['webformatURL'];
+            }
         }
     }
 
