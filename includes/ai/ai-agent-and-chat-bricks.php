@@ -1770,7 +1770,10 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     if (!value || (!value.includes('linear-gradient') && !value.includes('radial-gradient'))) {
                         return null;
                     }
-                    
+                    if (value.includes('repeating-')) {
+                        return null; // Fallback to custom CSS for repeating gradients
+                    }
+
                     const isRadial = value.startsWith('radial');
                     const angleMatch = value.match(/(\d+)deg/);
                     const colorMatches = [...value.matchAll(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/g)];
@@ -2094,10 +2097,10 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
                     
-                    // Apply Bricks default: flex-direction column for flex containers without explicit direction
-                    // This matches Bricks Builder's native behavior
+                    // Apply CSS default: flex-direction row for flex containers without explicit direction
+                    // This creates intended layout from HTML since Bricks Block natively defaults to column
                     if (bricksElement.settings._display === 'flex' && !bricksElement.settings._direction) {
-                        bricksElement.settings._direction = 'column';
+                        bricksElement.settings._direction = 'row';
                     }
                     
                     // Helper: parse href to Bricks link object
