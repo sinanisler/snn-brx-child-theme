@@ -402,6 +402,44 @@ Fitness</button>
                     if (updates.image_url   != null) { if (!target.settings.image) target.settings.image = {}; target.settings.image.url = updates.image_url; }
                     if (updates.bricks_settings) Object.assign(target.settings, updates.bricks_settings);
                     return { success: true, message: `Patched [${target.id}]` };
+                },
+                applyPatch(patchData) {
+                    const s = this.getState();
+                    if (!s || !s.content) return { success: false, error: 'Bricks state not available' };
+                    const patches = Array.isArray(patchData.patches) ? patchData.patches : [patchData];
+                    let patched = 0;
+                    const errors = [];
+                    patches.forEach(patch => {
+                        const result = this.patchElement(patch);
+                        if (result.success) patched++;
+                        else errors.push(result.error);
+                    });
+                    if (patched > 0) {
+                        s.content = [...s.content]; // Trigger Vue reactivity
+                        setTimeout(() => { if (window.bricksCore?.builder?.canvas?.render) window.bricksCore.builder.canvas.render(); }, 150);
+                    }
+                    return patched > 0
+                        ? { success: true, message: `Patched ${patched} element(s)` }
+                        : { success: false, error: 'No elements matched: ' + errors.join('; ') };
+                },
+                getDesignTokens() {
+                    const s = this.getState();
+                    const tokens = { colors: [], sizes: [] };
+                    if (!s) return tokens;
+                    try {
+                        if (s.colorPalette) {
+                            const palette = Array.from(s.colorPalette);
+                            if (palette.length && palette[0].colors) {
+                                tokens.colors = Array.from(palette[0].colors).map(c => ({ raw: c.raw, hex: c.light || '' }));
+                            }
+                        }
+                    } catch(e) { debugLog('getDesignTokens colorPalette error:', e); }
+                    try {
+                        if (s.globalVariables) {
+                            tokens.sizes = Array.from(s.globalVariables).map(v => ({ name: v.name, value: v.value, cssVar: '--' + v.name }));
+                        }
+                    } catch(e) { debugLog('getDesignTokens globalVariables error:', e); }
+                    return tokens;
                 }
             };
 
@@ -427,6 +465,7 @@ Fitness</button>
 
             async function processWithAI(userMessage, images = []) {
                 ChatState.isProcessing = true;
+                updateSendButton();
                 showTyping();
                 setAgentState('thinking');
                 try {
@@ -439,6 +478,19 @@ Fitness</button>
                     ]);
                     hideTyping();
                     if (!response || !response.trim()) throw new Error('AI returned empty response.');
+
+                    // Handle patch responses (element content updates on existing page elements)
+                    const patchData = extractPatchFromResponse(response);
+                    if (patchData) {
+                        const result   = BricksHelper.applyPatch(patchData);
+                        const textPart = response.replace(/```patch[\s\S]*?```/g, '').trim();
+                        if (textPart) addMessage('assistant', textPart);
+                        result.success
+                            ? addMessage('assistant', '✓ ' + result.message)
+                            : addMessage('error', '✗ Patch failed: ' + result.error);
+                        autoSaveConversation();
+                        return;
+                    }
 
                     const html     = extractHTMLFromResponse(response);
                     const textPart = response.replace(/```html[\s\S]*?```/g, '').trim();
@@ -455,10 +507,16 @@ Fitness</button>
                     autoSaveConversation();
                 } catch(err) {
                     hideTyping();
-                    addMessage('error', 'Error: ' + err.message);
+                    if (err.name === 'AbortError') {
+                        // Stopped by user — message already shown in stopAgent()
+                    } else {
+                        addMessage('error', 'Error: ' + err.message);
+                        debugLog('processWithAI error:', err);
+                    }
                 } finally {
                     ChatState.isProcessing = false;
                     setAgentState('idle');
+                    updateSendButton();
                 }
             }
 
@@ -708,6 +766,7 @@ Fitness</button>
             async function compileSectionBySection(actionType) {
                 if (!ChatState.currentHTMLPreview) return;
                 ChatState.isProcessing = true;
+                updateSendButton();
                 setAgentState('compiling');
 
                 // Reset global ID tracker for this compilation session
@@ -717,43 +776,64 @@ Fitness</button>
                 const total    = sections.length;
                 addMessage('assistant', '⚡ Compiling ' + total + ' section' + (total > 1 ? 's' : '') + ' with JavaScript compiler...');
 
+                const builtImageUrls = [];
                 let builtCount = 0;
                 for (let i = 0; i < sections.length; i++) {
+                    if (!ChatState.isProcessing) { addMessage('assistant', '⏹ Build stopped.'); break; }
                     const { label, html } = sections[i];
                     setAgentState('compiling', 'Building "' + label + '" (' + (i + 1) + '/' + total + ')...');
-                    // No typing indicator needed - compilation is instant!
+                    let bricksData = null;
                     try {
-                        const bricksData = await compileSingleSection(html, label, i + 1);
-                        if (bricksData) {
-                            const { data } = validateAndFixBricksJSON(bricksData);
-                            const result   = (i === 0 && actionType === 'replace')
-                                ? BricksHelper.replaceAllContent(data)
-                                : BricksHelper.addSection(data, i === 0 ? actionType : 'append');
-                            if (result.success) {
-                                builtCount++;
-                                addMessage('assistant', '✓ "' + label + '" built (' + builtCount + '/' + total + ')');
-                            } else {
-                                addMessage('error', '✗ "' + label + '" inject failed: ' + result.error);
+                        bricksData = await compileSingleSection(html, label, i + 1);
+                    } catch(compileErr) {
+                        // Auto-correction: ask AI to fix this section once
+                        debugLog('Compilation failed for "' + label + '":', compileErr.message);
+                        addMessage('assistant', '⚠️ "' + label + '" had issues. Auto-correcting...');
+                        try {
+                            const fixedHtml = await selfCorrectHTML(html, compileErr.message);
+                            bricksData = await compileSingleSection(fixedHtml, label + ' [corrected]', i + 1);
+                        } catch(retryErr) {
+                            debugLog('Self-correction failed for "' + label + '":', retryErr.message);
+                            if (retryErr.name !== 'AbortError') {
+                                addMessage('error', '✗ "' + label + '" could not be auto-corrected: ' + retryErr.message);
                             }
-                        } else {
-                            addMessage('error', '✗ "' + label + '" — could not compile. Skipped.');
                         }
-                    } catch(e) {
-                        addMessage('error', '✗ "' + label + '" error: ' + e.message);
+                    }
+                    if (bricksData && ChatState.isProcessing) {
+                        const { data } = validateAndFixBricksJSON(bricksData);
+                        // Collect image URLs for media library saving
+                        (data.content || []).forEach(el => {
+                            if (el.settings.image?.url)                  builtImageUrls.push(el.settings.image.url);
+                            if (el.settings._background?.image?.url)     builtImageUrls.push(el.settings._background.image.url);
+                        });
+                        const result = (i === 0 && actionType === 'replace')
+                            ? BricksHelper.replaceAllContent(data)
+                            : BricksHelper.addSection(data, i === 0 ? actionType : 'append');
+                        if (result.success) {
+                            builtCount++;
+                            addMessage('assistant', '✓ "' + label + '" built (' + builtCount + '/' + total + ')');
+                        } else {
+                            addMessage('error', '✗ "' + label + '" inject failed: ' + result.error);
+                        }
+                    } else if (!bricksData && ChatState.isProcessing) {
+                        addMessage('error', '✗ "' + label + '" — could not compile. Skipped.');
                     }
                 }
 
                 ChatState.isProcessing = false;
                 setAgentState('idle');
+                updateSendButton();
 
                 if (builtCount > 0) {
-                    addMessage('assistant', '🎉 Done! ' + builtCount + '/' + total + ' sections compiled instantly and built in Bricks.');
+                    addMessage('assistant', '🎉 Done! ' + builtCount + '/' + total + ' sections built in Bricks.');
                     // Keep preview visible so user can still compare the HTML
                     // hideHTMLPreview();
                     removeApproveBar();
-                    ChatState.previewMode        = null;
+                    ChatState.previewMode = null;
                     // Keep currentHTMLPreview so toggle button remains functional
                     // ChatState.currentHTMLPreview = null;
+                    // Save external images to WordPress media library
+                    if (builtImageUrls.length) saveImagesToWPLibrary(builtImageUrls);
                 } else {
                     addMessage('error', 'No sections could be compiled. Try simplifying or rephrasing your request.');
                 }
@@ -825,22 +905,35 @@ Fitness</button>
                 const postType     = snnBricksChatConfig.pageContext?.details?.post_type  || 'page';
                 const ajaxUrl      = snnBricksChatConfig.ajaxUrl;
                 const cc           = BricksHelper.getCurrentContent();
+                const tokens       = BricksHelper.getDesignTokens();
+
+                // Build full page element snapshot (all elements, not just first 40)
                 let pageSnap = '';
                 if (cc && cc.elementCount > 0) {
-                    const snap = (cc.elements || []).slice(0, 40).map(el => {
+                    const snap = (cc.elements || []).map(el => {
                         const raw = (el.settings && (el.settings.text || el.settings.content)) || '';
-                        const txt = raw.replace(/<[^>]*>/g, '').trim().slice(0, 60);
+                        const txt = raw.replace(/<[^>]*>/g, '').trim().slice(0, 80);
                         return txt ? `  [${el.id}] ${el.name}: "${txt}"` : `  [${el.id}] ${el.name}`;
                     }).join('\n');
                     pageSnap = `\nPage currently has ${cc.elementCount} elements:\n${snap}\n`;
+                }
+
+                // Build design tokens context from Bricks global styles
+                let tokensSnap = '';
+                if (tokens.colors.length) {
+                    const colorList = tokens.colors.map(c => `  ${c.raw}${c.hex ? ' (' + c.hex + ')' : ''}`).join('\n');
+                    tokensSnap += `\nTHEME COLOR VARIABLES (use these in color/background styles when user wants existing theme colors):\n${colorList}\n`;
+                }
+                if (tokens.sizes.length) {
+                    const sizeList = tokens.sizes.map(v => `  var(${v.cssVar}) = ${v.value}  /* use as: ${v.value} OR var(${v.cssVar}) */`).join('\n');
+                    tokensSnap += `\nTHEME SIZE VARIABLES (use these for padding/gap/font-size when user wants existing theme spacing):\n${sizeList}\n`;
                 }
 
                 return basePrompt + `
 
 === BRICKS BUILDER AI — DESIGN PHASE ===
 Currently editing: "${postTitle}" (${postType})
-${pageSnap}
-
+${pageSnap}${tokensSnap}
 ⚡ NEW: Your designs are now compiled to Bricks using a LIGHTNING-FAST JavaScript compiler — instant conversion, zero API costs!
 
 YOUR JOB:
@@ -1045,8 +1138,8 @@ EXAMPLE 2-COLUMN GRID HERO (section > container > block[grid] > block[column]):
 
 WHEN NOT TO GENERATE HTML:
 - User asks a question → respond in plain text only
-- User says \"change X to Y\" (editing existing element) → explain that direct Bricks edit is better
-- User refines the preview (\"make it darker\" / \"add a testimonials section\") → generate complete NEW replacement HTML incorporating their changes
+- User wants to update/change existing element text, images, or settings (IDs visible in page snapshot above) → use \`\`\`patch block instead
+- User refines the preview ("make it darker" / "add a testimonials section") → generate complete NEW replacement HTML incorporating their changes
 - Unsure about intent → ask ONE clarifying question, then proceed with best interpretation
 
 CRITICAL REMINDERS:
@@ -1054,7 +1147,25 @@ CRITICAL REMINDERS:
 ✓ Every visual property explicitly defined in style=\"...\"
 ✓ Sections as direct <body> children for independent compilation
 ✓ Real content, real images, production-ready design quality
-✓ Semantic HTML structure with descriptive class names for structure only`;
+✓ Semantic HTML structure with descriptive class names for structure only
+
+EDITING EXISTING PAGE ELEMENTS — use \`\`\`patch block (NOT HTML) for updates to existing Bricks elements:
+When the user asks to change text, update a heading, swap an image, or modify settings on existing page
+elements (listed in the page snapshot above), respond with a patch block.
+
+\`\`\`patch
+{
+  "patches": [
+    {"element_id": "EXISTING_ID", "updates": {"text": "New text content"}},
+    {"find_by": {"type": "text_content", "value": "partial text to find"}, "updates": {"text": "replacement text"}},
+    {"element_id": "IMG_ID", "updates": {"image_url": "https://new-image-url.jpg"}},
+    {"element_id": "EL_ID", "updates": {"bricks_settings": {"_background": {"color": {"raw": "var(--c1)"}}}}}
+  ]
+}
+\`\`\`
+
+After the patch block, briefly describe what was changed.
+Only use \`\`\`patch for existing element edits — use \`\`\`html for adding new sections or new content.`;
             }
 
             
@@ -1240,14 +1351,6 @@ CRITICAL REMINDERS:
                 if (parts.length === 3) return {top:parts[0],right:parts[1],bottom:parts[2],left:parts[1]};
                 if (parts.length === 4) return {top:parts[0],right:parts[1],bottom:parts[2],left:parts[3]};
                 return {};
-            }
-
-            function extractBricksJSONFromResponse(resp) {
-                const cleaned = resp.trim();
-                try { const p = JSON.parse(cleaned); if (p.content && Array.isArray(p.content)) return p; } catch(e) {}
-                const m = cleaned.match(/\{[\s\S]*"content"\s*:\s*\[[\s\S]*\][\s\S]*\}/);
-                if (m) { try { const p = JSON.parse(m[0]); if (p.content && Array.isArray(p.content)) return p; } catch(e) {} }
-                return null;
             }
 
             // ================================================================
@@ -2063,9 +2166,10 @@ CRITICAL REMINDERS:
 
             function extractBricksJSONFromResponse(resp) {
                 const cleaned = resp.trim();
-                try { const p = JSON.parse(cleaned); if (p.content && Array.isArray(p.content)) return p; } catch(e) {}
+                try { const p = JSON.parse(cleaned); if (p.content && Array.isArray(p.content)) return p; } catch(e) { debugLog('JSON parse (direct) error:', e); }
                 const m = cleaned.match(/\{[\s\S]*"content"\s*:\s*\[[\s\S]*\][\s\S]*\}/);
-                if (m) { try { const p = JSON.parse(m[0]); if (p.content && Array.isArray(p.content)) return p; } catch(e) {} }
+                if (m) { try { const p = JSON.parse(m[0]); if (p.content && Array.isArray(p.content)) return p; } catch(e) { debugLog('JSON parse (extracted) error:', e); } }
+                if (DEBUG_MODE) console.warn('[Bricks AI] extractBricksJSONFromResponse: could not parse', cleaned.slice(0, 300));
                 return null;
             }
 
@@ -2159,10 +2263,11 @@ CRITICAL REMINDERS:
             }
 
             async function sendMessage() {
+                if (ChatState.isProcessing) { stopAgent(); return; }
                 const input = $('#snn-bricks-chat-input');
                 const msg   = input.val().trim();
                 const imgs  = ChatState.attachedImages;
-                if ((!msg && !imgs.length) || ChatState.isProcessing) return;
+                if (!msg && !imgs.length) return;
                 addMessage('user', msg || '(Image attached)', [...imgs]);
                 const saved = [...imgs];
                 input.val('').css('height', 'auto');
@@ -2248,9 +2353,99 @@ CRITICAL REMINDERS:
 
             function setAgentState(state, detail = '') {
                 const $t = $('#snn-bricks-chat-state-text');
-                const labels = { thinking: 'Thinking...', compiling: detail || 'Compiling to Bricks...', recovering: detail || 'Recovering...', error: 'Error', idle: '' };
-                const lbl = labels[state] || '';
+                const labels = { thinking: 'Thinking...', compiling: detail || 'Compiling to Bricks...', recovering: detail || 'Recovering...', saving: detail || 'Saving images to media library...', error: 'Error', idle: '' };
+                const lbl = labels[state] || detail || '';
                 lbl ? $t.text(lbl).show() : $t.hide();
+            }
+
+            function updateSendButton() {
+                const $btn = $('#snn-bricks-chat-send');
+                if (ChatState.isProcessing) {
+                    $btn.html('<span style="font-size:18px;line-height:1">⏹</span>').addClass('snn-chat-stop').attr('title', 'Stop agent');
+                } else {
+                    $btn.html('<span class="dashicons dashicons-arrow-up-alt2"></span>').removeClass('snn-chat-stop').attr('title', 'Send message');
+                }
+            }
+
+            function stopAgent() {
+                if (ChatState.abortController) {
+                    try { ChatState.abortController.abort(); } catch(e) {}
+                }
+                ChatState.isProcessing = false;
+                setAgentState('idle');
+                hideTyping();
+                updateSendButton();
+                addMessage('assistant', '⏹ Agent stopped.');
+                debugLog('Agent stopped by user.');
+            }
+
+            async function selfCorrectHTML(originalHtml, errorMsg) {
+                setAgentState('thinking', 'Auto-correcting section...');
+                const response = await callAI([
+                    { role: 'system', content: 'You are a code repair assistant for Bricks Builder. Fix the HTML so it compiles correctly. Ensure all data-bricks attributes are correct (section>container>block>content nesting), and all inline styles use valid CSS. Return ONLY the corrected HTML in a ```html code block, nothing else.' },
+                    { role: 'user',   content: 'This HTML failed to compile with error: "' + errorMsg + '"\nFix it:\n```html\n' + originalHtml + '\n```' }
+                ]);
+                const fixed = extractHTMLFromResponse(response);
+                if (!fixed) throw new Error('Auto-correction returned no valid HTML block');
+                return fixed;
+            }
+
+            function extractPatchFromResponse(resp) {
+                const m = resp.match(/```patch\n?([\s\S]*?)\n?```/);
+                if (!m) return null;
+                try {
+                    const parsed = JSON.parse(m[1].trim());
+                    if (parsed && (Array.isArray(parsed.patches) || parsed.element_id || parsed.find_by)) return parsed;
+                } catch(e) {
+                    debugLog('extractPatchFromResponse parse error:', e);
+                    if (DEBUG_MODE) console.warn('[Bricks AI] Patch block parse error:', e.message, m[1].slice(0, 200));
+                }
+                return null;
+            }
+
+            async function saveImagesToWPLibrary(imageUrls) {
+                if (!imageUrls || !imageUrls.length) return;
+                const hostname = window.location.hostname;
+                // Only save external URLs (skip already-local WP content URLs)
+                const external = [...new Set(imageUrls.filter(url => url && url.startsWith('http') && !url.includes(hostname)))];
+                if (!external.length) return;
+                addMessage('assistant', '📸 Saving ' + external.length + ' image(s) to WordPress media library...');
+                setAgentState('saving', 'Saving ' + external.length + ' image(s)...');
+                let saved = 0, failed = 0;
+                for (const url of external) {
+                    try {
+                        const result = await $.ajax({
+                            url: snnBricksChatConfig.ajaxUrl, type: 'POST',
+                            data: { action: 'snn_save_image_to_library', nonce: snnBricksChatConfig.agentNonce, url }
+                        });
+                        if (result.success) {
+                            saved++;
+                            updateImageUrlInBricks(url, result.data.url);
+                            debugLog('Image saved to media library:', result.data.url);
+                        } else {
+                            failed++;
+                            debugLog('Image save failed:', url, result.data?.message);
+                        }
+                    } catch(e) {
+                        failed++;
+                        debugLog('Image save error:', url, e);
+                    }
+                }
+                setAgentState('idle');
+                addMessage('assistant', saved > 0
+                    ? '📸 ' + saved + '/' + external.length + ' image(s) saved to media library.' + (failed > 0 ? ' (' + failed + ' failed — external URLs kept)' : '')
+                    : '⚠️ Images could not be saved to media library (' + failed + ' failed). They still appear in Bricks using external URLs.');
+            }
+
+            function updateImageUrlInBricks(oldUrl, newUrl) {
+                const s = BricksHelper.getState();
+                if (!s || !s.content) return;
+                let updated = false;
+                s.content.forEach(el => {
+                    if (el.settings.image?.url === oldUrl)              { el.settings.image.url = newUrl; updated = true; }
+                    if (el.settings._background?.image?.url === oldUrl) { el.settings._background.image.url = newUrl; updated = true; }
+                });
+                if (updated) s.content = [...s.content]; // Trigger Vue reactivity
             }
 
             function showTyping() { $('.snn-bricks-chat-typing').show(); scrollToBottom(); }
@@ -2417,8 +2612,10 @@ CRITICAL REMINDERS:
 .snn-bricks-chat-input { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 14px; resize: none; min-height: 70px; max-height: 120px; }
 .snn-bricks-chat-attach-btn { width: 42px; height: 70px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .snn-bricks-chat-attach-btn:hover { background: #e0e0e0; }
-.snn-bricks-chat-send { width: 42px; height: 70px; background: #161a1d; border: none; border-radius: 8px; color: #fff; cursor: pointer; display:flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.snn-bricks-chat-send { width: 42px; height: 70px; background: #161a1d; border: none; border-radius: 8px; color: #fff; cursor: pointer; display:flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
 .snn-bricks-chat-send:hover { background: #0f1315; }
+.snn-bricks-chat-send.snn-chat-stop { background: #dc2626; }
+.snn-bricks-chat-send.snn-chat-stop:hover { background: #b91c1c; }
 .snn-bricks-chat-image-preview { display: none; flex-wrap: wrap; gap: 8px; padding: 8px; background: #f9f9f9; border-radius: 8px; }
 .snn-image-preview-item { position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; background: #fff; border: 1px solid #e0e0e0; }
 .snn-image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -2528,4 +2725,50 @@ function snn_pixabay_image_proxy_handler() {
     // No results from Pixabay
     status_header( 404 );
     exit;
+}
+
+/**
+ * Save External Image to WordPress Media Library
+ *
+ * Downloads an external image URL (e.g. from Pixabay proxy) and attaches it
+ * to the WordPress media library so Bricks can reference it as a local attachment.
+ * On success also updates the image URL in the response so the caller can swap
+ * the external URL for the local one inside bricksState.
+ */
+add_action( 'wp_ajax_snn_save_image_to_library', 'snn_save_image_to_library_handler' );
+
+function snn_save_image_to_library_handler() {
+    check_ajax_referer( 'snn_ai_agent_nonce', 'nonce' );
+
+    if ( ! current_user_can( 'upload_files' ) ) {
+        wp_send_json_error( array( 'message' => 'Insufficient permissions to upload files.' ) );
+    }
+
+    $url = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
+
+    if ( empty( $url ) ) {
+        wp_send_json_error( array( 'message' => 'No URL provided.' ) );
+    }
+
+    // Only allow http/https to prevent SSRF
+    $parsed = wp_parse_url( $url );
+    if ( ! in_array( $parsed['scheme'] ?? '', array( 'http', 'https' ), true ) ) {
+        wp_send_json_error( array( 'message' => 'Only HTTP/HTTPS URLs are allowed.' ) );
+    }
+
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    $attachment_id = media_sideload_image( $url, 0, null, 'id' );
+
+    if ( is_wp_error( $attachment_id ) ) {
+        wp_send_json_error( array( 'message' => $attachment_id->get_error_message() ) );
+    }
+
+    wp_send_json_success( array(
+        'attachment_id' => $attachment_id,
+        'url'           => wp_get_attachment_url( $attachment_id ),
+        'original_url'  => $url,
+    ) );
 }
