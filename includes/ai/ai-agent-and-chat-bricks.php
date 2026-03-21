@@ -1061,12 +1061,15 @@ Use the Pixabay proxy with topic-specific, descriptive keywords for each image:
   Technology:      ${ajaxUrl}?action=snn_pixabay_image&q=technology+digital+abstract
 
 HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
-- Every distinct visual section MUST be a DIRECT child of <body> using semantic HTML5 tags: <section>, <header>, <footer>, <nav>
-- NEVER wrap sections inside <main>, <div>, or any container — each section must be a direct body child
+- Output ONLY the section elements — NEVER wrap in <html>, <head>, <body> tags or add <!DOCTYPE>
+- Every distinct visual section MUST be output as a top-level semantic HTML5 tag: <section>, <header>, <footer>, <nav>
+- NEVER wrap sections inside <main>, <div>, or any container
 - Content inside <main> is treated as ONE single section (avoid unless intended)
 - MANDATORY: Add data-bricks attributes to ALL structural elements to guide compilation:
-  * <section data-bricks="section"> — top-level section wrapper
-  * <div data-bricks="container"> — centering wrapper. Use ONLY ONCE per section as the DIRECT child of <section>. NEVER use for inner layouts.
+  * <section data-bricks="section"> — top-level section wrapper (use for most sections)
+  * <header data-bricks="section"> — top-level header section (same as section, sets semantic tag to header)
+  * <footer data-bricks="section"> — top-level footer section (same as section, sets semantic tag to footer)
+  * <div data-bricks="container"> — centering wrapper. Use ONLY ONCE per section as the DIRECT child of <section>/<header>/<footer>. NEVER use for inner layouts.
   * <div data-bricks="block"> — ALL inner layouts, grids, flex columns/rows, cards, boxes. This is the universal layout element.
   * <h1 data-bricks="heading"> through <h6 data-bricks="heading"> — headings (tag attr sets h1/h2/etc.)
   * <p data-bricks="text-basic"> — body text. Can contain inline HTML: <strong>, <em>, <a>, <br>
@@ -2175,6 +2178,11 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     if (['block', 'div', 'container', 'section'].includes(bricksName)) {
                         if (['main', 'article', 'header', 'footer', 'aside', 'nav', 'section', 'details', 'figure', 'figcaption', 'address', 'hgroup'].includes(tagName)) {
                             bricksElement.settings.tag = tagName;
+                            // Bricks sections with a custom semantic tag (footer/header/etc.) collapse to
+                            // display:none unless _display is explicitly set. Ensure it has a value.
+                            if (bricksName === 'section' && !bricksElement.settings._display) {
+                                bricksElement.settings._display = 'flex';
+                            }
                         } else if (tagName === 'a') {
                             bricksElement.settings.tag = 'a';
                             bricksElement.settings.link = parseLink(element);
@@ -2618,18 +2626,32 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
             }
 
             function extractHTMLFromResponse(resp) {
+                let html = null;
+
                 const m = resp.match(/```(?:html)?\n?([\s\S]*?)\n?```/i);
-                if (m) return m[1].trim();
-                
-                const fallbackMatch = resp.match(/(?:<style[^>]*>[\s\S]*?<\/style>\s*)?(?:<section[\s\S]*|<\/div>|<div[\s\S]*data-bricks[\s\S]*)/i);
-                if (fallbackMatch && (resp.includes('data-bricks') || resp.includes('<section') || resp.includes('style='))) {
-                    const firstTagIndex = resp.search(/<(style|section|div|header|main|nav)/i);
-                    if (firstTagIndex !== -1) {
-                        return resp.substring(firstTagIndex).trim();
+                if (m) html = m[1].trim();
+
+                if (!html) {
+                    const fallbackMatch = resp.match(/(?:<style[^>]*>[\s\S]*?<\/style>\s*)?(?:<section[\s\S]*|<footer[\s\S]*|<header[\s\S]*|<\/div>|<div[\s\S]*data-bricks[\s\S]*)/i);
+                    if (fallbackMatch && (resp.includes('data-bricks') || resp.includes('<section') || resp.includes('<footer') || resp.includes('<header') || resp.includes('style='))) {
+                        const firstTagIndex = resp.search(/<(style|section|footer|header|div|main|nav|article)/i);
+                        if (firstTagIndex !== -1) {
+                            html = resp.substring(firstTagIndex).trim();
+                        }
                     }
                 }
-                
-                return null;
+
+                if (html) {
+                    // Strip <html>, <head>, <body> wrappers if the AI included them
+                    html = html
+                        .replace(/^<!DOCTYPE[^>]*>/i, '')
+                        .replace(/^<html[^>]*>/i, '').replace(/<\/html>$/i, '')
+                        .replace(/^<head>[\s\S]*?<\/head>/i, '')
+                        .replace(/^<body[^>]*>/i, '').replace(/<\/body>\s*$/i, '')
+                        .trim();
+                }
+
+                return html || null;
             }
 
             function extractBricksJSONFromResponse(resp) {
