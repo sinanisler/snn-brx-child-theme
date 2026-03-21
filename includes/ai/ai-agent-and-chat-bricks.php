@@ -697,9 +697,9 @@ Fitness</button>
                             .trim();
                             
                         if (cleanedCss) {
-                            // Check if already wrapped with %root%
-                            if (!cleanedCss.includes('%root%')) {
-                                el.settings._cssCustom = ((el.settings._cssCustom || '') + ` %root% { ${cleanedCss} }`).trim();
+                            // Check if already wrapped with #brxe- or %root%
+                            if (!cleanedCss.includes('#brxe-') && !cleanedCss.includes('%root%')) {
+                                el.settings._cssCustom = ((el.settings._cssCustom || '') + ` #brxe-${el.id} { ${cleanedCss} }`).trim();
                             } else {
                                 el.settings._cssCustom = ((el.settings._cssCustom || '') + ` ${cleanedCss}`).trim();
                             }
@@ -709,14 +709,16 @@ Fitness</button>
 
                     // Wrap _cssCustom with proper Bricks selector if not already wrapped
                     if (el.settings._cssCustom && typeof el.settings._cssCustom === 'string') {
-                        const cssCustom = el.settings._cssCustom.trim();
-                        // Only wrap if it doesn't already contain %root% or @keyframes
-                        if (!cssCustom.includes('%root%') && !cssCustom.includes('@keyframes') && !cssCustom.includes('@media')) {
-                            el.settings._cssCustom = `%root% { ${cssCustom} }`;
+                        let cssCustom = el.settings._cssCustom.trim();
+                        // Only wrap if it doesn't already contain #brxe-, %root% or @keyframes
+                        if (!cssCustom.includes(`#brxe-${el.id}`) && !cssCustom.includes('%root%') && !cssCustom.includes('@keyframes') && !cssCustom.includes('@media')) {
+                            cssCustom = `#brxe-${el.id} { ${cssCustom} }`;
                         } else if (cssCustom.startsWith('@keyframes') || cssCustom.startsWith('@media')) {
                             // Leave keyframes/media queries outside, but ensure they are valid syntax
-                             el.settings._cssCustom = cssCustom;
                         }
+                        
+                        // ALWAYS replace %root% with #brxe-{id} to force reactive state update
+                        el.settings._cssCustom = cssCustom.replace(/%root%/g, `#brxe-${el.id}`);
                     }
 
                     // Remove legacy _css object (use native breakpoint suffixes instead)
@@ -1152,12 +1154,12 @@ WHEN TO USE <style data-style-id> vs inline style="":
 ✓ Use <style data-style-id> for: -webkit-* props, text-stroke, animations, @keyframes, pseudo-elements (::before/::after),
   pseudo-classes (:hover/:focus/:active), backdrop-filter, clip-path, mask, filter, complex transforms
 
-The compiler converts #snn-XXXX → %root% in Bricks _cssCustom. Child classes are preserved as _cssClasses.
+The compiler converts #snn-XXXX → #brxe-{id} in Bricks _cssCustom. Child classes are preserved as _cssClasses.
 IMPORTANT: Always keep inline style="" as well for basic properties — it drives the HTML preview.
 
 CUSTOM CSS — ATTRIBUTE (for simple single-element overrides):
   Example: <div data-bricks="block" custom-css="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);" style="background: rgba(255,255,255,0.1); ...">
-  The custom-css content is automatically wrapped with %root% selector.
+  The custom-css content is automatically wrapped with #brxe-{id} selector.
   Note: You still need inline style="" for preview rendering.
 
 FONTAWESOME ICONS — supported libraries:
