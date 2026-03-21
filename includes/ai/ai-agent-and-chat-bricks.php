@@ -2130,9 +2130,9 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
                     
-                    // Map HTML ID (if not an auto-generated snn- id)
-                    const htmlId = element.getAttribute('id');
-                    if (htmlId && !htmlId.startsWith('snn-')) {
+// Map HTML ID (Keep snn- IDs so JS scripts can access them)
+                      const htmlId = element.getAttribute('id');
+                      if (htmlId) {
                         bricksElement.settings._cssId = htmlId;
                     }
 
