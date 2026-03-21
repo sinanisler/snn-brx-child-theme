@@ -1035,6 +1035,8 @@ STYLING RULES (CRITICAL — NO SHORTCUTS):
 - Font stacks with fallbacks: 'Playfair Display', serif OR 'Inter', sans-serif OR 'Lato', sans-serif
 - NO UTILITY CLASSES: Never use Tailwind, Bootstrap, or any utility class framework syntax
 - ALL LAYOUT via inline styles: display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 24px;
+- ⚠️ FLEX RULE FOR BLOCKS: ALWAYS write display:flex AND flex-direction AND any alignment/gap together on the SAME element. NEVER write align-items, justify-content, flex-direction, or gap on a block WITHOUT also writing display:flex on that same element. Missing display:flex makes ALL other flex properties invisible in Bricks.
+- ⚠️ NEVER use display:inline-flex — Bricks does not support it properly. Use display:flex with width:max-content or width:auto instead to shrink-wrap a block.
 - ALL GRID via inline styles: display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
 
 DESIGN QUALITY:
@@ -1229,15 +1231,19 @@ LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
 Centered section wrapper (ONLY ONE PER SECTION — direct child of section):
   <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px;">
 
-Flex column layout (use block) — ALWAYS specify flex-direction:
+Flex column layout (use block) — ALWAYS write display:flex + flex-direction + align/gap together:
   <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
 
-Flex row layout (use block) — ALWAYS specify flex-direction:
+Flex row layout (use block) — ALWAYS write display:flex + flex-direction + align/gap together:
   <div data-bricks="block" style="display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between;">
 
-Shrink-wrapped containers (badges, pills, tags):
-  <div data-bricks="block" style="display: inline-flex; align-items: center; gap: 8px; width: max-content; padding: 4px 12px; border-radius: 50px;">
-  (CRITICAL: Always explicitely set width: max-content or width: auto for small inline blocks so they don't stretch to 100%)
+⚠️ NEVER do this — missing display:flex makes direction/alignment silently ignored:
+  ❌ <div data-bricks="block" style="flex-direction: row; align-items: center; gap: 24px;">
+  ✅ <div data-bricks="block" style="display: flex; flex-direction: row; align-items: center; gap: 24px;">
+
+Shrink-wrapped containers (badges, pills, tags) — use flex + width:max-content, NEVER inline-flex:
+  <div data-bricks="block" style="display: flex; flex-direction: row; align-items: center; gap: 8px; width: max-content; padding: 4px 12px; border-radius: 50px;">
+  (CRITICAL: Always set width: max-content or width: auto so small blocks don't stretch to 100%. NEVER use display:inline-flex — Bricks does not support it.)
 
 Flex item with align-self (any element can have align-self):
   <div data-bricks="block" style="align-self: flex-start; flex-grow: 1;">
@@ -2168,8 +2174,28 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         bricksElement.settings._attributes = customAttributes;
                     }
 
-                    // Apply CSS default: flex-direction row for flex containers without explicit direction
-                    // This creates intended layout from HTML since Bricks Block natively defaults to column
+                    // ── Flex property inference for layout elements ──
+                    // If block/container/section has flex-specific properties (direction, justify-content,
+                    // align-items, align-content, flex-wrap) but no explicit _display, infer display:flex.
+                    // Bricks block defaults to display:block so these properties are silently ignored
+                    // unless _display is explicitly set. Container/section are always-flex in Bricks,
+                    // but setting _display here is harmless and keeps the JSON self-documenting.
+                    if (['block', 'container', 'section'].includes(bricksName)) {
+                        const flexTriggerProps = ['_direction', '_justifyContent', '_alignItems', '_alignContent', '_flexWrap'];
+                        const hasFlexTrigger = flexTriggerProps.some(p => bricksElement.settings[p]);
+                        if (hasFlexTrigger && !bricksElement.settings._display) {
+                            bricksElement.settings._display = 'flex';
+                        }
+                    }
+
+                    // Apply CSS default: flex-direction row for flex containers without explicit direction.
+                    // This creates the intended layout from HTML since Bricks Block natively defaults to column.
+                    // Also convert inline-flex → flex (Bricks does not support inline-flex properly).
+                    if (bricksElement.settings._display === 'inline-flex') {
+                        bricksElement.settings._display = 'flex';
+                        // Preserve shrink-wrap intent: default to max-content width if no width set
+                        if (!bricksElement.settings._width) bricksElement.settings._width = 'max-content';
+                    }
                     if (bricksElement.settings._display === 'flex' && !bricksElement.settings._direction) {
                         bricksElement.settings._direction = 'row';
                     }
@@ -2572,7 +2598,7 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     // ── Flex rows: stack to column on mobile ──
                     // ALL flex rows get stacked — not just large-gap ones.
                     // This matches real-world mobile design expectations.
-                    if ((settings._display === 'flex' || settings._display === 'inline-flex') && settings._direction === 'row') {
+                    if (settings._display === 'flex' && settings._direction === 'row') {
                         if (!settings['_direction:mobile_landscape'])
                             settings['_direction:mobile_landscape'] = 'column';
 
