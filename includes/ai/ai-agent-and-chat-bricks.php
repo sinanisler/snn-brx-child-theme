@@ -1058,6 +1058,7 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <div data-bricks="block"> — ALL inner layouts, grids, flex columns/rows, cards, boxes. This is the universal layout element.
   * <h1 data-bricks="heading"> through <h6 data-bricks="heading"> — headings (tag attr sets h1/h2/etc.)
   * <p data-bricks="text-basic"> — body text. Can contain inline HTML: <strong>, <em>, <a>, <br>
+  * <div data-bricks="text"> — Bricks Rich Text element. Use this when complex formatting, multiple paragraphs, or "Rich Text" is requested.
   * <a data-bricks="text-link"> — text link with optional icon. Set href for the link URL.
   * <button data-bricks="button"> — buttons/CTAs. Set href for link URL.
   * <img data-bricks="image"> — images (src, alt, object-fit, aspect-ratio all supported)
@@ -2222,8 +2223,9 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                             break;
 
                         case 'text':
-                            // Bricks "text" (rich text) element — wraps full innerHTML
-                            bricksElement.settings.text = '<p>' + element.innerHTML.trim() + '</p>';
+                            // Use innerHTML so all formatting (bold, links, multiple p tags) stays intact
+                            bricksElement.settings.text = element.innerHTML.trim();
+                            isLeaf = true; // Tell the compiler not to try and turn inner tags into separate Bricks elements
                             break;
 
                         case 'icon': {
