@@ -23,8 +23,8 @@ function snn_add_options_and_fields_tags_to_builder($tags) {
                 
                 $tags[] = [
                     'name'  => '{get_options_fields:' . $field_name . '}',
-                    'label' => 'SNN Field: ' . $field_label,
-                    'group' => 'SNN Options & Fields',
+                    'label' => 'SNN Option Field: ' . $field_label,
+                    'group' => 'SNN',
                 ];
             }
         }
