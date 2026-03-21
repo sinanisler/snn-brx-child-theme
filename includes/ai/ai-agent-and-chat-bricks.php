@@ -565,6 +565,24 @@ Fitness</button>
                         || el.tagName.charAt(0).toUpperCase() + el.tagName.slice(1).toLowerCase();
                 }
 
+                // Collect any <style data-style-id> elements immediately preceding a section element.
+                // These sibling style blocks are excluded from child.outerHTML, so we prepend them
+                // manually so the compiler's styleIdMap can find and apply them correctly.
+                function getPrecedingStyleBlocks(el) {
+                    let styles = '';
+                    let prev = el.previousElementSibling;
+                    while (prev) {
+                        const prevTag = prev.tagName.toLowerCase();
+                        if (prevTag === 'style' && prev.hasAttribute('data-style-id')) {
+                            styles = prev.outerHTML + styles;
+                            prev = prev.previousElementSibling;
+                        } else {
+                            break;
+                        }
+                    }
+                    return styles;
+                }
+
                 for (const child of Array.from(body.children)) {
                     const tag = child.tagName.toLowerCase();
                     if (tag === 'main') {
@@ -579,10 +597,10 @@ Fitness</button>
                             results.push({ label: getLabel(child), html: child.outerHTML });
                         }
                     } else if (semTags.has(tag)) {
-                        results.push({ label: getLabel(child), html: child.outerHTML });
+                        results.push({ label: getLabel(child), html: getPrecedingStyleBlocks(child) + child.outerHTML });
                     } else if (tag === 'div' && child.children.length > 0) {
                         // Capture meaningful top-level divs (e.g. ticker bars, announcement bands)
-                        results.push({ label: getLabel(child), html: child.outerHTML });
+                        results.push({ label: getLabel(child), html: getPrecedingStyleBlocks(child) + child.outerHTML });
                     }
                 }
                 if (!results.length) results.push({ label: 'Page Content', html });
@@ -728,41 +746,16 @@ Fitness</button>
                         fixed = true;
                     }
 
-                    // Fix gradient in _background.color.raw — convert to proper _gradient format
+                    // Fix gradient in _background.color.raw — convert to custom CSS
                     const bgRaw = el.settings._background?.color?.raw;
                     if (bgRaw && typeof bgRaw === 'string' && (bgRaw.includes('linear-gradient') || bgRaw.includes('radial-gradient') || bgRaw.includes('conic-gradient'))) {
-                        const isRadial     = bgRaw.includes('radial-gradient');
-                        const isConic      = bgRaw.includes('conic-gradient');
-                        const angleMatch   = bgRaw.match(/(\d+)(?:deg)/);
-                        const colorsRegex  = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|\b(?:red|blue|green|white|black|transparent|gray|grey|yellow|orange|purple|pink|cyan|magenta)\b)/gi;
-                        const colorMatches = [...bgRaw.matchAll(colorsRegex)].filter(m => !['linear','radial','conic','gradient','deg','at','top','bottom','left','right','circle','ellipse','closest-side','farthest-side','from'].includes(m[0].toLowerCase()));
-                        
-                        if (colorMatches.length >= 2) {
-                            const gradType = isRadial ? 'radial' : (isConic ? 'conic' : 'linear');
-                            const grad = {
-                                applyTo: 'overlay',
-                                gradientType: gradType,
-                                colors: colorMatches.map((m, i) => ({ id: genId(), color: { raw: m[0] }, stop: String(Math.round(i / (colorMatches.length - 1) * 100)) }))
-                            };
-
-                            if (gradType === 'linear' && angleMatch) {
-                                grad.angle = angleMatch[1];
-                            } else if (gradType === 'conic' && angleMatch) {
-                                grad.conicAngle = angleMatch[1];
-                            } else if (gradType === 'radial') {
-                                grad.radialShape = bgRaw.includes('circle') ? 'circle' : 'ellipse';
-                                if (bgRaw.includes('closest-side')) grad.radialSize = 'closest-side';
-                                else if (bgRaw.includes('farthest-side')) grad.radialSize = 'farthest-side';
-                                else if (bgRaw.includes('closest-corner')) grad.radialSize = 'closest-corner';
-                                else if (bgRaw.includes('farthest-corner')) grad.radialSize = 'farthest-corner';
-                            }
-
-                            el.settings._gradient = grad;
-                            delete el.settings._background.color;
-                            if (!Object.keys(el.settings._background).length) delete el.settings._background;
-                            errors.push('Converted gradient in _background.color.raw → _gradient for ' + el.id);
-                            fixed = true;
-                        }
+                        let cssCustom = el.settings._cssCustom || '';
+                        cssCustom = `#brxe-${el.id} { background: ${bgRaw}; } ${cssCustom}`.trim();
+                        el.settings._cssCustom = cssCustom;
+                        delete el.settings._background.color;
+                        if (!Object.keys(el.settings._background).length) delete el.settings._background;
+                        errors.push('Converted gradient in _background.color.raw → _cssCustom for ' + el.id);
+                        fixed = true;
                     }
                 });
 
@@ -1623,6 +1616,17 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 // Build style-id map from <style data-style-id="..."> tags.
                 // These link a CSS block to an element by its HTML id attribute.
                 const styleIdMap = {};
+                
+                // 1. Get from full preview if available (resolves issue where sibling <style> tags get stripped when splitting sections)
+                if (typeof ChatState !== 'undefined' && ChatState.currentHTMLPreview) {
+                    const fullDoc = new DOMParser().parseFromString(ChatState.currentHTMLPreview, 'text/html');
+                    fullDoc.querySelectorAll('style[data-style-id]').forEach(styleEl => {
+                        const sid = styleEl.getAttribute('data-style-id');
+                        if (sid) styleIdMap[sid] = styleEl.textContent.trim();
+                    });
+                }
+                
+                // 2. Also get from the current chunk (doc)
                 doc.querySelectorAll('style[data-style-id]').forEach(styleEl => {
                     const sid = styleEl.getAttribute('data-style-id');
                     if (sid) styleIdMap[sid] = styleEl.textContent.trim();
@@ -1807,51 +1811,7 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     return { radius: { top: tl, right: tr, bottom: br, left: bl } };
                 }
                 
-                // Parse gradient from CSS
-                function parseGradient(value) {
-                    if (!value || (!value.includes('linear-gradient') && !value.includes('radial-gradient') && !value.includes('conic-gradient'))) {
-                        return null;
-                    }
-                    if (value.includes('repeating-')) {
-                        return null; // Fallback to custom CSS for repeating gradients
-                    }
-
-                    let gradientType = 'linear';
-                    if (value.includes('radial-gradient')) gradientType = 'radial';
-                    else if (value.includes('conic-gradient')) gradientType = 'conic';
-
-                    const angleMatch = value.match(/(\d+)(?:deg)/);
-                    const angle = angleMatch ? angleMatch[1] : '';
-
-                    const colorsRegex = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|\b(?:red|blue|green|white|black|transparent|gray|grey|yellow|orange|purple|pink|cyan|magenta)\b)/gi;
-                    const colorMatches = [...value.matchAll(colorsRegex)].filter(m => !['linear','radial','conic','gradient','deg','at','top','bottom','left','right','circle','ellipse','closest-side','farthest-side','from'].includes(m[0].toLowerCase()));
-                    
-                    if (colorMatches.length < 2) return null;
-                    
-                    const grad = {
-                        applyTo: 'overlay',
-                        gradientType: gradientType,
-                        colors: colorMatches.map((m, i) => ({
-                            id: genId(),
-                            color: { raw: m[0] },
-                            stop: String(Math.round(i / (colorMatches.length - 1) * 100))
-                        }))
-                    };
-
-                    if (gradientType === 'linear' && angle) {
-                        grad.angle = angle;
-                    } else if (gradientType === 'conic' && angle) {
-                        grad.conicAngle = angle;
-                    } else if (gradientType === 'radial') {
-                        grad.radialShape = value.includes('circle') ? 'circle' : 'ellipse';
-                        if (value.includes('closest-side')) grad.radialSize = 'closest-side';
-                        else if (value.includes('farthest-side')) grad.radialSize = 'farthest-side';
-                        else if (value.includes('closest-corner')) grad.radialSize = 'closest-corner';
-                        else if (value.includes('farthest-corner')) grad.radialSize = 'farthest-corner';
-                    }
-
-                    return grad;
-                }
+                // Parse gradient from CSS removed: gradients now placed in custom CSS for reliability.
                 
                 /**
                  * Convert CSS styles object to Bricks settings object
@@ -1937,12 +1897,8 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                 
                             case 'backgroundColor':
                                 if (value.includes('gradient')) {
-                                    const grad = parseGradient(value);
-                                    if (grad) settings._gradient = grad;
-                                    else {
-                                        if (!settings._cssCustom) settings._cssCustom = '';
-                                        settings._cssCustom += ` background-color: ${value};`;
-                                    }
+                                    if (!settings._cssCustom) settings._cssCustom = '';
+                                    settings._cssCustom += ` background: ${value};`;
                                 } else {
                                     if (!settings._background) settings._background = {};
                                     settings._background.color = { raw: value };
@@ -1952,12 +1908,8 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                             case 'backgroundHandler':
                                 // Parse complex background property
                                 if (value.includes('linear-gradient') || value.includes('radial-gradient') || value.includes('conic-gradient')) {
-                                    const grad = parseGradient(value);
-                                    if (grad) settings._gradient = grad;
-                                    else {
-                                        if (!settings._cssCustom) settings._cssCustom = '';
-                                        settings._cssCustom += ` background: ${value};`;
-                                    }
+                                    if (!settings._cssCustom) settings._cssCustom = '';
+                                    settings._cssCustom += ` background: ${value};`;
                                 } else if (value.includes('url(')) {
                                     // Background image
                                     const urlMatch = value.match(/url\(['"]?([^'"]+)['"]?\)/);
@@ -2000,17 +1952,8 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                     if (!settings._background) settings._background = {};
                                     settings._background.image = { url: urlMatchImg[1] };
                                 } else {
-                                    if (value.includes('gradient')) {
-                                        const grad = parseGradient(value);
-                                        if (grad) settings._gradient = grad;
-                                        else {
-                                            if (!settings._cssCustom) settings._cssCustom = '';
-                                            settings._cssCustom += ` background-image: ${value};`;
-                                        }
-                                    } else {
-                                        if (!settings._cssCustom) settings._cssCustom = '';
-                                        settings._cssCustom += ` background-image: ${value};`;
-                                    }
+                                    if (!settings._cssCustom) settings._cssCustom = '';
+                                    settings._cssCustom += ` background-image: ${value};`;
                                 }
                                 break;
                                 
