@@ -113,6 +113,7 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/day-count-since-the-current-
 require_once SNN_PATH . 'includes/dynamic-data-tags/current-loop-item-count.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/total-video-duration.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/single-video-duration.php';
+require_once SNN_PATH . 'includes/dynamic-data-tags/options-and-fields.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/average-comment-rating.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/comment-count-current-user.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/child-post-count.php';
