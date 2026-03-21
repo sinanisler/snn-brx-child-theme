@@ -730,17 +730,34 @@ Fitness</button>
 
                     // Fix gradient in _background.color.raw — convert to proper _gradient format
                     const bgRaw = el.settings._background?.color?.raw;
-                    if (bgRaw && typeof bgRaw === 'string' && (bgRaw.includes('linear-gradient') || bgRaw.includes('radial-gradient'))) {
-                        const isRadial     = bgRaw.startsWith('radial');
-                        const angleMatch   = bgRaw.match(/(\d+)deg/);
-                        const colorMatches = [...bgRaw.matchAll(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/g)];
+                    if (bgRaw && typeof bgRaw === 'string' && (bgRaw.includes('linear-gradient') || bgRaw.includes('radial-gradient') || bgRaw.includes('conic-gradient'))) {
+                        const isRadial     = bgRaw.includes('radial-gradient');
+                        const isConic      = bgRaw.includes('conic-gradient');
+                        const angleMatch   = bgRaw.match(/(\d+)(?:deg)/);
+                        const colorsRegex  = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|\b(?:red|blue|green|white|black|transparent|gray|grey|yellow|orange|purple|pink|cyan|magenta)\b)/gi;
+                        const colorMatches = [...bgRaw.matchAll(colorsRegex)].filter(m => !['linear','radial','conic','gradient','deg','at','top','bottom','left','right','circle','ellipse','closest-side','farthest-side','from'].includes(m[0].toLowerCase()));
+                        
                         if (colorMatches.length >= 2) {
-                            el.settings._gradient = {
+                            const gradType = isRadial ? 'radial' : (isConic ? 'conic' : 'linear');
+                            const grad = {
                                 applyTo: 'overlay',
-                                gradientType: isRadial ? 'radial' : 'linear',
-                                ...((!isRadial && angleMatch) ? { angle: angleMatch[1] } : {}),
+                                gradientType: gradType,
                                 colors: colorMatches.map((m, i) => ({ id: genId(), color: { raw: m[0] }, stop: String(Math.round(i / (colorMatches.length - 1) * 100)) }))
                             };
+
+                            if (gradType === 'linear' && angleMatch) {
+                                grad.angle = angleMatch[1];
+                            } else if (gradType === 'conic' && angleMatch) {
+                                grad.conicAngle = angleMatch[1];
+                            } else if (gradType === 'radial') {
+                                grad.radialShape = bgRaw.includes('circle') ? 'circle' : 'ellipse';
+                                if (bgRaw.includes('closest-side')) grad.radialSize = 'closest-side';
+                                else if (bgRaw.includes('farthest-side')) grad.radialSize = 'farthest-side';
+                                else if (bgRaw.includes('closest-corner')) grad.radialSize = 'closest-corner';
+                                else if (bgRaw.includes('farthest-corner')) grad.radialSize = 'farthest-corner';
+                            }
+
+                            el.settings._gradient = grad;
                             delete el.settings._background.color;
                             if (!Object.keys(el.settings._background).length) delete el.settings._background;
                             errors.push('Converted gradient in _background.color.raw → _gradient for ' + el.id);
@@ -1792,29 +1809,48 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 
                 // Parse gradient from CSS
                 function parseGradient(value) {
-                    if (!value || (!value.includes('linear-gradient') && !value.includes('radial-gradient'))) {
+                    if (!value || (!value.includes('linear-gradient') && !value.includes('radial-gradient') && !value.includes('conic-gradient'))) {
                         return null;
                     }
                     if (value.includes('repeating-')) {
                         return null; // Fallback to custom CSS for repeating gradients
                     }
 
-                    const isRadial = value.startsWith('radial');
-                    const angleMatch = value.match(/(\d+)deg/);
-                    const colorMatches = [...value.matchAll(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/g)];
+                    let gradientType = 'linear';
+                    if (value.includes('radial-gradient')) gradientType = 'radial';
+                    else if (value.includes('conic-gradient')) gradientType = 'conic';
+
+                    const angleMatch = value.match(/(\d+)(?:deg)/);
+                    const angle = angleMatch ? angleMatch[1] : '';
+
+                    const colorsRegex = /(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|\b(?:red|blue|green|white|black|transparent|gray|grey|yellow|orange|purple|pink|cyan|magenta)\b)/gi;
+                    const colorMatches = [...value.matchAll(colorsRegex)].filter(m => !['linear','radial','conic','gradient','deg','at','top','bottom','left','right','circle','ellipse','closest-side','farthest-side','from'].includes(m[0].toLowerCase()));
                     
                     if (colorMatches.length < 2) return null;
                     
-                    return {
+                    const grad = {
                         applyTo: 'overlay',
-                        gradientType: isRadial ? 'radial' : 'linear',
-                        ...((!isRadial && angleMatch) ? { angle: angleMatch[1] } : {}),
+                        gradientType: gradientType,
                         colors: colorMatches.map((m, i) => ({
                             id: genId(),
                             color: { raw: m[0] },
                             stop: String(Math.round(i / (colorMatches.length - 1) * 100))
                         }))
                     };
+
+                    if (gradientType === 'linear' && angle) {
+                        grad.angle = angle;
+                    } else if (gradientType === 'conic' && angle) {
+                        grad.conicAngle = angle;
+                    } else if (gradientType === 'radial') {
+                        grad.radialShape = value.includes('circle') ? 'circle' : 'ellipse';
+                        if (value.includes('closest-side')) grad.radialSize = 'closest-side';
+                        else if (value.includes('farthest-side')) grad.radialSize = 'farthest-side';
+                        else if (value.includes('closest-corner')) grad.radialSize = 'closest-corner';
+                        else if (value.includes('farthest-corner')) grad.radialSize = 'farthest-corner';
+                    }
+
+                    return grad;
                 }
                 
                 /**
@@ -1915,19 +1951,42 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                 
                             case 'backgroundHandler':
                                 // Parse complex background property
-                                if (value.includes('linear-gradient') || value.includes('radial-gradient')) {
+                                if (value.includes('linear-gradient') || value.includes('radial-gradient') || value.includes('conic-gradient')) {
                                     const grad = parseGradient(value);
                                     if (grad) settings._gradient = grad;
                                     else {
                                         if (!settings._cssCustom) settings._cssCustom = '';
                                         settings._cssCustom += ` background: ${value};`;
                                     }
-                                } else if (value.startsWith('url(')) {
+                                } else if (value.includes('url(')) {
                                     // Background image
                                     const urlMatch = value.match(/url\(['"]?([^'"]+)['"]?\)/);
                                     if (urlMatch) {
                                         if (!settings._background) settings._background = {};
                                         settings._background.image = { url: urlMatch[1] };
+                                        
+                                        // Shorthand simple parsing
+                                        if (value.includes('no-repeat')) settings._background.repeat = 'no-repeat';
+                                        else if (value.includes('repeat-x')) settings._background.repeat = 'repeat-x';
+                                        else if (value.includes('repeat-y')) settings._background.repeat = 'repeat-y';
+                                        
+                                        if (value.includes('fixed')) settings._background.attachment = 'fixed';
+                                        
+                                        if (value.includes('cover')) {
+                                            settings._background.size = 'cover';
+                                        } else if (value.includes('contain')) {
+                                            settings._background.size = 'contain';
+                                        }
+                                        
+                                        if (value.includes('center')) {
+                                            settings._background.position = 'center center';
+                                        }
+
+                                        // extract any color before/after url
+                                        const colorMatch = value.replace(/url\([^)]+\)/, '').replace(/(no-repeat|repeat-[xy]|fixed|cover|contain|center|center center|center top|center bottom|left|right|top|bottom)/g, '').trim();
+                                        if (colorMatch && colorMatch !== '') {
+                                            settings._background.color = { raw: colorMatch };
+                                        }
                                     }
                                 } else {
                                     if (!settings._background) settings._background = {};
@@ -1940,13 +1999,6 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                                 if (urlMatchImg) {
                                     if (!settings._background) settings._background = {};
                                     settings._background.image = { url: urlMatchImg[1] };
-                                    // Check for size and position in cssStyles
-                                    if (cssStyles['background-size']) {
-                                        settings._background.image.size = cssStyles['background-size'];
-                                    }
-                                    if (cssStyles['background-position']) {
-                                        settings._background.image.position = cssStyles['background-position'];
-                                    }
                                 } else {
                                     if (value.includes('gradient')) {
                                         const grad = parseGradient(value);
