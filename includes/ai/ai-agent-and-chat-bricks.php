@@ -279,7 +279,7 @@ Fitness</button>
 
                 <!-- Support Link -->
                 <div class="snn-bricks-chat-support">
-                    <a href="https://sinanisler.com/github-support" target="_blank" data-balloon="If SNN-BRX saving you time and money consider supporting the project monthly." data-balloon-length="medium">Consider Supporting SNN-BRX ❤</a>
+                    <a href="https://sinanisler.com/github-support" target="_blank" data-balloon="If SNN-BRX saving you time and money consider supporting the project monthly." data-balloon-length="large">Consider Supporting SNN-BRX ❤</a>
                 </div>
 
                 <?php endif; ?>
@@ -502,8 +502,21 @@ Fitness</button>
                         return;
                     }
 
-                    const html     = extractHTMLFromResponse(response);
-                    const textPart = response.replace(/```html[\s\S]*?```/g, '').trim();
+                    const html = extractHTMLFromResponse(response);
+                    let textPart = response;
+                    
+                    if (html) {
+                        // If we have HTML, remove it from the text payload whether it's wrapped in a codeblock or not
+                        if (response.match(/```(?:html)?\n?[\s\S]*?\n?```/i)) {
+                            textPart = response.replace(/```(?:html)?[\s\S]*?```/gi, '').trim();
+                        } else {
+                            // Raw HTML fallback used, remove the HTML string from text
+                            const firstTagIndex = response.search(/<(style|section|div|header|main|nav)/i);
+                            if (firstTagIndex !== -1) {
+                                textPart = response.substring(0, firstTagIndex).trim();
+                            }
+                        }
+                    }
 
                     if (html) {
                         ChatState.currentHTMLPreview = html;
@@ -983,6 +996,7 @@ When the user requests a design, layout, page or section — generate a complete
 OUTPUT FORMAT:
 1. Write 1–2 sentences describing the design approach and color palette
 2. Output the complete HTML in a \`\`\`html code block
+3. IMPORTANT: YOU MUST ENCLOSE THE HTML WITHIN \`\`\`html AND \`\`\`! NEVER OUTPUT RAW HTML OUTSIDE OF THE MARKDOWN BLOCK.
 
 🚨 CRITICAL STYLING REQUIREMENT — READ THIS FIRST:
 For animations, keyframes, webkit prefixes, pseudo-elements, or ANY advanced CSS:
@@ -2602,8 +2616,18 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
             }
 
             function extractHTMLFromResponse(resp) {
-                const m = resp.match(/```html\n?([\s\S]*?)\n?```/);
-                return m ? m[1].trim() : null;
+                const m = resp.match(/```(?:html)?\n?([\s\S]*?)\n?```/i);
+                if (m) return m[1].trim();
+                
+                const fallbackMatch = resp.match(/(?:<style[^>]*>[\s\S]*?<\/style>\s*)?(?:<section[\s\S]*|<\/div>|<div[\s\S]*data-bricks[\s\S]*)/i);
+                if (fallbackMatch && (resp.includes('data-bricks') || resp.includes('<section') || resp.includes('style='))) {
+                    const firstTagIndex = resp.search(/<(style|section|div|header|main|nav)/i);
+                    if (firstTagIndex !== -1) {
+                        return resp.substring(firstTagIndex).trim();
+                    }
+                }
+                
+                return null;
             }
 
             function extractBricksJSONFromResponse(resp) {
@@ -3128,7 +3152,7 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
 .snn-approve-build-btn:hover { background: #15803d; }
 /* Support link */
 .snn-bricks-chat-support { padding: 2px 12px; background: #f9f9f9; border-top: 1px solid #e0e0e0; text-align: center; }
-.snn-bricks-chat-support a { font-size: 14px; color: #666; text-decoration: none; transition: color 0.2s; }
+.snn-bricks-chat-support a { font-size: 14px; font-weight:600; color: #666; text-decoration: none; transition: color 0.2s; }
 .snn-bricks-chat-support a:hover { color: #820808; }
         ';
     }
