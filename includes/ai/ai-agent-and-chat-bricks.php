@@ -1012,14 +1012,14 @@ OUTPUT FORMAT:
 
 🚨 CRITICAL STYLING REQUIREMENT — READ THIS FIRST:
 For animations, keyframes, webkit prefixes, pseudo-elements, or ANY advanced CSS:
-  ✅ CORRECT: <style data-style-id="snn-mario"> @keyframes jump {...} #snn-mario { animation: jump 2s; } </style>
-               <div id="snn-mario" data-bricks="block">
-  ❌ WRONG:   <style data-style-id="snn-game"> .mario { animation: jump 2s; } </style>  <!-- NO matching id! -->
+  ✅ CORRECT: <style data-style-id="brxe-abcdef"> @keyframes jump {...} #brxe-abcdef { animation: jump 2s; } </style>
+               <div id="brxe-abcdef" data-bricks="block">
+  ❌ WRONG:   <style data-style-id="brxe-xyzijk"> .mario { animation: jump 2s; } </style>  <!-- NO matching id! -->
                <div class="mario">  <!-- NO id attribute! -->
 
 RULE: EVERY element with advanced CSS MUST have:
-  1. A unique id="snn-XXXX" attribute on the element
-  2. A matching <style data-style-id="snn-XXXX"> block using #snn-XXXX selector
+  1. A unique id="brxe-XXXXXX" attribute (brxe- prefix + 6 random lowercase letters, e.g. brxe-abcdef)
+  2. A matching <style data-style-id="brxe-XXXXXX"> block using #brxe-XXXXXX selector
   3. If multiple elements need animation, create SEPARATE style blocks for EACH element
 
 STYLING RULES (CRITICAL — NO SHORTCUTS):
@@ -1027,7 +1027,7 @@ STYLING RULES (CRITICAL — NO SHORTCUTS):
 - Example: <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px; margin: 0 0 20px 0;">
 - Include Google Fonts ONLY: <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
 - ⚠️ NEVER put animations, keyframes, webkit prefixes, or element-specific CSS in the global <style> tag
-- ⚠️ Use <style data-style-id="snn-XXXX"> blocks for advanced CSS (see CUSTOM CSS section below)
+- ⚠️ Use <style data-style-id="brxe-XXXXXX"> blocks for advanced CSS (see CUSTOM CSS section below)
 - Specify ALL visual properties: font-family, font-size, font-weight, color, line-height, letter-spacing, text-align, padding, margin, background, background-color, border, border-radius, box-shadow, opacity, display, flex properties, grid properties, width, height, max-width, object-fit, position, top, left, right, bottom, z-index, transform, transition
 - Use standard CSS property names only: padding: 40px 20px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px
 - Colors MUST be hex codes: #111827, #ffffff, #2563eb, rgba(0,0,0,0.1) for transparency
@@ -1082,78 +1082,78 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
 
 CUSTOM CSS — STYLE TAGS (MANDATORY for advanced CSS):
-⚠️ CRITICAL: For ANY CSS that inline style="" cannot express, you MUST use <style data-style-id="snn-XXXX"> blocks.
+⚠️ CRITICAL: For ANY CSS that inline style="" cannot express, you MUST use <style data-style-id="brxe-XXXXXX"> blocks.
 This includes: -webkit- prefixes, text-stroke, clip-path, filters, backdrop-filter, animations, keyframes,
 pseudo-elements (:before/:after/:hover/:focus), complex transforms, gradients with clip, mask properties.
 
 🚫 FORBIDDEN PATTERNS (will break compilation):
-  ❌ WRONG: <style data-style-id="snn-styles"> .my-class { ... } </style>  <!-- orphaned style block, no matching id -->
+  ❌ WRONG: <style data-style-id="brxe-abcdef"> .my-class { ... } </style>  <!-- orphaned style block, no matching id -->
   ❌ WRONG: <style> .game-world { animation: ... } </style>  <!-- global style tag for element-specific CSS -->
   ❌ WRONG: <div class="game-world"> <!-- element with custom CSS but NO id -->
 
 ✅ MANDATORY PATTERN — EVERY element needing custom CSS MUST have a matching id:
-  1. Give the element a unique id: id="snn-XXXX" (descriptive: snn-hero-title, snn-card-1, snn-game-world)
-  2. Write <style data-style-id="snn-XXXX"> IMMEDIATELY BEFORE the element
-  3. Use #snn-XXXX selector (converted to %root% in Bricks)
+  1. Give the element a unique id: id="brxe-XXXXXX" (brxe- prefix + 6 random lowercase letters, e.g. brxe-abcdef, brxe-mnopqr)
+  2. Write <style data-style-id="brxe-XXXXXX"> IMMEDIATELY BEFORE the element
+  3. Use #brxe-XXXXXX selector (converted to %root% in Bricks)
   4. Keep inline style="" for standard properties
 
   Example 1 — Single element with animation:
-    <style data-style-id="snn-hero-section">
+    <style data-style-id="brxe-fadinx">
       @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
-      #snn-hero-section { animation: fadeIn 1s ease-out; }
+      #brxe-fadinx { animation: fadeIn 1s ease-out; }
     </style>
-    <section id="snn-hero-section" data-bricks="section" style="background: #000; padding: 100px 0;">
+    <section id="brxe-fadinx" data-bricks="section" style="background: #000; padding: 100px 0;">
 
   Example 2 — Multiple animated elements (EACH gets its own style block):
-    <style data-style-id="snn-game-world">
+    <style data-style-id="brxe-wrldsc">
       @keyframes worldScroll { from { background-position: 0 0; } to { background-position: -1000px 0; } }
-      #snn-game-world { animation: worldScroll 10s linear infinite; }
+      #brxe-wrldsc { animation: worldScroll 10s linear infinite; }
     </style>
-    <div id="snn-game-world" data-bricks="block" style="position: absolute; width: 200%; height: 100%;">
+    <div id="brxe-wrldsc" data-bricks="block" style="position: absolute; width: 200%; height: 100%;">
 
-      <style data-style-id="snn-ground">
-        #snn-ground { background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 40px, #b8941f 40px, #b8941f 80px); }
+      <style data-style-id="brxe-grndel">
+        #brxe-grndel { background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 40px, #b8941f 40px, #b8941f 80px); }
       </style>
-      <div id="snn-ground" data-bricks="block" style="position: absolute; bottom: 0; width: 100%; height: 60px;">
+      <div id="brxe-grndel" data-bricks="block" style="position: absolute; bottom: 0; width: 100%; height: 60px;">
 
-      <style data-style-id="snn-mario-char">
+      <style data-style-id="brxe-mrioxx">
         @keyframes marioJump { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-120px); } }
-        #snn-mario-char { animation: marioJump 3s infinite ease-in-out; }
-        #snn-mario-char::before { content: ""; position: absolute; top: 10px; right: 8px; width: 8px; height: 8px; background: white; }
+        #brxe-mrioxx { animation: marioJump 3s infinite ease-in-out; }
+        #brxe-mrioxx::before { content: ""; position: absolute; top: 10px; right: 8px; width: 8px; height: 8px; background: white; }
       </style>
-      <div id="snn-mario-char" data-bricks="block" style="position: absolute; bottom: 60px; left: 100px; width: 40px; height: 60px; background: #E63946;">
+      <div id="brxe-mrioxx" data-bricks="block" style="position: absolute; bottom: 60px; left: 100px; width: 40px; height: 60px; background: #E63946;">
 
-      <style data-style-id="snn-coin">
+      <style data-style-id="brxe-coinsp">
         @keyframes coinSpin { 0% { transform: scaleX(1); } 50% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
-        #snn-coin { animation: coinSpin 1s infinite; }
+        #brxe-coinsp { animation: coinSpin 1s infinite; }
       </style>
-      <div id="snn-coin" data-bricks="block" style="position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%;">
+      <div id="brxe-coinsp" data-bricks="block" style="position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%;">
     </div>
 
   Example 3 — Parent targeting child classes (child classes, parent has id + style):
-    <style data-style-id="snn-product-grid">
-      #snn-product-grid .product-featured { border: 2px solid #d4af37; transform: scale(1.05); }
-      #snn-product-grid .product-card:hover { background: #1a1a1a; color: #fff; transform: translateY(-4px); }
+    <style data-style-id="brxe-prdgrd">
+      #brxe-prdgrd .product-featured { border: 2px solid #d4af37; transform: scale(1.05); }
+      #brxe-prdgrd .product-card:hover { background: #1a1a1a; color: #fff; transform: translateY(-4px); }
     </style>
-    <div id="snn-product-grid" data-bricks="block" style="display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;">
+    <div id="brxe-prdgrd" data-bricks="block" style="display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;">
       <div data-bricks="block" class="product-featured" style="padding: 24px; border-radius: 12px; background: #fff;">...</div>
       <div data-bricks="block" class="product-card" style="padding: 24px; border-radius: 12px; background: #f5f5f5;">...</div>
     </div>
 
   Example 4 — Text stroke / webkit effects:
-    <style data-style-id="snn-luxury-title">
-      #snn-luxury-title { -webkit-text-stroke: 2px #d4af37; color: transparent; }
+    <style data-style-id="brxe-lxtitl">
+      #brxe-lxtitl { -webkit-text-stroke: 2px #d4af37; color: transparent; }
     </style>
-    <h1 id="snn-luxury-title" data-bricks="heading" style="font-size: 72px; font-weight: 900;">Luxury</h1>
+    <h1 id="brxe-lxtitl" data-bricks="heading" style="font-size: 72px; font-weight: 900;">Luxury</h1>
 
   Example 5 — Backdrop filters:
-    <style data-style-id="snn-glass-card">
-      #snn-glass-card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    <style data-style-id="brxe-glscrd">
+      #brxe-glscrd { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     </style>
-    <div id="snn-glass-card" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px;">
+    <div id="brxe-glscrd" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px;">
 
 🔑 KEY RULES:
-  1. EVERY <style data-style-id="X"> MUST have a matching element with id="X"
+  1. EVERY <style data-style-id="brxe-XXXXXX"> MUST have a matching element with id="brxe-XXXXXX"
   2. NEVER use class selectors at root level (\`.myclass\`) — always use #id or #id .child
   3. For multiple elements with similar effects, create SEPARATE style blocks for EACH element
   4. Parent-child pattern: parent gets id + style block with #parent-id .child-class selectors
@@ -1164,7 +1164,7 @@ WHEN TO USE <style data-style-id> vs inline style="":
 ✓ Use <style data-style-id> for: -webkit-* props, text-stroke, animations, @keyframes, pseudo-elements (::before/::after),
   pseudo-classes (:hover/:focus/:active), backdrop-filter, clip-path, mask, filter, complex transforms
 
-The compiler converts #snn-XXXX → #brxe-{id} in Bricks _cssCustom. Child classes are preserved as _cssClasses.
+The compiler maps the brxe-XXXXXX HTML id directly to the Bricks element id, and converts #brxe-XXXXXX → %root% in _cssCustom. Child classes are preserved as _cssClasses.
 IMPORTANT: Always keep inline style="" as well for basic properties — it drives the HTML preview.
 
 CUSTOM CSS — ATTRIBUTE (for simple single-element overrides):
@@ -1307,28 +1307,28 @@ EXAMPLE 2-COLUMN GRID HERO (section > container > block[column]):
 </section>
 
 EXAMPLE 3-ADVANCED EFFECTS (with <style data-style-id> for special effects):
-⚠️ NOTE: EACH element with custom CSS has its OWN <style data-style-id> block with matching id
+⚠️ NOTE: EACH element with custom CSS has its OWN <style data-style-id="brxe-XXXXXX"> block with matching id="brxe-XXXXXX"
 <style>@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap');</style>
 
-<style data-style-id="snn-hero-title">
+<style data-style-id="brxe-htitlx">
   @keyframes textGlow { 0%, 100% { text-shadow: 0 0 20px rgba(230, 57, 70, 0.5); } 50% { text-shadow: 0 0 40px rgba(230, 57, 70, 0.8), 0 0 10px #fff; } }
-  #snn-hero-title { animation: textGlow 3s infinite; }
+  #brxe-htitlx { animation: textGlow 3s infinite; }
 </style>
 
-<style data-style-id="snn-design-text">
-  #snn-design-text { color: transparent; -webkit-text-stroke: 1px #ffffff; }
+<style data-style-id="brxe-dsgntx">
+  #brxe-dsgntx { color: transparent; -webkit-text-stroke: 1px #ffffff; }
 </style>
 
-<style data-style-id="snn-glass-panel">
-  #snn-glass-panel { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+<style data-style-id="brxe-glspnl">
+  #brxe-glspnl { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 </style>
 
 <section data-bricks="section" style="background: #0a0a0a; padding: 120px 0; position: relative;">
   <div data-bricks="container" style="max-width: 1300px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
-      <h1 id="snn-hero-title" data-bricks="heading" style="font-family: 'Syncopate', sans-serif; font-size: 82px; font-weight: 700; color: #ffffff; line-height: 0.9; margin: 0; text-transform: uppercase;">
-        Next Gen<br><span id="snn-design-text">Design</span>
+      <h1 id="brxe-htitlx" data-bricks="heading" style="font-family: 'Syncopate', sans-serif; font-size: 82px; font-weight: 700; color: #ffffff; line-height: 0.9; margin: 0; text-transform: uppercase;">
+        Next Gen<br><span id="brxe-dsgntx">Design</span>
       </h1>
-      <div id="snn-glass-panel" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2);">
+      <div id="brxe-glspnl" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2);">
         <p data-bricks="text-basic" style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: #ffffff; margin: 0;">Glass morphism panel with blur effect</p>
       </div>
   </div>
@@ -1337,34 +1337,34 @@ EXAMPLE 3-ADVANCED EFFECTS (with <style data-style-id> for special effects):
 EXAMPLE 4-GAME/ANIMATION SCENE (multiple animated elements — EACH gets its own style block):
 <style>@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');</style>
 
-<style data-style-id="snn-game-world">
+<style data-style-id="brxe-gmwrld">
   @keyframes worldScroll { from { background-position: 0 0; } to { background-position: -1000px 0; } }
-  #snn-game-world { position: absolute; width: 200%; height: 100%; animation: worldScroll 10s linear infinite; }
+  #brxe-gmwrld { position: absolute; width: 200%; height: 100%; animation: worldScroll 10s linear infinite; }
 </style>
 
-<style data-style-id="snn-ground">
-  #snn-ground { position: absolute; bottom: 0; width: 100%; height: 60px; background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 40px, #b8941f 40px, #b8941f 80px); border-top: 4px solid #fff; }
+<style data-style-id="brxe-grndlv">
+  #brxe-grndlv { position: absolute; bottom: 0; width: 100%; height: 60px; background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 40px, #b8941f 40px, #b8941f 80px); border-top: 4px solid #fff; }
 </style>
 
-<style data-style-id="snn-mario-char">
+<style data-style-id="brxe-mrioch">
   @keyframes marioJump { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-120px); } }
-  #snn-mario-char { position: absolute; bottom: 60px; left: 100px; width: 40px; height: 60px; background: #E63946; border: 3px solid #fff; animation: marioJump 3s infinite ease-in-out; z-index: 100; }
-  #snn-mario-char::before { content: ""; position: absolute; top: 10px; right: 8px; width: 8px; height: 8px; background: white; }
+  #brxe-mrioch { position: absolute; bottom: 60px; left: 100px; width: 40px; height: 60px; background: #E63946; border: 3px solid #fff; animation: marioJump 3s infinite ease-in-out; z-index: 100; }
+  #brxe-mrioch::before { content: ""; position: absolute; top: 10px; right: 8px; width: 8px; height: 8px; background: white; }
 </style>
 
-<style data-style-id="snn-coin">
+<style data-style-id="brxe-coinsn">
   @keyframes coinSpin { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0); } }
-  #snn-coin { position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%; border: 2px solid #fff; animation: coinSpin 1s infinite; }
+  #brxe-coinsn { position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%; border: 2px solid #fff; animation: coinSpin 1s infinite; }
 </style>
 
 <section data-bricks="section" style="background: #0a0a0a; padding: 80px 0;">
   <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
     <div data-bricks="block" style="position: relative; height: 500px; background: #1a1a1a; border: 4px solid #333; border-radius: 24px; overflow: hidden;">
       
-      <div id="snn-game-world" data-bricks="block">
-        <div id="snn-ground" data-bricks="block"></div>
-        <div id="snn-coin" data-bricks="block"></div>
-        <div id="snn-mario-char" data-bricks="block"></div>
+      <div id="brxe-gmwrld" data-bricks="block">
+        <div id="brxe-grndlv" data-bricks="block"></div>
+        <div id="brxe-coinsn" data-bricks="block"></div>
+        <div id="brxe-mrioch" data-bricks="block"></div>
       </div>
       
       <p data-bricks="text-basic" style="position: absolute; top: 20px; left: 20px; font-family: 'Press Start 2P', cursive; color: #FFD700; font-size: 12px; z-index: 110; margin: 0;">SCORE: 004200</p>
@@ -2110,8 +2110,16 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         bricksName = tagMap[tagName] || 'block';
                     }
                     
-                    // Generate element object
-                    const id = genId();
+                    // Generate element ID: reuse brxe-XXXXXX HTML id if present, otherwise generate new
+                    const htmlId = element.getAttribute('id');
+                    let id;
+                    if (htmlId && /^brxe-[a-z]{6}$/.test(htmlId)) {
+                        id = htmlId.slice(5); // extract the 6-letter Bricks ID
+                        usedIds.add(id);
+                        ChatState.globalUsedIds.add(id);
+                    } else {
+                        id = genId();
+                    }
                     const bricksElement = {
                         id: id,
                         name: bricksName,
@@ -2129,12 +2137,7 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         const bricksSettings = stylesToBricksSettings(cssStyles);
                         Object.assign(bricksElement.settings, bricksSettings);
                     }
-                    
-// Map HTML ID (Keep snn- IDs so JS scripts can access them)
-                      const htmlId = element.getAttribute('id');
-                      if (htmlId) {
-                        bricksElement.settings._cssId = htmlId;
-                    }
+                    // Note: brxe-XXXXXX HTML ids are used directly as Bricks element ids — no _cssId needed
 
                     // Map standard HTML classes to Bricks custom classes
                     const htmlClass = element.getAttribute('class');
