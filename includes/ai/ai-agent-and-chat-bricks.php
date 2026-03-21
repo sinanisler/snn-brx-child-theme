@@ -699,9 +699,9 @@ Fitness</button>
                         if (cleanedCss) {
                             // Check if already wrapped with %root%
                             if (!cleanedCss.includes('%root%')) {
-                                el.settings._cssCustom = (el.settings._cssCustom || '') + `\n%root% {\n  ${cleanedCss}\n}`;
+                                el.settings._cssCustom = ((el.settings._cssCustom || '') + ` %root% { ${cleanedCss} }`).trim();
                             } else {
-                                el.settings._cssCustom = (el.settings._cssCustom || '') + `\n${cleanedCss}`;
+                                el.settings._cssCustom = ((el.settings._cssCustom || '') + ` ${cleanedCss}`).trim();
                             }
                         }
                         delete el.settings._cssGlobal;
@@ -712,7 +712,7 @@ Fitness</button>
                         const cssCustom = el.settings._cssCustom.trim();
                         // Only wrap if it doesn't already contain %root% or @keyframes
                         if (!cssCustom.includes('%root%') && !cssCustom.includes('@keyframes') && !cssCustom.includes('@media')) {
-                            el.settings._cssCustom = `%root% {\n  ${cssCustom}\n}`;
+                            el.settings._cssCustom = `%root% { ${cssCustom} }`;
                         } else if (cssCustom.startsWith('@keyframes') || cssCustom.startsWith('@media')) {
                             // Leave keyframes/media queries outside, but ensure they are valid syntax
                              el.settings._cssCustom = cssCustom;
@@ -1619,8 +1619,8 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 function convertStyleIdCss(rawCss, htmlId) {
                     const escaped = htmlId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     const replaced = rawCss.replace(new RegExp('#' + escaped + '(?=[\\s,{.:#\\[>~+]|$)', 'g'), '%root%');
-                    // Strip leading spaces from each line, but KEEP \n so SCSS parser doesn't break
-                    return replaced.split('\n').map(line => line.trim()).filter(line => line).join('\n');
+                    // Strip leading spaces from each line, and remove \n to prevent issues with custom CSS
+                    return replaced.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
                 }
 
                 // Generate 6-letter Bricks ID
@@ -2437,7 +2437,7 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                         }
 
                         if (cssParts.length) {
-                            bricksElement.settings._cssCustom = cssParts.join('\n\n');
+                            bricksElement.settings._cssCustom = cssParts.join(' ').replace(/\s+/g, ' ').trim();
                         }
                     }
 
