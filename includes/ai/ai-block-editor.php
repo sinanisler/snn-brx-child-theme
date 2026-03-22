@@ -787,41 +787,16 @@ function snn_add_block_editor_ai_panel() {
                 }
 
                 try {
-                    const requestBody = { model: config.model, messages };
-                    
-                    // Add provider routing if a specific provider is selected
-                    if (config.modelProvider) {
-                        requestBody.provider = {
-                            order: [config.modelProvider],
-                            allow_fallbacks: false
-                        };
-                    }
-                    
-                    const fetchResponse = await fetch(config.apiEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${config.apiKey}`
-                        },
-                        body: JSON.stringify(requestBody)
+                    const data = await SNN_AI_Helpers.makeTextCompletion({
+                        apiEndpoint: config.apiEndpoint,
+                        apiKey: config.apiKey,
+                        model: config.model,
+                        messages: messages,
+                        provider: config.modelProvider
                     });
-
-                    if (!fetchResponse.ok) {
-                        const errorData = await fetchResponse.json().catch(() => ({}));
-                        let errorMsg = `API Error: ${fetchResponse.status} ${fetchResponse.statusText}`;
-                        if (errorData.error && errorData.error.message) {
-                            errorMsg += ` - ${errorData.error.message}`;
-                        } else if (fetchResponse.status === 401) {
-                            errorMsg += ' - Check API key.';
-                        } else if (fetchResponse.status === 429) {
-                            errorMsg += ' - Quota exceeded.';
-                        }
-                        throw new Error(errorMsg);
-                    }
-
-                    const data = await fetchResponse.json();
-                    if (data.choices && data.choices.length && data.choices[0].message && data.choices[0].message.content) {
-                        aiResponse = data.choices[0].message.content.trim();
+                    
+                    aiResponse = SNN_AI_Helpers.extractContent(data);
+                    if (aiResponse) {
                         responseDiv.textContent = aiResponse;
                         responseDiv.style.display = 'block';
                         copyButton.style.display = 'inline-block';
@@ -1136,83 +1111,37 @@ function snn_add_block_editor_ai_panel() {
                         });
                     }
 
-                    const requestBody = {
+                    const data = await SNN_AI_Helpers.makeImageGeneration({
+                        apiEndpoint: imageApiEndpoint,
+                        apiKey: config.apiKey,
                         model: config.imageConfig.image_model,
                         messages: messages,
-                        modalities: ['image', 'text'],
-                        image_config: {
-                            aspect_ratio: config.imageConfig.aspect_ratio,
-                            image_size: config.imageConfig.image_size
-                        }
-                    };
-                    
-                    // Add provider routing if a specific image model provider is selected
-                    if (config.imageConfig && config.imageConfig.image_model_provider) {
-                        requestBody.provider = {
-                            order: [config.imageConfig.image_model_provider],
-                            allow_fallbacks: false
-                        };
-                    }
-
-                    const fetchResponse = await fetch(imageApiEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${config.apiKey}`
-                        },
-                        body: JSON.stringify(requestBody)
+                        provider: config.imageConfig.image_model_provider,
+                        aspectRatio: config.imageConfig.aspect_ratio,
+                        imageSize: config.imageConfig.image_size
                     });
 
-                    if (!fetchResponse.ok) {
-                        const errorData = await fetchResponse.json().catch(() => ({}));
-                        let errorMsg = `API Error: ${fetchResponse.status} ${fetchResponse.statusText}`;
-                        if (errorData.error && errorData.error.message) {
-                            errorMsg += ` - ${errorData.error.message}`;
-                        }
-                        throw new Error(errorMsg);
-                    }
-
-                    const data = await fetchResponse.json();
+                    // Extract image URL from response
+                    const data = await SNN_AI_Helpers.makeImageGeneration({
+                        apiEndpoint: imageApiEndpoint,
+                        apiKey: config.apiKey,
+                        model: config.imageConfig.image_model,
+                        messages: messages,
+                        provider: config.imageConfig.image_model_provider,
+                        aspectRatio: config.imageConfig.aspect_ratio,
+                        imageSize: config.imageConfig.image_size
+                    });
 
                     // Extract image URL from response
-                    if (data.choices && data.choices.length && data.choices[0].message) {
-                        const message = data.choices[0].message;
-
-                        // Check if images array exists (primary method for image models)
-                        if (message.images && message.images.length > 0) {
-                            // Handle both {url: "..."} and {image_url: {url: "..."}} structures
-                            if (message.images[0].image_url && message.images[0].image_url.url) {
-                                generatedImageUrl = message.images[0].image_url.url;
-                            } else if (message.images[0].url) {
-                                generatedImageUrl = message.images[0].url;
-                            }
-                        }
-                        // Fallback: try to extract from content if it's a markdown URL or data URL
-                        if (!generatedImageUrl && message.content) {
-                            const content = message.content;
-                            // Try markdown format first
-                            const markdownMatch = content.match(/!\[.*?\]\(((?:https?:\/\/|data:image\/).*?)\)/);
-                            if (markdownMatch && markdownMatch[1]) {
-                                generatedImageUrl = markdownMatch[1];
-                            } else {
-                                // Try plain URL or data URL
-                                const urlMatch = content.match(/((?:https?:\/\/|data:image\/)[^\s]+)/);
-                                if (urlMatch && urlMatch[1]) {
-                                    generatedImageUrl = urlMatch[1];
-                                }
-                            }
-                        }
-
-                        if (generatedImageUrl) {
-                            imagePreviewImg.src = generatedImageUrl;
-                            imagePreview.style.display = 'block';
-                            imageRegenerateButton.style.display = 'inline-block';
-                            imageSaveButton.style.display = 'inline-block';
-                        } else {
-                            throw new Error('No image URL found in response.');
-                        }
+                    generatedImageUrl = SNN_AI_Helpers.extractImageUrl(data);
+                    
+                    if (generatedImageUrl) {
+                        imagePreviewImg.src = generatedImageUrl;
+                        imagePreview.style.display = 'block';
+                        imageRegenerateButton.style.display = 'inline-block';
+                        imageSaveButton.style.display = 'inline-block';
                     } else {
-                        throw new Error('Unexpected image API response format.');
+                        throw new Error('No image URL found in response.');
                     }
                 } catch (error) {
                     alert(`Error: ${error.message}`);

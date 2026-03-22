@@ -2852,21 +2852,23 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 const cfg = snnBricksChatConfig.ai;
                 if (!cfg.apiKey || !cfg.apiEndpoint) throw new Error('AI API not configured');
                 ChatState.abortController = new AbortController();
-                const body = { model: cfg.model, messages, temperature: 0.7, max_tokens: opts.maxTokens || cfg.maxTokens || 4000 };
                 
-                // Add provider routing if a specific provider is selected
-                if (cfg.modelProvider) {
-                    body.provider = {
-                        order: [cfg.modelProvider],
-                        allow_fallbacks: false
-                    };
-                }
+                // Use helper to build request body with provider routing
+                const body = SNN_AI_Helpers.buildRequestBody(
+                    cfg,
+                    {
+                        model: cfg.model,
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: opts.maxTokens || cfg.maxTokens || 4000
+                    }
+                );
                 
                 debugLog('AI call:', body.model, messages.length, 'messages');
                 
                 const resp = await fetch(cfg.apiEndpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
+                    headers: SNN_AI_Helpers.buildHeaders(cfg.apiKey),
                     body: JSON.stringify(body),
                     signal: ChatState.abortController.signal
                 });

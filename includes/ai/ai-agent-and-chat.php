@@ -2389,27 +2389,20 @@ VALIDATION REQUIREMENTS:
                 try {
                     ChatState.abortController = new AbortController();
 
-                    const requestBody = {
-                        model: config.model,
-                        messages: messages,
-                        temperature: 0.7,
-                        max_tokens: config.maxTokens || 4000
-                    };
-                    
-                    // Add provider routing if a specific provider is selected
-                    if (config.modelProvider) {
-                        requestBody.provider = {
-                            order: [config.modelProvider],
-                            allow_fallbacks: false
-                        };
-                    }
+                    // Use helper to build request body with provider routing
+                    const requestBody = SNN_AI_Helpers.buildRequestBody(
+                        config,
+                        {
+                            model: config.model,
+                            messages: messages,
+                            temperature: 0.7,
+                            max_tokens: config.maxTokens || 4000
+                        }
+                    );
 
                     const response = await fetch(config.apiEndpoint, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${config.apiKey}`
-                        },
+                        headers: SNN_AI_Helpers.buildHeaders(config.apiKey),
                         body: JSON.stringify(requestBody),
                         signal: ChatState.abortController.signal
                     });

@@ -653,41 +653,16 @@ function snn_add_ai_script_to_footer() {
             }
 
             try {
-                const requestBody = { model: config.model, messages };
-                
-                // Add provider routing if a specific provider is selected
-                if (config.modelProvider) {
-                    requestBody.provider = {
-                        order: [config.modelProvider],
-                        allow_fallbacks: false
-                    };
-                }
-                
-                const fetchResponse = await fetch(config.apiEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    },
-                    body: JSON.stringify(requestBody)
+                const data = await SNN_AI_Helpers.makeTextCompletion({
+                    apiEndpoint: config.apiEndpoint,
+                    apiKey: config.apiKey,
+                    model: config.model,
+                    messages: messages,
+                    provider: config.modelProvider
                 });
-
-                if (!fetchResponse.ok) {
-                    const errorData = await fetchResponse.json().catch(() => ({}));
-                    let errorMsg = `API Error: ${fetchResponse.status} ${fetchResponse.statusText}`;
-                    if (errorData.error && errorData.error.message) {
-                        errorMsg += ` - ${errorData.error.message}`;
-                    } else if (fetchResponse.status === 401) {
-                        errorMsg += ' - Check API key.';
-                    } else if (fetchResponse.status === 429) {
-                        errorMsg += ' - Quota exceeded.';
-                    }
-                    throw new Error(errorMsg);
-                }
-
-                const data = await fetchResponse.json();
-                if (data.choices && data.choices.length && data.choices[0].message && data.choices[0].message.content) {
-                    aiResponse = data.choices[0].message.content.trim();
+                
+                aiResponse = SNN_AI_Helpers.extractContent(data);
+                if (aiResponse) {
                     if(responseDiv) {
                         responseDiv.textContent = aiResponse;
                         responseDiv.style.display = 'block';
@@ -1062,37 +1037,16 @@ function snn_add_ai_script_to_footer() {
             messages.push({ role: 'user', content: userInstruction });
 
             try {
-                const requestBody = { model: config.model, messages };
-                
-                // Add provider routing if a specific provider is selected
-                if (config.modelProvider) {
-                    requestBody.provider = {
-                        order: [config.modelProvider],
-                        allow_fallbacks: false
-                    };
-                }
-                
-                const fetchResponse = await fetch(config.apiEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    },
-                    body: JSON.stringify(requestBody)
+                const data = await SNN_AI_Helpers.makeTextCompletion({
+                    apiEndpoint: config.apiEndpoint,
+                    apiKey: config.apiKey,
+                    model: config.model,
+                    messages: messages,
+                    provider: config.modelProvider
                 });
-
-                if (!fetchResponse.ok) {
-                    const errorData = await fetchResponse.json().catch(() => ({}));
-                    let errorMsg = `API Error: ${fetchResponse.status} ${fetchResponse.statusText}`;
-                     if (errorData.error && errorData.error.message) {
-                        errorMsg += ` - ${errorData.error.message}`;
-                    }
-                    throw new Error(errorMsg);
-                }
-
-                const data = await fetchResponse.json();
-                if (data.choices && data.choices.length && data.choices[0].message && data.choices[0].message.content) {
-                    bulkAiRawResponse = data.choices[0].message.content.trim();
+                
+                bulkAiRawResponse = SNN_AI_Helpers.extractContent(data);
+                if (bulkAiRawResponse) {
                     if(bulkAiResponseDisplay) {
                         bulkAiResponseDisplay.textContent = "AI Response (Preview - texts separated by ||):\n\n" + bulkAiRawResponse;
                         bulkAiResponseDisplay.style.display = 'block';

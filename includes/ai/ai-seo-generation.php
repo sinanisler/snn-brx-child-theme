@@ -1399,43 +1399,32 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
         
         // Call AI API
         async function callAI(prompt) {
-            const requestBody = {
-                model: config.model,
-                messages: [
+            const messages = [
                     { role: 'system', content: config.systemPrompt },
                     { role: 'user', content: prompt }
-                ],
+                ];
+            
+            const additionalParams = {
                 temperature: 0.7,
                 max_tokens: 300
             };
             
             if (config.responseFormat && config.responseFormat.type) {
-                requestBody.response_format = { type: 'json_object' };
+                additionalParams.response_format = { type: 'json_object' };
             }
             
-            // Add provider routing if a specific provider is selected
-            if (config.modelProvider) {
-                requestBody.provider = {
-                    order: [config.modelProvider],
-                    allow_fallbacks: false
-                };
-            }
-            
-            const response = await fetch(config.apiEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${config.apiKey}`
-                },
-                body: JSON.stringify(requestBody)
+            const data = await SNN_AI_Helpers.makeTextCompletion({
+                apiEndpoint: config.apiEndpoint,
+                apiKey: config.apiKey,
+                model: config.model,
+                messages: messages,
+                provider: config.modelProvider,
+                temperature: 0.7,
+                maxTokens: 300,
+                additionalParams: config.responseFormat?.type ? { response_format: { type: 'json_object' } } : {}
             });
             
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            let content = data.choices[0].message.content;
+            let content = SNN_AI_Helpers.extractContent(data);
             
             // Strip markdown code blocks if present (e.g., ```json ... ```)
             content = content.replace(/```json\s*/g, '').replace(/```/g, '').trim();
