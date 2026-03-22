@@ -344,24 +344,54 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
          * @returns {string} Image URL
          */
         helpers.extractImageUrl = function(data) {
-            // Try different response formats
-            if (data?.choices?.[0]?.message?.content) {
-                const content = data.choices[0].message.content;
-                
-                // Check if content is a URL
-                if (typeof content === 'string' && content.match(/^https?:\/\//)) {
-                    return content;
-                }
-                
-                // Check if content contains image_url
-                if (content.image_url) {
-                    return content.image_url;
+            let imageUrl = null;
+            
+            // Try primary method: message.images array (OpenRouter, X-AI, etc.)
+            if (data?.choices?.[0]?.message?.images && data.choices[0].message.images.length > 0) {
+                const image = data.choices[0].message.images[0];
+                // Handle both {url: "..."} and {image_url: {url: "..."}} structures
+                if (image.image_url && image.image_url.url) {
+                    imageUrl = image.image_url.url;
+                } else if (image.url) {
+                    imageUrl = image.url;
                 }
             }
             
-            // Check data.data array format (some providers use this)
-            if (data?.data?.[0]?.url) {
-                return data.data[0].url;
+            // Fallback 1: Check content field
+            if (!imageUrl && data?.choices?.[0]?.message?.content) {
+                const content = data.choices[0].message.content;
+                
+                // If content is a direct URL string
+                if (typeof content === 'string' && content.match(/^https?:\/\//)) {
+                    imageUrl = content;
+                }
+                // If content has image_url property
+                else if (content.image_url) {
+                    imageUrl = content.image_url;
+                }
+                // Try to extract URL from markdown format
+                else if (typeof content === 'string') {
+                    // Try markdown format: ![alt](url)
+                    const markdownMatch = content.match(/!\[.*?\]\(((?:https?:\/\/|data:image\/).*?)\)/);
+                    if (markdownMatch && markdownMatch[1]) {
+                        imageUrl = markdownMatch[1];
+                    } else {
+                        // Try plain URL or data URL
+                        const urlMatch = content.match(/((?:https?:\/\/|data:image\/)[^\s]+)/);
+                        if (urlMatch && urlMatch[1]) {
+                            imageUrl = urlMatch[1];
+                        }
+                    }
+                }
+            }
+            
+            // Fallback 2: Check data.data array format (some providers use this)
+            if (!imageUrl && data?.data?.[0]?.url) {
+                imageUrl = data.data[0].url;
+            }
+            
+            if (imageUrl) {
+                return imageUrl;
             }
             
             throw new Error('Invalid API response: No image URL found');
