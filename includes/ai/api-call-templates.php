@@ -119,6 +119,20 @@ function snn_enqueue_ai_api_helpers() {
 add_action( 'admin_enqueue_scripts', 'snn_enqueue_ai_api_helpers', 5 );
 
 /**
+ * Enqueue AI API helper functions on frontend for Bricks builder
+ * Bricks builder runs on frontend (?bricks=run) so we need to load helpers there too
+ */
+function snn_enqueue_ai_api_helpers_frontend() {
+    // Only load when Bricks builder is active on frontend
+    if ( is_admin() || ! isset( $_GET['bricks'] ) || $_GET['bricks'] !== 'run' ) {
+        return;
+    }
+
+    wp_add_inline_script( 'jquery', snn_get_ai_api_helpers_script(), 'after' );
+}
+add_action( 'wp_enqueue_scripts', 'snn_enqueue_ai_api_helpers_frontend', 5 );
+
+/**
  * Generate the JavaScript helper functions
  *
  * @return string JavaScript code (without script tags)

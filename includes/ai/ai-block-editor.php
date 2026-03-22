@@ -1111,7 +1111,7 @@ function snn_add_block_editor_ai_panel() {
                         });
                     }
 
-                    const data = await SNN_AI_Helpers.makeImageGeneration({
+                    const imageData = await SNN_AI_Helpers.makeImageGeneration({
                         apiEndpoint: imageApiEndpoint,
                         apiKey: config.apiKey,
                         model: config.imageConfig.image_model,
@@ -1122,18 +1122,7 @@ function snn_add_block_editor_ai_panel() {
                     });
 
                     // Extract image URL from response
-                    const data = await SNN_AI_Helpers.makeImageGeneration({
-                        apiEndpoint: imageApiEndpoint,
-                        apiKey: config.apiKey,
-                        model: config.imageConfig.image_model,
-                        messages: messages,
-                        provider: config.imageConfig.image_model_provider,
-                        aspectRatio: config.imageConfig.aspect_ratio,
-                        imageSize: config.imageConfig.image_size
-                    });
-
-                    // Extract image URL from response
-                    generatedImageUrl = SNN_AI_Helpers.extractImageUrl(data);
+                    generatedImageUrl = SNN_AI_Helpers.extractImageUrl(imageData);
                     
                     if (generatedImageUrl) {
                         imagePreviewImg.src = generatedImageUrl;
