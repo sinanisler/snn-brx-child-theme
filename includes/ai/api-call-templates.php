@@ -394,6 +394,21 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
                 return imageUrl;
             }
             
+            // Log the actual response structure for debugging intermittent failures
+            console.error('SNN AI: Unable to extract image URL. Response structure:', {
+                hasChoices: !!data?.choices,
+                choicesLength: data?.choices?.length,
+                hasMessage: !!data?.choices?.[0]?.message,
+                hasImages: !!data?.choices?.[0]?.message?.images,
+                hasContent: !!data?.choices?.[0]?.message?.content,
+                contentType: typeof data?.choices?.[0]?.message?.content,
+                contentPreview: typeof data?.choices?.[0]?.message?.content === 'string' 
+                    ? data.choices[0].message.content.substring(0, 200) 
+                    : data?.choices?.[0]?.message?.content,
+                hasDataArray: !!data?.data,
+                fullResponse: data
+            });
+            
             throw new Error('Invalid API response: No image URL found');
         };
 
