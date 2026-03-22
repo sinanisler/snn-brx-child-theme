@@ -2596,9 +2596,13 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                     }
 
                     // ── Flex rows: stack to column on mobile ──
-                    // ALL flex rows get stacked — not just large-gap ones.
-                    // This matches real-world mobile design expectations.
-                    if (settings._display === 'flex' && settings._direction === 'row') {
+                    // Skip fixed-size containers (e.g. icon wells) — they have explicit _width AND _height
+                    // set to small px values and must never be stacked or have justify-content reset.
+                    const isFixedSizeBox = settings._width && settings._height &&
+                        /^\d+(px|rem|em)$/.test(settings._width) && /^\d+(px|rem|em)$/.test(settings._height) &&
+                        parseInt(settings._width) <= 120 && parseInt(settings._height) <= 120;
+
+                    if (settings._display === 'flex' && settings._direction === 'row' && !isFixedSizeBox) {
                         if (!settings['_direction:mobile_landscape'])
                             settings['_direction:mobile_landscape'] = 'column';
 
