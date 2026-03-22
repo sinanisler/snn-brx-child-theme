@@ -1,5 +1,5 @@
 <?php  
-/**
+/** 
  * SNN AI Chat Overlay
  *
  * File: snn-chat-overlay.php
