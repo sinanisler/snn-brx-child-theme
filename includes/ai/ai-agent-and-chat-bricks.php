@@ -1107,7 +1107,7 @@ pseudo-elements (:before/:after/:hover/:focus), complex transforms, gradients wi
       @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
       #brxe-fadinx { animation: fadeIn 1s ease-out; }
     </style>
-    <section id="brxe-fadinx" data-bricks="section" style="background: #000; padding: 100px 0;">
+    <section id="brxe-fadinx" data-bricks="section" style="background: #000; padding-top: 100px; padding-bottom: 100px;">
 
   Example 2 — Multiple animated elements (EACH gets its own style block):
     <style data-style-id="brxe-wrldsc">
@@ -1229,7 +1229,7 @@ RESPONSIVE BREAKPOINTS — Supported breakpoint suffixes (auto-applied by compil
 LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
 
 Centered section wrapper (ONLY ONE PER SECTION — direct child of section):
-  <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px;">
+  <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px;">
 
 Flex column layout (use block) — ALWAYS write display:flex + flex-direction + align/gap together:
   <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
@@ -1290,12 +1290,14 @@ STRICT LAYOUT RULES:
 ✓ align-self works on ANY element inside a flex or grid container
 ✓ **CRITICAL**: When using display: flex, ALWAYS explicitly set flex-direction: row OR flex-direction: column
    (Bricks Builder defaults to column when not specified, so omitting it breaks row layouts)
+✓ NO max-width / margin / padding on container: Do NOT add max-width, margin: 0 auto, padding-left, or padding-right to "container" elements. Bricks handles container width, centering, and gutter spacing via global Theme Styles — inline overrides conflict with those settings and cause double-padding.
+✓ NO LEFT/RIGHT PADDING on section: Never set padding-left, padding-right, or the shorthand like padding: 80px 0 (the 0 sets left/right explicitly). Use padding-top and padding-bottom separately instead. Bricks sections inherit root gutter spacing — inline left/right values override it.
 
 EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
 <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
 
-<section data-bricks="section" style="background: #0f172a; padding: 80px 0;">
-  <div data-bricks="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
+<section data-bricks="section" style="background: #0f172a; padding-top: 80px; padding-bottom: 80px;">
+  <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
     <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;">Premium Heading</h1>
     <hr style="border-top: 2px solid rgba(255, 255, 255, 0.2); width: 60px; text-align: center;">
     <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: rgba(203, 213, 225, 1); line-height: 1.7; text-align: center; max-width: 700px; margin: 0;">Supporting description with readable line height and proper spacing.</p>
@@ -1304,8 +1306,8 @@ EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
 </section>
 
 EXAMPLE 2-COLUMN GRID HERO (section > container > block[column]):
-<section data-bricks="section" style="background: #f5f0eb; padding: 100px 0;">
-  <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
+<section data-bricks="section" style="background: #f5f0eb; padding-top: 100px; padding-bottom: 100px;">
+  <div data-bricks="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
     <div data-bricks="block" style="display: flex; flex-direction: column; gap: 24px;">
       <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; color: #111827; line-height: 1.1; margin: 0;">We Make Brands People Love</h1>
       <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; color: #4b5563; line-height: 1.7; margin: 0;">Creative studio specializing in bold brand identities and digital experiences.</p>
@@ -1332,8 +1334,8 @@ EXAMPLE 3-ADVANCED EFFECTS (with <style data-style-id> for special effects):
   #brxe-glspnl { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 </style>
 
-<section data-bricks="section" style="background: #0a0a0a; padding: 120px 0; position: relative;">
-  <div data-bricks="container" style="max-width: 1300px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 32px; align-items: center;">
+<section data-bricks="section" style="background: #0a0a0a; padding-top: 120px; padding-bottom: 120px; position: relative;">
+  <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
       <h1 id="brxe-htitlx" data-bricks="heading" style="font-family: 'Syncopate', sans-serif; font-size: 82px; font-weight: 700; color: #ffffff; line-height: 0.9; margin: 0; text-transform: uppercase;">
         Next Gen<br><span id="brxe-dsgntx">Design</span>
       </h1>
@@ -1366,8 +1368,8 @@ EXAMPLE 4-GAME/ANIMATION SCENE (multiple animated elements — EACH gets its own
   #brxe-coinsn { position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%; border: 2px solid #fff; animation: coinSpin 1s infinite; }
 </style>
 
-<section data-bricks="section" style="background: #0a0a0a; padding: 80px 0;">
-  <div data-bricks="container" style="max-width: 1400px; margin: 0 auto; padding: 0 24px;">
+<section data-bricks="section" style="background: #0a0a0a; padding-top: 80px; padding-bottom: 80px;">
+  <div data-bricks="container">
     <div data-bricks="block" style="position: relative; height: 500px; background: #1a1a1a; border: 4px solid #333; border-radius: 24px; overflow: hidden;">
       
       <div id="brxe-gmwrld" data-bricks="block">
@@ -2350,8 +2352,17 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                             bricksElement.settings.height = height;
                             
                             // Width: from width style (default: 100% or full container)
+                            // Also set _width (element layout width) to prevent the divider from
+                            // stretching full-width as a block and pushing adjacent DOM elements.
                             if (cssStyles['width']) {
-                                bricksElement.settings.width = extractNumeric(cssStyles['width']);
+                                const rawWidth = cssStyles['width'];
+                                const numWidth = extractNumeric(rawWidth);
+                                bricksElement.settings.width = rawWidth.includes('%') ? rawWidth : (numWidth + 'px');
+                                // _width keeps the element box constrained to the same size
+                                bricksElement.settings._width = numWidth;
+                            } else {
+                                // No explicit width → default to 100% element width (safe default)
+                                bricksElement.settings._width = '100';
                             }
                             
                             // Style: from border-style (solid, dashed, dotted, double, groove, ridge, inset, outset)
