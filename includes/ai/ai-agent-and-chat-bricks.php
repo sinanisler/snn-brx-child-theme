@@ -1072,6 +1072,7 @@ STYLING RULES (CRITICAL — NO SHORTCUTS):
 - ALL LAYOUT via inline styles: display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 24px;
 - ⚠️ FLEX RULE FOR BLOCKS: ALWAYS write display:flex AND flex-direction AND any alignment/gap together on the SAME element. NEVER write align-items, justify-content, flex-direction, or gap on a block WITHOUT also writing display:flex on that same element. Missing display:flex makes ALL other flex properties invisible in Bricks.
 - ⚠️ NEVER use display:inline-flex — Bricks does not support it properly. Use display:flex with width:max-content or width:auto instead to shrink-wrap a block.
+- ⚠️ BRICKS WIDTH DEFAULT IS 100%, NOT AUTO: Unlike browsers, Bricks defaults all block elements to width:100%. Any layout block that should NOT stretch full width MUST explicitly declare width:auto (or width:max-content for shrink-wrap). Never assume width:auto is implicit. Examples: icon wells, badges, pill tags, inline button groups, narrow side columns, avatar boxes — all need width:auto or a fixed width. If you omit width, Bricks will force the element to 100% and break your layout.
 - ALL GRID via inline styles: display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
 
 DESIGN QUALITY:
@@ -1329,6 +1330,7 @@ STRICT LAYOUT RULES:
   Example — a navbar with two groups: left group → justify-content: flex-start; right group → justify-content: flex-end
 ✓ NO max-width / margin / padding on container: Do NOT add max-width, margin: 0 auto, padding-left, or padding-right to "container" elements. Bricks handles container width, centering, and gutter spacing via global Theme Styles — inline overrides conflict with those settings and cause double-padding.
 ✓ NO LEFT/RIGHT PADDING on section: Never set padding-left, padding-right, or the shorthand like padding: 80px 0 (the 0 sets left/right explicitly). Use padding-top and padding-bottom separately instead. Bricks sections inherit root gutter spacing — inline left/right values override it.
+✓ EXPLICIT WIDTH ON NON-FULL-WIDTH BLOCKS: Bricks blocks default to width:100%, not width:auto. Any block that should be narrower than its parent — icon containers, stat boxes, badge/pill elements, avatar circles, inline groups, side-by-side pairs inside flex rows — MUST have an explicit width:auto, width:max-content, or a fixed px/% value in the inline style. Never leave width unset and expect it to shrink to content.
 
 EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
 <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
