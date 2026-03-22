@@ -1048,6 +1048,11 @@ function snn_render_ai_settings() {
                                 label += ` | Latency: ${latencyMs}ms`;
                             }
                             
+                            // Add throughput P50 info if available
+                            if (endpoint.throughput_last_30m && endpoint.throughput_last_30m.p50) {
+                                label += ` | Speed: ${endpoint.throughput_last_30m.p50} tok/s`;
+                            }
+                            
                             option.text = label;
                             option.dataset.endpoint = JSON.stringify(endpoint);
                             providerSelect.appendChild(option);
@@ -1123,9 +1128,17 @@ function snn_render_ai_settings() {
                     }
                 }
                 
-                // Throughput
+                // Throughput (tokens/second)
                 if (selectedEndpoint.throughput_last_30m) {
-                    infoList.innerHTML += `<li><strong><?php esc_html_e('Throughput:', 'snn'); ?></strong> ${selectedEndpoint.throughput_last_30m.toFixed(2)} tokens/s</li>`;
+                    if (selectedEndpoint.throughput_last_30m.p50) {
+                        infoList.innerHTML += `<li><strong><?php esc_html_e('Throughput (P50):', 'snn'); ?></strong> ${selectedEndpoint.throughput_last_30m.p50} tok/s</li>`;
+                    }
+                    if (selectedEndpoint.throughput_last_30m.p90) {
+                        infoList.innerHTML += `<li><strong><?php esc_html_e('Throughput (P90):', 'snn'); ?></strong> ${selectedEndpoint.throughput_last_30m.p90} tok/s</li>`;
+                    }
+                    if (selectedEndpoint.throughput_last_30m.p99) {
+                        infoList.innerHTML += `<li><strong><?php esc_html_e('Throughput (P99):', 'snn'); ?></strong> ${selectedEndpoint.throughput_last_30m.p99} tok/s</li>`;
+                    }
                 }
                 
                 // Quantization
