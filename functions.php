@@ -47,7 +47,7 @@ require_once SNN_PATH . 'includes/interactions.php';
 require_once SNN_PATH . 'includes/draft-revision.php';
 
 
-require_once SNN_PATH . 'includes/ai/api-call-templates.php'; // Load API helpers first
+require_once SNN_PATH . 'includes/ai/api-call-templates.php';
 require_once SNN_PATH . 'includes/ai/ai-settings.php';
 require_once SNN_PATH . 'includes/ai/ai-api.php';
 require_once SNN_PATH . 'includes/ai/ai-overlay.php';

@@ -121,33 +121,33 @@ add_action( 'admin_enqueue_scripts', 'snn_enqueue_ai_api_helpers', 5 );
 /**
  * Generate the JavaScript helper functions
  *
- * @return string JavaScript code
+ * @return string JavaScript code (without script tags)
  */
 function snn_get_ai_api_helpers_script() {
+    // Note: wp_add_inline_script() adds <script> tags automatically, so we return only the JS code
     ob_start();
     ?>
-    <script>
+/**
+ * SNN AI API Helper Functions
+ * Centralized utilities for making AI API calls with proper provider routing
+ */
+window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
+
+(function(helpers) {
+    'use strict';
+
     /**
-     * SNN AI API Helper Functions
-     * Centralized utilities for making AI API calls with proper provider routing
+     * Build request body with proper provider routing
+     * 
+     * @param {Object} config - AI configuration object
+     * @param {Object} baseBody - Base request body (model, messages, etc.)
+     * @param {string} providerKey - Optional key to access provider in config (e.g., 'modelProvider' or 'imageConfig.image_model_provider')
+     * @returns {Object} Request body with provider routing if applicable
      */
-    window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
-
-    (function(helpers) {
-        'use strict';
-
-        /**
-         * Build request body with proper provider routing
-         * 
-         * @param {Object} config - AI configuration object
-         * @param {Object} baseBody - Base request body (model, messages, etc.)
-         * @param {string} providerKey - Optional key to access provider in config (e.g., 'modelProvider' or 'imageConfig.image_model_provider')
-         * @returns {Object} Request body with provider routing if applicable
-         */
-        helpers.buildRequestBody = function(config, baseBody, providerKey = 'modelProvider') {
-            const body = { ...baseBody };
-            
-            // Get provider value - support nested keys like 'imageConfig.image_model_provider'
+    helpers.buildRequestBody = function(config, baseBody, providerKey = 'modelProvider') {
+        const body = { ...baseBody };
+        
+        // Get provider value - support nested keys like 'imageConfig.image_model_provider'
             let provider = config;
             const keys = providerKey.split('.');
             for (let key of keys) {
@@ -378,13 +378,12 @@ function snn_get_ai_api_helpers_script() {
             return message;
         };
 
-        // Log helper availability (in debug mode only)
-        if (typeof console !== 'undefined' && window.location.search.includes('debug')) {
-            console.log('✅ SNN AI Helpers loaded. Available functions:', Object.keys(helpers));
-        }
+    // Log helper availability (in debug mode only)
+    if (typeof console !== 'undefined' && window.location.search.includes('debug')) {
+        console.log('✅ SNN AI Helpers loaded. Available functions:', Object.keys(helpers));
+    }
 
-    })(window.SNN_AI_Helpers);
-    </script>
-    <?php
+})(window.SNN_AI_Helpers);
+<?php
     return ob_get_clean();
 }
