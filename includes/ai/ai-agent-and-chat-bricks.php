@@ -759,6 +759,41 @@ Fitness</button>
                     }
                 });
 
+                // INFER justify-content on flex-row children of space-between/space-around parents.
+                // In Bricks, flex blocks stretch to fill available space. A right-side group inside a
+                // space-between parent has no visual indication of its own justification — without
+                // setting justify-content: flex-end, its own children pile up on the left edge.
+                // Rule: if a flex-row element has no _justifyContent, and its parent has
+                // _justifyContent: space-between or space-around, and it is NOT the first child
+                // of that parent — set _justifyContent: flex-end.
+                {
+                    const nameMap2 = {};
+                    content.forEach(el => { nameMap2[el.id] = el; });
+                    content.forEach(el => {
+                        if (el.settings._display === 'flex' && el.settings._direction === 'row' && !el.settings._justifyContent) {
+                            const parentEl = el.parent !== 0 ? nameMap2[el.parent] : null;
+                            if (parentEl) {
+                                const parentJC = parentEl.settings._justifyContent;
+                                if (parentJC === 'space-between' || parentJC === 'space-around' || parentJC === 'space-evenly') {
+                                    // Determine position among siblings
+                                    const siblings = content.filter(s => s.parent === el.parent);
+                                    const myIndex = siblings.findIndex(s => s.id === el.id);
+                                    if (myIndex > 0) {
+                                        el.settings._justifyContent = 'flex-end';
+                                        el.settings._justifyContentGrid = 'flex-end';
+                                        fixed = true;
+                                    } else {
+                                        // First child — default to flex-start for clarity
+                                        el.settings._justifyContent = 'flex-start';
+                                        el.settings._justifyContentGrid = 'flex-start';
+                                        fixed = true;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
                 // FINAL PASS: Rebuild children arrays from parent declarations.
                 // Guarantees bidirectional parent↔children consistency for Bricks' tree parser.
                 const idMap = {};
@@ -1290,6 +1325,8 @@ STRICT LAYOUT RULES:
 ✓ align-self works on ANY element inside a flex or grid container
 ✓ **CRITICAL**: When using display: flex, ALWAYS explicitly set flex-direction: row OR flex-direction: column
    (Bricks Builder defaults to column when not specified, so omitting it breaks row layouts)
+✓ ALWAYS declare justify-content on EVERY flex block — never leave it implicit. Use flex-start (left-aligned), center, flex-end (right-aligned), or space-between. In Bricks, flex blocks stretch to fill available space; without explicit justify-content their children silently pile up at the left edge even when the design needs them right-aligned.
+  Example — a navbar with two groups: left group → justify-content: flex-start; right group → justify-content: flex-end
 ✓ NO max-width / margin / padding on container: Do NOT add max-width, margin: 0 auto, padding-left, or padding-right to "container" elements. Bricks handles container width, centering, and gutter spacing via global Theme Styles — inline overrides conflict with those settings and cause double-padding.
 ✓ NO LEFT/RIGHT PADDING on section: Never set padding-left, padding-right, or the shorthand like padding: 80px 0 (the 0 sets left/right explicitly). Use padding-top and padding-bottom separately instead. Bricks sections inherit root gutter spacing — inline left/right values override it.
 
