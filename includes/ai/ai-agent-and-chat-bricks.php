@@ -2854,9 +2854,15 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 ChatState.abortController = new AbortController();
                 const body = { model: cfg.model, messages, temperature: 0.7, max_tokens: opts.maxTokens || cfg.maxTokens || 4000 };
                 debugLog('AI call:', body.model, messages.length, 'messages');
+                
+                const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` };
+                if (cfg.modelProvider) {
+                    headers['X-Provider'] = cfg.modelProvider;
+                }
+                
                 const resp = await fetch(cfg.apiEndpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.apiKey}` },
+                    headers: headers,
                     body: JSON.stringify(body),
                     signal: ChatState.abortController.signal
                 });

@@ -653,12 +653,19 @@ function snn_add_ai_script_to_footer() {
             }
 
             try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${config.apiKey}`
+                };
+                
+                // Add X-Provider header if a specific provider is selected
+                if (config.modelProvider) {
+                    headers['X-Provider'] = config.modelProvider;
+                }
+                
                 const fetchResponse = await fetch(config.apiEndpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    },
+                    headers: headers,
                     body: JSON.stringify({ model: config.model, messages })
                 });
 
@@ -1052,12 +1059,19 @@ function snn_add_ai_script_to_footer() {
             messages.push({ role: 'user', content: userInstruction });
 
             try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${config.apiKey}`
+                };
+                
+                // Add X-Provider header if a specific provider is selected
+                if (config.modelProvider) {
+                    headers['X-Provider'] = config.modelProvider;
+                }
+                
                 const fetchResponse = await fetch(config.apiEndpoint, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    },
+                    headers: headers,
                     body: JSON.stringify({ model: config.model, messages })
                 });
 

@@ -48,7 +48,9 @@ function snn_get_ai_api_config() {
     $openai_model         = get_option('snn_openai_model', 'gpt-4.1-mini');
     $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
     $openrouter_model     = get_option('snn_openrouter_model', '');
+    $openrouter_model_provider = get_option('snn_openrouter_model_provider', '');
     $openrouter_image_model = get_option('snn_openrouter_image_model', '');
+    $openrouter_image_model_provider = get_option('snn_openrouter_image_model_provider', '');
     $system_prompt        = get_option(
         'snn_system_prompt',
         'You are a helpful assistant that helps with content creation or manipulation. You work inside wordpress. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Dont generate markdown. Only respond with the needed content and nothing else always!'
@@ -95,12 +97,14 @@ function snn_get_ai_api_config() {
         'aspect_ratio' => $image_aspect_ratio,
         'image_size'   => $image_size,
         'image_model'  => $openrouter_image_model,
+        'image_model_provider' => $openrouter_image_model_provider,
     ];
 
     // Build the configuration array
     $config = [
         'apiKey'          => $apiKey,
         'model'           => $model,
+        'modelProvider'   => $ai_provider === 'openrouter' ? $openrouter_model_provider : '',
         'apiEndpoint'     => $apiEndpoint,
         'systemPrompt'    => $system_prompt,
         'actionPresets'   => array_values($action_presets),

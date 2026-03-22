@@ -57,7 +57,9 @@ function snn_register_ai_settings() {
     register_setting('snn_ai_settings_group', 'snn_openai_model');
     register_setting('snn_ai_settings_group', 'snn_openrouter_api_key');
     register_setting('snn_ai_settings_group', 'snn_openrouter_model');
+    register_setting('snn_ai_settings_group', 'snn_openrouter_model_provider');
     register_setting('snn_ai_settings_group', 'snn_openrouter_image_model');
+    register_setting('snn_ai_settings_group', 'snn_openrouter_image_model_provider');
     register_setting('snn_ai_settings_group', 'snn_system_prompt');
     register_setting('snn_ai_settings_group', 'snn_ai_action_presets', [
         'type' => 'array',
@@ -88,7 +90,9 @@ function snn_render_ai_settings() {
     $openai_model         = get_option('snn_openai_model', 'google/gemini-2.5-flash-lite');
     $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
     $openrouter_model     = get_option('snn_openrouter_model', '');
+    $openrouter_model_provider = get_option('snn_openrouter_model_provider', '');
     $openrouter_image_model = get_option('snn_openrouter_image_model', 'google/gemini-2.5-flash-image');
+    $openrouter_image_model_provider = get_option('snn_openrouter_image_model_provider', '');
     $system_prompt        = get_option(
         'snn_system_prompt',
         'You are a helpful assistant that helps with content creation or manipulation. You work inside a wordpress visual builder. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Only respond with the needed content and nothing else always!'
@@ -292,6 +296,27 @@ function snn_render_ai_settings() {
                     </tr>
                     <tr>
                         <th scope="row">
+                            <label for="snn_openrouter_model_provider"><?php esc_html_e('Model Provider', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <select
+                                name="snn_openrouter_model_provider"
+                                id="snn_openrouter_model_provider"
+                                class="regular-text"
+                            >
+                                <option value=""><?php esc_html_e('Auto (Default)', 'snn'); ?></option>
+                            </select>
+                            <p class="description">
+                                <?php esc_html_e('Select a specific provider for this model. Auto lets OpenRouter choose automatically.', 'snn'); ?>
+                            </p>
+                            <div id="openrouter-provider-info" class="provider-info" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none; max-width: 410px;">
+                                <strong><?php esc_html_e('Provider Details:', 'snn'); ?></strong>
+                                <ul style="list-style-type: disc; margin-left: 20px;"></ul>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
                             <label for="snn_openrouter_image_model"><?php esc_html_e('OpenRouter Image Model', 'snn'); ?></label>
                         </th>
                         <td>
@@ -316,6 +341,27 @@ function snn_render_ai_settings() {
                             </div>
                             <div id="openrouter-image-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none; max-width: 410px; height: 220px; overflow: auto;">
                                 <strong><?php esc_html_e('Selected Image Model Features:', 'snn'); ?></strong>
+                                <ul style="list-style-type: disc; margin-left: 20px;"></ul>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="snn_openrouter_image_model_provider"><?php esc_html_e('Image Model Provider', 'snn'); ?></label>
+                        </th>
+                        <td>
+                            <select
+                                name="snn_openrouter_image_model_provider"
+                                id="snn_openrouter_image_model_provider"
+                                class="regular-text"
+                            >
+                                <option value=""><?php esc_html_e('Auto (Default)', 'snn'); ?></option>
+                            </select>
+                            <p class="description">
+                                <?php esc_html_e('Select a specific provider for this image model. Auto lets OpenRouter choose automatically.', 'snn'); ?>
+                            </p>
+                            <div id="openrouter-image-provider-info" class="provider-info" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none; max-width: 410px;">
+                                <strong><?php esc_html_e('Provider Details:', 'snn'); ?></strong>
                                 <ul style="list-style-type: disc; margin-left: 20px;"></ul>
                             </div>
                         </td>
@@ -931,6 +977,170 @@ function snn_render_ai_settings() {
                 });
             }
 
+            // Function to fetch available providers for a specific model
+            function fetchModelProviders(modelId, isImageModel = false) {
+                const providerSelectId = isImageModel ? 'snn_openrouter_image_model_provider' : 'snn_openrouter_model_provider';
+                const providerInfoId = isImageModel ? 'openrouter-image-provider-info' : 'openrouter-provider-info';
+                const savedProviderOption = isImageModel ? '<?php echo esc_js($openrouter_image_model_provider); ?>' : '<?php echo esc_js($openrouter_model_provider); ?>';
+                
+                const providerSelect = document.getElementById(providerSelectId);
+                const providerInfo = document.getElementById(providerInfoId);
+                
+                if (!providerSelect || !modelId) return;
+                
+                // Reset provider dropdown
+                providerSelect.innerHTML = '<option value=""><?php esc_html_e('Loading providers...', 'snn'); ?></option>';
+                providerSelect.disabled = true;
+                if (providerInfo) providerInfo.style.display = 'none';
+                
+                const openrouterKeyEl = document.getElementById('snn_openrouter_api_key');
+                const openrouterKey = openrouterKeyEl ? openrouterKeyEl.value.trim() : '';
+                
+                if (!openrouterKey) {
+                    providerSelect.innerHTML = '<option value=""><?php esc_html_e('Auto (Default)', 'snn'); ?></option>';
+                    providerSelect.disabled = false;
+                    return;
+                }
+                
+                // Parse model ID to get author and slug
+                const modelParts = modelId.split('/');
+                if (modelParts.length !== 2) {
+                    providerSelect.innerHTML = '<option value=""><?php esc_html_e('Auto (Default)', 'snn'); ?></option>';
+                    providerSelect.disabled = false;
+                    return;
+                }
+                
+                const [author, slug] = modelParts;
+                const endpointsUrl = `https://openrouter.ai/api/v1/models/${author}/${slug}/endpoints`;
+                
+                fetch(endpointsUrl, {
+                    headers: { 'Authorization': 'Bearer ' + openrouterKey }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Endpoints API error: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.data && data.data.endpoints && data.data.endpoints.length > 0) {
+                        const endpoints = data.data.endpoints;
+                        
+                        // Populate dropdown
+                        providerSelect.innerHTML = '<option value=""><?php esc_html_e('Auto (Default)', 'snn'); ?></option>';
+                        
+                        endpoints.forEach(endpoint => {
+                            const option = document.createElement('option');
+                            option.value = endpoint.provider_name || '';
+                            
+                            let label = endpoint.provider_name || 'Unknown';
+                            
+                            // Add pricing info if available
+                            if (endpoint.pricing && endpoint.pricing.prompt && endpoint.pricing.completion) {
+                                const promptCost = (parseFloat(endpoint.pricing.prompt) * 1000000).toFixed(6);
+                                const completionCost = (parseFloat(endpoint.pricing.completion) * 1000000).toFixed(6);
+                                label += ` | Prompt: $${promptCost}/M, Comp: $${completionCost}/M`;
+                            }
+                            
+                            // Add latency info if available
+                            if (endpoint.latency_last_30m && endpoint.latency_last_30m.p50) {
+                                const latencyMs = (endpoint.latency_last_30m.p50 * 1000).toFixed(0);
+                                label += ` | Latency: ${latencyMs}ms`;
+                            }
+                            
+                            option.text = label;
+                            option.dataset.endpoint = JSON.stringify(endpoint);
+                            providerSelect.appendChild(option);
+                        });
+                        
+                        // Restore saved selection if available
+                        if (savedProviderOption) {
+                            providerSelect.value = savedProviderOption;
+                        }
+                        
+                        providerSelect.disabled = false;
+                        
+                        // Store endpoints data for later use
+                        providerSelect.dataset.endpoints = JSON.stringify(endpoints);
+                        
+                    } else {
+                        providerSelect.innerHTML = '<option value=""><?php esc_html_e('Auto (Default)', 'snn'); ?></option>';
+                        providerSelect.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching providers:', error);
+                    providerSelect.innerHTML = '<option value=""><?php esc_html_e('Auto (Default)', 'snn'); ?></option>';
+                    providerSelect.disabled = false;
+                });
+            }
+
+            // Function to display provider details when selected
+            function displayProviderInfo(providerName, isImageModel = false) {
+                const providerSelectId = isImageModel ? 'snn_openrouter_image_model_provider' : 'snn_openrouter_model_provider';
+                const providerInfoId = isImageModel ? 'openrouter-image-provider-info' : 'openrouter-provider-info';
+                
+                const providerSelect = document.getElementById(providerSelectId);
+                const providerInfo = document.getElementById(providerInfoId);
+                
+                if (!providerSelect || !providerInfo) return;
+                
+                providerInfo.style.display = 'none';
+                
+                if (!providerName) return;
+                
+                const endpoints = providerSelect.dataset.endpoints ? JSON.parse(providerSelect.dataset.endpoints) : [];
+                const selectedEndpoint = endpoints.find(ep => ep.provider_name === providerName);
+                
+                if (!selectedEndpoint) return;
+                
+                const infoList = providerInfo.querySelector('ul');
+                if (!infoList) return;
+                
+                infoList.innerHTML = '';
+                
+                // Provider name
+                infoList.innerHTML += `<li><strong><?php esc_html_e('Provider:', 'snn'); ?></strong> ${selectedEndpoint.provider_name || 'N/A'}</li>`;
+                
+                // Pricing
+                if (selectedEndpoint.pricing) {
+                    const promptCost = selectedEndpoint.pricing.prompt ? `$${(parseFloat(selectedEndpoint.pricing.prompt) * 1000000).toFixed(6)}/M` : 'N/A';
+                    const completionCost = selectedEndpoint.pricing.completion ? `$${(parseFloat(selectedEndpoint.pricing.completion) * 1000000).toFixed(6)}/M` : 'N/A';
+                    infoList.innerHTML += `<li><strong><?php esc_html_e('Prompt Cost:', 'snn'); ?></strong> ${promptCost}</li>`;
+                    infoList.innerHTML += `<li><strong><?php esc_html_e('Completion Cost:', 'snn'); ?></strong> ${completionCost}</li>`;
+                }
+                
+                // Latency
+                if (selectedEndpoint.latency_last_30m) {
+                    if (selectedEndpoint.latency_last_30m.p50) {
+                        infoList.innerHTML += `<li><strong><?php esc_html_e('Latency (P50):', 'snn'); ?></strong> ${(selectedEndpoint.latency_last_30m.p50 * 1000).toFixed(0)}ms</li>`;
+                    }
+                    if (selectedEndpoint.latency_last_30m.p90) {
+                        infoList.innerHTML += `<li><strong><?php esc_html_e('Latency (P90):', 'snn'); ?></strong> ${(selectedEndpoint.latency_last_30m.p90 * 1000).toFixed(0)}ms</li>`;
+                    }
+                    if (selectedEndpoint.latency_last_30m.p99) {
+                        infoList.innerHTML += `<li><strong><?php esc_html_e('Latency (P99):', 'snn'); ?></strong> ${(selectedEndpoint.latency_last_30m.p99 * 1000).toFixed(0)}ms</li>`;
+                    }
+                }
+                
+                // Throughput
+                if (selectedEndpoint.throughput_last_30m) {
+                    infoList.innerHTML += `<li><strong><?php esc_html_e('Throughput:', 'snn'); ?></strong> ${selectedEndpoint.throughput_last_30m.toFixed(2)} tokens/s</li>`;
+                }
+                
+                // Quantization
+                if (selectedEndpoint.quantization) {
+                    infoList.innerHTML += `<li><strong><?php esc_html_e('Quantization:', 'snn'); ?></strong> ${selectedEndpoint.quantization}</li>`;
+                }
+                
+                // Supported parameters
+                if (selectedEndpoint.supported_parameters && selectedEndpoint.supported_parameters.length > 0) {
+                    infoList.innerHTML += `<li><strong><?php esc_html_e('Supported Parameters:', 'snn'); ?></strong> ${selectedEndpoint.supported_parameters.join(', ')}</li>`;
+                }
+                
+                providerInfo.style.display = 'block';
+            }
+
             if (enableCheckbox && providerSelect) {
                 enableCheckbox.addEventListener('change', toggleSettingsVisibility);
                 providerSelect.addEventListener('change', toggleSettingsVisibility);
@@ -946,12 +1156,37 @@ function snn_render_ai_settings() {
             if (openrouterModelInput) {
                 openrouterModelInput.addEventListener('input', (e) => {
                     displayOpenRouterModelFeatures(e.target.value);
+                    fetchModelProviders(e.target.value, false);
                 });
             }
             if (openrouterImageModelInput) {
                 openrouterImageModelInput.addEventListener('input', (e) => {
                     displayOpenRouterImageModelFeatures(e.target.value);
+                    fetchModelProviders(e.target.value, true);
                 });
+            }
+
+            // Add event listeners for provider selection changes
+            const providerSelectEl = document.getElementById('snn_openrouter_model_provider');
+            if (providerSelectEl) {
+                providerSelectEl.addEventListener('change', (e) => {
+                    displayProviderInfo(e.target.value, false);
+                });
+            }
+            
+            const imageProviderSelectEl = document.getElementById('snn_openrouter_image_model_provider');
+            if (imageProviderSelectEl) {
+                imageProviderSelectEl.addEventListener('change', (e) => {
+                    displayProviderInfo(e.target.value, true);
+                });
+            }
+
+            // Fetch providers for currently selected models on page load
+            if (openrouterModelInput && openrouterModelInput.value) {
+                fetchModelProviders(openrouterModelInput.value, false);
+            }
+            if (openrouterImageModelInput && openrouterImageModelInput.value) {
+                fetchModelProviders(openrouterImageModelInput.value, true);
             }
 
 
