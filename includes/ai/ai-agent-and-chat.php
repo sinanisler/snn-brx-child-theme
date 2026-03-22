@@ -2389,25 +2389,28 @@ VALIDATION REQUIREMENTS:
                 try {
                     ChatState.abortController = new AbortController();
 
-                    const headers = {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
+                    const requestBody = {
+                        model: config.model,
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: config.maxTokens || 4000
                     };
                     
-                    // Add X-Provider header if a specific provider is selected
+                    // Add provider routing if a specific provider is selected
                     if (config.modelProvider) {
-                        headers['X-Provider'] = config.modelProvider;
+                        requestBody.provider = {
+                            order: [config.modelProvider],
+                            allow_fallbacks: false
+                        };
                     }
 
                     const response = await fetch(config.apiEndpoint, {
                         method: 'POST',
-                        headers: headers,
-                        body: JSON.stringify({
-                            model: config.model,
-                            messages: messages,
-                            temperature: 0.7,
-                            max_tokens: config.maxTokens || 4000
-                        }),
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${config.apiKey}`
+                        },
+                        body: JSON.stringify(requestBody),
                         signal: ChatState.abortController.signal
                     });
 

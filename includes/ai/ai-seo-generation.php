@@ -1413,19 +1413,20 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
                 requestBody.response_format = { type: 'json_object' };
             }
             
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.apiKey}`
-            };
-            
-            // Add X-Provider header if a specific provider is selected
+            // Add provider routing if a specific provider is selected
             if (config.modelProvider) {
-                headers['X-Provider'] = config.modelProvider;
+                requestBody.provider = {
+                    order: [config.modelProvider],
+                    allow_fallbacks: false
+                };
             }
             
             const response = await fetch(config.apiEndpoint, {
                 method: 'POST',
-                headers: headers,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${config.apiKey}`
+                },
                 body: JSON.stringify(requestBody)
             });
             

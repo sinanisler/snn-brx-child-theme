@@ -1169,13 +1169,23 @@ function snn_render_ai_settings() {
             if (openrouterModelInput) {
                 openrouterModelInput.addEventListener('input', (e) => {
                     displayOpenRouterModelFeatures(e.target.value);
-                    fetchModelProviders(e.target.value, false);
+                });
+                // Fetch providers only when user selects/confirms a model (on blur or change)
+                openrouterModelInput.addEventListener('change', (e) => {
+                    if (e.target.value && e.target.value.includes('/')) {
+                        fetchModelProviders(e.target.value, false);
+                    }
                 });
             }
             if (openrouterImageModelInput) {
                 openrouterImageModelInput.addEventListener('input', (e) => {
                     displayOpenRouterImageModelFeatures(e.target.value);
-                    fetchModelProviders(e.target.value, true);
+                });
+                // Fetch providers only when user selects/confirms a model (on blur or change)
+                openrouterImageModelInput.addEventListener('change', (e) => {
+                    if (e.target.value && e.target.value.includes('/')) {
+                        fetchModelProviders(e.target.value, true);
+                    }
                 });
             }
 

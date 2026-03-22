@@ -787,20 +787,23 @@ function snn_add_block_editor_ai_panel() {
                 }
 
                 try {
-                    const headers = {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    };
+                    const requestBody = { model: config.model, messages };
                     
-                    // Add X-Provider header if a specific provider is selected
+                    // Add provider routing if a specific provider is selected
                     if (config.modelProvider) {
-                        headers['X-Provider'] = config.modelProvider;
+                        requestBody.provider = {
+                            order: [config.modelProvider],
+                            allow_fallbacks: false
+                        };
                     }
                     
                     const fetchResponse = await fetch(config.apiEndpoint, {
                         method: 'POST',
-                        headers: headers,
-                        body: JSON.stringify({ model: config.model, messages })
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${config.apiKey}`
+                        },
+                        body: JSON.stringify(requestBody)
                     });
 
                     if (!fetchResponse.ok) {
@@ -1142,20 +1145,21 @@ function snn_add_block_editor_ai_panel() {
                             image_size: config.imageConfig.image_size
                         }
                     };
-
-                    const headers = {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${config.apiKey}`
-                    };
                     
-                    // Add X-Provider header if a specific image model provider is selected
+                    // Add provider routing if a specific image model provider is selected
                     if (config.imageConfig && config.imageConfig.image_model_provider) {
-                        headers['X-Provider'] = config.imageConfig.image_model_provider;
+                        requestBody.provider = {
+                            order: [config.imageConfig.image_model_provider],
+                            allow_fallbacks: false
+                        };
                     }
 
                     const fetchResponse = await fetch(imageApiEndpoint, {
                         method: 'POST',
-                        headers: headers,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${config.apiKey}`
+                        },
                         body: JSON.stringify(requestBody)
                     });
 
