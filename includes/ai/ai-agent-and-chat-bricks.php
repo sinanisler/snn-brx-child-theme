@@ -1074,7 +1074,7 @@ ${pageSnap}${tokensSnap}
 
 YOUR JOB:
 When the user requests a design, layout, page or section — generate a complete, beautiful HTML mockup using:
-- STRICT BEM CLASSES: Add Block-Element-Modifier (BEM) class names to every element's `class` attribute (e.g., `class="hero hero__content hero__title btn btn--primary"`).
+- STRICT BEM CLASSES: Add Block-Element-Modifier (BEM) class names to every element's "class" attribute (e.g., class="hero hero__content hero__title btn btn--primary").
 - ONLY INLINE CSS STYLES (style="...") for the actual visual styling — ABSOLUTELY NO Tailwind or utility frameworks. The BEM classes are for structure only; all layout and visual styling MUST still be inline.
 - Google Fonts (@import in <style> tag at top of body)
 - Real, production-quality content — actual headings, descriptions, CTAs (no Lorem Ipsum for main content)
