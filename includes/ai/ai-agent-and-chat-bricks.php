@@ -967,9 +967,48 @@ Fitness</button>
                 }
             }
 
+            /**
+             * Extract Bricks global CSS variables (colors + sizes) and return a <style> block
+             * with a :root declaration for injection into the preview iframe.
+             */
+            function generateBricksRootCSS() {
+                const state = BricksHelper.getState();
+                if (!state) return '';
+                let vars = '';
+
+                // Colors: each entry may be a plain hex or a var(--name) reference
+                if (state.colorPalette) {
+                    try {
+                        const palette = Array.from(state.colorPalette);
+                        if (palette.length && palette[0].colors) {
+                            Array.from(palette[0].colors).forEach(c => {
+                                const colorVal = c.hex || c.light || c.dark || c.color || '';
+                                if (c.raw && c.raw.includes('var(')) {
+                                    const m = c.raw.match(/var\((--[^)]+)\)/);
+                                    if (m && m[1] && colorVal) vars += `  ${m[1]}: ${colorVal};\n`;
+                                }
+                            });
+                        }
+                    } catch(e) { debugLog('generateBricksRootCSS colorPalette error:', e); }
+                }
+
+                // Sizes / spacing variables
+                if (state.globalVariables) {
+                    try {
+                        Array.from(state.globalVariables).forEach(v => {
+                            if (v.name && v.value) vars += `  --${v.name}: ${v.value};\n`;
+                        });
+                    } catch(e) { debugLog('generateBricksRootCSS globalVariables error:', e); }
+                }
+
+                if (!vars) return '';
+                return `<style id="snn-bricks-preview-vars">:root {\n${vars}}<\/style>`;
+            }
+
             function buildPreviewHTML(html) {
                 return '<!DOCTYPE html><html lang="en"><head>' +
                     '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+                    generateBricksRootCSS() +
                     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">' +
                     '<style>*{box-sizing:border-box;margin:0;padding:0}body{margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}<\/style>' +
                     '</head><body>' + html + '</body></html>';
