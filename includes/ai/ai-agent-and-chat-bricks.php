@@ -1,5 +1,5 @@
 <?php   
-/**
+/** 
  * SNN AI Chat for Bricks Builder
  *
  * File: ai-agent-and-chat-bricks.php
