@@ -1555,10 +1555,10 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
                 'grid-row-end':          { type: 'direct', target: '_gridRowEnd' },
                 
                 // Sizing
-                'width':            { type: 'direct', target: '_width', target2: '_widthMin' },
+                'width':            { type: 'direct', target: '_width' },
                 'max-width':        { type: 'direct', target: '_widthMax' },
                 'min-width':        { type: 'direct', target: '_widthMin' },
-                'height':           { type: 'direct', target: '_height', target2: '_heightMin' },
+                'height':           { type: 'direct', target: '_height' },
                 'min-height':       { type: 'direct', target: '_heightMin' },
                 'max-height':       { type: 'direct', target: '_heightMax' },
                 
