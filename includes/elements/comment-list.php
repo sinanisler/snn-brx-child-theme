@@ -7,7 +7,7 @@ use Bricks\Element;
 
 /**
  * Comment List element (inline edit / delete ready, with delete button for admins/editors only)
- */
+ */ 
 class SNN_Element_Comment_List extends Element {
     public $category     = 'snn';
     public $name         = 'comment-list';
