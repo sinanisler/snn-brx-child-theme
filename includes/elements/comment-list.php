@@ -172,11 +172,13 @@ img.snn-selected-image{outline:2px solid #0073aa;outline-offset:2px}
         $comments = get_comments( $comment_args );
 
         // Add user role check (for admin/editor)
-        function snn_user_can_delete_comment() {
-            if ( ! is_user_logged_in() ) return false;
-            $user = wp_get_current_user();
-            if ( empty( $user->roles ) ) return false;
-            return in_array( 'administrator', $user->roles ) || in_array( 'editor', $user->roles );
+        if ( ! function_exists( 'snn_user_can_delete_comment' ) ) {
+            function snn_user_can_delete_comment() {
+                if ( ! is_user_logged_in() ) return false;
+                $user = wp_get_current_user();
+                if ( empty( $user->roles ) ) return false;
+                return in_array( 'administrator', $user->roles ) || in_array( 'editor', $user->roles );
+            }
         }
 
         if ( ! function_exists( 'snn_comment_callback' ) ) {
