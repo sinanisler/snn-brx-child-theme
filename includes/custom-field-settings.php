@@ -976,6 +976,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
         $has_tax_media = false;
         $has_tax_basic_rich_text = false;
         $has_tax_map = false;
+        $has_tax_repeater = false;
         
         $current_taxonomy = isset($_GET['taxonomy']) ? sanitize_text_field($_GET['taxonomy']) : null;
         if(defined('DOING_AJAX') && DOING_AJAX && isset($_POST['taxonomy'])){ // Handle AJAX calls for terms screen (e.g. quick edit)
@@ -988,6 +989,11 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
                     if ($field['type'] === 'media') $has_tax_media = true;
                     if ($field['type'] === 'basic_rich_text') $has_tax_basic_rich_text = true;
                     if ($field['type'] === 'map') $has_tax_map = true;
+                    
+                    $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
+                    if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
+                        $has_tax_repeater = true;
+                    }
                 }
             }
         }
@@ -1000,7 +1006,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
             wp_enqueue_style('leaflet-css', get_stylesheet_directory_uri() . '/assets/css/leaflet.css', [], '1.9.4');
             wp_enqueue_script('leaflet-js', get_stylesheet_directory_uri() . '/assets/js/leaflet.js', [], '1.9.4', true);
         }
-        if ($has_tax_media || $has_tax_map) { 
+        if ($has_tax_media || $has_tax_map || $has_tax_repeater) { 
             add_action('admin_footer', 'snn_output_dynamic_field_js');
         }
     }
@@ -1867,9 +1873,6 @@ function snn_register_dynamic_taxonomy_fields() {
     $custom_fields = get_option('snn_custom_fields', []);
     if (!empty($custom_fields)) {
         foreach ($custom_fields as $field) {
-            if (!empty($field['repeater'])) {
-                continue;
-            }
             if (!empty($field['taxonomies']) && is_array($field['taxonomies'])) {
                 foreach ($field['taxonomies'] as $tax) {
                     add_action($tax . '_add_form_fields', function($taxonomy_slug) use ($field) { // Parameter is taxonomy slug
@@ -1878,7 +1881,21 @@ function snn_register_dynamic_taxonomy_fields() {
                         <div class="form-field snn-metabox-wrapper"> 
                             <div class="snn-field-wrap" style="width:100%;box-sizing:border-box; padding:10px 0;"> 
                                 <label for="<?php echo esc_attr($field['name'] . '_0'); ?>"><?php echo esc_html($field_label); ?></label>
-                                <?php snn_render_field_input($field, '', '0', 'meta'); ?>
+                                <?php 
+                                if (!empty($field['repeater'])) {
+                                    echo '<div class="repeater-container" data-field-name="' . esc_attr($field['name']) . '" data-name-prefix="custom_fields">';
+                                    echo '<div class="repeater-item repeater-template" style="display:none;">';
+                                    echo '<div class="repeater-content">';
+                                    snn_render_field_input($field, '', '__index__', 'meta');
+                                    echo '</div>';
+                                    echo '<button type="button" class="button remove-repeater-item">' . esc_html__('Remove', 'snn') . '</button>';
+                                    echo '</div>';
+                                    echo '<button type="button" class="button add-repeater-item">' . esc_html__('Add More +', 'snn') . '</button>';
+                                    echo '</div>';
+                                } else {
+                                    snn_render_field_input($field, '', '0', 'meta');
+                                }
+                                ?>
                             </div>
                         </div>
                         <?php
@@ -1887,6 +1904,12 @@ function snn_register_dynamic_taxonomy_fields() {
                     add_action($tax . '_edit_form_fields', function($term) use ($field) {
                         $value = get_term_meta($term->term_id, $field['name'], true);
                         $field_label = (!empty($field['label'])) ? $field['label'] : ucwords(str_replace('_',' ',$field['name']));
+                        
+                        if (is_array($value)) {
+                            $value = array_filter($value, function($val) {
+                                return $val !== '';
+                            });
+                        }
                         ?>
                         <tr class="form-field snn-metabox-wrapper">
                             <th scope="row">
@@ -1894,7 +1917,35 @@ function snn_register_dynamic_taxonomy_fields() {
                             </th>
                             <td> 
                                 <div class="snn-field-wrap" style="box-sizing:border-box;">
-                                    <?php snn_render_field_input($field, $value, '0', 'meta'); ?>
+                                    <?php 
+                                    if (!empty($field['repeater'])) {
+                                        $values = (is_array($value)) ? $value : [];
+                                        echo '<div class="repeater-container" data-field-name="' . esc_attr($field['name']) . '" data-name-prefix="custom_fields">';
+                                        
+                                        if (!empty($values)) {
+                                            foreach ($values as $index => $value_item) {
+                                                echo '<div class="repeater-item">';
+                                                echo '<div class="repeater-content">';
+                                                snn_render_field_input($field, $value_item, $index, 'meta');
+                                                echo '</div>';
+                                                echo '<button type="button" class="button remove-repeater-item">' . esc_html__('Remove', 'snn') . '</button>';
+                                                echo '</div>';
+                                            }
+                                        }
+                                        
+                                        echo '<div class="repeater-item repeater-template" style="display:none;">';
+                                        echo '<div class="repeater-content">';
+                                        snn_render_field_input($field, '', '__index__', 'meta');
+                                        echo '</div>';
+                                        echo '<button type="button" class="button remove-repeater-item">' . esc_html__('Remove', 'snn') . '</button>';
+                                        echo '</div>';
+                                        
+                                        echo '<button type="button" class="button add-repeater-item">' . esc_html__('Add More +', 'snn') . '</button>';
+                                        echo '</div>';
+                                    } else {
+                                        snn_render_field_input($field, $value, '0', 'meta');
+                                    }
+                                    ?>
                                 </div>
                             </td>
                         </tr>
@@ -1952,6 +2003,34 @@ function snn_print_tax_styles() {
     .snn-field-type-media .media-uploader {
         margin-top: 5px;
     }
+    .repeater-container {
+        margin-top: 5px;
+    }
+    .repeater-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 5px;
+        padding: 5px;
+        background: #f9f9f9;
+        border: 1px solid #e5e5e5;
+        border-radius: 3px;
+    }
+    .repeater-content {
+        flex-grow: 1;
+    }
+    .repeater-content input {
+        margin-bottom:0 !important;
+    }
+    .repeater-content .snn-double-text-wrapper input {
+        margin-bottom:0 !important;
+    }
+    .remove-repeater-item {
+        align-self: center; 
+    }
+    .add-repeater-item {
+        margin-top: 5px;
+    }
     </style>
     <?php
 }
@@ -1968,9 +2047,6 @@ function snn_save_taxonomy_field_data($term_id) {
     $posted_data   = $_POST['custom_fields'] ?? []; 
 
     foreach ($custom_fields as $field) {
-        if (!empty($field['repeater'])) { 
-            continue;
-        }
         if (empty($field['taxonomies']) || !in_array($term->taxonomy, $field['taxonomies'])) {
             continue;
         }
@@ -2003,29 +2079,107 @@ function snn_save_taxonomy_field_data($term_id) {
         
         if (isset($posted_data[$field_name])) {
             $raw_value = $posted_data[$field_name];
-            if (is_array($raw_value)) { 
-                $sanitized = array_map(function($v) use ($field) {
-                    return snn_sanitize_value_by_type($field['type'], $v, $field);
-                }, $raw_value);
-                $sanitized = array_filter($sanitized, function($v) { return ($v !== '' && $v !== null); });
-                $sanitized = array_values($sanitized);
-                if (!empty($sanitized)) {
-                    update_term_meta($term_id, $field_name, $sanitized);
+            
+            // Special handling for double_text field
+            if ($field['type'] === 'double_text') {
+                if (is_array($raw_value)) {
+                    if (!empty($field['repeater'])) {
+                        // Repeater mode: array of pairs
+                        $sanitized_rows = [];
+                        foreach ($raw_value as $row_data) {
+                            if (is_array($row_data) && count($row_data) >= 2) {
+                                $val1 = sanitize_text_field($row_data[0]);
+                                $val2 = sanitize_text_field($row_data[1]);
+                                if ($val1 !== '' || $val2 !== '') {
+                                    $sanitized_rows[] = [$val1, $val2];
+                                }
+                            }
+                        }
+                        if (!empty($sanitized_rows)) {
+                            update_term_meta($term_id, $field_name, $sanitized_rows);
+                        } else {
+                            delete_term_meta($term_id, $field_name);
+                        }
+                    } else {
+                        // Non-repeater mode: single pair
+                        if (count($raw_value) >= 2) {
+                            $val1 = sanitize_text_field($raw_value[0]);
+                            $val2 = sanitize_text_field($raw_value[1]);
+                            if ($val1 !== '' || $val2 !== '') {
+                                update_term_meta($term_id, $field_name, [$val1, $val2]);
+                            } else {
+                                delete_term_meta($term_id, $field_name);
+                            }
+                        } else {
+                            delete_term_meta($term_id, $field_name);
+                        }
+                    }
                 } else {
                     delete_term_meta($term_id, $field_name);
                 }
-            } else { 
-                $san = snn_sanitize_value_by_type($field['type'], $raw_value, $field);
-                if ($san !== '' && $san !== null) {
-                    update_term_meta($term_id, $field_name, $san);
+            } elseif ($field['type'] === 'double_textarea') {
+                // Special handling for double_textarea field
+                if (is_array($raw_value)) {
+                    if (!empty($field['repeater'])) {
+                        // Repeater mode: array of pairs
+                        $sanitized_rows = [];
+                        foreach ($raw_value as $row_data) {
+                            if (is_array($row_data) && count($row_data) >= 2) {
+                                $val1 = wp_kses_post($row_data[0]);
+                                $val2 = wp_kses_post($row_data[1]);
+                                if ($val1 !== '' || $val2 !== '') {
+                                    $sanitized_rows[] = [$val1, $val2];
+                                }
+                            }
+                        }
+                        if (!empty($sanitized_rows)) {
+                            update_term_meta($term_id, $field_name, $sanitized_rows);
+                        } else {
+                            delete_term_meta($term_id, $field_name);
+                        }
+                    } else {
+                        // Non-repeater mode: single pair
+                        if (count($raw_value) >= 2) {
+                            $val1 = wp_kses_post($raw_value[0]);
+                            $val2 = wp_kses_post($raw_value[1]);
+                            if ($val1 !== '' || $val2 !== '') {
+                                update_term_meta($term_id, $field_name, [$val1, $val2]);
+                            } else {
+                                delete_term_meta($term_id, $field_name);
+                            }
+                        } else {
+                            delete_term_meta($term_id, $field_name);
+                        }
+                    }
                 } else {
                     delete_term_meta($term_id, $field_name);
+                }
+            } else {
+                // Original handling for all other field types
+                if (is_array($raw_value)) { 
+                    $sanitized = array_map(function($v) use ($field) {
+                        return snn_sanitize_value_by_type($field['type'], $v, $field);
+                    }, $raw_value);
+                    $sanitized = array_filter($sanitized, function($v) { return ($v !== '' && $v !== null); });
+                    $sanitized = array_values($sanitized);
+                    if (!empty($sanitized)) {
+                        update_term_meta($term_id, $field_name, $sanitized);
+                    } else {
+                        delete_term_meta($term_id, $field_name);
+                    }
+                } else { 
+                    $san = snn_sanitize_value_by_type($field['type'], $raw_value, $field);
+                    if ($san !== '' && $san !== null) {
+                        update_term_meta($term_id, $field_name, $san);
+                    } else {
+                        delete_term_meta($term_id, $field_name);
+                    }
                 }
             }
         } else { 
             if ($field['type'] === 'true_false') {
                 update_term_meta($term_id, $field_name, '0');
-            } elseif ($field['type'] === 'checkbox') {
+            } elseif ($field['type'] === 'checkbox' || !empty($field['repeater'])) {
                  delete_term_meta($term_id, $field_name); 
             }
         }
