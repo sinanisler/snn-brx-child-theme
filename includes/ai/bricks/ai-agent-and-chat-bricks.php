@@ -470,77 +470,218 @@ Fitness</button>
             });
 
             // ================================================================
-            // PHASE 1 — HTML + Native CSS Design Generation
+            // PHASE 1 — Multi-State AI Pipeline
+            // Flow: analyzing → (planning →) designing / patching / answering
             // ================================================================
 
             async function processWithAI(userMessage, images = []) {
                 ChatState.isProcessing = true;
                 updateSendButton();
                 showTyping();
-                setAgentState('thinking');
                 try {
-                    const context        = buildConversationContext();
-                    const userMsgContent = buildUserContent(userMessage, images);
-                    const response = await callAI([
-                        { role: 'system', content: buildPhase1SystemPrompt() },
-                        ...context,
-                        { role: 'user', content: userMsgContent }
-                    ]);
-                    hideTyping();
-                    if (!response || !response.trim()) throw new Error('AI returned empty response.');
-
-                    // Handle patch responses (element content updates on existing page elements)
-                    const patchData = extractPatchFromResponse(response);
-                    if (patchData) {
-                        const result   = BricksHelper.applyPatch(patchData);
-                        const textPart = response.replace(/```patch[\s\S]*?```/g, '').trim();
-                        if (textPart) addMessage('assistant', textPart);
-                        result.success
-                            ? addMessage('assistant', '✓ ' + result.message)
-                            : addMessage('error', '✗ Patch failed: ' + result.error);
-                        autoSaveConversation();
-                        return;
+                    // ── STATE: analyzing ─────────────────────────────────────────
+                    setAgentState('analyzing');
+                    let intent = 'new_design'; // safe default
+                    try {
+                        intent = await classifyIntent(userMessage, images);
+                    } catch(e) {
+                        debugLog('classifyIntent error (falling back to new_design):', e);
                     }
+                    debugLog('Intent classified:', intent);
 
-                    const html = extractHTMLFromResponse(response);
-                    let textPart = response;
-                    
-                    if (html) {
-                        // If we have HTML, remove it from the text payload whether it's wrapped in a codeblock or not
-                        if (response.match(/```(?:html)?\n?[\s\S]*?\n?```/i)) {
-                            textPart = response.replace(/```(?:html)?[\s\S]*?```/gi, '').trim();
-                        } else {
-                            // Raw HTML fallback used, remove the HTML string from text
-                            const firstTagIndex = response.search(/<(style|section|div|header|main|nav)/i);
-                            if (firstTagIndex !== -1) {
-                                textPart = response.substring(0, firstTagIndex).trim();
-                            }
+                    // ── Route by intent ──────────────────────────────────────────
+                    if (intent === 'new_design' || intent === 'add_section') {
+                        // ── STATE: planning ──────────────────────────────────────
+                        setAgentState('planning');
+                        let plan = '';
+                        try {
+                            plan = await generatePlan(userMessage, intent);
+                            if (plan) addMessage('assistant', plan);
+                        } catch(e) {
+                            debugLog('generatePlan error (skipping plan):', e);
                         }
+                        // ── STATE: designing ─────────────────────────────────────
+                        showTyping();
+                        setAgentState('designing');
+                        await runDesigning(userMessage, images, plan, intent);
+
+                    } else if (intent === 'refine_preview') {
+                        setAgentState('designing');
+                        await runDesigning(userMessage, images, '', 'refine_preview');
+
+                    } else if (intent === 'edit_patch') {
+                        // ── STATE: patching ──────────────────────────────────────
+                        setAgentState('patching');
+                        await runPatching(userMessage, images);
+
+                    } else {
+                        // ── STATE: answering ─────────────────────────────────────
+                        setAgentState('answering');
+                        await runAnswering(userMessage, images);
                     }
 
-                    if (html) {
-                        ChatState.currentHTMLPreview = html;
-                        ChatState.previewMode        = 'html';
-                        if (textPart) addMessage('assistant', textPart);
-                        showHTMLPreview(html);
-                        addApproveBar();
-                    } else {
-                        addMessage('assistant', response);
-                    }
                     autoSaveConversation();
+
                 } catch(err) {
-                    hideTyping();
-                    if (err.name === 'AbortError') {
-                        // Stopped by user — message already shown in stopAgent()
-                    } else {
+                    if (err.name !== 'AbortError') {
                         addMessage('error', 'Error: ' + err.message);
                         debugLog('processWithAI error:', err);
                     }
                 } finally {
+                    hideTyping();
                     ChatState.isProcessing = false;
                     setAgentState('idle');
                     updateSendButton();
                 }
+            }
+
+            // ── Intent classification (analyzing state) ──────────────────────
+            async function classifyIntent(userMessage, images = []) {
+                const cc = BricksHelper.getCurrentContent();
+                const hasExistingContent = cc && cc.elementCount > 0;
+                const hasPreview = !!ChatState.currentHTMLPreview;
+                const pageSnap = hasExistingContent
+                    ? 'Page has ' + cc.elementCount + ' existing elements.'
+                    : 'Page is empty.';
+
+                const systemPrompt = `You are an intent classifier for a Bricks Builder AI assistant.
+Classify the user message into exactly one intent:
+  new_design    — user wants a full page or complete site designed from scratch
+  add_section   — user wants a new section appended to the existing page
+  edit_patch    — user wants to change/update existing page element content or styles
+  question      — user is asking a question (no design or edit action requested)
+  refine_preview — user wants changes to the current HTML preview (tweak colors, fonts, layout)
+
+Context: ${pageSnap}${hasPreview ? ' An HTML preview is currently displayed.' : ''}
+
+Routing rules:
+- Empty page + design description → new_design
+- Has content + "add", "include", "append", "create new section" → add_section
+- Has elements + "change", "update", "fix", "make darker/bigger/different" on something specific → edit_patch
+- Preview shown + user tweaks it ("darker", "bigger font", "change headline") → refine_preview
+- Pure question without action → question
+- Ambiguous on non-empty page → add_section
+
+Respond with ONLY valid JSON — no markdown, no explanation:
+{"intent": "new_design", "reasoning": "brief"}`;
+
+                const userContent = buildUserContent(userMessage, images);
+                const response = await callAI(
+                    [{ role: 'system', content: systemPrompt }, { role: 'user', content: userContent }],
+                    0,
+                    { maxTokens: 150 }
+                );
+                try {
+                    const parsed = JSON.parse(response.trim());
+                    return parsed.intent || 'new_design';
+                } catch(e) {
+                    const match = response.match(/\b(new_design|add_section|edit_patch|question|refine_preview)\b/);
+                    return match ? match[1] : 'new_design';
+                }
+            }
+
+            // ── Plan generation (planning state) ─────────────────────────────
+            async function generatePlan(userMessage, intent) {
+                const systemPrompt = `You are a web design layout planner for Bricks Builder.
+The user wants to ${intent === 'new_design' ? 'design a full page' : 'add a new section'}.
+List the sections you will create. Be brief and concrete.
+
+Format EXACTLY like this:
+📋 Planning your layout:
+  1. Section Name — one-sentence description
+  2. Section Name — one-sentence description
+
+End with: "Starting design..."
+
+Rules:
+- 2–6 sections maximum
+- Concise names: Hero, Features, Testimonials, Pricing, CTA, Footer etc.
+- One sentence per section — no HTML, no code
+- Respond with the plan only, nothing else`;
+
+                const response = await callAI(
+                    [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }],
+                    0,
+                    { maxTokens: 400 }
+                );
+                return response.trim();
+            }
+
+            // ── Designing (designing state) ───────────────────────────────────
+            async function runDesigning(userMessage, images, plan, intent) {
+                const context        = buildConversationContext();
+                // Prepend plan to user message so the designer knows the agreed structure
+                const fullMessage = plan
+                    ? userMessage + '\n\n[Agreed section plan — execute ALL sections in order:\n' + plan + ']'
+                    : userMessage;
+                const userMsgContent = buildUserContent(fullMessage, images);
+                const response = await callAI([
+                    { role: 'system', content: buildDesigningPrompt(intent) },
+                    ...context,
+                    { role: 'user', content: userMsgContent }
+                ]);
+                hideTyping();
+                if (!response || !response.trim()) throw new Error('AI returned empty response.');
+
+                const html = extractHTMLFromResponse(response);
+                let textPart = response;
+                if (html) {
+                    if (response.match(/```(?:html)?\n?[\s\S]*?\n?```/i)) {
+                        textPart = response.replace(/```(?:html)?[\s\S]*?```/gi, '').trim();
+                    } else {
+                        const firstTagIndex = response.search(/<(style|section|div|header|main|nav)/i);
+                        if (firstTagIndex !== -1) textPart = response.substring(0, firstTagIndex).trim();
+                    }
+                }
+                if (html) {
+                    ChatState.currentHTMLPreview = html;
+                    ChatState.previewMode        = 'html';
+                    if (textPart) addMessage('assistant', textPart);
+                    showHTMLPreview(html);
+                    addApproveBar();
+                } else {
+                    addMessage('assistant', response);
+                }
+            }
+
+            // ── Patching (patching state) ─────────────────────────────────────
+            async function runPatching(userMessage, images) {
+                const context        = buildConversationContext();
+                const userMsgContent = buildUserContent(userMessage, images);
+                const response = await callAI([
+                    { role: 'system', content: buildPatchingPrompt() },
+                    ...context,
+                    { role: 'user', content: userMsgContent }
+                ], 0, { maxTokens: 1500 });
+                hideTyping();
+                if (!response || !response.trim()) throw new Error('AI returned empty response.');
+
+                const patchData = extractPatchFromResponse(response);
+                if (patchData) {
+                    const result   = BricksHelper.applyPatch(patchData);
+                    const textPart = response.replace(/```patch[\s\S]*?```/g, '').trim();
+                    if (textPart) addMessage('assistant', textPart);
+                    result.success
+                        ? addMessage('assistant', '✓ ' + result.message)
+                        : addMessage('error', '✗ Patch failed: ' + result.error);
+                } else {
+                    // AI answered in prose instead of a patch block — show it
+                    addMessage('assistant', response);
+                }
+            }
+
+            // ── Answering (answering state) ───────────────────────────────────
+            async function runAnswering(userMessage, images) {
+                const context        = buildConversationContext();
+                const userMsgContent = buildUserContent(userMessage, images);
+                const response = await callAI([
+                    { role: 'system', content: buildAnsweringPrompt() },
+                    ...context,
+                    { role: 'user', content: userMsgContent }
+                ], 0, { maxTokens: 800 });
+                hideTyping();
+                if (!response || !response.trim()) throw new Error('AI returned empty response.');
+                addMessage('assistant', response);
             }
 
             // ================================================================
@@ -1035,7 +1176,7 @@ Fitness</button>
             // System Prompts
             // ================================================================
 
-            function buildPhase1SystemPrompt() {
+            function buildDesigningPrompt(intent) {
                 const basePrompt   = snnBricksChatConfig.ai.systemPrompt || '';
                 const postTitle    = snnBricksChatConfig.pageContext?.details?.post_title || 'Unknown';
                 const postType     = snnBricksChatConfig.pageContext?.details?.post_type  || 'page';
@@ -1070,10 +1211,10 @@ Fitness</button>
 === BRICKS BUILDER AI — DESIGN PHASE ===
 Currently editing: "${postTitle}" (${postType})
 ${pageSnap}${tokensSnap}
-⚡ NEW: Your designs are now compiled to Bricks using a LIGHTNING-FAST JavaScript compiler — instant conversion, zero API costs!
+⚡ Your designs are compiled to Bricks using a LIGHTNING-FAST JavaScript compiler — instant conversion, zero API costs!
 
 YOUR JOB:
-When the user requests a design, layout, page or section — generate a complete, beautiful HTML mockup using:
+Generate a complete, beautiful HTML design. Your job here is pure execution — intent is pre-classified${intent === 'refine_preview' ? ' as a REFINEMENT: incorporate the requested changes into a complete, fresh HTML output' : intent === 'add_section' ? ' as ADD SECTION: generate only the new section(s) requested' : ' as NEW DESIGN: generate the full page'}. Use:
 - Google Fonts (@import in <style> tag at top of body)
 - Real, production-quality content — actual headings, descriptions, CTAs (no Lorem Ipsum for main content)
 - Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS (use different, specific keywords for each image)
@@ -1460,12 +1601,6 @@ EXAMPLE 4-GAME/ANIMATION SCENE (multiple animated elements — EACH gets its own
   </div>
 </section>
 
-WHEN NOT TO GENERATE HTML:
-- User asks a question → respond in plain text only
-- User wants to update/change existing element text, images, or settings (IDs visible in page snapshot above) → use \`\`\`patch block instead
-- User refines the preview ("make it darker" / "add a testimonials section") → generate complete NEW replacement HTML incorporating their changes
-- Unsure about intent → ask ONE clarifying question, then proceed with best interpretation
-
 CRITICAL REMINDERS:
 ✓ ONLY inline styles — NO class-based styling frameworks
 ✓ Every visual property explicitly defined in style=\"...\"
@@ -1473,9 +1608,30 @@ CRITICAL REMINDERS:
 ✓ Real content, real images, production-ready design quality
 ✓ Semantic HTML structure with descriptive class names for structure only
 
-EDITING EXISTING PAGE ELEMENTS — use \`\`\`patch block (NOT HTML) for updates to existing Bricks elements:
-When the user asks to change text, update a heading, swap an image, or modify settings on existing page
-elements (listed in the page snapshot above), respond with a patch block.
+OUTPUT HTML ONLY. Do not output patch blocks — patching is handled by a separate agent state.`;
+            }
+
+
+            // ================================================================
+            // Focused Prompts — Patching & Answering states
+            // ================================================================
+
+            function buildPatchingPrompt() {
+                const cc = BricksHelper.getCurrentContent();
+                let pageSnap = 'The page is empty — no elements to patch.';
+                if (cc && cc.elementCount > 0) {
+                    const snap = (cc.elements || []).map(el => {
+                        const raw = (el.settings && (el.settings.text || el.settings.content)) || '';
+                        const txt = raw.replace(/<[^>]*>/g, '').trim().slice(0, 80);
+                        return txt ? `  [${el.id}] ${el.name}: "${txt}"` : `  [${el.id}] ${el.name}`;
+                    }).join('\n');
+                    pageSnap = `Page has ${cc.elementCount} elements:\n${snap}`;
+                }
+                return `You are a Bricks Builder element editor. Your ONLY job is to update existing page elements using patch blocks. Do NOT generate HTML. Do NOT create new designs.
+
+${pageSnap}
+
+When asked to change text, color, image, background, or any setting on the elements above, respond with a patch block.
 
 \`\`\`patch
 {
@@ -1483,16 +1639,22 @@ elements (listed in the page snapshot above), respond with a patch block.
     {"element_id": "EXISTING_ID", "updates": {"text": "New text content"}},
     {"find_by": {"type": "text_content", "value": "partial text to find"}, "updates": {"text": "replacement text"}},
     {"element_id": "IMG_ID", "updates": {"image_url": "https://new-image-url.jpg"}},
-    {"element_id": "EL_ID", "updates": {"bricks_settings": {"_background": {"color": {"raw": "var(--c1)"}}}}}
+    {"element_id": "EL_ID", "updates": {"bricks_settings": {"_background": {"color": {"raw": "#1a1a2e"}}}}},
+    {"element_id": "EL_ID", "updates": {"bricks_settings": {"_typography": {"color": {"raw": "#ffffff"}}, "_padding": {"top": "40", "bottom": "40", "left": "0", "right": "0"}}}}
   ]
 }
 \`\`\`
 
-After the patch block, briefly describe what was changed.
-Only use \`\`\`patch for existing element edits — use \`\`\`html for adding new sections or new content.`;
+After the patch block, briefly confirm what was changed in one sentence. Do NOT produce HTML.`;
             }
 
-            
+            function buildAnsweringPrompt() {
+                return `You are a knowledgeable Bricks Builder expert and web design consultant.
+Answer the user's question concisely and helpfully.
+Do NOT generate HTML. Do NOT output patch blocks. Do NOT produce designs unless explicitly asked.
+Be direct and practical — 2–4 sentences unless a detailed explanation is genuinely needed.`;
+            }
+
             // ================================================================
             // Helpers
             // ================================================================
@@ -2973,7 +3135,19 @@ Only use \`\`\`patch for existing element edits — use \`\`\`html for adding ne
 
             function setAgentState(state, detail = '') {
                 const $t = $('#snn-bricks-chat-state-text');
-                const labels = { thinking: 'Thinking...', compiling: detail || 'Compiling to Bricks...', recovering: detail || 'Recovering...', saving: detail || 'Saving images to media library...', error: 'Error', idle: '' };
+                const labels = {
+                    analyzing:  'Understanding your request...',
+                    planning:   'Planning your layout...',
+                    designing:  'Designing your page...',
+                    patching:   'Updating element...',
+                    answering:  'Thinking...',
+                    thinking:   'Thinking...',
+                    compiling:  detail || 'Compiling to Bricks...',
+                    recovering: detail || 'Recovering...',
+                    saving:     detail || 'Saving images to media library...',
+                    error:      'Error',
+                    idle:       ''
+                };
                 const lbl = labels[state] || detail || '';
                 lbl ? $t.text(lbl).show() : $t.hide();
             }
