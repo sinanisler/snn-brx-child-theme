@@ -190,6 +190,10 @@ function snn_log_404_error() {
             update_post_meta($post_id, 'ip_address', isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'n/a');
             // Check if HTTP_USER_AGENT is set before using it
             update_post_meta($post_id, 'user_agent', isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'n/a');
+            update_post_meta($post_id, 'http_accept', isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : 'n/a');
+            update_post_meta($post_id, 'http_accept_language', isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : 'n/a');
+            update_post_meta($post_id, 'http_accept_encoding', isset($_SERVER['HTTP_ACCEPT_ENCODING']) ? $_SERVER['HTTP_ACCEPT_ENCODING'] : 'n/a');
+            update_post_meta($post_id, 'request_method', isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'n/a');
         }
     }
 }
@@ -281,7 +285,15 @@ function snn_render_404_logs_page() {
                                     <?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>
                                 </a>
                             </td>
-                            <td><?php echo esc_html(get_post_meta($log->ID, 'user_agent', true)); ?></td>
+                            <td>
+                                <div><?php echo esc_html(get_post_meta($log->ID, 'user_agent', true)); ?></div>
+                                <small style="color:#888;line-height:1.6;">
+                                    <b>Accept:</b> <?php echo esc_html(get_post_meta($log->ID, 'http_accept', true) ?: 'n/a'); ?><br>
+                                    <b>Lang:</b> <?php echo esc_html(get_post_meta($log->ID, 'http_accept_language', true) ?: 'n/a'); ?><br>
+                                    <b>Encoding:</b> <?php echo esc_html(get_post_meta($log->ID, 'http_accept_encoding', true) ?: 'n/a'); ?><br>
+                                    <b>Method:</b> <?php echo esc_html(get_post_meta($log->ID, 'request_method', true) ?: 'n/a'); ?>
+                                </small>
+                            </td>
                         </tr>
                         <?php
                     }
