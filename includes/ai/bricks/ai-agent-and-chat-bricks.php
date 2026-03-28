@@ -1347,28 +1347,27 @@ Output as a \`\`\`html block.`;
                 let designSpec = tokensSnap;
                 if (ChatState.currentTheme) {
                     const t = ChatState.currentTheme;
-                    designSpec = `
-=== DESIGN SPEC FROM THEMING AGENT (follow exactly — do not invent new colors or fonts) ===
-Palette:
-  primary:    ${t.palette.primary}
-  secondary:  ${t.palette.secondary}
-  accent:     ${t.palette.accent}
-  background: ${t.palette.background}
-  surface:    ${t.palette.surface}
-  text:       ${t.palette.text}
-  textMuted:  ${t.palette.textMuted}
-Fonts:
-  heading: "${t.fonts.heading}", weight ${t.fonts.headingWeight}
-  body:    "${t.fonts.body}", weight ${t.fonts.bodyWeight}
-Spacing:
-  section padding: ${t.spacing.sectionPadding}
-  container gap:   ${t.spacing.containerGap}
-  card padding:    ${t.spacing.cardPadding}
-  border radius:   ${t.spacing.borderRadius}
-Mood: ${t.mood.join(', ')} | Style: ${t.style}
-${t.usedExistingTokens ? "⚠️ These colors are from the site's existing Bricks global palette — use the var() names where provided." : ''}
-=== Use ONLY these values. Every section must feel visually consistent. ===
-`;\n                }
+                    designSpec = '\n=== DESIGN SPEC FROM THEMING AGENT (follow exactly — do not invent new colors or fonts) ===\n' +
+                        'Palette:\n' +
+                        '  primary:    ' + t.palette.primary    + '\n' +
+                        '  secondary:  ' + t.palette.secondary  + '\n' +
+                        '  accent:     ' + t.palette.accent     + '\n' +
+                        '  background: ' + t.palette.background + '\n' +
+                        '  surface:    ' + t.palette.surface    + '\n' +
+                        '  text:       ' + t.palette.text       + '\n' +
+                        '  textMuted:  ' + t.palette.textMuted  + '\n' +
+                        'Fonts:\n' +
+                        '  heading: "' + t.fonts.heading + '", weight ' + t.fonts.headingWeight + '\n' +
+                        '  body:    "' + t.fonts.body    + '", weight ' + t.fonts.bodyWeight    + '\n' +
+                        'Spacing:\n' +
+                        '  section padding: ' + t.spacing.sectionPadding + '\n' +
+                        '  container gap:   ' + t.spacing.containerGap   + '\n' +
+                        '  card padding:    ' + t.spacing.cardPadding    + '\n' +
+                        '  border radius:   ' + t.spacing.borderRadius   + '\n' +
+                        'Mood: ' + t.mood.join(', ') + ' | Style: ' + t.style + '\n' +
+                        (t.usedExistingTokens ? 'These colors are from the site\'s existing Bricks global palette — use the var() names where provided.\n' : '') +
+                        '=== Use ONLY these values. Every section must feel visually consistent. ===\n';
+                }
 
                 return basePrompt + `
 
