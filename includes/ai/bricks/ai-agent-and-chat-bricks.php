@@ -307,7 +307,9 @@ Fitness</button>
                 // Two-phase workflow
                 currentHTMLPreview: null, previewMode: null, previewPaneOpen: false,
                 // Global ID tracker to prevent duplicates across sections
-                globalUsedIds: new Set()
+                globalUsedIds: new Set(),
+                // Theming state — populated by theming agent, carried forward for add_section
+                currentTheme: null
             };
 
             // ================================================================
@@ -500,10 +502,42 @@ Fitness</button>
                         } catch(e) {
                             debugLog('generatePlan error (skipping plan):', e);
                         }
+
+                        // ── STATE: theming ───────────────────────────────────────
+                        showTyping();
+                        setAgentState('theming');
+                        try {
+                            ChatState.currentTheme = await generateTheme(userMessage, plan);
+                            if (ChatState.currentTheme) {
+                                const t   = ChatState.currentTheme;
+                                const src = t.usedExistingTokens ? '♻️ Using existing Bricks theme tokens' : '🎨 Generated fresh palette';
+                                addMessage('assistant',
+                                    `${src} — **${t.style}** / ${t.mood.join(', ')}\n` +
+                                    `Primary: \`${t.palette.primary}\`  Accent: \`${t.palette.accent}\`\n` +
+                                    `Fonts: ${t.fonts.heading} + ${t.fonts.body}`
+                                );
+                            }
+                        } catch(e) { debugLog('theming error (skipping):', e); }
+
                         // ── STATE: designing ─────────────────────────────────────
                         showTyping();
                         setAgentState('designing');
                         await runDesigning(userMessage, images, plan, intent);
+
+                        // ── STATE: reviewing ─────────────────────────────────────
+                        const rawHtml = ChatState.currentHTMLPreview;
+                        if (rawHtml) {
+                            showTyping();
+                            setAgentState('reviewing');
+                            try {
+                                const reviewed = await reviewDesign(rawHtml);
+                                if (reviewed && reviewed !== rawHtml) {
+                                    debugLog('Reviewer made fixes to HTML');
+                                    ChatState.currentHTMLPreview = reviewed;
+                                    showHTMLPreview(reviewed);
+                                }
+                            } catch(e) { debugLog('reviewing error (skipping):', e); }
+                        }
 
                     } else if (intent === 'refine_preview') {
                         setAgentState('designing');
@@ -607,6 +641,84 @@ Rules:
                 return response.trim();
             }
 
+            // ── Theme generation (theming state) ─────────────────────────────
+            async function generateTheme(userMessage, plan) {
+                const tokens    = BricksHelper.getDesignTokens();
+                const hasColors = tokens.colors.length > 0;
+                const hasSizes  = tokens.sizes.length  > 0;
+
+                let tokenContext = '';
+                if (hasColors) {
+                    const colorList = tokens.colors.map(c =>
+                        `  ${c.raw}${c.hex ? ' \u2192 ' + c.hex : ''}`
+                    ).join('\n');
+                    tokenContext += `\nEXISTING THEME COLORS (Bricks global palette):\n${colorList}\n`;
+                }
+                if (hasSizes) {
+                    const sizeList = tokens.sizes.map(v =>
+                        `  var(${v.cssVar}) = ${v.value}`
+                    ).join('\n');
+                    tokenContext += `\nEXISTING THEME SIZES (Bricks global variables):\n${sizeList}\n`;
+                }
+
+                const tokenInstructions = (hasColors || hasSizes) ? `
+EXISTING BRICKS TOKENS RULES:
+- If the user explicitly says "use existing colors", "use theme colors", "match the site", or similar \u2192 use the existing palette values above for primary/secondary/accent/background etc. Set "usedExistingTokens": true.
+- If no color direction is given at all \u2192 you may use existing colors as inspiration or pick a fresh palette that fits the brief. Your call.
+- If the user describes a specific new palette (e.g. "dark navy and gold") \u2192 use their description, ignore existing tokens.
+- For sizes: if existing size variables are present, prefer their values for sectionPadding, containerGap, cardPadding, borderRadius where appropriate.
+- When using a var() value in the spec, write it as the var() string so the designer can use it directly: e.g. "primary": "var(--color-primary)" or "primary": "#1a2b3c"
+` : '';
+
+                const systemPrompt = `You are a visual design director for a web page being built in Bricks Builder.
+Given a project brief, layout plan, and any existing design tokens, output ONLY a JSON design spec \u2014 no prose, no markdown, no explanation.
+${tokenContext}${tokenInstructions}
+Output this exact JSON shape:
+{
+  "usedExistingTokens": false,
+  "palette": {
+    "primary":    "#hex or var(--name)",
+    "secondary":  "#hex or var(--name)",
+    "accent":     "#hex or var(--name)",
+    "background": "#hex or var(--name)",
+    "surface":    "#hex or var(--name)",
+    "text":       "#hex or var(--name)",
+    "textMuted":  "#hex or var(--name)"
+  },
+  "fonts": {
+    "heading":       "Google Font Name",
+    "body":          "Google Font Name",
+    "headingWeight": "900",
+    "bodyWeight":    "400"
+  },
+  "spacing": {
+    "sectionPadding": "100px or var(--name)",
+    "containerGap":   "32px  or var(--name)",
+    "cardPadding":    "32px  or var(--name)",
+    "borderRadius":   "12px  or var(--name)"
+  },
+  "mood":  ["bold", "premium"],
+  "style": "minimal | editorial | bold | elegant | playful | technical"
+}`;
+
+                const response = await callAI(
+                    [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user',   content: userMessage + (plan ? '\n\nLayout plan:\n' + plan : '') }
+                    ],
+                    0,
+                    { maxTokens: 350 }
+                );
+
+                try {
+                    const cleaned = response.trim().replace(/^```json\n?/, '').replace(/\n?```$/, '');
+                    return JSON.parse(cleaned);
+                } catch(e) {
+                    debugLog('generateTheme parse error, using defaults:', e);
+                    return null;
+                }
+            }
+
             // ── Designing (designing state) ───────────────────────────────────
             async function runDesigning(userMessage, images, plan, intent) {
                 const context        = buildConversationContext();
@@ -682,6 +794,30 @@ Rules:
                 hideTyping();
                 if (!response || !response.trim()) throw new Error('AI returned empty response.');
                 addMessage('assistant', response);
+            }
+
+            // ── Review design (reviewing state) ───────────────────────────────
+            async function reviewDesign(html) {
+                const systemPrompt = `You are a Bricks Builder HTML validator. Review the HTML and fix ONLY these specific issues:
+
+1. MISSING data-bricks attributes — every structural element must have one
+2. INVALID NESTING — section > container > block > content (never container inside block)
+3. MISSING display:flex on flex containers — if flex-direction/align-items/gap is set, display:flex must be too
+4. INLINE-FLEX usage — replace all display:inline-flex with display:flex + width:max-content
+5. ORPHANED <style data-style-id> — every style block must have a matching element with that id
+
+Return ONLY the corrected HTML. If no issues found, return the HTML unchanged.
+Do NOT redesign, rewrite copy, or change colors. Fix structural issues ONLY.
+Output as a \`\`\`html block.`;
+
+                const response = await callAI(
+                    [{ role: 'system', content: systemPrompt },
+                     { role: 'user',   content: '```html\n' + html + '\n```' }],
+                    0,
+                    { maxTokens: snnBricksChatConfig.ai.maxTokens || 4000 }
+                );
+                hideTyping();
+                return extractHTMLFromResponse(response) || html; // fallback to original if parse fails
             }
 
             // ================================================================
@@ -1206,11 +1342,39 @@ Rules:
                     tokensSnap += `\nTHEME SIZE VARIABLES (use these for padding/gap/font-size when user wants existing theme spacing):\n${sizeList}\n`;
                 }
 
+                // When a theming agent has already resolved the design spec, use it instead of
+                // the raw token list — it's more precise and reduces prompt token count.
+                let designSpec = tokensSnap;
+                if (ChatState.currentTheme) {
+                    const t = ChatState.currentTheme;
+                    designSpec = `
+=== DESIGN SPEC FROM THEMING AGENT (follow exactly — do not invent new colors or fonts) ===
+Palette:
+  primary:    ${t.palette.primary}
+  secondary:  ${t.palette.secondary}
+  accent:     ${t.palette.accent}
+  background: ${t.palette.background}
+  surface:    ${t.palette.surface}
+  text:       ${t.palette.text}
+  textMuted:  ${t.palette.textMuted}
+Fonts:
+  heading: "${t.fonts.heading}", weight ${t.fonts.headingWeight}
+  body:    "${t.fonts.body}", weight ${t.fonts.bodyWeight}
+Spacing:
+  section padding: ${t.spacing.sectionPadding}
+  container gap:   ${t.spacing.containerGap}
+  card padding:    ${t.spacing.cardPadding}
+  border radius:   ${t.spacing.borderRadius}
+Mood: ${t.mood.join(', ')} | Style: ${t.style}
+${t.usedExistingTokens ? "⚠️ These colors are from the site's existing Bricks global palette — use the var() names where provided." : ''}
+=== Use ONLY these values. Every section must feel visually consistent. ===
+`;\n                }
+
                 return basePrompt + `
 
 === BRICKS BUILDER AI — DESIGN PHASE ===
 Currently editing: "${postTitle}" (${postType})
-${pageSnap}${tokensSnap}
+${pageSnap}${designSpec}
 ⚡ Your designs are compiled to Bricks using a LIGHTNING-FAST JavaScript compiler — instant conversion, zero API costs!
 
 YOUR JOB:
@@ -1879,6 +2043,7 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
             function clearChat() {
                 ChatState.messages = []; ChatState.currentSessionId = null;
                 ChatState.attachedImages = []; ChatState.currentHTMLPreview = null; ChatState.previewMode = null;
+                ChatState.currentTheme = null; // Reset theme for new conversation
                 ChatState.globalUsedIds.clear(); // Reset ID tracker
                 removeApproveBar(); hideHTMLPreview(); renderImagePreviews();
                 $('#snn-bricks-chat-messages').html('<div class="snn-bricks-chat-welcome"><h3>Conversation cleared</h3><p>Start a new conversation.</p></div>');
@@ -1890,7 +2055,9 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
                 const labels = {
                     analyzing:  'Understanding your request...',
                     planning:   'Planning your layout...',
+                    theming:    'Choosing design language...',
                     designing:  'Designing your page...',
+                    reviewing:  'Reviewing HTML structure...',
                     patching:   'Updating element...',
                     answering:  'Thinking...',
                     thinking:   'Thinking...',
