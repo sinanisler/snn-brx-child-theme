@@ -9,42 +9,42 @@ define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );
 
 
 // Main Features and Settings
-require_once SNN_PATH . 'includes/settings-page.php';
+require_once SNN_PATH . 'includes/features/settings-page.php';
 
-require_once SNN_PATH . 'includes/other-settings.php';
-require_once SNN_PATH . 'includes/security-page.php';
-require_once SNN_PATH . 'includes/post-types-settings.php';
-require_once SNN_PATH . 'includes/custom-field-settings.php';
-require_once SNN_PATH . 'includes/taxonomy-settings.php';
-require_once SNN_PATH . 'includes/login-settings.php';
-require_once SNN_PATH . 'includes/remove-wp-version.php';
-require_once SNN_PATH . 'includes/disable-xmlrpc.php';
-require_once SNN_PATH . 'includes/disable-file-editing.php';
-require_once SNN_PATH . 'includes/remove-rss.php';
-require_once SNN_PATH . 'includes/disable-wp-json-if-not-logged-in.php';
-require_once SNN_PATH . 'includes/login-logo-change-url-change.php';
-require_once SNN_PATH . 'includes/enqueue-scripts.php';
-require_once SNN_PATH . 'includes/file-size-column-media.php';
-require_once SNN_PATH . 'includes/404-logging.php';
-require_once SNN_PATH . 'includes/search-loggins.php';
-require_once SNN_PATH . 'includes/301-redirect.php';
-require_once SNN_PATH . 'includes/smtp-settings.php';
-require_once SNN_PATH . 'includes/mail-logging.php';
-require_once SNN_PATH . 'includes/media-settings.php';
-require_once SNN_PATH . 'includes/disable-emojis.php';
-require_once SNN_PATH . 'includes/disable-gravatar.php';
-require_once SNN_PATH . 'includes/editor-settings-bricks.php'; 
-require_once SNN_PATH . 'includes/editor-settings-panel-bricks.php';
-require_once SNN_PATH . 'includes/editor-class-generator.php';
-require_once SNN_PATH . 'includes/role-manager.php';
-require_once SNN_PATH . 'includes/custom-code-snippets.php';
-require_once SNN_PATH . 'includes/cookie-banner.php';
-require_once SNN_PATH . 'includes/accessibility-settings.php';
-require_once SNN_PATH . 'includes/activity-logs.php';
-require_once SNN_PATH . 'includes/seo.php';
-require_once SNN_PATH . 'includes/seo-bricks-setting.php';
-require_once SNN_PATH . 'includes/interactions.php';
-require_once SNN_PATH . 'includes/draft-revision.php';
+require_once SNN_PATH . 'includes/features/other-settings.php';
+require_once SNN_PATH . 'includes/features/security-page.php';
+require_once SNN_PATH . 'includes/features/post-types-settings.php';
+require_once SNN_PATH . 'includes/features/custom-field-settings.php';
+require_once SNN_PATH . 'includes/features/taxonomy-settings.php';
+require_once SNN_PATH . 'includes/features/login-settings.php';
+require_once SNN_PATH . 'includes/features/remove-wp-version.php';
+require_once SNN_PATH . 'includes/features/disable-xmlrpc.php';
+require_once SNN_PATH . 'includes/features/disable-file-editing.php';
+require_once SNN_PATH . 'includes/features/remove-rss.php';
+require_once SNN_PATH . 'includes/features/disable-wp-json-if-not-logged-in.php';
+require_once SNN_PATH . 'includes/features/login-logo-change-url-change.php';
+require_once SNN_PATH . 'includes/features/enqueue-scripts.php';
+require_once SNN_PATH . 'includes/features/file-size-column-media.php';
+require_once SNN_PATH . 'includes/features/404-logging.php';
+require_once SNN_PATH . 'includes/features/search-loggins.php';
+require_once SNN_PATH . 'includes/features/301-redirect.php';
+require_once SNN_PATH . 'includes/features/smtp-settings.php';
+require_once SNN_PATH . 'includes/features/mail-logging.php';
+require_once SNN_PATH . 'includes/features/media-settings.php';
+require_once SNN_PATH . 'includes/features/disable-emojis.php';
+require_once SNN_PATH . 'includes/features/disable-gravatar.php';
+require_once SNN_PATH . 'includes/features/editor-settings-bricks.php'; 
+require_once SNN_PATH . 'includes/features/editor-settings-panel-bricks.php';
+require_once SNN_PATH . 'includes/features/editor-class-generator.php';
+require_once SNN_PATH . 'includes/features/role-manager.php';
+require_once SNN_PATH . 'includes/features/custom-code-snippets.php';
+require_once SNN_PATH . 'includes/features/cookie-banner.php';
+require_once SNN_PATH . 'includes/features/accessibility-settings.php';
+require_once SNN_PATH . 'includes/features/activity-logs.php';
+require_once SNN_PATH . 'includes/features/seo.php';
+require_once SNN_PATH . 'includes/features/seo-bricks-setting.php';
+require_once SNN_PATH . 'includes/features/interactions.php';
+require_once SNN_PATH . 'includes/features/draft-revision.php';
 
 
 require_once SNN_PATH . 'includes/ai/api-call-templates.php';
@@ -91,9 +91,9 @@ require_once SNN_PATH . 'includes/ai/ai-agent-and-chat-bricks.php';
 
 
 
-require_once SNN_PATH . 'includes/block-editor-settings.php';
-require_once SNN_PATH . 'includes/media-image-opt.php';
-require_once SNN_PATH . 'includes/wp-admin-dashboard-widgets.php';
+require_once SNN_PATH . 'includes/features/block-editor-settings.php';
+require_once SNN_PATH . 'includes/features/media-image-opt.php';
+require_once SNN_PATH . 'includes/features/wp-admin-dashboard-widgets.php';
 
 // Register Custom Dynamic Data Tags
 require_once SNN_PATH . 'includes/dynamic-data-tags/estimated-post-read-time.php';
@@ -128,8 +128,8 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/parent-post-count.php';
 
 
 // Utils
-require_once SNN_PATH . 'includes/utils.php';
-require_once SNN_PATH . 'includes/auto-update-snn-brx-github.php';
+require_once SNN_PATH . 'includes/features/utils.php';
+require_once SNN_PATH . 'includes/features/auto-update-snn-brx-github.php';
 require_once SNN_PATH . 'includes/query/snn-repeaters-and-queries.php';
 require_once SNN_PATH . 'includes/query/snn-double-repeaters-and-queries.php';
 
