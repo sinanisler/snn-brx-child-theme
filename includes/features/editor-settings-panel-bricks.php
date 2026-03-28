@@ -1,9 +1,9 @@
 <?php 
 
 // Include functionality files
-require_once SNN_PATH . '/includes/editor-settings-panel-image-opt.php';
-require_once SNN_PATH . '/includes/editor-settings-panel-clamp.php';
-require_once SNN_PATH . '/includes/editor-settings-panel-color-sync.php';
+require_once SNN_PATH . 'includes/features/editor-settings-panel-image-opt.php';
+require_once SNN_PATH . 'includes/features/editor-settings-panel-clamp.php';
+require_once SNN_PATH . 'includes/features/editor-settings-panel-color-sync.php';
 
 function snn_panel_custom_inline_styles_and_scripts_improved() {
     $options = get_option('snn_editor_settings');

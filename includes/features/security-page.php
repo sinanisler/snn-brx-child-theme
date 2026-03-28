@@ -3,15 +3,15 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-require_once SNN_PATH . 'includes/login-math-captcha.php'; 
-require_once SNN_PATH . 'includes/disable-xmlrpc.php'; 
-require_once SNN_PATH . 'includes/disable-wp-json-if-not-logged-in.php'; 
-require_once SNN_PATH . 'includes/disable-file-editing.php'; 
-require_once SNN_PATH . 'includes/remove-rss.php'; 
-require_once SNN_PATH . 'includes/remove-wp-version.php'; 
-require_once SNN_PATH . 'includes/disable-bundled-theme-install.php';
-require_once SNN_PATH . 'includes/limit-login-attempts.php';
-require_once SNN_PATH . 'includes/login-url-security.php';
+require_once SNN_PATH . 'includes/features/login-math-captcha.php'; 
+require_once SNN_PATH . 'includes/features/disable-xmlrpc.php'; 
+require_once SNN_PATH . 'includes/features/disable-wp-json-if-not-logged-in.php'; 
+require_once SNN_PATH . 'includes/features/disable-file-editing.php'; 
+require_once SNN_PATH . 'includes/features/remove-rss.php'; 
+require_once SNN_PATH . 'includes/features/remove-wp-version.php'; 
+require_once SNN_PATH . 'includes/features/disable-bundled-theme-install.php';
+require_once SNN_PATH . 'includes/features/limit-login-attempts.php';
+require_once SNN_PATH . 'includes/features/login-url-security.php';
 
 function snn_add_security_submenu() {
     add_submenu_page(
