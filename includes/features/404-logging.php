@@ -299,9 +299,9 @@ function snn_render_404_logs_page() {
                             <td>
                                 <div><?php echo esc_html($ua); ?></div>
                                 <small style="color:#888;line-height:1.6;">
-                                    <b>Accept:</b> <?php echo esc_html($accept); ?><br>
-                                    <b>Lang:</b> <?php echo esc_html($lang); ?><br>
-                                    <b>Encoding:</b> <?php echo esc_html($encoding); ?><br>
+                                    <b>Accept:</b> <?php echo esc_html($accept); ?> -- 
+                                    <b>Lang:</b> <?php echo esc_html($lang); ?> -- 
+                                    <b>Encoding:</b> <?php echo esc_html($encoding); ?> -- 
                                     <b>Method:</b> <?php echo esc_html($method); ?>
                                 </small>
                             </td>
