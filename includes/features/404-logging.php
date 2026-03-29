@@ -276,23 +276,33 @@ function snn_render_404_logs_page() {
                     );
                     $logs = get_posts($args);
                     foreach ($logs as $log) {
+                        $meta     = get_post_meta($log->ID);
+                        $date_time = $meta['date_time'][0]            ?? 'n/a';
+                        $url       = $meta['url'][0]                  ?? 'n/a';
+                        $referrer  = $meta['referrer'][0]             ?? 'n/a';
+                        $ip        = $meta['ip_address'][0]           ?? 'n/a';
+                        $ua        = $meta['user_agent'][0]           ?? 'n/a';
+                        $accept    = $meta['http_accept'][0]          ?? 'n/a';
+                        $lang      = $meta['http_accept_language'][0] ?? 'n/a';
+                        $encoding  = $meta['http_accept_encoding'][0] ?? 'n/a';
+                        $method    = $meta['request_method'][0]       ?? 'n/a';
                         ?>
                         <tr>
-                            <td><?php echo esc_html(get_post_meta($log->ID, 'date_time', true)); ?></td>
-                            <td><?php echo esc_html(get_post_meta($log->ID, 'url', true)); ?></td>
-                            <td><?php echo esc_html(get_post_meta($log->ID, 'referrer', true)); ?></td>
+                            <td><?php echo esc_html($date_time); ?></td>
+                            <td><?php echo esc_html($url); ?></td>
+                            <td><?php echo esc_html($referrer); ?></td>
                             <td>
-                                <a href="https://radar.cloudflare.com/ip/<?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>" target="_blank">
-                                    <?php echo esc_html(get_post_meta($log->ID, 'ip_address', true)); ?>
+                                <a href="<?php echo esc_url('https://radar.cloudflare.com/ip/' . $ip); ?>" target="_blank">
+                                    <?php echo esc_html($ip); ?>
                                 </a>
                             </td>
                             <td>
-                                <div><?php echo esc_html(get_post_meta($log->ID, 'user_agent', true)); ?></div>
+                                <div><?php echo esc_html($ua); ?></div>
                                 <small style="color:#888;line-height:1.6;">
-                                    <b>Accept:</b> <?php echo esc_html(get_post_meta($log->ID, 'http_accept', true) ?: 'n/a'); ?><br>
-                                    <b>Lang:</b> <?php echo esc_html(get_post_meta($log->ID, 'http_accept_language', true) ?: 'n/a'); ?><br>
-                                    <b>Encoding:</b> <?php echo esc_html(get_post_meta($log->ID, 'http_accept_encoding', true) ?: 'n/a'); ?><br>
-                                    <b>Method:</b> <?php echo esc_html(get_post_meta($log->ID, 'request_method', true) ?: 'n/a'); ?>
+                                    <b>Accept:</b> <?php echo esc_html($accept); ?><br>
+                                    <b>Lang:</b> <?php echo esc_html($lang); ?><br>
+                                    <b>Encoding:</b> <?php echo esc_html($encoding); ?><br>
+                                    <b>Method:</b> <?php echo esc_html($method); ?>
                                 </small>
                             </td>
                         </tr>
