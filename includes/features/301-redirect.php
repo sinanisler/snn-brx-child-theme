@@ -284,16 +284,8 @@ function snn_render_301_redirects_page() {
 
     // Handle Clear All Logs
     if (isset($_POST['clear_all_logs']) && check_admin_referer('snn_301_clear_logs_nonce')) {
-        $all_logs = get_posts(array(
-            'post_type'      => 'snn_redirect_logs',
-            'posts_per_page' => -1,
-            'post_status'    => 'publish'
-        ));
-        if (!empty($all_logs)) {
-            foreach ($all_logs as $log_post) {
-                wp_delete_post($log_post->ID, true);
-            }
-        }
+        $wpdb->query("DELETE pm FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID WHERE p.post_type = 'snn_redirect_logs'");
+        $wpdb->query("DELETE FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs'");
         echo '<div class="notice notice-success"><p>' . esc_html__( 'All logs have been cleared!', 'snn' ) . '</p></div>';
     }
 
@@ -789,9 +781,12 @@ function snn_handle_301_redirects() {
                 $redirect_to = home_url($redirect_to);
             }
             
-            // Update click count directly in the DB. This does not invalidate the cache.
-            $clicks = (int) get_post_meta($redirect['ID'], 'redirect_clicks', true);
-            update_post_meta($redirect['ID'], 'redirect_clicks', $clicks + 1);
+            // Atomic increment — no read needed, safe under concurrent traffic.
+            global $wpdb;
+            $wpdb->query($wpdb->prepare(
+                "UPDATE {$wpdb->postmeta} SET meta_value = meta_value + 1 WHERE post_id = %d AND meta_key = 'redirect_clicks'",
+                $redirect['ID']
+            ));
 
             snn_log_redirect($redirect_from, $redirect_to);
             nocache_headers();
@@ -834,9 +829,12 @@ function snn_handle_301_redirects() {
                 $final_destination = home_url($final_destination);
             }
             
-            // Update click count directly in the DB
-            $clicks = (int) get_post_meta($redirect['ID'], 'redirect_clicks', true);
-            update_post_meta($redirect['ID'], 'redirect_clicks', $clicks + 1);
+            // Atomic increment — no read needed, safe under concurrent traffic.
+            global $wpdb;
+            $wpdb->query($wpdb->prepare(
+                "UPDATE {$wpdb->postmeta} SET meta_value = meta_value + 1 WHERE post_id = %d AND meta_key = 'redirect_clicks'",
+                $redirect['ID']
+            ));
 
             snn_log_redirect($current_path, $final_destination);
             nocache_headers();
@@ -867,52 +865,39 @@ function snn_log_redirect($redirect_from, $redirect_to) {
         $referral = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
         update_post_meta($log_id, 'referral', $referral);
 
-        // Enforce the maximum number of logs and remove old ones if needed
-        snn_enforce_max_logs();
     }
 }
 
 function snn_enforce_max_logs() {
+    global $wpdb;
+
     $days_to_keep = get_option('snn_days_to_keep_logs', 30);
     if ($days_to_keep > 0) {
-        $date_threshold = date('Y-m-d H:i:s', strtotime("-$days_to_keep days"));
-        $old_logs = get_posts(array(
-            'post_type'      => 'snn_redirect_logs',
-            'posts_per_page' => -1,
-            'post_status'    => 'publish',
-            'date_query'     => array(
-                array(
-                    'column' => 'post_date',
-                    'before' => $date_threshold,
-                ),
-            ),
-            'fields'         => 'ids',
+        $date_threshold = date('Y-m-d H:i:s', strtotime("-{$days_to_keep} days"));
+        $old_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'publish' AND post_date < %s",
+            $date_threshold
         ));
-        if (!empty($old_logs)) {
-            foreach ($old_logs as $log_id) {
-                wp_delete_post($log_id, true);
-            }
+        if (!empty($old_ids)) {
+            $id_list = implode(',', array_map('intval', $old_ids));
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($id_list)");
+            $wpdb->query("DELETE FROM {$wpdb->posts} WHERE ID IN ($id_list)");
         }
     }
 
     $max_logs = get_option('snn_max_logs_to_keep', 100);
-    $total_logs = wp_count_posts('snn_redirect_logs')->publish;
+    $total_logs = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'publish'");
 
     if ($total_logs > $max_logs) {
         $logs_to_delete = $total_logs - $max_logs;
-        $old_logs = get_posts(array(
-            'post_type'      => 'snn_redirect_logs',
-            'posts_per_page' => $logs_to_delete,
-            'orderby'        => 'date',
-            'order'          => 'ASC',
-            'post_status'    => 'publish',
-            'fields'         => 'ids',
+        $old_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_redirect_logs' AND post_status = 'publish' ORDER BY post_date ASC LIMIT %d",
+            $logs_to_delete
         ));
-
-        if (!empty($old_logs)) {
-            foreach ($old_logs as $log_id) {
-                wp_delete_post($log_id, true);
-            }
+        if (!empty($old_ids)) {
+            $id_list = implode(',', array_map('intval', $old_ids));
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($id_list)");
+            $wpdb->query("DELETE FROM {$wpdb->posts} WHERE ID IN ($id_list)");
         }
     }
 }
@@ -928,16 +913,29 @@ function snn_get_client_ip() {
     return sanitize_text_field($ip);
 }
 
+add_action('snn_cleanup_redirect_logs_cron', 'snn_enforce_max_logs');
+
+function snn_schedule_redirect_log_cleanup() {
+    if (!wp_next_scheduled('snn_cleanup_redirect_logs_cron')) {
+        wp_schedule_event(time(), 'hourly', 'snn_cleanup_redirect_logs_cron');
+    }
+}
+add_action('wp', 'snn_schedule_redirect_log_cleanup');
+
 function snn_activate_301_redirects() {
     snn_register_301_redirects_post_type();
     snn_register_redirect_logs_post_type();
-    snn_clear_redirects_cache(); // Clear cache on activation
+    snn_clear_redirects_cache();
+    if (!wp_next_scheduled('snn_cleanup_redirect_logs_cron')) {
+        wp_schedule_event(time(), 'hourly', 'snn_cleanup_redirect_logs_cron');
+    }
     flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'snn_activate_301_redirects');
 
 function snn_deactivate_301_redirects() {
-    snn_clear_redirects_cache(); // Clear cache on deactivation
+    snn_clear_redirects_cache();
+    wp_clear_scheduled_hook('snn_cleanup_redirect_logs_cron');
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'snn_deactivate_301_redirects');
