@@ -55,15 +55,12 @@ function snn_handle_404_logs_actions() {
     }
 
     if (isset($_POST['snn_clear_404_logs'])) {
-        $args = array(
-            'post_type'      => 'snn_404_logs',
-            'posts_per_page' => -1,
-            'post_status'    => 'any'
-        );
-
-        $logs = get_posts($args);
-        foreach ($logs as $log) {
-            wp_delete_post($log->ID, true);
+        global $wpdb;
+        $post_ids = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'snn_404_logs'");
+        if (!empty($post_ids)) {
+            $ids_placeholder = implode(',', array_map('intval', $post_ids));
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($ids_placeholder)");
+            $wpdb->query("DELETE FROM {$wpdb->posts} WHERE ID IN ($ids_placeholder)");
         }
     }
 
@@ -73,6 +70,7 @@ function snn_handle_404_logs_actions() {
         $args = array(
             'post_type'      => 'snn_404_logs',
             'posts_per_page' => -1,
+            'fields'         => 'ids',
             'meta_query'     => array(
                 'relation' => 'OR',
                 array(
@@ -87,9 +85,12 @@ function snn_handle_404_logs_actions() {
                 )
             )
         );
-        $logs = get_posts($args);
-        foreach ($logs as $log) {
-            wp_delete_post($log->ID, true);
+        $post_ids = get_posts($args);
+        if (!empty($post_ids)) {
+            global $wpdb;
+            $ids_placeholder = implode(',', array_map('intval', $post_ids));
+            $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($ids_placeholder)");
+            $wpdb->query("DELETE FROM {$wpdb->posts} WHERE ID IN ($ids_placeholder)");
         }
     }
 }
