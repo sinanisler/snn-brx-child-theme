@@ -115,6 +115,14 @@ function snn_register_other_settings() {
     );
 
     add_settings_field(
+        'disable_dashboard_roles',
+        __('Disable WP-Admin Dashboard for Selected User Roles', 'snn'),
+        'snn_disable_dashboard_roles_callback',
+        'snn-other-settings',
+        'snn_other_settings_section'
+    );
+
+    add_settings_field(
         'disable_dashboard_widgets',
         __('Disable Default Dashboard Widgets', 'snn'),
         'snn_disable_dashboard_widgets_callback',
@@ -164,6 +172,10 @@ function snn_sanitize_other_settings($input) {
     $sanitized['enable_thumbnail_column'] = isset($input['enable_thumbnail_column']) && $input['enable_thumbnail_column'] ? 1 : 0;
     $sanitized['enable_admin_bar_toggle'] = isset($input['enable_admin_bar_toggle']) && $input['enable_admin_bar_toggle'] ? 1 : 0;
     $sanitized['disable_admin_bar_roles'] = isset($input['disable_admin_bar_roles']) && is_array($input['disable_admin_bar_roles']) ? array_map('sanitize_text_field', $input['disable_admin_bar_roles']) : array();
+    $disable_dashboard_roles = isset($input['disable_dashboard_roles']) && is_array($input['disable_dashboard_roles']) ? array_map('sanitize_text_field', $input['disable_dashboard_roles']) : array();
+    // Never allow administrator to be blocked from wp-admin
+    $disable_dashboard_roles = array_filter($disable_dashboard_roles, function($role) { return $role !== 'administrator'; });
+    $sanitized['disable_dashboard_roles'] = array_values($disable_dashboard_roles);
     $sanitized['disable_dashboard_widgets'] = isset($input['disable_dashboard_widgets']) && $input['disable_dashboard_widgets'] ? 1 : 0;
     $sanitized['enable_admin_mega_menu'] = isset($input['enable_admin_mega_menu']) && $input['enable_admin_mega_menu'] ? 1 : 0;
     $sanitized['admin_mega_menu_priority'] = isset($input['admin_mega_menu_priority']) && $input['admin_mega_menu_priority'] !== '' ? intval($input['admin_mega_menu_priority']) : 35;
@@ -292,6 +304,33 @@ function snn_disable_admin_bar_roles_callback() {
     ?>
     <p>
         <?php _e('Select the user roles for which the admin bar should be disabled on the frontend.', 'snn'); ?>
+    </p>
+    <?php
+}
+
+function snn_disable_dashboard_roles_callback() {
+    $options = get_option('snn_other_settings');
+    $selected_roles = isset($options['disable_dashboard_roles']) ? $options['disable_dashboard_roles'] : array();
+
+    global $wp_roles;
+    $all_roles = $wp_roles->roles;
+
+    foreach ($all_roles as $role_key => $role) {
+        if ($role_key === 'administrator') {
+            continue; // Admins always have access
+        }
+        $checked = in_array($role_key, $selected_roles) ? 'checked' : '';
+        ?>
+        <label style="display: block; margin-bottom: 5px;">
+            <input type="checkbox" name="snn_other_settings[disable_dashboard_roles][]" value="<?php echo esc_attr($role_key); ?>" <?php echo $checked; ?>>
+            <?php echo esc_html($role['name']); ?>
+        </label>
+        <?php
+    }
+    ?>
+    <p>
+        <?php _e('Select the user roles that should be completely blocked from accessing wp-admin. Blocked users will be redirected to the homepage automatically.', 'snn'); ?><br>
+        <?php _e('<strong>Note:</strong> Administrators are always excluded and cannot be blocked.', 'snn'); ?>
     </p>
     <?php
 }
@@ -631,6 +670,34 @@ function snn_admin_mega_menu_styles() {
     </style>';
 }
 add_action('wp_head', 'snn_admin_mega_menu_styles');
+
+/**
+ * Block wp-admin access for selected user roles and redirect to homepage.
+ */
+function snn_disable_dashboard_for_roles() {
+    if (!is_admin() || wp_doing_ajax()) {
+        return;
+    }
+    $options = get_option('snn_other_settings');
+    if (empty($options['disable_dashboard_roles'])) {
+        return;
+    }
+    $current_user = wp_get_current_user();
+    if (!$current_user->exists()) {
+        return;
+    }
+    // Never block administrators
+    if (in_array('administrator', (array) $current_user->roles)) {
+        return;
+    }
+    foreach ((array) $current_user->roles as $role) {
+        if (in_array($role, $options['disable_dashboard_roles'])) {
+            wp_redirect(home_url('/'));
+            exit;
+        }
+    }
+}
+add_action('admin_init', 'snn_disable_dashboard_for_roles');
 
 /**
  * Disable admin bar for selected user roles.
