@@ -180,6 +180,23 @@ function snn_custom_css_overlay_output() {
             flex: 1;
             font-family: monospace;
         }
+        #snn-css-bp-indicator {
+            font-size: 10px;
+            font-family: monospace;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(255,255,255,.12);
+            color: rgba(255,255,255,.55);
+            background: rgba(255,255,255,.05);
+            flex-shrink: 0;
+            white-space: nowrap;
+            transition: background .15s, color .15s, border-color .15s;
+        }
+        #snn-css-bp-indicator[data-bp="desktop"]          { color: rgba(255,255,255,.55); }
+        #snn-css-bp-indicator[data-bp="tablet_portrait"]  { color: #89dceb; border-color: rgba(137,220,235,.3); background: rgba(137,220,235,.08); }
+        #snn-css-bp-indicator[data-bp="mobile_landscape"] { color: #a6e3a1; border-color: rgba(166,227,161,.3); background: rgba(166,227,161,.08); }
+        #snn-css-bp-indicator[data-bp="mobile_portrait"]  { color: #fab387; border-color: rgba(250,179,135,.3); background: rgba(250,179,135,.08); }
         #snn-css-topbar-actions {
             display: flex;
             align-items: center;
@@ -417,6 +434,7 @@ function snn_custom_css_overlay_output() {
         <!-- Top bar -->
         <div id="snn-css-topbar">
             <span id="snn-css-title">CSS – Page</span>
+            <span id="snn-css-bp-indicator" data-bp="desktop" title="Active breakpoint">Desktop</span>
             <div id="snn-css-topbar-actions">
                 <?php if ( $snn_css_ai_enabled ) : ?>
                 <!-- AI assistant toggle -->
@@ -487,6 +505,7 @@ function snn_custom_css_overlay_output() {
         var overlay        = null;
         var editorWrap     = null;
         var titleEl        = null;
+        var bpIndicatorEl  = null;
         var cmInstance     = null;
         var isCollapsed    = false;
         var lastFullHeight = 260;
@@ -494,6 +513,31 @@ function snn_custom_css_overlay_output() {
         var currentElemId  = null;
         var isSyncing      = false;
         var writeCssTimer  = null;
+
+        /* ── Breakpoint helpers ── */
+        var BP_LABELS = {
+            'desktop'          : 'D',
+            'tablet_portrait'  : 'T',
+            'mobile_landscape' : 'ML',
+            'mobile_portrait'  : 'M'
+        };
+        var BP_FULL_LABELS = {
+            'desktop'          : 'Desktop',
+            'tablet_portrait'  : 'Tablet',
+            'mobile_landscape' : 'Mobile Landscape',
+            'mobile_portrait'  : 'Mobile'
+        };
+
+        function getActiveBreakpoint() {
+            var state = getBricksState();
+            if (!state) return 'desktop';
+            try { return state.breakpointActive || 'desktop'; } catch(e) { return 'desktop'; }
+        }
+
+        function getCssKeyForBreakpoint(bp) {
+            if (!bp || bp === 'desktop') return '_cssCustom';
+            return '_cssCustom:' + bp;
+        }
 
         /* ── localStorage persistence ── */
         var STORAGE_KEY = 'snn_css_overlay_state';
@@ -558,9 +602,10 @@ function snn_custom_css_overlay_output() {
         }
 
         /* ── Initialize DOM references ── */
-        overlay    = document.getElementById('snn-css-overlay');
-        editorWrap = document.getElementById('snn-css-editor-wrap');
-        titleEl    = document.getElementById('snn-css-title');
+        overlay       = document.getElementById('snn-css-overlay');
+        editorWrap    = document.getElementById('snn-css-editor-wrap');
+        titleEl       = document.getElementById('snn-css-title');
+        bpIndicatorEl = document.getElementById('snn-css-bp-indicator');
 
         /* ── Wait for Bricks Vue app (no CodeMirror dependency) ── */
         function waitForVue(cb) {
@@ -598,57 +643,73 @@ function snn_custom_css_overlay_output() {
             try { return state.pageSettings || null; } catch(e) { return null; }
         }
 
-        /* ── Read / write CSS ── */
+        /* ── Read / write CSS (breakpoint-aware) ── */
         // Priority: activeClass > activeElement > page
+        // For element/class CSS the key is '_cssCustom' on desktop,
+        // '_cssCustom:tablet_portrait' / ':mobile_landscape' / ':mobile_portrait' otherwise.
+        // Page CSS uses 'customCss' on desktop only (Bricks doesn't store per-bp page CSS).
         function readCurrentCss() {
+            var bp  = getActiveBreakpoint();
+            var key = getCssKeyForBreakpoint(bp);
             var activeClass = getActiveClass();
             if (activeClass && activeClass.id) {
-                return (activeClass.settings && activeClass.settings._cssCustom) || '';
+                return (activeClass.settings && activeClass.settings[key]) || '';
             }
             var activeEl = getActiveElement();
             if (activeEl && activeEl.id) {
-                return (activeEl.settings && activeEl.settings._cssCustom) || '';
+                return (activeEl.settings && activeEl.settings[key]) || '';
             }
+            // Page CSS: only desktop has customCss; other BPs unsupported by Bricks
             var page = getPageSettings();
             return (page && page.customCss) || '';
         }
 
         function writeCurrentCss(value) {
+            var bp  = getActiveBreakpoint();
+            var key = getCssKeyForBreakpoint(bp);
             var activeClass = getActiveClass();
             if (activeClass && activeClass.id) {
                 if (!activeClass.settings) activeClass.settings = {};
-                activeClass.settings._cssCustom = value;
+                activeClass.settings[key] = value;
                 return;
             }
             var activeEl = getActiveElement();
             if (activeEl && activeEl.id) {
                 if (!activeEl.settings) activeEl.settings = {};
-                activeEl.settings._cssCustom = value;
+                activeEl.settings[key] = value;
                 return;
             }
+            // Page CSS: only desktop
             var page = getPageSettings();
             if (page) page.customCss = value;
         }
 
-        /* ── Update title ── */
+        /* ── Update title + breakpoint indicator ── */
         function updateTitle() {
             if (!titleEl) return;
+            var bp       = getActiveBreakpoint();
+            var bpLabel  = BP_FULL_LABELS[bp] || bp;
             var activeClass = getActiveClass();
             if (activeClass && activeClass.id) {
                 currentMode   = 'class';
                 currentElemId = activeClass.id;
                 titleEl.textContent = 'CSS \u2013 .' + activeClass.name + ' (class)';
-                return;
-            }
-            var activeEl = getActiveElement();
-            if (activeEl && activeEl.id) {
-                currentMode   = 'element';
-                currentElemId = activeEl.id;
-                titleEl.textContent = 'CSS \u2013 #brxe-' + activeEl.id + ' (' + (activeEl.name || '') + ')';
             } else {
-                currentMode   = 'page';
-                currentElemId = null;
-                titleEl.textContent = 'CSS \u2013 Page';
+                var activeEl = getActiveElement();
+                if (activeEl && activeEl.id) {
+                    currentMode   = 'element';
+                    currentElemId = activeEl.id;
+                    titleEl.textContent = 'CSS \u2013 #brxe-' + activeEl.id + ' (' + (activeEl.name || '') + ')';
+                } else {
+                    currentMode   = 'page';
+                    currentElemId = null;
+                    titleEl.textContent = 'CSS \u2013 Page';
+                }
+            }
+            // Update breakpoint indicator pill
+            if (bpIndicatorEl) {
+                bpIndicatorEl.textContent = bpLabel;
+                bpIndicatorEl.setAttribute('data-bp', bp);
             }
         }
 
@@ -1037,6 +1098,18 @@ function snn_custom_css_overlay_output() {
                         }
                     });
 
+                    var _breakpointActive = raw.breakpointActive;
+                    Object.defineProperty(raw, 'breakpointActive', {
+                        configurable: true,
+                        enumerable  : true,
+                        get: function() { return _breakpointActive; },
+                        set: function(v) {
+                            _breakpointActive = v;
+                            updateTitle();
+                            syncFromBricks();
+                        }
+                    });
+
                     return; // success — no interval needed
                 }
             } catch(e) {}
@@ -1046,9 +1119,11 @@ function snn_custom_css_overlay_output() {
             setInterval(function() {
                 var activeClass = getActiveClass();
                 var activeEl    = getActiveElement();
-                var key = activeClass && activeClass.id
+                var bp  = getActiveBreakpoint();
+                var key = (activeClass && activeClass.id
                     ? 'class:' + activeClass.id
-                    : (activeEl && activeEl.id ? 'el:' + activeEl.id : null);
+                    : (activeEl && activeEl.id ? 'el:' + activeEl.id : 'page'))
+                    + '@' + bp;
                 if (key !== lastKey) {
                     lastKey = key;
                     updateTitle();
