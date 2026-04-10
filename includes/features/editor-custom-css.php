@@ -292,7 +292,7 @@ function snn_custom_css_overlay_output() {
                 <!-- Collapse / expand -->
                 <button class="snn-css-topbar-btn" id="snn-css-collapse-btn" title="Collapse">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
-                        <path d="M6 15l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
                 <!-- Close (hide entirely) -->
@@ -379,7 +379,7 @@ function snn_custom_css_overlay_output() {
                 var colBtn = document.getElementById('snn-css-collapse-btn');
                 if (colBtn) {
                     colBtn.title = 'Expand';
-                    colBtn.querySelector('svg path').setAttribute('d', 'M6 9l6-6 6 6');
+                    colBtn.querySelector('svg path').setAttribute('d', 'M6 15l6-6 6 6');
                 }
                 adjustLayout();
             } else {
@@ -534,7 +534,7 @@ function snn_custom_css_overlay_output() {
             var btn = document.getElementById('snn-css-collapse-btn');
             if (btn) {
                 btn.title = 'Expand';
-                btn.querySelector('svg path').setAttribute('d', 'M6 9l6-6 6 6');
+                btn.querySelector('svg path').setAttribute('d', 'M6 15l6-6 6 6');
             }
             saveState();
         }
@@ -547,7 +547,7 @@ function snn_custom_css_overlay_output() {
             var btn = document.getElementById('snn-css-collapse-btn');
             if (btn) {
                 btn.title = 'Collapse';
-                btn.querySelector('svg path').setAttribute('d', 'M6 15l6 6 6-6');
+                btn.querySelector('svg path').setAttribute('d', 'M6 9l6 6 6-6');
             }
             if (cmInstance) cmInstance.refresh();
             saveState();
