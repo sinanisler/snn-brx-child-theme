@@ -539,6 +539,11 @@ function snn_custom_css_overlay_output() {
             return '_cssCustom:' + bp;
         }
 
+        function getPageCssKeyForBreakpoint(bp) {
+            if (!bp || bp === 'desktop') return 'customCss';
+            return 'customCss:' + bp;
+        }
+
         /* ── localStorage persistence ── */
         var STORAGE_KEY = 'snn_css_overlay_state';
 
@@ -659,9 +664,10 @@ function snn_custom_css_overlay_output() {
             if (activeEl && activeEl.id) {
                 return (activeEl.settings && activeEl.settings[key]) || '';
             }
-            // Page CSS: only desktop has customCss; other BPs unsupported by Bricks
-            var page = getPageSettings();
-            return (page && page.customCss) || '';
+            // Page CSS: breakpoint-aware using 'customCss' / 'customCss:bp' keys
+            var page   = getPageSettings();
+            var pageKey = getPageCssKeyForBreakpoint(bp);
+            return (page && page[pageKey]) || '';
         }
 
         function writeCurrentCss(value) {
@@ -679,9 +685,10 @@ function snn_custom_css_overlay_output() {
                 activeEl.settings[key] = value;
                 return;
             }
-            // Page CSS: only desktop
-            var page = getPageSettings();
-            if (page) page.customCss = value;
+            // Page CSS: breakpoint-aware
+            var page    = getPageSettings();
+            var pageKey = getPageCssKeyForBreakpoint(bp);
+            if (page) page[pageKey] = value;
         }
 
         /* ── Update title + breakpoint indicator ── */
