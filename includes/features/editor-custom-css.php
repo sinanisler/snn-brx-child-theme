@@ -1093,6 +1093,50 @@ function snn_custom_css_overlay_output() {
             'provider'    => $snn_css_ai_config['modelProvider'] ?? '',
         ] ); ?>;
 
+        /* ── Read Bricks global color palette + size variables from Vue reactive state ── */
+        function getBricksDesignTokens() {
+            var tokens = { colors: [], sizes: [] };
+            try {
+                var app   = document.querySelector('[data-v-app]');
+                var state = app && app.__vue_app__ && app.__vue_app__.config.globalProperties.$_state;
+                if (!state) return tokens;
+
+                if (state.colorPalette) {
+                    var palette = Array.from(state.colorPalette);
+                    if (palette.length && palette[0] && palette[0].colors) {
+                        tokens.colors = Array.from(palette[0].colors).map(function(c) {
+                            return { raw: c.raw, hex: c.light || '' };
+                        });
+                    }
+                }
+
+                if (state.globalVariables) {
+                    tokens.sizes = Array.from(state.globalVariables).map(function(v) {
+                        return { name: v.name, value: v.value, cssVar: '--' + v.name };
+                    });
+                }
+            } catch(e) {}
+            return tokens;
+        }
+
+        function buildTokenContext() {
+            var tokens = getBricksDesignTokens();
+            var ctx = '';
+            if (tokens.colors.length) {
+                ctx += '\n\nBRICKS GLOBAL COLOR PALETTE (use these var() names when referencing site colors):\n';
+                ctx += tokens.colors.map(function(c) {
+                    return '  ' + c.raw + (c.hex ? ' → ' + c.hex : '');
+                }).join('\n');
+            }
+            if (tokens.sizes.length) {
+                ctx += '\n\nBRICKS GLOBAL SIZE VARIABLES (use these var() names for spacing/sizing):\n';
+                ctx += tokens.sizes.map(function(v) {
+                    return '  var(' + v.cssVar + ') = ' + v.value;
+                }).join('\n');
+            }
+            return ctx;
+        }
+
         function initAiSidebar() {
             var aiBtn      = document.getElementById('snn-css-ai-btn');
             var aiSidebar  = document.getElementById('snn-css-ai-sidebar');
@@ -1122,11 +1166,17 @@ function snn_custom_css_overlay_output() {
 
                 var existingCss = cmInstance ? cmInstance.getValue() : '';
                 var contextLabel = titleEl ? titleEl.textContent : 'Page';
+                var tokenCtx = buildTokenContext();
+
+                var systemContent = 'You are a CSS coding expert. Respond ONLY with valid raw CSS code — no explanations, no markdown, no code fences. Just the CSS.';
+                if (tokenCtx) {
+                    systemContent += '\n\nYou have access to the site\'s Bricks Builder design tokens below. Use the var() names when referencing colors or sizes — only if they are appropriate for the task. Do NOT force tokens into the CSS if the user asked for something unrelated.' + tokenCtx;
+                }
 
                 var messages = [
                     {
                         role: 'system',
-                        content: 'You are a CSS coding expert. Respond ONLY with valid raw CSS code — no explanations, no markdown, no code fences. Just the CSS.'
+                        content: systemContent
                     },
                     {
                         role: 'user',
