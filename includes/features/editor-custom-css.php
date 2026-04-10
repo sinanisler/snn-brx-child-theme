@@ -429,6 +429,12 @@ function snn_custom_css_overlay_output() {
             try { return state.activeElement || null; } catch(e) { return null; }
         }
 
+        function getActiveClass() {
+            var state = getBricksState();
+            if (!state) return null;
+            try { return state.activeClass || null; } catch(e) { return null; }
+        }
+
         function getPageSettings() {
             var state = getBricksState();
             if (!state) return null;
@@ -436,7 +442,12 @@ function snn_custom_css_overlay_output() {
         }
 
         /* ── Read / write CSS ── */
+        // Priority: activeClass > activeElement > page
         function readCurrentCss() {
+            var activeClass = getActiveClass();
+            if (activeClass && activeClass.id) {
+                return (activeClass.settings && activeClass.settings._cssCustom) || '';
+            }
             var activeEl = getActiveElement();
             if (activeEl && activeEl.id) {
                 return (activeEl.settings && activeEl.settings._cssCustom) || '';
@@ -446,6 +457,12 @@ function snn_custom_css_overlay_output() {
         }
 
         function writeCurrentCss(value) {
+            var activeClass = getActiveClass();
+            if (activeClass && activeClass.id) {
+                if (!activeClass.settings) activeClass.settings = {};
+                activeClass.settings._cssCustom = value;
+                return;
+            }
             var activeEl = getActiveElement();
             if (activeEl && activeEl.id) {
                 if (!activeEl.settings) activeEl.settings = {};
@@ -459,6 +476,13 @@ function snn_custom_css_overlay_output() {
         /* ── Update title ── */
         function updateTitle() {
             if (!titleEl) return;
+            var activeClass = getActiveClass();
+            if (activeClass && activeClass.id) {
+                currentMode   = 'class';
+                currentElemId = activeClass.id;
+                titleEl.textContent = 'CSS \u2013 .' + activeClass.name + ' (class)';
+                return;
+            }
             var activeEl = getActiveElement();
             if (activeEl && activeEl.id) {
                 currentMode   = 'element';
@@ -531,10 +555,16 @@ function snn_custom_css_overlay_output() {
 
         /* ── r+Tab shortcut ── */
         function handleRootShortcut(cm) {
-            var activeEl = getActiveElement();
-            var snippet = (activeEl && activeEl.id)
-                ? '#brxe-' + activeEl.id + ' {\n  \n}'
-                : '%root% {\n  \n}';
+            var activeClass = getActiveClass();
+            var activeEl    = getActiveElement();
+            var snippet;
+            if (activeClass && activeClass.name) {
+                snippet = '.' + activeClass.name + ' {\n  \n}';
+            } else if (activeEl && activeEl.id) {
+                snippet = '#brxe-' + activeEl.id + ' {\n  \n}';
+            } else {
+                snippet = '%root% {\n  \n}';
+            }
             var cur = cm.getCursor();
             cm.replaceRange(snippet, cur);
             cm.setCursor({ line: cur.line + 1, ch: 2 });
@@ -825,28 +855,45 @@ function snn_custom_css_overlay_output() {
                     // on the raw target if accessible, otherwise fall back to a lightweight
                     // 250ms poll (much cheaper than 100ms).
                     var raw = state.__v_raw || state;
-                    var _val = raw.activeElement;
+
+                    var _activeEl = raw.activeElement;
                     Object.defineProperty(raw, 'activeElement', {
                         configurable: true,
                         enumerable  : true,
-                        get: function() { return _val; },
+                        get: function() { return _activeEl; },
                         set: function(v) {
-                            _val = v;
+                            _activeEl = v;
                             updateTitle();
                             syncFromBricks();
                         }
                     });
+
+                    var _activeClass = raw.activeClass;
+                    Object.defineProperty(raw, 'activeClass', {
+                        configurable: true,
+                        enumerable  : true,
+                        get: function() { return _activeClass; },
+                        set: function(v) {
+                            _activeClass = v;
+                            updateTitle();
+                            syncFromBricks();
+                        }
+                    });
+
                     return; // success — no interval needed
                 }
             } catch(e) {}
 
             // Fallback: coarse poll at 250ms (was 100ms)
-            var lastId = null;
+            var lastKey = null;
             setInterval(function() {
-                var activeEl = getActiveElement();
-                var id = activeEl && activeEl.id ? activeEl.id : null;
-                if (id !== lastId) {
-                    lastId = id;
+                var activeClass = getActiveClass();
+                var activeEl    = getActiveElement();
+                var key = activeClass && activeClass.id
+                    ? 'class:' + activeClass.id
+                    : (activeEl && activeEl.id ? 'el:' + activeEl.id : null);
+                if (key !== lastKey) {
+                    lastKey = key;
                     updateTitle();
                     syncFromBricks();
                 }
