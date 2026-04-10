@@ -45,6 +45,7 @@ require_once SNN_PATH . 'includes/features/seo.php';
 require_once SNN_PATH . 'includes/features/seo-bricks-setting.php';
 require_once SNN_PATH . 'includes/features/interactions.php';
 require_once SNN_PATH . 'includes/features/draft-revision.php';
+require_once SNN_PATH . 'includes/features/editor-custom-css.php';
 
 
 require_once SNN_PATH . 'includes/ai/api-call-templates.php';
