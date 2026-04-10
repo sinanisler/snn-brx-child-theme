@@ -74,6 +74,17 @@ function snn_custom_css_overlay_output() {
     ) {
         return;
     }
+
+    // Check if AI features are enabled
+    $snn_css_ai_enabled = false;
+    $snn_css_ai_config  = [];
+    if ( get_option( 'snn_ai_enabled', 'no' ) === 'yes' && function_exists( 'snn_get_ai_api_config' ) ) {
+        $ai_cfg = snn_get_ai_api_config();
+        if ( ! empty( $ai_cfg['apiKey'] ) && ! empty( $ai_cfg['apiEndpoint'] ) ) {
+            $snn_css_ai_enabled = true;
+            $snn_css_ai_config  = $ai_cfg;
+        }
+    }
     ?>
     <style id="snn-custom-css-overlay-styles">
         /* ── Overlay container ── */
@@ -199,12 +210,6 @@ function snn_custom_css_overlay_output() {
         }
 
         /* ── Editor area ── */
-        #snn-css-editor-wrap {
-            flex: 1;
-            overflow: hidden;
-            background: var(--builder-bg-2, #2a2a3d);
-            min-height: 0;
-        }
         #snn-css-editor-wrap .CodeMirror {
             height: 100%;
             background: var(--builder-bg-2, #2a2a3d);
@@ -278,6 +283,130 @@ function snn_custom_css_overlay_output() {
             background: black !important;
             color: #fff !important;
         }
+
+        /* ── AI Sidebar ── */
+        #snn-css-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+        #snn-css-editor-wrap {
+            flex: 1;
+            overflow: hidden;
+            background: var(--builder-bg-2, #2a2a3d);
+            min-height: 0;
+            min-width: 0;
+        }
+        #snn-css-ai-sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            background: var(--builder-bg, #1e1e2e);
+            border-left: 1px solid rgba(255,255,255,.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #snn-css-ai-sidebar.snn-hidden {
+            display: none !important;
+        }
+        #snn-css-ai-sidebar-inner {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 8px;
+            gap: 6px;
+            box-sizing: border-box;
+        }
+        #snn-css-ai-sidebar-title {
+            font-size: 10px;
+            color: rgba(255,255,255,.4);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            font-family: monospace;
+            flex-shrink: 0;
+        }
+        #snn-css-ai-prompt {
+            flex: 1;
+            resize: none;
+            background: var(--builder-bg-2, #2a2a3d);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 4px;
+            color: #cdd6f4;
+            font-size: 12px;
+            font-family: 'Cascadia Code','Fira Mono','Consolas',monospace;
+            padding: 6px 8px;
+            outline: none;
+            min-height: 60px;
+            line-height: 1.5;
+        }
+        #snn-css-ai-prompt:focus {
+            border-color: rgba(123,104,238,.5);
+        }
+        #snn-css-ai-prompt::placeholder {
+            color: rgba(255,255,255,.25);
+        }
+        #snn-css-ai-response {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--builder-bg-2, #2a2a3d);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 4px;
+            color: #a6e3a1;
+            font-size: 11px;
+            font-family: 'Cascadia Code','Fira Mono','Consolas',monospace;
+            padding: 6px 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            display: none;
+            min-height: 0;
+        }
+        #snn-css-ai-spinner {
+            text-align: center;
+            color: rgba(255,255,255,.4);
+            font-size: 11px;
+            padding: 6px 0;
+            display: none;
+        }
+        #snn-css-ai-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .snn-css-ai-btn {
+            flex: 1;
+            background: var(--builder-bg-2, #2a2a3d);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 3px;
+            color: #cdd6f4;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 4px 6px;
+            transition: background .15s, color .15s;
+            text-align: center;
+        }
+        .snn-css-ai-btn:hover {
+            background: var(--builder-color-accent, #000000);
+            color: #000000;
+            border-color: transparent;
+        }
+        .snn-css-ai-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+        #snn-css-ai-send-btn:hover:not(:disabled) {
+            background: #000000;
+            color:white;
+        }
+        #snn-css-ai-apply-btns {
+            display: none;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .snn-css-topbar-btn.snn-css-ai-toggle-btn.active {
+            color: var(--builder-color-accent, #7b68ee);
+            background: rgba(123,104,238,.15);
+        }
     </style>
 
     <!-- SNN Custom CSS Overlay -->
@@ -289,6 +418,12 @@ function snn_custom_css_overlay_output() {
         <div id="snn-css-topbar">
             <span id="snn-css-title">CSS – Page</span>
             <div id="snn-css-topbar-actions">
+                <?php if ( $snn_css_ai_enabled ) : ?>
+                <!-- AI assistant toggle -->
+                <button class="snn-css-topbar-btn snn-css-ai-toggle-btn" id="snn-css-ai-btn" title="AI CSS Assistant">
+                    <span style="font-size:22px;background:linear-gradient(45deg,#2271b1,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block;cursor:pointer;line-height:1.2">✦</span>
+                </button>
+                <?php endif; ?>
                 <!-- Collapse / expand -->
                 <button class="snn-css-topbar-btn" id="snn-css-collapse-btn" title="Collapse">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" >
@@ -304,8 +439,30 @@ function snn_custom_css_overlay_output() {
             </div>
         </div>
 
-        <!-- CodeMirror editor (initialized directly on this div) -->
-        <div id="snn-css-editor-wrap"></div>
+        <!-- Editor + AI sidebar -->
+        <div id="snn-css-body">
+            <!-- CodeMirror editor (initialized directly on this div) -->
+            <div id="snn-css-editor-wrap"></div>
+
+            <?php if ( $snn_css_ai_enabled ) : ?>
+            <!-- AI Sidebar -->
+            <div id="snn-css-ai-sidebar" class="snn-hidden">
+                <div id="snn-css-ai-sidebar-inner">
+                    <div id="snn-css-ai-sidebar-title">AI CSS Assistant</div>
+                    <textarea id="snn-css-ai-prompt" placeholder="Describe the CSS you need&#10;e.g. make it a flex container centered&#10;or add a hover scale effect…" rows="4"></textarea>
+                    <div id="snn-css-ai-spinner">Generating…</div>
+                    <div id="snn-css-ai-response"></div>
+                    <div id="snn-css-ai-actions">
+                        <button class="snn-css-ai-btn" id="snn-css-ai-send-btn">Generate</button>
+                    </div>
+                    <div id="snn-css-ai-apply-btns">
+                        <button class="snn-css-ai-btn" id="snn-css-ai-inject-btn">Inject</button>
+                        <button class="snn-css-ai-btn" id="snn-css-ai-replace-btn">Replace</button>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
     </div>
 
     <script>
@@ -927,10 +1084,127 @@ function snn_custom_css_overlay_output() {
             }
         }
 
+        /* ── AI Sidebar ── */
+        <?php if ( $snn_css_ai_enabled ) : ?>
+        var snnCssAiConfig = <?php echo wp_json_encode( [
+            'apiKey'      => $snn_css_ai_config['apiKey'],
+            'apiEndpoint' => $snn_css_ai_config['apiEndpoint'],
+            'model'       => $snn_css_ai_config['model'],
+            'provider'    => $snn_css_ai_config['modelProvider'] ?? '',
+        ] ); ?>;
+
+        function initAiSidebar() {
+            var aiBtn      = document.getElementById('snn-css-ai-btn');
+            var aiSidebar  = document.getElementById('snn-css-ai-sidebar');
+            var aiPrompt   = document.getElementById('snn-css-ai-prompt');
+            var aiSpinner  = document.getElementById('snn-css-ai-spinner');
+            var aiResponse = document.getElementById('snn-css-ai-response');
+            var aiSendBtn  = document.getElementById('snn-css-ai-send-btn');
+            var aiApplyBtns   = document.getElementById('snn-css-ai-apply-btns');
+            var aiInjectBtn   = document.getElementById('snn-css-ai-inject-btn');
+            var aiReplaceBtn  = document.getElementById('snn-css-ai-replace-btn');
+
+            if (!aiBtn || !aiSidebar) return;
+
+            var lastAiCode = '';
+
+            aiBtn.addEventListener('click', function() {
+                var hidden = aiSidebar.classList.toggle('snn-hidden');
+                aiBtn.classList.toggle('active', !hidden);
+                if (!hidden && cmInstance) {
+                    setTimeout(function() { cmInstance.refresh(); }, 50);
+                }
+            });
+
+            aiSendBtn.addEventListener('click', function() {
+                var prompt = aiPrompt.value.trim();
+                if (!prompt) return;
+
+                var existingCss = cmInstance ? cmInstance.getValue() : '';
+                var contextLabel = titleEl ? titleEl.textContent : 'Page';
+
+                var messages = [
+                    {
+                        role: 'system',
+                        content: 'You are a CSS coding expert. Respond ONLY with valid raw CSS code — no explanations, no markdown, no code fences. Just the CSS.'
+                    },
+                    {
+                        role: 'user',
+                        content: 'Context: ' + contextLabel + (existingCss ? '\n\nExisting CSS:\n' + existingCss : '') + '\n\nTask: ' + prompt
+                    }
+                ];
+
+                aiSendBtn.disabled = true;
+                aiSpinner.style.display = 'block';
+                aiResponse.style.display = 'none';
+                aiApplyBtns.style.display = 'none';
+                lastAiCode = '';
+
+                var helpers = window.SNN_AI_Helpers;
+                if (!helpers || typeof helpers.makeTextCompletion !== 'function') {
+                    aiSpinner.style.display = 'none';
+                    aiResponse.textContent = 'Error: SNN_AI_Helpers not loaded.';
+                    aiResponse.style.display = 'block';
+                    aiSendBtn.disabled = false;
+                    return;
+                }
+
+                helpers.makeTextCompletion({
+                    apiEndpoint : snnCssAiConfig.apiEndpoint,
+                    apiKey      : snnCssAiConfig.apiKey,
+                    model       : snnCssAiConfig.model,
+                    messages    : messages,
+                    provider    : snnCssAiConfig.provider || null,
+                    temperature : 0.4,
+                    maxTokens   : 2000
+                }).then(function(data) {
+                    var text = helpers.extractContent ? helpers.extractContent(data) : (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+                    // Strip markdown code fences if AI included them anyway
+                    text = text.replace(/^```(?:css)?\s*/i, '').replace(/```\s*$/i, '').trim();
+                    lastAiCode = text;
+                    aiResponse.textContent = text;
+                    aiResponse.style.display = 'block';
+                    aiApplyBtns.style.display = 'flex';
+                }).catch(function(err) {
+                    aiResponse.textContent = 'Error: ' + (err && err.message ? err.message : String(err));
+                    aiResponse.style.display = 'block';
+                }).finally(function() {
+                    aiSpinner.style.display = 'none';
+                    aiSendBtn.disabled = false;
+                });
+            });
+
+            aiInjectBtn.addEventListener('click', function() {
+                if (!lastAiCode || !cmInstance) return;
+                var existing = cmInstance.getValue();
+                var newVal = existing ? existing + '\n\n' + lastAiCode : lastAiCode;
+                cmInstance.setValue(newVal);
+                cmInstance.focus();
+            });
+
+            aiReplaceBtn.addEventListener('click', function() {
+                if (!lastAiCode || !cmInstance) return;
+                cmInstance.setValue(lastAiCode);
+                cmInstance.focus();
+            });
+
+            // Send on Ctrl+Enter in the prompt textarea
+            aiPrompt.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    aiSendBtn.click();
+                }
+            });
+        }
+        <?php endif; ?>
+
         // ── Initialize everything ──
         initResize();
         initOverlayButtons();
         watchForPanelHeader();
+        <?php if ( $snn_css_ai_enabled ) : ?>
+        initAiSidebar();
+        <?php endif; ?>
 
         waitForVue(function() {
             restoreState();
