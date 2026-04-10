@@ -336,6 +336,7 @@ function snn_custom_css_overlay_output() {
         var currentMode    = 'page';
         var currentElemId  = null;
         var isSyncing      = false;
+        var writeCssTimer  = null;
 
         /* ── localStorage persistence ── */
         var STORAGE_KEY = 'snn_css_overlay_state';
@@ -588,10 +589,12 @@ function snn_custom_css_overlay_output() {
                 hintOptions : { completeSingle: false }
             });
             
-            // Enable CSS autocomplete
+            // Enable CSS autocomplete — only trigger on meaningful CSS characters,
+            // not on Enter, Space, backspace, etc.
             if (typeof CM.showHint === 'function' && CM.hint && CM.hint.css) {
-                cmInstance.on('inputRead', function(cm) {
-                    if (!cm.state.completionActive) {
+                cmInstance.on('inputRead', function(cm, change) {
+                    var ch = change.text && change.text[0];
+                    if (ch && /^[a-zA-Z:\-\(]$/.test(ch) && !cm.state.completionActive) {
                         CM.showHint(cm, CM.hint.css, { completeSingle: false });
                     }
                 });
@@ -600,9 +603,12 @@ function snn_custom_css_overlay_output() {
             console.log('CodeMirror editor initialized successfully');
             cmInstance.on('change', function(cm) {
                 if (isSyncing) return;
-                isSyncing = true;
-                writeCurrentCss(cm.getValue());
-                isSyncing = false;
+                clearTimeout(writeCssTimer);
+                writeCssTimer = setTimeout(function() {
+                    isSyncing = true;
+                    writeCurrentCss(cm.getValue());
+                    isSyncing = false;
+                }, 300);
             });
         }
 
@@ -802,11 +808,39 @@ function snn_custom_css_overlay_output() {
 
             tryInsertAndWatch();
             watchHeader();
-            setInterval(tryInsertAndWatch, 100);
         }
 
         // --- Additional watchers for robust overlay operation ---
         function watchActiveElement() {
+            // Prefer Vue's own reactivity over polling.
+            // $_state is a Vue 3 reactive proxy — we install a getter trap on
+            // activeElement so we're notified exactly when Bricks changes it,
+            // with zero polling overhead.
+            try {
+                var app = document.querySelector('[data-v-app]');
+                var state = app && app.__vue_app__ && app.__vue_app__.config.globalProperties.$_state;
+                if (state && typeof state === 'object') {
+                    var lastId = state.activeElement && state.activeElement.id ? state.activeElement.id : null;
+                    // Vue 3 reactive proxies fire Proxy set traps — wrap with defineProperty
+                    // on the raw target if accessible, otherwise fall back to a lightweight
+                    // 250ms poll (much cheaper than 100ms).
+                    var raw = state.__v_raw || state;
+                    var _val = raw.activeElement;
+                    Object.defineProperty(raw, 'activeElement', {
+                        configurable: true,
+                        enumerable  : true,
+                        get: function() { return _val; },
+                        set: function(v) {
+                            _val = v;
+                            updateTitle();
+                            syncFromBricks();
+                        }
+                    });
+                    return; // success — no interval needed
+                }
+            } catch(e) {}
+
+            // Fallback: coarse poll at 250ms (was 100ms)
             var lastId = null;
             setInterval(function() {
                 var activeEl = getActiveElement();
@@ -816,22 +850,34 @@ function snn_custom_css_overlay_output() {
                     updateTitle();
                     syncFromBricks();
                 }
-            }, 100);
+            }, 250);
         }
 
         function watchPanelSizes() {
-            var lastLeft = null, lastRight = null;
-            setInterval(function() {
-                var leftPanel  = document.getElementById('bricks-panel-inner');
-                var rightPanel = document.getElementById('bricks-structure');
-                var leftWidth  = leftPanel && window.getComputedStyle(leftPanel).display !== 'none' ? leftPanel.offsetWidth : 0;
-                var rightWidth = rightPanel && window.getComputedStyle(rightPanel).display !== 'none' ? rightPanel.offsetWidth : 0;
-                if (leftWidth !== lastLeft || rightWidth !== lastRight) {
-                    lastLeft = leftWidth;
-                    lastRight = rightWidth;
-                    adjustLayout();
-                }
-            }, 100);
+            // ResizeObserver fires only on actual size changes — zero polling cost.
+            var ro = new ResizeObserver(function() {
+                adjustLayout();
+            });
+            var leftPanel  = document.getElementById('bricks-panel-inner');
+            var rightPanel = document.getElementById('bricks-structure');
+            if (leftPanel)  ro.observe(leftPanel);
+            if (rightPanel) ro.observe(rightPanel);
+
+            // If panels aren't in the DOM yet, watch for them via MutationObserver
+            if (!leftPanel || !rightPanel) {
+                var mo = new MutationObserver(function() {
+                    if (!leftPanel) {
+                        leftPanel = document.getElementById('bricks-panel-inner');
+                        if (leftPanel) ro.observe(leftPanel);
+                    }
+                    if (!rightPanel) {
+                        rightPanel = document.getElementById('bricks-structure');
+                        if (rightPanel) ro.observe(rightPanel);
+                    }
+                    if (leftPanel && rightPanel) mo.disconnect();
+                });
+                mo.observe(document.body, { childList: true, subtree: true });
+            }
         }
 
         // ── Initialize everything ──
