@@ -60,7 +60,8 @@ function snn_custom_fields_page_callback() {
                     $choices_sanitized = wp_unslash(sanitize_textarea_field($choices_raw));
 
                     $field_type_for_repeater_check = isset($field_data['type']) ? $field_data['type'] : 'text';
-                        $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map','post_link']);
+                    $is_repeater_disabled_type = in_array($field_type_for_repeater_check, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map']);
+
                     $new_fields[] = [
                         'group_name'    => sanitize_text_field($field_data['group_name']),
                         'label'         => sanitize_text_field($field_data['label']),
@@ -101,7 +102,7 @@ function snn_custom_fields_page_callback() {
                     foreach ($custom_fields as $index => $field) {
                         $field_type = isset($field['type']) ? $field['type'] : 'text';
                         $show_choices = in_array($field_type, ['select','checkbox','radio']);
-                        $is_repeater_disabled_type = in_array($field_type, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map','post_link']);
+                        $is_repeater_disabled_type = in_array($field_type, ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map']);
                         $repeater_title = $is_repeater_disabled_type ? __('This field type cannot be a repeater', 'snn') : __('Allow multiple values', 'snn');
                         $show_quick_edit = in_array($field_type, ['text', 'textarea']);
                         ?>
@@ -148,7 +149,6 @@ function snn_custom_fields_page_callback() {
                                     <option value="rich_text" <?php selected($field_type, 'rich_text'); ?>><?php esc_html_e('Rich Text', 'snn'); ?></option>
                                     <option value="basic_rich_text" <?php selected($field_type, 'basic_rich_text'); ?>><?php esc_html_e('Basic Rich Text', 'snn'); ?></option>
                                     <option value="media"     <?php selected($field_type, 'media'); ?>><?php esc_html_e('Media', 'snn'); ?></option>
-                                    <option value="post_link" <?php selected($field_type, 'post_link'); ?>><?php esc_html_e('Post Link', 'snn'); ?></option>
                                     <option value="date"      <?php selected($field_type, 'date'); ?>><?php esc_html_e('Date', 'snn'); ?></option>
                                     <option value="time"      <?php selected($field_type, 'time'); ?>><?php esc_html_e('Time', 'snn'); ?></option>
                                     <option value="color"     <?php selected($field_type, 'color'); ?>><?php esc_html_e('Color', 'snn'); ?></option>
@@ -273,7 +273,7 @@ function snn_custom_fields_page_callback() {
                 const typeSelect = row.querySelector('.field-type-select');
                 const repeaterCheckbox = row.querySelector('.repeater-checkbox');
                 if (!typeSelect || !repeaterCheckbox) return;
-                const disable = ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map','post_link'].includes(typeSelect.value);
+                const disable = ['rich_text', 'basic_rich_text', 'select','checkbox','radio','true_false','url','email','map'].includes(typeSelect.value);
                 repeaterCheckbox.disabled = disable;
                 repeaterCheckbox.title = disable ? '<?php echo esc_js(__('This field type cannot be a repeater', 'snn')); ?>' : '<?php echo esc_js(__('Allow multiple values', 'snn')); ?>';
                 if (disable) {
@@ -413,7 +413,6 @@ function snn_custom_fields_page_callback() {
                             <option value="rich_text"><?php esc_html_e('Rich Text', 'snn'); ?></option>
                             <option value="basic_rich_text"><?php esc_html_e('Basic Rich Text', 'snn'); ?></option>
                             <option value="media"><?php esc_html_e('Media', 'snn'); ?></option>
-                            <option value="post_link"><?php esc_html_e('Post Link', 'snn'); ?></option>
                             <option value="date"><?php esc_html_e('Date', 'snn'); ?></option>
                             <option value="time"><?php esc_html_e('Time', 'snn'); ?></option>
                             <option value="color"><?php esc_html_e('Color', 'snn'); ?></option>
@@ -868,7 +867,7 @@ function snn_register_dynamic_metaboxes() {
                 }
                 $grouped_fields[$pt][$group_name][] = $field;
 
-                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map','post_link'];
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $snn_repeater_fields_exist = true;
                 }
@@ -924,7 +923,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
                 if ($field['type'] === 'media') $post_type_has_media = true;
                 if ($field['type'] === 'basic_rich_text') $post_type_has_basic_rich_text = true;
                 if ($field['type'] === 'map') $post_type_has_map = true;
-                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map','post_link'];
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $post_type_has_repeater = true;
                 }
@@ -954,7 +953,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
                 if ($field['type'] === 'media') $has_author_media = true;
                 if ($field['type'] === 'basic_rich_text') $has_author_basic_rich_text = true;
                 if ($field['type'] === 'map') $has_author_map = true;
-                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map','post_link'];
+                $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
                 if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                     $has_author_repeater = true; 
                 }
@@ -991,7 +990,7 @@ function snn_enqueue_metabox_scripts($hook_suffix) {
                     if ($field['type'] === 'basic_rich_text') $has_tax_basic_rich_text = true;
                     if ($field['type'] === 'map') $has_tax_map = true;
                     
-                    $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map','post_link'];
+                    $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
                     if (!in_array($field['type'], $disallowed_for_repeater) && !empty($field['repeater'])) {
                         $has_tax_repeater = true;
                     }
@@ -1208,9 +1207,6 @@ function snn_render_metabox_content($post, $metabox) {
         color: #555; 
         margin-top: 4px;
         word-break: break-all; 
-    }
-    .snn-post-link-field .post-link-result-item:hover {
-        background-color: #f0f0f0;
     }
     #ui-datepicker-div{
         background:white;
@@ -1536,44 +1532,6 @@ function snn_render_field_input($field, $value = '', $index = '0', $context = 'm
             echo '<input type="email" id="' . $id_attribute_base
                  . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($value) 
                  . '" placeholder="name@example.com"' . $disabled_attr . ' />';
-            break;
-
-        case 'post_link':
-            $selected_post_id = is_numeric($value) ? intval($value) : 0;
-            $selected_post_title = '';
-            $selected_post_type = '';
-            
-            if ($selected_post_id) {
-                $selected_post = get_post($selected_post_id);
-                if ($selected_post) {
-                    $selected_post_title = $selected_post->post_title;
-                    $selected_post_type = get_post_type_object($selected_post->post_type)->labels->singular_name;
-                }
-            }
-            
-            echo '<div class="snn-post-link-field" style="max-width: 600px;">';
-            echo '<input type="hidden" class="post-link-value-field" id="' . $id_attribute_base
-                 . '" name="' . esc_attr($name_attribute) . '" value="' . esc_attr($selected_post_id) . '"' . $disabled_attr . ' />';
-            
-            echo '<div class="post-link-search-wrapper" style="position: relative; margin-bottom: 5px;">';
-            echo '<input type="text" class="post-link-search-input" placeholder="' . esc_attr__('Search for a post, page, or any post type...', 'snn') . '" '
-                 . 'style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;"' . $disabled_attr . ' />';
-            echo '<div class="post-link-results" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 300px; overflow-y: auto; background: white; border: 1px solid #ddd; border-top: none; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"></div>';
-            echo '</div>';
-            
-            if ($selected_post_id && $selected_post_title) {
-                echo '<div class="post-link-selected" style="padding: 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; display: flex; justify-content: space-between; align-items: center;">';
-                echo '<span><strong>' . esc_html($selected_post_title) . '</strong> <span style="color: #666; font-size: 12px;">(' . esc_html($selected_post_type) . ')</span></span>';
-                echo '<button type="button" class="button post-link-remove-button"' . $disabled_attr . '>×</button>';
-                echo '</div>';
-            } else {
-                echo '<div class="post-link-selected" style="display: none; padding: 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; justify-content: space-between; align-items: center;">';
-                echo '<span><strong></strong> <span style="color: #666; font-size: 12px;"></span></span>';
-                echo '<button type="button" class="button post-link-remove-button"' . $disabled_attr . '>×</button>';
-                echo '</div>';
-            }
-            
-            echo '</div>';
             break;
 
         case 'map':
@@ -2473,10 +2431,6 @@ function snn_sanitize_value_by_type($type, $value, $field = null) {
         case 'email':
             return sanitize_email($value);
 
-        case 'post_link':
-            // Post link stores the post ID, returns the URL when retrieved
-            return is_numeric($value) ? intval($value) : '';
-
         case 'double_text':
             // Double text returns an array of two text values
             if (is_array($value) && count($value) >= 2) {
@@ -2507,7 +2461,6 @@ function snn_output_dynamic_field_js() {
     $snn_dynamic_js_outputted = true;
     ?>
     <script type="text/javascript">
-    var ajaxurl = ajaxurl || '<?php echo admin_url('admin-ajax.php'); ?>';
     jQuery(document).ready(function($) {
 
         $(document).off('click', '.media-upload-button').on('click', '.media-upload-button', function(e) {
@@ -2606,82 +2559,6 @@ function snn_output_dynamic_field_js() {
             $uploader.find('.media-preview-wrapper').empty(); 
             $uploader.find('.media-filename').empty().hide(); 
             $btn.hide();
-        });
-
-        // Post Link field handlers
-        var postLinkSearchTimeout;
-        
-        $(document).on('input', '.post-link-search-input', function() {
-            var $input = $(this);
-            var $wrapper = $input.closest('.snn-post-link-field');
-            var $results = $wrapper.find('.post-link-results');
-            var searchTerm = $input.val().trim();
-            
-            clearTimeout(postLinkSearchTimeout);
-            
-            if (searchTerm.length < 2) {
-                $results.hide().empty();
-                return;
-            }
-            
-            postLinkSearchTimeout = setTimeout(function() {
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'snn_search_posts',
-                        search: searchTerm,
-                        nonce: '<?php echo wp_create_nonce('snn_search_posts'); ?>'
-                    },
-                    success: function(response) {
-                        if (response.success && response.data.length > 0) {
-                            var html = '';
-                            $.each(response.data, function(i, post) {
-                                html += '<div class="post-link-result-item" data-post-id="' + post.ID + '" data-post-title="' + post.post_title + '" data-post-type="' + post.post_type_label + '" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;">';
-                                html += '<strong>' + post.post_title + '</strong> ';
-                                html += '<span style="color: #666; font-size: 12px;">(' + post.post_type_label + ')</span>';
-                                html += '</div>';
-                            });
-                            $results.html(html).show();
-                        } else {
-                            $results.html('<div style="padding: 8px; color: #999;">' + '<?php esc_html_e('No posts found', 'snn'); ?>' + '</div>').show();
-                        }
-                    }
-                });
-            }, 300);
-        });
-        
-        $(document).on('click', '.post-link-result-item', function() {
-            var $item = $(this);
-            var $wrapper = $item.closest('.snn-post-link-field');
-            var postId = $item.data('post-id');
-            var postTitle = $item.data('post-title');
-            var postType = $item.data('post-type');
-            
-            $wrapper.find('.post-link-value-field').val(postId);
-            $wrapper.find('.post-link-search-input').val('');
-            $wrapper.find('.post-link-results').hide().empty();
-            
-            var $selected = $wrapper.find('.post-link-selected');
-            $selected.find('strong').text(postTitle);
-            $selected.find('span span').text('(' + postType + ')');
-            $selected.show();
-        });
-        
-        $(document).on('click', '.post-link-remove-button', function(e) {
-            e.preventDefault();
-            var $btn = $(this);
-            var $wrapper = $btn.closest('.snn-post-link-field');
-            
-            $wrapper.find('.post-link-value-field').val('');
-            $wrapper.find('.post-link-selected').hide();
-        });
-        
-        // Hide results when clicking outside
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('.post-link-search-wrapper').length) {
-                $('.post-link-results').hide();
-            }
         });
 
         $(document).on('click', '.add-repeater-item', function(e) {
@@ -3143,50 +3020,6 @@ function snn_options_page_form_handler($group_name_display, $fields_for_page, $g
     <?php
 }
 
-// AJAX handler for post link field search
-add_action('wp_ajax_snn_search_posts', 'snn_ajax_search_posts');
-function snn_ajax_search_posts() {
-    check_ajax_referer('snn_search_posts', 'nonce');
-    
-    $search_term = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
-    
-    if (empty($search_term)) {
-        wp_send_json_success([]);
-        return;
-    }
-    
-    // Get all public post types
-    $post_types = get_post_types(['public' => true], 'names');
-    
-    $args = [
-        'post_type' => $post_types,
-        'post_status' => 'publish',
-        's' => $search_term,
-        'posts_per_page' => 20,
-        'orderby' => 'relevance',
-        'order' => 'DESC'
-    ];
-    
-    $query = new WP_Query($args);
-    $results = [];
-    
-    if ($query->have_posts()) {
-        while ($query->have_posts()) {
-            $query->the_post();
-            $post_type_obj = get_post_type_object(get_post_type());
-            $results[] = [
-                'ID' => get_the_ID(),
-                'post_title' => get_the_title(),
-                'post_type' => get_post_type(),
-                'post_type_label' => $post_type_obj ? $post_type_obj->labels->singular_name : get_post_type()
-            ];
-        }
-        wp_reset_postdata();
-    }
-    
-    wp_send_json_success($results);
-}
-
 add_action('admin_enqueue_scripts', 'snn_enqueue_dynamic_options_page_scripts');
 function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
     global $snn_options_pages_hooks; 
@@ -3211,7 +3044,7 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
             if ($field_cfg['type'] === 'basic_rich_text') $needs_basic_rich_text = true;
             if ($field_cfg['type'] === 'map') $needs_map = true;
             
-            $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map','post_link'];
+            $disallowed_for_repeater = ['rich_text', 'basic_rich_text','select','checkbox','radio','true_false','url','email','map'];
             if (!in_array($field_cfg['type'], $disallowed_for_repeater) && !empty($field_cfg['repeater'])) {
                  $needs_repeater_js = true; 
             }
@@ -3236,28 +3069,6 @@ function snn_enqueue_dynamic_options_page_scripts($hook_suffix) {
     if ($needs_media || $needs_repeater_js || $needs_datepicker || $needs_map) { 
         add_action('admin_footer', 'snn_output_dynamic_field_js');
     }
-}
-
-/**
- * Helper function to get post link URL from post_link field
- * Usage: snn_get_post_link_url(get_post_meta($post_id, 'your_post_link_field', true))
- * 
- * @param int $post_id The stored post ID from the post_link field
- * @return string The permalink URL of the post, or empty string if not found
- */
-function snn_get_post_link_url($post_id) {
-    if (empty($post_id) || !is_numeric($post_id)) {
-        return '';
-    }
-    
-    $post_id = intval($post_id);
-    $post = get_post($post_id);
-    
-    if (!$post) {
-        return '';
-    }
-    
-    return get_permalink($post_id);
 }
 
 ?>
