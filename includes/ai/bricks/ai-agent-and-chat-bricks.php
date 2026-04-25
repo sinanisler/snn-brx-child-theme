@@ -2092,21 +2092,73 @@ IMPORTANT RULES:
 
             function formatDataPreview(data) {
                 if (Array.isArray(data)) {
-                    if (!data.length) return 'Empty array';
-                    const countText = `Found ${data.length} item${data.length !== 1 ? 's' : ''}`;
+                    if (!data.length) return '<span class="result-meta">Empty result</span>';
+                    const count = `<span class="result-meta">Found ${data.length} item${data.length !== 1 ? 's' : ''}</span>`;
                     const jsonHtml = formatJsonHighlight(data);
-                    return `${countText}<div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div>`;
+                    return `${count}<details class="result-details"><summary>Show data</summary><div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div></details>`;
                 }
                 if (typeof data === 'object' && data !== null) {
                     const id = data.ID || data.id;
                     if (id) {
                         const title  = data.post_title || data.title || '';
                         const status = data.post_status || data.status || '';
-                        return `<strong>ID:</strong> ${id}${title ? ' | <strong>Title:</strong> ' + title : ''}${status ? ' | <strong>Status:</strong> ' + status : ''}`;
+                        const summary = `<strong>ID:</strong> ${id}${title ? ' — ' + title : ''}${status ? ' <span class="result-meta">[' + status + ']</span>' : ''}`;
+                        const jsonHtml = formatJsonHighlight(data);
+                        return `<div class="result-inline">${summary}</div><details class="result-details"><summary>Show raw data</summary><div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div></details>`;
                     }
-                    return `<div class="json-result-container"><pre class="json-result">${formatJsonHighlight(data)}</pre></div>`;
+                    const summary = buildObjectSummary(data);
+                    const jsonHtml = formatJsonHighlight(data);
+                    return `${summary}<details class="result-details"><summary>Show raw data</summary><div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div></details>`;
                 }
-                return String(data).substring(0, 150);
+                return String(data).substring(0, 200);
+            }
+
+            function buildObjectSummary(data) {
+                // Post types table (e.g. from snn/get-site-info)
+                if (data.posttypes && typeof data.posttypes === 'object') {
+                    const rows = Object.entries(data.posttypes).map(([slug, info]) => {
+                        const pub = info.published !== undefined ? info.published : '-';
+                        const drft = info.draft !== undefined ? info.draft : '-';
+                        return `<tr><td>${escapeHtml(info.label || slug)}</td><td>${pub}</td><td>${drft}</td></tr>`;
+                    }).join('');
+                    return `<table class="result-table"><thead><tr><th>Post Type</th><th>Published</th><th>Draft</th></tr></thead><tbody>${rows}</tbody></table>`;
+                }
+                // WordPress site overview (top-level content block)
+                if (data.wordpress && data.content) {
+                    const wp = data.wordpress;
+                    const c  = data.content;
+                    const lines = [];
+                    if (wp.sitename) lines.push(`<strong>Site:</strong> ${escapeHtml(wp.sitename)} <span class="result-meta">(WP ${escapeHtml(wp.version || '')})</span>`);
+                    if (c.posts)    lines.push(`<strong>Posts:</strong> ${c.posts.published || 0} published, ${c.posts.draft || 0} draft`);
+                    if (c.pages)    lines.push(`<strong>Pages:</strong> ${c.pages.published || 0} published, ${c.pages.draft || 0} draft`);
+                    if (c.media)    lines.push(`<strong>Media:</strong> ${c.media.total || 0} items`);
+                    if (c.comments) lines.push(`<strong>Comments:</strong> ${c.comments.approved || 0} approved`);
+                    if (c.users)    lines.push(`<strong>Users:</strong> ${c.users.total || 0}`);
+                    if (c.posttypes) {
+                        const rows = Object.entries(c.posttypes).map(([slug, info]) => {
+                            return `<tr><td>${escapeHtml(info.label || slug)}</td><td>${info.published || 0}</td><td>${info.draft || 0}</td></tr>`;
+                        }).join('');
+                        lines.push(`<strong>Post Types:</strong><table class="result-table"><thead><tr><th>Type</th><th>Published</th><th>Draft</th></tr></thead><tbody>${rows}</tbody></table>`);
+                    }
+                    return `<div class="result-summary-block">${lines.map(l => `<div class="result-summary-row">${l}</div>`).join('')}</div>`;
+                }
+                // Generic flat object — show scalar top-level values
+                const keys = Object.keys(data);
+                const scalarLines = [];
+                for (const k of keys) {
+                    const v = data[k];
+                    if (typeof v !== 'object' && scalarLines.length < 6) {
+                        scalarLines.push(`<strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v)).substring(0, 80)}`);
+                    }
+                }
+                if (scalarLines.length) {
+                    return `<div class="result-summary-block">${scalarLines.map(l => `<div class="result-summary-row">${l}</div>`).join('')}</div>`;
+                }
+                return `<span class="result-meta">Object (${keys.length} fields)</span>`;
+            }
+
+            function escapeHtml(str) {
+                return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
             }
 
             function formatJsonHighlight(data) {
@@ -2141,31 +2193,43 @@ IMPORTANT RULES:
                     const intro = response.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
                     if (intro) addMessage('assistant', intro);
 
-                    // Execute each ability sequentially
+                    // Execute each ability sequentially — collect results for accurate interpretation
+                    const abilityResults = [];
                     for (let i = 0; i < abilities.length; i++) {
                         const ability = abilities[i];
                         setAgentState('abilities', `Running ${ability.name} (${i + 1}/${abilities.length})...`);
                         showTyping();
 
                         const result = await executeAbility(ability.name, ability.input || {});
+                        abilityResults.push({ name: ability.name, result });
                         hideTyping();
                         addMessage('assistant', formatSingleAbilityResult({ ability: ability.name, result }));
 
                         await sleep(300);
                     }
 
-                    // Ask AI to interpret the results
+                    // Ask AI to interpret the results — pass ACTUAL data so it answers accurately
                     showTyping();
                     setAgentState('answering');
-                    const resultsSummary = abilities.map(a => `- ${a.name}: executed`).join('\n');
+                    const resultsSummary = abilityResults.map(r => {
+                        const statusLabel = r.result.success !== false ? 'success' : 'error';
+                        let dataStr = '';
+                        if (r.result.data !== undefined) {
+                            const jsonStr = JSON.stringify(r.result.data);
+                            dataStr = jsonStr.length > 4000 ? jsonStr.substring(0, 4000) + '...(truncated)' : jsonStr;
+                        } else if (r.result.error) {
+                            dataStr = 'Error: ' + r.result.error;
+                        }
+                        return `- ${r.name} [${statusLabel}]:\n${dataStr}`;
+                    }).join('\n\n');
                     try {
                         const interpretation = await callAI([
                             { role: 'system', content: buildAbilitiesSystemPrompt() },
                             ...context,
                             { role: 'user', content: userMessage },
                             { role: 'assistant', content: intro || 'Abilities executed.' },
-                            { role: 'user', content: `All ${abilities.length} WordPress abilities have been executed:\n${resultsSummary}\n\nProvide a brief, natural summary of what was accomplished. Keep it to 1–2 sentences.` }
-                        ], 0, { maxTokens: 300 });
+                            { role: 'user', content: `All ${abilityResults.length} WordPress abilities have been executed with the following results:\n\n${resultsSummary}\n\nUsing the ACTUAL DATA above, provide a clear and accurate answer to the user's original question. Be specific with real numbers and names from the data. Do NOT invent or guess any values.` }
+                        ], 0, { maxTokens: 500 });
                         hideTyping();
                         if (interpretation) {
                             const clean = interpretation.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
@@ -2767,14 +2831,26 @@ IMPORTANT RULES:
 .snn-bricks-chat-support a:hover { color: #820808; }
 /* Abilities API results */
 .ability-results { margin-top: 4px; }
-.ability-result { padding: 5px 8px; margin: 3px 0; border-radius: 5px; font-size: 13px; line-height: 1.4; }
+.ability-result { padding: 6px 10px; margin: 3px 0; border-radius: 5px; font-size: 13px; line-height: 1.5; }
 .ability-result.success { background: #f0f9ff; border: 1px solid #bae6fd; }
 .ability-result.error { background: #fef2f2; border: 1px solid #fecaca; }
 .ability-result strong { display: inline; margin-right: 5px; }
-.result-data { color: #555; font-size: 13px; margin-top: 3px; line-height: 1.5; }
+.result-data { color: #444; font-size: 13px; margin-top: 4px; line-height: 1.6; }
 .result-error { color: #dc2626; font-size: 12px; margin-top: 2px; }
-.json-result-container { margin-top: 6px; max-height: 120px; overflow-y: auto; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; }
-.json-result { margin: 0; padding: 8px; font-family: Courier, monospace; font-size: 12px; line-height: 1.3; white-space: pre; overflow-x: auto; color: #333; }
+.result-meta { color: #888; font-size: 12px; }
+.result-inline { margin-bottom: 2px; }
+.result-summary-block { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.result-summary-row { font-size: 12px; color: #444; }
+.result-details { margin-top: 5px; }
+.result-details summary { font-size: 11px; color: #2271b1; cursor: pointer; user-select: none; display: inline-block; padding: 1px 4px; border-radius: 3px; }
+.result-details summary:hover { background: #e8f0fe; }
+.result-details[open] summary { color: #1557a0; }
+.result-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+.result-table th { background: #e8f4fd; color: #1e3a5f; font-weight: 600; padding: 3px 7px; text-align: left; border: 1px solid #c8dff0; }
+.result-table td { padding: 2px 7px; border: 1px solid #dde; color: #333; }
+.result-table tr:nth-child(even) td { background: #f7fbff; }
+.json-result-container { margin-top: 4px; max-height: 160px; overflow-y: auto; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; }
+.json-result { margin: 0; padding: 8px; font-family: Courier, monospace; font-size: 11px; line-height: 1.4; white-space: pre; overflow-x: auto; color: #333; }
 .json-key { color: #0066cc; font-weight: 600; }
 .json-string { color: #22863a; }
 .json-number { color: #005cc5; }
