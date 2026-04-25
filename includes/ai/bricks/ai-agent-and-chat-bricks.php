@@ -654,7 +654,7 @@ Format EXACTLY like this:
 End with: "Starting design..."
 
 Rules:
-- 2–6 sections maximum
+- 1–6 sections — if the user asks for a single section (e.g. "a hero", "add a pricing section"), plan EXACTLY 1 section. Do not pad to 2.
 - Concise names: Hero, Features, Testimonials, Pricing, CTA, Footer etc.
 - One sentence per section — no HTML, no code
 - Respond with the plan only, nothing else`;
@@ -1506,21 +1506,31 @@ When the design needs to display a repeating list or grid of posts from a post t
     {post_link}    — post permalink URL (use as href on <a data-bricks="block"> for a card-as-link)
     {cf_POSTTYPE_FIELDNAME} — custom field value (e.g. {cf_codex_color} for post type "codex", field "color")
 
-  🚨 MANDATORY TWO-BLOCK LOOP STRUCTURE — CRITICAL:
-    The grid/flex layout and the loop query CANNOT live on the same block. You MUST split them into two blocks:
+  🚨 MANDATORY THREE-LAYER LOOP STRUCTURE — CRITICAL — EXACTLY 3 LAYERS, NO MORE, NO LESS:
+    The grid/flex layout and the loop query CANNOT live on the same block. You MUST use exactly these three layers:
 
-    LAYER 1 — GRID WRAPPER block: carries display:grid (or flex), grid-template-columns, gap, width.
+    LAYER 1 — GRID/FLEX WRAPPER block: carries display:grid (or flex), grid-template-columns, gap, width.
                This block has NO data-loop. It is purely a layout container.
-    LAYER 2 — LOOP block (direct child of wrapper): carries data-loop only. NO grid/flex styling here.
+               Its ONLY child is the LOOP block — nothing else sits between them.
+    LAYER 2 — LOOP block (DIRECT child of wrapper, no intermediary): carries data-loop only. NO layout styling here.
                This block has ONE child — the template card.
     LAYER 3 — TEMPLATE CARD: one card element. Bricks repeats this for every post.
 
-    ❌ WRONG — grid and loop on the same block (BREAKS layout — all posts pile into one cell):
+    ❌ WRONG — grid and loop on the same block:
       <div data-bricks="block" data-loop="post" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
         <div data-bricks="block">card template</div>
       </div>
 
-    ✅ CORRECT — wrapper carries the grid, inner block carries the loop:
+    ❌ WRONG — extra intermediary block between wrapper and loop (NEVER do this):
+      <div data-bricks="block" style="display: grid; ...">
+        <div data-bricks="block" style="display: contents;">  <!-- FORBIDDEN: no extra wrapper -->
+          <div data-bricks="block" data-loop="post">
+            <div data-bricks="block">card template</div>
+          </div>
+        </div>
+      </div>
+
+    ✅ CORRECT — wrapper → loop block → card, exactly 3 layers:
       <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
         <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6">
           <div data-bricks="block">card template</div>
@@ -1531,6 +1541,8 @@ When the design needs to display a repeating list or grid of posts from a post t
     - Put dynamic tags directly as text in heading/text-basic — e.g. <h3 data-bricks="heading">{post_title}</h3>
     - Design ONE template card only (Bricks handles repetition — do NOT repeat fake cards)
     - For a fully clickable card use <a data-bricks="block" href="{post_link}"> as the template root
+    - GRID COLUMN COUNT must match the content: if data-loop-posts-per-page="5", use repeat(3, 1fr) not repeat(5, 1fr) — cards need readable width. Max 4 columns for cards/posts. Use 2 or 3 columns as the default. Only use 4 columns for very small thumbnail-style cards. NEVER use 5 or 6 columns for post loops.
+    - NEVER add display:contents or any extra structural block between LAYER 1 and LAYER 2. The loop block must be the direct first child of the grid/flex wrapper.
 
   Example loop — post card grid (correct two-block pattern):
     <section data-bricks="section" style="padding-top: 80px; padding-bottom: 80px; background: #f8f8f8;">
