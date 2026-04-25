@@ -1,6 +1,6 @@
 <?php
 /**
- * SNN Bricks Editor – Custom CSS Overlay
+ * SNN Bricks Editor – Custom CSS Overlay 
  *
  * Adds a floating, resizable CSS editor (CodeMirror) to the Bricks builder.
  * Syncs with the selected element's _cssCustom or the page's customCss in real-time.
