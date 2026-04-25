@@ -863,7 +863,7 @@ function snn_custom_css_overlay_output() {
                     isSyncing = true;
                     writeCurrentCss(cm.getValue());
                     isSyncing = false;
-                }, 300);
+                }, 00);
             });
         }
 
@@ -1136,7 +1136,7 @@ function snn_custom_css_overlay_output() {
                     updateTitle();
                     syncFromBricks();
                 }
-            }, 250);
+            }, 100);
         }
 
         function watchPanelSizes() {
