@@ -86,13 +86,16 @@ class SNN_Bricks_Chat_Overlay {
         $page_context = $this->get_bricks_page_context();
 
         wp_localize_script( 'jquery', 'snnBricksChatConfig', array(
-            'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
-            'agentNonce'    => wp_create_nonce( 'snn_ai_agent_nonce' ),
-            'pageContext'   => $page_context,
-            'ai'            => $ai_config,
-            'settings'      => array(
-                'debugMode'  => $main_chat->is_debug_enabled(),
-                'maxHistory' => $main_chat->get_max_history(),
+            'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+            'restUrl'          => rest_url( 'wp-abilities/v1/' ),
+            'nonce'            => wp_create_nonce( 'wp_rest' ),
+            'agentNonce'       => wp_create_nonce( 'snn_ai_agent_nonce' ),
+            'pageContext'      => $page_context,
+            'ai'               => $ai_config,
+            'settings'         => array(
+                'debugMode'        => $main_chat->is_debug_enabled(),
+                'maxHistory'       => $main_chat->get_max_history(),
+                'enabledAbilities' => $main_chat->get_enabled_abilities(),
             ),
         ) );
 
@@ -296,6 +299,7 @@ Fitness</button>
 
             const MAX_HISTORY       = snnBricksChatConfig.settings.maxHistory  || 20;
             const DEBUG_MODE        = snnBricksChatConfig.settings.debugMode   || false;
+            const ENABLED_ABILITIES = snnBricksChatConfig.settings.enabledAbilities || [];
             const RECOVERY_CONFIG   = { maxRecoveryAttempts: 3, baseDelay: 2000, maxDelay: 30000, rateLimitDelay: 5000 };
             const debugLog = (...a) => { if (DEBUG_MODE) console.log('[Bricks AI]', ...a); };
 
@@ -304,6 +308,8 @@ Fitness</button>
                 abortController: null, currentSessionId: null,
                 pageContext: snnBricksChatConfig.pageContext || {},
                 recoveryAttempts: 0, bricksState: null, attachedImages: [],
+                // Abilities API
+                abilities: [],
                 // Two-phase workflow
                 currentHTMLPreview: null, previewMode: null, previewPaneOpen: false,
                 // Global ID tracker to prevent duplicates across sections
@@ -466,6 +472,7 @@ Fitness</button>
                         debugLog('Bricks ready, initialising chat...');
                         initChat();
                         addToolbarButton();
+                        loadAbilities();
                     }
                 }, 500);
                 setTimeout(() => clearInterval(iv), 10000);
@@ -492,7 +499,12 @@ Fitness</button>
                     debugLog('Intent classified:', intent);
 
                     // ── Route by intent ──────────────────────────────────────────
-                    if (intent === 'new_design' || intent === 'add_section') {
+                    if (intent === 'use_abilities') {
+                        // ── STATE: abilities ─────────────────────────────────────
+                        setAgentState('abilities');
+                        await runAbilitiesFlow(userMessage, images);
+
+                    } else if (intent === 'new_design' || intent === 'add_section') {
                         // ── STATE: planning ──────────────────────────────────────
                         setAgentState('planning');
                         let plan = '';
@@ -574,6 +586,7 @@ Fitness</button>
                 const cc = BricksHelper.getCurrentContent();
                 const hasExistingContent = cc && cc.elementCount > 0;
                 const hasPreview = !!ChatState.currentHTMLPreview;
+                const hasAbilities = ChatState.abilities.length > 0;
                 const pageSnap = hasExistingContent
                     ? 'Page has ' + cc.elementCount + ' existing elements.'
                     : 'Page is empty.';
@@ -585,14 +598,16 @@ Classify the user message into exactly one intent:
   edit_patch    — user wants to change/update existing page element content or styles
   question      — user is asking a question (no design or edit action requested)
   refine_preview — user wants changes to the current HTML preview (tweak colors, fonts, layout)
+  use_abilities  — user wants to perform a WordPress site action: get site info, list/create/update posts, manage users, check health, etc.${hasAbilities ? '' : ' (NOTE: no abilities available, treat as question)'}
 
-Context: ${pageSnap}${hasPreview ? ' An HTML preview is currently displayed.' : ''}
+Context: ${pageSnap}${hasPreview ? ' An HTML preview is currently displayed.' : ''}${hasAbilities ? ' WordPress abilities are available.' : ''}
 
 Routing rules:
 - Empty page + design description → new_design
 - Has content + "add", "include", "append", "create new section" → add_section
 - Has elements + "change", "update", "fix", "make darker/bigger/different" on something specific → edit_patch
 - Preview shown + user tweaks it ("darker", "bigger font", "change headline") → refine_preview
+- User asks for WordPress data/actions (list posts, site info, users, health, create post) → use_abilities
 - Pure question without action → question
 - Ambiguous on non-empty page → add_section
 
@@ -609,7 +624,7 @@ Respond with ONLY valid JSON — no markdown, no explanation:
                     const parsed = JSON.parse(response.trim());
                     return parsed.intent || 'new_design';
                 } catch(e) {
-                    const match = response.match(/\b(new_design|add_section|edit_patch|question|refine_preview)\b/);
+                    const match = response.match(/\b(new_design|add_section|edit_patch|question|refine_preview|use_abilities)\b/);
                     return match ? match[1] : 'new_design';
                 }
             }
@@ -1818,6 +1833,271 @@ Do NOT generate HTML. Do NOT output patch blocks. Do NOT produce designs unless 
 Be direct and practical — 2–4 sentences unless a detailed explanation is genuinely needed.`;
             }
 
+            // ================================================================
+            // Abilities — WordPress Core Abilities API Integration
+            // ================================================================
+
+            async function loadAbilities() {
+                if (!ENABLED_ABILITIES.length) {
+                    debugLog('No abilities enabled in settings, skipping load.');
+                    return;
+                }
+                try {
+                    const response = await fetch(snnBricksChatConfig.restUrl + 'abilities', {
+                        headers: { 'X-WP-Nonce': snnBricksChatConfig.nonce }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const all = Array.isArray(data) ? data : [];
+                        ChatState.abilities = all.filter(a => ENABLED_ABILITIES.includes(a.name));
+                        debugLog('✓ Abilities loaded:', ChatState.abilities.length, ChatState.abilities.map(a => a.name));
+                    } else {
+                        debugLog('Failed to load abilities, status:', response.status);
+                    }
+                } catch(e) {
+                    debugLog('loadAbilities error:', e);
+                }
+            }
+
+            function buildAbilitiesSystemPrompt() {
+                const basePrompt = snnBricksChatConfig.ai.systemPrompt || 'You are a helpful Bricks Builder assistant.';
+                const postTitle  = snnBricksChatConfig.pageContext?.details?.post_title || 'Unknown';
+                const postId     = snnBricksChatConfig.pageContext?.details?.post_id || '';
+
+                if (!ChatState.abilities.length) {
+                    return basePrompt + '\n\nNote: No WordPress abilities are currently available.';
+                }
+
+                const abilitiesList = ChatState.abilities.map(a =>
+                    `- **${a.name}**: ${a.description || a.label || 'No description'} (Category: ${a.category || 'uncategorized'})`
+                ).join('\n');
+
+                const abilitiesDesc = ChatState.abilities.map(a => {
+                    let params = '    (No parameters)';
+                    if (a.input_schema) {
+                        if (a.input_schema.properties) {
+                            params = Object.entries(a.input_schema.properties).map(([key, val]) => {
+                                const req = a.input_schema.required?.includes(key) ? ' (required)' : '';
+                                const def = val.default !== undefined ? ` [default: ${JSON.stringify(val.default)}]` : '';
+                                const enm = val.enum ? ` [options: ${val.enum.join(', ')}]` : '';
+                                return `    - ${key} (${val.type}${req}): ${val.description || ''}${def}${enm}`;
+                            }).join('\n');
+                        } else if (a.input_schema.type) {
+                            params = `    Type: ${a.input_schema.type}${a.input_schema.description ? ' - ' + a.input_schema.description : ''}`;
+                        }
+                    }
+                    return `**${a.name}** - ${a.description || a.label || 'No description'}\n  Category: ${a.category || 'uncategorized'}\n  Parameters:\n${params}`;
+                }).join('\n\n');
+
+                return `${basePrompt}
+
+You are a Bricks Builder AI assistant with access to WordPress Core Abilities.
+Currently editing: "${postTitle}"${postId ? ` (Post ID: ${postId})` : ''}
+
+=== AVAILABLE WORDPRESS ABILITIES (${ChatState.abilities.length} total) ===
+
+${abilitiesList}
+
+=== DETAILED ABILITIES ===
+
+${abilitiesDesc}
+
+=== HOW TO USE ABILITIES ===
+
+When the user asks to perform a WordPress action:
+
+1. Brief single-line acknowledgment (e.g., "I'll get the site info for you.")
+2. Include a JSON code block:
+\`\`\`json
+{
+  "abilities": [
+    {"name": "exact-ability-name", "input": {}}
+  ]
+}
+\`\`\`
+
+IMPORTANT RULES:
+- Use the EXACT ability names as listed above — copy them character by character
+- The namespace prefix (snn/, core/) is part of the name — never change it
+- Match parameter types exactly (string, integer, boolean, array)
+- Use sensible defaults for optional parameters rather than asking
+- If user asks "what can you do" → list abilities in text, do NOT execute any
+- ONLY use abilities that are listed above — NEVER make up or modify ability names
+- For create-post or update-post: the "content" field must have at least 1 character`;
+            }
+
+            function extractAbilitiesFromResponse(response) {
+                const m = response.match(/```json\n?([\s\S]*?)\n?```/);
+                if (!m) return [];
+                try {
+                    const parsed = JSON.parse(m[1]);
+                    if (parsed.abilities && Array.isArray(parsed.abilities)) return parsed.abilities;
+                } catch(e) { debugLog('extractAbilitiesFromResponse parse error:', e); }
+                return [];
+            }
+
+            async function executeAbility(abilityName, input) {
+                try {
+                    let actualName = abilityName;
+                    let abilityInfo = ChatState.abilities.find(a => a.name === abilityName);
+                    // Fuzzy match: if AI used wrong namespace prefix
+                    if (!abilityInfo) {
+                        const suffix = abilityName.split('/').pop();
+                        abilityInfo = ChatState.abilities.find(a => a.name.endsWith('/' + suffix));
+                        if (abilityInfo) {
+                            debugLog('Corrected ability name:', abilityName, '->', abilityInfo.name);
+                            actualName = abilityInfo.name;
+                        }
+                    }
+
+                    const encodedName = actualName.split('/').map(p => encodeURIComponent(p)).join('/');
+                    const isReadOnly  = abilityInfo?.meta?.readonly === true;
+                    const apiUrl      = snnBricksChatConfig.restUrl + 'abilities/' + encodedName + '/run';
+
+                    const makeReq = async (method) => {
+                        const opts = { headers: { 'X-WP-Nonce': snnBricksChatConfig.nonce } };
+                        let url = apiUrl;
+                        if (method === 'GET') {
+                            opts.method = 'GET';
+                            if (input && Object.keys(input).length > 0) {
+                                url += '?' + new URLSearchParams({ input: JSON.stringify(input) }).toString();
+                            }
+                        } else {
+                            opts.method = 'POST';
+                            opts.headers['Content-Type'] = 'application/json';
+                            opts.body = JSON.stringify({ input });
+                        }
+                        debugLog('Ability API call:', method, url, input);
+                        return fetch(url, opts);
+                    };
+
+                    let resp = await makeReq(isReadOnly ? 'GET' : 'POST');
+                    if (resp.status === 405) resp = await makeReq(isReadOnly ? 'POST' : 'GET');
+
+                    if (!resp.ok) {
+                        const errText = await resp.text();
+                        let err;
+                        try { err = JSON.parse(errText); } catch(e) { err = { message: errText }; }
+                        return { success: false, error: err.message || `HTTP ${resp.status}` };
+                    }
+
+                    const result = await resp.json();
+                    if (typeof result.success !== 'undefined') return result;
+                    if (result.data !== undefined) return { success: true, data: result.data };
+                    if (result.error || result.message) return { success: false, error: result.error || result.message };
+                    return { success: true, data: result };
+                } catch(e) {
+                    return { success: false, error: e.message };
+                }
+            }
+
+            function formatSingleAbilityResult(r) {
+                const ok = r.result.success === true || (r.result.success !== false && !r.result.error);
+                let html = `<div class="ability-results"><div class="ability-result ${ok ? 'success' : 'error'}">`;
+                html += `<strong>${ok ? '✅' : '❌'} ${r.ability}</strong>`;
+                if (ok) {
+                    html += r.result.data
+                        ? `<div class="result-data">${formatDataPreview(r.result.data)}</div>`
+                        : '<div class="result-data">Completed successfully</div>';
+                } else {
+                    html += `<div class="result-error">${r.result.error || r.result.message || 'Unknown error'}</div>`;
+                }
+                html += '</div></div>';
+                return html;
+            }
+
+            function formatDataPreview(data) {
+                if (Array.isArray(data)) {
+                    if (!data.length) return 'Empty array';
+                    const countText = `Found ${data.length} item${data.length !== 1 ? 's' : ''}`;
+                    const jsonHtml = formatJsonHighlight(data);
+                    return `${countText}<div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div>`;
+                }
+                if (typeof data === 'object' && data !== null) {
+                    const id = data.ID || data.id;
+                    if (id) {
+                        const title  = data.post_title || data.title || '';
+                        const status = data.post_status || data.status || '';
+                        return `<strong>ID:</strong> ${id}${title ? ' | <strong>Title:</strong> ' + title : ''}${status ? ' | <strong>Status:</strong> ' + status : ''}`;
+                    }
+                    return `<div class="json-result-container"><pre class="json-result">${formatJsonHighlight(data)}</pre></div>`;
+                }
+                return String(data).substring(0, 150);
+            }
+
+            function formatJsonHighlight(data) {
+                try {
+                    return JSON.stringify(data, null, 2)
+                        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                        .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+                        .replace(/: "([^"]*)"/g, ': <span class="json-string">"$1"</span>')
+                        .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>')
+                        .replace(/: (null)/g, ': <span class="json-null">$1</span>')
+                        .replace(/: (\d+)/g, ': <span class="json-number">$1</span>');
+                } catch(e) { return String(data); }
+            }
+
+            // ── Abilities flow ────────────────────────────────────────────────
+            async function runAbilitiesFlow(userMessage, images) {
+                const context        = buildConversationContext();
+                const userMsgContent = buildUserContent(userMessage, images);
+
+                const response = await callAI([
+                    { role: 'system', content: buildAbilitiesSystemPrompt() },
+                    ...context,
+                    { role: 'user', content: userMsgContent }
+                ]);
+                hideTyping();
+                if (!response || !response.trim()) throw new Error('AI returned empty response.');
+
+                const abilities = extractAbilitiesFromResponse(response);
+
+                if (abilities.length > 0) {
+                    // Show the AI's intro text (strip JSON block)
+                    const intro = response.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                    if (intro) addMessage('assistant', intro);
+
+                    // Execute each ability sequentially
+                    for (let i = 0; i < abilities.length; i++) {
+                        const ability = abilities[i];
+                        setAgentState('abilities', `Running ${ability.name} (${i + 1}/${abilities.length})...`);
+                        showTyping();
+
+                        const result = await executeAbility(ability.name, ability.input || {});
+                        hideTyping();
+                        addMessage('assistant', formatSingleAbilityResult({ ability: ability.name, result }));
+
+                        await sleep(300);
+                    }
+
+                    // Ask AI to interpret the results
+                    showTyping();
+                    setAgentState('answering');
+                    const resultsSummary = abilities.map(a => `- ${a.name}: executed`).join('\n');
+                    try {
+                        const interpretation = await callAI([
+                            { role: 'system', content: buildAbilitiesSystemPrompt() },
+                            ...context,
+                            { role: 'user', content: userMessage },
+                            { role: 'assistant', content: intro || 'Abilities executed.' },
+                            { role: 'user', content: `All ${abilities.length} WordPress abilities have been executed:\n${resultsSummary}\n\nProvide a brief, natural summary of what was accomplished. Keep it to 1–2 sentences.` }
+                        ], 0, { maxTokens: 300 });
+                        hideTyping();
+                        if (interpretation) {
+                            const clean = interpretation.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                            if (clean) addMessage('assistant', clean);
+                        }
+                    } catch(e) {
+                        hideTyping();
+                        debugLog('Abilities interpretation error:', e);
+                    }
+
+                } else {
+                    // AI gave a prose answer (e.g., listing capabilities) — just show it
+                    addMessage('assistant', response);
+                }
+            }
+
             <?php include __DIR__ . '/html-to-bricks-translation.php'; ?>
 
             function extractHTMLFromResponse(resp) {
@@ -2052,19 +2332,20 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
             function setAgentState(state, detail = '') {
                 const $t = $('#snn-bricks-chat-state-text');
                 const labels = {
-                    analyzing:  'Understanding your request...',
-                    planning:   'Planning your layout...',
-                    theming:    'Choosing design language...',
-                    designing:  'Designing your page...',
-                    reviewing:  'Reviewing HTML structure...',
-                    patching:   'Updating element...',
-                    answering:  'Thinking...',
-                    thinking:   'Thinking...',
-                    compiling:  detail || 'Compiling to Bricks...',
-                    recovering: detail || 'Recovering...',
-                    saving:     detail || 'Saving images to media library...',
-                    error:      'Error',
-                    idle:       ''
+                    analyzing:   'Understanding your request...',
+                    planning:    'Planning your layout...',
+                    theming:     'Choosing design language...',
+                    designing:   'Designing your page...',
+                    reviewing:   'Reviewing HTML structure...',
+                    patching:    'Updating element...',
+                    answering:   'Thinking...',
+                    thinking:    'Thinking...',
+                    abilities:   detail || 'Running WordPress abilities...',
+                    compiling:   detail || 'Compiling to Bricks...',
+                    recovering:  detail || 'Recovering...',
+                    saving:      detail || 'Saving images to media library...',
+                    error:       'Error',
+                    idle:        ''
                 };
                 const lbl = labels[state] || detail || '';
                 lbl ? $t.text(lbl).show() : $t.hide();
@@ -2400,6 +2681,21 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
 .snn-bricks-chat-support { padding: 2px 12px; background: #f9f9f9; border-top: 1px solid #e0e0e0; text-align: center; }
 .snn-bricks-chat-support a { font-size: 14px; font-weight:600; color: #666; text-decoration: none; transition: color 0.2s; }
 .snn-bricks-chat-support a:hover { color: #820808; }
+/* Abilities API results */
+.ability-results { margin-top: 4px; }
+.ability-result { padding: 5px 8px; margin: 3px 0; border-radius: 5px; font-size: 13px; line-height: 1.4; }
+.ability-result.success { background: #f0f9ff; border: 1px solid #bae6fd; }
+.ability-result.error { background: #fef2f2; border: 1px solid #fecaca; }
+.ability-result strong { display: inline; margin-right: 5px; }
+.result-data { color: #555; font-size: 13px; margin-top: 3px; line-height: 1.5; }
+.result-error { color: #dc2626; font-size: 12px; margin-top: 2px; }
+.json-result-container { margin-top: 6px; max-height: 120px; overflow-y: auto; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; }
+.json-result { margin: 0; padding: 8px; font-family: Courier, monospace; font-size: 12px; line-height: 1.3; white-space: pre; overflow-x: auto; color: #333; }
+.json-key { color: #0066cc; font-weight: 600; }
+.json-string { color: #22863a; }
+.json-number { color: #005cc5; }
+.json-boolean { color: #d73a49; font-weight: 600; }
+.json-null { color: #6f42c1; font-style: italic; }
         ';
     }
 }
