@@ -863,7 +863,7 @@ function snn_custom_css_overlay_output() {
                     isSyncing = true;
                     writeCurrentCss(cm.getValue());
                     isSyncing = false;
-                }, 00);
+                }, 100);
             });
         }
 
