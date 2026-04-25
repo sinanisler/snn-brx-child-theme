@@ -1493,34 +1493,59 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
 
 QUERY LOOPS — POST TYPE LOOPS:
-When the design needs to display a repeating list or grid of posts from a post type, add data-loop to the container block.
+When the design needs to display a repeating list or grid of posts from a post type, use a two-block pattern: a GRID/FLEX WRAPPER block outside, and a LOOP block inside it.
   * data-loop="post_type_slug" — enables a Bricks query loop for that post type (required, e.g. data-loop="post", data-loop="codex")
   * data-loop-posts-per-page="6" — number of posts to show per page (optional, default 6)
   * data-loop-orderby="date" — orderby field: date, title, menu_order, rand (optional, default date)
   * data-loop-order="DESC" — sort direction: ASC or DESC (optional, default DESC)
-  The children of the loop block are the TEMPLATE — Bricks repeats them for each post automatically.
-  Use these Bricks dynamic tags inside children:
-    {post_title}   — post title (use in heading/text-basic settings)
-    {post_excerpt} — post excerpt text (use in text-basic)
-    {post_date}    — publication date
-    {post_link}    — post permalink URL (use as href on button or text-link)
+  The single child of the loop block is the TEMPLATE card — Bricks repeats it for each post automatically.
+  Use these Bricks dynamic tags inside template children:
+    {post_title}   — post title (use in heading/text-basic text)
+    {post_excerpt} — post excerpt (use in text-basic text)
+    {post_date}    — publication date (use in text-basic text)
+    {post_link}    — post permalink URL (use as href on <a data-bricks="block"> for a card-as-link)
     {cf_POSTTYPE_FIELDNAME} — custom field value (e.g. {cf_codex_color} for post type "codex", field "color")
-  ⚠️ IMPORTANT LOOP RULES:
-    - Put the dynamic tags directly as text in heading/text-basic settings — e.g. <h3 data-bricks="heading">{post_title}</h3>
-    - Design ONE template card only inside the loop block (Bricks handles repetition)
-    - The loop block itself should have the grid/flex layout (display: grid, etc.)
-    - Do NOT repeat multiple fake cards for preview — just one template card with dynamic tags
-  Example loop — post grid:
+
+  🚨 MANDATORY TWO-BLOCK LOOP STRUCTURE — CRITICAL:
+    The grid/flex layout and the loop query CANNOT live on the same block. You MUST split them into two blocks:
+
+    LAYER 1 — GRID WRAPPER block: carries display:grid (or flex), grid-template-columns, gap, width.
+               This block has NO data-loop. It is purely a layout container.
+    LAYER 2 — LOOP block (direct child of wrapper): carries data-loop only. NO grid/flex styling here.
+               This block has ONE child — the template card.
+    LAYER 3 — TEMPLATE CARD: one card element. Bricks repeats this for every post.
+
+    ❌ WRONG — grid and loop on the same block (BREAKS layout — all posts pile into one cell):
+      <div data-bricks="block" data-loop="post" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+        <div data-bricks="block">card template</div>
+      </div>
+
+    ✅ CORRECT — wrapper carries the grid, inner block carries the loop:
+      <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
+        <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6">
+          <div data-bricks="block">card template</div>
+        </div>
+      </div>
+
+  Additional loop rules:
+    - Put dynamic tags directly as text in heading/text-basic — e.g. <h3 data-bricks="heading">{post_title}</h3>
+    - Design ONE template card only (Bricks handles repetition — do NOT repeat fake cards)
+    - For a fully clickable card use <a data-bricks="block" href="{post_link}"> as the template root
+
+  Example loop — post card grid (correct two-block pattern):
     <section data-bricks="section" style="padding-top: 80px; padding-bottom: 80px; background: #f8f8f8;">
       <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
         <h2 data-bricks="heading" style="font-size: 40px; font-weight: 700; color: #111;">Latest Posts</h2>
-        <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
-          <div data-bricks="block" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 0;">
-            <div data-bricks="block" style="display: flex; flex-direction: column; gap: 12px; padding: 20px;">
+        <!-- LAYER 1: grid wrapper — layout only, no data-loop -->
+        <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
+          <!-- LAYER 2: loop block — query only, no grid styling -->
+          <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6">
+            <!-- LAYER 3: template card — one card, Bricks repeats per post -->
+            <a data-bricks="block" href="{post_link}" style="background: #fff; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-decoration: none;">
               <h3 data-bricks="heading" style="font-size: 20px; font-weight: 600; color: #111;">{post_title}</h3>
               <p data-bricks="text-basic" style="font-size: 14px; color: #666; line-height: 1.6;">{post_excerpt}</p>
-              <a data-bricks="text-link" href="{post_link}" style="color: #2563eb; font-weight: 600; font-size: 14px;">Read More</a>
-            </div>
+              <p data-bricks="text-basic" style="font-size: 12px; color: #999;">{post_date}</p>
+            </a>
           </div>
         </div>
       </div>
