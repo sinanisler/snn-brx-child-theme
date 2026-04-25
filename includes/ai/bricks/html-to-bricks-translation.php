@@ -744,7 +744,7 @@
 
                     // Map other HTML/data/aria attributes to Bricks custom attributes
                     const customAttributes = [];
-                    const ignoredAttrs = new Set(['id', 'class', 'style', 'data-bricks', 'data-hover-background', 'data-hover-transform', 'data-icon', 'data-icon-position', 'data-icon-size', 'data-icon-gap', 'href', 'target', 'rel', 'src', 'alt', 'width', 'height']);
+                    const ignoredAttrs = new Set(['id', 'class', 'style', 'data-bricks', 'data-hover-background', 'data-hover-transform', 'data-icon', 'data-icon-position', 'data-icon-size', 'data-icon-gap', 'data-loop', 'data-loop-posts-per-page', 'data-loop-orderby', 'data-loop-order', 'data-posts-per-page', 'href', 'target', 'rel', 'src', 'alt', 'width', 'height']);
                     for (const attr of element.attributes) {
                         const name = attr.name;
                         if (!ignoredAttrs.has(name) && !name.startsWith('snn-')) {
@@ -1020,6 +1020,23 @@
                         if (!bricksElement.settings._cssTransition) {
                             bricksElement.settings._cssTransition = 'all 0.3s ease';
                         }
+                    }
+
+                    // Handle data-loop attribute for Bricks query loops
+                    // Adds hasLoop:true and a query object to the element settings.
+                    // Children of this element are the per-post template Bricks repeats automatically.
+                    const loopPostType = element.getAttribute('data-loop');
+                    if (loopPostType) {
+                        bricksElement.settings.hasLoop = true;
+                        const loopPostsPerPage = element.getAttribute('data-loop-posts-per-page') || element.getAttribute('data-posts-per-page') || '6';
+                        const loopOrderby      = element.getAttribute('data-loop-orderby') || 'date';
+                        const loopOrder        = element.getAttribute('data-loop-order')   || 'DESC';
+                        bricksElement.settings.query = {
+                            post_type:      [loopPostType],
+                            posts_per_page: String(loopPostsPerPage),
+                            orderby:        [loopOrderby],
+                            order:          loopOrder
+                        };
                     }
                     
                     // === Unified CSS Finalization ===

@@ -128,6 +128,17 @@ class SNN_Bricks_Chat_Overlay {
             ) );
         }
 
+        // Add registered public post types for query loop generation support
+        $post_type_objects = get_post_types( array( 'public' => true ), 'objects' );
+        $post_types = array();
+        foreach ( $post_type_objects as $pt ) {
+            $post_types[ $pt->name ] = array(
+                'label' => $pt->label,
+                'slug'  => $pt->name,
+            );
+        }
+        $context['postTypes'] = $post_types;
+
         return $context;
     }
 
@@ -1334,6 +1345,8 @@ Output as a \`\`\`html block.`;
                 const ajaxUrl      = snnBricksChatConfig.ajaxUrl;
                 const cc           = BricksHelper.getCurrentContent();
                 const tokens       = BricksHelper.getDesignTokens();
+                const postTypes    = snnBricksChatConfig.pageContext?.postTypes || {};
+                const postTypeKeys = Object.keys(postTypes).filter(k => !['post', 'page', 'attachment'].includes(k));
 
                 // Build full page element snapshot (all elements, not just first 40)
                 let pageSnap = '';
@@ -1388,7 +1401,7 @@ Output as a \`\`\`html block.`;
 
 === BRICKS BUILDER AI — DESIGN PHASE ===
 Currently editing: "${postTitle}" (${postType})
-${pageSnap}${designSpec}
+${pageSnap}${designSpec}${postTypeKeys.length ? '\nREGISTERED POST TYPES available for query loops — use the slug as data-loop value: ' + postTypeKeys.map(k => k + ' (' + postTypes[k].label + ')').join(', ') + '\n' : ''}
 ⚡ Your designs are compiled to Bricks using a LIGHTNING-FAST JavaScript compiler — instant conversion, zero API costs!
 
 YOUR JOB:
@@ -1478,6 +1491,40 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <i class="fab fa-ICON-NAME"> — FA Brands icon (twitter, facebook, instagram, etc.)
   * <ul data-bricks="text-basic"> or <ol data-bricks="text-basic"> — lists (rendered as native HTML inside text-basic)
   * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
+
+QUERY LOOPS — POST TYPE LOOPS:
+When the design needs to display a repeating list or grid of posts from a post type, add data-loop to the container block.
+  * data-loop="post_type_slug" — enables a Bricks query loop for that post type (required, e.g. data-loop="post", data-loop="codex")
+  * data-loop-posts-per-page="6" — number of posts to show per page (optional, default 6)
+  * data-loop-orderby="date" — orderby field: date, title, menu_order, rand (optional, default date)
+  * data-loop-order="DESC" — sort direction: ASC or DESC (optional, default DESC)
+  The children of the loop block are the TEMPLATE — Bricks repeats them for each post automatically.
+  Use these Bricks dynamic tags inside children:
+    {post_title}   — post title (use in heading/text-basic settings)
+    {post_excerpt} — post excerpt text (use in text-basic)
+    {post_date}    — publication date
+    {post_link}    — post permalink URL (use as href on button or text-link)
+    {cf_POSTTYPE_FIELDNAME} — custom field value (e.g. {cf_codex_color} for post type "codex", field "color")
+  ⚠️ IMPORTANT LOOP RULES:
+    - Put the dynamic tags directly as text in heading/text-basic settings — e.g. <h3 data-bricks="heading">{post_title}</h3>
+    - Design ONE template card only inside the loop block (Bricks handles repetition)
+    - The loop block itself should have the grid/flex layout (display: grid, etc.)
+    - Do NOT repeat multiple fake cards for preview — just one template card with dynamic tags
+  Example loop — post grid:
+    <section data-bricks="section" style="padding-top: 80px; padding-bottom: 80px; background: #f8f8f8;">
+      <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
+        <h2 data-bricks="heading" style="font-size: 40px; font-weight: 700; color: #111;">Latest Posts</h2>
+        <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
+          <div data-bricks="block" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 0;">
+            <div data-bricks="block" style="display: flex; flex-direction: column; gap: 12px; padding: 20px;">
+              <h3 data-bricks="heading" style="font-size: 20px; font-weight: 600; color: #111;">{post_title}</h3>
+              <p data-bricks="text-basic" style="font-size: 14px; color: #666; line-height: 1.6;">{post_excerpt}</p>
+              <a data-bricks="text-link" href="{post_link}" style="color: #2563eb; font-weight: 600; font-size: 14px;">Read More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
 CUSTOM CSS — STYLE TAGS (MANDATORY for advanced CSS):
 ⚠️ CRITICAL: For ANY CSS that inline style="" cannot express, you MUST use <style data-style-id="brxe-XXXXXX"> blocks.
