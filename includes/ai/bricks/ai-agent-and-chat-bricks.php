@@ -1,6 +1,6 @@
 <?php   
 /** 
- * SNN AI Chat for Bricks Builder
+ * SNN AI Chat for Bricks Builder 
  *
  * File: ai-agent-and-chat-bricks.php
  *
@@ -2134,13 +2134,14 @@ IMPORTANT RULES:
                     if (c.media)    lines.push(`<strong>Media:</strong> ${c.media.total || 0} items`);
                     if (c.comments) lines.push(`<strong>Comments:</strong> ${c.comments.approved || 0} approved`);
                     if (c.users)    lines.push(`<strong>Users:</strong> ${c.users.total || 0}`);
+                    let ptTable = '';
                     if (c.posttypes) {
                         const rows = Object.entries(c.posttypes).map(([slug, info]) => {
                             return `<tr><td>${escapeHtml(info.label || slug)}</td><td>${info.published || 0}</td><td>${info.draft || 0}</td></tr>`;
                         }).join('');
-                        lines.push(`<strong>Post Types:</strong><table class="result-table"><thead><tr><th>Type</th><th>Published</th><th>Draft</th></tr></thead><tbody>${rows}</tbody></table>`);
+                        ptTable = `<table class="result-table"><thead><tr><th>Post Type</th><th>Published</th><th>Draft</th></tr></thead><tbody>${rows}</tbody></table>`;
                     }
-                    return `<div class="result-summary-block">${lines.map(l => `<div class="result-summary-row">${l}</div>`).join('')}</div>`;
+                    return `<div class="result-summary-block">${lines.map(l => `<div class="result-summary-row">${l}</div>`).join('')}</div>${ptTable}`;
                 }
                 // Generic flat object — show scalar top-level values
                 const keys = Object.keys(data);
@@ -2461,6 +2462,11 @@ IMPORTANT RULES:
             }
 
             function formatMessage(c) {
+                // Pre-formatted HTML (ability results) — skip the markdown renderer so
+                // tables, spans, details etc. are preserved exactly as generated.
+                if (typeof c === 'string' && c.trimStart().startsWith('<div class="ability-results">')) {
+                    return c;
+                }
                 if (typeof markdown !== 'undefined' && markdown.toHTML) { try { return markdown.toHTML(c); } catch(e) {} }
                 return c.replace(/\n/g, '<br>');
             }
