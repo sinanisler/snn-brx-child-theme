@@ -140,7 +140,7 @@ function snn_custom_fields_page_callback() {
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Field Type', 'snn'); ?></label>
-                                <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
+                                <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select">
                                     <option value="text"    <?php selected($field_type, 'text'); ?>><?php esc_html_e('Text', 'snn'); ?></option>
                                     <option value="number"    <?php selected($field_type, 'number'); ?>><?php esc_html_e('Number', 'snn'); ?></option>
                                     <option value="double_text"    <?php selected($field_type, 'double_text'); ?>><?php esc_html_e('Double Text', 'snn'); ?></option>
@@ -224,7 +224,7 @@ function snn_custom_fields_page_callback() {
                             <?php if ($field_type === 'date') : ?>
                             <div class="field-group date-format-group">
                                 <label><?php esc_html_e('Date Format', 'snn'); ?></label>
-                                <select name="custom_fields[<?php echo $index; ?>][date_format]" style="width:140px">
+                                <select name="custom_fields[<?php echo $index; ?>][date_format]">
                                     <option value="YYYY-MM-DD" <?php selected(!empty($field['date_format']) ? $field['date_format'] : 'YYYY-MM-DD', 'YYYY-MM-DD'); ?>>YYYY-MM-DD</option>
                                     <option value="DD-MM-YYYY" <?php selected(!empty($field['date_format']) ? $field['date_format'] : '', 'DD-MM-YYYY'); ?>>DD-MM-YYYY</option>
                                     <option value="DD.MM.YYYY" <?php selected(!empty($field['date_format']) ? $field['date_format'] : '', 'DD.MM.YYYY'); ?>>DD.MM.YYYY</option>
@@ -367,7 +367,7 @@ function snn_custom_fields_page_callback() {
                         const newIndex = row.dataset.index;
                         const div = document.createElement('div');
                         div.classList.add('field-group', 'date-format-group');
-                        div.innerHTML = `<label><?php esc_html_e('Date Format', 'snn'); ?></label><select name="custom_fields[${newIndex}][date_format]" style="width:140px"><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select>`;
+                        div.innerHTML = `<label><?php esc_html_e('Date Format', 'snn'); ?></label><select name="custom_fields[${newIndex}][date_format]" ><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select>`;
                         const repeaterDiv = row.querySelector('input[name*="[repeater]"]');
                         if (repeaterDiv && repeaterDiv.closest('.field-group')) {
                             repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
@@ -401,10 +401,10 @@ function snn_custom_fields_page_callback() {
                         <div class="field-group"><label><?php esc_html_e('Field Label', 'snn'); ?></label><input type="text" name="custom_fields[${newIndex}][label]" placeholder="<?php esc_attr_e('Field Name', 'snn'); ?>"></div>
                         <div class="field-group"><label><?php esc_html_e('Slug Name', 'snn'); ?></label><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="<?php esc_attr_e('field_name', 'snn'); ?>"></div>
                     </div>
-                    <div class="field-group"><label><?php esc_html_e('Width (%)', 'snn'); ?></label><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
+                    <div class="field-group"><label><?php esc_html_e('Width (%)', 'snn'); ?></label><input  type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
                     <div class="field-group">
                         <label><?php esc_html_e('Field Type', 'snn'); ?></label>
-                        <select name="custom_fields[${newIndex}][type]" class="field-type-select" style="width:140px">
+                        <select name="custom_fields[${newIndex}][type]" class="field-type-select">
                             <option value="text"><?php esc_html_e('Text', 'snn'); ?></option>
                             <option value="number"><?php esc_html_e('Number', 'snn'); ?></option>
                             <option value="double_text"><?php esc_html_e('Double Text', 'snn'); ?></option>
@@ -542,19 +542,18 @@ function snn_custom_fields_page_callback() {
         </script>
 
         <style>
+
             .custom-field-row [type="text"],
             .custom-field-row input[type="number"] {
                 width:140px;
             }
-            .custom-field-row {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 10px;
-                align-items: center;
-            }
 
-            .field-group select            {min-height:60px !important;}
+            .custom-field-row [type="checkbox"]{
+                width:20px;
+                height:20px;
+                margin-top: 2px;
+            }
+            
 
             .custom-field-row label {
                 font-weight: bold;
@@ -588,19 +587,33 @@ function snn_custom_fields_page_callback() {
                 margin-left: 5px;
             }
             .custom-field-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 10px;
+                align-items: center; 
                 gap: 10px; 
-                margin-bottom: 5px;
                 padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                background-color: #f9f9f9;
+                background-color: #ffffff;
+                border-radius:10px;
             }
             .custom-field-row .buttons {
                 display: flex;
                 flex-direction: row; 
-                gap: 5px;
                 margin-right: 10px; 
                 order: -1; 
+            }
+            .custom-field-row .buttons button{
+                background:#ffffff;
+                border-radius:5px;
+                padding:10px;
+                position: relative;
+                top: 11px;
+                border: solid 1px #e2e2e2;
+                height:40px;
+            }
+            .custom-field-row .buttons button:hover{
+                background:#e2e2e2;
             }
             #add-custom-field-row {
                 color: #2271b1;
@@ -614,6 +627,15 @@ function snn_custom_fields_page_callback() {
             #add-custom-field-row:hover {
                 background: #eee;
             }
+            .field-identity-group [type="text"],
+            .field-identity-group [type="number"],
+            .field-identity-group [class="field-type-select"]{
+                background:#ffffff;
+                border-radius:5px;
+                height:40px;
+                border: solid 1px #e2e2e2;
+            }
+
             .submit input[type="submit"] {
                 background: #2271b1;
                 border-color: #2271b1;
