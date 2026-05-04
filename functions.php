@@ -9,7 +9,6 @@ define( 'SNN_URL_ASSETS', trailingslashit( SNN_URL . 'assets' ) );
 
 
 // Main Features and Settings
-require_once SNN_PATH . 'includes/features/admin-styles.php';
 require_once SNN_PATH . 'includes/features/settings-page.php';
 
 require_once SNN_PATH . 'includes/features/other-settings.php';

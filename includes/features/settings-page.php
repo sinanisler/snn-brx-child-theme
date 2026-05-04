@@ -93,6 +93,68 @@ function snn_settings_page_callback() {
         </form>
     </div>
     
+    <style>
+        /* Dashboard buttons grid */
+        .snn-dashboard-buttons {
+            max-width:1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 40px;
+        }
+        .snn-dashboard-button {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 20px 10px;
+            text-align: center;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: auto;
+            text-decoration: none;
+        }
+        .snn-dashboard-button:hover {
+            transform: scale(1.05);
+            border-color: #0073aa;
+        }
+        .snn-dashboard-button .dashicons {
+            width:auto;
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+        .snn-dashboard-button .button-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        /* Existing styles */
+        .wrap .tt1 {
+            width: 880px;
+            height: 40px;
+        }
+        .wrap h1{
+            margin-bottom:10px;
+        }
+        .wrap .style_css, .wrap .head-css, #wp_head_css_frontend, #wp_footer_html_frontend, #wp_head_html_frontend {
+            width: 880px;
+            height: 220px;
+        }
+        .wrap [type="checkbox"] {
+            width: 18px !important;
+            height: 18px !important;
+            float: left;
+            margin-right: 10px !important;
+        }
+        #snn_custom_css {
+            width: 880px;
+            height: 330px;
+        }
+    </style>
     <?php
 }
 
