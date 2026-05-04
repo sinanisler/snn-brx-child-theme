@@ -115,32 +115,32 @@ function snn_custom_fields_page_callback() {
                             <div class="field-identity-group">
                                 <div class="field-group">
                                     <label><?php esc_html_e('Group Name', 'snn'); ?></label>
-                                    <input type="text" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="<?php esc_attr_e('Group Name', 'snn'); ?>"  
+                                    <input type="text" class="cf-group-name" name="custom_fields[<?php echo $index; ?>][group_name]" placeholder="<?php esc_attr_e('Group Name', 'snn'); ?>"
                                            value="<?php echo esc_attr($field['group_name'] ?? ''); ?>" />
                                 </div>
                                 <div class="field-group">
                                     <label><?php esc_html_e('Field Label', 'snn'); ?></label>
-                                    <input type="text" name="custom_fields[<?php echo $index; ?>][label]"  
-                                           placeholder="<?php esc_attr_e('Field Label Name', 'snn'); ?>"  
+                                    <input type="text" class="cf-field-label" name="custom_fields[<?php echo $index; ?>][label]"
+                                           placeholder="<?php esc_attr_e('Field Label Name', 'snn'); ?>"
                                            value="<?php echo esc_attr($field['label'] ?? ''); ?>" />
                                 </div>
                                 <div class="field-group">
                                     <label><?php esc_html_e('Slug Name', 'snn'); ?></label>
-                                    <input type="text" class="sanitize-key" name="custom_fields[<?php echo $index; ?>][name]"  
-                                           placeholder="<?php esc_attr_e('field_name', 'snn'); ?>"  
+                                    <input type="text" class="sanitize-key cf-slug-name" name="custom_fields[<?php echo $index; ?>][name]"
+                                           placeholder="<?php esc_attr_e('field_name', 'snn'); ?>"
                                            value="<?php echo esc_attr($field['name']); ?>" />
                                 </div>
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Width (%)', 'snn'); ?></label>
-                                <input style="width:70px" type="number" min="10" max="100"
-                                       name="custom_fields[<?php echo $index; ?>][column_width]"  
-                                       placeholder="25"  
+                                <input style="width:70px" type="number" class="cf-column-width" min="10" max="100"
+                                       name="custom_fields[<?php echo $index; ?>][column_width]"
+                                       placeholder="25"
                                        value="<?php echo esc_attr($field['column_width'] ?? ''); ?>" />
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Field Type', 'snn'); ?></label>
-                                <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select" style="width:140px">
+                                <select name="custom_fields[<?php echo $index; ?>][type]" class="field-type-select">
                                     <option value="text"    <?php selected($field_type, 'text'); ?>><?php esc_html_e('Text', 'snn'); ?></option>
                                     <option value="number"    <?php selected($field_type, 'number'); ?>><?php esc_html_e('Number', 'snn'); ?></option>
                                     <option value="double_text"    <?php selected($field_type, 'double_text'); ?>><?php esc_html_e('Double Text', 'snn'); ?></option>
@@ -163,13 +163,13 @@ function snn_custom_fields_page_callback() {
                             </div>
                             <div class="field-group field-group-choices" style="<?php echo $show_choices ? '' : 'display:none;'; ?>">
                                 <label><?php esc_html_e('Choices', 'snn'); ?> <small><code>(<?php esc_html_e('value:label', 'snn'); ?>)</code></small></label>
-                                <textarea name="custom_fields[<?php echo $index; ?>][choices]" rows="4"  
-                                          placeholder="red : <?php esc_attr_e('Red Color', 'snn'); ?>&#10;green : <?php esc_attr_e('Green Color', 'snn'); ?>"><?php  
+                                <textarea class="cf-choices" name="custom_fields[<?php echo $index; ?>][choices]" rows="4"
+                                          placeholder="red : <?php esc_attr_e('Red Color', 'snn'); ?>&#10;green : <?php esc_attr_e('Green Color', 'snn'); ?>"><?php
                                           echo esc_textarea(wp_unslash($field['choices'] ?? '')); ?></textarea>
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Post Types', 'snn'); ?></label>
-                                <select name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
+                                <select class="cf-post-types" name="custom_fields[<?php echo $index; ?>][post_type][]" multiple>
                                     <?php foreach ($post_types as $pt) : ?>
                                         <option value="<?php echo esc_attr($pt->name); ?>"  
                                             <?php echo (!empty($field['post_type']) && in_array($pt->name, $field['post_type'])) ? 'selected' : ''; ?>>
@@ -180,7 +180,7 @@ function snn_custom_fields_page_callback() {
                             </div>
                             <div class="field-group">
                                 <label><?php esc_html_e('Taxonomies', 'snn'); ?></label>
-                                <select name="custom_fields[<?php echo $index; ?>][taxonomies][]" multiple>
+                                <select class="cf-taxonomies" name="custom_fields[<?php echo $index; ?>][taxonomies][]" multiple>
                                     <?php foreach ($taxonomies as $tax) : ?>
                                         <option value="<?php echo esc_attr($tax->name); ?>"  
                                             <?php echo (!empty($field['taxonomies']) && in_array($tax->name, $field['taxonomies'])) ? 'selected' : ''; ?>>
@@ -218,13 +218,13 @@ function snn_custom_fields_page_callback() {
                             <?php if ($field_type === 'media') : ?>
                             <div class="field-group media-return-url-group">
                                 <label><?php esc_html_e('Return URL', 'snn'); ?></label>
-                                <input type="checkbox" name="custom_fields[<?php echo $index; ?>][return_full_url]" value="1" <?php checked(!empty($field['return_full_url'])); ?> />
+                                <input type="checkbox" class="cf-return-url" name="custom_fields[<?php echo $index; ?>][return_full_url]" value="1" <?php checked(!empty($field['return_full_url'])); ?> />
                             </div>
                             <?php endif; ?>
                             <?php if ($field_type === 'date') : ?>
                             <div class="field-group date-format-group">
                                 <label><?php esc_html_e('Date Format', 'snn'); ?></label>
-                                <select name="custom_fields[<?php echo $index; ?>][date_format]" style="width:140px">
+                                <select class="cf-date-format" name="custom_fields[<?php echo $index; ?>][date_format]">
                                     <option value="YYYY-MM-DD" <?php selected(!empty($field['date_format']) ? $field['date_format'] : 'YYYY-MM-DD', 'YYYY-MM-DD'); ?>>YYYY-MM-DD</option>
                                     <option value="DD-MM-YYYY" <?php selected(!empty($field['date_format']) ? $field['date_format'] : '', 'DD-MM-YYYY'); ?>>DD-MM-YYYY</option>
                                     <option value="DD.MM.YYYY" <?php selected(!empty($field['date_format']) ? $field['date_format'] : '', 'DD.MM.YYYY'); ?>>DD.MM.YYYY</option>
@@ -367,7 +367,7 @@ function snn_custom_fields_page_callback() {
                         const newIndex = row.dataset.index;
                         const div = document.createElement('div');
                         div.classList.add('field-group', 'date-format-group');
-                        div.innerHTML = `<label><?php esc_html_e('Date Format', 'snn'); ?></label><select name="custom_fields[${newIndex}][date_format]" style="width:140px"><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select>`;
+                        div.innerHTML = `<label><?php esc_html_e('Date Format', 'snn'); ?></label><select name="custom_fields[${newIndex}][date_format]" ><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select>`;
                         const repeaterDiv = row.querySelector('input[name*="[repeater]"]');
                         if (repeaterDiv && repeaterDiv.closest('.field-group')) {
                             repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
@@ -397,14 +397,14 @@ function snn_custom_fields_page_callback() {
                         <button type="button" class="remove-field"><?php esc_html_e('Remove', 'snn'); ?></button>
                     </div>
                     <div class="field-identity-group">
-                        <div class="field-group"><label><?php esc_html_e('Group Name', 'snn'); ?></label><input type="text" name="custom_fields[${newIndex}][group_name]" placeholder="<?php esc_attr_e('Group Name', 'snn'); ?>"></div>
-                        <div class="field-group"><label><?php esc_html_e('Field Label', 'snn'); ?></label><input type="text" name="custom_fields[${newIndex}][label]" placeholder="<?php esc_attr_e('Field Name', 'snn'); ?>"></div>
-                        <div class="field-group"><label><?php esc_html_e('Slug Name', 'snn'); ?></label><input type="text" class="sanitize-key" name="custom_fields[${newIndex}][name]" placeholder="<?php esc_attr_e('field_name', 'snn'); ?>"></div>
+                        <div class="field-group"><label><?php esc_html_e('Group Name', 'snn'); ?></label><input type="text" class="cf-group-name" name="custom_fields[${newIndex}][group_name]" placeholder="<?php esc_attr_e('Group Name', 'snn'); ?>"></div>
+                        <div class="field-group"><label><?php esc_html_e('Field Label', 'snn'); ?></label><input type="text" class="cf-field-label" name="custom_fields[${newIndex}][label]" placeholder="<?php esc_attr_e('Field Name', 'snn'); ?>"></div>
+                        <div class="field-group"><label><?php esc_html_e('Slug Name', 'snn'); ?></label><input type="text" class="sanitize-key cf-slug-name" name="custom_fields[${newIndex}][name]" placeholder="<?php esc_attr_e('field_name', 'snn'); ?>"></div>
                     </div>
-                    <div class="field-group"><label><?php esc_html_e('Width (%)', 'snn'); ?></label><input style="width:70px" type="number" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
+                    <div class="field-group"><label><?php esc_html_e('Width (%)', 'snn'); ?></label><input type="number" class="cf-column-width" name="custom_fields[${newIndex}][column_width]" min="10" max="100" placeholder="25"></div>
                     <div class="field-group">
                         <label><?php esc_html_e('Field Type', 'snn'); ?></label>
-                        <select name="custom_fields[${newIndex}][type]" class="field-type-select" style="width:140px">
+                        <select name="custom_fields[${newIndex}][type]" class="field-type-select">
                             <option value="text"><?php esc_html_e('Text', 'snn'); ?></option>
                             <option value="number"><?php esc_html_e('Number', 'snn'); ?></option>
                             <option value="double_text"><?php esc_html_e('Double Text', 'snn'); ?></option>
@@ -427,14 +427,14 @@ function snn_custom_fields_page_callback() {
                     </div>
                     <div class="field-group field-group-choices" style="display:none;">
                         <label><?php esc_html_e('Choices', 'snn'); ?> <small>(<?php esc_html_e('value:label', 'snn'); ?>)</small></label>
-                        <textarea name="custom_fields[${newIndex}][choices]" rows="4" placeholder="red : <?php esc_attr_e('Red', 'snn'); ?>&#10;green : <?php esc_attr_e('Green', 'snn'); ?>"></textarea>
+                        <textarea class="cf-choices" name="custom_fields[${newIndex}][choices]" rows="4" placeholder="red : <?php esc_attr_e('Red', 'snn'); ?>&#10;green : <?php esc_attr_e('Green', 'snn'); ?>"></textarea>
                     </div>
-                    <div class="field-group"><label><?php esc_html_e('Post Types', 'snn'); ?></label><select name="custom_fields[${newIndex}][post_type][]" multiple>
+                    <div class="field-group"><label><?php esc_html_e('Post Types', 'snn'); ?></label><select class="cf-post-types" name="custom_fields[${newIndex}][post_type][]" multiple>
                         <?php foreach ($post_types as $pt) : ?>
                             <option value="<?php echo esc_js($pt->name); ?>"><?php echo esc_js($pt->label); ?></option>
                         <?php endforeach; ?>
                     </select></div>
-                    <div class="field-group"><label><?php esc_html_e('Taxonomies', 'snn'); ?></label><select name="custom_fields[${newIndex}][taxonomies][]" multiple>
+                    <div class="field-group"><label><?php esc_html_e('Taxonomies', 'snn'); ?></label><select class="cf-taxonomies" name="custom_fields[${newIndex}][taxonomies][]" multiple>
                         <?php foreach ($taxonomies as $tax) : ?>
                             <option value="<?php echo esc_js($tax->name); ?>"><?php echo esc_js($tax->label); ?></option>
                         <?php endforeach; ?>
@@ -443,8 +443,8 @@ function snn_custom_fields_page_callback() {
                     <div class="field-group"><label><?php esc_html_e('Options Page', 'snn'); ?></label><input type="checkbox" class="options-page-checkbox" name="custom_fields[${newIndex}][options_page]" value="1"></div>
                     <div class="field-group"><label><?php esc_html_e('Repeater', 'snn'); ?></label><input type="checkbox" class="repeater-checkbox" name="custom_fields[${newIndex}][repeater]" value="1"></div>
                     <div class="field-group quick-edit-group"><label><?php esc_html_e('Quick Edit', 'snn'); ?></label><input type="checkbox" class="quick-edit-checkbox" name="custom_fields[${newIndex}][quick_edit]" value="1" title="<?php esc_attr_e('Enable Quick Edit for this field', 'snn'); ?>"></div>
-                    <div class="field-group media-return-url-group" style="display:none;"><label><?php esc_html_e('Return Full URL', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1"></div>
-                    <div class="field-group date-format-group" style="display:none;"><label><?php esc_html_e('Date Format', 'snn'); ?></label><select name="custom_fields[${newIndex}][date_format]" style="width:140px"><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select></div>
+                    <div class="field-group media-return-url-group" style="display:none;"><label><?php esc_html_e('Return Full URL', 'snn'); ?></label><input type="checkbox" class="cf-return-url" name="custom_fields[${newIndex}][return_full_url]" value="1"></div>
+                    <div class="field-group date-format-group" style="display:none;"><label><?php esc_html_e('Date Format', 'snn'); ?></label><select class="cf-date-format" name="custom_fields[${newIndex}][date_format]" style="width:140px"><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD-MM-YYYY">DD-MM-YYYY</option><option value="DD.MM.YYYY">DD.MM.YYYY</option><option value="MM.DD.YYYY">MM.DD.YYYY</option></select></div>
                 `;
                 fieldContainer.appendChild(newRow);
                 attachFieldNameSanitizer(newRow.querySelector('.sanitize-key'));
@@ -542,19 +542,18 @@ function snn_custom_fields_page_callback() {
         </script>
 
         <style>
+
             .custom-field-row [type="text"],
             .custom-field-row input[type="number"] {
                 width:140px;
             }
-            .custom-field-row {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 10px;
-                align-items: center;
-            }
 
-            .field-group select            {min-height:60px !important;}
+            .custom-field-row [type="checkbox"]{
+                width:20px;
+                height:20px;
+                margin-top: 2px;
+            }
+            
 
             .custom-field-row label {
                 font-weight: bold;
@@ -588,19 +587,33 @@ function snn_custom_fields_page_callback() {
                 margin-left: 5px;
             }
             .custom-field-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 10px;
+                align-items: center; 
                 gap: 10px; 
-                margin-bottom: 5px;
                 padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                background-color: #f9f9f9;
+                background-color: #ffffff;
+                border-radius:10px;
             }
             .custom-field-row .buttons {
                 display: flex;
                 flex-direction: row; 
-                gap: 5px;
                 margin-right: 10px; 
                 order: -1; 
+            }
+            .custom-field-row .buttons button{
+                background:#ffffff;
+                border-radius:5px;
+                padding:10px;
+                position: relative;
+                top: 11px;
+                border: solid 1px #e2e2e2;
+                height:40px;
+            }
+            .custom-field-row .buttons button:hover{
+                background:#e2e2e2;
             }
             #add-custom-field-row {
                 color: #2271b1;
@@ -614,6 +627,15 @@ function snn_custom_fields_page_callback() {
             #add-custom-field-row:hover {
                 background: #eee;
             }
+            .field-identity-group [type="text"],
+            .field-identity-group [type="number"],
+            .field-identity-group [class="field-type-select"]{
+                background:#ffffff;
+                border-radius:5px;
+                height:40px;
+                border: solid 1px #e2e2e2;
+            }
+
             .submit input[type="submit"] {
                 background: #2271b1;
                 border-color: #2271b1;
