@@ -784,15 +784,15 @@ function snn_custom_css_overlay_output() {
             var activeEl    = getActiveElement();
             var snippet;
             if (activeClass && activeClass.name) {
-                snippet = '.' + activeClass.name + ' {\n  \n}';
+                snippet = '.' + activeClass.name;
             } else if (activeEl && activeEl.id) {
-                snippet = '#brxe-' + activeEl.id + ' {\n  \n}';
+                snippet = '#brxe-' + activeEl.id;
             } else {
-                snippet = '%root% {\n  \n}';
+                snippet = '%root%';
             }
             var cur = cm.getCursor();
             cm.replaceRange(snippet, cur);
-            cm.setCursor({ line: cur.line + 1, ch: 2 });
+            cm.setCursor({ line: cur.line, ch: cur.ch + snippet.length });
             cm.focus();
         }
 
