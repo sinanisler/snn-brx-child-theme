@@ -115,6 +115,16 @@ function snn_enqueue_ai_api_helpers() {
     }
 
     wp_add_inline_script( 'jquery', snn_get_ai_api_helpers_script(), 'after' );
+
+    // Inject proxy config so JS routes all AI calls through the server-side handler.
+    // Nonce is user-session-bound; key/endpoint never leave PHP.
+    if ( is_user_logged_in() ) {
+        $proxy_config = wp_json_encode( [
+            'url'   => admin_url( 'admin-ajax.php' ),
+            'nonce' => wp_create_nonce( 'snn_ai_proxy_nonce' ),
+        ] );
+        wp_add_inline_script( 'jquery', "window.snnAiProxy = {$proxy_config};", 'after' );
+    }
 }
 add_action( 'admin_enqueue_scripts', 'snn_enqueue_ai_api_helpers', 5 );
 
@@ -129,6 +139,15 @@ function snn_enqueue_ai_api_helpers_frontend() {
     }
 
     wp_add_inline_script( 'jquery', snn_get_ai_api_helpers_script(), 'after' );
+
+    // Inject proxy config for the Bricks builder frontend context.
+    if ( is_user_logged_in() ) {
+        $proxy_config = wp_json_encode( [
+            'url'   => admin_url( 'admin-ajax.php' ),
+            'nonce' => wp_create_nonce( 'snn_ai_proxy_nonce' ),
+        ] );
+        wp_add_inline_script( 'jquery', "window.snnAiProxy = {$proxy_config};", 'after' );
+    }
 }
 add_action( 'wp_enqueue_scripts', 'snn_enqueue_ai_api_helpers_frontend', 5 );
 
@@ -207,7 +226,70 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
          * @param {AbortSignal} options.signal - Optional abort signal
          * @returns {Promise<Object>} API response data
          */
+        /**
+         * Make a proxied AI request through the WordPress AJAX handler (snn_ai_proxy).
+         * The proxy keeps API keys server-side and works for localhost models (Ollama, LM Studio)
+         * regardless of HTTPS/HTTP mixed-content restrictions.
+         *
+         * @param {Object} options
+         * @param {string} options.requestType   - 'text' or 'image'
+         * @param {Array}  options.messages      - Messages array
+         * @param {number} options.temperature   - Temperature (default 0.7)
+         * @param {number} options.maxTokens     - Max tokens (default 4000)
+         * @param {Object} options.additionalParams - Extra body params
+         * @param {AbortSignal} options.signal   - Optional abort signal
+         * @returns {Promise<Object>} Raw AI provider response data
+         */
+        helpers.makeProxyCall = async function(options) {
+            const {
+                requestType = 'text',
+                messages,
+                temperature = 0.7,
+                maxTokens = 4000,
+                additionalParams = {},
+                signal = null
+            } = options;
+
+            if (!window.snnAiProxy || !window.snnAiProxy.url || !window.snnAiProxy.nonce) {
+                throw new Error('AI proxy not configured. Please reload the page.');
+            }
+
+            const formData = new URLSearchParams({
+                action: 'snn_ai_proxy',
+                nonce: window.snnAiProxy.nonce,
+                request_type: requestType,
+                payload: JSON.stringify({ messages, temperature, max_tokens: maxTokens, ...additionalParams })
+            });
+
+            const fetchOptions = { method: 'POST', body: formData };
+            if (signal) fetchOptions.signal = signal;
+
+            const response = await fetch(window.snnAiProxy.url, fetchOptions);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                // Handle both proxy envelope errors and pass-through AI errors
+                const errorMessage = errorData.data?.message || errorData.error?.message || `Error: ${response.status} ${response.statusText}`;
+                throw new Error(errorMessage);
+            }
+
+            return await response.json();
+        };
+
         helpers.makeTextCompletion = async function(options) {
+            // Proxy mode: route through WordPress AJAX when proxy is available (preferred).
+            if (window.snnAiProxy && window.snnAiProxy.url && window.snnAiProxy.nonce) {
+                return helpers.makeProxyCall({
+                    requestType: 'text',
+                    messages: options.messages,
+                    temperature: options.temperature,
+                    maxTokens: options.maxTokens,
+                    additionalParams: options.additionalParams,
+                    signal: options.signal
+                });
+            }
+
+            // Direct mode: fallback when proxy is not available.
             const {
                 apiEndpoint,
                 apiKey,
@@ -233,8 +315,8 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
             };
 
             // Add provider routing if specified
-            const body = provider ? 
-                helpers.buildRequestBody({ modelProvider: provider }, baseBody) : 
+            const body = provider ?
+                helpers.buildRequestBody({ modelProvider: provider }, baseBody) :
                 baseBody;
 
             const fetchOptions = {
@@ -284,6 +366,20 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
                 signal = null
             } = options;
 
+            // Proxy mode: route through WordPress AJAX when proxy is available (preferred).
+            if (window.snnAiProxy && window.snnAiProxy.url && window.snnAiProxy.nonce) {
+                return helpers.makeProxyCall({
+                    requestType: 'image',
+                    messages: messages,
+                    additionalParams: {
+                        modalities: ['image', 'text'],
+                        image_config: { aspect_ratio: aspectRatio, image_size: imageSize }
+                    },
+                    signal: signal
+                });
+            }
+
+            // Direct mode: fallback when proxy is not available.
             if (!apiKey || !apiEndpoint) {
                 throw new Error('AI API not configured. Please check settings.');
             }
@@ -299,8 +395,8 @@ window.SNN_AI_Helpers = window.SNN_AI_Helpers || {};
             };
 
             // Add provider routing if specified
-            const body = provider ? 
-                helpers.buildRequestBody({ modelProvider: provider }, baseBody) : 
+            const body = provider ?
+                helpers.buildRequestBody({ modelProvider: provider }, baseBody) :
                 baseBody;
 
             const fetchOptions = {

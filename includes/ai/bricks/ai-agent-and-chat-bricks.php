@@ -82,6 +82,9 @@ class SNN_Bricks_Chat_Overlay {
         $ai_config['systemPrompt'] = $main_chat->get_system_prompt();
         $ai_config['maxTokens'] = $main_chat->get_token_count();
 
+        // Strip sensitive values — API key and endpoint are handled server-side by ai-proxy.php.
+        unset( $ai_config['apiKey'], $ai_config['apiEndpoint'] );
+
         // Get Bricks page context
         $page_context = $this->get_bricks_page_context();
 
@@ -2396,26 +2399,27 @@ IMPORTANT RULES:
 
             async function callAI(messages, retryCount = 0, opts = {}) {
                 const cfg = snnBricksChatConfig.ai;
-                if (!cfg.apiKey || !cfg.apiEndpoint) throw new Error('AI API not configured');
+                if (!window.snnAiProxy || !window.snnAiProxy.url) throw new Error('AI API not configured');
                 ChatState.abortController = new AbortController();
-                
-                // Use helper to build request body with provider routing
-                const body = SNN_AI_Helpers.buildRequestBody(
-                    cfg,
-                    {
-                        model: cfg.model,
+
+                debugLog('AI call:', cfg.model, messages.length, 'messages');
+
+                // Route through the server-side proxy — keeps API key out of the browser
+                // and supports localhost models (Ollama, LM Studio) regardless of HTTPS context.
+                const proxyPayload = new URLSearchParams({
+                    action: 'snn_ai_proxy',
+                    nonce: window.snnAiProxy.nonce,
+                    request_type: 'text',
+                    payload: JSON.stringify({
                         messages: messages,
                         temperature: 0.7,
                         max_tokens: opts.maxTokens || cfg.maxTokens || 4000
-                    }
-                );
-                
-                debugLog('AI call:', body.model, messages.length, 'messages');
-                
-                const resp = await fetch(cfg.apiEndpoint, {
+                    })
+                });
+
+                const resp = await fetch(window.snnAiProxy.url, {
                     method: 'POST',
-                    headers: SNN_AI_Helpers.buildHeaders(cfg.apiKey),
-                    body: JSON.stringify(body),
+                    body: proxyPayload,
                     signal: ChatState.abortController.signal
                 });
                 if (resp.status === 429 && retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {

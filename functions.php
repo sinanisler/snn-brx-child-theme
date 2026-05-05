@@ -47,6 +47,7 @@ require_once SNN_PATH . 'includes/features/draft-revision.php';
 require_once SNN_PATH . 'includes/ai/api-call-templates.php';
 require_once SNN_PATH . 'includes/ai/ai-settings.php';
 require_once SNN_PATH . 'includes/ai/ai-api.php';
+require_once SNN_PATH . 'includes/ai/ai-proxy.php';
 require_once SNN_PATH . 'includes/ai/ai-overlay.php';
 require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
 require_once SNN_PATH . 'includes/ai/ai-block-editor.php';

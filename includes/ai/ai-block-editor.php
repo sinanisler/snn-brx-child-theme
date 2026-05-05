@@ -37,7 +37,7 @@ function snn_enqueue_block_editor_ai_assets() {
     $config = snn_get_ai_api_config();
 
     // Only proceed if we have valid configuration
-    if ( empty( $config['apiKey'] ) || empty( $config['apiEndpoint'] ) ) {
+    if ( empty( $config['apiEndpoint'] ) ) {
         return;
     }
 
@@ -62,12 +62,10 @@ function snn_enqueue_block_editor_ai_assets() {
         }
     }
 
-    // Pass config to JavaScript
+    // Pass config to JavaScript (no apiKey/apiEndpoint — handled server-side by ai-proxy.php)
     wp_localize_script('wp-plugins', 'snnAiConfig', array(
-        'apiKey' => $config['apiKey'],
         'model' => $config['model'],
         'systemPrompt' => $config['systemPrompt'],
-        'apiEndpoint' => $config['apiEndpoint'],
         'actionPresets' => $config['actionPresets'],
         'imageConfig' => $config['imageConfig'],
         'postId' => $post_id,
@@ -101,7 +99,7 @@ function snn_add_block_editor_ai_panel() {
     $config = snn_get_ai_api_config();
 
     // Only proceed if we have valid configuration
-    if ( empty( $config['apiKey'] ) || empty( $config['apiEndpoint'] ) ) {
+    if ( empty( $config['apiEndpoint'] ) ) {
         return;
     }
 
@@ -463,10 +461,8 @@ function snn_add_block_editor_ai_panel() {
 
             // Get config from localized script
             const config = window.snnAiConfig || {
-                apiKey: <?php echo json_encode($config['apiKey']); ?>,
                 model: <?php echo json_encode($config['model']); ?>,
                 systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>,
-                apiEndpoint: <?php echo json_encode($config['apiEndpoint']); ?>,
                 actionPresets: <?php echo json_encode($config['actionPresets']); ?>,
                 imageConfig: <?php echo json_encode($config['imageConfig']); ?>,
                 postId: <?php echo json_encode($post_id); ?>,

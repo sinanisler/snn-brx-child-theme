@@ -58,8 +58,8 @@ function snn_add_ai_script_to_footer() {
     }
     $config = snn_get_ai_api_config();
 
-    // Final check to ensure we have a valid key and endpoint before proceeding.
-    if (empty($config['apiKey']) || empty($config['apiEndpoint'])) {
+    // Require at minimum a configured endpoint (API key is optional for local models).
+    if (empty($config['apiEndpoint'])) {
         return;
     }
     ?>
@@ -343,10 +343,8 @@ function snn_add_ai_script_to_footer() {
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const config = {
-            apiKey: <?php echo json_encode($config['apiKey']); ?>,
             model: <?php echo json_encode($config['model']); ?>,
-            systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>,
-            apiEndpoint: <?php echo json_encode($config['apiEndpoint']); ?>
+            systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>
         };
 
         let actionPresets = <?php echo json_encode($config['actionPresets']); ?>;
