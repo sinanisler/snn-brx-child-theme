@@ -33,9 +33,6 @@ require_once SNN_PATH . 'includes/features/mail-logging.php';
 require_once SNN_PATH . 'includes/features/media-settings.php';
 require_once SNN_PATH . 'includes/features/disable-emojis.php';
 require_once SNN_PATH . 'includes/features/disable-gravatar.php';
-require_once SNN_PATH . 'includes/features/editor-settings-bricks.php'; 
-require_once SNN_PATH . 'includes/features/editor-settings-panel-bricks.php';
-require_once SNN_PATH . 'includes/features/editor-class-generator.php';
 require_once SNN_PATH . 'includes/features/role-manager.php';
 require_once SNN_PATH . 'includes/features/custom-code-snippets.php';
 require_once SNN_PATH . 'includes/features/cookie-banner.php';
@@ -45,7 +42,6 @@ require_once SNN_PATH . 'includes/features/seo.php';
 require_once SNN_PATH . 'includes/features/seo-bricks-setting.php';
 require_once SNN_PATH . 'includes/features/interactions.php';
 require_once SNN_PATH . 'includes/features/draft-revision.php';
-require_once SNN_PATH . 'includes/features/editor-custom-css.php';
 
 
 require_once SNN_PATH . 'includes/ai/api-call-templates.php';
@@ -83,13 +79,37 @@ require_once SNN_PATH . 'includes/ai/abilities/update-post-metadata.php';
 require_once SNN_PATH . 'includes/ai/abilities/analyze-post-seo.php';
 
 
+
+
+// Utils
+require_once SNN_PATH . 'includes/features/utils.php';
+require_once SNN_PATH . 'includes/features/auto-update-snn-brx-github.php';
+
+
+
+// Load Translations
+add_action('after_setup_theme', function() {
+    load_theme_textdomain('snn', SNN_PATH . '/languages');
+});
+
+
+
+
+
+
+
+
+// ------------------------------------------------------------------------------
+// Bricks Features
+// ------------------------------------------------------------------------------
+
+require_once SNN_PATH . 'includes/features/editor-settings-bricks.php'; 
+require_once SNN_PATH . 'includes/features/editor-settings-panel-bricks.php';
+require_once SNN_PATH . 'includes/features/editor-class-generator.php';
+require_once SNN_PATH . 'includes/features/editor-custom-css.php';
+
 // Bricks Builder Chat Agent and Bricks Abilities
 require_once SNN_PATH . 'includes/ai/bricks/ai-agent-and-chat-bricks.php';
-
-
-
-
-
 
 
 require_once SNN_PATH . 'includes/features/block-editor-settings.php';
@@ -128,11 +148,14 @@ require_once SNN_PATH . 'includes/dynamic-data-tags/parent-child-count.php';
 require_once SNN_PATH . 'includes/dynamic-data-tags/parent-post-count.php';
 
 
-// Utils
-require_once SNN_PATH . 'includes/features/utils.php';
-require_once SNN_PATH . 'includes/features/auto-update-snn-brx-github.php';
+
 require_once SNN_PATH . 'includes/query/snn-repeaters-and-queries.php';
 require_once SNN_PATH . 'includes/query/snn-double-repeaters-and-queries.php';
+
+
+
+
+
 
 // Register Custom Bricks Builder Elements
 add_action('init', function () {
@@ -195,7 +218,3 @@ if (!empty($options['enqueue_gsap'])) {
 
 }
 
-
-
-// Load Translations
-load_theme_textdomain('snn', SNN_PATH . '/languages');
