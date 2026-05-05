@@ -146,12 +146,10 @@ function snn_render_taxonomies_page() {
                 value = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 // Convert to lowercase
                 value = value.toLowerCase();
-                // Replace spaces with dashes
-                value = value.replace(/\s+/g, "-");
+                // Replace spaces and underscores with dashes
+                value = value.replace(/[\s_]+/g, "-");
                 // Remove disallowed characters (only allow a-z, 0-9, and dashes)
                 value = value.replace(/[^a-z0-9\-]/g, "");
-                // Remove leading digits
-                value = value.replace(/^\d+/, "");
                 // Remove multiple consecutive dashes
                 value = value.replace(/-+/g, "-");
                 // Remove leading and trailing dashes
