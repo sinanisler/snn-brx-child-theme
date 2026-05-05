@@ -343,7 +343,7 @@ function snn_custom_fields_page_callback() {
                         const newIndex = row.dataset.index;
                         const div = document.createElement('div');
                         div.classList.add('field-group', 'media-return-url-group');
-                        div.innerHTML = `<label><?php esc_html_e('Return Full URL', 'snn'); ?></label><br><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1">`;
+                        div.innerHTML = `<label><?php esc_html_e('Return Full URL', 'snn'); ?></label><input type="checkbox" name="custom_fields[${newIndex}][return_full_url]" value="1">`;
                         const repeaterDiv = row.querySelector('input[name*="[repeater]"]');
                         if (repeaterDiv && repeaterDiv.closest('.field-group')) {
                             repeaterDiv.closest('.field-group').insertAdjacentElement('afterend', div);
@@ -608,6 +608,10 @@ function snn_custom_fields_page_callback() {
             }
             .custom-field-row .buttons button {
                 margin-left: 5px;
+            }
+
+            .custom-field-row .remove-field{   
+                background:red
             }
 
 
