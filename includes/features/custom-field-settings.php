@@ -543,16 +543,7 @@ function snn_custom_fields_page_callback() {
 
         <style>
 
-            .custom-field-row [type="text"],
-            .custom-field-row input[type="number"] {
-                width:140px;
-            }
 
-            .custom-field-row [type="checkbox"]{
-                width:20px;
-                height:20px;
-                margin-top: 2px;
-            }
             
 
             .custom-field-row label {
@@ -583,15 +574,12 @@ function snn_custom_fields_page_callback() {
             .custom-field-row textarea {
                 font-size: 14px;
             }
-            .custom-field-row .buttons button {
-                margin-left: 5px;
-            }
             .custom-field-row {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 10px;
                 margin-bottom: 10px;
-                align-items: center; 
+                align-items: flex-start;
                 gap: 10px; 
                 padding: 10px;
                 background-color: #ffffff;
@@ -603,18 +591,26 @@ function snn_custom_fields_page_callback() {
                 margin-right: 10px; 
                 order: -1; 
             }
+
+            
             .custom-field-row .buttons button{
                 background:#ffffff;
                 border-radius:5px;
                 padding:10px;
                 position: relative;
-                top: 11px;
+                top: 20px;
                 border: solid 1px #e2e2e2;
                 height:40px;
             }
             .custom-field-row .buttons button:hover{
-                background:#e2e2e2;
+                background:var(--wp-admin-theme-color);
+                color:white;
             }
+            .custom-field-row .buttons button {
+                margin-left: 5px;
+            }
+
+
             #add-custom-field-row {
                 color: #2271b1;
                 border-color: #2271b1;
@@ -627,18 +623,80 @@ function snn_custom_fields_page_callback() {
             #add-custom-field-row:hover {
                 background: #eee;
             }
-            .field-identity-group [type="text"],
-            .field-identity-group [type="number"],
-            .field-identity-group [class="field-type-select"]{
-                background:#ffffff;
-                border-radius:5px;
-                height:40px;
-                border: solid 1px #e2e2e2;
+            .custom-field-row .cf-group-name,
+            .custom-field-row .cf-field-label,
+            .custom-field-row .cf-slug-name,
+            .custom-field-row .field-type-select,
+            .custom-field-row .cf-column-width,
+            .custom-field-row .cf-taxonomies,
+            .custom-field-row .cf-post-types,
+            .custom-field-row .cf-date-format
+            {
+                background:#ffffff ;
+                border-radius:5px ;
+                height:40px ;
+                border: solid 1px #e2e2e2 ;
+            }
+            .custom-field-row .cf-group-name:hover,
+            .custom-field-row .cf-field-label:hover,
+            .custom-field-row .cf-slug-name:hover,
+            .custom-field-row .field-type-select:hover,
+            .custom-field-row .cf-column-width:hover,
+            .custom-field-row .cf-taxonomies:hover,
+            .custom-field-row .cf-post-types:hover
+            {
+                border: solid 1px #000000 ;
             }
 
-            .submit input[type="submit"] {
-                background: #2271b1;
-                border-color: #2271b1;
+
+
+            .custom-field-row [type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            position: relative;
+            width: 40px;
+            height: 22px;
+            background-color: #eeeeee;
+            border-radius: 11px;
+            border: 1px solid #e2e2e2;
+            transition: 0.25s;
+            margin-top:2px;
+            }
+
+            .custom-field-row [type="checkbox"]::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            background-color: #ffffff; /* Default white knob */
+            border-radius: 50%;
+            transition: 0.25s;
+            }
+
+            .custom-field-row [type="checkbox"]:hover {
+            border: 2px solid var(--wp-admin-theme-color);
+            }
+
+            .custom-field-row [type="checkbox"]:checked {
+            background-color: #eeeeee; 
+            border: 2px solid var(--wp-admin-theme-color);
+            }
+
+            .custom-field-row [type="checkbox"]:checked::before {
+            left: 21px;
+            background-color: var(--wp-admin-theme-color);
+            }
+
+
+
+
+
+
+            .submit input[type="surgb(0, 0, 0){
+                background: var(--wp-admin-theme-color);
                 color: #fff;
                 text-shadow: none;
             }
