@@ -43,9 +43,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array An associative array containing the AI configuration.
  */
 function snn_get_ai_api_config() {
-    $ai_provider          = get_option('snn_ai_provider', 'openai');
-    $openai_api_key       = get_option('snn_openai_api_key', '');
-    $openai_model         = get_option('snn_openai_model', 'gpt-4.1-mini');
+    $ai_provider          = get_option('snn_ai_provider', 'openrouter');
     $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
     $openrouter_model     = get_option('snn_openrouter_model', '');
     $openrouter_model_provider = get_option('snn_openrouter_model_provider', '');
@@ -71,14 +69,10 @@ function snn_get_ai_api_config() {
         $apiKey      = get_option('snn_custom_api_key', '');
         $model       = get_option('snn_custom_model', '');
         $apiEndpoint = get_option('snn_custom_api_endpoint', '');
-    } elseif ($ai_provider === 'openrouter') {
+    } else { // Default to 'openrouter'
         $apiKey      = $openrouter_api_key;
         $model       = $openrouter_model;
         $apiEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
-    } else { // Default to 'openai'
-        $apiKey      = $openai_api_key;
-        $model       = $openai_model;
-        $apiEndpoint = 'https://api.openai.com/v1/chat/completions';
     }
 
     $action_presets = get_option('snn_ai_action_presets', []);
@@ -104,7 +98,7 @@ function snn_get_ai_api_config() {
     $config = [
         'apiKey'          => $apiKey,
         'model'           => $model,
-        'modelProvider'   => $ai_provider === 'openrouter' ? $openrouter_model_provider : '',
+        'modelProvider'   => $openrouter_model_provider,
         'apiEndpoint'     => $apiEndpoint,
         'systemPrompt'    => $system_prompt,
         'actionPresets'   => array_values($action_presets),

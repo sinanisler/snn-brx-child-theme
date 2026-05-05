@@ -53,8 +53,6 @@ function snn_register_ai_settings() {
     register_setting('snn_ai_settings_group', 'snn_ai_provider', [
         'default' => 'openai',
     ]);
-    register_setting('snn_ai_settings_group', 'snn_openai_api_key');
-    register_setting('snn_ai_settings_group', 'snn_openai_model');
     register_setting('snn_ai_settings_group', 'snn_openrouter_api_key');
     register_setting('snn_ai_settings_group', 'snn_openrouter_model');
     register_setting('snn_ai_settings_group', 'snn_openrouter_model_provider');
@@ -86,8 +84,6 @@ add_action('admin_init', 'snn_register_ai_settings');
 function snn_render_ai_settings() {
     $ai_enabled           = get_option('snn_ai_enabled', 'no');
     $ai_provider          = get_option('snn_ai_provider', 'openrouter');
-    $openai_api_key       = get_option('snn_openai_api_key', '');
-    $openai_model         = get_option('snn_openai_model', 'google/gemini-2.5-flash-lite');
     $openrouter_api_key   = get_option('snn_openrouter_api_key', '');
     $openrouter_model     = get_option('snn_openrouter_model', '');
     $openrouter_model_provider = get_option('snn_openrouter_model_provider', '');
@@ -152,7 +148,6 @@ function snn_render_ai_settings() {
                     <td>
                         <select name="snn_ai_provider" id="snn_ai_provider">
                             <option value="openrouter" <?php selected($ai_provider, 'openrouter'); ?>>OpenRouter</option>
-                            <option value="openai" <?php selected($ai_provider, 'openai'); ?>>OpenAI (Will Be Deprecated and Removed Soon)</option>
                             <option value="custom" <?php selected($ai_provider, 'custom'); ?>>Custom</option>
                         </select>
                     </td>
@@ -178,68 +173,6 @@ function snn_render_ai_settings() {
                     </td>
                 </tr>
             </table>
-
-            <div
-                id="openai-settings"
-                style="display: <?php echo ($ai_provider === 'openai' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
-            >
-                <h2><?php esc_html_e('OpenAI API Settings', 'snn'); ?></h2>
-                <table class="form-table">
-                    <tr>
-                        <th scope="row">
-                            <label for="snn_openai_api_key"><?php esc_html_e('OpenAI API Key', 'snn'); ?></label>
-                        </th>
-                        <td>
-                            <input
-                                type="password"
-                                name="snn_openai_api_key"
-                                id="snn_openai_api_key"
-                                value="<?php echo esc_attr($openai_api_key); ?>"
-                                class="regular-text"
-                                autocomplete="new-password"
-                            />
-                            <p class="description">
-                                <?php
-                                printf(
-                                    wp_kses_post(
-                                        __('For more information, visit the <a href="%s" target="_blank" rel="noopener noreferrer">OpenAI API Keys page</a>.', 'snn')
-                                    ),
-                                    'https://platform.openai.com/account/api-keys'
-                                );
-                                ?>
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            <label for="snn_openai_model"><?php esc_html_e('OpenAI Model', 'snn'); ?></label>
-                        </th>
-                        <td>
-                            <input
-                                type="text"
-                                name="snn_openai_model"
-                                id="snn_openai_model"
-                                class="regular-text"
-                                value="<?php echo esc_attr($openai_model); ?>"
-                                placeholder="<?php esc_attr_e('Search for model...', 'snn'); ?>"
-                                list="openai-models"
-                                autocomplete="off"
-                            >
-                            <datalist id="openai-models">
-                                <option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>
-                            </datalist>
-                            <p class="description">
-                                <?php esc_html_e('Select the OpenAI model to use. Start typing to search.', 'snn'); ?><br>
-                                <a href="https://platform.openai.com/docs/models" target="_blank"><?php esc_html_e('Model Info & Pricing', 'snn'); ?></a>
-                            </p>
-                            <div id="openai-selected-model-features" class="selected-model-features" style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none;">
-                                <strong><?php esc_html_e('Selected Model Features:', 'snn'); ?></strong>
-                                <ul style="list-style-type: disc; margin-left: 20px;"></ul>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
 
             <div
                 id="openrouter-settings"
@@ -524,15 +457,12 @@ function snn_render_ai_settings() {
                 max-width: 220px;
                 height: 46px;
             }
-            #openai-settings #snn_openai_model,
-            #openai-settings #snn_openai_api_key,
             #openrouter-settings #snn_openrouter_api_key,
             #openrouter-settings #snn_openrouter_model,
             #openrouter-settings #snn_openrouter_image_model {
                 width: 430px;
                 max-width: 430px;
             }
-            #openai-settings #snn_openai_api_key,
             #openrouter-settings #snn_openrouter_api_key {
                 margin-bottom: 10px;
             }
@@ -570,15 +500,10 @@ function snn_render_ai_settings() {
         document.addEventListener('DOMContentLoaded', function() {
             const enableCheckbox = document.getElementById('snn_ai_enabled');
             const providerSelect = document.getElementById('snn_ai_provider');
-            const openaiSettingsDiv = document.getElementById('openai-settings');
             const openrouterSettingsDiv = document.getElementById('openrouter-settings');
             const customSettingsDiv = document.getElementById('custom-settings');
 
             // Model feature display elements
-            const openaiModelInput = document.getElementById('snn_openai_model');
-            const openaiFeaturesDiv = document.getElementById('openai-selected-model-features');
-            const openaiFeaturesList = openaiFeaturesDiv ? openaiFeaturesDiv.querySelector('ul') : null;
-
             const openrouterModelInput = document.getElementById('snn_openrouter_model');
             const openrouterFeaturesDiv = document.getElementById('openrouter-selected-model-features');
             const openrouterFeaturesList = openrouterFeaturesDiv ? openrouterFeaturesDiv.querySelector('ul') : null;
@@ -591,28 +516,22 @@ function snn_render_ai_settings() {
             const openrouterImageCapabilitiesDiv = document.getElementById('openrouter-image-model-capabilities');
             const openrouterImageCapabilitiesContainer = openrouterImageCapabilitiesDiv ? openrouterImageCapabilitiesDiv.querySelector('.capabilities-tags') : null;
 
-            let allOpenAiModels = [];
             let allOpenRouterModels = [];
             let allOpenRouterImageModels = [];
 
             function toggleSettingsVisibility() {
                 const isEnabled = enableCheckbox.checked;
-                openaiSettingsDiv.style.display = 'none';
                 openrouterSettingsDiv.style.display = 'none';
                 customSettingsDiv.style.display = 'none';
 
                 // Hide feature divs when provider changes or AI is disabled
-                if (openaiFeaturesDiv) openaiFeaturesDiv.style.display = 'none';
                 if (openrouterFeaturesDiv) openrouterFeaturesDiv.style.display = 'none';
                 if (openrouterCapabilitiesDiv) openrouterCapabilitiesDiv.style.display = 'none';
                 if (openrouterImageFeaturesDiv) openrouterImageFeaturesDiv.style.display = 'none';
                 if (openrouterImageCapabilitiesDiv) openrouterImageCapabilitiesDiv.style.display = 'none';
 
                 if (isEnabled) {
-                    if (providerSelect.value === 'openai') {
-                        openaiSettingsDiv.style.display = 'block';
-                        fetchOpenAiModels();
-                    } else if (providerSelect.value === 'openrouter') {
+                    if (providerSelect.value === 'openrouter') {
                         openrouterSettingsDiv.style.display = 'block';
                         fetchOpenRouterModels();
                         fetchOpenRouterImageModels();
@@ -705,18 +624,6 @@ function snn_render_ai_settings() {
                         }
                         featuresListElement.appendChild(li);
                     }
-                }
-            }
-
-            function displayOpenAiModelFeatures(modelId) {
-                if (!openaiFeaturesList) return;
-                openaiFeaturesDiv.style.display = 'none';
-
-                const selectedModel = allOpenAiModels.find(model => model.id === modelId);
-
-                if (selectedModel) {
-                    openaiFeaturesDiv.style.display = 'block';
-                    displayFeatures(openaiFeaturesList, selectedModel);
                 }
             }
 
@@ -916,67 +823,6 @@ function snn_render_ai_settings() {
                 });
             }
 
-            function fetchOpenAiModels() {
-                const dataListEl = document.getElementById('openai-models');
-                if (!dataListEl) return;
-                const openAiApiKeyEl = document.getElementById('snn_openai_api_key');
-                const openAiApiKey = openAiApiKeyEl ? openAiApiKeyEl.value.trim() : '';
-                if (!openAiApiKey) {
-                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('OpenAI key missing. Please add your key first.', 'snn'); ?></option>';
-                    return;
-                }
-                dataListEl.innerHTML = '<option value=""><?php esc_html_e('Loading models...', 'snn'); ?></option>';
-                let slowTimeout = setTimeout(function(){
-                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Still loading models... (this is taking longer than usual)', 'snn'); ?></option>';
-                }, 3000);
-                fetch('https://api.openai.com/v1/models', {
-                    headers: { 'Authorization': 'Bearer ' + openAiApiKey }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('OpenAI models API error: ' + response.statusText);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data && data.data) {
-                        const forbiddenKeywords = [
-                            "babbage", "tts", "whisper", "moderation", "embedding", "transcribe", "dall", "audio"
-                        ];
-                        let filteredModels = data.data.filter(m => {
-                            const modelId = m.id.toLowerCase();
-                            return forbiddenKeywords.every(keyword => !modelId.includes(keyword));
-                        });
-                        let miniModels = filteredModels.filter(m => m.id.toLowerCase().includes('mini'));
-                        let otherModels = filteredModels.filter(m => !m.id.toLowerCase().includes('mini'));
-                        miniModels.sort((a, b) => a.id.localeCompare(b.id));
-                        otherModels.sort((a, b) => a.id.localeCompare(b.id));
-                        allOpenAiModels = miniModels.concat(otherModels); // Store all models
-                        dataListEl.innerHTML = '';
-                        allOpenAiModels.forEach(model => {
-                            if (model.id) {
-                                const option = document.createElement('option');
-                                option.value = model.id;
-                                const ownedBy = model.owned_by ? ` (by ${model.owned_by})` : '';
-                                option.text = `${model.id}${ownedBy}`;
-                                dataListEl.appendChild(option);
-                            }
-                        });
-                        // Display features for the currently selected model if any
-                        displayOpenAiModelFeatures(openaiModelInput.value);
-                    } else {
-                        dataListEl.innerHTML = '<option value=""><?php esc_html_e('No models found.', 'snn'); ?></option>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching OpenAI models:', error);
-                    dataListEl.innerHTML = '<option value=""><?php esc_html_e('Error loading models.', 'snn'); ?></option>';
-                })
-                .finally(() => {
-                    clearTimeout(slowTimeout);
-                });
-            }
-
             // Function to fetch available providers for a specific model
             function fetchModelProviders(modelId, isImageModel = false) {
                 const providerSelectId = isImageModel ? 'snn_openrouter_image_model_provider' : 'snn_openrouter_model_provider';
@@ -1161,11 +1007,6 @@ function snn_render_ai_settings() {
             }
 
             // Add event listeners for model input changes to update features
-            if (openaiModelInput) {
-                openaiModelInput.addEventListener('input', (e) => {
-                    displayOpenAiModelFeatures(e.target.value);
-                });
-            }
             if (openrouterModelInput) {
                 openrouterModelInput.addEventListener('input', (e) => {
                     displayOpenRouterModelFeatures(e.target.value);
