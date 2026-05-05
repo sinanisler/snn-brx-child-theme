@@ -98,7 +98,7 @@ function snn_get_ai_api_config() {
     $config = [
         'apiKey'          => $apiKey,
         'model'           => $model,
-        'modelProvider'   => $openrouter_model_provider,
+        'modelProvider'   => $ai_provider === 'custom' ? '' : $openrouter_model_provider,
         'apiEndpoint'     => $apiEndpoint,
         'systemPrompt'    => $system_prompt,
         'actionPresets'   => array_values($action_presets),
