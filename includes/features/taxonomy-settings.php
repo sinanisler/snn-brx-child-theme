@@ -285,22 +285,37 @@ function snn_render_taxonomies_page() {
                 border: solid 1px #000000;
             }
             .taxonomy-row .buttons {
-                flex-direction: column;
+                display: flex;
+                flex-direction: row;
                 gap: 5px;
+            }
+            .taxonomy-row .buttons button {
+                background: #ffffff;
+                border-radius: 5px;
+                padding: 10px;
+                border: solid 1px #e2e2e2;
+                height: 40px;
+                cursor: pointer;
+            }
+            .taxonomy-row .buttons button:hover {
+                background: var(--wp-admin-theme-color);
+                color: white;
+            }
+            .taxonomy-row .remove-taxonomy {
+                background: #fff0f0;
+                color: #cc0000;
+                border-color: #f5c6c6;
+            }
+            .taxonomy-row .remove-taxonomy:hover {
+                background: #cc0000 !important;
+                color: white !important;
+                border-color: #cc0000 !important;
             }
             #add-taxonomy-row {
                 margin-top: 10px;
             }
             select[multiple] {
                 height: 100px;
-            }
-            .buttons button {
-                cursor: pointer;
-                border: solid 1px gray;
-                padding: 4px 10px;
-            }
-            .buttons button:hover {
-                background: white;
             }
             .taxonomy-row [type="text"] {
                 width: 240px;

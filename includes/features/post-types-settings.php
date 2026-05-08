@@ -349,18 +349,31 @@ function snn_render_custom_post_types_page() {
                 border: solid 1px #000000;
             }
             .custom-post-type-row .buttons {
-                flex-direction: column;
+                display: flex;
+                flex-direction: row;
                 gap: 5px;
             }
-            .custom-post-type-row button {
+            .custom-post-type-row .buttons button {
+                background: #ffffff;
+                border-radius: 5px;
+                padding: 10px;
+                border: solid 1px #e2e2e2;
+                height: 40px;
                 cursor: pointer;
-                border: solid 1px gray;
-                padding: 4px 10px;
             }
-            .custom-post-type-row button:hover {
-                background: white;
-                color: black;
-                border: solid 1px;
+            .custom-post-type-row .buttons button:hover {
+                background: var(--wp-admin-theme-color);
+                color: white;
+            }
+            .custom-post-type-row .remove-post-type {
+                background: #fff0f0;
+                color: #cc0000;
+                border-color: #f5c6c6;
+            }
+            .custom-post-type-row .remove-post-type:hover {
+                background: #cc0000 !important;
+                color: white !important;
+                border-color: #cc0000 !important;
             }
             #add-custom-post-type-row {
                 margin-top: 10px;
