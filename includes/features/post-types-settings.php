@@ -135,25 +135,27 @@ function snn_render_custom_post_types_page() {
                             <input type="text" name="custom_post_types[<?php echo esc_attr( $index ); ?>][dashicon]" placeholder="<?php echo esc_attr__( 'dashicons-admin-page', 'snn' ); ?>" value="<?php echo esc_attr( $post_type['dashicon'] ); ?>" style="width:90px" />
                         </div>
                         <!-- Supports Section -->
-                        <div class="supports-section">
-                            <?php foreach ( $available_supports as $key => $label ) : ?>
-                                <label>
-                                    <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][supports][<?php echo esc_attr( $key ); ?>]" <?php checked( in_array( $key, $post_type['supports'], true ), true ); ?> />
-                                    <?php echo esc_html( $label ); ?>
-                                </label>
-                            <?php endforeach; ?>
+                        <div class="advanced-settings-wrap">
+                            <button type="button" class="toggle-advanced-btn">Advanced Settings ▼</button>
+                            <div class="supports-section" style="display:none;">
+                                <?php foreach ( $available_supports as $key => $label ) : ?>
+                                    <label>
+                                        <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][supports][<?php echo esc_attr( $key ); ?>]" <?php checked( in_array( $key, $post_type['supports'], true ), true ); ?> />
+                                        <?php echo esc_html( $label ); ?>
+                                    </label>
+                                <?php endforeach; ?>
 
-                            <?php foreach ( $additional_options as $opt_key => $opt_label ) : ?>
+                                <?php foreach ( $additional_options as $opt_key => $opt_label ) : ?>
+                                    <label>
+                                        <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][<?php echo esc_attr( $opt_key ); ?>]" <?php checked( $opt_key === 'show_order' ? (isset($post_type[$opt_key]) && $post_type[$opt_key]) : (!isset($post_type[$opt_key]) || $post_type[$opt_key]), 1 ); ?> />
+                                        <?php echo esc_html( $opt_label ); ?>
+                                    </label>
+                                <?php endforeach; ?>
                                 <label>
-                                    <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][<?php echo esc_attr( $opt_key ); ?>]" <?php checked( $opt_key === 'show_order' ? (isset($post_type[$opt_key]) && $post_type[$opt_key]) : (!isset($post_type[$opt_key]) || $post_type[$opt_key]), 1 ); ?> />
-                                    <?php echo esc_html( $opt_label ); ?>
+                                    <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][private]" <?php checked( isset($post_type['private']) && $post_type['private'], 1 ); ?> />
+                                    <?php echo esc_html__( 'Private', 'snn' ); ?>
                                 </label>
-                            <?php endforeach; ?>
-                            <!-- Move Private checkbox here, unchecked by default -->
-                            <label>
-                                <input type="checkbox" name="custom_post_types[<?php echo esc_attr( $index ); ?>][private]" <?php checked( isset($post_type['private']) && $post_type['private'], 1 ); ?> />
-                                <?php echo esc_html__( 'Private', 'snn' ); ?>
-                            </label>
+                            </div>
                         </div>
                         <!-- End of Supports Section -->
                     </div>
@@ -225,10 +227,10 @@ function snn_render_custom_post_types_page() {
             }
 
             function generateSupportsHTML(index) {
-                let html = '<div class="supports-section">';
+                let inner = '';
                 for (const [key, label] of Object.entries(availableSupports)) {
                     const isChecked = key !== 'comments';
-                    html += `
+                    inner += `
                         <label>
                             <input type="checkbox" name="custom_post_types[${index}][supports][${key}]" ${isChecked ? 'checked' : ''} />
                             ${label}
@@ -237,14 +239,14 @@ function snn_render_custom_post_types_page() {
                     if (key === 'page-attributes') {
                         for (const [optKey, optLabel] of Object.entries(additionalOptions)) {
                             const isChecked = optKey !== 'show_order';
-                            html += `
+                            inner += `
                                 <label>
                                     <input type="checkbox" name="custom_post_types[${index}][${optKey}]" ${isChecked ? 'checked' : ''} />
                                     ${optLabel}
                                 </label>
                             `;
                         }
-                        html += `
+                        inner += `
                             <label>
                                 <input type="checkbox" name="custom_post_types[${index}][private]" />
                                 <?php echo esc_html__( 'Private', 'snn' ); ?>
@@ -252,8 +254,10 @@ function snn_render_custom_post_types_page() {
                         `;
                     }
                 }
-                html += '</div>';
-                return html;
+                return `<div class="advanced-settings-wrap">
+                    <button type="button" class="toggle-advanced-btn">Advanced Settings ▼</button>
+                    <div class="supports-section" style="display:none;">${inner}</div>
+                </div>`;
             }
 
             addFieldButton.addEventListener('click', function() {
@@ -315,6 +319,13 @@ function snn_render_custom_post_types_page() {
                         fieldContainer.insertBefore(nextRow, row);
                         updateFieldIndexes();
                     }
+                }
+
+                if (event.target.classList.contains('toggle-advanced-btn')) {
+                    const section = event.target.nextElementSibling;
+                    const isHidden = section.style.display === 'none';
+                    section.style.display = isHidden ? 'flex' : 'none';
+                    event.target.textContent = isHidden ? 'Advanced Settings ▲' : 'Advanced Settings ▼';
                 }
             });
         });
@@ -407,14 +418,28 @@ function snn_render_custom_post_types_page() {
                 left: 21px;
                 background-color: var(--wp-admin-theme-color);
             }
-            .supports-section {
+            .advanced-settings-wrap {
                 width: 100%;
+                padding-left: 155px;
+            }
+            @media(max-width:768px) { .advanced-settings-wrap { padding-left: 0; } }
+            .toggle-advanced-btn {
+                background: none;
+                border: none;
+                padding: 0;
+                cursor: pointer;
+                font-size: 13px;
+                color: #666;
+                margin-bottom: 8px;
+            }
+            .toggle-advanced-btn:hover {
+                color: #000;
+            }
+            .supports-section {
                 display: flex;
                 gap: 10px;
                 flex-wrap: wrap;
-                padding-left: 155px;
             }
-            @media(max-width:768px) { .supports-section { padding-left: 0; } }
         </style>
     </div>
     <?php
