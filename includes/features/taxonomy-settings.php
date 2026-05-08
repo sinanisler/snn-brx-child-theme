@@ -253,20 +253,36 @@ function snn_render_taxonomies_page() {
                 margin-bottom: 10px;
                 align-items: center;
                 padding: 20px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                background-color: #f9f9f9;
+                border: 1px solid #e2e2e2;
+                border-radius: 10px;
+                background-color: #ffffff;
             }
-            .taxonomy-row label { 
+            .taxonomy-row label {
                 width: auto;
                 font-weight: bold;
             }
-            .taxonomy-row input, .taxonomy-row select { 
+            .taxonomy-row input[type="text"] {
                 flex: 1;
                 min-width: 150px;
                 padding: 5px;
-                border: 1px solid #ccc;
-                border-radius: 3px;
+                background: #ffffff;
+                border-radius: 5px;
+                height: 40px;
+                border: solid 1px #e2e2e2;
+            }
+            .taxonomy-row input[type="text"]:hover {
+                border: solid 1px #000000;
+            }
+            .taxonomy-row select {
+                flex: 1;
+                min-width: 150px;
+                padding: 5px;
+                background: #ffffff;
+                border-radius: 5px;
+                border: solid 1px #e2e2e2;
+            }
+            .taxonomy-row select:hover {
+                border: solid 1px #000000;
             }
             .taxonomy-row .buttons {
                 flex-direction: column;
@@ -274,10 +290,6 @@ function snn_render_taxonomies_page() {
             }
             #add-taxonomy-row {
                 margin-top: 10px;
-            }
-            [type="checkbox"] {
-                width: 20px !important;
-                min-width: 20px !important;
             }
             select[multiple] {
                 height: 100px;
@@ -290,8 +302,44 @@ function snn_render_taxonomies_page() {
             .buttons button:hover {
                 background: white;
             }
-            .taxonomy-row [type="text"]{
-                width:240px;
+            .taxonomy-row [type="text"] {
+                width: 240px;
+            }
+            .taxonomy-row [type="checkbox"] {
+                appearance: none;
+                -webkit-appearance: none;
+                cursor: pointer;
+                position: relative;
+                width: 40px;
+                height: 22px;
+                background-color: #eeeeee;
+                border-radius: 11px;
+                border: 1px solid #e2e2e2;
+                transition: 0.25s;
+                margin-top: 2px;
+                min-width: 40px;
+            }
+            .taxonomy-row [type="checkbox"]::before {
+                content: "";
+                position: absolute;
+                top: 2px;
+                left: 3px;
+                width: 16px;
+                height: 16px;
+                background-color: #ffffff;
+                border-radius: 50%;
+                transition: 0.25s;
+            }
+            .taxonomy-row [type="checkbox"]:hover {
+                border: 2px solid var(--wp-admin-theme-color);
+            }
+            .taxonomy-row [type="checkbox"]:checked {
+                background-color: #eeeeee;
+                border: 2px solid var(--wp-admin-theme-color);
+            }
+            .taxonomy-row [type="checkbox"]:checked::before {
+                left: 21px;
+                background-color: var(--wp-admin-theme-color);
             }
         </style>
     </div>

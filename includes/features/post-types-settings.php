@@ -328,54 +328,87 @@ function snn_render_custom_post_types_page() {
                 margin-bottom: 10px;
                 align-items: center;
                 padding: 20px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                background-color: #f9f9f9;
+                border: 1px solid #e2e2e2;
+                border-radius: 10px;
+                background-color: #ffffff;
             }
             .custom-post-type-row label {
                 width: auto;
                 font-weight: bold;
             }
-            .custom-post-type-row input, .custom-post-type-row select {
+            .custom-post-type-row input[type="text"] {
                 flex: 1;
                 width: 300px;
                 padding: 5px;
-                border: 1px solid #ccc;
-                border-radius: 3px;
+                background: #ffffff;
+                border-radius: 5px;
+                height: 40px;
+                border: solid 1px #e2e2e2;
+            }
+            .custom-post-type-row input[type="text"]:hover {
+                border: solid 1px #000000;
             }
             .custom-post-type-row .buttons {
                 flex-direction: column;
                 gap: 5px;
             }
             .custom-post-type-row button {
-                cursor:pointer;
-                border:solid 1px gray;
-                padding:4px 10px;
+                cursor: pointer;
+                border: solid 1px gray;
+                padding: 4px 10px;
             }
             .custom-post-type-row button:hover {
-                background-color: #005177;
-                color: #fff;
+                background: white;
+                color: black;
+                border: solid 1px;
             }
             #add-custom-post-type-row {
                 margin-top: 10px;
             }
-            [type="checkbox"]{
-                width:20px !important;
-                min-width:20px !important;
+            .custom-post-type-row [type="checkbox"] {
+                appearance: none;
+                -webkit-appearance: none;
+                cursor: pointer;
+                position: relative;
+                width: 40px;
+                height: 22px;
+                background-color: #eeeeee;
+                border-radius: 11px;
+                border: 1px solid #e2e2e2;
+                transition: 0.25s;
+                margin-top: 2px;
+                min-width: 40px;
+            }
+            .custom-post-type-row [type="checkbox"]::before {
+                content: "";
+                position: absolute;
+                top: 2px;
+                left: 3px;
+                width: 16px;
+                height: 16px;
+                background-color: #ffffff;
+                border-radius: 50%;
+                transition: 0.25s;
+            }
+            .custom-post-type-row [type="checkbox"]:hover {
+                border: 2px solid var(--wp-admin-theme-color);
+            }
+            .custom-post-type-row [type="checkbox"]:checked {
+                background-color: #eeeeee;
+                border: 2px solid var(--wp-admin-theme-color);
+            }
+            .custom-post-type-row [type="checkbox"]:checked::before {
+                left: 21px;
+                background-color: var(--wp-admin-theme-color);
             }
             .supports-section {
-                width:100%;
+                width: 100%;
                 display: flex;
                 gap: 10px;
                 flex-wrap: wrap;
-                padding-left:155px;
+                padding-left: 155px;
             }
-            @media(max-width:768px){ .supports-section { padding-left:0; } }
-            .custom-post-type-row button:hover{
-                background:none;
-                color:black; 
-                border:solid 1px;
-            }
+            @media(max-width:768px) { .supports-section { padding-left: 0; } }
         </style>
     </div>
     <?php
