@@ -335,6 +335,7 @@ function snn_render_custom_post_types_page() {
             .custom-post-type-row label {
                 width: auto;
                 font-weight: bold;
+                min-width:200px
             }
             .custom-post-type-row input[type="text"] {
                 flex: 1;
@@ -352,6 +353,8 @@ function snn_render_custom_post_types_page() {
                 display: flex;
                 flex-direction: row;
                 gap: 5px;
+                position: relative;
+                top:10px;
             }
             .custom-post-type-row .buttons button {
                 background: #ffffff;
@@ -364,16 +367,6 @@ function snn_render_custom_post_types_page() {
             .custom-post-type-row .buttons button:hover {
                 background: var(--wp-admin-theme-color);
                 color: white;
-            }
-            .custom-post-type-row .remove-post-type {
-                background: #fff0f0;
-                color: #cc0000;
-                border-color: #f5c6c6;
-            }
-            .custom-post-type-row .remove-post-type:hover {
-                background: #cc0000 !important;
-                color: white !important;
-                border-color: #cc0000 !important;
             }
             #add-custom-post-type-row {
                 margin-top: 10px;

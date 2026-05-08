@@ -288,6 +288,8 @@ function snn_render_taxonomies_page() {
                 display: flex;
                 flex-direction: row;
                 gap: 5px;
+                position: relative;
+                top:10px;
             }
             .taxonomy-row .buttons button {
                 background: #ffffff;
@@ -300,16 +302,6 @@ function snn_render_taxonomies_page() {
             .taxonomy-row .buttons button:hover {
                 background: var(--wp-admin-theme-color);
                 color: white;
-            }
-            .taxonomy-row .remove-taxonomy {
-                background: #fff0f0;
-                color: #cc0000;
-                border-color: #f5c6c6;
-            }
-            .taxonomy-row .remove-taxonomy:hover {
-                background: #cc0000 !important;
-                color: white !important;
-                border-color: #cc0000 !important;
             }
             #add-taxonomy-row {
                 margin-top: 10px;
