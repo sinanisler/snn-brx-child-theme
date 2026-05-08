@@ -108,6 +108,14 @@ class SNN_Video_Player_Element extends Element {
             'default' => false,
         ];
 
+        $this->controls['play_on_viewport'] = [
+            'tab'         => 'content',
+            'label'       => esc_html__( 'Play on Viewport Entry', 'snn' ),
+            'type'        => 'checkbox',
+            'default'     => false,
+            'description' => esc_html__( 'Automatically play when the player is more than 50% visible in the viewport, and pause when it leaves. Only one video plays at a time.', 'snn' ),
+        ];
+
         $this->controls['disable_autohide'] = [
             'tab'   => 'content',
             'label' => esc_html__( 'Disable Auto Hide Controls', 'snn' ),
@@ -689,7 +697,8 @@ class SNN_Video_Player_Element extends Element {
                 INITIAL_MUTED: <?php echo json_encode($muted); ?>,
                 DISABLE_AUTOHIDE: <?php echo json_encode($disable_autohide); ?>,
                 HAS_SUBTITLES: <?php echo json_encode( ! empty( $subtitles ) ); ?>,
-                POST_ID: <?php echo json_encode( $current_post_id ); ?>
+                POST_ID: <?php echo json_encode( $current_post_id ); ?>,
+                PLAY_ON_VIEWPORT: <?php echo json_encode( ! empty( $settings['play_on_viewport'] ) ); ?>
             };
 
             const ICONS = {
@@ -1603,17 +1612,53 @@ class SNN_Video_Player_Element extends Element {
             document.addEventListener('keydown', handleKeydown);
             document.addEventListener('fullscreenchange', updateFullscreenIcons);
 
+            // Global registry so only one viewport-autoplay video plays at a time
+            if (!window._snnViewportPlayers) {
+                window._snnViewportPlayers = new Set();
+            }
+
             const observerCallback = (entries) => {
                 entries.forEach(entry => {
                     isPlayerInView = entry.isIntersecting;
+
+                    if (!CONFIG.PLAY_ON_VIEWPORT) return;
+
+                    if (entry.intersectionRatio >= 0.5) {
+                        // Pause all other viewport-autoplay players
+                        window._snnViewportPlayers.forEach(otherVideo => {
+                            if (otherVideo !== video && !otherVideo.paused) {
+                                otherVideo.pause();
+                            }
+                        });
+                        // Play this one if paused
+                        if (video.paused) {
+                            playPromise = video.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch(error => {
+                                    console.warn('Viewport autoplay failed:', error);
+                                });
+                            }
+                        }
+                    } else {
+                        // Less than 50% visible — pause
+                        if (!video.paused) {
+                            video.pause();
+                        }
+                    }
                 });
             };
+
+            // Use two thresholds: 0.25 for isPlayerInView tracking, 0.5 for autoplay trigger
             const observer = new IntersectionObserver(observerCallback, {
                 root: null,
-                threshold: 0.25
+                threshold: [0.25, 0.5]
             });
             if (playerWrapper) {
                 observer.observe(playerWrapper);
+            }
+
+            if (CONFIG.PLAY_ON_VIEWPORT) {
+                window._snnViewportPlayers.add(video);
             }
 
             updatePlayPauseIcon();
