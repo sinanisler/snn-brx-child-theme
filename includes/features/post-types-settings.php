@@ -337,6 +337,7 @@ function snn_render_custom_post_types_page() {
                 }
             });
         });
+        </script>
         <!-- Dashicon Picker Modal -->
         <div id="dashicon-picker-modal" style="display:none;">
             <div class="dashicon-picker-backdrop"></div>
