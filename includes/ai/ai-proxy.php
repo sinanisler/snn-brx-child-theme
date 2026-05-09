@@ -101,12 +101,22 @@ function snn_ai_proxy_handler() {
 		$request_headers['Authorization'] = 'Bearer ' . $config['apiKey'];
 	}
 
+	// AI models can generate slowly — disable cURL's low-speed kill switch so a
+	// response that trickles in below 1024 B/s is not aborted with error 28.
+	$disable_speed_limit = static function ( $handle ) {
+		curl_setopt( $handle, CURLOPT_LOW_SPEED_LIMIT, 0 );
+		curl_setopt( $handle, CURLOPT_LOW_SPEED_TIME, 0 );
+	};
+	add_action( 'http_api_curl', $disable_speed_limit );
+
 	$ai_response = wp_remote_post( $config['apiEndpoint'], [
-		'timeout'     => 90,
+		'timeout'     => 180,
 		'headers'     => $request_headers,
 		'body'        => wp_json_encode( $body ),
 		'data_format' => 'body',
 	] );
+
+	remove_action( 'http_api_curl', $disable_speed_limit );
 
 	if ( is_wp_error( $ai_response ) ) {
 		http_response_code( 502 );
