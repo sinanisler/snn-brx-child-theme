@@ -25,6 +25,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function snn_ai_proxy_handler() {
 
+	// AI generation can take a long time — extend PHP execution limit for this handler.
+	@set_time_limit( 180 );
+
 	// 1. Nonce verification.
 	if ( ! check_ajax_referer( 'snn_ai_proxy_nonce', 'nonce', false ) ) {
 		http_response_code( 403 );

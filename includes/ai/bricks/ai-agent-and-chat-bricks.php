@@ -2428,12 +2428,6 @@ IMPORTANT RULES:
                     await sleep(delay);
                     return callAI(messages, retryCount + 1, opts);
                 }
-                if (resp.status === 502 && retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {
-                    const delay = Math.min(RECOVERY_CONFIG.baseDelay * Math.pow(2, retryCount), RECOVERY_CONFIG.maxDelay);
-                    setAgentState('recovering', `Generation slow — retrying in ${Math.ceil(delay/1000)}s...`);
-                    await sleep(delay);
-                    return callAI(messages, retryCount + 1, opts);
-                }
                 if (!resp.ok) { const t = await resp.text(); throw new Error(`API error ${resp.status}: ${t.substring(0, 200)}`); }
                 const data = await resp.json();
                 if (!data?.choices?.[0]?.message?.content) throw new Error('Invalid API response');
