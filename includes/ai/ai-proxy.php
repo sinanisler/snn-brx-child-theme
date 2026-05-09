@@ -25,9 +25,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function snn_ai_proxy_handler() {
 
-	// AI generation can take a long time — extend PHP execution limit for this handler.
-	@set_time_limit( 180 );
-
 	// 1. Nonce verification.
 	if ( ! check_ajax_referer( 'snn_ai_proxy_nonce', 'nonce', false ) ) {
 		http_response_code( 403 );
@@ -104,40 +101,51 @@ function snn_ai_proxy_handler() {
 		$request_headers['Authorization'] = 'Bearer ' . $config['apiKey'];
 	}
 
-	// AI models can generate slowly — disable cURL's low-speed kill switch so a
-	// response that trickles in below 1024 B/s is not aborted with error 28.
-	$disable_speed_limit = static function ( $handle ) {
-		curl_setopt( $handle, CURLOPT_LOW_SPEED_LIMIT, 0 );
-		curl_setopt( $handle, CURLOPT_LOW_SPEED_TIME, 0 );
-	};
-	add_action( 'http_api_curl', $disable_speed_limit );
+	// Build header array for cURL ("Key: Value" strings).
+	$curl_headers = [];
+	foreach ( $request_headers as $k => $v ) {
+		$curl_headers[] = $k . ': ' . $v;
+	}
 
-	$ai_response = wp_remote_post( $config['apiEndpoint'], [
-		'timeout'     => 180,
-		'headers'     => $request_headers,
-		'body'        => wp_json_encode( $body ),
-		'data_format' => 'body',
+	// Non-streaming endpoints buffer the full response before sending, so cURL
+	// can sit at 0 bytes/s for the entire generation window. Disable the
+	// low-speed kill-switch and let the connect/transfer timeout govern instead.
+	// set_time_limit(0) removes PHP's wall-clock cap for this request only so
+	// a slow-but-working generation cannot be killed by the server's default limit.
+	set_time_limit( 0 );
+
+	$ch = curl_init();
+	curl_setopt_array( $ch, [
+		CURLOPT_URL             => $config['apiEndpoint'],
+		CURLOPT_RETURNTRANSFER  => true,
+		CURLOPT_POST            => true,
+		CURLOPT_POSTFIELDS      => wp_json_encode( $body ),
+		CURLOPT_HTTPHEADER      => $curl_headers,
+		CURLOPT_CONNECTTIMEOUT  => 30,
+		CURLOPT_TIMEOUT         => 180,
+		CURLOPT_LOW_SPEED_LIMIT => 0,
+		CURLOPT_LOW_SPEED_TIME  => 0,
+		CURLOPT_SSL_VERIFYPEER  => true,
+		CURLOPT_SSL_VERIFYHOST  => 2,
 	] );
 
-	remove_action( 'http_api_curl', $disable_speed_limit );
+	$response_body = curl_exec( $ch );
+	$status_code   = (int) curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+	$curl_errno    = curl_errno( $ch );
+	$curl_error    = curl_error( $ch );
+	curl_close( $ch );
 
-	if ( is_wp_error( $ai_response ) ) {
+	if ( false === $response_body ) {
 		http_response_code( 502 );
-		wp_send_json_error( [ 'message' => 'Connection failed: ' . $ai_response->get_error_message() ] );
+		wp_send_json_error( [ 'message' => 'Connection failed: cURL error ' . $curl_errno . ': ' . $curl_error ] );
 		wp_die();
 	}
 
 	// 7. Transparent pass-through: relay the AI provider's exact status code and body.
-	//    This preserves the response structure (choices, error format, etc.) so existing
-	//    JS parsing code works without modification, and status-based retry logic (429, 5xx)
-	//    continues to function correctly.
-	$status_code = (int) wp_remote_retrieve_response_code( $ai_response );
-	$body_raw    = wp_remote_retrieve_body( $ai_response );
-
 	http_response_code( $status_code );
 	header( 'Content-Type: application/json' );
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	echo $body_raw;
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaOutput
+	echo $response_body;
 	wp_die();
 }
 
