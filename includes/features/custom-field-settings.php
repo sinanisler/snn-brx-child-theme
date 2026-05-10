@@ -601,6 +601,7 @@ function snn_custom_fields_page_callback() {
                 top: 20px;
                 border: solid 1px #e2e2e2;
                 height:40px;
+                cursor:pointer;
             }
             .custom-field-row .buttons button:hover{
                 background:var(--wp-admin-theme-color);
