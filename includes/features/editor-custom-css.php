@@ -568,6 +568,7 @@ function snn_custom_css_overlay_output() {
         var writeCssTimer      = null;
         var isGlobalMode       = false;
         var rootShortcutActive = false;
+        var globalCssDirty     = false;
 
         /* ── PHP-supplied constants ── */
         var snnGlobalCssNonce = '<?php echo wp_create_nonce( "snn_save_global_css" ); ?>';
@@ -931,7 +932,7 @@ function snn_custom_css_overlay_output() {
             console.log('CodeMirror editor initialized successfully');
             cmInstance.on('change', function(cm) {
                 if (isSyncing) return;
-                if (isGlobalMode) return;
+                if (isGlobalMode) { globalCssDirty = true; return; }
                 clearTimeout(writeCssTimer);
                 writeCssTimer = setTimeout(function() {
                     isSyncing = true;
@@ -1426,6 +1427,7 @@ function snn_custom_css_overlay_output() {
             xhr.open('POST', snnAjaxUrl, true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.onload = function() {
+                globalCssDirty = false;
                 showGlobalSavedFeedback();
                 if (callback) callback();
             };
@@ -1446,7 +1448,8 @@ function snn_custom_css_overlay_output() {
 
         function enterGlobalMode() {
             if (isGlobalMode) return;
-            isGlobalMode = true;
+            isGlobalMode   = true;
+            globalCssDirty = false;
             var globalBtn = document.getElementById('snn-css-global-btn');
             if (globalBtn) globalBtn.classList.add('active');
             if (bpIndicatorEl) bpIndicatorEl.style.display = 'none';
@@ -1500,9 +1503,9 @@ function snn_custom_css_overlay_output() {
                 }
             }, true);
 
-            // Auto-save every 10 seconds
+            // Auto-save every 10 seconds — only when there are unsaved changes
             setInterval(function() {
-                if (isGlobalMode && overlay && !overlay.classList.contains('snn-hidden')) {
+                if (isGlobalMode && globalCssDirty && overlay && !overlay.classList.contains('snn-hidden')) {
                     saveGlobalCss();
                 }
             }, 10000);
