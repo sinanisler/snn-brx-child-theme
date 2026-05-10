@@ -148,7 +148,7 @@ function snn_render_taxonomies_page() {
                 });
             }
 
-            function sanitizeSlug(value) {
+            function sanitizeSlug(value, trimDashes = false) {
                 // Normalize string to decompose accented characters
                 value = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 // Convert to lowercase
@@ -159,17 +159,26 @@ function snn_render_taxonomies_page() {
                 value = value.replace(/[^a-z0-9\-]/g, "");
                 // Remove multiple consecutive dashes
                 value = value.replace(/-+/g, "-");
-                // Remove leading and trailing dashes
-                value = value.replace(/^-+|-+$/g, "");
+                if (trimDashes) {
+                    // Remove leading and trailing dashes
+                    value = value.replace(/^-+|-+$/g, "");
+                }
                 return value;
             }
 
             // Listen for input events on any slug input (existing or new)
             fieldContainer.addEventListener('input', function(event) {
                 if (event.target.classList.contains('taxonomy-slug')) {
-                    event.target.value = sanitizeSlug(event.target.value);
+                    event.target.value = sanitizeSlug(event.target.value, false);
                 }
             });
+
+            // Trim leading/trailing dashes when leaving the field
+            fieldContainer.addEventListener('blur', function(event) {
+                if (event.target.classList.contains('taxonomy-slug')) {
+                    event.target.value = sanitizeSlug(event.target.value, true);
+                }
+            }, true);
 
             /**
              * Adds a new taxonomy row.
