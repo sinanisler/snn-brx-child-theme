@@ -98,11 +98,9 @@ function snn_render_taxonomies_page() {
                             <label><?php esc_html_e( 'Taxonomy Slug', 'snn' ); ?></label><br>
                             <input type="text" class="taxonomy-slug" name="taxonomies[<?php echo esc_attr( $index ); ?>][slug]" placeholder="taxonomy-slug" value="<?php echo esc_attr( $taxonomy['slug'] ); ?>" />
                         </div>
-                        <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
-                        <div class="checkbox-container">
-                            <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][hierarchical]" <?php checked( $taxonomy['hierarchical'], 1 ); ?> />
-                        </div>
-                        <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label>
+
+                        <div class="field-group">
+                        <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label><br>
                         <select name="taxonomies[<?php echo esc_attr( $index ); ?>][post_types][]" multiple>
                             <?php foreach ( $registered_post_types as $post_type ) : ?>
                                 <option value="<?php echo esc_attr( $post_type->name ); ?>" <?php echo in_array( $post_type->name, $taxonomy['post_types'] ) ? 'selected' : ''; ?>>
@@ -110,6 +108,15 @@ function snn_render_taxonomies_page() {
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        </div>
+
+                        <div class="field-group">
+                        <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
+                        <div class="checkbox-container">
+                            <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][hierarchical]" <?php checked( $taxonomy['hierarchical'], 1 ); ?> />
+                        </div>
+                        </div>
+
                         <div class="field-group">
                             <label><?php esc_html_e( 'Show Columns', 'snn' ); ?></label><br>
                             <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][add_columns]" <?php checked( isset( $taxonomy['add_columns'] ) ? $taxonomy['add_columns'] : 0, 1 ); ?> />
@@ -251,7 +258,7 @@ function snn_render_taxonomies_page() {
                 flex-wrap: wrap;
                 gap: 10px;
                 margin-bottom: 10px;
-                align-items: center;
+                align-items: flex-start;
                 padding: 20px;
                 border: 1px solid #e2e2e2;
                 border-radius: 10px;
