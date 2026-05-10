@@ -193,20 +193,22 @@ function snn_render_taxonomies_page() {
                         <label><?php esc_html_e( 'Taxonomy Slug', 'snn' ); ?></label><br>
                         <input type="text" class="taxonomy-slug" name="taxonomies[${newIndex}][slug]" placeholder="taxonomy-slug" />
                     </div>
-                    <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
-                    <div class="checkbox-container">
-                        <input type="checkbox" name="taxonomies[${newIndex}][hierarchical]" />
+                    <div class="field-group">
+                        <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label><br>
+                        <select name="taxonomies[${newIndex}][post_types][]" multiple>
+                            <?php
+                            foreach ( get_post_types( array( 'public' => true ), 'objects' ) as $post_type ) :
+                                ?>
+                                <option value="<?php echo esc_attr( $post_type->name ); ?>"><?php echo esc_html( $post_type->label ); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                    <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label>
-                    <select name="taxonomies[${newIndex}][post_types][]" multiple>
-                        <?php
-                        // Fetch all public post types for the JavaScript template
-                        $post_types = get_post_types( array( 'public' => true ), 'objects' );
-                        foreach ( $post_types as $post_type ) :
-                            ?>
-                            <option value="<?php echo esc_attr( $post_type->name ); ?>"><?php echo esc_html( $post_type->label ); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="field-group">
+                        <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
+                        <div class="checkbox-container">
+                            <input type="checkbox" name="taxonomies[${newIndex}][hierarchical]" />
+                        </div>
+                    </div>
                     <div class="field-group">
                         <label><?php esc_html_e( 'Show Columns', 'snn' ); ?></label><br>
                         <input type="checkbox" name="taxonomies[${newIndex}][add_columns]" />
@@ -231,18 +233,18 @@ function snn_render_taxonomies_page() {
                 if (event.target.classList.contains('move-up')) {
                     const row = event.target.closest('.taxonomy-row');
                     const prevRow = row.previousElementSibling;
-                    if (prevRow) {
+                    if (prevRow && prevRow.classList.contains('taxonomy-row')) {
                         fieldContainer.insertBefore(row, prevRow);
-                        updateFieldIndexes(); // Reindex after reordering
+                        updateFieldIndexes();
                     }
                 }
 
                 if (event.target.classList.contains('move-down')) {
                     const row = event.target.closest('.taxonomy-row');
                     const nextRow = row.nextElementSibling;
-                    if (nextRow) {
+                    if (nextRow && nextRow.classList.contains('taxonomy-row')) {
                         fieldContainer.insertBefore(nextRow, row);
-                        updateFieldIndexes(); // Reindex after reordering
+                        updateFieldIndexes();
                     }
                 }
             });
