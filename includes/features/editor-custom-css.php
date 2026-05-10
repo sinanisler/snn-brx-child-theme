@@ -107,11 +107,8 @@ function snn_custom_css_overlay_output() {
     $snn_css_ai_enabled = false;
     $snn_css_ai_config  = [];
     if ( get_option( 'snn_ai_enabled', 'no' ) === 'yes' && function_exists( 'snn_get_ai_api_config' ) ) {
-        $ai_cfg = snn_get_ai_api_config();
-        if ( ! empty( $ai_cfg['apiKey'] ) && ! empty( $ai_cfg['apiEndpoint'] ) ) {
-            $snn_css_ai_enabled = true;
-            $snn_css_ai_config  = $ai_cfg;
-        }
+        $snn_css_ai_enabled = true;
+        $snn_css_ai_config  = snn_get_ai_api_config();
     }
     ?>
     <style id="snn-custom-css-overlay-styles">
