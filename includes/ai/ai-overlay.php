@@ -573,7 +573,7 @@ function snn_add_ai_script_to_footer() {
             if (isRequestPending) {
                 console.warn("SNN AI: Request already pending."); return;
             }
-            if (!config.apiKey) {
+            if (!config.apiKey && !(window.snnAiProxy && window.snnAiProxy.url)) {
                 console.error("SNN AI: API Key missing.");
                 if(responseDiv) {
                     responseDiv.textContent = "Error: API Key missing in settings.";
@@ -982,7 +982,7 @@ function snn_add_ai_script_to_footer() {
 
         if(bulkAiSubmitButton) bulkAiSubmitButton.addEventListener('click', async () => {
             if (isBulkRequestPending) { console.warn("SNN Bulk AI: Request already pending."); return; }
-            if (!config.apiKey) {
+            if (!config.apiKey && !(window.snnAiProxy && window.snnAiProxy.url)) {
                 console.error("SNN Bulk AI: API Key missing.");
                 if(bulkAiResponseDisplay) {
                     bulkAiResponseDisplay.textContent = "Error: API Key missing in settings.";

@@ -722,7 +722,7 @@ function snn_add_block_editor_ai_panel() {
                     console.warn("SNN AI: Request already pending.");
                     return;
                 }
-                if (!config.apiKey) {
+                if (!config.apiKey && !(window.snnAiProxy && window.snnAiProxy.url)) {
                     console.error("SNN AI: API Key missing.");
                     responseDiv.textContent = "Error: API Key missing in settings.";
                     responseDiv.style.display = 'block';
@@ -993,7 +993,7 @@ function snn_add_block_editor_ai_panel() {
                     console.warn("SNN AI: Image request already pending.");
                     return;
                 }
-                if (!config.apiKey) {
+                if (!config.apiKey && !(window.snnAiProxy && window.snnAiProxy.url)) {
                     console.error("SNN AI: API Key missing.");
                     alert("Error: API Key missing in settings.");
                     return;
