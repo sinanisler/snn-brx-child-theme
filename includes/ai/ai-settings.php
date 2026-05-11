@@ -363,7 +363,24 @@ function snn_render_ai_settings() {
                                 id="snn_custom_api_endpoint"
                                 value="<?php echo esc_attr(get_option('snn_custom_api_endpoint', '')); ?>"
                                 class="regular-text"
+                                placeholder="https://your-api.example.com"
                             />
+                            <p class="description">
+                                <?php esc_html_e('The base URL of your API. It must expose a', 'snn'); ?>
+                                <code>/v1/chat/completions</code>
+                                <?php esc_html_e('endpoint (OpenAI-compatible).', 'snn'); ?>
+                                <?php esc_html_e('Example:', 'snn'); ?>
+                                <code>https://your-api.example.com</code>
+                                &mdash; <?php esc_html_e('the', 'snn'); ?> <code>/v1/chat/completions</code> <?php esc_html_e('path is appended automatically.', 'snn'); ?>
+                                <br><br>
+                                <?php esc_html_e('Running a local model (e.g. Ollama on', 'snn'); ?> <code>http://localhost:11434</code><?php esc_html_e(')? You can expose it to the internet using', 'snn'); ?>
+                                <a href="https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/" target="_blank" rel="noopener noreferrer">Cloudflare Tunnel (cloudflared)</a>.
+                                <?php esc_html_e('Install cloudflared and run:', 'snn'); ?>
+                                <br>
+                                <code>cloudflared tunnel --url http://localhost:11434</code>
+                                <br>
+                                <?php esc_html_e('It will give you a public HTTPS URL you can paste here.', 'snn'); ?>
+                            </p>
                         </td>
                     </tr>
                     <tr>
