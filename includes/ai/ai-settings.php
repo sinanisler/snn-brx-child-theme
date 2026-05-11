@@ -363,15 +363,13 @@ function snn_render_ai_settings() {
                                 id="snn_custom_api_endpoint"
                                 value="<?php echo esc_attr(get_option('snn_custom_api_endpoint', '')); ?>"
                                 class="regular-text"
-                                placeholder="https://your-api.example.com"
+                                placeholder="https://your-api.example.com/v1/chat/completions"
                             />
                             <p class="description">
-                                <?php esc_html_e('The base URL of your API. It must expose a', 'snn'); ?>
-                                <code>/v1/chat/completions</code>
-                                <?php esc_html_e('endpoint (OpenAI-compatible).', 'snn'); ?>
-                                <?php esc_html_e('Example:', 'snn'); ?>
-                                <code>https://your-api.example.com</code>
-                                &mdash; <?php esc_html_e('the', 'snn'); ?> <code>/v1/chat/completions</code> <?php esc_html_e('path is appended automatically.', 'snn'); ?>
+                                <?php esc_html_e('Enter the full endpoint URL including the path. Must be an OpenAI-compatible', 'snn'); ?>
+                                <code>/v1/chat/completions</code> <?php esc_html_e('endpoint.', 'snn'); ?>
+                                <br>
+                                <?php esc_html_e('Example:', 'snn'); ?> <code>https://your-api.example.com/v1/chat/completions</code>
                                 <br><br>
                                 <?php esc_html_e('Running a local model (e.g. Ollama on', 'snn'); ?> <code>http://localhost:11434</code><?php esc_html_e(')? You can expose it to the internet using', 'snn'); ?>
                                 <a href="https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/" target="_blank" rel="noopener noreferrer">Cloudflare Tunnel (cloudflared)</a>.
@@ -379,7 +377,7 @@ function snn_render_ai_settings() {
                                 <br>
                                 <code>cloudflared tunnel --url http://localhost:11434</code>
                                 <br>
-                                <?php esc_html_e('It will give you a public HTTPS URL you can paste here.', 'snn'); ?>
+                                <?php esc_html_e('It gives you a public HTTPS URL — append', 'snn'); ?> <code>/v1/chat/completions</code> <?php esc_html_e('and paste it here.', 'snn'); ?>
                             </p>
                         </td>
                     </tr>
