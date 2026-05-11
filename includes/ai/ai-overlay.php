@@ -341,6 +341,12 @@ function snn_add_ai_script_to_footer() {
 
 
     <script>
+    if (!window.snnAiProxy) {
+        window.snnAiProxy = {
+            url: '<?php echo esc_js(admin_url('admin-ajax.php')); ?>',
+            nonce: '<?php echo esc_js(wp_create_nonce('snn_ai_proxy_nonce')); ?>'
+        };
+    }
     document.addEventListener('DOMContentLoaded', function() {
         const config = {
             apiKey: <?php echo json_encode($config['apiKey']); ?>,
