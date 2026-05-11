@@ -377,7 +377,7 @@ function snn_render_ai_settings() {
                                 <br>
                                 <code>cloudflared tunnel --url http://localhost:11434</code>
                                 <br>
-                                <?php esc_html_e('It gives you a public HTTPS URL — append', 'snn'); ?> <code>/v1/chat/completions</code> <?php esc_html_e('and paste it here.', 'snn'); ?>
+                                <?php esc_html_e('It gives you a public HTTPS URL — append endpoint', 'snn'); ?> <code>https://example-random-url.trycloudflare.com/v1/chat/completions</code> <?php esc_html_e('and paste it here.', 'snn'); ?>
                             </p>
                         </td>
                     </tr>
