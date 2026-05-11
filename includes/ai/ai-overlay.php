@@ -343,7 +343,10 @@ function snn_add_ai_script_to_footer() {
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const config = {
+            apiKey: <?php echo json_encode($config['apiKey']); ?>,
+            apiEndpoint: <?php echo json_encode($config['apiEndpoint']); ?>,
             model: <?php echo json_encode($config['model']); ?>,
+            modelProvider: <?php echo json_encode($config['modelProvider']); ?>,
             systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>
         };
 
