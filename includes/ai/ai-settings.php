@@ -371,8 +371,8 @@ function snn_render_ai_settings() {
                                 <br>
                                 <?php esc_html_e('Example:', 'snn'); ?> <code>https://your-api.example.com/v1/chat/completions</code>
                                 <br><br>
-                                <?php esc_html_e('Running a local model (e.g. Ollama on', 'snn'); ?> <code>http://localhost:11434</code><?php esc_html_e(')? You can expose it to the internet using', 'snn'); ?>
-                                <a href="https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/" target="_blank" rel="noopener noreferrer">Cloudflare Tunnel (cloudflared)</a>.
+                                <?php esc_html_e(')? You can expose your local model to the internet using', 'snn'); ?>
+                                <a href="https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/" target="_blank" rel="noopener noreferrer">Cloudflare Tunnel (cloudflared)</a>.
                                 <?php esc_html_e('Install cloudflared and run:', 'snn'); ?>
                                 <br>
                                 <code>cloudflared tunnel --url http://localhost:11434</code>
