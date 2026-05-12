@@ -325,6 +325,14 @@ function snn_custom_css_overlay_output() {
             background: black !important;
             color: #fff !important;
         }
+        .snn-var-hint {
+            color: #89dceb !important;
+        }
+        .snn-var-hint::before {
+            content: 'var ';
+            opacity: .4;
+            font-size: 10px;
+        }
 
         /* ── AI Sidebar ── */
         #snn-css-body {
@@ -895,8 +903,11 @@ function snn_custom_css_overlay_output() {
                 matchBrackets   : true,
                 extraKeys       : {
                     'Ctrl-Space' : function (editor) {
-                        // safe: only call autocomplete if the addon is loaded
-                        if (typeof CM.showHint === 'function') {
+                        if (typeof CM.showHint !== 'function') return;
+                        var textBefore = editor.getLine(editor.getCursor().line).slice(0, editor.getCursor().ch);
+                        if (/var\(--[\w-]*$/.test(textBefore)) {
+                            CM.showHint(editor, snnCssVarHint, { completeSingle: false });
+                        } else {
                             CM.showHint(editor, CM.hint && CM.hint.css ? CM.hint.css : undefined, { completeSingle: false });
                         }
                     },
@@ -915,12 +926,21 @@ function snn_custom_css_overlay_output() {
                 hintOptions : { completeSingle: false }
             });
             
-            // Enable CSS autocomplete — only trigger on meaningful CSS characters,
-            // not on Enter, Space, backspace, etc.
-            if (typeof CM.showHint === 'function' && CM.hint && CM.hint.css) {
+            // Enable CSS autocomplete — var(-- triggers Bricks variable list, other chars use CSS hints.
+            if (typeof CM.showHint === 'function') {
                 cmInstance.on('inputRead', function(cm, change) {
+                    if (rootShortcutActive) return;
                     var ch = change.text && change.text[0];
-                    if (ch && /^[a-zA-Z:\-\(]$/.test(ch) && !cm.state.completionActive && !rootShortcutActive) {
+                    if (!ch) return;
+                    var cursor     = cm.getCursor();
+                    var textBefore = cm.getLine(cursor.line).slice(0, cursor.ch);
+                    // Inside var(-- context: show Bricks variable list (overrides any open hint)
+                    if (/var\(--[\w-]*$/.test(textBefore)) {
+                        CM.showHint(cm, snnCssVarHint, { completeSingle: false });
+                        return;
+                    }
+                    // Regular CSS autocomplete for other characters
+                    if (!cm.state.completionActive && /^[a-zA-Z:\-\(]$/.test(ch) && CM.hint && CM.hint.css) {
                         CM.showHint(cm, CM.hint.css, { completeSingle: false });
                     }
                 });
@@ -1236,6 +1256,63 @@ function snn_custom_css_overlay_output() {
                 });
                 mo.observe(document.body, { childList: true, subtree: true });
             }
+        }
+
+        /* ── CSS variable autocomplete ── */
+        function getBricksVarList() {
+            var vars = [];
+            try {
+                var app   = document.querySelector('[data-v-app]');
+                var state = app && app.__vue_app__ && app.__vue_app__.config.globalProperties.$_state;
+                if (state) {
+                    if (state.colorPalette) {
+                        Array.from(state.colorPalette).forEach(function(palette) {
+                            if (palette && palette.colors) {
+                                Array.from(palette.colors).forEach(function(c) {
+                                    if (c && c.raw) {
+                                        var name = c.raw.replace(/^var\(|\)$/g, '');
+                                        if (name.indexOf('--') === 0) {
+                                            vars.push({ name: name, value: c.light || '' });
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    if (state.globalVariables) {
+                        Array.from(state.globalVariables).forEach(function(v) {
+                            if (v && v.name) vars.push({ name: '--' + v.name, value: v.value || '' });
+                        });
+                    }
+                }
+            } catch(e) {}
+            return vars;
+        }
+
+        function snnCssVarHint(cm) {
+            var cursor     = cm.getCursor();
+            var line       = cm.getLine(cursor.line);
+            var textBefore = line.slice(0, cursor.ch);
+            var match      = textBefore.match(/var\((--[\w-]*)$/);
+            if (!match) return null;
+            var typed     = match[1];
+            var fromCh    = cursor.ch - typed.length;
+            var allVars   = getBricksVarList();
+            var filtered  = allVars.filter(function(v) { return v.name.indexOf(typed) === 0; });
+            if (!filtered.length) return null;
+            var CM     = window.wp && window.wp.CodeMirror ? window.wp.CodeMirror : window.CodeMirror;
+            var suffix = line.charAt(cursor.ch) === ')' ? '' : ')';
+            return {
+                list : filtered.map(function(v) {
+                    return {
+                        text        : v.name + suffix,
+                        displayText : v.name + (v.value ? '  ' + v.value : ''),
+                        className   : 'snn-var-hint'
+                    };
+                }),
+                from : CM.Pos(cursor.line, fromCh),
+                to   : CM.Pos(cursor.line, cursor.ch)
+            };
         }
 
         /* ── AI Sidebar ── */
