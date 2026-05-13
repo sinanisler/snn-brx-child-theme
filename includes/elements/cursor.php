@@ -223,32 +223,18 @@ class SNN_Custom_Cursor_Element extends Element {
 				cursorElement.style.pointerEvents = "none";
 				cursorElement.style.zIndex = "' . esc_js( $z_index ) . '";
 
+				// Apply X/Y offset via margin (Cotton.js only touches transform, so margin persists)
+				cursorElement.style.marginLeft = config.offsetX + "px";
+				cursorElement.style.marginTop = config.offsetY + "px";
+
 				// Set initial hidden state for hover cursors
 				cursorElement.style.opacity = "0";
 				cursorElement.style.visibility = "hidden";
 
-				// Store original transform for offset calculation
-				const originalTransform = window.getComputedStyle(cursorElement).transform;
-
 				// Initialize Cotton for the cursor element with centerMouse enabled
 				new Cotton(cursorElement, {
 					speed: config.speed,
-					centerMouse: true,
-					on: {
-						cottonMove: function(element) {
-							// Apply offset if specified
-							if (config.offsetX !== 0 || config.offsetY !== 0) {
-								const currentTransform = element.style.transform;
-								// Extract the translate values and add offset
-								const match = currentTransform.match(/translate\(calc\(-50% \+ (.+?)px\), calc\(-50% \+ (.+?)px\)\)/);
-								if (match) {
-									const x = parseFloat(match[1]) + config.offsetX;
-									const y = parseFloat(match[2]) + config.offsetY;
-									element.style.transform = "translate(calc(-50% + " + x + "px), calc(-50% + " + y + "px))";
-								}
-							}
-						}
-					}
+					centerMouse: true
 				});
 
 				// Setup hover interactions
