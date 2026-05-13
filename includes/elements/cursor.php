@@ -114,6 +114,12 @@ class SNN_Custom_Cursor_Element extends Element {
 					'description' => esc_html__( 'Vertical offset from center in pixels', 'snn' ),
 					'placeholder' => 0,
 				],
+				'hide_default_cursor' => [
+					'label'       => esc_html__( 'Hide Default Cursor', 'snn' ),
+					'type'        => 'checkbox',
+					'default'     => false,
+					'description' => esc_html__( 'When enabled, the default cursor will be hidden and only this custom cursor will be shown on hover.', 'snn' ),
+				],
 			],
 		];
 	}
@@ -192,6 +198,7 @@ class SNN_Custom_Cursor_Element extends Element {
 				$cursor_speed          = floatval( $cursor['cursor_speed'] ?? 0.125 );
 				$cursor_x_position     = floatval( $cursor['cursor_x_position'] ?? 0 );
 				$cursor_y_position     = floatval( $cursor['cursor_y_position'] ?? 0 );
+				$hide_default_cursor   = ! empty( $cursor['hide_default_cursor'] ) ? 'true' : 'false';
 
 				if ( empty( $cursor_selector ) || empty( $target_hover_selector ) ) {
 					continue;
@@ -202,7 +209,8 @@ class SNN_Custom_Cursor_Element extends Element {
 					targetSelector: "' . esc_js( $target_hover_selector ) . '",
 					speed: ' . esc_js( $cursor_speed ) . ',
 					offsetX: ' . esc_js( $cursor_x_position ) . ',
-					offsetY: ' . esc_js( $cursor_y_position ) . '
+					offsetY: ' . esc_js( $cursor_y_position ) . ',
+					hideDefaultCursor: ' . $hide_default_cursor . '
 				},';
 			}
 
@@ -230,6 +238,14 @@ class SNN_Custom_Cursor_Element extends Element {
 				// Set initial hidden state for hover cursors
 				cursorElement.style.opacity = "0";
 				cursorElement.style.visibility = "hidden";
+
+				// Hide native cursor only on target elements where the setting is enabled
+				if (config.hideDefaultCursor) {
+					const targetElements = document.querySelectorAll(config.targetSelector);
+					targetElements.forEach(function(el) {
+						el.style.cursor = "none";
+					});
+				}
 
 				// Initialize Cotton for the cursor element with centerMouse enabled
 				new Cotton(cursorElement, {
