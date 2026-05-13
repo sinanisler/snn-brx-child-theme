@@ -1,6 +1,6 @@
 <?php   
 /** 
- * SNN AI Chat for Bricks Builder
+ * SNN AI Chat for Bricks Builder 
  *
  * File: ai-agent-and-chat-bricks.php
  *
@@ -82,17 +82,23 @@ class SNN_Bricks_Chat_Overlay {
         $ai_config['systemPrompt'] = $main_chat->get_system_prompt();
         $ai_config['maxTokens'] = $main_chat->get_token_count();
 
+        // Strip sensitive values — API key and endpoint are handled server-side by ai-proxy.php.
+        unset( $ai_config['apiKey'], $ai_config['apiEndpoint'] );
+
         // Get Bricks page context
         $page_context = $this->get_bricks_page_context();
 
         wp_localize_script( 'jquery', 'snnBricksChatConfig', array(
-            'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
-            'agentNonce'    => wp_create_nonce( 'snn_ai_agent_nonce' ),
-            'pageContext'   => $page_context,
-            'ai'            => $ai_config,
-            'settings'      => array(
-                'debugMode'  => $main_chat->is_debug_enabled(),
-                'maxHistory' => $main_chat->get_max_history(),
+            'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+            'restUrl'          => rest_url( 'wp-abilities/v1/' ),
+            'nonce'            => wp_create_nonce( 'wp_rest' ),
+            'agentNonce'       => wp_create_nonce( 'snn_ai_agent_nonce' ),
+            'pageContext'      => $page_context,
+            'ai'               => $ai_config,
+            'settings'         => array(
+                'debugMode'        => $main_chat->is_debug_enabled(),
+                'maxHistory'       => $main_chat->get_max_history(),
+                'enabledAbilities' => $main_chat->get_enabled_abilities(),
             ),
         ) );
 
@@ -124,6 +130,17 @@ class SNN_Bricks_Chat_Overlay {
                 'edit_url' => get_permalink( $post->ID ) . '?bricks=run',
             ) );
         }
+
+        // Add registered public post types for query loop generation support
+        $post_type_objects = get_post_types( array( 'public' => true ), 'objects' );
+        $post_types = array();
+        foreach ( $post_type_objects as $pt ) {
+            $post_types[ $pt->name ] = array(
+                'label' => $pt->label,
+                'slug'  => $pt->name,
+            );
+        }
+        $context['postTypes'] = $post_types;
 
         return $context;
     }
@@ -296,6 +313,7 @@ Fitness</button>
 
             const MAX_HISTORY       = snnBricksChatConfig.settings.maxHistory  || 20;
             const DEBUG_MODE        = snnBricksChatConfig.settings.debugMode   || false;
+            const ENABLED_ABILITIES = snnBricksChatConfig.settings.enabledAbilities || [];
             const RECOVERY_CONFIG   = { maxRecoveryAttempts: 3, baseDelay: 2000, maxDelay: 30000, rateLimitDelay: 5000 };
             const debugLog = (...a) => { if (DEBUG_MODE) console.log('[Bricks AI]', ...a); };
 
@@ -304,6 +322,8 @@ Fitness</button>
                 abortController: null, currentSessionId: null,
                 pageContext: snnBricksChatConfig.pageContext || {},
                 recoveryAttempts: 0, bricksState: null, attachedImages: [],
+                // Abilities API
+                abilities: [],
                 // Two-phase workflow
                 currentHTMLPreview: null, previewMode: null, previewPaneOpen: false,
                 // Global ID tracker to prevent duplicates across sections
@@ -466,6 +486,7 @@ Fitness</button>
                         debugLog('Bricks ready, initialising chat...');
                         initChat();
                         addToolbarButton();
+                        loadAbilities();
                     }
                 }, 500);
                 setTimeout(() => clearInterval(iv), 10000);
@@ -492,7 +513,12 @@ Fitness</button>
                     debugLog('Intent classified:', intent);
 
                     // ── Route by intent ──────────────────────────────────────────
-                    if (intent === 'new_design' || intent === 'add_section') {
+                    if (intent === 'use_abilities') {
+                        // ── STATE: abilities ─────────────────────────────────────
+                        setAgentState('abilities');
+                        await runAbilitiesFlow(userMessage, images);
+
+                    } else if (intent === 'new_design' || intent === 'add_section') {
                         // ── STATE: planning ──────────────────────────────────────
                         setAgentState('planning');
                         let plan = '';
@@ -574,6 +600,7 @@ Fitness</button>
                 const cc = BricksHelper.getCurrentContent();
                 const hasExistingContent = cc && cc.elementCount > 0;
                 const hasPreview = !!ChatState.currentHTMLPreview;
+                const hasAbilities = ChatState.abilities.length > 0;
                 const pageSnap = hasExistingContent
                     ? 'Page has ' + cc.elementCount + ' existing elements.'
                     : 'Page is empty.';
@@ -585,14 +612,16 @@ Classify the user message into exactly one intent:
   edit_patch    — user wants to change/update existing page element content or styles
   question      — user is asking a question (no design or edit action requested)
   refine_preview — user wants changes to the current HTML preview (tweak colors, fonts, layout)
+  use_abilities  — user wants to perform a WordPress site action: get site info, list/create/update posts, manage users, check health, etc.${hasAbilities ? '' : ' (NOTE: no abilities available, treat as question)'}
 
-Context: ${pageSnap}${hasPreview ? ' An HTML preview is currently displayed.' : ''}
+Context: ${pageSnap}${hasPreview ? ' An HTML preview is currently displayed.' : ''}${hasAbilities ? ' WordPress abilities are available.' : ''}
 
 Routing rules:
 - Empty page + design description → new_design
 - Has content + "add", "include", "append", "create new section" → add_section
 - Has elements + "change", "update", "fix", "make darker/bigger/different" on something specific → edit_patch
 - Preview shown + user tweaks it ("darker", "bigger font", "change headline") → refine_preview
+- User asks for WordPress data/actions (list posts, site info, users, health, create post) → use_abilities
 - Pure question without action → question
 - Ambiguous on non-empty page → add_section
 
@@ -609,7 +638,7 @@ Respond with ONLY valid JSON — no markdown, no explanation:
                     const parsed = JSON.parse(response.trim());
                     return parsed.intent || 'new_design';
                 } catch(e) {
-                    const match = response.match(/\b(new_design|add_section|edit_patch|question|refine_preview)\b/);
+                    const match = response.match(/\b(new_design|add_section|edit_patch|question|refine_preview|use_abilities)\b/);
                     return match ? match[1] : 'new_design';
                 }
             }
@@ -628,7 +657,7 @@ Format EXACTLY like this:
 End with: "Starting design..."
 
 Rules:
-- 2–6 sections maximum
+- 1–6 sections — if the user asks for a single section (e.g. "a hero", "add a pricing section"), plan EXACTLY 1 section. Do not pad to 2.
 - Concise names: Hero, Features, Testimonials, Pricing, CTA, Footer etc.
 - One sentence per section — no HTML, no code
 - Respond with the plan only, nothing else`;
@@ -1319,6 +1348,8 @@ Output as a \`\`\`html block.`;
                 const ajaxUrl      = snnBricksChatConfig.ajaxUrl;
                 const cc           = BricksHelper.getCurrentContent();
                 const tokens       = BricksHelper.getDesignTokens();
+                const postTypes    = snnBricksChatConfig.pageContext?.postTypes || {};
+                const postTypeKeys = Object.keys(postTypes).filter(k => !['post', 'page', 'attachment'].includes(k));
 
                 // Build full page element snapshot (all elements, not just first 40)
                 let pageSnap = '';
@@ -1373,7 +1404,7 @@ Output as a \`\`\`html block.`;
 
 === BRICKS BUILDER AI — DESIGN PHASE ===
 Currently editing: "${postTitle}" (${postType})
-${pageSnap}${designSpec}
+${pageSnap}${designSpec}${postTypeKeys.length ? '\nREGISTERED POST TYPES available for query loops — use the slug as data-loop value: ' + postTypeKeys.map(k => k + ' (' + postTypes[k].label + ')').join(', ') + '\n' : ''}
 ⚡ Your designs are compiled to Bricks using a LIGHTNING-FAST JavaScript compiler — instant conversion, zero API costs!
 
 YOUR JOB:
@@ -1463,6 +1494,77 @@ HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
   * <i class="fab fa-ICON-NAME"> — FA Brands icon (twitter, facebook, instagram, etc.)
   * <ul data-bricks="text-basic"> or <ol data-bricks="text-basic"> — lists (rendered as native HTML inside text-basic)
   * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
+
+QUERY LOOPS — POST TYPE LOOPS:
+When the design needs to display a repeating list or grid of posts from a post type, use a two-block pattern: a GRID/FLEX WRAPPER block outside, and a LOOP block inside it.
+  * data-loop="post_type_slug" — enables a Bricks query loop for that post type (required, e.g. data-loop="post", data-loop="codex")
+  * data-loop-posts-per-page="6" — number of posts to show per page (optional, default 6)
+  * data-loop-orderby="date" — orderby field: date, title, menu_order, rand (optional, default date)
+  * data-loop-order="DESC" — sort direction: ASC or DESC (optional, default DESC)
+  The single child of the loop block is the TEMPLATE card — Bricks repeats it for each post automatically.
+  Use these Bricks dynamic tags inside template children:
+    {post_title}   — post title (use in heading/text-basic text)
+    {post_excerpt} — post excerpt (use in text-basic text)
+    {post_date}    — publication date (use in text-basic text)
+    {post_link}    — post permalink URL (use as href on <a data-bricks="block"> for a card-as-link)
+    {cf_POSTTYPE_FIELDNAME} — custom field value (e.g. {cf_codex_color} for post type "codex", field "color")
+
+  🚨 MANDATORY THREE-LAYER LOOP STRUCTURE — CRITICAL — EXACTLY 3 LAYERS, NO MORE, NO LESS:
+    The grid/flex layout and the loop query CANNOT live on the same block. You MUST use exactly these three layers:
+
+    LAYER 1 — GRID/FLEX WRAPPER block: carries display:grid (or flex), grid-template-columns, gap, width.
+               This block has NO data-loop. It is purely a layout container.
+               Its ONLY child is the LOOP block — nothing else sits between them.
+    LAYER 2 — LOOP block (DIRECT child of wrapper, no intermediary): carries data-loop only. NO layout styling here.
+               This block has ONE child — the template card.
+    LAYER 3 — TEMPLATE CARD: one card element. Bricks repeats this for every post.
+
+    ❌ WRONG — grid and loop on the same block:
+      <div data-bricks="block" data-loop="post" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+        <div data-bricks="block">card template</div>
+      </div>
+
+    ❌ WRONG — extra intermediary block between wrapper and loop (NEVER do this):
+      <div data-bricks="block" style="display: grid; ...">
+        <div data-bricks="block" style="display: contents;">  <!-- FORBIDDEN: no extra wrapper -->
+          <div data-bricks="block" data-loop="post">
+            <div data-bricks="block">card template</div>
+          </div>
+        </div>
+      </div>
+
+    ✅ CORRECT — wrapper → loop block → card, exactly 3 layers:
+      <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
+        <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6">
+          <div data-bricks="block">card template</div>
+        </div>
+      </div>
+
+  Additional loop rules:
+    - Put dynamic tags directly as text in heading/text-basic — e.g. <h3 data-bricks="heading">{post_title}</h3>
+    - Design ONE template card only (Bricks handles repetition — do NOT repeat fake cards)
+    - For a fully clickable card use <a data-bricks="block" href="{post_link}"> as the template root
+    - GRID COLUMN COUNT must match the content: if data-loop-posts-per-page="5", use repeat(3, 1fr) not repeat(5, 1fr) — cards need readable width. Max 4 columns for cards/posts. Use 2 or 3 columns as the default. Only use 4 columns for very small thumbnail-style cards. NEVER use 5 or 6 columns for post loops.
+    - NEVER add display:contents or any extra structural block between LAYER 1 and LAYER 2. The loop block must be the direct first child of the grid/flex wrapper.
+
+  Example loop — post card grid (correct two-block pattern):
+    <section data-bricks="section" style="padding-top: 80px; padding-bottom: 80px; background: #f8f8f8;">
+      <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
+        <h2 data-bricks="heading" style="font-size: 40px; font-weight: 700; color: #111;">Latest Posts</h2>
+        <!-- LAYER 1: grid wrapper — layout only, no data-loop -->
+        <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
+          <!-- LAYER 2: loop block — query only, no grid styling -->
+          <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6">
+            <!-- LAYER 3: template card — one card, Bricks repeats per post -->
+            <a data-bricks="block" href="{post_link}" style="background: #fff; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-decoration: none;">
+              <h3 data-bricks="heading" style="font-size: 20px; font-weight: 600; color: #111;">{post_title}</h3>
+              <p data-bricks="text-basic" style="font-size: 14px; color: #666; line-height: 1.6;">{post_excerpt}</p>
+              <p data-bricks="text-basic" style="font-size: 12px; color: #999;">{post_date}</p>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
 
 CUSTOM CSS — STYLE TAGS (MANDATORY for advanced CSS):
 ⚠️ CRITICAL: For ANY CSS that inline style="" cannot express, you MUST use <style data-style-id="brxe-XXXXXX"> blocks.
@@ -1818,6 +1920,336 @@ Do NOT generate HTML. Do NOT output patch blocks. Do NOT produce designs unless 
 Be direct and practical — 2–4 sentences unless a detailed explanation is genuinely needed.`;
             }
 
+            // ================================================================
+            // Abilities — WordPress Core Abilities API Integration
+            // ================================================================
+
+            async function loadAbilities() {
+                if (!ENABLED_ABILITIES.length) {
+                    debugLog('No abilities enabled in settings, skipping load.');
+                    return;
+                }
+                try {
+                    const response = await fetch(snnBricksChatConfig.restUrl + 'abilities', {
+                        headers: { 'X-WP-Nonce': snnBricksChatConfig.nonce }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const all = Array.isArray(data) ? data : [];
+                        ChatState.abilities = all.filter(a => ENABLED_ABILITIES.includes(a.name));
+                        debugLog('✓ Abilities loaded:', ChatState.abilities.length, ChatState.abilities.map(a => a.name));
+                    } else {
+                        debugLog('Failed to load abilities, status:', response.status);
+                    }
+                } catch(e) {
+                    debugLog('loadAbilities error:', e);
+                }
+            }
+
+            function buildAbilitiesSystemPrompt() {
+                const basePrompt = snnBricksChatConfig.ai.systemPrompt || 'You are a helpful Bricks Builder assistant.';
+                const postTitle  = snnBricksChatConfig.pageContext?.details?.post_title || 'Unknown';
+                const postId     = snnBricksChatConfig.pageContext?.details?.post_id || '';
+
+                if (!ChatState.abilities.length) {
+                    return basePrompt + '\n\nNote: No WordPress abilities are currently available.';
+                }
+
+                const abilitiesList = ChatState.abilities.map(a =>
+                    `- **${a.name}**: ${a.description || a.label || 'No description'} (Category: ${a.category || 'uncategorized'})`
+                ).join('\n');
+
+                const abilitiesDesc = ChatState.abilities.map(a => {
+                    let params = '    (No parameters)';
+                    if (a.input_schema) {
+                        if (a.input_schema.properties) {
+                            params = Object.entries(a.input_schema.properties).map(([key, val]) => {
+                                const req = a.input_schema.required?.includes(key) ? ' (required)' : '';
+                                const def = val.default !== undefined ? ` [default: ${JSON.stringify(val.default)}]` : '';
+                                const enm = val.enum ? ` [options: ${val.enum.join(', ')}]` : '';
+                                return `    - ${key} (${val.type}${req}): ${val.description || ''}${def}${enm}`;
+                            }).join('\n');
+                        } else if (a.input_schema.type) {
+                            params = `    Type: ${a.input_schema.type}${a.input_schema.description ? ' - ' + a.input_schema.description : ''}`;
+                        }
+                    }
+                    return `**${a.name}** - ${a.description || a.label || 'No description'}\n  Category: ${a.category || 'uncategorized'}\n  Parameters:\n${params}`;
+                }).join('\n\n');
+
+                return `${basePrompt}
+
+You are a Bricks Builder AI assistant with access to WordPress Core Abilities.
+Currently editing: "${postTitle}"${postId ? ` (Post ID: ${postId})` : ''}
+
+=== AVAILABLE WORDPRESS ABILITIES (${ChatState.abilities.length} total) ===
+
+${abilitiesList}
+
+=== DETAILED ABILITIES ===
+
+${abilitiesDesc}
+
+=== HOW TO USE ABILITIES ===
+
+When the user asks to perform a WordPress action:
+
+1. Brief single-line acknowledgment (e.g., "I'll get the site info for you.")
+2. Include a JSON code block:
+\`\`\`json
+{
+  "abilities": [
+    {"name": "exact-ability-name", "input": {}}
+  ]
+}
+\`\`\`
+
+IMPORTANT RULES:
+- Use the EXACT ability names as listed above — copy them character by character
+- The namespace prefix (snn/, core/) is part of the name — never change it
+- Match parameter types exactly (string, integer, boolean, array)
+- Use sensible defaults for optional parameters rather than asking
+- If user asks "what can you do" → list abilities in text, do NOT execute any
+- ONLY use abilities that are listed above — NEVER make up or modify ability names
+- For create-post or update-post: the "content" field must have at least 1 character`;
+            }
+
+            function extractAbilitiesFromResponse(response) {
+                const m = response.match(/```json\n?([\s\S]*?)\n?```/);
+                if (!m) return [];
+                try {
+                    const parsed = JSON.parse(m[1]);
+                    if (parsed.abilities && Array.isArray(parsed.abilities)) return parsed.abilities;
+                } catch(e) { debugLog('extractAbilitiesFromResponse parse error:', e); }
+                return [];
+            }
+
+            async function executeAbility(abilityName, input) {
+                try {
+                    let actualName = abilityName;
+                    let abilityInfo = ChatState.abilities.find(a => a.name === abilityName);
+                    // Fuzzy match: if AI used wrong namespace prefix
+                    if (!abilityInfo) {
+                        const suffix = abilityName.split('/').pop();
+                        abilityInfo = ChatState.abilities.find(a => a.name.endsWith('/' + suffix));
+                        if (abilityInfo) {
+                            debugLog('Corrected ability name:', abilityName, '->', abilityInfo.name);
+                            actualName = abilityInfo.name;
+                        }
+                    }
+
+                    const encodedName = actualName.split('/').map(p => encodeURIComponent(p)).join('/');
+                    const isReadOnly  = abilityInfo?.meta?.readonly === true;
+                    const apiUrl      = snnBricksChatConfig.restUrl + 'abilities/' + encodedName + '/run';
+
+                    const makeReq = async (method) => {
+                        const opts = { headers: { 'X-WP-Nonce': snnBricksChatConfig.nonce } };
+                        let url = apiUrl;
+                        if (method === 'GET') {
+                            opts.method = 'GET';
+                            if (input && Object.keys(input).length > 0) {
+                                url += '?' + new URLSearchParams({ input: JSON.stringify(input) }).toString();
+                            }
+                        } else {
+                            opts.method = 'POST';
+                            opts.headers['Content-Type'] = 'application/json';
+                            opts.body = JSON.stringify({ input });
+                        }
+                        debugLog('Ability API call:', method, url, input);
+                        return fetch(url, opts);
+                    };
+
+                    let resp = await makeReq(isReadOnly ? 'GET' : 'POST');
+                    if (resp.status === 405) resp = await makeReq(isReadOnly ? 'POST' : 'GET');
+
+                    if (!resp.ok) {
+                        const errText = await resp.text();
+                        let err;
+                        try { err = JSON.parse(errText); } catch(e) { err = { message: errText }; }
+                        return { success: false, error: err.message || `HTTP ${resp.status}` };
+                    }
+
+                    const result = await resp.json();
+                    if (typeof result.success !== 'undefined') return result;
+                    if (result.data !== undefined) return { success: true, data: result.data };
+                    if (result.error || result.message) return { success: false, error: result.error || result.message };
+                    return { success: true, data: result };
+                } catch(e) {
+                    return { success: false, error: e.message };
+                }
+            }
+
+            function formatSingleAbilityResult(r) {
+                const ok = r.result.success === true || (r.result.success !== false && !r.result.error);
+                let html = `<div class="ability-results"><div class="ability-result ${ok ? 'success' : 'error'}">`;
+                html += `<strong>${ok ? '✅' : '❌'} ${r.ability}</strong>`;
+                if (ok) {
+                    html += r.result.data
+                        ? `<div class="result-data">${formatDataPreview(r.result.data)}</div>`
+                        : '<div class="result-data">Completed successfully</div>';
+                } else {
+                    html += `<div class="result-error">${r.result.error || r.result.message || 'Unknown error'}</div>`;
+                }
+                html += '</div></div>';
+                return html;
+            }
+
+            function formatDataPreview(data) {
+                if (Array.isArray(data)) {
+                    if (!data.length) return '<span class="result-meta">Empty result</span>';
+                    const count = `<span class="result-meta">Found ${data.length} item${data.length !== 1 ? 's' : ''}</span>`;
+                    const jsonHtml = formatJsonHighlight(data);
+                    return `${count}<details class="result-details"><summary>Show data</summary><div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div></details>`;
+                }
+                if (typeof data === 'object' && data !== null) {
+                    const id = data.ID || data.id;
+                    if (id) {
+                        const title  = data.post_title || data.title || '';
+                        const status = data.post_status || data.status || '';
+                        const summary = `<strong>ID:</strong> ${id}${title ? ' — ' + title : ''}${status ? ' <span class="result-meta">[' + status + ']</span>' : ''}`;
+                        const jsonHtml = formatJsonHighlight(data);
+                        return `<div class="result-inline">${summary}</div><details class="result-details"><summary>Show raw data</summary><div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div></details>`;
+                    }
+                    const summary = buildObjectSummary(data);
+                    const jsonHtml = formatJsonHighlight(data);
+                    return `${summary}<details class="result-details"><summary>Show raw data</summary><div class="json-result-container"><pre class="json-result">${jsonHtml}</pre></div></details>`;
+                }
+                return String(data).substring(0, 200);
+            }
+
+            function buildObjectSummary(data) {
+                // Post types table (e.g. from snn/get-site-info)
+                if (data.posttypes && typeof data.posttypes === 'object') {
+                    const rows = Object.entries(data.posttypes).map(([slug, info]) => {
+                        const pub = info.published !== undefined ? info.published : '-';
+                        const drft = info.draft !== undefined ? info.draft : '-';
+                        return `<tr><td>${escapeHtml(info.label || slug)}</td><td>${pub}</td><td>${drft}</td></tr>`;
+                    }).join('');
+                    return `<table class="result-table"><thead><tr><th>Post Type</th><th>Published</th><th>Draft</th></tr></thead><tbody>${rows}</tbody></table>`;
+                }
+                // WordPress site overview (top-level content block)
+                if (data.wordpress && data.content) {
+                    const wp = data.wordpress;
+                    const c  = data.content;
+                    const lines = [];
+                    if (wp.sitename) lines.push(`<strong>Site:</strong> ${escapeHtml(wp.sitename)} <span class="result-meta">(WP ${escapeHtml(wp.version || '')})</span>`);
+                    if (c.posts)    lines.push(`<strong>Posts:</strong> ${c.posts.published || 0} published, ${c.posts.draft || 0} draft`);
+                    if (c.pages)    lines.push(`<strong>Pages:</strong> ${c.pages.published || 0} published, ${c.pages.draft || 0} draft`);
+                    if (c.media)    lines.push(`<strong>Media:</strong> ${c.media.total || 0} items`);
+                    if (c.comments) lines.push(`<strong>Comments:</strong> ${c.comments.approved || 0} approved`);
+                    if (c.users)    lines.push(`<strong>Users:</strong> ${c.users.total || 0}`);
+                    let ptTable = '';
+                    if (c.posttypes) {
+                        const rows = Object.entries(c.posttypes).map(([slug, info]) => {
+                            return `<tr><td>${escapeHtml(info.label || slug)}</td><td>${info.published || 0}</td><td>${info.draft || 0}</td></tr>`;
+                        }).join('');
+                        ptTable = `<table class="result-table"><thead><tr><th>Post Type</th><th>Published</th><th>Draft</th></tr></thead><tbody>${rows}</tbody></table>`;
+                    }
+                    return `<div class="result-summary-block">${lines.map(l => `<div class="result-summary-row">${l}</div>`).join('')}</div>${ptTable}`;
+                }
+                // Generic flat object — show scalar top-level values
+                const keys = Object.keys(data);
+                const scalarLines = [];
+                for (const k of keys) {
+                    const v = data[k];
+                    if (typeof v !== 'object' && scalarLines.length < 6) {
+                        scalarLines.push(`<strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v)).substring(0, 80)}`);
+                    }
+                }
+                if (scalarLines.length) {
+                    return `<div class="result-summary-block">${scalarLines.map(l => `<div class="result-summary-row">${l}</div>`).join('')}</div>`;
+                }
+                return `<span class="result-meta">Object (${keys.length} fields)</span>`;
+            }
+
+            function escapeHtml(str) {
+                return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            }
+
+            function formatJsonHighlight(data) {
+                try {
+                    return JSON.stringify(data, null, 2)
+                        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                        .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+                        .replace(/: "([^"]*)"/g, ': <span class="json-string">"$1"</span>')
+                        .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>')
+                        .replace(/: (null)/g, ': <span class="json-null">$1</span>')
+                        .replace(/: (\d+)/g, ': <span class="json-number">$1</span>');
+                } catch(e) { return String(data); }
+            }
+
+            // ── Abilities flow ────────────────────────────────────────────────
+            async function runAbilitiesFlow(userMessage, images) {
+                const context        = buildConversationContext();
+                const userMsgContent = buildUserContent(userMessage, images);
+
+                const response = await callAI([
+                    { role: 'system', content: buildAbilitiesSystemPrompt() },
+                    ...context,
+                    { role: 'user', content: userMsgContent }
+                ]);
+                hideTyping();
+                if (!response || !response.trim()) throw new Error('AI returned empty response.');
+
+                const abilities = extractAbilitiesFromResponse(response);
+
+                if (abilities.length > 0) {
+                    // Show the AI's intro text (strip JSON block)
+                    const intro = response.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                    if (intro) addMessage('assistant', intro);
+
+                    // Execute each ability sequentially — collect results for accurate interpretation
+                    const abilityResults = [];
+                    for (let i = 0; i < abilities.length; i++) {
+                        const ability = abilities[i];
+                        setAgentState('abilities', `Running ${ability.name} (${i + 1}/${abilities.length})...`);
+                        showTyping();
+
+                        const result = await executeAbility(ability.name, ability.input || {});
+                        abilityResults.push({ name: ability.name, result });
+                        hideTyping();
+                        addMessage('assistant', formatSingleAbilityResult({ ability: ability.name, result }));
+
+                        await sleep(300);
+                    }
+
+                    // Ask AI to interpret the results — pass ACTUAL data so it answers accurately
+                    showTyping();
+                    setAgentState('answering');
+                    const resultsSummary = abilityResults.map(r => {
+                        const statusLabel = r.result.success !== false ? 'success' : 'error';
+                        let dataStr = '';
+                        if (r.result.data !== undefined) {
+                            const jsonStr = JSON.stringify(r.result.data);
+                            dataStr = jsonStr.length > 4000 ? jsonStr.substring(0, 4000) + '...(truncated)' : jsonStr;
+                        } else if (r.result.error) {
+                            dataStr = 'Error: ' + r.result.error;
+                        }
+                        return `- ${r.name} [${statusLabel}]:\n${dataStr}`;
+                    }).join('\n\n');
+                    try {
+                        const interpretation = await callAI([
+                            { role: 'system', content: buildAbilitiesSystemPrompt() },
+                            ...context,
+                            { role: 'user', content: userMessage },
+                            { role: 'assistant', content: intro || 'Abilities executed.' },
+                            { role: 'user', content: `All ${abilityResults.length} WordPress abilities have been executed with the following results:\n\n${resultsSummary}\n\nUsing the ACTUAL DATA above, provide a clear and accurate answer to the user's original question. Be specific with real numbers and names from the data. Do NOT invent or guess any values.` }
+                        ], 0, { maxTokens: 500 });
+                        hideTyping();
+                        if (interpretation) {
+                            const clean = interpretation.replace(/```json\n?[\s\S]*?\n?```/g, '').trim();
+                            if (clean) addMessage('assistant', clean);
+                        }
+                    } catch(e) {
+                        hideTyping();
+                        debugLog('Abilities interpretation error:', e);
+                    }
+
+                } else {
+                    // AI gave a prose answer (e.g., listing capabilities) — just show it
+                    addMessage('assistant', response);
+                }
+            }
+
             <?php include __DIR__ . '/html-to-bricks-translation.php'; ?>
 
             function extractHTMLFromResponse(resp) {
@@ -1967,26 +2399,27 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
 
             async function callAI(messages, retryCount = 0, opts = {}) {
                 const cfg = snnBricksChatConfig.ai;
-                if (!cfg.apiKey || !cfg.apiEndpoint) throw new Error('AI API not configured');
+                if (!window.snnAiProxy || !window.snnAiProxy.url) throw new Error('AI API not configured');
                 ChatState.abortController = new AbortController();
-                
-                // Use helper to build request body with provider routing
-                const body = SNN_AI_Helpers.buildRequestBody(
-                    cfg,
-                    {
-                        model: cfg.model,
+
+                debugLog('AI call:', cfg.model, messages.length, 'messages');
+
+                // Route through the server-side proxy — keeps API key out of the browser
+                // and supports localhost models (Ollama, LM Studio) regardless of HTTPS context.
+                const proxyPayload = new URLSearchParams({
+                    action: 'snn_ai_proxy',
+                    nonce: window.snnAiProxy.nonce,
+                    request_type: 'text',
+                    payload: JSON.stringify({
                         messages: messages,
                         temperature: 0.7,
                         max_tokens: opts.maxTokens || cfg.maxTokens || 4000
-                    }
-                );
-                
-                debugLog('AI call:', body.model, messages.length, 'messages');
-                
-                const resp = await fetch(cfg.apiEndpoint, {
+                    })
+                });
+
+                const resp = await fetch(window.snnAiProxy.url, {
                     method: 'POST',
-                    headers: SNN_AI_Helpers.buildHeaders(cfg.apiKey),
-                    body: JSON.stringify(body),
+                    body: proxyPayload,
                     signal: ChatState.abortController.signal
                 });
                 if (resp.status === 429 && retryCount < RECOVERY_CONFIG.maxRecoveryAttempts) {
@@ -2033,6 +2466,11 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
             }
 
             function formatMessage(c) {
+                // Pre-formatted HTML (ability results) — skip the markdown renderer so
+                // tables, spans, details etc. are preserved exactly as generated.
+                if (typeof c === 'string' && c.trimStart().startsWith('<div class="ability-results">')) {
+                    return c;
+                }
                 if (typeof markdown !== 'undefined' && markdown.toHTML) { try { return markdown.toHTML(c); } catch(e) {} }
                 return c.replace(/\n/g, '<br>');
             }
@@ -2052,19 +2490,20 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
             function setAgentState(state, detail = '') {
                 const $t = $('#snn-bricks-chat-state-text');
                 const labels = {
-                    analyzing:  'Understanding your request...',
-                    planning:   'Planning your layout...',
-                    theming:    'Choosing design language...',
-                    designing:  'Designing your page...',
-                    reviewing:  'Reviewing HTML structure...',
-                    patching:   'Updating element...',
-                    answering:  'Thinking...',
-                    thinking:   'Thinking...',
-                    compiling:  detail || 'Compiling to Bricks...',
-                    recovering: detail || 'Recovering...',
-                    saving:     detail || 'Saving images to media library...',
-                    error:      'Error',
-                    idle:       ''
+                    analyzing:   'Understanding your request...',
+                    planning:    'Planning your layout...',
+                    theming:     'Choosing design language...',
+                    designing:   'Designing your page...',
+                    reviewing:   'Reviewing HTML structure...',
+                    patching:    'Updating element...',
+                    answering:   'Thinking...',
+                    thinking:    'Thinking...',
+                    abilities:   detail || 'Running WordPress abilities...',
+                    compiling:   detail || 'Compiling to Bricks...',
+                    recovering:  detail || 'Recovering...',
+                    saving:      detail || 'Saving images to media library...',
+                    error:       'Error',
+                    idle:        ''
                 };
                 const lbl = labels[state] || detail || '';
                 lbl ? $t.text(lbl).show() : $t.hide();
@@ -2400,6 +2839,33 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
 .snn-bricks-chat-support { padding: 2px 12px; background: #f9f9f9; border-top: 1px solid #e0e0e0; text-align: center; }
 .snn-bricks-chat-support a { font-size: 14px; font-weight:600; color: #666; text-decoration: none; transition: color 0.2s; }
 .snn-bricks-chat-support a:hover { color: #820808; }
+/* Abilities API results */
+.ability-results { margin-top: 4px; }
+.ability-result { padding: 6px 10px; margin: 3px 0; border-radius: 5px; font-size: 13px; line-height: 1.5; }
+.ability-result.success { background: #f0f9ff; border: 1px solid #bae6fd; }
+.ability-result.error { background: #fef2f2; border: 1px solid #fecaca; }
+.ability-result strong { display: inline; margin-right: 5px; }
+.result-data { color: #444; font-size: 13px; margin-top: 4px; line-height: 1.6; }
+.result-error { color: #dc2626; font-size: 12px; margin-top: 2px; }
+.result-meta { color: #888; font-size: 12px; }
+.result-inline { margin-bottom: 2px; }
+.result-summary-block { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.result-summary-row { font-size: 12px; color: #444; }
+.result-details { margin-top: 5px; }
+.result-details summary { font-size: 11px; color: #2271b1; cursor: pointer; user-select: none; display: inline-block; padding: 1px 4px; border-radius: 3px; }
+.result-details summary:hover { background: #e8f0fe; }
+.result-details[open] summary { color: #1557a0; }
+.result-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+.result-table th { background: #e8f4fd; color: #1e3a5f; font-weight: 600; padding: 3px 7px; text-align: left; border: 1px solid #c8dff0; }
+.result-table td { padding: 2px 7px; border: 1px solid #dde; color: #333; }
+.result-table tr:nth-child(even) td { background: #f7fbff; }
+.json-result-container { margin-top: 4px; max-height: 160px; overflow-y: auto; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; }
+.json-result { margin: 0; padding: 8px; font-family: Courier, monospace; font-size: 11px; line-height: 1.4; white-space: pre; overflow-x: auto; color: #333; }
+.json-key { color: #0066cc; font-weight: 600; }
+.json-string { color: #22863a; }
+.json-number { color: #005cc5; }
+.json-boolean { color: #d73a49; font-weight: 600; }
+.json-null { color: #6f42c1; font-style: italic; }
         ';
     }
 }

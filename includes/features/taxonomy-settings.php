@@ -98,11 +98,9 @@ function snn_render_taxonomies_page() {
                             <label><?php esc_html_e( 'Taxonomy Slug', 'snn' ); ?></label><br>
                             <input type="text" class="taxonomy-slug" name="taxonomies[<?php echo esc_attr( $index ); ?>][slug]" placeholder="taxonomy-slug" value="<?php echo esc_attr( $taxonomy['slug'] ); ?>" />
                         </div>
-                        <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
-                        <div class="checkbox-container">
-                            <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][hierarchical]" <?php checked( $taxonomy['hierarchical'], 1 ); ?> />
-                        </div>
-                        <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label>
+
+                        <div class="field-group">
+                        <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label><br>
                         <select name="taxonomies[<?php echo esc_attr( $index ); ?>][post_types][]" multiple>
                             <?php foreach ( $registered_post_types as $post_type ) : ?>
                                 <option value="<?php echo esc_attr( $post_type->name ); ?>" <?php echo in_array( $post_type->name, $taxonomy['post_types'] ) ? 'selected' : ''; ?>>
@@ -110,6 +108,15 @@ function snn_render_taxonomies_page() {
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        </div>
+
+                        <div class="field-group">
+                        <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
+                        <div class="checkbox-container">
+                            <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][hierarchical]" <?php checked( $taxonomy['hierarchical'], 1 ); ?> />
+                        </div>
+                        </div>
+
                         <div class="field-group">
                             <label><?php esc_html_e( 'Show Columns', 'snn' ); ?></label><br>
                             <input type="checkbox" name="taxonomies[<?php echo esc_attr( $index ); ?>][add_columns]" <?php checked( isset( $taxonomy['add_columns'] ) ? $taxonomy['add_columns'] : 0, 1 ); ?> />
@@ -141,30 +148,37 @@ function snn_render_taxonomies_page() {
                 });
             }
 
-            function sanitizeSlug(value) {
+            function sanitizeSlug(value, trimDashes = false) {
                 // Normalize string to decompose accented characters
                 value = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                 // Convert to lowercase
                 value = value.toLowerCase();
-                // Replace spaces with dashes
-                value = value.replace(/\s+/g, "-");
+                // Replace spaces and underscores with dashes
+                value = value.replace(/[\s_]+/g, "-");
                 // Remove disallowed characters (only allow a-z, 0-9, and dashes)
                 value = value.replace(/[^a-z0-9\-]/g, "");
-                // Remove leading digits
-                value = value.replace(/^\d+/, "");
                 // Remove multiple consecutive dashes
                 value = value.replace(/-+/g, "-");
-                // Remove leading and trailing dashes
-                value = value.replace(/^-+|-+$/g, "");
+                if (trimDashes) {
+                    // Remove leading and trailing dashes
+                    value = value.replace(/^-+|-+$/g, "");
+                }
                 return value;
             }
 
             // Listen for input events on any slug input (existing or new)
             fieldContainer.addEventListener('input', function(event) {
                 if (event.target.classList.contains('taxonomy-slug')) {
-                    event.target.value = sanitizeSlug(event.target.value);
+                    event.target.value = sanitizeSlug(event.target.value, false);
                 }
             });
+
+            // Trim leading/trailing dashes when leaving the field
+            fieldContainer.addEventListener('blur', function(event) {
+                if (event.target.classList.contains('taxonomy-slug')) {
+                    event.target.value = sanitizeSlug(event.target.value, true);
+                }
+            }, true);
 
             /**
              * Adds a new taxonomy row.
@@ -188,20 +202,22 @@ function snn_render_taxonomies_page() {
                         <label><?php esc_html_e( 'Taxonomy Slug', 'snn' ); ?></label><br>
                         <input type="text" class="taxonomy-slug" name="taxonomies[${newIndex}][slug]" placeholder="taxonomy-slug" />
                     </div>
-                    <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
-                    <div class="checkbox-container">
-                        <input type="checkbox" name="taxonomies[${newIndex}][hierarchical]" />
+                    <div class="field-group">
+                        <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label><br>
+                        <select name="taxonomies[${newIndex}][post_types][]" multiple>
+                            <?php
+                            foreach ( get_post_types( array( 'public' => true ), 'objects' ) as $post_type ) :
+                                ?>
+                                <option value="<?php echo esc_attr( $post_type->name ); ?>"><?php echo esc_html( $post_type->label ); ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                    <label><?php esc_html_e( 'Link Post Types', 'snn' ); ?></label>
-                    <select name="taxonomies[${newIndex}][post_types][]" multiple>
-                        <?php
-                        // Fetch all public post types for the JavaScript template
-                        $post_types = get_post_types( array( 'public' => true ), 'objects' );
-                        foreach ( $post_types as $post_type ) :
-                            ?>
-                            <option value="<?php echo esc_attr( $post_type->name ); ?>"><?php echo esc_html( $post_type->label ); ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="field-group">
+                        <label><?php esc_html_e( 'Hierarchical', 'snn' ); ?></label>
+                        <div class="checkbox-container">
+                            <input type="checkbox" name="taxonomies[${newIndex}][hierarchical]" />
+                        </div>
+                    </div>
                     <div class="field-group">
                         <label><?php esc_html_e( 'Show Columns', 'snn' ); ?></label><br>
                         <input type="checkbox" name="taxonomies[${newIndex}][add_columns]" />
@@ -226,18 +242,18 @@ function snn_render_taxonomies_page() {
                 if (event.target.classList.contains('move-up')) {
                     const row = event.target.closest('.taxonomy-row');
                     const prevRow = row.previousElementSibling;
-                    if (prevRow) {
+                    if (prevRow && prevRow.classList.contains('taxonomy-row')) {
                         fieldContainer.insertBefore(row, prevRow);
-                        updateFieldIndexes(); // Reindex after reordering
+                        updateFieldIndexes();
                     }
                 }
 
                 if (event.target.classList.contains('move-down')) {
                     const row = event.target.closest('.taxonomy-row');
                     const nextRow = row.nextElementSibling;
-                    if (nextRow) {
+                    if (nextRow && nextRow.classList.contains('taxonomy-row')) {
                         fieldContainer.insertBefore(nextRow, row);
-                        updateFieldIndexes(); // Reindex after reordering
+                        updateFieldIndexes();
                     }
                 }
             });
@@ -253,47 +269,102 @@ function snn_render_taxonomies_page() {
                 flex-wrap: wrap;
                 gap: 10px;
                 margin-bottom: 10px;
-                align-items: center;
+                align-items: flex-start;
                 padding: 20px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                background-color: #f9f9f9;
+                border: 1px solid #e2e2e2;
+                border-radius: 10px;
+                background-color: #ffffff;
             }
-            .taxonomy-row label { 
+            .taxonomy-row label {
                 width: auto;
                 font-weight: bold;
             }
-            .taxonomy-row input, .taxonomy-row select { 
+            .taxonomy-row input[type="text"] {
                 flex: 1;
                 min-width: 150px;
                 padding: 5px;
-                border: 1px solid #ccc;
-                border-radius: 3px;
+                background: #ffffff;
+                border-radius: 5px;
+                height: 40px;
+                border: solid 1px #e2e2e2;
+            }
+            .taxonomy-row input[type="text"]:hover {
+                border: solid 1px #000000;
+            }
+            .taxonomy-row select {
+                flex: 1;
+                min-width: 150px;
+                padding: 5px;
+                background: #ffffff;
+                border-radius: 5px;
+                border: solid 1px #e2e2e2;
+            }
+            .taxonomy-row select:hover {
+                border: solid 1px #000000;
             }
             .taxonomy-row .buttons {
-                flex-direction: column;
+                display: flex;
+                flex-direction: row;
                 gap: 5px;
+                position: relative;
+                top:10px;
+            }
+            .taxonomy-row .buttons button {
+                background: #ffffff;
+                border-radius: 5px;
+                padding: 10px;
+                border: solid 1px #e2e2e2;
+                height: 40px;
+                cursor: pointer;
+            }
+            .taxonomy-row .buttons button:hover {
+                background: var(--wp-admin-theme-color);
+                color: white;
             }
             #add-taxonomy-row {
                 margin-top: 10px;
             }
-            [type="checkbox"] {
-                width: 20px !important;
-                min-width: 20px !important;
-            }
             select[multiple] {
                 height: 100px;
             }
-            .buttons button {
+            .taxonomy-row [type="text"] {
+                width: 240px;
+            }
+            .taxonomy-row [type="checkbox"] {
+                appearance: none;
+                -webkit-appearance: none;
                 cursor: pointer;
-                border: solid 1px gray;
-                padding: 4px 10px;
+                position: relative;
+                width: 40px;
+                height: 22px;
+                background-color: #eeeeee;
+                border-radius: 11px;
+                border: 1px solid #e2e2e2;
+                transition: 0.25s;
+                margin-top: 2px;
+                min-width: 40px;
             }
-            .buttons button:hover {
-                background: white;
+            .taxonomy-row [type="checkbox"]::before {
+                content: "";
+                position: absolute;
+                top: 2px;
+                left: 3px;
+                width: 16px;
+                height: 16px;
+                background-color: #ffffff;
+                border-radius: 50%;
+                transition: 0.25s;
             }
-            .taxonomy-row [type="text"]{
-                width:240px;
+            .taxonomy-row [type="checkbox"]:hover {
+                border: 2px solid var(--wp-admin-theme-color);
+            }
+            .taxonomy-row [type="checkbox"]:checked {
+                background-color: #eeeeee;
+                border: 2px solid var(--wp-admin-theme-color);
+            }
+            .taxonomy-row [type="checkbox"]:checked::before {
+                left: 21px;
+                background-color: var(--wp-admin-theme-color);
             }
         </style>
     </div>

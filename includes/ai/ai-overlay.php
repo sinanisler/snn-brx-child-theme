@@ -58,8 +58,8 @@ function snn_add_ai_script_to_footer() {
     }
     $config = snn_get_ai_api_config();
 
-    // Final check to ensure we have a valid key and endpoint before proceeding.
-    if (empty($config['apiKey']) || empty($config['apiEndpoint'])) {
+    // Require at minimum a configured endpoint (API key is optional for local models).
+    if (empty($config['apiEndpoint'])) {
         return;
     }
     ?>
@@ -341,12 +341,19 @@ function snn_add_ai_script_to_footer() {
 
 
     <script>
+    if (!window.snnAiProxy) {
+        window.snnAiProxy = {
+            url: '<?php echo esc_js(admin_url('admin-ajax.php')); ?>',
+            nonce: '<?php echo esc_js(wp_create_nonce('snn_ai_proxy_nonce')); ?>'
+        };
+    }
     document.addEventListener('DOMContentLoaded', function() {
         const config = {
             apiKey: <?php echo json_encode($config['apiKey']); ?>,
+            apiEndpoint: <?php echo json_encode($config['apiEndpoint']); ?>,
             model: <?php echo json_encode($config['model']); ?>,
-            systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>,
-            apiEndpoint: <?php echo json_encode($config['apiEndpoint']); ?>
+            modelProvider: <?php echo json_encode($config['modelProvider']); ?>,
+            systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>
         };
 
         let actionPresets = <?php echo json_encode($config['actionPresets']); ?>;
@@ -574,14 +581,6 @@ function snn_add_ai_script_to_footer() {
         if(submitButton) submitButton.addEventListener('click', async () => {
             if (isRequestPending) {
                 console.warn("SNN AI: Request already pending."); return;
-            }
-            if (!config.apiKey) {
-                console.error("SNN AI: API Key missing.");
-                if(responseDiv) {
-                    responseDiv.textContent = "Error: API Key missing in settings.";
-                    responseDiv.style.display = 'block';
-                }
-                return;
             }
             if (!targetElement || !targetType) {
                 console.error("SNN AI: Target element error.");
@@ -984,14 +983,6 @@ function snn_add_ai_script_to_footer() {
 
         if(bulkAiSubmitButton) bulkAiSubmitButton.addEventListener('click', async () => {
             if (isBulkRequestPending) { console.warn("SNN Bulk AI: Request already pending."); return; }
-            if (!config.apiKey) {
-                console.error("SNN Bulk AI: API Key missing.");
-                if(bulkAiResponseDisplay) {
-                    bulkAiResponseDisplay.textContent = "Error: API Key missing in settings.";
-                    bulkAiResponseDisplay.style.display = 'block';
-                }
-                return;
-            }
 
             lastProcessedBulkElements = currentBulkElements.filter(el => el.checkboxElement && el.checkboxElement.checked); // Ensured el.checkboxElement exists
 

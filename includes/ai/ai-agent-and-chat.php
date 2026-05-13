@@ -61,8 +61,8 @@ class SNN_Chat_Overlay {
         add_action( 'wp_ajax_snn_get_chat_histories', array( $this, 'ajax_get_chat_histories' ) );
         add_action( 'wp_ajax_snn_delete_chat_history', array( $this, 'ajax_delete_chat_history' ) );
         
-        // Check if feature is enabled
-        if ( ! $this->is_enabled() ) {
+        // Check if feature is enabled — overlay loads if either global AI or the agent toggle is on
+        if ( ! $this->is_enabled() && ! $this->is_ai_globally_enabled() ) {
             return;
         }
         
@@ -1086,6 +1086,9 @@ class SNN_Chat_Overlay {
         // Add custom system prompt and token count to config
         $ai_config['systemPrompt'] = $this->get_system_prompt();
         $ai_config['maxTokens'] = $this->get_token_count();
+
+        // Strip sensitive values — API key and endpoint are handled server-side by ai-proxy.php.
+        unset( $ai_config['apiKey'], $ai_config['apiEndpoint'] );
         
         // Get current page context
         $page_context = $this->get_page_context();
@@ -2382,28 +2385,29 @@ VALIDATION REQUIREMENTS:
             async function callAI(messages, retryCount = 0) {
                 const config = snnChatConfig.ai;
 
-                if (!config.apiKey || !config.apiEndpoint) {
+                if (!window.snnAiProxy || !window.snnAiProxy.url) {
                     throw new Error('AI API not configured. Please check settings.');
                 }
 
                 try {
                     ChatState.abortController = new AbortController();
 
-                    // Use helper to build request body with provider routing
-                    const requestBody = SNN_AI_Helpers.buildRequestBody(
-                        config,
-                        {
-                            model: config.model,
+                    // Route through the server-side proxy — keeps API key out of the browser
+                    // and supports localhost models (Ollama, LM Studio) regardless of HTTPS context.
+                    const proxyPayload = new URLSearchParams({
+                        action: 'snn_ai_proxy',
+                        nonce: window.snnAiProxy.nonce,
+                        request_type: 'text',
+                        payload: JSON.stringify({
                             messages: messages,
                             temperature: 0.7,
                             max_tokens: config.maxTokens || 4000
-                        }
-                    );
+                        })
+                    });
 
-                    const response = await fetch(config.apiEndpoint, {
+                    const response = await fetch(window.snnAiProxy.url, {
                         method: 'POST',
-                        headers: SNN_AI_Helpers.buildHeaders(config.apiKey),
-                        body: JSON.stringify(requestBody),
+                        body: proxyPayload,
                         signal: ChatState.abortController.signal
                     });
 

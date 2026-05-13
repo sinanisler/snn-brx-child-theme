@@ -50,7 +50,7 @@ function snn_seo_ai_enqueue_admin_scripts($hook) {
     
     $config = snn_get_ai_api_config();
     
-    if (empty($config['apiKey']) || empty($config['apiEndpoint'])) {
+    if (empty($config['apiEndpoint'])) {
         return;
     }
 
@@ -59,9 +59,7 @@ function snn_seo_ai_enqueue_admin_scripts($hook) {
         ?>
         <script>
         window.snnSeoAiConfig = <?php echo json_encode(array(
-            'apiKey' => $config['apiKey'],
             'model' => $config['model'],
-            'apiEndpoint' => $config['apiEndpoint'],
             'systemPrompt' => $config['systemPrompt'],
             'actionPresets' => $config['actionPresets'],
             'responseFormat' => $config['responseFormat'],

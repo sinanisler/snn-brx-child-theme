@@ -76,6 +76,14 @@ function snn_register_editor_settings() {
     );
 
     add_settings_field(
+        'snn_custom_css_overlay_field',
+        __('Enable Custom CSS Overlay in Bricks Builder', 'snn'),
+        'snn_custom_css_overlay_field_callback',
+        'snn-editor-settings',
+        'snn_editor_settings_section'
+    );
+
+    add_settings_field(
         'comingsoon_bypass',
         __('URL Coming Soon Bypass', 'snn'),
         'snn_comingsoon_bypass_callback',
@@ -89,6 +97,7 @@ function snn_sanitize_editor_settings($input) {
 
     // Sanitize existing settings
     $sanitized['snn_bricks_builder_color_fix'] = isset($input['snn_bricks_builder_color_fix']) && $input['snn_bricks_builder_color_fix'] ? 1 : 0;
+    $sanitized['snn_custom_css_overlay_enabled'] = isset($input['snn_custom_css_overlay_enabled']) && $input['snn_custom_css_overlay_enabled'] ? 1 : 0;
 
     // Sanitize the three other settings
     $sanitized['hide_element_icons'] = isset($input['hide_element_icons']) && $input['hide_element_icons'] ? 1 : 0;
@@ -124,6 +133,18 @@ function snn_render_checkbox_field() {
     <label for="snn_bricks_builder_color_fix">
         <?php _e('Enable SNN-BRX Editor Panel', 'snn'); ?><br>
     </label>
+    <?php
+}
+
+function snn_custom_css_overlay_field_callback() {
+    $options = get_option('snn_editor_settings');
+    $checked = isset($options['snn_custom_css_overlay_enabled']) ? $options['snn_custom_css_overlay_enabled'] : 0;
+    ?>
+    <input type="checkbox" id="snn_custom_css_overlay_enabled" name="snn_editor_settings[snn_custom_css_overlay_enabled]" value="1" <?php checked(1, $checked, true); ?> />
+    <label for="snn_custom_css_overlay_enabled">
+        <?php _e('Enable Custom CSS Overlay in Bricks Builder', 'snn'); ?><br>
+    </label>
+    <p class="description"><?php _e('Adds a floating CodeMirror CSS editor at the bottom of the Bricks builder. Click the <code>&lt;/&gt;</code> button in the panel header to toggle it. Syncs with the selected element\'s CSS or the page CSS when no element is selected.', 'snn'); ?></p>
     <?php
 }
 
