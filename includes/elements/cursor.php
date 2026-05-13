@@ -97,15 +97,6 @@ class SNN_Custom_Cursor_Element extends Element {
 					'default'     => '.my-target',
 					'description' => esc_html__( 'CSS selector for elements that when hovered will show this cursor (e.g., .project, #brxe-vzibxz)', 'snn' ),
 				],
-				'cursor_speed' => [
-					'label'   => esc_html__( 'Cursor Speed', 'snn' ),
-					'type'    => 'number',
-					'default' => 0.125,
-					'min'     => 0.01,
-					'max'     => 1,
-					'step'    => 0.01,
-					'placeholder' => 0.125,
-				],
 				'cursor_x_position' => [
 					'label'       => esc_html__( 'Cursor X Position', 'snn' ),
 					'type'        => 'number',
@@ -199,6 +190,14 @@ class SNN_Custom_Cursor_Element extends Element {
 			';
 		}
 
+		// Single Cotton instance for default cursor movement
+		echo '
+			const defaultCotton = new Cotton(defaultCursor, {
+				speed: ' . esc_js( $default_speed ) . ',
+				centerMouse: true
+			});
+			';
+
 		// Initialize hover cursors using existing DOM elements
 		if ( ! empty( $hover_cursors ) ) {
 			echo 'const cursorConfig = [';
@@ -206,7 +205,6 @@ class SNN_Custom_Cursor_Element extends Element {
 			foreach ( $hover_cursors as $index => $cursor ) {
 				$cursor_selector       = $cursor['cursor_selector'] ?? '';
 				$target_hover_selector = $cursor['target_hover_selector'] ?? '';
-				$cursor_speed          = floatval( $cursor['cursor_speed'] ?? 0.125 );
 				$cursor_x_position     = floatval( $cursor['cursor_x_position'] ?? 0 );
 				$cursor_y_position     = floatval( $cursor['cursor_y_position'] ?? 0 );
 				$hide_default_cursor   = ! empty( $cursor['hide_default_cursor'] ) ? 'true' : 'false';
@@ -215,28 +213,20 @@ class SNN_Custom_Cursor_Element extends Element {
 					continue;
 				}
 
-				echo '{ cursorSelector: "' . esc_js( $cursor_selector ) . '", targetSelector: "' . esc_js( $target_hover_selector ) . '", speed: ' . esc_js( $cursor_speed ) . ', offsetX: ' . esc_js( $cursor_x_position ) . ', offsetY: ' . esc_js( $cursor_y_position ) . ', hideDefaultCursor: ' . $hide_default_cursor . ' },';
+				echo '{ cursorSelector: "' . esc_js( $cursor_selector ) . '", targetSelector: "' . esc_js( $target_hover_selector ) . '", offsetX: ' . esc_js( $cursor_x_position ) . ', offsetY: ' . esc_js( $cursor_y_position ) . ', hideDefaultCursor: ' . $hide_default_cursor . ' },';
 			}
 
 			echo '];';
 
-			// Build a map of targetSelector -> config for O(1) lookup during hover events
 			echo '
-			const targetToConfig = {};
-			const allTargetSelectors = [];
-			cursorConfig.forEach(function(config) {
-				targetToConfig[config.targetSelector] = config;
-				allTargetSelectors.push(config.targetSelector);
-			});
-			const combinedSelector = allTargetSelectors.join(", ");
-
-			// Prepare each hover cursor element
+			// Prepare each hover cursor element and attach hover listeners
 			cursorConfig.forEach(function(config) {
 				const cursorElement = document.querySelector(config.cursorSelector);
 				if (!cursorElement) {
 					console.warn("Cursor element not found: " + config.cursorSelector);
 					return;
 				}
+
 				// Set up positioning
 				cursorElement.style.position = "fixed";
 				cursorElement.style.top = "0";
@@ -248,9 +238,9 @@ class SNN_Custom_Cursor_Element extends Element {
 				cursorElement.style.opacity = "0";
 				cursorElement.style.visibility = "hidden";
 
-				// Initialize Cotton for this cursor element
+				// Initialize Cotton for this cursor element (follows mouse independently)
 				new Cotton(cursorElement, {
-					speed: config.speed,
+					speed: ' . esc_js( $default_speed ) . ',
 					centerMouse: true
 				});
 
@@ -260,48 +250,21 @@ class SNN_Custom_Cursor_Element extends Element {
 						el.style.cursor = "none";
 					});
 				}
-			});
 
-			// Single Cotton instance on defaultCursor with all model targets combined
-			new Cotton(defaultCursor, {
-				speed: ' . esc_js( $default_speed ) . ',
-				centerMouse: true,
-				models: combinedSelector,
-				on: {
-					enterModel: function(cottonCursorEl, modelEl) {
-						// Find which config matches this model element
-						for (var sel in targetToConfig) {
-							if (modelEl.matches(sel)) {
-								var cursorEl = document.querySelector(targetToConfig[sel].cursorSelector);
-								if (cursorEl) {
-									cursorEl.style.opacity = "1";
-									cursorEl.style.visibility = "visible";
-								}
-								break;
-							}
-						}
-						cottonCursorEl.style.opacity = "0";
-					},
-					leaveModel: function(cottonCursorEl, modelEl) {
-						// Hide ALL hover cursor elements
-						cursorConfig.forEach(function(config) {
-							var cursorEl = document.querySelector(config.cursorSelector);
-							if (cursorEl) {
-								cursorEl.style.opacity = "0";
-								cursorEl.style.visibility = "hidden";
-							}
-						});
-						cottonCursorEl.style.opacity = "1";
-					}
-				}
-			});
-			';
-		} else {
-			// No hover cursors — just initialize the default cursor
-			echo '
-			new Cotton(defaultCursor, {
-				speed: ' . esc_js( $default_speed ) . ',
-				centerMouse: true
+				// Attach plain DOM hover listeners to target elements
+				const targets = document.querySelectorAll(config.targetSelector);
+				targets.forEach(function(target) {
+					target.addEventListener("mouseenter", function() {
+						cursorElement.style.opacity = "1";
+						cursorElement.style.visibility = "visible";
+						defaultCursor.style.opacity = "0";
+					});
+					target.addEventListener("mouseleave", function() {
+						cursorElement.style.opacity = "0";
+						cursorElement.style.visibility = "hidden";
+						defaultCursor.style.opacity = "1";
+					});
+				});
 			});
 			';
 		}
