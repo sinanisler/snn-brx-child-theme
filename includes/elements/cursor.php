@@ -69,6 +69,14 @@ class SNN_Custom_Cursor_Element extends Element {
 			'step'    => 0.1,
 		];
 
+		$this->controls['hide_default_cursor_globally'] = [
+			'tab'         => 'content',
+			'label'       => esc_html__( 'Hide Native Browser Cursor', 'snn' ),
+			'type'        => 'checkbox',
+			'default'     => false,
+			'description' => esc_html__( 'When enabled, the native browser cursor is hidden everywhere, per-element hover cursors will still show', 'snn' ),
+		];
+
 		// Repeater for Hover States
 		$this->controls['hover_cursors'] = [
 			'tab'           => 'content',
@@ -130,6 +138,7 @@ class SNN_Custom_Cursor_Element extends Element {
 		$cursor_color     = $this->ensure_string( $this->settings['default_cursor_color'] ?? '#000000' );
 		$default_speed    = floatval( $this->settings['cursor_speed'] ?? 0.125 );
 		$z_index          = intval( $this->settings['cursor_z_index'] ?? 9999 );
+		$hide_globally    = ! empty( $this->settings['hide_default_cursor_globally'] );
 		$hover_cursors    = isset( $this->settings['hover_cursors'] ) && is_array( $this->settings['hover_cursors'] )
 			? $this->settings['hover_cursors']
 			: [];
@@ -181,7 +190,17 @@ class SNN_Custom_Cursor_Element extends Element {
 			const defaultCursor = document.querySelector("#' . esc_js( $unique_id ) . '-default");
 
 			if (!defaultCursor) return;
+			';
 
+		// Global hide: suppress native browser cursor body-wide (your custom dot stays visible)
+		if ( $hide_globally ) {
+			echo '
+			// Hide the browser native cursor everywhere
+			document.body.style.cursor = "none";
+			';
+		}
+
+		echo '
 			// Initialize default cursor
 			new Cotton(defaultCursor, {
 				speed: ' . esc_js( $default_speed ) . '
