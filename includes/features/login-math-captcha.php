@@ -30,12 +30,13 @@ function snn_add_math_captcha() {
                 .drop-target { position: absolute; right: 10px; top: 10px; width: 56px; height: 56px; border: 2px solid #dcdcde; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #8c8f94; text-align: center; }
                 .drag-item { position: absolute; left: 10px; top: 10px; width: 56px; height: 56px; background: #2271b1; border-radius: 50%; cursor: grab; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); z-index: 10; touch-action: none; }
                 .success-msg { color: #27ae60; font-size: 13px; font-weight: bold; margin-top: 10px; text-align: center; }
+                .step-label b{color:green}
             </style>
 
             <div class="verification-container">
                 <!-- STEP 1: MATH -->
                 <div id="math_step_<?php echo esc_attr( $unique ); ?>">
-                    <span class="step-label"><?php _e('Step 1: Solve Equation', 'snn'); ?></span>
+                    <span class="step-label"><?php _e('Step 1: Solve <b>Math</b> Equation', 'snn'); ?></span>
                     <canvas id="captchaCanvas_<?php echo esc_attr( $unique ); ?>" width="280" height="100"></canvas>
                     <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" placeholder="?" autocomplete="off" class="input">
                 </div>
