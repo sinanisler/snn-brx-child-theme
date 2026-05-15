@@ -69,6 +69,14 @@ class SNN_Custom_Cursor_Element extends Element {
 			'step'    => 0.1,
 		];
 
+		$this->controls['hide_default_cursor_globally'] = [
+			'tab'         => 'content',
+			'label'       => esc_html__( 'Hide Native Browser Cursor', 'snn' ),
+			'type'        => 'checkbox',
+			'default'     => false,
+			'description' => esc_html__( 'When enabled, the native browser cursor is hidden everywhere, per-element hover cursors will still show', 'snn' ),
+		];
+
 		// Repeater for Hover States
 		$this->controls['hover_cursors'] = [
 			'tab'           => 'content',
@@ -89,15 +97,6 @@ class SNN_Custom_Cursor_Element extends Element {
 					'default'     => '.my-target',
 					'description' => esc_html__( 'CSS selector for elements that when hovered will show this cursor (e.g., .project, #brxe-vzibxz)', 'snn' ),
 				],
-				'cursor_speed' => [
-					'label'   => esc_html__( 'Cursor Speed', 'snn' ),
-					'type'    => 'number',
-					'default' => 0,
-					'min'     => 0.01,
-					'max'     => 1,
-					'step'    => 0.01,
-					'placeholder' => 3,
-				],
 				'cursor_x_position' => [
 					'label'       => esc_html__( 'Cursor X Position', 'snn' ),
 					'type'        => 'number',
@@ -114,6 +113,12 @@ class SNN_Custom_Cursor_Element extends Element {
 					'description' => esc_html__( 'Vertical offset from center in pixels', 'snn' ),
 					'placeholder' => 0,
 				],
+				'hide_default_cursor' => [
+					'label'       => esc_html__( 'Hide Default Cursor', 'snn' ),
+					'type'        => 'checkbox',
+					'default'     => false,
+					'description' => esc_html__( 'When enabled, the default cursor will be hidden and only this custom cursor will be shown on hover.', 'snn' ),
+				],
 			],
 		];
 	}
@@ -124,6 +129,7 @@ class SNN_Custom_Cursor_Element extends Element {
 		$cursor_color     = $this->ensure_string( $this->settings['default_cursor_color'] ?? '#000000' );
 		$default_speed    = floatval( $this->settings['cursor_speed'] ?? 0.125 );
 		$z_index          = intval( $this->settings['cursor_z_index'] ?? 9999 );
+		$hide_globally    = ! empty( $this->settings['hide_default_cursor_globally'] );
 		$hover_cursors    = isset( $this->settings['hover_cursors'] ) && is_array( $this->settings['hover_cursors'] )
 			? $this->settings['hover_cursors']
 			: [];
@@ -175,10 +181,20 @@ class SNN_Custom_Cursor_Element extends Element {
 			const defaultCursor = document.querySelector("#' . esc_js( $unique_id ) . '-default");
 
 			if (!defaultCursor) return;
+			';
 
-			// Initialize default cursor
-			new Cotton(defaultCursor, {
-				speed: ' . esc_js( $default_speed ) . '
+		// Global hide: suppress native browser cursor body-wide
+		if ( $hide_globally ) {
+			echo '
+			document.body.style.cursor = "none";
+			';
+		}
+
+		// Single Cotton instance for default cursor movement
+		echo '
+			const defaultCotton = new Cotton(defaultCursor, {
+				speed: ' . esc_js( $default_speed ) . ',
+				centerMouse: true
 			});
 			';
 
@@ -189,86 +205,68 @@ class SNN_Custom_Cursor_Element extends Element {
 			foreach ( $hover_cursors as $index => $cursor ) {
 				$cursor_selector       = $cursor['cursor_selector'] ?? '';
 				$target_hover_selector = $cursor['target_hover_selector'] ?? '';
-				$cursor_speed          = floatval( $cursor['cursor_speed'] ?? 0.125 );
 				$cursor_x_position     = floatval( $cursor['cursor_x_position'] ?? 0 );
 				$cursor_y_position     = floatval( $cursor['cursor_y_position'] ?? 0 );
+				$hide_default_cursor   = ! empty( $cursor['hide_default_cursor'] ) ? 'true' : 'false';
 
 				if ( empty( $cursor_selector ) || empty( $target_hover_selector ) ) {
 					continue;
 				}
 
-				echo '{
-					cursorSelector: "' . esc_js( $cursor_selector ) . '",
-					targetSelector: "' . esc_js( $target_hover_selector ) . '",
-					speed: ' . esc_js( $cursor_speed ) . ',
-					offsetX: ' . esc_js( $cursor_x_position ) . ',
-					offsetY: ' . esc_js( $cursor_y_position ) . '
-				},';
+				echo '{ cursorSelector: "' . esc_js( $cursor_selector ) . '", targetSelector: "' . esc_js( $target_hover_selector ) . '", offsetX: ' . esc_js( $cursor_x_position ) . ', offsetY: ' . esc_js( $cursor_y_position ) . ', hideDefaultCursor: ' . $hide_default_cursor . ' },';
 			}
 
 			echo '];';
 
-			echo 'cursorConfig.forEach(function(config) {
+			echo '
+			// Prepare each hover cursor element and attach hover listeners
+			cursorConfig.forEach(function(config) {
 				const cursorElement = document.querySelector(config.cursorSelector);
-
 				if (!cursorElement) {
-					console.warn("Cursor element not found or could not be selected. Move Cursor Element as latest on the Structure !: " + config.cursorSelector);
+					console.warn("Cursor element not found: " + config.cursorSelector);
 					return;
 				}
 
-				// Fix positioning for Cotton.js - must match default cursor positioning
+				// Set up positioning
 				cursorElement.style.position = "fixed";
 				cursorElement.style.top = "0";
 				cursorElement.style.left = "0";
 				cursorElement.style.pointerEvents = "none";
 				cursorElement.style.zIndex = "' . esc_js( $z_index ) . '";
-
-				// Set initial hidden state for hover cursors
+				cursorElement.style.marginLeft = config.offsetX + "px";
+				cursorElement.style.marginTop = config.offsetY + "px";
 				cursorElement.style.opacity = "0";
 				cursorElement.style.visibility = "hidden";
 
-				// Store original transform for offset calculation
-				const originalTransform = window.getComputedStyle(cursorElement).transform;
-
-				// Initialize Cotton for the cursor element with centerMouse enabled
+				// Initialize Cotton for this cursor element (follows mouse independently)
 				new Cotton(cursorElement, {
-					speed: config.speed,
-					centerMouse: true,
-					on: {
-						cottonMove: function(element) {
-							// Apply offset if specified
-							if (config.offsetX !== 0 || config.offsetY !== 0) {
-								const currentTransform = element.style.transform;
-								// Extract the translate values and add offset
-								const match = currentTransform.match(/translate\(calc\(-50% \+ (.+?)px\), calc\(-50% \+ (.+?)px\)\)/);
-								if (match) {
-									const x = parseFloat(match[1]) + config.offsetX;
-									const y = parseFloat(match[2]) + config.offsetY;
-									element.style.transform = "translate(calc(-50% + " + x + "px), calc(-50% + " + y + "px))";
-								}
-							}
-						}
-					}
+					speed: ' . esc_js( $default_speed ) . ',
+					centerMouse: true
 				});
 
-				// Setup hover interactions
-				new Cotton(defaultCursor, {
-					models: config.targetSelector,
-					speed: config.speed,
-					on: {
-						enterModel: function(cursorEl) {
-							cursorElement.style.opacity = "1";
-							cursorElement.style.visibility = "visible";
-							cursorEl.style.opacity = "0";
-						},
-						leaveModel: function(cursorEl) {
-							cursorElement.style.opacity = "0";
-							cursorElement.style.visibility = "hidden";
-							cursorEl.style.opacity = "1";
-						}
-					}
+				// Hide native cursor on target elements if configured
+				if (config.hideDefaultCursor) {
+					document.querySelectorAll(config.targetSelector).forEach(function(el) {
+						el.style.cursor = "none";
+					});
+				}
+
+				// Attach plain DOM hover listeners to target elements
+				const targets = document.querySelectorAll(config.targetSelector);
+				targets.forEach(function(target) {
+					target.addEventListener("mouseenter", function() {
+						cursorElement.style.opacity = "1";
+						cursorElement.style.visibility = "visible";
+						defaultCursor.style.opacity = "0";
+					});
+					target.addEventListener("mouseleave", function() {
+						cursorElement.style.opacity = "0";
+						cursorElement.style.visibility = "hidden";
+						defaultCursor.style.opacity = "1";
+					});
 				});
-			});';
+			});
+			';
 		}
 
 		echo '})();';
