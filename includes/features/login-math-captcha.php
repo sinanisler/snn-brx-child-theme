@@ -46,7 +46,7 @@ function snn_add_math_captcha() {
                     <div class="drag-area" id="dragArea_<?php echo esc_attr( $unique ); ?>">
                         <div class="drop-target" id="dropTarget_<?php echo esc_attr( $unique ); ?>"><?php _e('Target', 'snn'); ?></div>
                         <div class="drag-item" id="dragItem_<?php echo esc_attr( $unique ); ?>">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l3-3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 19-3 3-3-3M19 15l3-3-3-3M5 9l-3 3 3 3M9 5l3-3 3 3M12 2v20M2 12h20"/></svg>
                         </div>
                     </div>
                     <div class="success-msg" id="successMsg_<?php echo esc_attr( $unique ); ?>" style="display: none;"><?php _e('Identity Verified!', 'snn'); ?></div>
@@ -59,9 +59,11 @@ function snn_add_math_captcha() {
         </div>
 
         <script type="text/javascript">
-            document.addEventListener('DOMContentLoaded', function () {
+            (function () {
                 const uniqueId = '<?php echo esc_js( $unique ); ?>';
                 const container = document.getElementById('captcha_container_' + uniqueId);
+                if (!container) return;
+
                 container.style.display = 'block';
                 document.getElementById('js_enabled_' + uniqueId).value = 'yes';
 
@@ -77,10 +79,20 @@ function snn_add_math_captcha() {
                 const dragVerifiedInput = document.getElementById('drag_verified_' + uniqueId);
                 const solutionInput = document.getElementById('captcha_solution_' + uniqueId);
 
-                const form = container.closest('form');
-                const submitButton = form ? form.querySelector('input[type="submit"], button[type="submit"]') : null;
+                // Fix: Find and disable the submit button even if it's parsed after this script
+                let submitButton = null;
+                const setupSubmitButton = () => {
+                    const form = container.closest('form');
+                    if (form && !submitButton) {
+                        submitButton = form.querySelector('input[type="submit"], button[type="submit"]');
+                        if (submitButton && dragVerifiedInput.value !== 'yes') {
+                            submitButton.disabled = true;
+                        }
+                    }
+                };
 
-                if (submitButton) submitButton.disabled = true;
+                setupSubmitButton();
+                document.addEventListener('DOMContentLoaded', setupSubmitButton);
 
                 const n1 = parseInt(window.atob("<?php echo esc_js( $encodedNumber1 ); ?>"), 10);
                 const n2 = parseInt(window.atob("<?php echo esc_js( $encodedNumber2 ); ?>"), 10);
@@ -110,14 +122,24 @@ function snn_add_math_captcha() {
 
                     // Real problem
                     let rx, ry;
-                    do { rx = Math.random() * (canvas.width - 100) + 20; ry = Math.random() * (canvas.height - 40) + 30; } while (isColliding(rx, ry));
+                    let attempts1 = 0;
+                    do { 
+                        rx = Math.random() * (canvas.width - 100) + 20; 
+                        ry = Math.random() * (canvas.height - 40) + 30; 
+                        attempts1++;
+                    } while (isColliding(rx, ry) && attempts1 < 50);
                     items.push({ text: `${n1} + ${n2} = ?`, x: rx, y: ry, color: '#27ae60', size: 24, bold: true });
 
                     // Decoys
                     const colors = ['#e74c3c', '#3498db', '#9b59b6', '#f1c40f', '#e67e22'];
                     for (let i = 0; i < 4; i++) {
                         let dx, dy;
-                        do { dx = Math.random() * (canvas.width - 80) + 10; dy = Math.random() * (canvas.height - 30) + 25; } while (isColliding(dx, dy));
+                        let attempts2 = 0;
+                        do { 
+                            dx = Math.random() * (canvas.width - 80) + 10; 
+                            dy = Math.random() * (canvas.height - 30) + 25; 
+                            attempts2++;
+                        } while (isColliding(dx, dy) && attempts2 < 50);
                         items.push({ text: `${Math.floor(Math.random()*9)+1} + ${Math.floor(Math.random()*9)+1} = ?`, x: dx, y: dy, color: colors[i], size: Math.floor(Math.random()*4)+16, bold: false });
                     }
 
@@ -195,8 +217,11 @@ function snn_add_math_captcha() {
                 window.addEventListener('touchend', endDrag);
 
                 canvas.addEventListener('click', generateCaptcha);
-                generateCaptcha();
-            });
+                
+                window.requestAnimationFrame(() => {
+                    generateCaptcha();
+                });
+            })();
         </script>
         <?php
     }
