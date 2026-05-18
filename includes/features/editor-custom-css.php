@@ -934,8 +934,8 @@ function snn_custom_css_overlay_output() {
                     if (!ch) return;
                     var cursor     = cm.getCursor();
                     var textBefore = cm.getLine(cursor.line).slice(0, cursor.ch);
-                    // Inside var(-- context: show Bricks variable list (overrides any open hint)
-                    if (/var\(--[\w-]*$/.test(textBefore)) {
+                    // Inside var context: show Bricks variable list (triggers on "var" or "var(")
+                    if (/(?:^|[^\w-])var\(?(--[\w-]*|)$/.test(textBefore)) {
                         CM.showHint(cm, snnCssVarHint, { completeSingle: false });
                         return;
                     }
@@ -1293,25 +1293,43 @@ function snn_custom_css_overlay_output() {
             var cursor     = cm.getCursor();
             var line       = cm.getLine(cursor.line);
             var textBefore = line.slice(0, cursor.ch);
-            var match      = textBefore.match(/var\((--[\w-]*)$/);
+            
+            // Match "var" preceded by non-word char, followed by optional "(" and optional "--..."
+            var match = textBefore.match(/(?:^|[^\w-])var(\()?(--[\w-]*)?$/);
             if (!match) return null;
-            var typed     = match[1];
-            var fromCh    = cursor.ch - typed.length;
-            var allVars   = getBricksVarList();
-            var filtered  = allVars.filter(function(v) { return v.name.indexOf(typed) === 0; });
+            
+            var hasParen = !!match[1];
+            var typed    = match[2] || '';
+            
+            var allVars = getBricksVarList();
+            var filtered = allVars.filter(function(v) { 
+                return v.name.indexOf(typed) === 0; 
+            });
+            
             if (!filtered.length) return null;
-            var CM     = window.wp && window.wp.CodeMirror ? window.wp.CodeMirror : window.CodeMirror;
-            var suffix = line.charAt(cursor.ch) === ')' ? '' : ')';
+            
+            var CM = window.wp && window.wp.CodeMirror ? window.wp.CodeMirror : window.CodeMirror;
+            
             return {
-                list : filtered.map(function(v) {
+                list: filtered.map(function(v) {
+                    var insertText = v.name;
+                    if (!hasParen) {
+                        // If user just typed "var", wrap the whole thing
+                        insertText = 'var(' + v.name + ')';
+                    } else {
+                        // If user typed "var(", just add the name and closing paren if needed
+                        var suffix = line.charAt(cursor.ch) === ')' ? '' : ')';
+                        insertText = v.name + suffix;
+                    }
+                    
                     return {
-                        text        : v.name + suffix,
-                        displayText : v.name + (v.value ? '  ' + v.value : ''),
-                        className   : 'snn-var-hint'
+                        text: insertText,
+                        displayText: v.name + (v.value ? '  ' + v.value : ''),
+                        className: 'snn-var-hint'
                     };
                 }),
-                from : CM.Pos(cursor.line, fromCh),
-                to   : CM.Pos(cursor.line, cursor.ch)
+                from: CM.Pos(cursor.line, cursor.ch - (hasParen ? typed.length : 3 + typed.length)),
+                to: CM.Pos(cursor.line, cursor.ch)
             };
         }
 
