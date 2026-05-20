@@ -36,7 +36,7 @@ function snn_add_math_captcha() {
             <div class="verification-container">
                 <!-- STEP 1: MATH -->
                 <div id="math_step_<?php echo esc_attr( $unique ); ?>">
-                    <span class="step-label"><?php _e('Step 1: Solve <b>Math</b> Equation', 'snn'); ?></span>
+                    <span class="step-label"><?php _e('Step 1: Solve Math Equation', 'snn'); ?></span>
                     <canvas id="captchaCanvas_<?php echo esc_attr( $unique ); ?>" width="280" height="100"></canvas>
                     <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" placeholder="?" autocomplete="off" class="input">
                 </div>
@@ -129,7 +129,7 @@ function snn_add_math_captcha() {
                         ry = Math.random() * (canvas.height - 40) + 30; 
                         attempts1++;
                     } while (isColliding(rx, ry) && attempts1 < 50);
-                    items.push({ text: `${n1} + ${n2} = ?`, x: rx, y: ry, color: '#27ae60', size: 24, bold: true });
+                    items.push({ text: `${n1} + ${n2} = ?`, x: rx, y: ry, color: '#000000', size: 28, bold: true });
 
                     // Decoys
                     const colors = ['#e74c3c', '#3498db', '#9b59b6', '#f1c40f', '#e67e22'];
@@ -141,7 +141,7 @@ function snn_add_math_captcha() {
                             dy = Math.random() * (canvas.height - 30) + 25; 
                             attempts2++;
                         } while (isColliding(dx, dy) && attempts2 < 50);
-                        items.push({ text: `${Math.floor(Math.random()*9)+1} + ${Math.floor(Math.random()*9)+1} = ?`, x: dx, y: dy, color: colors[i], size: Math.floor(Math.random()*4)+16, bold: false });
+                        items.push({ text: `${Math.floor(Math.random()*9)+1} + ${Math.floor(Math.random()*9)+1} = ?`, x: dx, y: dy, color: colors[i], size: Math.floor(Math.random()*4)+14, bold: false });
                     }
 
                     items.forEach(item => {
