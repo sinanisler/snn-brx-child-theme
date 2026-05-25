@@ -47,7 +47,6 @@ jobs:
         includes/features/taxonomy-settings.php
         includes/features/utils.php
         includes/features/wp-admin-dashboard-widgets.php
-        includes/features/enqueue-scripts.php
         includes/features/interactions.php
         includes/features/draft-revision.php
 
