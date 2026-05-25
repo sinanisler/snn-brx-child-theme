@@ -48,6 +48,7 @@ jobs:
         includes/features/utils.php
         includes/features/wp-admin-dashboard-widgets.php
         includes/features/enqueue-scripts.php
+        includes/features/interactions.php
 
         includes/ai/ai-settings.php
         includes/ai/ai-api.php
@@ -103,6 +104,8 @@ jobs:
 
         assets/css/leaflet.css
         assets/css/snn-rich-text-editor.css
+        assets/css/images/marker-icon.png
+
 
 
     steps:
