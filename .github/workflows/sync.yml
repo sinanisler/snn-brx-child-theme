@@ -49,6 +49,7 @@ jobs:
         includes/features/wp-admin-dashboard-widgets.php
         includes/features/enqueue-scripts.php
         includes/features/interactions.php
+        includes/features/draft-revision.php
 
         includes/ai/ai-settings.php
         includes/ai/ai-api.php
