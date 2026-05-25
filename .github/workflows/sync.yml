@@ -11,7 +11,6 @@ jobs:
 
     env:
       FILES_TO_SYNC: |
-        # === includes/features (generic, block-theme compatible) ===
         includes/features/301-redirect.php
         includes/features/404-logging.php
         includes/features/accessibility-settings.php
@@ -49,7 +48,6 @@ jobs:
         includes/features/utils.php
         includes/features/wp-admin-dashboard-widgets.php
 
-        # === includes/ai (core AI files) ===
         includes/ai/ai-settings.php
         includes/ai/ai-api.php
         includes/ai/ai-overlay.php
@@ -59,7 +57,6 @@ jobs:
         includes/ai/ai-proxy.php
         includes/ai/api-call-templates.php
 
-        # === includes/ai/abilities (all generic, block-compatible) ===
         includes/ai/abilities/ability-categories.php
         includes/ai/abilities/active-theme-info.php
         includes/ai/abilities/analyze-post-seo.php
@@ -86,7 +83,6 @@ jobs:
         includes/ai/abilities/update-post-metadata.php
         includes/ai/abilities/update-posts.php
 
-        # === assets/js ===
         assets/js/FileSaver.min.js
         assets/js/ScrollTrigger.min.js
         assets/js/accessibility.min.js
@@ -104,7 +100,6 @@ jobs:
         assets/js/snn-rich-text-editor.js
         assets/js/wavesurfer.esm.js
 
-        # === assets/css ===
         assets/css/leaflet.css
         assets/css/snn-rich-text-editor.css
 
