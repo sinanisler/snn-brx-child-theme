@@ -11,54 +11,70 @@ jobs:
 
     env:
       FILES_TO_SYNC: |
-        includes/301-redirect.php
-        includes/404-logging.php
-        includes/accessibility-settings.php
-        includes/activity-logs.php
-        includes/cookie-banner.php
-        includes/custom-code-snippets.php
-        includes/custom-field-settings.php
-        includes/post-types-settings.php
-        includes/disable-emojis.php
-        includes/disable-gravatar.php
-        includes/disable-xmlrpc.php
-        includes/disable-wp-json-if-not-logged-in.php
-        includes/disable-bundled-theme-install.php
-        includes/disable-file-editing.php
-        includes/file-size-column-media.php
-        includes/login-math-captcha.php
-        includes/login-logo-change-url-change.php
-        includes/login-settings.php
-        includes/mail-logging.php
-        includes/media-settings.php
-        includes/media-image-opt.php
-        includes/role-manager.php
-        includes/search-loggins.php
-        includes/smtp-settings.php
-        includes/security-page.php
-        includes/seo.php
-        includes/taxonomy-settings.php
-        includes/other-settings.php
-        includes/remove-rss.php
-        includes/remove-wp-version.php
-        includes/block-editor-settings.php
-        includes/wp-admin-dashboard-widgets.php
+        # === includes/features (generic, block-theme compatible) ===
+        includes/features/301-redirect.php
+        includes/features/404-logging.php
+        includes/features/accessibility-settings.php
+        includes/features/activity-logs.php
+        includes/features/block-editor-settings.php
+        includes/features/cookie-banner.php
+        includes/features/custom-code-snippets.php
+        includes/features/custom-field-settings.php
+        includes/features/disable-bundled-theme-install.php
+        includes/features/disable-emojis.php
+        includes/features/disable-file-editing.php
+        includes/features/disable-gravatar.php
+        includes/features/disable-wp-json-if-not-logged-in.php
+        includes/features/disable-xmlrpc.php
+        includes/features/file-size-column-media.php
+        includes/features/limit-login-attempts.php
+        includes/features/login-logo-change-url-change.php
+        includes/features/login-math-captcha.php
+        includes/features/login-settings.php
+        includes/features/login-url-security.php
+        includes/features/mail-customizer.php
+        includes/features/mail-logging.php
+        includes/features/media-image-opt.php
+        includes/features/media-settings.php
+        includes/features/other-settings.php
+        includes/features/post-types-settings.php
+        includes/features/remove-rss.php
+        includes/features/remove-wp-version.php
+        includes/features/role-manager.php
+        includes/features/search-loggins.php
+        includes/features/security-page.php
+        includes/features/seo.php
+        includes/features/smtp-settings.php
+        includes/features/taxonomy-settings.php
+        includes/features/utils.php
+        includes/features/wp-admin-dashboard-widgets.php
 
+        # === includes/ai (core AI files) ===
         includes/ai/ai-settings.php
         includes/ai/ai-api.php
         includes/ai/ai-overlay.php
         includes/ai/ai-seo-generation.php
         includes/ai/ai-block-editor.php
         includes/ai/ai-agent-and-chat.php
+        includes/ai/ai-proxy.php
+        includes/ai/api-call-templates.php
 
+        # === includes/ai/abilities (all generic, block-compatible) ===
         includes/ai/abilities/ability-categories.php
         includes/ai/abilities/active-theme-info.php
+        includes/ai/abilities/analyze-post-seo.php
+        includes/ai/abilities/check-seo-quality-title-and-content.php
         includes/ai/abilities/create-post-summaries.php
+        includes/ai/abilities/create-posts.php
         includes/ai/abilities/create-terms.php
+        includes/ai/abilities/edit-block-content.php
+        includes/ai/abilities/generate-block-pattern.php
         includes/ai/abilities/get-comments.php
         includes/ai/abilities/get-media.php
         includes/ai/abilities/get-post-by-id.php
+        includes/ai/abilities/get-post-content.php
         includes/ai/abilities/get-post-meta.php
+        includes/ai/abilities/get-posts.php
         includes/ai/abilities/get-site-info.php
         includes/ai/abilities/get-tags.php
         includes/ai/abilities/get-terms.php
@@ -67,16 +83,10 @@ jobs:
         includes/ai/abilities/list-taxonomies.php
         includes/ai/abilities/search-content.php
         includes/ai/abilities/suggest-content-ideas.php
-        includes/ai/abilities/check-seo-quality-title-and-content.php
-        includes/ai/abilities/get-posts.php
-        includes/ai/abilities/get-post-content.php
         includes/ai/abilities/update-post-metadata.php
-        includes/ai/abilities/analyze-post-seo.php
-        includes/ai/abilities/create-posts.php
         includes/ai/abilities/update-posts.php
-        includes/ai/abilities/generate-block-pattern.php
-        includes/ai/abilities/edit-block-content.php
 
+        # === assets/js ===
         assets/js/FileSaver.min.js
         assets/js/ScrollTrigger.min.js
         assets/js/accessibility.min.js
@@ -85,14 +95,16 @@ jobs:
         assets/js/gsap.min.js
         assets/js/jszip.min.js
         assets/js/leaflet.js
+        assets/js/lenis.min.js
         assets/js/lottie.min.js
+        assets/js/markdown.min.js
         assets/js/pdf.min.js
         assets/js/pdf.worker.min.js
+        assets/js/snn-accessibility.js
         assets/js/snn-rich-text-editor.js
         assets/js/wavesurfer.esm.js
-        assets/js/snn-accessibility.js
-        assets/js/markdown.min.js
 
+        # === assets/css ===
         assets/css/leaflet.css
         assets/css/snn-rich-text-editor.css
 
