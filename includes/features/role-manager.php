@@ -792,7 +792,7 @@ function snn_ajax_search_posts() {
     $args = [
         'post_type' => array_values($post_types),
         'post_status' => 'any', // Support all statuses (draft, private, etc.)
-        'posts_per_page' => 20,
+        'posts_per_page' => 100,
         's' => $search_term,
         'orderby' => 'title',
         'order' => 'ASC',
