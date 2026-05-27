@@ -508,7 +508,7 @@ function snn_render_manage_roles_list() {
                                     'suppress_filters' => true
                                 ]);
                                 foreach ($restricted_posts as $restricted_post) {
-                                    $restricted_post_titles[] = esc_html($restricted_post->post_title) . ' (' . esc_html($restricted_post->ID) . ')';
+                                    $restricted_post_titles[] = esc_html($restricted_post->post_title) . ' #' . esc_html($restricted_post->ID) . ' (' . get_post_status($restricted_post) . ')';
                                 }
                                 $missing_ids = array_diff($role_restrictions, wp_list_pluck($restricted_posts, 'ID'));
                                 foreach ($missing_ids as $missing_id) {
@@ -661,7 +661,8 @@ function snn_render_edit_role_form($role_id) {
             $selected_posts_data[] = [
                 'id' => $post->ID,
                 'title' => $post->post_title,
-                'type' => $post_type_obj ? $post_type_obj->labels->singular_name : $post->post_type
+                'type' => $post_type_obj ? $post_type_obj->labels->singular_name : $post->post_type,
+                'status' => get_post_status($post)
             ];
         }
          $found_ids = wp_list_pluck($selected_posts_data, 'id');
@@ -670,7 +671,8 @@ function snn_render_edit_role_form($role_id) {
               $selected_posts_data[] = [
                    'id' => $missing_id,
                    'title' => sprintf(__('ID %d (Not Found)', 'snn'), $missing_id),
-                   'type' => __('N/A', 'snn')
+                   'type' => __('N/A', 'snn'),
+                   'status' => __('N/A', 'snn')
               ];
          }
     }
@@ -729,7 +731,7 @@ function snn_render_edit_role_form($role_id) {
                              <?php else : ?>
                                  <?php foreach ($selected_posts_data as $post_data) : ?>
                                      <span class="snn-selected-post-item" data-id="<?php echo esc_attr($post_data['id']); ?>">
-                                         <?php echo esc_html($post_data['title']); ?> (<?php echo esc_html($post_data['type']); ?>)
+                                         <?php echo esc_html($post_data['title']); ?> #<?php echo esc_html($post_data['id']); ?> (<?php echo esc_html($post_data['type']); ?> - <?php echo esc_html($post_data['status']); ?>)
                                          <button type="button" class="snn-remove-post" aria-label="<?php esc_attr_e('Remove', 'snn'); ?>">&times;</button>
                                      </span>
                                  <?php endforeach; ?>
@@ -767,18 +769,37 @@ function snn_ajax_search_posts() {
         unset($post_types['attachment']);
     }
 
+    $results = [];
+    $found_ids = [];
+
+    // 1. Try searching by ID if numeric
+    if (is_numeric($search_term)) {
+        $post_id = absint($search_term);
+        $id_post = get_post($post_id);
+        if ($id_post && in_array($id_post->post_type, $post_types) && !in_array($id_post->ID, $selected_ids)) {
+            $post_type_obj = get_post_type_object($id_post->post_type);
+            $results[] = [
+                'id' => $id_post->ID,
+                'title' => get_the_title($id_post),
+                'type' => $post_type_obj ? esc_html($post_type_obj->labels->singular_name) : $id_post->post_type,
+                'status' => get_post_status($id_post)
+            ];
+            $found_ids[] = $id_post->ID;
+        }
+    }
+
+    // 2. Search by title/content
     $args = [
         'post_type' => array_values($post_types),
-        'post_status' => 'publish',
+        'post_status' => 'any', // Support all statuses (draft, private, etc.)
         'posts_per_page' => 20,
         's' => $search_term,
         'orderby' => 'title',
         'order' => 'ASC',
-        'post__not_in' => $selected_ids
+        'post__not_in' => array_merge($selected_ids, $found_ids)
     ];
 
     $query = new WP_Query($args);
-    $results = [];
 
     if ($query->have_posts()) {
         while ($query->have_posts()) {
@@ -788,6 +809,7 @@ function snn_ajax_search_posts() {
                 'id' => get_the_ID(),
                 'title' => get_the_title(),
                 'type' => $post_type_obj ? esc_html($post_type_obj->labels->singular_name) : get_post_type(),
+                'status' => get_post_status()
             ];
         }
         wp_reset_postdata();
@@ -1033,7 +1055,7 @@ function snn_role_manager_inline_admin_js() {
                 }
 
                 const pill = $('<span class="snn-selected-post-item" data-id="' + post.id + '"></span>');
-                pill.text(post.title + ' (' + post.type + ') ');
+                pill.text(post.title + ' #' + post.id + ' (' + post.type + ' - ' + post.status + ') ');
                 const removeButton = $('<button type="button" class="snn-remove-post" aria-label="' + snnRoleManagerData.labels.remove + '">&times;</button>');
                 pill.append(removeButton);
 
@@ -1080,8 +1102,9 @@ function snn_role_manager_inline_admin_js() {
                                     li.attr('data-id', post.id);
                                     li.attr('data-title', post.title);
                                     li.attr('data-type', post.type);
+                                    li.attr('data-status', post.status);
                                     li.text(post.title);
-                                    li.append(' <span class="post-type">(' + post.type + ')</span>');
+                                    li.append(' <span class="post-type">#' + post.id + ' (' + post.type + ' - ' + post.status + ')</span>');
                                     ul.append(li);
                                 });
                             } else {
@@ -1101,7 +1124,8 @@ function snn_role_manager_inline_admin_js() {
                 const post = {
                     id: li.data('id'),
                     title: li.data('title'),
-                    type: li.data('type')
+                    type: li.data('type'),
+                    status: li.data('status')
                 };
                 const controlWrapper = li.closest('.snn-post-restriction-control');
                 const selectedContainer = controlWrapper.find('.snn-selected-posts');
