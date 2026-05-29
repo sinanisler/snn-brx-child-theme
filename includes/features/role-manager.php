@@ -502,6 +502,7 @@ function snn_render_manage_roles_list() {
                                 $restricted_posts = get_posts([
                                     'post__in' => $role_restrictions,
                                     'post_type' => 'any',
+                                    'post_status' => 'any',
                                     'numberposts' => -1,
                                     'orderby' => 'title',
                                     'order' => 'ASC',
@@ -651,6 +652,7 @@ function snn_render_edit_role_form($role_id) {
         $posts = get_posts([
             'post__in' => $current_restrictions,
             'post_type' => 'any',
+            'post_status' => 'any',
             'numberposts' => -1,
             'orderby' => 'title',
             'order' => 'ASC',
