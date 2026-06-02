@@ -1,0 +1,66 @@
+{
+    "name": "szepeviktor/phpstan-wordpress",
+    "description": "WordPress extensions for PHPStan",
+    "license": "MIT",
+    "type": "phpstan-extension",
+    "keywords": [
+        "static analysis",
+        "code analysis",
+        "code analyse",
+        "wordpress",
+        "phpstan"
+    ],
+    "require": {
+        "php": "^7.2 || ^8.0",
+        "php-stubs/wordpress-stubs": "^4.7 || ^5.0 || ^6.0",
+        "phpstan/phpstan": "^1.10.31",
+        "symfony/polyfill-php73": "^1.12.0"
+    },
+    "require-dev": {
+        "composer/composer": "^2.1.14",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "php-parallel-lint/php-parallel-lint": "^1.1",
+        "phpstan/phpstan-strict-rules": "^1.2",
+        "phpunit/phpunit": "^8.0 || ^9.0",
+        "szepeviktor/phpcs-psr-12-neutron-hybrid-ruleset": "^1.0",
+        "wp-coding-standards/wpcs": "3.1.0 as 2.3.0"
+    },
+    "suggest": {
+        "swissspidy/phpstan-no-private": "Detect usage of internal core functions, classes and methods"
+    },
+    "autoload": {
+        "psr-4": {
+            "SzepeViktor\\PHPStan\\WordPress\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "classmap": [
+            "tests/"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "extra": {
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        }
+    },
+    "scripts": {
+        "test": [
+            "@test:syntax",
+            "@test:phpunit",
+            "@test:cs",
+            "@test:phpstan"
+        ],
+        "test:cs": "phpcs",
+        "test:cs:fix": "phpcbf",
+        "test:phpstan": "phpstan analyze",
+        "test:phpunit": "phpunit",
+        "test:syntax": "parallel-lint bootstrap.php src/ tests/"
+    }
+}

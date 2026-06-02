@@ -1,0 +1,19 @@
+[files]
+extend-exclude = [
+    ".git/",
+    "source/",
+    "wordpress-stubs.php",
+]
+ignore-hidden = false
+
+[default]
+extend-ignore-re = [
+    "get-post-stati",
+]
+
+[default.extend-identifiers]
+Automattic = "Automattic"
+get_post_stati = "get_post_stati"
+Github = "GitHub"
+Woocommerce = "WooCommerce"
+Wordpress = "WordPress"

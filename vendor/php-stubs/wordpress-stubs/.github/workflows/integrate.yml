@@ -1,0 +1,46 @@
+name: "Integrate"
+
+on:
+  push:
+    branches:
+    - "master"
+  pull_request:
+    branches:
+    - "master"
+
+permissions:
+  contents: "read"
+
+jobs:
+  test:
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        php-version:
+        - "7.4"
+        - "8.0"
+        - "8.1"
+        - "8.2"
+        - "8.3"
+        - "8.4"
+        - "8.5"
+
+    steps:
+    - name: "Checkout repository"
+      uses: "actions/checkout@v4"
+
+    - name: "Set up PHP"
+      uses: "shivammathur/setup-php@v2"
+      with:
+        coverage: "none"
+        php-version: "${{ matrix.php-version }}"
+
+    - name: "Install dependencies"
+      run: "composer install --no-interaction --no-progress --prefer-dist"
+
+    - run: "./generate.sh"
+    - run: "php -l wordpress-stubs.php"
+    - run: "git diff --exit-code"
+    - run: "php -f wordpress-stubs.php"
+    - run: "composer run test"

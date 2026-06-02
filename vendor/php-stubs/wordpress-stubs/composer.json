@@ -1,0 +1,67 @@
+{
+    "name": "php-stubs/wordpress-stubs",
+    "description": "WordPress function and class declaration stubs for static analysis.",
+    "license": "MIT",
+    "keywords": [
+        "wordpress",
+        "static analysis",
+        "phpstan"
+    ],
+    "homepage": "https://github.com/php-stubs/wordpress-stubs",
+    "require-dev": {
+        "php": "^7.4 || ^8.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "nikic/php-parser": "^5.5",
+        "php-stubs/generator": "^0.8.6",
+        "phpdocumentor/reflection-docblock": "^6.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^9.5",
+        "symfony/polyfill-php80": "*",
+        "szepeviktor/phpcs-psr-12-neutron-hybrid-ruleset": "^1.1.1",
+        "wp-coding-standards/wpcs": "3.1.0 as 2.3.0"
+    },
+    "conflict": {
+        "phpdocumentor/reflection-docblock": "5.6.1"
+    },
+    "suggest": {
+        "paragonie/sodium_compat": "Pure PHP implementation of libsodium",
+        "symfony/polyfill-php80": "Symfony polyfill backporting some PHP 8.0+ features to lower PHP versions",
+        "szepeviktor/phpstan-wordpress": "WordPress extensions for PHPStan"
+    },
+    "minimum-stability": "stable",
+    "autoload-dev": {
+        "psr-4": {
+            "PhpStubs\\WordPress\\Core\\": "src/"
+        },
+        "classmap": [
+            "tests/"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "php-stubs/generator": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "platform": {
+            "php": "7.4.30"
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "post-install-cmd": "@composer --working-dir=source/ update --no-interaction",
+        "post-update-cmd": "@composer --working-dir=source/ update --no-interaction",
+        "cleanup": "git status --short --ignored | sed -n -e 's#^!! ##p' | xargs -r rm -vrf",
+        "test": [
+            "@test:phpunit",
+            "@test:phpstan",
+            "@test:cs"
+        ],
+        "test:cs": "phpcs",
+        "test:cs:fix": "phpcbf",
+        "test:phpstan": "phpstan analyze",
+        "test:phpunit": "phpunit"
+    },
+    "scripts-descriptions": {
+        "cleanup": "Remove all ignored files."
+    }
+}

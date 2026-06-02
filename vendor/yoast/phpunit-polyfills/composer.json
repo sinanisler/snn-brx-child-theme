@@ -1,0 +1,108 @@
+{
+	"name": "yoast/phpunit-polyfills",
+	"description": "Set of polyfills for changed PHPUnit functionality to allow for creating PHPUnit cross-version compatible tests",
+	"license": "BSD-3-Clause",
+	"type": "library",
+	"keywords": [
+		"phpunit",
+		"polyfill",
+		"testing"
+	],
+	"authors": [
+		{
+			"name": "Team Yoast",
+			"email": "support@yoast.com",
+			"homepage": "https://yoast.com"
+		},
+		{
+			"name": "Contributors",
+			"homepage": "https://github.com/Yoast/PHPUnit-Polyfills/graphs/contributors"
+		}
+	],
+	"homepage": "https://github.com/Yoast/PHPUnit-Polyfills",
+	"support": {
+		"issues": "https://github.com/Yoast/PHPUnit-Polyfills/issues",
+		"source": "https://github.com/Yoast/PHPUnit-Polyfills",
+		"security": "https://github.com/Yoast/PHPUnit-Polyfills/security/policy"
+	},
+	"require": {
+		"php": ">=5.6",
+		"phpunit/phpunit": "^5.7.21 || ^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0"
+	},
+	"require-dev": {
+		"php-parallel-lint/php-console-highlighter": "^1.0.0",
+		"php-parallel-lint/php-parallel-lint": "^1.4.0",
+		"yoast/yoastcs": "^3.2.0"
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"autoload": {
+		"files": [
+			"phpunitpolyfills-autoload.php"
+		]
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Yoast\\PHPUnitPolyfills\\Tests\\": "tests/"
+		}
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"lock": false
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-main": "4.x-dev"
+		}
+	},
+	"scripts": {
+		"lint7": [
+			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --show-deprecated --exclude vendor --exclude .git --exclude src/Exceptions/Error.php --exclude src/Exceptions/TypeError.php --exclude tests/Polyfills/Fixtures/ValueObjectUnion.php --exclude tests/Polyfills/Fixtures/ValueObjectUnionNoReturnType.php"
+		],
+		"lint70": [
+			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --show-deprecated --exclude vendor --exclude .git --exclude src/Exceptions/Error.php --exclude src/Exceptions/TypeError.php --exclude tests/Polyfills/Fixtures/ValueObjectParamNotRequired.php --exclude tests/Polyfills/Fixtures/ValueObjectUnion.php --exclude tests/Polyfills/Fixtures/ValueObjectUnionNoReturnType.php"
+		],
+		"lint-lt70": [
+			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --show-deprecated --exclude vendor --exclude .git --exclude src/TestCases/TestCasePHPUnitGte8.php --exclude src/TestListeners/TestListenerDefaultImplementationPHPUnitGte7.php --exclude tests/Polyfills/Fixtures/ChildValueObject.php --exclude tests/Polyfills/Fixtures/ValueObject.php --exclude tests/Polyfills/Fixtures/ValueObjectParamNotRequired.php --exclude tests/Polyfills/Fixtures/ValueObjectUnion.php --exclude tests/Polyfills/Fixtures/ValueObjectUnionNoReturnType.php"
+		],
+		"lint-gte80": [
+			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --show-deprecated --exclude vendor --exclude .git"
+		],
+		"lint-gte84": [
+			"@php ./vendor/php-parallel-lint/php-parallel-lint/parallel-lint . -e php --show-deprecated --exclude vendor --exclude .git  --exclude tests/Polyfills/Fixtures/ValueObjectNoReturnType.php"
+		],
+		"check-cs": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --runtime-set testVersion 5.6-"
+		],
+		"fix-cs": [
+			"@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf"
+		],
+		"test": [
+			"@php ./vendor/phpunit/phpunit/phpunit --no-coverage"
+		],
+		"coverage": [
+			"@php ./vendor/phpunit/phpunit/phpunit"
+		],
+		"test10": [
+			"@php ./vendor/phpunit/phpunit/phpunit -c phpunit10.xml.dist --no-coverage"
+		],
+		"coverage10": [
+			"@php ./vendor/phpunit/phpunit/phpunit -c phpunit10.xml.dist"
+		]
+	},
+	"scripts-descriptions": {
+		"lint7": "Check the PHP files for parse errors. (PHP 7.1 - 7.4)",
+		"lint70": "Check the PHP files for parse errors. (PHP 7.0)",
+		"lint-lt70": "Check the PHP files for parse errors. (PHP < 7.0)",
+		"lint-gte80": "Check the PHP files for parse errors. (PHP 8.0 - 8.3)",
+		"lint-gte84": "Check the PHP files for parse errors. (PHP 8.4+)",
+		"check-cs": "Check the PHP files for code style violations and best practices.",
+		"fix-cs": "Auto-fix code style violations in the PHP files.",
+		"test": "Run the unit tests without code coverage (PHPUnit < 10).",
+		"coverage": "Run the unit tests with code coverage (PHPUnit < 10).",
+		"test10": "Run the unit tests without code coverage using the PHPUnit 10 configuration file.",
+		"coverage10": "Run the unit tests with code coverage using the PHPUnit 10 configuration file."
+	}
+}

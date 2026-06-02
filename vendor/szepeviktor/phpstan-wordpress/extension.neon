@@ -1,0 +1,163 @@
+services:
+    -
+        class: SzepeViktor\PHPStan\WordPress\HookDocBlock
+    -
+        class: SzepeViktor\PHPStan\WordPress\WpThemeGetDynamicMethodReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\IsWpErrorFunctionTypeSpecifyingExtension
+        tags:
+            - phpstan.typeSpecifier.functionTypeSpecifyingExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\WpThemeMagicPropertiesClassReflectionExtension
+        tags:
+            - phpstan.broker.propertiesClassReflectionExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\EchoKeyDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetApprovedCommentsDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetPermalinkDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetListTableDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\RedirectCanonicalDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\StringOrArrayDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetTermsDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetPostDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetPostsDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetSitesDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetTaxonomiesDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetObjectTaxonomiesDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\GetCommentDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\HasFilterDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\ShortcodeAttsDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\MySQL2DateDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\CurrentTimeDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\ApplyFiltersDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\EchoParameterDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\WpErrorParameterDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\TermExistsDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\WpParseUrlFunctionDynamicReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\WpDieDynamicFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\HookDocsVisitor
+        tags:
+            - phpstan.parser.richParserNodeVisitor
+    -
+        class: SzepeViktor\PHPStan\WordPress\AssertWpErrorTypeSpecifyingExtension
+        tags:
+            - phpstan.typeSpecifier.methodTypeSpecifyingExtension
+    -
+        class: SzepeViktor\PHPStan\WordPress\AssertNotWpErrorTypeSpecifyingExtension
+        tags:
+            - phpstan.typeSpecifier.methodTypeSpecifyingExtension
+rules:
+    - SzepeViktor\PHPStan\WordPress\HookCallbackRule
+    - SzepeViktor\PHPStan\WordPress\HookDocsRule
+    - SzepeViktor\PHPStan\WordPress\IsWpErrorRule
+parameters:
+    bootstrapFiles:
+        - ../../php-stubs/wordpress-stubs/wordpress-stubs.php
+        - bootstrap.php
+    dynamicConstantNames:
+        - WP_DEBUG
+        - WP_DEBUG_LOG
+        - WP_DEBUG_DISPLAY
+        - EMPTY_TRASH_DAYS
+        - WP_CLI
+        - COOKIE_DOMAIN
+        - SAVEQUERIES
+        - SCRIPT_DEBUG
+    earlyTerminatingFunctionCalls:
+        - wp_send_json
+        - wp_send_json_success
+        - wp_send_json_error
+        - wp_nonce_ays
+        - comment_footer_die
+        - dead_db
+        - do_favicon
+        - install_theme_information
+        - media_send_to_editor
+        - redirect_post
+        - wp_ajax_heartbeat
+        - wp_ajax_nopriv_heartbeat
+    earlyTerminatingMethodCalls:
+        Custom_Background:
+            - wp_set_background_image
+        IXR_Server:
+            - output
+        WP_Ajax_Response:
+            - send
+        WP_CLI:
+            - error
+            - halt
+        WP_Recovery_Mode:
+            - redirect_protected
+        WP_Sitemaps_Stylesheet:
+            - render_stylesheet

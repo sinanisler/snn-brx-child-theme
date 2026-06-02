@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<ruleset>
+    <file>finder.php</file>
+    <file>functionMap.php</file>
+    <file>src/</file>
+    <file>visitor.php</file>
+    <file>tests/</file>
+
+    <rule ref="PSR12NeutronRuleset">
+        <exclude name="Generic.Files.LineLength"/>
+        <exclude name="PEAR.Commenting.ClassComment"/>
+        <exclude name="PEAR.Commenting.FileComment"/>
+    </rule>
+
+    <!-- Rules not applied to tests -->
+    <rule ref="NeutronStandard.Functions.TypeHint.UnusedReturnType">
+        <exclude-pattern>tests/TypeInferenceTest.php</exclude-pattern>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable">
+        <exclude-pattern>tests/data/param/wpdb.php</exclude-pattern>
+        <exclude-pattern>tests/data/param/wp-robots.php</exclude-pattern>
+        <exclude-pattern>tests/data/param/absint.php</exclude-pattern>
+    </rule>
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>tests/data/**/__demo.php</exclude-pattern>
+    </rule>
+    <rule ref="PSR12NeutronRuleset.NamingConventions.MeaningfulVariableName">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="PSR12NeutronRuleset.Strings.ConcatenationUsage">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Functions.FunctionLength">
+        <exclude-pattern>tests/ParameterTypeTest.php</exclude-pattern>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Namespaces.FullyQualifiedExceptions">
+        <properties>
+            <property name="ignoredNames" type="array">
+                <element value="WP_Error"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.PHP.RequireExplicitAssertion">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="Squiz.PHP.CommentedOutCode">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.DateTime">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.DB">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.Security">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.WP">
+        <exclude-pattern>tests/</exclude-pattern>
+    </rule>
+</ruleset>
