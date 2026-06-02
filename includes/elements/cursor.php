@@ -285,6 +285,10 @@ class SNN_Custom_Cursor_Element extends Element {
 			echo '];';
 
 			echo '
+			// Track which target elements have already been claimed by an earlier
+			// (higher-priority) cursor config, so only the first matching cursor shows.
+			const claimedTargets = new WeakSet();
+
 			// Prepare each hover cursor element and attach hover listeners
 			cursorConfig.forEach(function(config) {
 				const cursorElement = document.querySelector(config.cursorSelector);
@@ -310,15 +314,23 @@ class SNN_Custom_Cursor_Element extends Element {
 					centerMouse: true
 				});
 
+				// Collect target elements, skipping any already claimed by a prior config
+				const allTargets = document.querySelectorAll(config.targetSelector);
+				const targets = [];
+				allTargets.forEach(function(el) {
+					if (claimedTargets.has(el)) return;
+					claimedTargets.add(el);
+					targets.push(el);
+				});
+
 				// Hide native cursor on target elements if configured
 				if (config.hideDefaultCursor) {
-					document.querySelectorAll(config.targetSelector).forEach(function(el) {
+					targets.forEach(function(el) {
 						el.style.cursor = "none";
 					});
 				}
 
 				// Attach plain DOM hover listeners to target elements
-				const targets = document.querySelectorAll(config.targetSelector);
 				targets.forEach(function(target) {
 					target.addEventListener("mouseenter", function() {
 						cursorElement.style.opacity = "1";
