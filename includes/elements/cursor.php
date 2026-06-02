@@ -39,6 +39,32 @@ class SNN_Custom_Cursor_Element extends Element {
 			],
 		];
 
+		$this->controls['default_cursor_border'] = [
+			'tab'     => 'content',
+			'label'   => esc_html__( 'Default Cursor Border', 'snn' ),
+			'type'    => 'border',
+			'inline'  => true,
+			'small'   => true,
+			'default' => [
+				'width'  => [
+					'top'    => 0,
+					'right'  => 0,
+					'bottom' => 0,
+					'left'   => 0,
+				],
+				'style'  => 'solid',
+				'color'  => [
+					'hex' => '#000000',
+				],
+				'radius' => [
+					'top'    => '50%',
+					'right'  => '50%',
+					'bottom' => '50%',
+					'left'   => '50%',
+				],
+			],
+		];
+
 		$this->controls['cursor_speed'] = [
 			'tab'     => 'content',
 			'label'   => esc_html__( 'Cursor Speed', 'snn' ),
@@ -134,6 +160,42 @@ class SNN_Custom_Cursor_Element extends Element {
 			? $this->settings['hover_cursors']
 			: [];
 
+		// Build border CSS from control (empty by default)
+		$border_width  = $this->settings['default_cursor_border']['width'] ?? [];
+		$border_style  = $this->settings['default_cursor_border']['style'] ?? 'solid';
+		$border_color  = $this->ensure_string( $this->settings['default_cursor_border']['color'] ?? '#000000' );
+		$border_radius = $this->settings['default_cursor_border']['radius'] ?? [];
+
+		$border_top    = isset( $border_width['top'] ) ? intval( $border_width['top'] ) : 0;
+		$border_right  = isset( $border_width['right'] ) ? intval( $border_width['right'] ) : 0;
+		$border_bottom = isset( $border_width['bottom'] ) ? intval( $border_width['bottom'] ) : 0;
+		$border_left   = isset( $border_width['left'] ) ? intval( $border_width['left'] ) : 0;
+		$border_width_css = trim( $border_top . 'px ' . $border_right . 'px ' . $border_bottom . 'px ' . $border_left . 'px' );
+
+		$radius_top    = $this->ensure_string( $border_radius['top'] ?? '50%' );
+		$radius_right  = $this->ensure_string( $border_radius['right'] ?? '50%' );
+		$radius_bottom = $this->ensure_string( $border_radius['bottom'] ?? '50%' );
+		$radius_left   = $this->ensure_string( $border_radius['left'] ?? '50%' );
+
+		// Append % only if the value is a bare number (back-compat with int defaults)
+		$normalize_radius = function( $val ) {
+			$val = trim( (string) $val );
+			if ( $val === '' ) {
+				return '50%';
+			}
+			if ( is_numeric( $val ) ) {
+				return $val . '%';
+			}
+			return $val;
+		};
+
+		$border_radius_css = trim(
+			$normalize_radius( $radius_top ) . ' ' .
+			$normalize_radius( $radius_right ) . ' ' .
+			$normalize_radius( $radius_bottom ) . ' ' .
+			$normalize_radius( $radius_left )
+		);
+
 		// Generate unique ID
 		$unique_id = 'snn-cursor-' . uniqid();
 
@@ -161,9 +223,13 @@ class SNN_Custom_Cursor_Element extends Element {
 			width: ' . esc_attr( $default_size ) . 'px;
 			height: ' . esc_attr( $default_size ) . 'px;
 			aspect-ratio: ' . esc_attr( $aspect_ratio ) . ';
-			border-radius: 50%;
+			border-radius: ' . esc_attr( $border_radius_css ) . ';
 			pointer-events: none;
 			background-color: ' . esc_attr( $cursor_color ) . ';
+			border-width: ' . esc_attr( $border_width_css ) . ';
+			border-style: ' . esc_attr( $border_style ) . ';
+			border-color: ' . esc_attr( $border_color ) . ';
+			box-sizing: border-box;
 			transform: translate(-200px, -200px);
 			transition: opacity 0.3s ease;
 		}';
