@@ -103,6 +103,31 @@ class SNN_Custom_Cursor_Element extends Element {
 			'description' => esc_html__( 'When enabled, the native browser cursor is hidden everywhere, per-element hover cursors will still show', 'snn' ),
 		];
 
+		// Responsive: disable custom cursor at given breakpoints
+		$this->controls['disable_cursor_below_991'] = [
+			'tab'         => 'content',
+			'label'       => esc_html__( 'Disable Cursor Below 991px', 'snn' ),
+			'type'        => 'checkbox',
+			'default'     => false,
+			'description' => esc_html__( 'Disables the custom cursor on tablet and mobile (≤ 991px).', 'snn' ),
+		];
+
+		$this->controls['disable_cursor_below_767'] = [
+			'tab'         => 'content',
+			'label'       => esc_html__( 'Disable Cursor Below 767px', 'snn' ),
+			'type'        => 'checkbox',
+			'default'     => false,
+			'description' => esc_html__( 'Disables the custom cursor on small tablet and mobile (≤ 767px).', 'snn' ),
+		];
+
+		$this->controls['disable_cursor_below_478'] = [
+			'tab'         => 'content',
+			'label'       => esc_html__( 'Disable Cursor Below 478px', 'snn' ),
+			'type'        => 'checkbox',
+			'default'     => false,
+			'description' => esc_html__( 'Disables the custom cursor on mobile (≤ 478px).', 'snn' ),
+		];
+
 		// Repeater for Hover States
 		$this->controls['hover_cursors'] = [
 			'tab'           => 'content',
@@ -156,6 +181,9 @@ class SNN_Custom_Cursor_Element extends Element {
 		$default_speed    = floatval( $this->settings['cursor_speed'] ?? 0.125 );
 		$z_index          = intval( $this->settings['cursor_z_index'] ?? 9999 );
 		$hide_globally    = ! empty( $this->settings['hide_default_cursor_globally'] );
+		$disable_below_991 = ! empty( $this->settings['disable_cursor_below_991'] );
+		$disable_below_767 = ! empty( $this->settings['disable_cursor_below_767'] );
+		$disable_below_478 = ! empty( $this->settings['disable_cursor_below_478'] );
 		$hover_cursors    = isset( $this->settings['hover_cursors'] ) && is_array( $this->settings['hover_cursors'] )
 			? $this->settings['hover_cursors']
 			: [];
@@ -234,6 +262,26 @@ class SNN_Custom_Cursor_Element extends Element {
 			transition: opacity 0.3s ease;
 		}';
 
+		// Hide cursor at the user-disabled breakpoints + restore native cursor globally on those widths
+		if ( $disable_below_991 || $disable_below_767 || $disable_below_478 ) {
+			$breakpoints = [];
+			if ( $disable_below_991 ) {
+				$breakpoints[] = 991;
+			}
+			if ( $disable_below_767 ) {
+				$breakpoints[] = 767;
+			}
+			if ( $disable_below_478 ) {
+				$breakpoints[] = 478;
+			}
+			foreach ( $breakpoints as $bp ) {
+				echo '@media (max-width: ' . intval( $bp ) . 'px) {';
+				echo '#' . esc_attr( $unique_id ) . '-default { display: none !important; }';
+				echo 'html, body, * { cursor: auto !important; }';
+				echo '}';
+			}
+		}
+
 		echo '</style>';
 
 		// JavaScript - Cotton library + initialization
@@ -247,6 +295,27 @@ class SNN_Custom_Cursor_Element extends Element {
 			const defaultCursor = document.querySelector("#' . esc_js( $unique_id ) . '-default");
 
 			if (!defaultCursor) return;
+
+			// Breakpoint guards — exit early if the current viewport is below
+			// any user-disabled breakpoint, and re-arm on resize when going back up.
+			const disable991 = ' . ( $disable_below_991 ? 'true' : 'false' ) . ';
+			const disable767 = ' . ( $disable_below_767 ? 'true' : 'false' ) . ';
+			const disable478 = ' . ( $disable_below_478 ? 'true' : 'false' ) . ';
+
+			function cursorDisabled() {
+				const w = window.innerWidth;
+				if (disable991 && w <= 991) return true;
+				if (disable767 && w <= 767) return true;
+				if (disable478 && w <= 478) return true;
+				return false;
+			}
+
+			if (cursorDisabled()) {
+				// Hide the cursor and restore the native cursor on body for this width.
+				defaultCursor.style.display = "none";
+				document.body.style.cursor = "auto";
+				return;
+			}
 			';
 
 		// Global hide: suppress native browser cursor body-wide
