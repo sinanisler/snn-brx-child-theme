@@ -354,13 +354,27 @@ class SNN_Custom_Cursor_Element extends Element {
 			echo '];';
 
 			echo '
+			// Resolve all cursor elements upfront so we can hide all others when one activates.
+			const allCursorElements = cursorConfig.map(function(config) {
+				return document.querySelector(config.cursorSelector);
+			});
+
+			function hideAllCustomCursors() {
+				allCursorElements.forEach(function(el) {
+					if (el) {
+						el.style.opacity = "0";
+						el.style.visibility = "hidden";
+					}
+				});
+			}
+
 			// Track which target elements have already been claimed by an earlier
 			// (higher-priority) cursor config, so only the first matching cursor shows.
 			const claimedTargets = new WeakSet();
 
 			// Prepare each hover cursor element and attach hover listeners
-			cursorConfig.forEach(function(config) {
-				const cursorElement = document.querySelector(config.cursorSelector);
+			cursorConfig.forEach(function(config, idx) {
+				const cursorElement = allCursorElements[idx];
 				if (!cursorElement) {
 					console.warn("Cursor element not found: " + config.cursorSelector);
 					return;
@@ -402,6 +416,9 @@ class SNN_Custom_Cursor_Element extends Element {
 				// Attach plain DOM hover listeners to target elements
 				targets.forEach(function(target) {
 					target.addEventListener("mouseenter", function() {
+						// Hide every other custom cursor before showing this one,
+						// preventing double-cursor when targets are nested in the DOM.
+						hideAllCustomCursors();
 						cursorElement.style.opacity = "1";
 						cursorElement.style.visibility = "visible";
 						defaultCursor.style.opacity = "0";
