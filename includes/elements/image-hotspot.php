@@ -417,6 +417,12 @@ class Snn_Image_Hotspots extends Element {
                         });
                     });
 
+                    // Close when clicking on the image area (wrapper, but not a dot)
+                    wrapper.addEventListener("click", function(e) {
+                        closeAll();
+                    });
+
+                    // Close when clicking outside the wrapper entirely
                     document.addEventListener("click", function(e) {
                         if (!wrapper.contains(e.target)) {
                             closeAll();
