@@ -116,6 +116,24 @@ class Snn_Image_Hotspots extends Element {
                     'step'    => 1,
                     'inline'  => true,
                 ],
+                'icon' => [
+                    'label' => esc_html__( 'Icon', 'snn' ),
+                    'type'  => 'icon',
+                ],
+                'icon_size' => [
+                    'label'   => esc_html__( 'Icon Size (px)', 'snn' ),
+                    'type'    => 'number',
+                    'default' => 16,
+                    'min'     => 8,
+                    'max'     => 80,
+                    'step'    => 1,
+                    'inline'  => true,
+                ],
+                'icon_color' => [
+                    'label'   => esc_html__( 'Icon Color', 'snn' ),
+                    'type'    => 'color',
+                    'default' => '#fff',
+                ],
             ],
         ];
     }
@@ -258,6 +276,12 @@ class Snn_Image_Hotspots extends Element {
             $tooltip_width      = isset( $hotspot['tooltip_width'] ) ? intval( $hotspot['tooltip_width'] ) : 0;
             $tooltip_border_radius = isset( $hotspot['tooltip_border_radius'] ) ? intval( $hotspot['tooltip_border_radius'] ) : 5;
 
+            // --- Icon Parsing ---
+            $icon_settings = isset( $hotspot['icon'] ) ? $hotspot['icon'] : null;
+            $has_icon      = ! empty( $icon_settings ) && ( ( is_array( $icon_settings ) && ! empty( $icon_settings['icon'] ) ) || ( is_string( $icon_settings ) && ! empty( $icon_settings ) ) );
+            $icon_size_val = isset( $hotspot['icon_size'] ) ? intval( $hotspot['icon_size'] ) : 16;
+            $icon_color_val = $parse_color( isset( $hotspot['icon_color'] ) ? $hotspot['icon_color'] : null, '#fff' );
+
             $dot_id    = $unique . '-dot-' . $i;
             $dot_style = 'left:' . $x . '%; top:' . $y . '%; width:' . $dot_size . 'px; height:' . $dot_size . 'px; background:' . $dot_color . '; border-radius:' . $dot_border_radius . '; transform:translate(-50%,-50%);';
 
@@ -284,6 +308,19 @@ class Snn_Image_Hotspots extends Element {
                 style="' . esc_attr( $dot_style ) . '"
                 data-snn-tooltip-pos="' . esc_attr( $tooltip_pos ) . '"
             >';
+                // Render icon inside the dot if set
+                if ( $has_icon ) {
+                    echo '<span class="hotspot-icon" style="font-size:' . $icon_size_val . 'px; color:' . esc_attr( $icon_color_val ) . '; line-height:1; display:flex; align-items:center; justify-content:center;">';
+                    if ( class_exists( '\\Bricks\\Helpers' ) && method_exists( '\\Bricks\\Helpers', 'render_control_icon' ) ) {
+                        \Bricks\Helpers::render_control_icon( $icon_settings, [] );
+                    } else {
+                        // Fallback: manually render the icon
+                        if ( is_array( $icon_settings ) && isset( $icon_settings['icon'] ) ) {
+                            echo '<i class="' . esc_attr( $icon_settings['icon'] ) . '"></i>';
+                        }
+                    }
+                    echo '</span>';
+                }
                 // The actual tooltip element which can contain HTML
                 echo '<div class="snn-tooltip-content" role="tooltip" id="tooltip-content-' . esc_attr( $dot_id ) . '">' . $tooltip_content . '</div>';
             echo '</div>';
