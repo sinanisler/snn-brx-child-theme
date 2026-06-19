@@ -22,6 +22,16 @@ class Snn_Image_Hotspots extends Element {
             'type'  => 'image',
         ];
 
+        // Hover/Click toggle
+        $this->controls['hover_click_toggle'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Hover/Click', 'snn' ),
+            'type'    => 'checkbox',
+            'inline'  => true,
+            'small'   => true,
+            'default' => false,
+        ];
+
         // Global dot controls
         $this->controls['dot_size'] = [
             'tab'   => 'content',
@@ -158,6 +168,12 @@ class Snn_Image_Hotspots extends Element {
             }
         }
 
+        // Click mode (Hover/Click toggle)
+        $click_mode = isset( $this->settings['hover_click_toggle'] ) ? true : false;
+        if ( $click_mode ) {
+            $this->set_attribute( '_root', 'data-snn-click-mode', 'true' );
+        }
+
         $unique = 'image-hotspots-' . uniqid();
         $this->set_attribute( '_root', 'class', [ 'snn-image-hotspots-wrapper', $unique ] );
         // $this->set_attribute( '_root', 'style', 'position: relative; width: 100%; display: inline-block;' );
@@ -202,7 +218,7 @@ class Snn_Image_Hotspots extends Element {
             /* Custom Tooltip Base Styles */
             .' . $unique . ' .snn-tooltip-content {
                 position: absolute;
-                padding: 8px 14px;
+                padding: 22px 16px 22px 16px;
                 border-radius: 5px;
                 font-size: 14px;
                 line-height: 1.5;
@@ -219,6 +235,45 @@ class Snn_Image_Hotspots extends Element {
             .' . $unique . ' .hotspot-dot:focus .snn-tooltip-content {
                 opacity: 1;
                 visibility: visible;
+            }
+
+            /* Click mode: disable hover, enable click-to-toggle */
+            .' . $unique . '[data-snn-click-mode="true"] .hotspot-dot:hover .snn-tooltip-content,
+            .' . $unique . '[data-snn-click-mode="true"] .hotspot-dot:focus .snn-tooltip-content {
+                opacity: 0;
+                visibility: hidden;
+            }
+            .' . $unique . '[data-snn-click-mode="true"] .hotspot-dot.snn-active .snn-tooltip-content {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
+
+            /* Close button inside tooltip */
+            .' . $unique . ' .snn-tooltip-close {
+                position: absolute;
+                top: 2px;
+                right: 4px;
+                width: 16px;
+                height: 16px;
+                padding: 0;
+                border: none;
+                background: transparent;
+                color: inherit;
+                font-size: 22px;
+                font-weight:bold;
+                line-height: 1;
+                cursor: pointer;
+                opacity: 0.6;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: opacity 0.2s;
+            }
+            .' . $unique . ' .snn-tooltip-close:hover {
+                opacity: 1;
+                background: rgba(255,255,255,0.15);
             }
 
             /* Tooltip Positioning */
@@ -322,13 +377,53 @@ class Snn_Image_Hotspots extends Element {
                     echo '</span>';
                 }
                 // The actual tooltip element which can contain HTML
-                echo '<div class="snn-tooltip-content" role="tooltip" id="tooltip-content-' . esc_attr( $dot_id ) . '">' . $tooltip_content . '</div>';
+                echo '<div class="snn-tooltip-content" role="tooltip" id="tooltip-content-' . esc_attr( $dot_id ) . '"><button class="snn-tooltip-close" aria-label="' . esc_attr__( 'Close', 'snn' ) . '" type="button">&times;</button>' . $tooltip_content . '</div>';
             echo '</div>';
         }
         
         // Output dynamic styles if any exist
         if ( ! empty( $dynamic_styles ) ) {
             echo '<style>' . $dynamic_styles . '</style>';
+        }
+
+        // Click-mode JavaScript
+        if ( $click_mode ) {
+            echo '<script>
+                (function() {
+                    var wrapper = document.querySelector(".' . $unique . '");
+                    if (!wrapper) return;
+                    var dots = wrapper.querySelectorAll(".hotspot-dot");
+                    var closeButtons = wrapper.querySelectorAll(".snn-tooltip-close");
+
+                    function closeAll() {
+                        dots.forEach(function(d) { d.classList.remove("snn-active"); });
+                    }
+
+                    dots.forEach(function(dot) {
+                        dot.addEventListener("click", function(e) {
+                            e.stopPropagation();
+                            var wasActive = dot.classList.contains("snn-active");
+                            closeAll();
+                            if (!wasActive) {
+                                dot.classList.add("snn-active");
+                            }
+                        });
+                    });
+
+                    closeButtons.forEach(function(btn) {
+                        btn.addEventListener("click", function(e) {
+                            e.stopPropagation();
+                            closeAll();
+                        });
+                    });
+
+                    document.addEventListener("click", function(e) {
+                        if (!wrapper.contains(e.target)) {
+                            closeAll();
+                        }
+                    });
+                })();
+            </script>';
         }
 
         echo '</div>';
