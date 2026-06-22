@@ -169,7 +169,10 @@ class Snn_Image_Hotspots extends Element {
         }
 
         // Click mode (Hover/Click toggle)
-        $click_mode = isset( $this->settings['hover_click_toggle'] ) ? true : false;
+        // In the Bricks builder preview, always use hover-only so the preview
+        // works correctly. Click mode JavaScript conflicts with the editor.
+        $is_builder = function_exists( 'bricks_is_builder' ) && bricks_is_builder();
+        $click_mode = ( ! $is_builder && isset( $this->settings['hover_click_toggle'] ) );
         if ( $click_mode ) {
             $this->set_attribute( '_root', 'data-snn-click-mode', 'true' );
         }
