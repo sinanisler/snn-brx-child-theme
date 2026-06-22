@@ -58,6 +58,14 @@ class Snn_Image_Hotspots extends Element {
             'default' => '#333',
         ];
 
+        $this->controls['dot_border'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Dot Border', 'snn' ),
+            'type'    => 'border',
+            'inline'  => true,
+            'small'   => true,
+        ];
+
         // Hotspot repeater (without dot size, radius, color)
         $this->controls['hotspots'] = [
             'tab'           => 'content',
@@ -165,6 +173,58 @@ class Snn_Image_Hotspots extends Element {
                 $dot_color = isset($c['raw']) ? $c['raw'] : (isset($c['hex']) ? $c['hex'] : '#333');
             } else {
                 $dot_color = $c;
+            }
+        }
+
+        // Dot border (global)
+        $dot_border_css = '';
+        if ( ! empty( $this->settings['dot_border'] ) ) {
+            $b = $this->settings['dot_border'];
+            // Border width
+            $bw = isset( $b['width'] ) ? $b['width'] : [];
+            $bw_top    = isset( $bw['top'] ) ? intval( $bw['top'] ) : 0;
+            $bw_right  = isset( $bw['right'] ) ? intval( $bw['right'] ) : 0;
+            $bw_bottom = isset( $bw['bottom'] ) ? intval( $bw['bottom'] ) : 0;
+            $bw_left   = isset( $bw['left'] ) ? intval( $bw['left'] ) : 0;
+            // Border style
+            $bs = isset( $b['style'] ) ? $b['style'] : 'none';
+            if ( $bs && $bs !== 'none' && ( $bw_top > 0 || $bw_right > 0 || $bw_bottom > 0 || $bw_left > 0 ) ) {
+                // Border color
+                $bc = '#333';
+                if ( isset( $b['color'] ) ) {
+                    if ( is_array( $b['color'] ) ) {
+                        $bc = isset( $b['color']['raw'] ) ? $b['color']['raw'] : ( isset( $b['color']['hex'] ) ? $b['color']['hex'] : '#333' );
+                    } else {
+                        $bc = $b['color'];
+                    }
+                }
+                $dot_border_css .= "border-top:{$bw_top}px {$bs} {$bc};border-right:{$bw_right}px {$bs} {$bc};border-bottom:{$bw_bottom}px {$bs} {$bc};border-left:{$bw_left}px {$bs} {$bc};";
+            }
+            // Border radius – works alongside the standalone Dot Radius control.
+            // Only overrides when the user has explicitly set a radius value here.
+            if ( isset( $b['radius'] ) && is_array( $b['radius'] ) ) {
+                $normalize_radius_val = function( $val ) {
+                    $val = trim( (string) $val );
+                    if ( $val === '' ) {
+                        return '';
+                    }
+                    // Bricks stores bare numbers; append '%' for consistency with the old control
+                    if ( is_numeric( $val ) ) {
+                        return $val . '%';
+                    }
+                    return $val;
+                };
+                $br_top    = $normalize_radius_val( isset( $b['radius']['top'] ) ? $b['radius']['top'] : '' );
+                $br_right  = $normalize_radius_val( isset( $b['radius']['right'] ) ? $b['radius']['right'] : '' );
+                $br_bottom = $normalize_radius_val( isset( $b['radius']['bottom'] ) ? $b['radius']['bottom'] : '' );
+                $br_left   = $normalize_radius_val( isset( $b['radius']['left'] ) ? $b['radius']['left'] : '' );
+                // Only override the old Dot Radius when at least one side has a meaningful value
+                if ( $br_top !== '' || $br_right !== '' || $br_bottom !== '' || $br_left !== '' ) {
+                    $dot_border_radius = ( $br_top !== '' ? $br_top : '0' ) . ' ' .
+                                         ( $br_right !== '' ? $br_right : '0' ) . ' ' .
+                                         ( $br_bottom !== '' ? $br_bottom : '0' ) . ' ' .
+                                         ( $br_left !== '' ? $br_left : '0' );
+                }
             }
         }
 
@@ -341,7 +401,7 @@ class Snn_Image_Hotspots extends Element {
             $icon_color_val = $parse_color( isset( $hotspot['icon_color'] ) ? $hotspot['icon_color'] : null, '#fff' );
 
             $dot_id    = $unique . '-dot-' . $i;
-            $dot_style = 'left:' . $x . '%; top:' . $y . '%; width:' . $dot_size . 'px; height:' . $dot_size . 'px; background:' . $dot_color . '; border-radius:' . $dot_border_radius . '; transform:translate(-50%,-50%);';
+            $dot_style = 'left:' . $x . '%; top:' . $y . '%; width:' . $dot_size . 'px; height:' . $dot_size . 'px; background:' . $dot_color . '; border-radius:' . $dot_border_radius . '; transform:translate(-50%,-50%);' . $dot_border_css;
 
             // --- Tooltip Styles ---
             $tooltip_inline_styles = "background: {$tooltip_bg_color}; color: {$tooltip_text_color}; border-radius: {$tooltip_border_radius}px;";
