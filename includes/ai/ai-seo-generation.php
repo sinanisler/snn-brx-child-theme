@@ -986,16 +986,29 @@ function snn_seo_ai_render_overlay() {
             saveBtn.textContent = 'Saving...';
 
             try {
+                let saveOk = false;
+
                 if (currentMode === 'bulk') {
                     await saveBulk();
+                    // saveBulk shows its own alert on partial failure;
+                    // close anyway so the user can see updated list
+                    saveOk = true;
                 } else if (currentMode === 'term') {
-                    await saveTerm();
+                    saveOk = await saveTerm();
                 } else {
-                    await saveSingle();
+                    saveOk = await saveSingle();
                 }
 
-                closeOverlay();
-                location.reload();
+                if (saveOk) {
+                    closeOverlay();
+                    location.reload();
+                } else {
+                    // saveSingle/saveTerm already logged the detail;
+                    // keep the overlay open so the user can retry
+                    alert(config.strings.error);
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = config.strings.save;
+                }
             } catch (error) {
                 console.error('Save error:', error);
                 saveBtn.disabled = false;
@@ -1464,7 +1477,7 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
             };
         }
 
-        // Save single post
+        // Save single post  (returns true on success, false on failure)
         async function saveSingle() {
             const formData = new FormData();
             formData.append('action', 'snn_seo_ai_save_post');
@@ -1489,13 +1502,26 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
                 formData.append('excerpt_mode', '1');
             }
 
-            return fetch(config.ajaxUrl, {
+            const response = await fetch(config.ajaxUrl, {
                 method: 'POST',
                 body: formData
             });
+
+            if (!response.ok) {
+                console.error('Save failed: HTTP ' + response.status);
+                return false;
+            }
+
+            const result = await response.json();
+            if (!result.success) {
+                console.error('Save failed: ' + (result.data || 'unknown error'));
+                return false;
+            }
+
+            return true;
         }
 
-        // Save term
+        // Save term  (returns true on success, false on failure)
         async function saveTerm() {
             const formData = new FormData();
             formData.append('action', 'snn_seo_ai_save_term');
@@ -1526,10 +1552,23 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
                 formData.append('excerpt_mode', '1');
             }
 
-            return fetch(config.ajaxUrl, {
+            const response = await fetch(config.ajaxUrl, {
                 method: 'POST',
                 body: formData
             });
+
+            if (!response.ok) {
+                console.error('Save failed: HTTP ' + response.status);
+                return false;
+            }
+
+            const result = await response.json();
+            if (!result.success) {
+                console.error('Save failed: ' + (result.data || 'unknown error'));
+                return false;
+            }
+
+            return true;
         }
     });
     </script>
@@ -1601,14 +1640,14 @@ function snn_seo_ai_meta_box_buttons($post) {
 function snn_seo_ai_get_post_data_handler() {
     check_ajax_referer('snn_seo_ai_nonce', 'nonce');
     
-    if (!current_user_can('edit_posts')) {
-        wp_send_json_error('Insufficient permissions');
-    }
-    
     $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
     
     if (!$post_id) {
         wp_send_json_error('Invalid post ID');
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        wp_send_json_error('Insufficient permissions');
     }
     
     $post = get_post($post_id);
@@ -1641,10 +1680,6 @@ add_action('wp_ajax_snn_seo_ai_get_post_data', 'snn_seo_ai_get_post_data_handler
 function snn_seo_ai_get_term_data_handler() {
     check_ajax_referer('snn_seo_ai_nonce', 'nonce');
     
-    if (!current_user_can('manage_categories')) {
-        wp_send_json_error('Insufficient permissions');
-    }
-    
     $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
     
     if (!$term_id) {
@@ -1654,6 +1689,11 @@ function snn_seo_ai_get_term_data_handler() {
     $term = get_term($term_id);
     if (!$term || is_wp_error($term)) {
         wp_send_json_error('Term not found');
+    }
+
+    $tax_obj = get_taxonomy($term->taxonomy);
+    if (!$tax_obj || !current_user_can($tax_obj->cap->edit_terms)) {
+        wp_send_json_error('Insufficient permissions');
     }
     
     wp_send_json_success(array(
@@ -1670,44 +1710,41 @@ add_action('wp_ajax_snn_seo_ai_get_term_data', 'snn_seo_ai_get_term_data_handler
 function snn_seo_ai_save_post_handler() {
     check_ajax_referer('snn_seo_ai_nonce', 'nonce');
 
-    if (!current_user_can('edit_posts')) {
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+
+    if (!$post_id || !get_post($post_id)) {
+        wp_send_json_error('Invalid post ID');
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
         wp_send_json_error('Insufficient permissions');
     }
 
-    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
     $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
     $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
     $title_mode = isset($_POST['title_mode']) && $_POST['title_mode'] === '1';
     $excerpt_mode = isset($_POST['excerpt_mode']) && $_POST['excerpt_mode'] === '1';
 
-    if (!$post_id) {
-        wp_send_json_error('Invalid post ID');
+    // Combine updates into a single wp_update_post call when both modes are active
+    $post_data = array('ID' => $post_id);
+    $has_post_update = false;
+
+    if ($title && $title_mode) {
+        $post_data['post_title'] = $title;
+        $has_post_update = true;
+    } elseif ($title) {
+        update_post_meta($post_id, '_snn_seo_title', $title);
     }
 
-    if ($title) {
-        if ($title_mode) {
-            // Save to post title instead of meta title
-            wp_update_post(array(
-                'ID' => $post_id,
-                'post_title' => $title
-            ));
-        } else {
-            // Save to meta title
-            update_post_meta($post_id, '_snn_seo_title', $title);
-        }
+    if ($description && $excerpt_mode) {
+        $post_data['post_excerpt'] = $description;
+        $has_post_update = true;
+    } elseif ($description) {
+        update_post_meta($post_id, '_snn_seo_description', $description);
     }
 
-    if ($description) {
-        if ($excerpt_mode) {
-            // Save to post excerpt instead of meta description
-            wp_update_post(array(
-                'ID' => $post_id,
-                'post_excerpt' => $description
-            ));
-        } else {
-            // Save to meta description
-            update_post_meta($post_id, '_snn_seo_description', $description);
-        }
+    if ($has_post_update) {
+        wp_update_post($post_data);
     }
 
     wp_send_json_success();
@@ -1720,15 +1757,7 @@ add_action('wp_ajax_snn_seo_ai_save_post', 'snn_seo_ai_save_post_handler');
 function snn_seo_ai_save_term_handler() {
     check_ajax_referer('snn_seo_ai_nonce', 'nonce');
 
-    if (!current_user_can('manage_categories')) {
-        wp_send_json_error('Insufficient permissions');
-    }
-
     $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
-    $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
-    $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
-    $title_mode = isset($_POST['title_mode']) && $_POST['title_mode'] === '1';
-    $excerpt_mode = isset($_POST['excerpt_mode']) && $_POST['excerpt_mode'] === '1';
 
     if (!$term_id) {
         wp_send_json_error('Invalid term ID');
@@ -1739,28 +1768,33 @@ function snn_seo_ai_save_term_handler() {
         wp_send_json_error('Term not found');
     }
 
-    if ($title) {
-        if ($title_mode) {
-            // Save to term name instead of meta title
-            wp_update_term($term_id, $term->taxonomy, array(
-                'name' => $title
-            ));
-        } else {
-            // Save to meta title
-            update_term_meta($term_id, '_snn_seo_title', $title);
-        }
+    $tax_obj = get_taxonomy($term->taxonomy);
+    if (!$tax_obj || !current_user_can($tax_obj->cap->edit_terms)) {
+        wp_send_json_error('Insufficient permissions');
     }
 
-    if ($description) {
-        if ($excerpt_mode) {
-            // Save to taxonomy description instead of meta description
-            wp_update_term($term_id, $term->taxonomy, array(
-                'description' => $description
-            ));
-        } else {
-            // Save to meta description
-            update_term_meta($term_id, '_snn_seo_description', $description);
-        }
+    $title = isset($_POST['title']) ? sanitize_text_field($_POST['title']) : '';
+    $description = isset($_POST['description']) ? sanitize_textarea_field($_POST['description']) : '';
+    $title_mode = isset($_POST['title_mode']) && $_POST['title_mode'] === '1';
+    $excerpt_mode = isset($_POST['excerpt_mode']) && $_POST['excerpt_mode'] === '1';
+
+    // Combine updates into a single wp_update_term call when both modes are active
+    $term_data = array();
+
+    if ($title && $title_mode) {
+        $term_data['name'] = $title;
+    } elseif ($title) {
+        update_term_meta($term_id, '_snn_seo_title', $title);
+    }
+
+    if ($description && $excerpt_mode) {
+        $term_data['description'] = $description;
+    } elseif ($description) {
+        update_term_meta($term_id, '_snn_seo_description', $description);
+    }
+
+    if (!empty($term_data)) {
+        wp_update_term($term_id, $term->taxonomy, $term_data);
     }
 
     wp_send_json_success();
