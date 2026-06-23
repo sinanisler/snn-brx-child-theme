@@ -1432,12 +1432,38 @@ function snn_seo_output_meta_tags() {
         $title = snn_seo_replace_tags($notfound_title, []);
         $description = snn_seo_replace_tags($notfound_description, []);
     }
-    // Front page / Home page
-    elseif (is_front_page() || is_home()) {
+    // Static Front Page (when a static page is set as front)
+    elseif (is_front_page()) {
         $seo_enabled_for_content = true;
-        // Use site title and tagline for homepage
+        // Use site title and tagline for the front page
         $title = get_bloginfo('name') . ' - ' . get_bloginfo('description');
         $description = get_bloginfo('description');
+    }
+    // Blog Index ("Posts page" when a static front page is configured)
+    elseif (is_home()) {
+        $seo_enabled_for_content = true;
+        $archive_titles = get_option('snn_seo_archive_titles', []);
+        $archive_descriptions = get_option('snn_seo_archive_descriptions', []);
+        $archive_titles = is_array($archive_titles) ? $archive_titles : [];
+        $archive_descriptions = is_array($archive_descriptions) ? $archive_descriptions : [];
+
+        $post_type = 'post';
+        $blog_title = get_the_title(get_option('page_for_posts'));
+        if (empty($blog_title)) {
+            $blog_title = __('Blog', 'snn');
+        }
+
+        $context = ['archive_title' => $blog_title];
+
+        $title_template = isset($archive_titles[$post_type]) && !empty($archive_titles[$post_type])
+            ? $archive_titles[$post_type]
+            : '{archive_title} - {site_title}';
+        $desc_template = isset($archive_descriptions[$post_type]) && !empty($archive_descriptions[$post_type])
+            ? $archive_descriptions[$post_type]
+            : __('Browse all', 'snn') . ' {archive_title}';
+
+        $title = snn_seo_replace_tags($title_template, $context);
+        $description = snn_seo_replace_tags($desc_template, $context);
     }
     // If we got here and SEO is not enabled for this content type, return early
     else {
@@ -2366,13 +2392,32 @@ function snn_seo_sitemap_generate($type, $page = 1) {
 }
 
 /**
- * Flush rewrite rules on plugin activation
+ * Flush rewrite rules when the theme is activated or when sitemap rules need refreshing.
+ *
+ * Uses after_switch_theme because register_activation_hook only works for plugins,
+ * not themes. Also stores a version flag so rules are flushed once after theme updates.
  */
 function snn_seo_flush_rules() {
     snn_seo_sitemap_init();
     flush_rewrite_rules();
+    update_option('snn_seo_rewrite_version', '1.0');
 }
-register_activation_hook(__FILE__, 'snn_seo_flush_rules');
+add_action('after_switch_theme', 'snn_seo_flush_rules');
+
+/**
+ * Flush rewrite rules on admin_init if the stored version doesn't match.
+ * This catches sitemap rule changes without requiring a manual permalink flush.
+ */
+function snn_seo_maybe_flush_rules() {
+    if (!get_option('snn_seo_enabled') || !get_option('snn_seo_sitemap_enabled')) {
+        return;
+    }
+    $stored = get_option('snn_seo_rewrite_version', '');
+    if ($stored !== '1.0') {
+        snn_seo_flush_rules();
+    }
+}
+add_action('admin_init', 'snn_seo_maybe_flush_rules', 20);
 
 /**
  * Set transient when sitemap settings change

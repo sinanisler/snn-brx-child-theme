@@ -1138,7 +1138,7 @@ function snn_seo_ai_render_overlay() {
                             <label>
                                 ${titleLabel}
                                 <span class="snn-bulk-field-count">
-                                    <span class="title-count">${item.title.length}</span>/60
+                                    <span class="title-count">${safeLen(item.title)}</span>/60
                                 </span>
                             </label>
                             <input type="text" class="bulk-title-input" value="${escapeHtml(item.title)}" data-index="${index}" />
@@ -1152,7 +1152,7 @@ function snn_seo_ai_render_overlay() {
                             <label>
                                 ${descLabel}
                                 <span class="snn-bulk-field-count">
-                                    <span class="desc-count">${item.description.length}</span>/160
+                                    <span class="desc-count">${safeLen(item.description)}</span>/160
                                 </span>
                             </label>
                             <textarea class="bulk-desc-input" data-index="${index}">${escapeHtml(item.description)}</textarea>
@@ -1299,10 +1299,22 @@ function snn_seo_ai_render_overlay() {
                         formData.append('excerpt_mode', '1');
                     }
 
-                    await fetch(config.ajaxUrl, {
+                    const saveResponse = await fetch(config.ajaxUrl, {
                         method: 'POST',
                         body: formData
                     });
+
+                    if (!saveResponse.ok) {
+                        console.error('Save failed for ' + item.itemType + ' ' + item.itemId + ': HTTP ' + saveResponse.status);
+                        continue;
+                    }
+
+                    const saveResult = await saveResponse.json();
+                    if (!saveResult.success) {
+                        console.error('Save failed for ' + item.itemType + ' ' + item.itemId + ': ' + (saveResult.data || 'unknown error'));
+                        continue;
+                    }
+
                     saved++;
                 } catch (error) {
                     console.error('Error saving ' + item.itemType + ' ' + item.itemId, error);
@@ -1314,11 +1326,16 @@ function snn_seo_ai_render_overlay() {
             }
         }
 
-        // Helper function to escape HTML
+        // Helper function to escape HTML (safely handles null/undefined)
         function escapeHtml(text) {
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = text ?? '';
             return div.innerHTML;
+        }
+
+        // Helper: safely get string length for character counters
+        function safeLen(val) {
+            return (typeof val === 'string' ? val : '').length;
         }
 
         // Build prompt
@@ -1427,17 +1444,24 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
             // Strip markdown code blocks if present (e.g., ```json ... ```)
             content = content.replace(/```json\s*/g, '').replace(/```/g, '').trim();
             
-            // Try to parse JSON
+            // Try to parse JSON, then validate and sanitise the result
+            let result;
             try {
-                return JSON.parse(content);
+                result = JSON.parse(content);
             } catch (e) {
                 // Fallback: extract title and description
                 const lines = content.split('\n').filter(l => l.trim());
-                return {
+                result = {
                     title: lines[0] || '',
                     description: lines[1] || ''
                 };
             }
+
+            // Ensure both keys always exist as strings (never undefined)
+            return {
+                title: typeof result.title === 'string' ? result.title : '',
+                description: typeof result.description === 'string' ? result.description : ''
+            };
         }
 
         // Save single post
