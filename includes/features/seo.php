@@ -16,7 +16,6 @@
  * Filters available for developers:
  * - snn_seo_title: Modify the SEO title output
  * - snn_seo_description: Modify the SEO description output
- * - snn_seo_canonical_url: Modify the canonical URL
  * 
  * Template hierarchy is respected - SEO works regardless of which template file WordPress loads.
  */
@@ -142,6 +141,8 @@ function snn_seo_register_settings() {
     register_setting('snn_seo_settings_group', 'snn_seo_post_meta_descriptions');
     register_setting('snn_seo_settings_group', 'snn_seo_robots_txt_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
     register_setting('snn_seo_settings_group', 'snn_seo_robots_txt_content', ['type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field']);
+    register_setting('snn_seo_settings_group', 'snn_seo_llms_txt_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
+    register_setting('snn_seo_settings_group', 'snn_seo_llms_txt_content', ['type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field']);
 }
 add_action('admin_init', 'snn_seo_register_settings');
 
@@ -182,6 +183,8 @@ function snn_seo_handle_reset() {
         delete_option('snn_seo_post_meta_descriptions');
         delete_option('snn_seo_robots_txt_enabled');
         delete_option('snn_seo_robots_txt_content');
+        delete_option('snn_seo_llms_txt_enabled');
+        delete_option('snn_seo_llms_txt_content');
         
         // Flush rewrite rules
         flush_rewrite_rules();
@@ -228,6 +231,9 @@ function snn_seo_settings_page_callback() {
     $robots_txt_enabled = get_option('snn_seo_robots_txt_enabled', false);
     $robots_txt_default = "User-agent: *\nDisallow: /wp-admin/\nAllow: /wp-admin/admin-ajax.php\n\nSitemap: " . home_url('/sitemap.xml');
     $robots_txt_content = get_option('snn_seo_robots_txt_content', '');
+    $llms_txt_enabled = get_option('snn_seo_llms_txt_enabled', false);
+    $llms_txt_content = get_option('snn_seo_llms_txt_content', '');
+    $llms_txt_default = snn_seo_get_default_llms_txt();
 
     // Ensure arrays are actually arrays (fix for string/serialization issues)
     $post_types_enabled = is_array($post_types_enabled) ? $post_types_enabled : [];
@@ -682,6 +688,42 @@ function snn_seo_settings_page_callback() {
                 <?php endif; ?>
             </div>
 
+            <!-- llms.txt Settings -->
+            <div class="snn-seo-section">
+                <h2><?php _e('llms.txt', 'snn'); ?></h2>
+                <label>
+                    <input type="checkbox" name="snn_seo_llms_txt_enabled" value="1" <?php checked($llms_txt_enabled, 1); ?>>
+                    <strong><?php _e('Enable llms.txt', 'snn'); ?></strong>
+                </label>
+                <p class="description">
+                    <?php _e('llms.txt is a proposed standard for websites to provide information to LLMs (Large Language Models) in a structured markdown format. The textarea is pre-filled with an auto-generated listing of all your published pages and posts. You can edit it freely.', 'snn'); ?>
+                    &nbsp;<a href="https://llmstxt.org/" target="_blank" rel="noopener noreferrer"><?php _e('Learn about llms.txt', 'snn'); ?></a>
+                </p>
+
+                <?php if ($llms_txt_enabled): ?>
+                <?php
+                // Show default content when textarea is empty so user can edit small parts
+                $llms_txt_display = !empty(trim($llms_txt_content)) ? $llms_txt_content : $llms_txt_default;
+                ?>
+                <div style="margin-top: 15px;">
+                    <textarea id="snn-llms-txt-textarea" name="snn_seo_llms_txt_content"
+                              style="width: 100%; height: 400px; font-family: monospace; font-size: 13px;"
+                              placeholder=""><?php echo esc_textarea($llms_txt_display); ?></textarea>
+                    <p class="description" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <span>
+                            <?php _e('llms.txt URL:', 'snn'); ?> <code><?php echo esc_html(home_url('/llms.txt')); ?></code>
+                        </span>
+                        <span>
+                            <?php _e('Clear the textarea and save to restore auto-generation from your live content.', 'snn'); ?>
+                        </span>
+                        <button type="button" class="button" id="snn-llms-regenerate" style="margin-left: auto;">
+                            <?php _e('Regenerate Default', 'snn'); ?>
+                        </button>
+                    </p>
+                </div>
+                <?php endif; ?>
+            </div>
+
             <?php submit_button(__('Save SEO Settings', 'snn')); ?>
         </form>
         
@@ -803,6 +845,13 @@ function snn_seo_settings_page_callback() {
             $('#snn_seo_opengraph_default_image').val('');
             $('#snn-og-image-preview').html('');
             $('#snn-og-upload-image').text('<?php _e('Select/Upload Image', 'snn'); ?>');
+        });
+
+        // Regenerate llms.txt default content
+        $('#snn-llms-regenerate').on('click', function(e) {
+            e.preventDefault();
+            var defaultContent = <?php echo wp_json_encode($llms_txt_default); ?>;
+            $('#snn-llms-txt-textarea').val(defaultContent);
         });
     });
     </script>
@@ -1191,7 +1240,6 @@ function snn_seo_output_meta_tags() {
     $title = '';
     $description = '';
     $context = [];
-    $canonical_url = snn_seo_get_current_url();
     $seo_enabled_for_content = false; // Track if SEO is enabled for current content type
     
     // Single post/page/CPT
@@ -1473,7 +1521,6 @@ function snn_seo_output_meta_tags() {
     // Apply filters - allows themes and plugins to modify SEO output
     $title = apply_filters('snn_seo_title', $title);
     $description = apply_filters('snn_seo_description', $description);
-    $canonical_url = apply_filters('snn_seo_canonical_url', $canonical_url);
     
     // Output meta tags
     // Note: Title tag is handled by snn_seo_filter_document_title filter
@@ -1508,14 +1555,9 @@ function snn_seo_output_meta_tags() {
         }
     }
     
-    // Canonical URL
-    if (!empty($canonical_url)) {
-        echo '<link rel="canonical" href="' . esc_url($canonical_url) . '">' . "\n";
-    }
-    
     // Open Graph tags
     if (get_option('snn_seo_opengraph_enabled')) {
-        snn_seo_output_opengraph_tags($title, $description, $canonical_url);
+        snn_seo_output_opengraph_tags($title, $description);
     }
 }
 add_action('wp_head', 'snn_seo_output_meta_tags', 1);
@@ -2451,3 +2493,149 @@ function snn_seo_custom_robots_txt($output, $public) {
     return $default;
 }
 add_filter('robots_txt', 'snn_seo_custom_robots_txt', 10, 2);
+
+/**
+ * Generate default llms.txt content listing all published pages and posts.
+ * @return string Markdown formatted llms.txt content
+ */
+function snn_seo_get_default_llms_txt() {
+    $output = '';
+    $site_name = get_bloginfo('name');
+    $site_desc = get_bloginfo('description');
+
+    // Header
+    $output .= '# ' . $site_name . "\n";
+    if (!empty($site_desc)) {
+        $output .= "\n> " . $site_desc . "\n";
+    }
+
+    // Get enabled sitemap post types (use as reference for what to include)
+    $sitemap_post_types = get_option('snn_seo_sitemap_post_types', []);
+    $sitemap_post_types = is_array($sitemap_post_types) ? $sitemap_post_types : [];
+
+    // If no sitemap post types configured, default to pages and posts
+    if (empty($sitemap_post_types)) {
+        $sitemap_post_types = ['page' => true, 'post' => true];
+    }
+
+    // Separate hierarchical (pages) from non-hierarchical (posts) post types
+    $hierarchical_types = [];
+    $non_hierarchical_types = [];
+
+    foreach ($sitemap_post_types as $post_type => $enabled) {
+        if (!$enabled || !post_type_exists($post_type)) {
+            continue;
+        }
+        if (is_post_type_hierarchical($post_type)) {
+            $hierarchical_types[] = $post_type;
+        } else {
+            $non_hierarchical_types[] = $post_type;
+        }
+    }
+
+    // Output pages (hierarchical post types)
+    if (!empty($hierarchical_types)) {
+        $output .= "\n## Pages\n\n";
+        foreach ($hierarchical_types as $post_type) {
+            $posts = get_posts([
+                'post_type'      => $post_type,
+                'post_status'    => 'publish',
+                'posts_per_page' => -1,
+                'orderby'        => 'title',
+                'order'          => 'ASC',
+                'suppress_filters' => false,
+            ]);
+
+            if (!empty($posts) && is_array($posts)) {
+                foreach ($posts as $post) {
+                    $title = get_the_title($post);
+                    $permalink = get_permalink($post);
+                    if ($permalink && !is_wp_error($permalink)) {
+                        $output .= '- [' . $title . '](' . esc_url($permalink) . ')' . "\n";
+                    }
+                }
+            }
+        }
+    }
+
+    // Output posts (non-hierarchical post types)
+    if (!empty($non_hierarchical_types)) {
+        $output .= "\n## Posts\n\n";
+        foreach ($non_hierarchical_types as $post_type) {
+            $posts = get_posts([
+                'post_type'      => $post_type,
+                'post_status'    => 'publish',
+                'posts_per_page' => -1,
+                'orderby'        => 'date',
+                'order'          => 'DESC',
+                'suppress_filters' => false,
+            ]);
+
+            if (!empty($posts) && is_array($posts)) {
+                foreach ($posts as $post) {
+                    $title = get_the_title($post);
+                    $permalink = get_permalink($post);
+                    if ($permalink && !is_wp_error($permalink)) {
+                        $output .= '- [' . $title . '](' . esc_url($permalink) . ')' . "\n";
+                    }
+                }
+            }
+        }
+    }
+
+    return $output;
+}
+
+/**
+ * Initialize llms.txt rewrite rules
+ */
+function snn_seo_llms_txt_init() {
+    if (!get_option('snn_seo_enabled')) {
+        return;
+    }
+    if (!get_option('snn_seo_llms_txt_enabled')) {
+        return;
+    }
+
+    add_rewrite_rule('^llms\.txt$', 'index.php?snn_llms_txt=1', 'top');
+
+    add_filter('query_vars', function($vars) {
+        $vars[] = 'snn_llms_txt';
+        return $vars;
+    });
+
+    add_action('template_redirect', 'snn_seo_llms_txt_output');
+}
+add_action('init', 'snn_seo_llms_txt_init');
+
+/**
+ * Output llms.txt content
+ */
+function snn_seo_llms_txt_output() {
+    $llms = get_query_var('snn_llms_txt');
+    if (!$llms) {
+        return;
+    }
+
+    header('Content-Type: text/plain; charset=utf-8');
+    header('X-Robots-Tag: noindex, follow', true);
+
+    $content = get_option('snn_seo_llms_txt_content', '');
+
+    if (empty(trim($content))) {
+        // Auto-generate content if textarea is empty
+        $content = snn_seo_get_default_llms_txt();
+    }
+
+    echo $content;
+    exit;
+}
+
+/**
+ * Flush rewrite rules when llms.txt settings change
+ */
+function snn_seo_llms_txt_flush() {
+    snn_seo_llms_txt_init();
+    flush_rewrite_rules();
+}
+add_action('update_option_snn_seo_llms_txt_enabled', 'snn_seo_llms_txt_flush');
