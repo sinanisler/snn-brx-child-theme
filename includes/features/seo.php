@@ -2441,34 +2441,44 @@ function snn_seo_sitemap_generate($type, $page = 1) {
  */
 function snn_seo_flush_rules() {
     snn_seo_sitemap_init();
+    snn_seo_llms_txt_init();
     flush_rewrite_rules();
-    update_option('snn_seo_rewrite_version', '1.0');
+    update_option('snn_seo_rewrite_version', '1.1');
 }
 add_action('after_switch_theme', 'snn_seo_flush_rules');
 
 /**
  * Flush rewrite rules on admin_init if the stored version doesn't match.
- * This catches sitemap rule changes without requiring a manual permalink flush.
+ * Covers both sitemap and llms.txt rule changes without requiring a manual permalink flush.
  */
 function snn_seo_maybe_flush_rules() {
-    if (!get_option('snn_seo_enabled') || !get_option('snn_seo_sitemap_enabled')) {
+    $seo_enabled = get_option('snn_seo_enabled');
+    if (!$seo_enabled) {
+        return;
+    }
+    // Only flush if at least one rewrite-dependent feature is enabled
+    $has_rewrites = get_option('snn_seo_sitemap_enabled') || get_option('snn_seo_llms_txt_enabled');
+    if (!$has_rewrites) {
         return;
     }
     $stored = get_option('snn_seo_rewrite_version', '');
-    if ($stored !== '1.0') {
+    if ($stored !== '1.1') {
         snn_seo_flush_rules();
     }
 }
 add_action('admin_init', 'snn_seo_maybe_flush_rules', 20);
 
 /**
- * Set transient when sitemap settings change
+ * Set transient when rewrite-dependent settings change (shows a permalink re-save reminder).
+ * Also deletes the stored version so snn_seo_maybe_flush_rules() flushes on next admin load.
  */
 function snn_seo_set_flush_transient() {
     set_transient('snn_seo_flush_needed', true, WEEK_IN_SECONDS);
+    delete_option('snn_seo_rewrite_version');
 }
 add_action('update_option_snn_seo_sitemap_enabled', 'snn_seo_set_flush_transient');
 add_action('update_option_snn_seo_enabled', 'snn_seo_set_flush_transient');
+add_action('update_option_snn_seo_llms_txt_enabled', 'snn_seo_set_flush_transient');
 
 /**
  * Custom Robots.txt output
@@ -2631,11 +2641,3 @@ function snn_seo_llms_txt_output() {
     exit;
 }
 
-/**
- * Flush rewrite rules when llms.txt settings change
- */
-function snn_seo_llms_txt_flush() {
-    snn_seo_llms_txt_init();
-    flush_rewrite_rules();
-}
-add_action('update_option_snn_seo_llms_txt_enabled', 'snn_seo_llms_txt_flush');
