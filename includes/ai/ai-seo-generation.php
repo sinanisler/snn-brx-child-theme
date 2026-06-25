@@ -1432,14 +1432,12 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
                     { role: 'user', content: prompt }
                 ];
             
+            // SEO generation always needs structured JSON output
             const additionalParams = {
-                temperature: 0.7,
-                max_tokens: 300
+                temperature: parseFloat(config.temperature) || 0.7,
+                max_tokens: 300,
+                response_format: { type: 'json_object' }
             };
-            
-            if (config.responseFormat && config.responseFormat.type) {
-                additionalParams.response_format = { type: 'json_object' };
-            }
             
             const data = await SNN_AI_Helpers.makeTextCompletion({
                 apiEndpoint: config.apiEndpoint,
@@ -1447,9 +1445,9 @@ Return ONLY a JSON object with this exact structure: {"title": "...", "descripti
                 model: config.model,
                 messages: messages,
                 provider: config.modelProvider,
-                temperature: 0.7,
+                temperature: parseFloat(config.temperature) || 0.7,
                 maxTokens: 300,
-                additionalParams: config.responseFormat?.type ? { response_format: { type: 'json_object' } } : {}
+                additionalParams: additionalParams
             });
             
             let content = SNN_AI_Helpers.extractContent(data);

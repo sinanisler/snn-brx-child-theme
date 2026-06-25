@@ -2469,6 +2469,11 @@ VALIDATION REQUIREMENTS:
                     ChatState.recoveryAttempts = 0;
                     ChatState.lastError = null;
                     
+                    // Guard against malformed API responses
+                    if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+                        throw new Error('Invalid API response: missing choices/message structure');
+                    }
+                    
                     return data.choices[0].message.content;
                     
                 } catch (error) {
@@ -2602,8 +2607,8 @@ VALIDATION REQUIREMENTS:
 
                     // Check if this ability requires client-side execution
                     // Handle both result.client_command and result.data.client_command
-                    const clientCommand = result.client_command || (result.data && result.data.client_command);
-                    if (result.success && clientCommand && typeof clientCommand === 'object' && clientCommand !== null) {
+                    const clientCommand = (result && result.client_command) || (result && result.data && result.data.client_command);
+                    if (result && result.success && clientCommand && typeof clientCommand === 'object' && clientCommand !== null) {
                         debugLog('Executing client-side command:', clientCommand);
                         try {
                             const clientResult = await executeClientCommand(clientCommand);
@@ -2700,7 +2705,7 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     // Extract corrected ability from response
                     const correctedAbilities = extractAbilitiesFromResponse(aiResponse);
 
-                    if (correctedAbilities.length > 0) {
+                    if (Array.isArray(correctedAbilities) && correctedAbilities.length > 0) {
                         debugLog('AI provided corrected input:', correctedAbilities[0]);
                         return correctedAbilities[0];
                     }

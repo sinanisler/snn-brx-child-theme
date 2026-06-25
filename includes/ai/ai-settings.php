@@ -78,8 +78,213 @@ function snn_register_ai_settings() {
         'type' => 'string',
         'default' => '1K',
     ]);
+
+    // 3. Register generation parameter settings (shared across all providers)
+    register_setting('snn_ai_settings_group', 'snn_ai_temperature', [
+        'type' => 'string',
+        'default' => '0.7',
+    ]);
+    register_setting('snn_ai_settings_group', 'snn_ai_max_tokens', [
+        'type' => 'string',
+        'default' => '4000',
+    ]);
+    register_setting('snn_ai_settings_group', 'snn_ai_top_p', [
+        'type' => 'string',
+        'default' => '1',
+    ]);
+    register_setting('snn_ai_settings_group', 'snn_ai_frequency_penalty', [
+        'type' => 'string',
+        'default' => '0',
+    ]);
+    register_setting('snn_ai_settings_group', 'snn_ai_presence_penalty', [
+        'type' => 'string',
+        'default' => '0',
+    ]);
 }
 add_action('admin_init', 'snn_register_ai_settings');
+
+/**
+ * AJAX handler for testing AI connection.
+ * Works for both OpenRouter and Custom providers.
+ * Sends a minimal message and reports every step with colour-coded logs.
+ */
+add_action('wp_ajax_snn_ai_test_connection', 'snn_ai_test_connection_handler');
+function snn_ai_test_connection_handler() {
+    check_ajax_referer('snn_ai_test_connection_nonce', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json(array('success' => false, 'logs' => array(
+            array('type' => 'error', 'message' => 'Unauthorized.')
+        )));
+    }
+
+    $logs = array();
+
+    // Read settings
+    $ai_enabled  = get_option('snn_ai_enabled', 'no');
+    $ai_provider = get_option('snn_ai_provider', 'openrouter');
+
+    if ($ai_enabled !== 'yes') {
+        $logs[] = array('type' => 'error', 'message' => 'AI Features are currently DISABLED. Enable them first.');
+        wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => array()));
+    }
+
+    $logs[] = array('type' => 'info', 'message' => 'AI Features: ENABLED');
+    $logs[] = array('type' => 'info', 'message' => 'Provider: ' . strtoupper($ai_provider));
+
+    // Get config via the central helper
+    if (!function_exists('snn_get_ai_api_config')) {
+        $logs[] = array('type' => 'error', 'message' => 'AI configuration helper not found.');
+        wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => array()));
+    }
+
+    $config = snn_get_ai_api_config();
+
+    // Build settings summary
+    $settings = array(
+        'Provider'      => strtoupper($ai_provider),
+        'Endpoint'      => $config['apiEndpoint'] ?: '(not set)',
+        'Model'         => $config['model'] ?: '(not set)',
+        'API Key'       => !empty($config['apiKey']) ? '(set — ' . substr($config['apiKey'], 0, 8) . '...)' : '(not set)',
+        'Temperature'   => $config['temperature'],
+        'Max Tokens'    => $config['maxTokens'],
+    );
+
+    if ($ai_provider === 'openrouter' && !empty($config['modelProvider'])) {
+        $settings['Model Provider'] = $config['modelProvider'];
+    }
+
+    // Validate endpoint
+    if (empty($config['apiEndpoint'])) {
+        $logs[] = array('type' => 'error', 'message' => 'No API endpoint configured. Please set one in the settings above.');
+        wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings));
+    }
+
+    $logs[] = array('type' => 'info', 'message' => 'Endpoint: ' . $config['apiEndpoint']);
+
+    // Validate model
+    if (empty($config['model'])) {
+        $logs[] = array('type' => 'error', 'message' => 'No model selected. Please choose a model in the settings above.');
+        wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings));
+    }
+
+    $logs[] = array('type' => 'info', 'message' => 'Model: ' . $config['model']);
+
+    // Check API key (optional for local models)
+    if (empty($config['apiKey'])) {
+        $logs[] = array('type' => 'warning', 'message' => 'No API key set. This is fine for local models (Ollama, LM Studio) but required for OpenRouter.');
+    } else {
+        $logs[] = array('type' => 'info', 'message' => 'API key is set (' . substr($config['apiKey'], 0, 8) . '...)');
+    }
+
+    // Build test message
+    $test_messages = array(
+        array('role' => 'system', 'content' => 'You are a connection tester. Reply with exactly: "OK - Connection successful." and nothing else.'),
+        array('role' => 'user', 'content' => 'Test connection. Reply with the confirmation phrase.'),
+    );
+
+    $body = array(
+        'model'       => $config['model'],
+        'messages'    => $test_messages,
+        'temperature' => floatval($config['temperature']),
+        'max_tokens'  => 50, // Tiny response for testing
+    );
+
+    // Add provider routing for OpenRouter
+    if ($ai_provider === 'openrouter' && !empty($config['modelProvider'])) {
+        $body['provider'] = array(
+            'order'           => array($config['modelProvider']),
+            'allow_fallbacks' => false,
+        );
+    }
+
+    $logs[] = array('type' => 'info', 'message' => 'Sending test message to API...');
+
+    // Build cURL request
+    $request_headers = array('Content-Type: application/json');
+    if (!empty($config['apiKey'])) {
+        $request_headers[] = 'Authorization: Bearer ' . $config['apiKey'];
+    }
+
+    set_time_limit(30);
+
+    $ch = curl_init();
+    curl_setopt_array($ch, array(
+        CURLOPT_URL            => $config['apiEndpoint'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => wp_json_encode($body),
+        CURLOPT_HTTPHEADER     => $request_headers,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+    ));
+
+    $response_body = curl_exec($ch);
+    $status_code   = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_errno    = curl_errno($ch);
+    $curl_error    = curl_error($ch);
+    $total_time    = round(curl_getinfo($ch, CURLINFO_TOTAL_TIME) * 1000);
+    curl_close($ch);
+
+    if (false === $response_body) {
+        $logs[] = array('type' => 'error', 'message' => 'Connection failed! cURL error ' . $curl_errno . ': ' . $curl_error);
+        $logs[] = array('type' => 'error', 'message' => 'Tip: Check that the endpoint URL is correct and reachable from your server.');
+        wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings));
+    }
+
+    $logs[] = array('type' => 'success', 'message' => 'Server responded in ' . $total_time . 'ms (HTTP ' . $status_code . ')');
+
+    // Parse response
+    $response_data = json_decode($response_body, true);
+
+    if (!$response_data) {
+        $logs[] = array('type' => 'error', 'message' => 'Invalid JSON response from API. Raw response: ' . substr($response_body, 0, 300));
+        wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings));
+    }
+
+    // Check for API-level errors
+    if (isset($response_data['error'])) {
+        $error_msg = is_array($response_data['error']) 
+            ? ($response_data['error']['message'] ?? json_encode($response_data['error']))
+            : $response_data['error'];
+        $logs[] = array('type' => 'error', 'message' => 'API returned an error: ' . $error_msg);
+        
+        if ($status_code === 401 || $status_code === 403) {
+            $logs[] = array('type' => 'error', 'message' => 'Tip: Your API key may be invalid or expired. Check your key in the settings above.');
+        } elseif ($status_code === 404) {
+            $logs[] = array('type' => 'error', 'message' => 'Tip: The model "' . $config['model'] . '" may not exist or the endpoint URL is wrong.');
+        } elseif ($status_code === 429) {
+            $logs[] = array('type' => 'error', 'message' => 'Tip: Rate limit exceeded. Wait a moment and try again.');
+        }
+        
+        wp_send_json(array('success' => false, 'logs' => $logs, 'settings' => $settings));
+    }
+
+    // Extract response content
+    $content = '';
+    if (isset($response_data['choices'][0]['message']['content'])) {
+        $content = $response_data['choices'][0]['message']['content'];
+    }
+
+    if (empty($content)) {
+        $logs[] = array('type' => 'warning', 'message' => 'API responded but returned empty content. Response structure may differ from expected format.');
+        $logs[] = array('type' => 'info', 'message' => 'Raw response keys: ' . implode(', ', array_keys($response_data)));
+        wp_send_json(array('success' => true, 'logs' => $logs, 'settings' => $settings));
+    }
+
+    $logs[] = array('type' => 'success', 'message' => 'AI Response: "' . trim($content) . '"');
+    $logs[] = array('type' => 'success', 'message' => '✅ Connection test PASSED! Your AI configuration is working correctly.');
+
+    // Show token usage if available
+    if (isset($response_data['usage'])) {
+        $usage = $response_data['usage'];
+        $logs[] = array('type' => 'info', 'message' => 'Token usage — Prompt: ' . ($usage['prompt_tokens'] ?? '?') . ', Completion: ' . ($usage['completion_tokens'] ?? '?') . ', Total: ' . ($usage['total_tokens'] ?? '?'));
+    }
+
+    wp_send_json(array('success' => true, 'logs' => $logs, 'settings' => $settings));
+}
 
 function snn_render_ai_settings() {
     $ai_enabled           = get_option('snn_ai_enabled', 'no');
@@ -97,6 +302,13 @@ function snn_render_ai_settings() {
     // Multimodal configuration settings
     $image_aspect_ratio = get_option('snn_ai_image_aspect_ratio', '16:9');
     $image_size         = get_option('snn_ai_image_size', '1K');
+
+    // Generation parameters
+    $temperature        = get_option('snn_ai_temperature', '0.7');
+    $max_tokens         = get_option('snn_ai_max_tokens', '4000');
+    $top_p              = get_option('snn_ai_top_p', '1');
+    $frequency_penalty  = get_option('snn_ai_frequency_penalty', '0');
+    $presence_penalty   = get_option('snn_ai_presence_penalty', '0');
 
     $default_presets = [
         ['name' => 'Title',    'prompt' => 'Generate a catchy title.'],
@@ -173,6 +385,128 @@ function snn_render_ai_settings() {
                     </td>
                 </tr>
             </table>
+
+            <details id="snn-advanced-settings" style="margin-top: 20px;">
+                <summary style="cursor: pointer; font-size: 16px; font-weight: 600; padding: 8px 0; color: #1d2327;">
+                    <?php esc_html_e('⚙️ Advanced Generation Settings', 'snn'); ?>
+                    <span style="font-weight: 400; font-size: 13px; color: #646970; margin-left: 8px;">
+                        <?php esc_html_e('— fine-tune how the AI responds (click to expand)', 'snn'); ?>
+                    </span>
+                </summary>
+                <p class="description" style="margin: 10px 0;">
+                    <?php esc_html_e('These settings apply to all AI providers (OpenRouter and Custom). Most users don\'t need to change these — the defaults work well for general content editing.', 'snn'); ?>
+                </p>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="snn_ai_temperature"><?php esc_html_e('Temperature', 'snn'); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="range"
+                            name="snn_ai_temperature"
+                            id="snn_ai_temperature"
+                            min="0"
+                            max="2"
+                            step="0.1"
+                            value="<?php echo esc_attr($temperature); ?>"
+                            style="width: 300px; vertical-align: middle;"
+                            oninput="document.getElementById('snn_ai_temperature_value').textContent = this.value"
+                        />
+                        <span id="snn_ai_temperature_value" style="display: inline-block; min-width: 32px; font-weight: 600; margin-left: 8px;"><?php echo esc_html($temperature); ?></span>
+                        <p class="description">
+                            <?php esc_html_e('Controls randomness. 0 = deterministic/factual, 1 = creative, 2 = very random. Default: 0.7', 'snn'); ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="snn_ai_max_tokens"><?php esc_html_e('Max Tokens', 'snn'); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="number"
+                            name="snn_ai_max_tokens"
+                            id="snn_ai_max_tokens"
+                            value="<?php echo esc_attr($max_tokens); ?>"
+                            class="small-text"
+                            min="100"
+                            max="128000"
+                            step="100"
+                        />
+                        <p class="description">
+                            <?php esc_html_e('Maximum response length in tokens (≈ words). Higher = longer responses but more API cost. Default: 4000', 'snn'); ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="snn_ai_top_p"><?php esc_html_e('Top P', 'snn'); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="range"
+                            name="snn_ai_top_p"
+                            id="snn_ai_top_p"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value="<?php echo esc_attr($top_p); ?>"
+                            style="width: 300px; vertical-align: middle;"
+                            oninput="document.getElementById('snn_ai_top_p_value').textContent = this.value"
+                        />
+                        <span id="snn_ai_top_p_value" style="display: inline-block; min-width: 32px; font-weight: 600; margin-left: 8px;"><?php echo esc_html($top_p); ?></span>
+                        <p class="description">
+                            <?php esc_html_e('Nucleus sampling: only tokens with cumulative probability up to this value are considered. 1 = all tokens (default), 0.1 = only the most likely tokens.', 'snn'); ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="snn_ai_frequency_penalty"><?php esc_html_e('Frequency Penalty', 'snn'); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="range"
+                            name="snn_ai_frequency_penalty"
+                            id="snn_ai_frequency_penalty"
+                            min="-2"
+                            max="2"
+                            step="0.1"
+                            value="<?php echo esc_attr($frequency_penalty); ?>"
+                            style="width: 300px; vertical-align: middle;"
+                            oninput="document.getElementById('snn_ai_frequency_penalty_value').textContent = this.value"
+                        />
+                        <span id="snn_ai_frequency_penalty_value" style="display: inline-block; min-width: 32px; font-weight: 600; margin-left: 8px;"><?php echo esc_html($frequency_penalty); ?></span>
+                        <p class="description">
+                            <?php esc_html_e('Reduces word repetition. Positive values penalize tokens based on how often they\'ve appeared. -2 to 2, 0 = off (default).', 'snn'); ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        <label for="snn_ai_presence_penalty"><?php esc_html_e('Presence Penalty', 'snn'); ?></label>
+                    </th>
+                    <td>
+                        <input
+                            type="range"
+                            name="snn_ai_presence_penalty"
+                            id="snn_ai_presence_penalty"
+                            min="-2"
+                            max="2"
+                            step="0.1"
+                            value="<?php echo esc_attr($presence_penalty); ?>"
+                            style="width: 300px; vertical-align: middle;"
+                            oninput="document.getElementById('snn_ai_presence_penalty_value').textContent = this.value"
+                        />
+                        <span id="snn_ai_presence_penalty_value" style="display: inline-block; min-width: 32px; font-weight: 600; margin-left: 8px;"><?php echo esc_html($presence_penalty); ?></span>
+                        <p class="description">
+                            <?php esc_html_e('Encourages topic diversity. Positive values penalize tokens that have already appeared at all. -2 to 2, 0 = off (default).', 'snn'); ?>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            </details>
 
             <div
                 id="openrouter-settings"
@@ -510,6 +844,54 @@ function snn_render_ai_settings() {
 
             <?php submit_button(__('Save AI Settings', 'snn')); ?>
         </form>
+
+        <hr style="margin: 30px 0;" />
+
+        <h2><?php esc_html_e('Test Connection', 'snn'); ?></h2>
+        <p><?php esc_html_e('Send a minimal test message using your current settings. Works for both OpenRouter and Custom providers. The log below shows each step in real time with colour-coded results.', 'snn'); ?></p>
+        <p class="description"><?php esc_html_e('Tip: Save your settings first if you made changes, then run the test.', 'snn'); ?></p>
+
+        <button id="snn_run_ai_test" class="button button-primary"><?php esc_html_e('Run Connection Test', 'snn'); ?></button>
+        <span id="snn_ai_test_spinner" class="spinner" style="float: none; margin: 0 10px; display: none;"></span>
+
+        <div id="snn_ai_log_wrap" style="display:none; margin-top:20px;">
+            <div id="snn_ai_log_box" style="
+                position: relative;
+                background: #1e1e1e;
+                color: #d4d4d4;
+                font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+                font-size: 12px;
+                line-height: 1.7;
+                padding: 14px 16px;
+                border-radius: 6px;
+                max-height: 400px;
+                overflow-y: auto;
+                border: 2px solid #444;
+            ">
+                <button id="snn_ai_copy_btn" title="Copy log" style="
+                    position: sticky;
+                    float: right;
+                    top: 0;
+                    right: 0;
+                    background: #3a3a3a;
+                    color: #ccc;
+                    border: 1px solid #555;
+                    border-radius: 4px;
+                    padding: 3px 10px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    z-index: 10;
+                    margin-bottom: 8px;
+                "><?php esc_html_e('Copy', 'snn'); ?></button>
+                <div id="snn_ai_log_entries"></div>
+            </div>
+
+            <div id="snn_ai_settings_box" style="margin-top: 12px; padding: 12px 16px; border-radius: 6px; border: 2px solid #ccc; font-size: 13px;">
+                <strong><?php esc_html_e('Settings tested:', 'snn'); ?></strong>
+                <table id="snn_ai_settings_table" style="margin-top: 8px; border-collapse: collapse; width: auto;">
+                </table>
+            </div>
+        </div>
 
         <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1264,6 +1646,156 @@ function snn_render_ai_settings() {
                     } catch (error) {
                         importStatus.textContent = `<?php echo esc_js(__('Invalid JSON format.', 'snn')); ?> ${error.message}`;
                         console.error("Import error:", error);
+                    }
+                });
+            }
+
+            // ================================================================
+            // Test Connection — Logging system (similar to SMTP test)
+            // ================================================================
+            const testBtn = document.getElementById('snn_run_ai_test');
+            const testSpinner = document.getElementById('snn_ai_test_spinner');
+            const logWrap = document.getElementById('snn_ai_log_wrap');
+            const logEntries = document.getElementById('snn_ai_log_entries');
+            const logBox = document.getElementById('snn_ai_log_box');
+            const settingsBox = document.getElementById('snn_ai_settings_box');
+            const settingsTable = document.getElementById('snn_ai_settings_table');
+            const copyBtn = document.getElementById('snn_ai_copy_btn');
+
+            let testLogData = [];
+
+            function escHtml(str) {
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+            }
+
+            function colorForType(type) {
+                switch (type) {
+                    case 'success': return '#4ec94e';
+                    case 'error':   return '#f47878';
+                    case 'warning': return '#f5c842';
+                    default:        return '#8bbcf5';
+                }
+            }
+
+            function prefixForType(type) {
+                switch (type) {
+                    case 'success': return '[OK]    ';
+                    case 'error':   return '[ERROR] ';
+                    case 'warning': return '[WARN]  ';
+                    default:        return '[INFO]  ';
+                }
+            }
+
+            function renderTestLog(logs) {
+                testLogData = logs;
+                let html = '';
+                logs.forEach(function(entry) {
+                    const color  = colorForType(entry.type);
+                    const prefix = prefixForType(entry.type);
+                    html += '<div style="color:' + color + '; white-space: pre-wrap; word-break: break-all;">'
+                          + escHtml(prefix + entry.message)
+                          + '</div>';
+                });
+                logEntries.innerHTML = html;
+                if (logBox) logBox.scrollTop = logBox.scrollHeight;
+            }
+
+            function renderTestSettings(settings, success) {
+                const borderColor = success ? '#4ec94e' : '#f47878';
+                const bgColor     = success ? '#f0fff0' : '#fff0f0';
+                settingsBox.style.borderColor = borderColor;
+                settingsBox.style.background = bgColor;
+                let rows = '';
+                for (const key in settings) {
+                    if (settings.hasOwnProperty(key)) {
+                        rows += '<tr>'
+                              + '<td style="padding: 2px 12px 2px 0; color: #555; font-weight: 600;">' + escHtml(key) + '</td>'
+                              + '<td style="padding: 2px 0;">' + escHtml(settings[key]) + '</td>'
+                              + '</tr>';
+                    }
+                }
+                settingsTable.innerHTML = rows;
+            }
+
+            function addTestLog(type, message) {
+                const entry = {type: type, message: message};
+                testLogData.push(entry);
+                const color  = colorForType(type);
+                const prefix = prefixForType(type);
+                const div = document.createElement('div');
+                div.style.cssText = 'color:' + color + '; white-space: pre-wrap; word-break: break-all;';
+                div.textContent = prefix + message;
+                logEntries.appendChild(div);
+                if (logBox) logBox.scrollTop = logBox.scrollHeight;
+            }
+
+            if (testBtn) {
+                testBtn.addEventListener('click', function() {
+                    testBtn.disabled = true;
+                    testSpinner.style.display = 'inline-block';
+                    testLogData = [];
+                    logEntries.innerHTML = '';
+                    logWrap.style.display = 'block';
+                    addTestLog('info', 'Initiating connection test...');
+                    addTestLog('info', 'Using current saved settings (save first if you made changes).');
+
+                    fetch(ajaxurl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            action: 'snn_ai_test_connection',
+                            nonce: '<?php echo wp_create_nonce('snn_ai_test_connection_nonce'); ?>'
+                        })
+                    })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        renderTestLog(data.logs);
+                        if (data.settings && Object.keys(data.settings).length > 0) {
+                            renderTestSettings(data.settings, data.success);
+                        }
+                    })
+                    .catch(function(error) {
+                        addTestLog('error', 'Request failed: ' + error.message);
+                        addTestLog('error', 'Tip: Check your WordPress admin-ajax.php is reachable and the server is running.');
+                        settingsBox.style.borderColor = '#f47878';
+                        settingsBox.style.background = '#fff0f0';
+                    })
+                    .finally(function() {
+                        testBtn.disabled = false;
+                        testSpinner.style.display = 'none';
+                        if (logBox) logBox.scrollTop = logBox.scrollHeight;
+                    });
+                });
+            }
+
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function() {
+                    const text = testLogData.map(function(e) {
+                        return prefixForType(e.type) + e.message;
+                    }).join('\n');
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(function() {
+                            copyBtn.textContent = '<?php echo esc_js(__('Copied!', 'snn')); ?>';
+                            setTimeout(function() { copyBtn.textContent = '<?php echo esc_js(__('Copy', 'snn')); ?>'; }, 2000);
+                        });
+                    } else {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.cssText = 'position:fixed;opacity:0;';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        copyBtn.textContent = '<?php echo esc_js(__('Copied!', 'snn')); ?>';
+                        setTimeout(function() { copyBtn.textContent = '<?php echo esc_js(__('Copy', 'snn')); ?>'; }, 2000);
                     }
                 });
             }

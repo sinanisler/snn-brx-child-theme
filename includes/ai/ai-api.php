@@ -54,12 +54,24 @@ function snn_get_ai_api_config() {
         'You are a helpful assistant that helps with content creation or manipulation. You work inside wordpress. User usually changes a website content. Keep the content length as similar the existing content when you are editing or follow the users instructions accordingly. Dont generate markdown. Only respond with the needed content and nothing else always!'
     );
 
-    // Retrieve the desired response format type from settings
-    $response_format_type = get_option('snn_ai_response_format_type', 'none'); // e.g., 'none', 'json_object'
-
     // Retrieve multimodal configuration settings
     $image_aspect_ratio = get_option('snn_ai_image_aspect_ratio', '16:9');
     $image_size         = get_option('snn_ai_image_size', '1K');
+
+    // Retrieve generation parameters
+    $temperature        = get_option('snn_ai_temperature', '0.7');
+    $max_tokens         = get_option('snn_ai_max_tokens', '4000');
+    $top_p              = get_option('snn_ai_top_p', '1');
+    $frequency_penalty  = get_option('snn_ai_frequency_penalty', '0');
+    $presence_penalty   = get_option('snn_ai_presence_penalty', '0');
+
+    // Prepare image_config for image generation settings
+    $imageConfig = [
+        'aspect_ratio' => $image_aspect_ratio,
+        'image_size'   => $image_size,
+        'image_model'  => $openrouter_image_model,
+        'image_model_provider' => $openrouter_image_model_provider,
+    ];
 
     $apiKey      = '';
     $model       = '';
@@ -80,20 +92,6 @@ function snn_get_ai_api_config() {
         $action_presets = [];
     }
 
-    // Prepare the response format payload based on the setting
-    $responseFormat = [];
-    if ($response_format_type === 'json_object') {
-        $responseFormat = ['type' => 'json_object'];
-    }
-
-    // Prepare image_config for image generation settings
-    $imageConfig = [
-        'aspect_ratio' => $image_aspect_ratio,
-        'image_size'   => $image_size,
-        'image_model'  => $openrouter_image_model,
-        'image_model_provider' => $openrouter_image_model_provider,
-    ];
-
     // Build the configuration array
     $config = [
         'apiKey'          => $apiKey,
@@ -102,8 +100,12 @@ function snn_get_ai_api_config() {
         'apiEndpoint'     => $apiEndpoint,
         'systemPrompt'    => $system_prompt,
         'actionPresets'   => array_values($action_presets),
-        'responseFormat'  => $responseFormat,
-        'imageConfig'     => $imageConfig,
+        'temperature'        => $temperature,
+        'maxTokens'          => $max_tokens,
+        'topP'               => $top_p,
+        'frequencyPenalty'   => $frequency_penalty,
+        'presencePenalty'    => $presence_penalty,
+        'imageConfig'        => $imageConfig,
     ];
 
     return $config;

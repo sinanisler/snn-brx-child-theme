@@ -68,6 +68,11 @@ function snn_enqueue_block_editor_ai_assets() {
         'systemPrompt' => $config['systemPrompt'],
         'actionPresets' => $config['actionPresets'],
         'imageConfig' => $config['imageConfig'],
+        'temperature' => $config['temperature'],
+        'maxTokens' => $config['maxTokens'],
+        'topP' => $config['topP'],
+        'frequencyPenalty' => $config['frequencyPenalty'],
+        'presencePenalty' => $config['presencePenalty'],
         'postId' => $post_id,
         'ajaxUrl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('snn_ai_image_save'),
@@ -465,6 +470,11 @@ function snn_add_block_editor_ai_panel() {
                 systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>,
                 actionPresets: <?php echo json_encode($config['actionPresets']); ?>,
                 imageConfig: <?php echo json_encode($config['imageConfig']); ?>,
+                temperature: <?php echo json_encode($config['temperature']); ?>,
+                maxTokens: <?php echo json_encode($config['maxTokens']); ?>,
+                topP: <?php echo json_encode($config['topP']); ?>,
+                frequencyPenalty: <?php echo json_encode($config['frequencyPenalty']); ?>,
+                presencePenalty: <?php echo json_encode($config['presencePenalty']); ?>,
                 postId: <?php echo json_encode($post_id); ?>,
                 ajaxUrl: <?php echo json_encode(admin_url('admin-ajax.php')); ?>,
                 nonce: <?php echo json_encode(wp_create_nonce('snn_ai_image_save')); ?>,
@@ -788,7 +798,14 @@ function snn_add_block_editor_ai_panel() {
                         apiKey: config.apiKey,
                         model: config.model,
                         messages: messages,
-                        provider: config.modelProvider
+                        provider: config.modelProvider,
+                        temperature: parseFloat(config.temperature) || 0.7,
+                        maxTokens: parseInt(config.maxTokens) || 4000,
+                        additionalParams: {
+                            top_p: parseFloat(config.topP) ?? 1,
+                            frequency_penalty: parseFloat(config.frequencyPenalty) ?? 0,
+                            presence_penalty: parseFloat(config.presencePenalty) ?? 0
+                        }
                     });
                     
                     aiResponse = SNN_AI_Helpers.extractContent(data);

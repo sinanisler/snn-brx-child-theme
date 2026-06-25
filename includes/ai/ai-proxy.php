@@ -89,9 +89,6 @@ function snn_ai_proxy_handler() {
 				'allow_fallbacks' => false,
 			];
 		}
-		if ( ! empty( $config['responseFormat'] ) ) {
-			$body['response_format'] = $config['responseFormat'];
-		}
 	}
 
 	// 6. Forward request to AI provider from PHP (server-side).

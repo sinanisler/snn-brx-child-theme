@@ -353,7 +353,12 @@ function snn_add_ai_script_to_footer() {
             apiEndpoint: <?php echo json_encode($config['apiEndpoint']); ?>,
             model: <?php echo json_encode($config['model']); ?>,
             modelProvider: <?php echo json_encode($config['modelProvider']); ?>,
-            systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>
+            systemPrompt: <?php echo json_encode($config['systemPrompt']); ?>,
+            temperature: <?php echo json_encode($config['temperature']); ?>,
+            maxTokens: <?php echo json_encode($config['maxTokens']); ?>,
+            topP: <?php echo json_encode($config['topP']); ?>,
+            frequencyPenalty: <?php echo json_encode($config['frequencyPenalty']); ?>,
+            presencePenalty: <?php echo json_encode($config['presencePenalty']); ?>
         };
 
         let actionPresets = <?php echo json_encode($config['actionPresets']); ?>;
@@ -657,7 +662,14 @@ function snn_add_ai_script_to_footer() {
                     apiKey: config.apiKey,
                     model: config.model,
                     messages: messages,
-                    provider: config.modelProvider
+                    provider: config.modelProvider,
+                    temperature: parseFloat(config.temperature) || 0.7,
+                    maxTokens: parseInt(config.maxTokens) || 4000,
+                    additionalParams: {
+                        top_p: parseFloat(config.topP) ?? 1,
+                        frequency_penalty: parseFloat(config.frequencyPenalty) ?? 0,
+                        presence_penalty: parseFloat(config.presencePenalty) ?? 0
+                    }
                 });
                 
                 aiResponse = SNN_AI_Helpers.extractContent(data);
@@ -1033,7 +1045,14 @@ function snn_add_ai_script_to_footer() {
                     apiKey: config.apiKey,
                     model: config.model,
                     messages: messages,
-                    provider: config.modelProvider
+                    provider: config.modelProvider,
+                    temperature: parseFloat(config.temperature) || 0.7,
+                    maxTokens: parseInt(config.maxTokens) || 4000,
+                    additionalParams: {
+                        top_p: parseFloat(config.topP) ?? 1,
+                        frequency_penalty: parseFloat(config.frequencyPenalty) ?? 0,
+                        presence_penalty: parseFloat(config.presencePenalty) ?? 0
+                    }
                 });
                 
                 bulkAiRawResponse = SNN_AI_Helpers.extractContent(data);
