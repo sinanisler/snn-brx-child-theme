@@ -143,6 +143,7 @@ function snn_seo_register_settings() {
     register_setting('snn_seo_settings_group', 'snn_seo_robots_txt_content', ['type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field']);
     register_setting('snn_seo_settings_group', 'snn_seo_llms_txt_enabled', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
     register_setting('snn_seo_settings_group', 'snn_seo_llms_txt_content', ['type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_textarea_field']);
+    register_setting('snn_seo_settings_group', 'snn_seo_oembed_hide_author', ['type' => 'boolean', 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean']);
 }
 add_action('admin_init', 'snn_seo_register_settings');
 
@@ -185,6 +186,7 @@ function snn_seo_handle_reset() {
         delete_option('snn_seo_robots_txt_content');
         delete_option('snn_seo_llms_txt_enabled');
         delete_option('snn_seo_llms_txt_content');
+        delete_option('snn_seo_oembed_hide_author');
         
         // Flush rewrite rules
         flush_rewrite_rules();
@@ -663,6 +665,18 @@ function snn_seo_settings_page_callback() {
             </div>
 
             <?php endif; // End if SEO enabled ?>
+
+            <!-- oEmbed Author Privacy -->
+            <div class="snn-seo-section">
+                <h2><?php _e('oEmbed Author Privacy', 'snn'); ?></h2>
+                <label>
+                    <input type="checkbox" name="snn_seo_oembed_hide_author" value="1" <?php checked(get_option('snn_seo_oembed_hide_author', false), 1); ?>>
+                    <strong><?php _e('Show site name instead of author name in oEmbed responses', 'snn'); ?></strong>
+                </label>
+                <p class="description">
+                    <?php _e('When enabled, the WordPress oEmbed API will use your site name instead of individual author usernames. This prevents platforms like Discord, Slack, and Telegram from displaying author usernames in link previews. When disabled (default), WordPress behaves natively — author names are included in oEmbed responses.', 'snn'); ?>
+                </p>
+            </div>
 
             <!-- Robots.txt Settings -->
             <div class="snn-seo-section">
@@ -1561,6 +1575,36 @@ function snn_seo_output_meta_tags() {
     }
 }
 add_action('wp_head', 'snn_seo_output_meta_tags', 1);
+
+/**
+ * Filter oEmbed response data to control author privacy
+ * 
+ * By default, WordPress exposes the post author's display_name and author URL
+ * in the oEmbed REST API response. Platforms like Discord, Slack, and Telegram
+ * consume this data for link previews, potentially leaking usernames.
+ * 
+ * When the "Hide post author" setting is enabled, author info is replaced
+ * with site branding. When disabled (default), WordPress behaves natively.
+ *
+ * @param array   $data   The oEmbed response data.
+ * @param WP_Post $post   The post object.
+ * @param int     $width  The requested width.
+ * @param int     $height The calculated height.
+ * @return array Filtered oEmbed response data.
+ */
+function snn_seo_filter_oembed_response($data, $post, $width, $height) {
+    // Only modify when the privacy feature is explicitly enabled
+    if (!get_option('snn_seo_oembed_hide_author', false)) {
+        return $data; // Native WordPress behavior — no changes
+    }
+    
+    // Replace author info with site branding
+    $data['author_name'] = get_bloginfo('name');
+    $data['author_url']  = home_url();
+    
+    return $data;
+}
+add_filter('oembed_response_data', 'snn_seo_filter_oembed_response', 10, 4);
 
 /**
  * Output Open Graph meta tags - IMPROVED VERSION
