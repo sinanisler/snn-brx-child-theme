@@ -508,61 +508,6 @@ function snn_render_ai_settings() {
             </table>
             </details>
 
-            <details id="snn-test-connection-section" style="margin-top: 15px;">
-                <summary style="cursor: pointer; font-size: 16px; font-weight: 600; padding: 8px 0; color: #1d2327;">
-                    <?php esc_html_e('🔌 Test Connection', 'snn'); ?>
-                    <span style="font-weight: 400; font-size: 13px; color: #646970; margin-left: 8px;">
-                        <?php esc_html_e('— verify your API settings are working (click to expand)', 'snn'); ?>
-                    </span>
-                </summary>
-                <p style="margin: 10px 0;">
-                    <?php esc_html_e('Send a minimal test message using your current settings. Works for both OpenRouter and Custom providers. The log below shows each step in real time with colour-coded results.', 'snn'); ?>
-                </p>
-                <p class="description"><?php esc_html_e('Tip: Save your settings first if you made changes, then run the test.', 'snn'); ?></p>
-
-                <button id="snn_run_ai_test" class="button button-primary"><?php esc_html_e('Run Connection Test', 'snn'); ?></button>
-                <span id="snn_ai_test_spinner" class="spinner" style="float: none; margin: 0 10px; display: none;"></span>
-
-                <div id="snn_ai_log_wrap" style="display:none; margin-top:20px;">
-                    <div id="snn_ai_log_box" style="
-                        position: relative;
-                        background: #1e1e1e;
-                        color: #d4d4d4;
-                        font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-                        font-size: 12px;
-                        line-height: 1.7;
-                        padding: 14px 16px;
-                        border-radius: 6px;
-                        max-height: 400px;
-                        overflow-y: auto;
-                        border: 2px solid #444;
-                    ">
-                        <button id="snn_ai_copy_btn" title="Copy log" style="
-                            position: sticky;
-                            float: right;
-                            top: 0;
-                            right: 0;
-                            background: #3a3a3a;
-                            color: #ccc;
-                            border: 1px solid #555;
-                            border-radius: 4px;
-                            padding: 3px 10px;
-                            font-size: 11px;
-                            cursor: pointer;
-                            z-index: 10;
-                            margin-bottom: 8px;
-                        "><?php esc_html_e('Copy', 'snn'); ?></button>
-                        <div id="snn_ai_log_entries"></div>
-                    </div>
-
-                    <div id="snn_ai_settings_box" style="margin-top: 12px; padding: 12px 16px; border-radius: 6px; border: 2px solid #ccc; font-size: 13px;">
-                        <strong><?php esc_html_e('Settings tested:', 'snn'); ?></strong>
-                        <table id="snn_ai_settings_table" style="margin-top: 8px; border-collapse: collapse; width: auto;">
-                        </table>
-                    </div>
-                </div>
-            </details>
-
             <div
                 id="openrouter-settings"
                 style="display: <?php echo ($ai_provider === 'openrouter' && $ai_enabled === 'yes') ? 'block' : 'none'; ?>;"
@@ -786,6 +731,61 @@ function snn_render_ai_settings() {
                     </tr>
                 </table>
             </div>
+
+            <details id="snn-test-connection-section" style="margin-top: 15px;">
+                <summary style="cursor: pointer; font-size: 16px; font-weight: 600; padding: 8px 0; color: #1d2327;">
+                    <?php esc_html_e('🔌 Test Connection', 'snn'); ?>
+                    <span style="font-weight: 400; font-size: 13px; color: #646970; margin-left: 8px;">
+                        <?php esc_html_e('— verify your API settings are working (click to expand)', 'snn'); ?>
+                    </span>
+                </summary>
+                <p style="margin: 10px 0;">
+                    <?php esc_html_e('Send a minimal test message using your current settings. Works for both OpenRouter and Custom providers. The log below shows each step in real time with colour-coded results.', 'snn'); ?>
+                </p>
+                <p class="description"><?php esc_html_e('Tip: Save your settings first if you made changes, then run the test.', 'snn'); ?></p>
+
+                <button id="snn_run_ai_test" class="button button-primary"><?php esc_html_e('Run Connection Test', 'snn'); ?></button>
+                <span id="snn_ai_test_spinner" class="spinner" style="float: none; margin: 0 10px; display: none;"></span>
+
+                <div id="snn_ai_log_wrap" style="display:none; margin-top:20px;">
+                    <div id="snn_ai_log_box" style="
+                        position: relative;
+                        background: #1e1e1e;
+                        color: #d4d4d4;
+                        font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+                        font-size: 12px;
+                        line-height: 1.7;
+                        padding: 14px 16px;
+                        border-radius: 6px;
+                        max-height: 400px;
+                        overflow-y: auto;
+                        border: 2px solid #444;
+                    ">
+                        <button id="snn_ai_copy_btn" title="Copy log" style="
+                            position: sticky;
+                            float: right;
+                            top: 0;
+                            right: 0;
+                            background: #3a3a3a;
+                            color: #ccc;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            padding: 3px 10px;
+                            font-size: 11px;
+                            cursor: pointer;
+                            z-index: 10;
+                            margin-bottom: 8px;
+                        "><?php esc_html_e('Copy', 'snn'); ?></button>
+                        <div id="snn_ai_log_entries"></div>
+                    </div>
+
+                    <div id="snn_ai_settings_box" style="margin-top: 12px; padding: 12px 16px; border-radius: 6px; border: 2px solid #ccc; font-size: 13px;">
+                        <strong><?php esc_html_e('Settings tested:', 'snn'); ?></strong>
+                        <table id="snn_ai_settings_table" style="margin-top: 8px; border-collapse: collapse; width: auto;">
+                        </table>
+                    </div>
+                </div>
+            </details>
 
             <h2><?php esc_html_e('Prompt Presets', 'snn'); ?></h2>
             <p>
