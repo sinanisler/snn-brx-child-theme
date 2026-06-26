@@ -336,8 +336,17 @@ function snn_render_ai_settings() {
     ?>
     <div class="wrap">
         <h1><?php esc_html_e('AI Settings', 'snn'); ?></h1>
+
+        <div class="snn-tab-nav">
+            <button type="button" class="snn-tab-btn active" data-tab="snn-tab-settings"><?php esc_html_e('AI Settings', 'snn'); ?></button>
+            <button type="button" class="snn-tab-btn" data-tab="snn-tab-presets"><?php esc_html_e('Prompt Presets', 'snn'); ?></button>
+        </div>
+
         <form method="post" action="options.php">
             <?php settings_fields('snn_ai_settings_group'); ?>
+
+            <div class="snn-tab-content active" id="snn-tab-settings">
+
             <table class="form-table">
                 <tr>
                     <th scope="row">
@@ -787,6 +796,10 @@ function snn_render_ai_settings() {
                 </div>
             </details>
 
+            </div><!-- /#snn-tab-settings -->
+
+            <div class="snn-tab-content" id="snn-tab-presets">
+
             <h2><?php esc_html_e('Prompt Presets', 'snn'); ?></h2>
             <p>
                 <?php esc_html_e('Add, edit, remove, or drag-and-drop to reorder AI action prompts. These presets will be available as selectable buttons in the AI overlay.', 'snn'); ?>
@@ -850,6 +863,8 @@ function snn_render_ai_settings() {
                 </div>
             </div>
 
+            </div><!-- /#snn-tab-presets -->
+
             <style>
             #snn-ai-action-presets-table {
                 max-width: 660px;
@@ -894,6 +909,42 @@ function snn_render_ai_settings() {
                 border-radius: 3px;
                 font-size: 12px;
                 font-weight: 500;
+            }
+            /* Tab navigation styles */
+            .snn-tab-nav {
+                margin-bottom: 20px;
+                border-bottom: 2px solid #dcdcde;
+            }
+            .snn-tab-btn {
+                padding: 10px 20px;
+                border: 2px solid #dcdcde;
+                border-bottom: none;
+                background: #fff;
+                color: #50575e;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                border-radius: 4px 4px 0 0;
+                margin-right: 4px;
+                position: relative;
+                top: 2px;
+                transition: background 0.15s, color 0.15s;
+            }
+            .snn-tab-btn.active {
+                background: #f0f0f1;
+                color: #2271b1;
+                font-weight: 600;
+                border-bottom-color: #f0f0f1;
+            }
+            .snn-tab-btn:hover:not(.active) {
+                background: #f0f0f1;
+                color: #2271b1;
+            }
+            .snn-tab-content {
+                display: none;
+            }
+            .snn-tab-content.active {
+                display: block;
             }
             </style>
 
@@ -1806,6 +1857,29 @@ function snn_render_ai_settings() {
                     }
                 });
             }
+
+            // ================================================================
+            // Tab Switching
+            // ================================================================
+            const tabBtns = document.querySelectorAll('.snn-tab-btn');
+            const tabContents = document.querySelectorAll('.snn-tab-content');
+
+            tabBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+
+                    // Deactivate all buttons and contents
+                    tabBtns.forEach(function(b) { b.classList.remove('active'); });
+                    tabContents.forEach(function(c) { c.classList.remove('active'); });
+
+                    // Activate clicked button and corresponding content
+                    this.classList.add('active');
+                    const targetContent = document.getElementById(targetTab);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
         });
         </script>
     </div>
