@@ -1641,6 +1641,7 @@ CSS RULES:
 - Use class="..." on elements. NO inline style="" attributes.
 - Write standard CSS — any property, pseudo-class (:hover), @keyframes, @media queries.
 - 🔴 CRITICAL: NEVER use var(--bricks-*) or var(--secondary) or ANY Bricks internal variable in your CSS. These are site-specific tokens that may be undefined or circular. ALWAYS use concrete hex (#rrggbb), rgb(), hsl() values instead. Example: use "color: #f8fafc" NOT "color: var(--secondary)". Your :root custom properties (--primary, --accent, etc.) should also use concrete hex values.
+- 🔴 FLEX DIRECTION: Always write flex-direction when using display: flex. Bricks defaults sections to flex-direction: column, which overrides the CSS standard default of row. Be explicit: "display: flex; flex-direction: row;" or "display: flex; flex-direction: column;". Never write "display: flex" alone.
 - ⚠️ FORMAT: Write EACH CSS property on its OWN line with proper indentation:
   ✅ .hero { background: #0f172a; padding: 80px 0; }     ← WRONG (one line)
   ✅ .hero {
