@@ -294,10 +294,6 @@ Fitness</button>
                     </button>
                 </div>
 
-                <!-- Support Link -->
-                <div class="snn-bricks-chat-support">
-                    <a href="https://sinanisler.com/github-support" target="_blank" data-balloon="If SNN-BRX saving you time and money consider supporting the project monthly." data-balloon-length="large">Consider Supporting SNN-BRX ❤</a>
-                </div>
 
                 <?php endif; ?>
             </div>
