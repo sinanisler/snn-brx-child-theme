@@ -66,66 +66,64 @@
                 // Remove comments
                 css = css.replace(/\/\*[\s\S]*?\*\//g, '');
 
-                // Match top-level .classname { ... } blocks including pseudo-classes/elements.
-                // Examples: .hero {...}, .hero-heading {...}, .hero-button:hover {...}, .card::before {...}
-                // Captures the base class name (before any : or ::), and preserves the full selector.
-                const ruleRegex = /\.([a-zA-Z0-9_-]+)((?:::[a-zA-Z0-9_-]+|:[a-zA-Z0-9_-]+)*)\s*\{/g;
-                let match;
-                while ((match = ruleRegex.exec(css)) !== null) {
-                    const baseName = match[1];           // "hero-button"
-                    const pseudoPart = match[2] || '';    // ":hover" or "::before" or ""
-                    const fullSelector = '.' + baseName + pseudoPart;
-                    const startIndex = match.index + match[0].length - 1;
-                    let depth = 1;
-                    let endIndex = startIndex + 1;
-                    while (depth > 0 && endIndex < css.length) {
-                        if (css[endIndex] === '{') depth++;
-                        else if (css[endIndex] === '}') depth--;
-                        endIndex++;
-                    }
-                    // Preserve original formatting of the rule body
-                    const rawBody = css.substring(startIndex + 1, endIndex - 1);
-                    const body = formatCSSBody(rawBody);
-                    // Store FULL rule with selector preserved and clean formatting
-                    if (!classes[baseName]) classes[baseName] = '';
-                    classes[baseName] += fullSelector + ' {\n' + body + '\n}\n\n';
-                }
-
-                // Match @media blocks and associate their inner class rules
+                // ── STEP 0: Identify all @media blocks first ──
+                // We MUST extract and remove @media blocks BEFORE parsing class rules,
+                // otherwise rules inside @media get double-matched (once by ruleRegex,
+                // once by the @media recursion).
+                const mediaBlocks = [];
                 const mediaRegex = /@media\s*[^{]+\{/g;
-                while ((match = mediaRegex.exec(css)) !== null) {
-                    const startIdx = match.index + match[0].length - 1;
-                    let depth = 1;
-                    let endIdx = startIdx + 1;
+                let m;
+                while ((m = mediaRegex.exec(css)) !== null) {
+                    const startIdx = m.index + m[0].length - 1;
+                    let depth = 1, endIdx = startIdx + 1;
                     while (depth > 0 && endIdx < css.length) {
                         if (css[endIdx] === '{') depth++;
                         else if (css[endIdx] === '}') depth--;
                         endIdx++;
                     }
-                    const mediaContent = css.substring(startIdx + 1, endIdx - 1);
-                    const mediaQuery = css.substring(match.index, match.index + match[0].length - 1).trim();
-                    // Extract class rules inside the media block
-                    const innerRules = parseCSSRules(mediaContent);
+                    mediaBlocks.push({
+                        query: m[0].substring(0, m[0].length - 1).trim(),
+                        content: css.substring(startIdx + 1, endIdx - 1),
+                        start: m.index,
+                        end: endIdx
+                    });
+                }
+
+                // Build a clean CSS string with @media blocks removed
+                mediaBlocks.sort((a, b) => b.start - a.start); // descending: remove from end
+                let cssCleaned = css;
+                mediaBlocks.forEach(b => {
+                    cssCleaned = cssCleaned.substring(0, b.start) + cssCleaned.substring(b.end);
+                });
+
+                // ── STEP 1: Parse class rules from non-@media CSS ──
+                // parseRuleBlocks handles compound selectors (comma-separated)
+                // and only captures rules whose selector contains '.'
+                parseRuleBlocks(cssCleaned, classes);
+
+                // ── STEP 2: Process @media blocks recursively ──
+                // Restore original order for consistent CSS output
+                mediaBlocks.reverse();
+                mediaBlocks.forEach(({ query, content }) => {
+                    const innerRules = parseCSSRules(content);
                     for (const [name, cssBlock] of Object.entries(innerRules)) {
                         if (!classes[name]) classes[name] = '';
-                        classes[name] += mediaQuery + ' {\n' + cssBlock + '\n}\n\n';
+                        classes[name] += query + ' {\n' + cssBlock + '\n}\n\n';
                     }
-                }
+                });
 
-                // Match @keyframes blocks and associate with the class that uses them
+                // ── STEP 3: Handle @keyframes blocks ──
                 const keyframeRegex = /@keyframes\s+([a-zA-Z0-9_-]+)\s*\{/g;
-                while ((match = keyframeRegex.exec(css)) !== null) {
-                    const animName = match[1];
-                    const startIdx = match.index + match[0].length - 1;
-                    let depth = 1;
-                    let endIdx = startIdx + 1;
+                while ((m = keyframeRegex.exec(css)) !== null) {
+                    const animName = m[1];
+                    const startIdx = m.index + m[0].length - 1;
+                    let depth = 1, endIdx = startIdx + 1;
                     while (depth > 0 && endIdx < css.length) {
                         if (css[endIdx] === '{') depth++;
                         else if (css[endIdx] === '}') depth--;
                         endIdx++;
                     }
-                    const keyframeBlock = css.substring(match.index, endIdx);
-                    // Find which class uses this animation
+                    const keyframeBlock = css.substring(m.index, endIdx);
                     for (const [className, classCss] of Object.entries(classes)) {
                         if (classCss.includes(animName)) {
                             classes[className] += keyframeBlock + '\n\n';
@@ -143,20 +141,87 @@
             }
 
             /**
+             * Parse CSS rule blocks from a string that has NO @media blocks.
+             * Handles compound selectors (comma-separated) by splitting and
+             * storing the rule body under each base class name found.
+             *
+             * Example: ".hero, .banner { color: red; }"
+             *   → classes["hero"] += ".hero { color: red; }"
+             *   → classes["banner"] += ".banner { color: red; }"
+             */
+            function parseRuleBlocks(css, classes) {
+                let i = 0;
+                while (i < css.length) {
+                    const braceIdx = css.indexOf('{', i);
+                    if (braceIdx === -1) break;
+
+                    // Walk back to find where the selector block starts
+                    // (after previous '}' or from beginning of string)
+                    let selStart = braceIdx - 1;
+                    while (selStart >= 0 && css[selStart] !== '}') selStart--;
+                    selStart++;
+
+                    const selectorText = css.substring(selStart, braceIdx).trim();
+
+                    // Count braces to find matching closing brace
+                    let depth = 1, endIdx = braceIdx + 1;
+                    while (depth > 0 && endIdx < css.length) {
+                        if (css[endIdx] === '{') depth++;
+                        else if (css[endIdx] === '}') depth--;
+                        endIdx++;
+                    }
+
+                    const rawBody = css.substring(braceIdx + 1, endIdx - 1);
+
+                    // Only process class-based rules (selectors containing '.')
+                    if (selectorText && selectorText.includes('.')) {
+                        // Split compound/comma-separated selectors
+                        const selectors = selectorText.split(',').map(s => s.trim());
+
+                        for (const sel of selectors) {
+                            // Extract the first .className from the selector
+                            const classMatch = sel.match(/\.([a-zA-Z0-9_-]+)/);
+                            if (classMatch) {
+                                const className = classMatch[1];
+                                if (!classes[className]) classes[className] = '';
+                                const body = formatCSSBody(rawBody);
+                                classes[className] += sel + ' {\n' + body + '\n}\n\n';
+                            }
+                        }
+                    }
+
+                    i = endIdx;
+                }
+            }
+
+            /**
              * Extract CSS custom properties from :root { ... } block.
+             * Uses brace counting (not regex [^}]*) to correctly handle
+             * nested braces and multi-line content.
              * Returns { variables: [{name, value}], raw: "full :root block" }
              */
             function extractRootVariables(css) {
-                const rootMatch = css.match(/:root\s*\{([^}]*)\}/s);
-                if (!rootMatch) return { variables: [], raw: '' };
-                const body = rootMatch[1];
+                const rootStart = css.search(/:root\s*\{/);
+                if (rootStart === -1) return { variables: [], raw: '' };
+
+                const braceIdx = css.indexOf('{', rootStart);
+                let depth = 1, endIdx = braceIdx + 1;
+                while (depth > 0 && endIdx < css.length) {
+                    if (css[endIdx] === '{') depth++;
+                    else if (css[endIdx] === '}') depth--;
+                    endIdx++;
+                }
+
+                const fullBlock = css.substring(rootStart, endIdx);
+                const body = css.substring(braceIdx + 1, endIdx - 1);
+
                 const variables = [];
                 const propRegex = /--([a-zA-Z0-9_-]+)\s*:\s*([^;]+);/g;
                 let m;
                 while ((m = propRegex.exec(body)) !== null) {
                     variables.push({ name: m[1], value: m[2].trim() });
                 }
-                return { variables, raw: rootMatch[0] };
+                return { variables, raw: fullBlock };
             }
 
             /**
@@ -171,6 +236,76 @@
                     fonts.push(m[1]);
                 }
                 return fonts;
+            }
+
+            /**
+             * Extract non-class CSS blocks (body, html, *, @font-face, etc.)
+             * that parseCSSRules does NOT capture. These must be injected
+             * directly into the page so tag-level styles survive.
+             *
+             * Captures: body{ }, html{ }, *{ }, @font-face{ }, @import statements,
+             * and any @-rule that is NOT @media or @keyframes.
+             *
+             * Does NOT capture @media (handled by parseCSSRules) or .class rules.
+             */
+            function extractGlobalCSS(css) {
+                css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+                let result = '';
+                let i = 0;
+
+                while (i < css.length) {
+                    const braceIdx = css.indexOf('{', i);
+                    if (braceIdx === -1) {
+                        // Capture remaining text after last brace
+                        // (e.g., @import statements at the end, trailing whitespace)
+                        const tail = css.substring(i).trim();
+                        if (tail) result += tail + '\n';
+                        break;
+                    }
+
+                    // Walk back to find selector start
+                    let selStart = braceIdx - 1;
+                    while (selStart >= 0 && css[selStart] !== '}') selStart--;
+                    selStart++;
+
+                    const selectorText = css.substring(selStart, braceIdx).trim();
+
+                    // Count braces to find matching closing brace
+                    let depth = 1, endIdx = braceIdx + 1;
+                    while (depth > 0 && endIdx < css.length) {
+                        if (css[endIdx] === '{') depth++;
+                        else if (css[endIdx] === '}') depth--;
+                        endIdx++;
+                    }
+
+                    const fullBlock = css.substring(selStart, endIdx);
+
+                    // Capture non-class selectors: body, html, *, :root, @font-face, etc.
+                    // Skip @media (handled by parseCSSRules), skip .class rules (in global classes)
+                    if (selectorText && !selectorText.includes('.') && !selectorText.startsWith('@media')) {
+                        result += fullBlock + '\n';
+                    }
+
+                    i = endIdx;
+                }
+
+                // Also capture @import / @charset statements BEFORE the first brace block
+                // These don't have { } so the brace loop above won't find them
+                const firstBrace = css.indexOf('{');
+                if (firstBrace !== -1) {
+                    const preamble = css.substring(0, firstBrace).trim();
+                    if (preamble) {
+                        // Extract @import and other at-rules
+                        const atRules = preamble.match(/@(import|charset|namespace)[^;]+;/gi);
+                        if (atRules) {
+                            atRules.forEach(r => {
+                                if (!result.includes(r)) result = r + '\n' + result;
+                            });
+                        }
+                    }
+                }
+
+                return result.trim();
             }
 
             // ================================================================

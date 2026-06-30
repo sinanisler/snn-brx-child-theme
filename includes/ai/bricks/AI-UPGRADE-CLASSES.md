@@ -946,3 +946,67 @@ Once the class-based system is stable, enhance patching:
 | 7 | **Preview iframe** | Inject the AI's `<style>` block directly into iframe `<head>` | Already works with `buildPreviewHTML()`. Classes render natively — simpler than inline styles. |
 | 8 | **Registration mechanism** | Direct write to `bricksState.globalClasses` (Vue reactivity) | No PHP AJAX, no file regeneration, no server round-trips. Instant propagation. |
 | 9 | **What stays** | Element semantics only: `data-bricks` type mapping, text/content extraction, icon parsing, link handling, query loop attributes, ID generation, tree building | These handle element *meaning*, not appearance. They're minimal and stable. |
+| 10 | **:root CSS variables** | Preserve `:root { }` block via direct `<style>` injection (custom-html-css-script). Supplement with Bricks palette/variables for resolvable values only. | `parseCSSRules()` only captures class rules. `:root` block must be preserved verbatim because Bricks color palette cannot store `var()` references or font-family values. |
+| 11 | **Font loading** | Combine `@import` + `:root` into a single `<style>` tag, always injected BEFORE elements (independent of replace/append actionType). | Previous `isFirst` logic was broken — `actionType` always `'append'` meant fonts were NEVER loaded. |
+
+---
+
+## 14. Production Bugs Found & Fixed (2026-06-30)
+
+Real-world test with "Noir Properties" luxury real estate landing page revealed these bugs.
+
+### 🔴 C1+C2: `parseCSSRules()` — compound selectors + @media double-match
+
+**Problem:** The `ruleRegex` `/\.([a-zA-Z0-9_-]+)...\s*\{/g` ran on the ENTIRE CSS string including content inside `@media` blocks. It also failed on comma-separated selectors (e.g., `.hero-container, .stats-grid { ... }`).
+
+**Symptoms:**
+- `@media (max-width: 991px) { .hero-content { padding: 80px 5%; } }` → the `padding: 80px 5%` appeared BOTH inside @media AND as a standalone rule (double-match)
+- `.hero-container, .stats-grid, .listings-grid, .reviews-grid { grid-template-columns: 1fr; }` → only `.reviews-grid` captured; the other three classes lost their mobile responsive override
+
+**Fix:** Two-part fix:
+1. @media blocks are now extracted and REMOVED from the CSS string BEFORE base rule parsing, eliminating double-matching
+2. New `parseRuleBlocks()` helper uses brace-counting to find `{ }` pairs, splits selectors by comma, and extracts the first `.className` from each selector
+
+### 🔴 C3: `:root` CSS variables never persisted
+
+**Problem:** `parseCSSRules()` only captures class-based rules (`.className { }`). The `:root { }` block was never stored in any `_cssCustom`. The `extractRootVariables()` extraction wrote variables to Bricks color palette/variables, but:
+- `var()` references (e.g., `--primary: var(--bricks-color-grey-900)`) couldn't be resolved → `light: ""`
+- Font variables (`--font-header`, `--font-body`) were explicitly skipped via `if (name.includes('font')) return;`
+
+**Symptoms:** All CSS custom properties (`--font-header`, `--primary`, `--secondary`, `--accent`, `--surface`, `--text-muted`) were undefined on the frontend. The entire design fell apart because global class CSS referenced `var(--primary)`, `var(--font-header)` etc. which resolved to `initial`/`invalid`.
+
+**Fix:** Combined `@import` + `:root{...}` into a single `<style>` tag injected as a `custom-html-css-script` element (PHASE 1.5). Bricks palette/variables are still written for resolvable values (hex colors, pixel sizes) as a best-effort supplement.
+
+### 🔴 C4: Font loading element never injected
+
+**Problem:** `fontLoadElement` was only prepended when `isFirst = (index === 0 && actionType === 'replace')`. But the approve bar button always calls `compileSectionBySection('append')`, so `isFirst` was ALWAYS false.
+
+**Symptoms:** Google Fonts `<link>` tags never added to the page. Fonts fell back to browser defaults.
+
+**Fix:** The CSS injection element (containing both `@import` and `:root`) is now written independently via `BricksHelper.writeElementsToState([cssInjectionElement], 'append')` in PHASE 1.5, BEFORE the section loop. It always runs regardless of `actionType`.
+
+### 🔴 C5: AI using Bricks internal color tokens — unreadable designs
+
+**Problem:** Three interacting system prompt issues:
+
+1. **Theming agent prompt** explicitly said: *"When using a var() value in the spec, write it as the var() string so the designer can use it directly"* — this directly instructed the AI to output `var(--bricks-color-grey-900)` instead of `#212121`
+2. **Designing prompt** displayed Bricks tokens with *"use these in color/background styles when user wants existing theme colors"* — encouraged AI to reference them
+3. **Circular reference**: The AI generated `--secondary: var(--secondary)` which is a CSS circular reference. Per CSS spec, circular `var()` resolves to `initial` (usually black), so `color: var(--secondary)` → black text on dark gray background — completely unreadable.
+
+**Symptoms:**
+```
+:root {
+  --primary: var(--bricks-color-grey-900);   /* resolves to #212121 (ok) */
+  --secondary: var(--secondary);              /* CIRCULAR — resolves to initial (black!) */
+  --accent: var(--bricks-color-amber);        /* #ffc107 (yellow, not gold) */
+  --surface: var(--bricks-color-grey-800);    /* #424242 */
+  --text-muted: var(--bricks-color-grey-500); /* #9e9e9e */
+}
+```
+Result: Black text on `#212121`/`#424242` backgrounds — unreadable. The AI had zero creative freedom because it was bound to Bricks' default palette.
+
+**Fix:** Three changes:
+1. **Theming agent**: MUST output concrete hex (#rrggbb) — "`var()` references are unusable and will break the design"
+2. **Designing prompt**: Bricks token display REMOVED entirely. Added 🔴 CRITICAL rule: *"NEVER use var(--bricks-*) or var(--secondary). ALWAYS use concrete hex values"*
+3. **Theming spec display**: Marks any `var()` refs with ⚠️ IGNORE flag so the designer knows to use its own hex
+

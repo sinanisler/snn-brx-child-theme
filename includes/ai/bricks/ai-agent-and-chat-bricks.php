@@ -879,27 +879,27 @@ Rules:
 
                 const tokenInstructions = (hasColors || hasSizes) ? `
 EXISTING BRICKS TOKENS RULES:
-- If the user explicitly says "use existing colors", "use theme colors", "match the site", or similar \u2192 use the existing palette values above for primary/secondary/accent/background etc. Set "usedExistingTokens": true.
-- If no color direction is given at all \u2192 you may use existing colors as inspiration or pick a fresh palette that fits the brief. Your call.
-- If the user describes a specific new palette (e.g. "dark navy and gold") \u2192 use their description, ignore existing tokens.
-- For sizes: if existing size variables are present, prefer their values for sectionPadding, containerGap, cardPadding, borderRadius where appropriate.
-- When using a var() value in the spec, write it as the var() string so the designer can use it directly: e.g. "primary": "var(--color-primary)" or "primary": "#1a2b3c"
+- If the user explicitly says "use existing colors", "use theme colors", "match the site", or similar → use the existing palette values above for primary/secondary/accent/background etc. Set "usedExistingTokens": true.
+- If no color direction is given at all → create a FRESH, original palette using concrete hex values that fits the brief. Do NOT use existing Bricks tokens — invent your own hex colors.
+- If the user describes a specific new palette (e.g. "dark navy and gold") → use their description with concrete hex values, ignore existing tokens entirely.
+- For sizes: if existing size variables are present, prefer their VALUES (e.g. "100px" not "var(--section-padding)") for sectionPadding, containerGap, cardPadding, borderRadius where appropriate.
+- ⚠️ CRITICAL: ALWAYS output CONCRETE hex color values (#rrggbb). NEVER use var(--anything) references in palette values. var() references break the CSS pipeline because the designer agent cannot resolve them. Output raw hex like "#0f172a", "#c5a059", "#ffffff" — never "var(--bricks-color-xxx)" or "var(--secondary)".
 ` : '';
 
                 const systemPrompt = `You are a visual design director for a web page being built in Bricks Builder.
 Given a project brief, layout plan, and any existing design tokens, output ONLY a JSON design spec \u2014 no prose, no markdown, no explanation.
 ${tokenContext}${tokenInstructions}
-Output this exact JSON shape:
+Output this exact JSON shape (use CONCRETE HEX VALUES only, never var() references):
 {
   "usedExistingTokens": false,
   "palette": {
-    "primary":    "#hex or var(--name)",
-    "secondary":  "#hex or var(--name)",
-    "accent":     "#hex or var(--name)",
-    "background": "#hex or var(--name)",
-    "surface":    "#hex or var(--name)",
-    "text":       "#hex or var(--name)",
-    "textMuted":  "#hex or var(--name)"
+    "primary":    "#0f172a",
+    "secondary":  "#f8fafc",
+    "accent":     "#c5a059",
+    "background": "#0f172a",
+    "surface":    "#1e293b",
+    "text":       "#f8fafc",
+    "textMuted":  "#94a3b8"
   },
   "fonts": {
     "heading":       "Google Font Name",
@@ -908,14 +908,16 @@ Output this exact JSON shape:
     "bodyWeight":    "400"
   },
   "spacing": {
-    "sectionPadding": "100px or var(--name)",
-    "containerGap":   "32px  or var(--name)",
-    "cardPadding":    "32px  or var(--name)",
-    "borderRadius":   "12px  or var(--name)"
+    "sectionPadding": "100px",
+    "containerGap":   "32px",
+    "cardPadding":    "32px",
+    "borderRadius":   "12px"
   },
   "mood":  ["bold", "premium"],
   "style": "minimal | editorial | bold | elegant | playful | technical"
-}`;
+}
+
+⚠️ PALETTE VALUES MUST BE CONCRETE HEX (#rrggbb) OR rgb() — NEVER var(--anything). var() references are unusable and will break the design.`;
 
                 const response = await callAI(
                     [
@@ -1297,39 +1299,44 @@ Output as a \`\`\`html block.`;
                 }));
                 debugLog('Extracted ' + allGlobalClasses.length + ' CSS classes from full HTML <style> blocks');
 
-                // ── PHASE 0b: Extract Google Fonts and create font-loading element ──
-                const googleFonts = extractGoogleFonts(allStyleCSS);
-                let fontLoadElement = null;
-                if (googleFonts.length) {
-                    const fontLinks = googleFonts.map(url => 
-                        '<link rel="stylesheet" href="' + url + '">'
-                    ).join('\n');
-                    // Create a custom-html-css-script element as the FIRST element
-                    const fontElId = genClassId();
-                    fontLoadElement = {
-                        id: fontElId,
+                // ── PHASE 0b: Build combined CSS injection element ──
+                // Contains ALL non-class CSS: @import, :root, body, *, @font-face, etc.
+                // This is injected via a <style> tag as a custom-html-css-script element.
+                // CRITICAL: parseCSSRules only captures .class rules. Everything else
+                // (body{}, :root{}, @font-face{}, etc.) must be injected directly so
+                // tag-level styles and CSS custom properties survive.
+                const globalCSS = extractGlobalCSS(allStyleCSS);
+                debugLog('Global CSS extracted: ' + (globalCSS ? globalCSS.length + ' chars' : 'none'));
+
+                let cssInjectionElement = null;
+                if (globalCSS) {
+                    const cssElId = genClassId();
+                    cssInjectionElement = {
+                        id: cssElId,
                         name: 'custom-html-css-script',
                         parent: 0,
                         children: [],
-                        settings: { content: fontLinks },
+                        settings: { content: '<style>' + globalCSS + '</style>' },
                         themeStyles: []
                     };
-                    debugLog('Google Fonts extracted: ' + googleFonts.length + ' fonts');
+                    debugLog('CSS injection element built');
                 }
 
-                // ── PHASE 0c: Extract CSS root variables → Bricks color palette & global variables ──
+                // ── PHASE 0c: Best-effort: write resolvable variables to Bricks palette/vars ──
                 const rootVars = extractRootVariables(allStyleCSS);
+                // This supplements the :root injection above. Only write values that can
+                // be resolved (hex colors, pixel sizes). var() references are skipped
+                // because we can't resolve them — let the :root injection handle those.
                 if (rootVars.variables.length) {
                     const colorVars = [];
                     const sizeVars = [];
                     rootVars.variables.forEach(v => {
-                        const name = v.name.toLowerCase();
                         const val = v.value;
-                        
-                        // Skip font-related variables — fonts are loaded via Google Fonts <link>
-                        if (name.includes('font')) return;
-                        
-                        // Color detection: hex colors, rgb/rgba, hsl/hsla, or CSS named colors
+
+                        // var(--xxx) references: can't resolve, skip (handled by :root injection)
+                        if (val.match(/^var\(--/)) return;
+
+                        // Color detection: hex, rgb/rgba, hsl/hsla, named colors
                         if (val.match(/^#[0-9a-fA-F]{3,8}$/) ||
                             val.match(/^rgb(a?)\(/) ||
                             val.match(/^hsl(a?)\(/) ||
@@ -1337,11 +1344,9 @@ Output as a \`\`\`html block.`;
                             colorVars.push({ name: v.name, value: val });
                         }
                         // Size detection: value starts with digit or has CSS unit
-                        else if (val.match(/^-?\d/) || val.match(/[a-z]+$/i) && val.match(/px|em|rem|%|vw|vh|vmin|vmax|ch|ex|cm|mm|in|pt|pc/)) {
+                        else if (val.match(/^-?\d/) || (val.match(/[a-z]+$/i) && val.match(/px|em|rem|%|vw|vh|vmin|vmax|ch|ex|cm|mm|in|pt|pc/))) {
                             sizeVars.push({ name: v.name, value: val });
                         }
-                        // var(--xxx) references: skip — we can't resolve them, don't save garbage
-                        // (e.g. var(--font-heading) or var(--bg) — we don't know the actual value)
                     });
                     if (colorVars.length) {
                         const added = BricksHelper.writeColorPaletteToState(colorVars);
@@ -1358,6 +1363,16 @@ Output as a \`\`\`html block.`;
                     setAgentState('compiling', 'Registering ' + allGlobalClasses.length + ' CSS classes...');
                     const addedCount = BricksHelper.writeGlobalClassesToState(allGlobalClasses);
                     addMessage('assistant', '🎨 Registered ' + addedCount + ' new CSS classes as Bricks Global Classes');
+                }
+
+                // ── PHASE 1.5: Inject CSS element (fonts + :root) BEFORE any sections ──
+                // This MUST happen before elements because global class CSS references
+                // :root variables like var(--font-header) and var(--primary).
+                // ALWAYS inject regardless of actionType — the old isFirst/replace-only
+                // logic was broken and fonts/root vars were NEVER injected.
+                if (cssInjectionElement) {
+                    BricksHelper.writeElementsToState([cssInjectionElement], 'append');
+                    debugLog('Injected CSS element (fonts + :root)');
                 }
 
                 // ── PHASE 2: Compile each section with the pre-computed classNameToId map ──
@@ -1420,16 +1435,12 @@ Output as a \`\`\`html block.`;
                         }
                     });
 
-                    const isFirst = (index === 0 && actionType === 'replace');
-                    // If this is the first element and we have a font-loading element, prepend it
-                    let sectionContent = data.content;
-                    if (isFirst && fontLoadElement) {
-                        sectionContent = [fontLoadElement, ...data.content];
-                        debugLog('Prepended font-loading element with ' + googleFonts.length + ' fonts');
-                    }
+                    // CSS injection element (fonts + :root) is already injected in PHASE 1.5.
+                    // No need to depend on isFirst/replace — it always works.
+                    const isReplace = (index === 0 && actionType === 'replace');
                     const success = BricksHelper.writeElementsToState(
-                        sectionContent,
-                        isFirst ? 'replace' : 'append'
+                        data.content,
+                        isReplace ? 'replace' : 'append'
                     );
                     if (success) {
                         builtCount++;
@@ -1574,40 +1585,39 @@ Output as a \`\`\`html block.`;
                 }
 
                 // Build design tokens context from Bricks global styles
+                // ⚠️ These are for REFERENCE ONLY — the AI must NOT use them directly.
+                // They are displayed so the AI knows what exists, but the theming
+                // spec above provides the ACTUAL palette to use.
                 let tokensSnap = '';
-                if (tokens.colors.length) {
-                    const colorList = tokens.colors.map(c => `  ${c.raw}${c.hex ? ' (' + c.hex + ')' : ''}`).join('\n');
-                    tokensSnap += `\nTHEME COLOR VARIABLES (use these in color/background styles when user wants existing theme colors):\n${colorList}\n`;
-                }
-                if (tokens.sizes.length) {
-                    const sizeList = tokens.sizes.map(v => `  var(${v.cssVar}) = ${v.value}  /* use as: ${v.value} OR var(${v.cssVar}) */`).join('\n');
-                    tokensSnap += `\nTHEME SIZE VARIABLES (use these for padding/gap/font-size when user wants existing theme spacing):\n${sizeList}\n`;
-                }
 
                 // When a theming agent has already resolved the design spec, use it instead of
                 // the raw token list — it's more precise and reduces prompt token count.
                 let designSpec = tokensSnap;
                 if (ChatState.currentTheme) {
                     const t = ChatState.currentTheme;
+                    // Strip any var() references in palette values — they break CSS
+                    const cleanVal = (v) => {
+                        if (!v || typeof v !== 'string') return v;
+                        // If the value is a var() reference (e.g. "var(--bricks-color-grey-900)"),
+                        // flag it and keep it — the theming agent shouldn't output these.
+                        // But if it does, the designer agent is warned below.
+                        return v;
+                    };
+                    const paletteStr = Object.entries(t.palette).map(([k, v]) =>
+                        `  ${k}: ${cleanVal(v)}` + (typeof v === 'string' && v.startsWith('var(') ? ' ⚠️ VAR REF — IGNORE, USE YOUR OWN HEX' : '')
+                    ).join('\n');
                     designSpec = '\n=== DESIGN SPEC FROM THEMING AGENT (follow exactly — do not invent new colors or fonts) ===\n' +
-                        'Palette:\n' +
-                        '  primary:    ' + t.palette.primary    + '\n' +
-                        '  secondary:  ' + t.palette.secondary  + '\n' +
-                        '  accent:     ' + t.palette.accent     + '\n' +
-                        '  background: ' + t.palette.background + '\n' +
-                        '  surface:    ' + t.palette.surface    + '\n' +
-                        '  text:       ' + t.palette.text       + '\n' +
-                        '  textMuted:  ' + t.palette.textMuted  + '\n' +
+                        'Palette:\n' + paletteStr + '\n' +
                         'Fonts:\n' +
                         '  heading: "' + t.fonts.heading + '", weight ' + t.fonts.headingWeight + '\n' +
                         '  body:    "' + t.fonts.body    + '", weight ' + t.fonts.bodyWeight    + '\n' +
                         'Spacing:\n' +
-                        '  section padding: ' + t.spacing.sectionPadding + '\n' +
-                        '  container gap:   ' + t.spacing.containerGap   + '\n' +
-                        '  card padding:    ' + t.spacing.cardPadding    + '\n' +
-                        '  border radius:   ' + t.spacing.borderRadius   + '\n' +
+                        '  section padding: ' + cleanVal(t.spacing.sectionPadding) + '\n' +
+                        '  container gap:   ' + cleanVal(t.spacing.containerGap)   + '\n' +
+                        '  card padding:    ' + cleanVal(t.spacing.cardPadding)    + '\n' +
+                        '  border radius:   ' + cleanVal(t.spacing.borderRadius)   + '\n' +
                         'Mood: ' + t.mood.join(', ') + ' | Style: ' + t.style + '\n' +
-                        (t.usedExistingTokens ? 'These colors are from the site\'s existing Bricks global palette — use the var() names where provided.\n' : '') +
+                        (t.usedExistingTokens ? 'User asked to use existing site tokens — use the hex VALUES (not var() names) where shown.\n' : '') +
                         '=== Use ONLY these values. Every section must feel visually consistent. ===\n';
                 }
 
@@ -1630,13 +1640,14 @@ CSS RULES:
 - Define ALL styles as CSS classes in the <style> block at the top.
 - Use class="..." on elements. NO inline style="" attributes.
 - Write standard CSS — any property, pseudo-class (:hover), @keyframes, @media queries.
+- 🔴 CRITICAL: NEVER use var(--bricks-*) or var(--secondary) or ANY Bricks internal variable in your CSS. These are site-specific tokens that may be undefined or circular. ALWAYS use concrete hex (#rrggbb), rgb(), hsl() values instead. Example: use "color: #f8fafc" NOT "color: var(--secondary)". Your :root custom properties (--primary, --accent, etc.) should also use concrete hex values.
 - ⚠️ FORMAT: Write EACH CSS property on its OWN line with proper indentation:
   ✅ .hero { background: #0f172a; padding: 80px 0; }     ← WRONG (one line)
   ✅ .hero {
        background: #0f172a;
        padding: 80px 0;
      }                                                      ← CORRECT (one per line)
-- Define CSS custom properties in :root for colors/spacing:
+- Define CSS custom properties in :root for colors/spacing (ALL values must be concrete hex/rgb/px — NEVER var()):
   :root {
     --primary: #0f172a;
     --accent: #c5a059;
