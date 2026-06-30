@@ -1671,6 +1671,7 @@ HTML RULES:
   data-bricks="image"    — img elements (use src for URL)
   data-bricks="icon"     — FontAwesome <i class="fas fa-icon"> (also fab, far)
   data-bricks="custom-html-css-script" — raw HTML/SVG/iframes
+  data-bricks="divider" — <hr> or <div> with decorative line classes (short-line, long-line, divider, separator)
 - Icons: <i class="fas fa-star"> or <i class="fab fa-twitter"> — style with CSS class
 - Structure: section > container > content elements
 - Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS

@@ -376,7 +376,19 @@
                     const tag = el.tagName.toLowerCase();
                     if (['script', 'style', 'meta', 'link', 'title'].includes(tag)) return null;
 
-                    const bricksName = el.getAttribute('data-bricks') || tagMap[tag] || 'block';
+                    let bricksName = el.getAttribute('data-bricks') || tagMap[tag] || 'block';
+
+                    // ── Auto-detect divider elements from class names ─────
+                    // If a block element has a divider-related class but no explicit
+                    // data-bricks or <hr> tag, override to 'divider' so decorative
+                    // lines don't incorrectly become 'block'.
+                    if (bricksName === 'block' && !el.getAttribute('data-bricks')) {
+                        const cls = el.getAttribute('class');
+                        if (cls && /(?:^|\s)(?:short-?line|long-?line|divider|separator|hr|line-?decorative|decorative-?line)(?:\s|$)/i.test(cls)) {
+                            bricksName = 'divider';
+                        }
+                    }
+
                     const id = genId();  // Every element MUST have a unique 6-letter ID
 
                     const element = {
