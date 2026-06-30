@@ -329,7 +329,9 @@ Fitness</button>
                 // Global ID tracker to prevent duplicates across sections
                 globalUsedIds: new Set(),
                 // Theming state — populated by theming agent, carried forward for add_section
-                currentTheme: null
+                currentTheme: null,
+                // Accumulated global classes across all sections in a compilation session
+                accumulatedGlobalClasses: []
             };
 
             // ================================================================
@@ -472,6 +474,191 @@ Fitness</button>
                         }
                     } catch(e) { debugLog('getDesignTokens globalVariables error:', e); }
                     return tokens;
+                },
+
+                /**
+                 * Write AI-generated global classes directly into Bricks reactive state.
+                 * EXISTING classes are NEVER deleted or overwritten — data integrity first.
+                 * Only ADD new classes (or update classes the AI previously created for the same section).
+                 *
+                 * @param {Array} newClasses - Array of { id, name, settings: { _cssCustom } }
+                 * @return {number} Count of newly added classes
+                 */
+                writeGlobalClassesToState(newClasses) {
+                    const s = this.getState();
+                    if (!s) { debugLog('Bricks state not available for global class registration'); return 0; }
+
+                    // Ensure globalClasses array exists
+                    if (!Array.isArray(s.globalClasses)) {
+                        s.globalClasses = [];
+                    }
+
+                    // Build sets for O(1) duplicate checking — check BOTH id AND name
+                    const existingIds = new Set(s.globalClasses.map(gc => gc.id));
+                    const existingNames = new Set(s.globalClasses.map(gc => gc.name));
+
+                    let addedCount = 0;
+                    newClasses.forEach(gc => {
+                        // Skip if ID already exists
+                        if (existingIds.has(gc.id)) return;
+
+                        // If name already exists, append a numeric suffix to avoid conflicts
+                        let finalName = gc.name;
+                        let cssCustom = gc.cssCustom || (gc.settings && gc.settings._cssCustom) || '';
+                        if (existingNames.has(finalName)) {
+                            let suffix = 1;
+                            while (existingNames.has(finalName + '-' + suffix)) suffix++;
+                            finalName = finalName + '-' + suffix;
+                            // CRITICAL: Rewrite CSS selectors to use the new deduplicated name
+                            // ".hero { ... }" → ".hero-1 { ... }", ".hero:hover { ... }" → ".hero-1:hover { ... }"
+                            const escapedOld = gc.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            const selectorRegex = new RegExp('\\.' + escapedOld + '(?=\\s*[{,:])', 'g');
+                            cssCustom = cssCustom.replace(selectorRegex, '.' + finalName);
+                        }
+                        s.globalClasses.push({
+                            id: gc.id,
+                            name: finalName,
+                            user_id: '1',
+                            modified: Math.floor(Date.now() / 1000),
+                            settings: {
+                                _cssCustom: cssCustom
+                            }
+                        });
+                        existingIds.add(gc.id);
+                        existingNames.add(finalName);
+                        addedCount++;
+                    });
+
+                    // Force Vue reactivity to pick up the changes
+                    s.globalClasses = [...s.globalClasses];
+
+                    debugLog('✓ Added', addedCount, 'global classes to reactive state (skipped',
+                             newClasses.length - addedCount, 'existing)');
+                    return addedCount;
+                },
+
+                /**
+                 * Write CSS color variables to Bricks color palette (first/default palette only).
+                 * Each variable becomes a color entry: { id, name, raw, light }
+                 * Bricks uses "light" (not "hex") as the color value field.
+                 * @param {Array} colorVars - [{name: "primary", value: "#0f172a"}, ...]
+                 * @return {number} Count of newly added colors
+                 */
+                writeColorPaletteToState(colorVars) {
+                    const s = this.getState();
+                    if (!s) { debugLog('Bricks state not available for color palette'); return 0; }
+                    if (!colorVars || !colorVars.length) return 0;
+
+                    // Ensure colorPalette array exists and has at least one palette
+                    if (!Array.isArray(s.colorPalette)) s.colorPalette = [];
+                    if (!s.colorPalette.length) {
+                        s.colorPalette.push({ id: this._genShortId(), name: 'Default', colors: [] });
+                    }
+                    const palette = s.colorPalette[0]; // First/default palette
+                    if (!Array.isArray(palette.colors)) palette.colors = [];
+
+                    // Generate short ID helper
+                    const genCid = () => {
+                        const L = 'abcdefghijklmnopqrstuvwxyz';
+                        let id;
+                        do { id = Array.from({length:6}, () => L[Math.floor(Math.random()*26)]).join(''); }
+                        while (palette.colors.some(c => c.id === id));
+                        return id;
+                    };
+
+                    // Build set of existing color names for dedup
+                    const existingNames = new Set(palette.colors.map(c => c.name));
+
+                    let addedCount = 0;
+                    colorVars.forEach(v => {
+                        if (existingNames.has(v.name)) return;
+                        // Determine light value: if it's a hex/rgb, use it; if var(), resolve if possible
+                        let light = v.value;
+                        if (light.match(/^var\(--/)) light = ''; // Can't resolve var() refs, leave empty
+                        palette.colors.push({
+                            id: genCid(),
+                            name: v.name,
+                            raw: 'var(--' + v.name + ')',
+                            light: light   // ← Bricks uses "light", NOT "hex"
+                        });
+                        existingNames.add(v.name);
+                        addedCount++;
+                    });
+
+                    if (addedCount) s.colorPalette = [...s.colorPalette];
+                    debugLog('✓ Added', addedCount, 'colors to palette');
+                    return addedCount;
+                },
+
+                /**
+                 * Write CSS size/spacing variables to Bricks global variables.
+                 * @param {Array} sizeVars - [{name: "section-padding", value: "100px"}, ...]
+                 * @return {number} Count of newly added variables
+                 */
+                writeVariablesToState(sizeVars) {
+                    const s = this.getState();
+                    if (!s) { debugLog('Bricks state not available for variables'); return 0; }
+                    if (!sizeVars || !sizeVars.length) return 0;
+
+                    if (!Array.isArray(s.globalVariables)) s.globalVariables = [];
+
+                    const existingNames = new Set(s.globalVariables.map(v => v.name));
+                    const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+                    const genVid = () => {
+                        let id;
+                        do { id = Array.from({length:6}, () => LETTERS[Math.floor(Math.random()*26)]).join(''); }
+                        while (s.globalVariables.some(v => v.id === id));
+                        return id;
+                    };
+
+                    let addedCount = 0;
+                    sizeVars.forEach(v => {
+                        if (existingNames.has(v.name)) return;
+                        s.globalVariables.push({
+                            id: genVid(),
+                            name: v.name,
+                            value: v.value
+                        });
+                        existingNames.add(v.name);
+                        addedCount++;
+                    });
+
+                    if (addedCount) s.globalVariables = [...s.globalVariables];
+                    debugLog('✓ Added', addedCount, 'size variables');
+                    return addedCount;
+                },
+
+                /**
+                 * Write compiled elements into Bricks reactive state.
+                 * Replaces or appends to bricksState.content.
+                 *
+                 * @param {Array} contentArray - Array of Bricks element objects
+                 * @param {string} actionType - 'replace' or 'append'
+                 * @return {boolean} success
+                 */
+                writeElementsToState(contentArray, actionType = 'append') {
+                    const s = this.getState();
+                    if (!s) { debugLog('Bricks state not available for element injection'); return false; }
+
+                    if (!Array.isArray(s.content)) {
+                        s.content = [];
+                    }
+
+                    if (actionType === 'replace') {
+                        s.content = [...contentArray];
+                    } else {
+                        s.content = [...s.content, ...contentArray];
+                    }
+
+                    // Trigger canvas re-render
+                    setTimeout(() => {
+                        if (window.bricksCore?.builder?.canvas?.render) {
+                            window.bricksCore.builder.canvas.render();
+                            requestAnimationFrame(() => window.bricksCore.builder.canvas.render());
+                        }
+                    }, 200);
+
+                    return true;
                 }
             };
 
@@ -827,13 +1014,13 @@ Output this exact JSON shape:
 
             // ── Review design (reviewing state) ───────────────────────────────
             async function reviewDesign(html) {
-                const systemPrompt = `You are a Bricks Builder HTML validator. Review the HTML and fix ONLY these specific issues:
+                const systemPrompt = `You are a Bricks Builder HTML validator for a CLASS-BASED design system.
+Review the HTML and fix ONLY these specific structural issues:
 
 1. MISSING data-bricks attributes — every structural element must have one
 2. INVALID NESTING — section > container > block > content (never container inside block)
-3. MISSING display:flex on flex containers — if flex-direction/align-items/gap is set, display:flex must be too
-4. INLINE-FLEX usage — replace all display:inline-flex with display:flex + width:max-content
-5. ORPHANED <style data-style-id> — every style block must have a matching element with that id
+3. MISSING class attributes — elements should have CSS class references (no inline styles)
+4. ORPHANED CSS classes — every class used on elements must have a definition in <style>
 
 Return ONLY the corrected HTML. If no issues found, return the HTML unchanged.
 Do NOT redesign, rewrite copy, or change colors. Fix structural issues ONLY.
@@ -991,114 +1178,13 @@ Output as a \`\`\`html block.`;
                     });
                 }
 
-                // PASS 3: Validate and clean settings
+                // PASS 3: Validate _cssGlobalClasses is an array (class-based compiler guarantee)
                 content.forEach(el => {
-                    // Ensure numeric padding/margin values are strings
-                    ['_padding', '_margin'].forEach(prop => {
-                        if (el.settings[prop] && typeof el.settings[prop] === 'object') {
-                            ['top', 'right', 'bottom', 'left'].forEach(side => {
-                                if (el.settings[prop][side] !== undefined) {
-                                    el.settings[prop][side] = String(el.settings[prop][side]);
-                                }
-                            });
-                        }
-                    });
-
-                    // Validate typography font-size is string
-                    if (el.settings._typography?.['font-size'] && typeof el.settings._typography['font-size'] !== 'string') {
-                        el.settings._typography['font-size'] = String(el.settings._typography['font-size']);
-                    }
-
-                    // Wrap _cssGlobal with proper Bricks selector if not already wrapped
-                    // Redirect _cssGlobal to _cssCustom as Bricks doesn't use _cssGlobal
-                    if (el.settings._cssGlobal && typeof el.settings._cssGlobal === 'string') {
-                        const cssGlobal = el.settings._cssGlobal.trim();
-                        // Clean up
-                        const cleanedCss = cssGlobal
-                            .replace(/cursor:\s*pointer;?/g, '')
-                            .replace(/transition:[^;]+;?/g, '')
-                            .replace(/@media[^{]+\{[^}]+\}/g, '')
-                            .trim();
-                            
-                        if (cleanedCss) {
-                            // Check if already wrapped with #brxe- or %root%
-                            if (!cleanedCss.includes('#brxe-') && !cleanedCss.includes('%root%')) {
-                                el.settings._cssCustom = ((el.settings._cssCustom || '') + ` #brxe-${el.id} { ${cleanedCss} }`).trim();
-                            } else {
-                                el.settings._cssCustom = ((el.settings._cssCustom || '') + ` ${cleanedCss}`).trim();
-                            }
-                        }
-                        delete el.settings._cssGlobal;
-                    }
-
-                    // Wrap _cssCustom with proper Bricks selector if not already wrapped
-                    if (el.settings._cssCustom && typeof el.settings._cssCustom === 'string') {
-                        let cssCustom = el.settings._cssCustom.trim();
-                        // Only wrap if it doesn't already contain #brxe-, %root% or @keyframes
-                        if (!cssCustom.includes(`#brxe-${el.id}`) && !cssCustom.includes('%root%') && !cssCustom.includes('@keyframes') && !cssCustom.includes('@media')) {
-                            cssCustom = `#brxe-${el.id} { ${cssCustom} }`;
-                        } else if (cssCustom.startsWith('@keyframes') || cssCustom.startsWith('@media')) {
-                            // Leave keyframes/media queries outside, but ensure they are valid syntax
-                        }
-                        
-                        // ALWAYS replace %root% with #brxe-{id} to force reactive state update
-                        el.settings._cssCustom = cssCustom.replace(/%root%/g, `#brxe-${el.id}`);
-                    }
-
-                    // Remove legacy _css object (use native breakpoint suffixes instead)
-                    if (el.settings._css) {
-                        delete el.settings._css;
-                        errors.push('Removed legacy _css from ' + el.id);
-                        fixed = true;
-                    }
-
-                    // Fix gradient in _background.color.raw — convert to custom CSS
-                    const bgRaw = el.settings._background?.color?.raw;
-                    if (bgRaw && typeof bgRaw === 'string' && (bgRaw.includes('linear-gradient') || bgRaw.includes('radial-gradient') || bgRaw.includes('conic-gradient'))) {
-                        let cssCustom = el.settings._cssCustom || '';
-                        cssCustom = `#brxe-${el.id} { background: ${bgRaw}; } ${cssCustom}`.trim();
-                        el.settings._cssCustom = cssCustom;
-                        delete el.settings._background.color;
-                        if (!Object.keys(el.settings._background).length) delete el.settings._background;
-                        errors.push('Converted gradient in _background.color.raw → _cssCustom for ' + el.id);
+                    if (el.settings._cssGlobalClasses && !Array.isArray(el.settings._cssGlobalClasses)) {
+                        el.settings._cssGlobalClasses = [el.settings._cssGlobalClasses];
                         fixed = true;
                     }
                 });
-
-                // INFER justify-content on flex-row children of space-between/space-around parents.
-                // In Bricks, flex blocks stretch to fill available space. A right-side group inside a
-                // space-between parent has no visual indication of its own justification — without
-                // setting justify-content: flex-end, its own children pile up on the left edge.
-                // Rule: if a flex-row element has no _justifyContent, and its parent has
-                // _justifyContent: space-between or space-around, and it is NOT the first child
-                // of that parent — set _justifyContent: flex-end.
-                {
-                    const nameMap2 = {};
-                    content.forEach(el => { nameMap2[el.id] = el; });
-                    content.forEach(el => {
-                        if (el.settings._display === 'flex' && el.settings._direction === 'row' && !el.settings._justifyContent) {
-                            const parentEl = el.parent !== 0 ? nameMap2[el.parent] : null;
-                            if (parentEl) {
-                                const parentJC = parentEl.settings._justifyContent;
-                                if (parentJC === 'space-between' || parentJC === 'space-around' || parentJC === 'space-evenly') {
-                                    // Determine position among siblings
-                                    const siblings = content.filter(s => s.parent === el.parent);
-                                    const myIndex = siblings.findIndex(s => s.id === el.id);
-                                    if (myIndex > 0) {
-                                        el.settings._justifyContent = 'flex-end';
-                                        el.settings._justifyContentGrid = 'flex-end';
-                                        fixed = true;
-                                    } else {
-                                        // First child — default to flex-start for clarity
-                                        el.settings._justifyContent = 'flex-start';
-                                        el.settings._justifyContentGrid = 'flex-start';
-                                        fixed = true;
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
 
                 // FINAL PASS: Rebuild children arrays from parent declarations.
                 // Guarantees bidirectional parent↔children consistency for Bricks' tree parser.
@@ -1133,21 +1219,17 @@ Output as a \`\`\`html block.`;
              * @param {number} sectionIndex - Section number (1-based)
              * @return {object} - Bricks JSON {content: [...]}
              */
-            async function compileSingleSection(sectionHtml, sectionLabel, sectionIndex) {
-                // Extract Google Fonts from HTML (for future use if needed)
-                const fontMatch = sectionHtml.match(/@import\s+url\(['"]([^'"]+)['"]\)/i)  || 
-                                  ChatState.currentHTMLPreview.match(/@import\s+url\(['"]([^'"]+)['"]\)/i);
-                const googleFonts = fontMatch ? fontMatch[1] : '';
-                
+            async function compileSingleSection(sectionHtml, sectionLabel, sectionIndex, classNameToId = null) {
                 try {
-                    // Use the new JavaScript compiler - instant, no API calls!
-                    const bricksData = compileHtmlToBricksJson(sectionHtml, googleFonts);
+                    // CLASS-BASED compiler — classNameToId is pre-computed from full HTML <style>
+                    const bricksData = compileHtmlToBricksJson(sectionHtml, classNameToId);
                     
                     if (!bricksData || !bricksData.content || !bricksData.content.length) {
                         throw new Error('Compiler returned empty content');
                     }
                     
-                    debugLog('✓ Compiled "' + sectionLabel + '" — ' + bricksData.content.length + ' elements');
+                    debugLog('✓ Compiled "' + sectionLabel + '" — ' + bricksData.content.length + ' elements, ' +
+                             (classNameToId ? Object.keys(classNameToId).length : 0) + ' class refs available');
                     return bricksData;
                     
                 } catch (error) {
@@ -1168,27 +1250,131 @@ Output as a \`\`\`html block.`;
 
                 // Reset global ID tracker for this compilation session
                 ChatState.globalUsedIds.clear();
+                ChatState.accumulatedGlobalClasses = [];
 
-                const sections = parseHTMLIntoSections(ChatState.currentHTMLPreview);
+                const fullHTML = ChatState.currentHTMLPreview;
+                const sections = parseHTMLIntoSections(fullHTML);
                 const total    = sections.length;
-                addMessage('assistant', '⚡ Compiling ' + total + ' section' + (total > 1 ? 's' : '') + ' with JavaScript compiler...');
+                addMessage('assistant', '⚡ Compiling ' + total + ' section' + (total > 1 ? 's' : '') + ' with class-based compiler...');
 
-                const builtImageUrls = [];
-                let builtCount = 0;
+                // ── PHASE 0: Extract CSS, fonts, and variables from FULL HTML <style> blocks ──
+                // CRITICAL: <style> tags are children of <body>, but parseHTMLIntoSections
+                // only captures semantic elements. We extract everything here BEFORE splitting.
+                const fullDoc = new DOMParser().parseFromString(fullHTML, 'text/html');
+                const tempClassMap = {};       // { "hero": { id: "abcxyz", css: ".hero{...}" } }
+                const classNameToId = {};      // { "hero": "abcxyz" }
+                const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+                const tempUsedIds = new Set();
+                let allStyleCSS = '';          // Accumulate ALL <style> text for font/var extraction
+                function genClassId() {
+                    let id;
+                    do {
+                        id = Array.from({ length: 6 }, () => LETTERS[Math.floor(Math.random() * 26)]).join('');
+                    } while (tempUsedIds.has(id) || ChatState.globalUsedIds.has(id));
+                    tempUsedIds.add(id);
+                    ChatState.globalUsedIds.add(id);
+                    return id;
+                }
+                fullDoc.querySelectorAll('style').forEach(styleEl => {
+                    const css = styleEl.textContent;
+                    allStyleCSS += css + '\n';
+                    const rules = parseCSSRules(css);
+                    for (const [className, cssBlock] of Object.entries(rules)) {
+                        if (!tempClassMap[className]) {
+                            const gid = genClassId();
+                            tempClassMap[className] = { id: gid, css: '' };
+                            classNameToId[className] = gid;
+                        }
+                        tempClassMap[className].css += cssBlock;
+                    }
+                });
+
+                // Build global classes array from extracted CSS
+                const allGlobalClasses = Object.entries(tempClassMap).map(([className, gc]) => ({
+                    id: gc.id,
+                    name: className,
+                    cssCustom: gc.css.trim()
+                }));
+                debugLog('Extracted ' + allGlobalClasses.length + ' CSS classes from full HTML <style> blocks');
+
+                // ── PHASE 0b: Extract Google Fonts and create font-loading element ──
+                const googleFonts = extractGoogleFonts(allStyleCSS);
+                let fontLoadElement = null;
+                if (googleFonts.length) {
+                    const fontLinks = googleFonts.map(url => 
+                        '<link rel="stylesheet" href="' + url + '">'
+                    ).join('\n');
+                    // Create a custom-html-css-script element as the FIRST element
+                    const fontElId = genClassId();
+                    fontLoadElement = {
+                        id: fontElId,
+                        name: 'custom-html-css-script',
+                        parent: 0,
+                        children: [],
+                        settings: { content: fontLinks },
+                        themeStyles: []
+                    };
+                    debugLog('Google Fonts extracted: ' + googleFonts.length + ' fonts');
+                }
+
+                // ── PHASE 0c: Extract CSS root variables → Bricks color palette & global variables ──
+                const rootVars = extractRootVariables(allStyleCSS);
+                if (rootVars.variables.length) {
+                    const colorVars = [];
+                    const sizeVars = [];
+                    rootVars.variables.forEach(v => {
+                        const name = v.name.toLowerCase();
+                        const val = v.value;
+                        
+                        // Skip font-related variables — fonts are loaded via Google Fonts <link>
+                        if (name.includes('font')) return;
+                        
+                        // Color detection: hex colors, rgb/rgba, hsl/hsla, or CSS named colors
+                        if (val.match(/^#[0-9a-fA-F]{3,8}$/) ||
+                            val.match(/^rgb(a?)\(/) ||
+                            val.match(/^hsl(a?)\(/) ||
+                            val.match(/^(transparent|currentColor|inherit|initial|unset)$/i)) {
+                            colorVars.push({ name: v.name, value: val });
+                        }
+                        // Size detection: value starts with digit or has CSS unit
+                        else if (val.match(/^-?\d/) || val.match(/[a-z]+$/i) && val.match(/px|em|rem|%|vw|vh|vmin|vmax|ch|ex|cm|mm|in|pt|pc/)) {
+                            sizeVars.push({ name: v.name, value: val });
+                        }
+                        // var(--xxx) references: skip — we can't resolve them, don't save garbage
+                        // (e.g. var(--font-heading) or var(--bg) — we don't know the actual value)
+                    });
+                    if (colorVars.length) {
+                        const added = BricksHelper.writeColorPaletteToState(colorVars);
+                        debugLog('Color variables saved to palette: ' + added);
+                    }
+                    if (sizeVars.length) {
+                        const added = BricksHelper.writeVariablesToState(sizeVars);
+                        debugLog('Size variables saved: ' + added);
+                    }
+                }
+
+                // ── PHASE 1: Register ALL global classes FIRST (before any elements) ──
+                if (allGlobalClasses.length) {
+                    setAgentState('compiling', 'Registering ' + allGlobalClasses.length + ' CSS classes...');
+                    const addedCount = BricksHelper.writeGlobalClassesToState(allGlobalClasses);
+                    addMessage('assistant', '🎨 Registered ' + addedCount + ' new CSS classes as Bricks Global Classes');
+                }
+
+                // ── PHASE 2: Compile each section with the pre-computed classNameToId map ──
+                const allCompiledData = [];
                 for (let i = 0; i < sections.length; i++) {
                     if (!ChatState.isProcessing) { addMessage('assistant', '⏹ Build stopped.'); break; }
                     const { label, html } = sections[i];
-                    setAgentState('compiling', 'Building "' + label + '" (' + (i + 1) + '/' + total + ')...');
+                    setAgentState('compiling', 'Compiling "' + label + '" (' + (i + 1) + '/' + total + ')...');
                     let bricksData = null;
                     try {
-                        bricksData = await compileSingleSection(html, label, i + 1);
+                        bricksData = await compileSingleSection(html, label, i + 1, classNameToId);
                     } catch(compileErr) {
-                        // Auto-correction: ask AI to fix this section once
                         debugLog('Compilation failed for "' + label + '":', compileErr.message);
                         addMessage('assistant', '⚠️ "' + label + '" had issues. Auto-correcting...');
                         try {
                             const fixedHtml = await selfCorrectHTML(html, compileErr.message);
-                            bricksData = await compileSingleSection(fixedHtml, label + ' [corrected]', i + 1);
+                            bricksData = await compileSingleSection(fixedHtml, label + ' [corrected]', i + 1, classNameToId);
                         } catch(retryErr) {
                             debugLog('Self-correction failed for "' + label + '":', retryErr.message);
                             if (retryErr.name !== 'AbortError') {
@@ -1198,28 +1384,58 @@ Output as a \`\`\`html block.`;
                     }
                     if (bricksData && ChatState.isProcessing) {
                         const { data } = validateAndFixBricksJSON(bricksData);
-                        // Collect image URLs for media library saving
-                        (data.content || []).forEach(el => {
-                            if (el.settings.image?.url) {
-                                builtImageUrls.push(el.settings.image.url);
-                                console.log('[Bricks AI] 📸 Found img URL in [' + el.id + '] (' + el.name + '):', el.settings.image.url);
-                            }
-                            if (el.settings._background?.image?.url) {
-                                builtImageUrls.push(el.settings._background.image.url);
-                                console.log('[Bricks AI] 📸 Found bg-img URL in [' + el.id + '] (' + el.name + '):', el.settings._background.image.url);
-                            }
-                        });
-                        const result = (i === 0 && actionType === 'replace')
-                            ? BricksHelper.replaceAllContent(data)
-                            : BricksHelper.addSection(data, i === 0 ? actionType : 'append');
-                        if (result.success) {
-                            builtCount++;
-                            addMessage('assistant', '✓ "' + label + '" built (' + builtCount + '/' + total + ')');
-                        } else {
-                            addMessage('error', '✗ "' + label + '" inject failed: ' + result.error);
-                        }
+                        allCompiledData.push({ label, data, index: i });
+                        debugLog('✓ Section "' + label + '" compiled — ' + data.content.length + ' elements');
                     } else if (!bricksData && ChatState.isProcessing) {
                         addMessage('error', '✗ "' + label + '" — could not compile. Skipped.');
+                    }
+                }
+
+                if (!ChatState.isProcessing) return;
+
+                // ── PHASE 3: Inject elements into Bricks ──
+                // Global classes (with full CSS in settings._cssCustom) are already registered
+                // in PHASE 1. Elements reference them via _cssGlobalClasses. No per-element
+                // CSS injection is needed — Bricks renders global class CSS in the canvas.
+
+                const builtImageUrls = [];
+                let builtCount = 0;
+                for (const compiled of allCompiledData) {
+                    if (!ChatState.isProcessing) { addMessage('assistant', '⏹ Build stopped.'); break; }
+                    const { label, data, index } = compiled;
+                    setAgentState('compiling', 'Building "' + label + '" (' + (builtCount + 1) + '/' + allCompiledData.length + ')...');
+
+                    // ── Canvas rendering ──
+                    // Each CSS class is already registered as a Bricks Global Class with its
+                    // full CSS (including the .class-name selector) in settings._cssCustom.
+                    // Bricks applies the class name to the element's HTML automatically, so
+                    // the global class CSS renders correctly in the builder canvas.
+                    //
+                    // The previous approach wrapped each class's CSS in `%root% { .class { ... } }`,
+                    // which produced INVALID nested CSS (a selector inside another selector block).
+                    // That workaround is no longer needed — global classes handle canvas rendering.
+                    (data.content || []).forEach(el => {
+                        if (el.settings.image?.url) {
+                            builtImageUrls.push(el.settings.image.url);
+                        }
+                    });
+
+                    const isFirst = (index === 0 && actionType === 'replace');
+                    // If this is the first element and we have a font-loading element, prepend it
+                    let sectionContent = data.content;
+                    if (isFirst && fontLoadElement) {
+                        sectionContent = [fontLoadElement, ...data.content];
+                        debugLog('Prepended font-loading element with ' + googleFonts.length + ' fonts');
+                    }
+                    const success = BricksHelper.writeElementsToState(
+                        sectionContent,
+                        isFirst ? 'replace' : 'append'
+                    );
+                    if (success) {
+                        builtCount++;
+                        addMessage('assistant', '✓ "' + label + '" built (' + builtCount + '/' + allCompiledData.length + ')');
+                    } else {
+                        addMessage('error', '✗ "' + label + '" inject failed');
                     }
                 }
 
@@ -1228,14 +1444,9 @@ Output as a \`\`\`html block.`;
                 updateSendButton();
 
                 if (builtCount > 0) {
-                    addMessage('assistant', '🎉 Done! ' + builtCount + '/' + total + ' sections built in Bricks.');
-                    // Keep preview visible so user can still compare the HTML
-                    // hideHTMLPreview();
+                    addMessage('assistant', '🎉 Done! ' + builtCount + '/' + allCompiledData.length + ' sections built in Bricks.');
                     removeApproveBar();
                     ChatState.previewMode = null;
-                    // Keep currentHTMLPreview so toggle button remains functional
-                    // ChatState.currentHTMLPreview = null;
-                    // Save external images to WordPress media library
                     if (builtImageUrls.length) saveImagesToWPLibrary(builtImageUrls);
                 } else {
                     addMessage('error', 'No sections could be compiled. Try simplifying or rephrasing your request.');
@@ -1402,483 +1613,79 @@ Output as a \`\`\`html block.`;
 
                 return basePrompt + `
 
-=== BRICKS BUILDER AI — DESIGN PHASE ===
+=== BRICKS BUILDER AI — DESIGN PHASE (CLASS-BASED) ===
 Currently editing: "${postTitle}" (${postType})
-${pageSnap}${designSpec}${postTypeKeys.length ? '\nREGISTERED POST TYPES available for query loops — use the slug as data-loop value: ' + postTypeKeys.map(k => k + ' (' + postTypes[k].label + ')').join(', ') + '\n' : ''}
-⚡ Your designs are compiled to Bricks using a LIGHTNING-FAST JavaScript compiler — instant conversion, zero API costs!
+${pageSnap}${designSpec}${postTypeKeys.length ? '\nREGISTERED POST TYPES for query loops — use the slug as data-loop value: ' + postTypeKeys.map(k => k + ' (' + postTypes[k].label + ')').join(', ') + '\n' : ''}
 
 YOUR JOB:
-Generate a complete, beautiful HTML design. Your job here is pure execution — intent is pre-classified${intent === 'refine_preview' ? ' as a REFINEMENT: incorporate the requested changes into a complete, fresh HTML output' : intent === 'add_section' ? ' as ADD SECTION: generate only the new section(s) requested' : ' as NEW DESIGN: generate the full page'}. Use:
-- Google Fonts (@import in <style> tag at top of body)
-- Real, production-quality content — actual headings, descriptions, CTAs (no Lorem Ipsum for main content)
-- Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS (use different, specific keywords for each image)
+Generate a complete, beautiful HTML design using standard CSS classes.${intent === 'refine_preview' ? ' REFINEMENT: incorporate the requested changes into a complete, fresh HTML output.' : intent === 'add_section' ? ' ADD SECTION: generate only the new section(s) requested.' : ' NEW DESIGN: generate the full page.'}
 
 OUTPUT FORMAT:
-1. Write 1–2 sentences describing the design approach and color palette
-2. Output the complete HTML in a \`\`\`html code block
-3. IMPORTANT: YOU MUST ENCLOSE THE HTML WITHIN \`\`\`html AND \`\`\`! NEVER OUTPUT RAW HTML OUTSIDE OF THE MARKDOWN BLOCK.
+1. One sentence describing the design approach and color palette
+2. A \`\`\`html code block containing:
+   - A <style> tag with ALL CSS class definitions AND Google Fonts @import
+   - Section elements with data-bricks attributes and class references
 
-🚨 CRITICAL STYLING REQUIREMENT — READ THIS FIRST:
-For animations, keyframes, webkit prefixes, pseudo-elements, or ANY advanced CSS:
-  ✅ CORRECT: <style data-style-id="brxe-abcdef"> @keyframes jump {...} #brxe-abcdef { animation: jump 2s; } </style>
-               <div id="brxe-abcdef" data-bricks="block">
-  ❌ WRONG:   <style data-style-id="brxe-xyzijk"> .mario { animation: jump 2s; } </style>  <!-- NO matching id! -->
-               <div class="mario">  <!-- NO id attribute! -->
+CSS RULES:
+- Define ALL styles as CSS classes in the <style> block at the top.
+- Use class="..." on elements. NO inline style="" attributes.
+- Write standard CSS — any property, pseudo-class (:hover), @keyframes, @media queries.
+- ⚠️ FORMAT: Write EACH CSS property on its OWN line with proper indentation:
+  ✅ .hero { background: #0f172a; padding: 80px 0; }     ← WRONG (one line)
+  ✅ .hero {
+       background: #0f172a;
+       padding: 80px 0;
+     }                                                      ← CORRECT (one per line)
+- Define CSS custom properties in :root for colors/spacing:
+  :root {
+    --primary: #0f172a;
+    --accent: #c5a059;
+    --section-padding: 100px;
+  }
+- Google Fonts: @import in the <style> tag. Fonts will be auto-loaded.
+- Class naming: one word per section, hyphenated children. Examples:
+  .hero, .hero-container, .hero-heading, .hero-text, .hero-button
+  .features, .features-grid, .features-card, .features-icon
+  .testimonials, .testimonials-grid, .testimonials-card, .testimonials-quote
+- Include responsive @media queries for mobile.
+- Google Fonts: @import in the <style> tag.
 
-RULE: EVERY element with advanced CSS MUST have:
-  1. A unique id="brxe-XXXXXX" attribute (brxe- prefix + 6 random lowercase letters, e.g. brxe-abcdef)
-  2. A matching <style data-style-id="brxe-XXXXXX"> block using #brxe-XXXXXX selector
-  3. If multiple elements need animation, create SEPARATE style blocks for EACH element
+HTML RULES:
+- Use data-bricks attributes on every structural element:
+  data-bricks="section"  — top-level section/header/footer
+  data-bricks="container" — one per section, DIRECT child of section
+  data-bricks="block"    — all inner layout divs
+  data-bricks="heading"  — h1 through h6
+  data-bricks="text-basic" — p, span, li text
+  data-bricks="text"     — rich text with complex formatting
+  data-bricks="button"   — buttons/CTAs (use href for link)
+  data-bricks="text-link" — inline text links (<a> tags)
+  data-bricks="image"    — img elements (use src for URL)
+  data-bricks="icon"     — FontAwesome <i class="fas fa-icon"> (also fab, far)
+  data-bricks="custom-html-css-script" — raw HTML/SVG/iframes
+- Icons: <i class="fas fa-star"> or <i class="fab fa-twitter"> — style with CSS class
+- Structure: section > container > content elements
+- Real images via Pixabay proxy: ${ajaxUrl}?action=snn_pixabay_image&q=KEYWORDS
 
-STYLING RULES (CRITICAL — NO SHORTCUTS):
-- Use INLINE style="..." attributes for ALL standard CSS properties (padding, margin, display, flex/grid, colors, fonts, borders, shadows)
-- Example: <h1 style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -0.5px; margin: 0 0 20px 0;">
-- Include Google Fonts ONLY: <style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
-- ⚠️ NEVER put animations, keyframes, webkit prefixes, or element-specific CSS in the global <style> tag
-- ⚠️ Use <style data-style-id="brxe-XXXXXX"> blocks for advanced CSS (see CUSTOM CSS section below)
-- Specify ALL visual properties: font-family, font-size, font-weight, color, line-height, letter-spacing, text-align, padding, margin, background, background-color, border, border-radius, box-shadow, opacity, display, flex properties, grid properties, width, height, max-width, object-fit, position, top, left, right, bottom, z-index, transform, transition
-- Use standard CSS property names only: padding: 40px 20px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px
-- Colors MUST be hex codes: #111827, #ffffff, #2563eb, rgba(0,0,0,0.1) for transparency
-- All sizes MUST include units: font-size: 48px; padding: 60px 0; gap: 32px; width: 100%; max-width: 1200px
-- Font stacks with fallbacks: 'Playfair Display', serif OR 'Inter', sans-serif OR 'Lato', sans-serif
-- NO UTILITY CLASSES: Never use Tailwind, Bootstrap, or any utility class framework syntax
-- ALL LAYOUT via inline styles: display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 24px;
-- ⚠️ FLEX RULE FOR BLOCKS: ALWAYS write display:flex AND flex-direction AND any alignment/gap together on the SAME element. NEVER write align-items, justify-content, flex-direction, or gap on a block WITHOUT also writing display:flex on that same element. Missing display:flex makes ALL other flex properties invisible in Bricks.
-- ⚠️ NEVER use display:inline-flex — Bricks does not support it properly. Use display:flex with width:max-content or width:auto instead to shrink-wrap a block.
-- ⚠️ BRICKS WIDTH DEFAULT IS 100%, NOT AUTO: Unlike browsers, Bricks defaults all block elements to width:100%. Any layout block that should NOT stretch full width MUST explicitly declare width:auto (or width:max-content for shrink-wrap). Never assume width:auto is implicit. Examples: icon wells, badges, pill tags, inline button groups, narrow side columns, avatar boxes — all need width:auto or a fixed width. If you omit width, Bricks will force the element to 100% and break your layout.
-- ALL GRID via inline styles: display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
+QUERY LOOPS (when listing posts):
+- Three-layer structure:
+  1. Grid wrapper block (display:grid, NO data-loop)
+  2. Loop block (data-loop="post_type_slug", data-loop-posts-per-page="6")
+  3. Template card (one card — Bricks repeats it)
+- Dynamic tags inside template: {post_title}, {post_excerpt}, {post_date}, {post_link}, {cf_POSTTYPE_FIELDNAME}
 
 DESIGN QUALITY:
-- Stunning, professional color palettes matching the business type
-- Responsive-ready structure (mobile breakpoints will be handled by Bricks)
-- Strong typography hierarchy (large bold h1, clear h2, readable body text)
-- Excellent color contrast for accessibility
-- Modern aesthetics: rounded corners, subtle shadows, generous whitespace, smooth transitions
-- Production-ready design — not a wireframe or mockup, but a real design
-
-HOVER & TRANSITIONS (inline style cannot handle :hover — use data attributes instead):
-- To add hover background: data-hover-background="#darkred"
-- To add hover transform: data-hover-transform="translateY(-4px)"
-- Include a base transition in the inline style: style="... transition: all 0.3s ease;"
-- Example button: <button data-bricks="button" data-hover-background="#1d4ed8" data-hover-transform="translateY(-2px)" style="background: #2563eb; color: #fff; transition: all 0.3s ease; ...">CTA</button>
-
-IMAGES:
-Use the Pixabay proxy with topic-specific, descriptive keywords for each image:
-  Hero/banner:     ${ajaxUrl}?action=snn_pixabay_image&q=TOPIC+hero+background
-  Team photos:     ${ajaxUrl}?action=snn_pixabay_image&q=portrait+professional+business
-  Products:        ${ajaxUrl}?action=snn_pixabay_image&q=PRODUCT+photography+commercial
-  Food/Restaurant: ${ajaxUrl}?action=snn_pixabay_image&q=gourmet+DISH+food+styling
-  Interiors:       ${ajaxUrl}?action=snn_pixabay_image&q=PLACE+interior+design+modern
-  Technology:      ${ajaxUrl}?action=snn_pixabay_image&q=technology+digital+abstract
-
-HTML STRUCTURE RULES (CRITICAL — controls how sections are compiled):
-- Output ONLY the section elements — NEVER wrap in <html>, <head>, <body> tags or add <!DOCTYPE>
-- Every distinct visual section MUST be output as a top-level semantic HTML5 tag: <section>, <header>, <footer>, <nav>
-- NEVER wrap sections inside <main>, <div>, or any container
-- Content inside <main> is treated as ONE single section (avoid unless intended)
-- MANDATORY: Add data-bricks attributes to ALL structural elements to guide compilation:
-  * <section data-bricks="section"> — top-level section wrapper (use for most sections)
-  * <header data-bricks="section"> — top-level header section (same as section, sets semantic tag to header)
-  * <footer data-bricks="section"> — top-level footer section (same as section, sets semantic tag to footer)
-  * <div data-bricks="container"> — centering wrapper. Use ONLY ONCE per section as the DIRECT child of <section>/<header>/<footer>. NEVER use for inner layouts.
-  * <div data-bricks="block"> — ALL inner layouts, grids, flex columns/rows, cards, boxes. This is the universal layout element.
-  * <h1 data-bricks="heading"> through <h6 data-bricks="heading"> — headings (tag attr sets h1/h2/etc.)
-  * <p data-bricks="text-basic"> — body text. Can contain inline HTML: <strong>, <em>, <a>, <br>
-  * <div data-bricks="text"> — Bricks Rich Text element. Use this when complex formatting, multiple paragraphs, or "Rich Text" is requested.
-  * <a data-bricks="text-link"> — text link with optional icon. Set href for the link URL.
-  * <button data-bricks="button"> — buttons/CTAs. Set href for link URL.
-  * <img data-bricks="image"> — images (src, alt, object-fit, aspect-ratio all supported)
-  * <hr> — horizontal divider. Supports border-width (height), width, border-style (solid/dashed/dotted/groove), border-color, text-align/margin for alignment.
-  * <i class="fas fa-ICON-NAME"> — standalone FontAwesome icon (solid). Bricks "icon" element.
-  * <i class="far fa-ICON-NAME"> or <i class="fa fa-ICON-NAME"> — FA Regular icon.
-  * <i class="fab fa-ICON-NAME"> — FA Brands icon (twitter, facebook, instagram, etc.)
-  * <ul data-bricks="text-basic"> or <ol data-bricks="text-basic"> — lists (rendered as native HTML inside text-basic)
-  * <div data-bricks="custom-html-css-script"> — raw HTML component (ONLY for SVG animations, canvas, iframes, complex widgets)
-
-QUERY LOOPS — POST TYPE LOOPS:
-When the design needs to display a repeating list or grid of posts from a post type, use a two-block pattern: a GRID/FLEX WRAPPER block outside, and a LOOP block inside it.
-  * data-loop="post_type_slug" — enables a Bricks query loop for that post type (required, e.g. data-loop="post", data-loop="codex")
-  * data-loop-posts-per-page="6" — number of posts to show per page (optional, default 6)
-  * data-loop-orderby="date" — orderby field: date, title, menu_order, rand (optional, default date)
-  * data-loop-order="DESC" — sort direction: ASC or DESC (optional, default DESC)
-  The single child of the loop block is the TEMPLATE card — Bricks repeats it for each post automatically.
-  Use these Bricks dynamic tags inside template children:
-    {post_title}   — post title (use in heading/text-basic text)
-    {post_excerpt} — post excerpt (use in text-basic text)
-    {post_date}    — publication date (use in text-basic text)
-    {post_link}    — post permalink URL (use as href on <a data-bricks="block"> for a card-as-link)
-    {cf_POSTTYPE_FIELDNAME} — custom field value (e.g. {cf_codex_color} for post type "codex", field "color")
-
-  🚨 MANDATORY THREE-LAYER LOOP STRUCTURE — CRITICAL — EXACTLY 3 LAYERS, NO MORE, NO LESS:
-    The grid/flex layout and the loop query CANNOT live on the same block. You MUST use exactly these three layers:
-
-    LAYER 1 — GRID/FLEX WRAPPER block: carries display:grid (or flex), grid-template-columns, gap, width.
-               This block has NO data-loop. It is purely a layout container.
-               Its ONLY child is the LOOP block — nothing else sits between them.
-    LAYER 2 — LOOP block (DIRECT child of wrapper, no intermediary): carries data-loop only. NO layout styling here.
-               This block has ONE child — the template card.
-    LAYER 3 — TEMPLATE CARD: one card element. Bricks repeats this for every post.
-
-    ❌ WRONG — grid and loop on the same block:
-      <div data-bricks="block" data-loop="post" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
-        <div data-bricks="block">card template</div>
-      </div>
-
-    ❌ WRONG — extra intermediary block between wrapper and loop (NEVER do this):
-      <div data-bricks="block" style="display: grid; ...">
-        <div data-bricks="block" style="display: contents;">  <!-- FORBIDDEN: no extra wrapper -->
-          <div data-bricks="block" data-loop="post">
-            <div data-bricks="block">card template</div>
-          </div>
-        </div>
-      </div>
-
-    ✅ CORRECT — wrapper → loop block → card, exactly 3 layers:
-      <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
-        <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6">
-          <div data-bricks="block">card template</div>
-        </div>
-      </div>
-
-  Additional loop rules:
-    - Put dynamic tags directly as text in heading/text-basic — e.g. <h3 data-bricks="heading">{post_title}</h3>
-    - Design ONE template card only (Bricks handles repetition — do NOT repeat fake cards)
-    - For a fully clickable card use <a data-bricks="block" href="{post_link}"> as the template root
-    - GRID COLUMN COUNT must match the content: if data-loop-posts-per-page="5", use repeat(3, 1fr) not repeat(5, 1fr) — cards need readable width. Max 4 columns for cards/posts. Use 2 or 3 columns as the default. Only use 4 columns for very small thumbnail-style cards. NEVER use 5 or 6 columns for post loops.
-    - NEVER add display:contents or any extra structural block between LAYER 1 and LAYER 2. The loop block must be the direct first child of the grid/flex wrapper.
-
-  Example loop — post card grid (correct two-block pattern):
-    <section data-bricks="section" style="padding-top: 80px; padding-bottom: 80px; background: #f8f8f8;">
-      <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
-        <h2 data-bricks="heading" style="font-size: 40px; font-weight: 700; color: #111;">Latest Posts</h2>
-        <!-- LAYER 1: grid wrapper — layout only, no data-loop -->
-        <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%;">
-          <!-- LAYER 2: loop block — query only, no grid styling -->
-          <div data-bricks="block" data-loop="post" data-loop-posts-per-page="6">
-            <!-- LAYER 3: template card — one card, Bricks repeats per post -->
-            <a data-bricks="block" href="{post_link}" style="background: #fff; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-decoration: none;">
-              <h3 data-bricks="heading" style="font-size: 20px; font-weight: 600; color: #111;">{post_title}</h3>
-              <p data-bricks="text-basic" style="font-size: 14px; color: #666; line-height: 1.6;">{post_excerpt}</p>
-              <p data-bricks="text-basic" style="font-size: 12px; color: #999;">{post_date}</p>
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-CUSTOM CSS — STYLE TAGS (MANDATORY for advanced CSS):
-⚠️ CRITICAL: For ANY CSS that inline style="" cannot express, you MUST use <style data-style-id="brxe-XXXXXX"> blocks.
-This includes: -webkit- prefixes, text-stroke, clip-path, filters, backdrop-filter, animations, keyframes,
-pseudo-elements (:before/:after/:hover/:focus), complex transforms, gradients with clip, mask properties.
-
-🚫 FORBIDDEN PATTERNS (will break compilation):
-  ❌ WRONG: <style data-style-id="brxe-abcdef"> .my-class { ... } </style>  <!-- orphaned style block, no matching id -->
-  ❌ WRONG: <style> .game-world { animation: ... } </style>  <!-- global style tag for element-specific CSS -->
-  ❌ WRONG: <div class="game-world"> <!-- element with custom CSS but NO id -->
-
-✅ MANDATORY PATTERN — EVERY element needing custom CSS MUST have a matching id:
-  1. Give the element a unique id: id="brxe-XXXXXX" (brxe- prefix + 6 random lowercase letters, e.g. brxe-abcdef, brxe-mnopqr)
-  2. Write <style data-style-id="brxe-XXXXXX"> IMMEDIATELY BEFORE the element
-  3. Use #brxe-XXXXXX selector (converted to %root% in Bricks)
-  4. Keep inline style="" for standard properties
-
-  Example 1 — Single element with animation:
-    <style data-style-id="brxe-fadinx">
-      @keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
-      #brxe-fadinx { animation: fadeIn 1s ease-out; }
-    </style>
-    <section id="brxe-fadinx" data-bricks="section" style="background: #000; padding-top: 100px; padding-bottom: 100px;">
-
-  Example 2 — Multiple animated elements (EACH gets its own style block):
-    <style data-style-id="brxe-wrldsc">
-      @keyframes worldScroll { from { background-position: 0 0; } to { background-position: -1000px 0; } }
-      #brxe-wrldsc { animation: worldScroll 10s linear infinite; }
-    </style>
-    <div id="brxe-wrldsc" data-bricks="block" style="position: absolute; width: 200%; height: 100%;">
-
-      <style data-style-id="brxe-grndel">
-        #brxe-grndel { background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 40px, #b8941f 40px, #b8941f 80px); }
-      </style>
-      <div id="brxe-grndel" data-bricks="block" style="position: absolute; bottom: 0; width: 100%; height: 60px;">
-
-      <style data-style-id="brxe-mrioxx">
-        @keyframes marioJump { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-120px); } }
-        #brxe-mrioxx { animation: marioJump 3s infinite ease-in-out; }
-        #brxe-mrioxx::before { content: ""; position: absolute; top: 10px; right: 8px; width: 8px; height: 8px; background: white; }
-      </style>
-      <div id="brxe-mrioxx" data-bricks="block" style="position: absolute; bottom: 60px; left: 100px; width: 40px; height: 60px; background: #E63946;">
-
-      <style data-style-id="brxe-coinsp">
-        @keyframes coinSpin { 0% { transform: scaleX(1); } 50% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
-        #brxe-coinsp { animation: coinSpin 1s infinite; }
-      </style>
-      <div id="brxe-coinsp" data-bricks="block" style="position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%;">
-    </div>
-
-  Example 3 — Parent targeting child classes (child classes, parent has id + style):
-    <style data-style-id="brxe-prdgrd">
-      #brxe-prdgrd .product-featured { border: 2px solid #d4af37; transform: scale(1.05); }
-      #brxe-prdgrd .product-card:hover { background: #1a1a1a; color: #fff; transform: translateY(-4px); }
-    </style>
-    <div id="brxe-prdgrd" data-bricks="block" style="display: grid; grid-template-columns: repeat(3,1fr); gap: 24px;">
-      <div data-bricks="block" class="product-featured" style="padding: 24px; border-radius: 12px; background: #fff;">...</div>
-      <div data-bricks="block" class="product-card" style="padding: 24px; border-radius: 12px; background: #f5f5f5;">...</div>
-    </div>
-
-  Example 4 — Text stroke / webkit effects:
-    <style data-style-id="brxe-lxtitl">
-      #brxe-lxtitl { -webkit-text-stroke: 2px #d4af37; color: transparent; }
-    </style>
-    <h1 id="brxe-lxtitl" data-bricks="heading" style="font-size: 72px; font-weight: 900;">Luxury</h1>
-
-  Example 5 — Backdrop filters:
-    <style data-style-id="brxe-glscrd">
-      #brxe-glscrd { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-    </style>
-    <div id="brxe-glscrd" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px;">
-
-🔑 KEY RULES:
-  1. EVERY <style data-style-id="brxe-XXXXXX"> MUST have a matching element with id="brxe-XXXXXX"
-  2. NEVER use class selectors at root level (\`.myclass\`) — always use #id or #id .child
-  3. For multiple elements with similar effects, create SEPARATE style blocks for EACH element
-  4. Parent-child pattern: parent gets id + style block with #parent-id .child-class selectors
-
-WHEN TO USE <style data-style-id> vs inline style="":
-✓ Use inline style="" for: padding, margin, display, flex/grid props, font-size, font-weight, color, background-color,
-  border, border-radius, box-shadow, width, height, position, top/left/right/bottom, z-index, opacity, object-fit
-✓ Use <style data-style-id> for: -webkit-* props, text-stroke, animations, @keyframes, pseudo-elements (::before/::after),
-  pseudo-classes (:hover/:focus/:active), backdrop-filter, clip-path, mask, filter, complex transforms
-
-The compiler maps the brxe-XXXXXX HTML id directly to the Bricks element id, and converts #brxe-XXXXXX → %root% in _cssCustom. Child classes are preserved as _cssClasses.
-IMPORTANT: Always keep inline style="" as well for basic properties — it drives the HTML preview.
-
-CUSTOM CSS — ATTRIBUTE (for simple single-element overrides):
-  Example: <div data-bricks="block" custom-css="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);" style="background: rgba(255,255,255,0.1); ...">
-  The custom-css content is automatically wrapped with #brxe-{id} selector.
-  Note: You still need inline style="" for preview rendering.
-
-FONTAWESOME ICONS — supported libraries:
-  Solid icons:   <i class="fas fa-arrow-right" style="font-size: 24px; color: #ff0000;"></i>
-  Regular icons: <i class="far fa-address-card" style="font-size: 20px; color: #333;"></i>
-  Brand icons:   <i class="fab fa-x-twitter" style="font-size: 20px; color: #000;"></i>
-  Available FA brand icon names (most common): fa-facebook, fa-facebook-square, fa-instagram, fa-x-twitter, fa-twitter, fa-linkedin, fa-youtube, fa-tiktok, fa-pinterest, fa-github, fa-discord, fa-whatsapp
-  Available FA solid icon names (examples): fa-arrow-right, fa-arrow-left, fa-check, fa-star, fa-heart, fa-phone, fa-envelope, fa-location-dot, fa-magnifying-glass, fa-bars, fa-xmark, fa-plus, fa-user, fa-cart-shopping, fa-play, fa-chevron-right, fa-bolt, fa-shield, fa-fire
-
-  Icons inside buttons — add data-icon attribute with the FA class string:
-  <button data-bricks="button" data-icon="fas fa-arrow-right" data-icon-position="right" data-icon-gap="10" style="...">Learn More</button>
-  <button data-bricks="button" data-icon="fas fa-cart-shopping" data-icon-position="left" data-icon-gap="8" style="...">Add to Cart</button>
-
-  Icons inside text-links — same data-icon approach:
-  <a data-bricks="text-link" href="#" data-icon="fas fa-arrow-right" data-icon-position="right" data-icon-gap="6" style="...">Read More</a>
-
-  Standalone icon element (uses inline style for size/color):
-  <i class="fas fa-star" style="font-size: 32px; color: #f59e0b;"></i>
-  <i class="fab fa-instagram" style="font-size: 24px; color: #E1306C;"></i>
-
-COMMON STYLES — ALL BRICKS ELEMENTS SHARE THESE (apply via inline style on any element type):
-  Box model:    padding, margin (shorthand and individual sides)
-  Typography:   font-family, font-size, font-weight, font-style, line-height, letter-spacing,
-                text-align, text-transform, text-decoration, color, white-space, word-break
-  Background:   background-color, background-image, background-size (cover/contain/200px),
-                background-position, background-repeat, background-attachment, background-blend-mode
-  Border:       border, border-radius (all 4 corners), border-top/right/bottom/left individually,
-                border-width, border-style, border-color, individual border-radius corners
-  Shadow:       box-shadow
-  Sizing:       width, height, min-width, max-width, min-height, max-height, aspect-ratio
-  Position:     position (relative/absolute/fixed/sticky), top, right, bottom, left, z-index
-  Display:      display (flex/grid/block/inline-block), overflow, opacity, visibility
-  Flexbox:      flex-direction, justify-content, align-items, align-content, align-self,
-                flex-wrap, flex-grow, flex-shrink, flex-basis, gap, column-gap, row-gap, order
-  Grid:         grid-template-columns, grid-template-rows, grid-gap, grid-column, grid-row,
-                grid-auto-flow, grid-auto-columns, grid-auto-rows, grid-area
-  Image:        object-fit, object-position
-
-RESPONSIVE BREAKPOINTS — Supported breakpoint suffixes (auto-applied by compiler for common patterns):
-  :tablet_portrait — applies at tablet portrait (e.g. _padding:tablet_portrait)
-  :mobile_landscape — applies at mobile landscape (e.g. _gridTemplateColumns:mobile_landscape)
-  The compiler AUTOMATICALLY applies responsive rules for:
-  - Large fonts (48px+) scaled down at tablet/mobile
-  - 2+ column grids stacked to 1fr on mobile
-  - Flex rows stacked to column direction on mobile
-  - Large padding reduced on tablet and mobile
-
-- Use clean, shallow semantic structure: <section data-bricks="section"> → <div data-bricks="container"> → content elements (blocks directly inside container). Avoid unnecessary wrapper blocks. Container itself can use flex or grid.
-- ALL visual styling MUST be inline style="..." — no class-based frameworks
-- CONTAINER RULE: one container per section (for width & layout). Apply display: flex/grid directly to the container to avoid extra DOM depth.
-
-LAYOUT PATTERNS (all via inline styles + data-bricks attributes):
-
-Centered section wrapper (ONLY ONE PER SECTION — direct child of section):
-  <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px;">
-
-Flex column layout (use block) — ALWAYS write display:flex + flex-direction + align/gap together:
-  <div data-bricks="block" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
-
-Flex row layout (use block) — ALWAYS write display:flex + flex-direction + align/gap together:
-  <div data-bricks="block" style="display: flex; flex-direction: row; gap: 40px; align-items: center; justify-content: space-between;">
-
-⚠️ NEVER do this — missing display:flex makes direction/alignment silently ignored:
-  ❌ <div data-bricks="block" style="flex-direction: row; align-items: center; gap: 24px;">
-  ✅ <div data-bricks="block" style="display: flex; flex-direction: row; align-items: center; gap: 24px;">
-
-Shrink-wrapped containers (badges, pills, tags) — use flex + width:max-content, NEVER inline-flex:
-  <div data-bricks="block" style="display: flex; flex-direction: row; align-items: center; gap: 8px; width: max-content; padding: 4px 12px; border-radius: 50px;">
-  (CRITICAL: Always set width: max-content or width: auto so small blocks don't stretch to 100%. NEVER use display:inline-flex — Bricks does not support it.)
-
-Flex item with align-self (any element can have align-self):
-  <div data-bricks="block" style="align-self: flex-start; flex-grow: 1;">
-
-Grid 2 columns (can be applied directly to container or use block):
-  <div data-bricks="block" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px;">
-
-Grid 3 columns (can be applied directly to container or use block):
-  <div data-bricks="block" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
-
-Grid 4 columns (can be applied directly to container or use block):
-  <div data-bricks="block" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
-
-Asymmetric grid (60/40):
-  <div data-bricks="block" style="display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
-
-Card with padding and shadow:
-  <div data-bricks="block" style="background: #ffffff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-
-Background image with overlay (use block):
-  <div data-bricks="block" style="background-image: url(...); background-size: cover; background-position: center; background-repeat: no-repeat; position: relative;">
-
-Individual border sides (any element):
-  <div data-bricks="block" style="border-left: 4px solid #E11D48; padding-left: 24px;">
-  <div data-bricks="block" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-
-Text link element:
-  <a data-bricks="text-link" href="#link" style="color: #2563eb; font-size: 16px; font-weight: 600;">Read More</a>
-
-Horizontal dividers:
-  <hr style="border-top: 2px solid #e5e7eb; width: 100%;">
-  <hr style="border-top: 3px dashed #ff0000; width: 60px; text-align: center;">
-  <hr style="border-top: 1px dotted #666; width: 200px; margin-left: 0;">
-  <hr style="border-top: 4px groove #c9a44a; width: 80px; text-align: center;">
-  Note: Use border-top-width for height, border-top-style for style (solid/dashed/dotted/groove/ridge), border-top-color for color, text-align or margin-left/right for alignment
-
-STRICT LAYOUT RULES:
-✓ KEEP DOM SHALLOW: Apply display: flex or display: grid directly to the container to arrange its children. DO NOT wrap children in an extra block unless fundamentally required for structural grouping (e.g. grouped text inside a grid cell). Example: section > container (with grid) > block (column) + image.
-✓ USE CSS GRID for all side-by-side layouts (heroes, feature grids, card grids)
-✓ NEVER use flex-wrap for macro layouts — causes desktop wrapping issues
-✓ Use Flexbox for single-direction layouts (vertical stacks, horizontal bars, icon rows)
-✓ Grid syntax: display: grid; grid-template-columns: repeat(N, 1fr); gap: 32px;
-✓ For asymmetric layouts: grid-template-columns: 2fr 1fr; OR 3fr 2fr; OR 1fr 2fr;
-✓ align-self works on ANY element inside a flex or grid container
-✓ **CRITICAL**: When using display: flex, ALWAYS explicitly set flex-direction: row OR flex-direction: column
-   (Bricks Builder defaults to column when not specified, so omitting it breaks row layouts)
-✓ ALWAYS declare justify-content on EVERY flex block — never leave it implicit. Use flex-start (left-aligned), center, flex-end (right-aligned), or space-between. In Bricks, flex blocks stretch to fill available space; without explicit justify-content their children silently pile up at the left edge even when the design needs them right-aligned.
-  Example — a navbar with two groups: left group → justify-content: flex-start; right group → justify-content: flex-end
-✓ NO max-width / margin / padding on container: Do NOT add max-width, margin: 0 auto, padding-left, or padding-right to "container" elements. Bricks handles container width, centering, and gutter spacing via global Theme Styles — inline overrides conflict with those settings and cause double-padding.
-✓ NO LEFT/RIGHT PADDING on section: Never set padding-left, padding-right, or the shorthand like padding: 80px 0 (the 0 sets left/right explicitly). Use padding-top and padding-bottom separately instead. Bricks sections inherit root gutter spacing — inline left/right values override it.
-✓ EXPLICIT WIDTH ON NON-FULL-WIDTH BLOCKS: Bricks blocks default to width:100%, not width:auto. Any block that should be narrower than its parent — icon containers, stat boxes, badge/pill elements, avatar circles, inline groups, side-by-side pairs inside flex rows — MUST have an explicit width:auto, width:max-content, or a fixed px/% value in the inline style. Never leave width unset and expect it to shrink to content.
-
-EXAMPLE COMPLETE STRUCTURE (with data-bricks attributes):
-<style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');</style>
-
-<section data-bricks="section" style="background: #0f172a; padding-top: 80px; padding-bottom: 80px;">
-  <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
-    <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 60px; font-weight: 900; color: #ffffff; line-height: 1.1; text-align: center; letter-spacing: -1px; margin: 0;">Premium Heading</h1>
-    <hr style="border-top: 2px solid rgba(255, 255, 255, 0.2); width: 60px; text-align: center;">
-    <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 400; color: rgba(203, 213, 225, 1); line-height: 1.7; text-align: center; max-width: 700px; margin: 0;">Supporting description with readable line height and proper spacing.</p>
-    <button data-bricks="button" style="background: #2563eb; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 14px 32px; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); transition: all 0.2s;">Call to Action</button>
-  </div>
-</section>
-
-EXAMPLE 2-COLUMN GRID HERO (section > container > block[column]):
-<section data-bricks="section" style="background: #f5f0eb; padding-top: 100px; padding-bottom: 100px;">
-  <div data-bricks="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center;">
-    <div data-bricks="block" style="display: flex; flex-direction: column; gap: 24px;">
-      <h1 data-bricks="heading" style="font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 900; color: #111827; line-height: 1.1; margin: 0;">We Make Brands People Love</h1>
-      <p data-bricks="text-basic" style="font-family: 'Inter', sans-serif; font-size: 20px; color: #4b5563; line-height: 1.7; margin: 0;">Creative studio specializing in bold brand identities and digital experiences.</p>
-      <button data-bricks="button" style="background: #ff6b35; color: #ffffff; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; padding: 16px 32px; border: none; border-radius: 8px; cursor: pointer;">View Our Work</button>
-    </div>
-    <img data-bricks="image" src="..." style="width: 100%; height: 600px; object-fit: cover; border-radius: 12px;" />
-  </div>
-</section>
-
-EXAMPLE 3-ADVANCED EFFECTS (with <style data-style-id> for special effects):
-⚠️ NOTE: EACH element with custom CSS has its OWN <style data-style-id="brxe-XXXXXX"> block with matching id="brxe-XXXXXX"
-<style>@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap');</style>
-
-<style data-style-id="brxe-htitlx">
-  @keyframes textGlow { 0%, 100% { text-shadow: 0 0 20px rgba(230, 57, 70, 0.5); } 50% { text-shadow: 0 0 40px rgba(230, 57, 70, 0.8), 0 0 10px #fff; } }
-  #brxe-htitlx { animation: textGlow 3s infinite; }
-</style>
-
-<style data-style-id="brxe-dsgntx">
-  #brxe-dsgntx { color: transparent; -webkit-text-stroke: 1px #ffffff; }
-</style>
-
-<style data-style-id="brxe-glspnl">
-  #brxe-glspnl { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-</style>
-
-<section data-bricks="section" style="background: #0a0a0a; padding-top: 120px; padding-bottom: 120px; position: relative;">
-  <div data-bricks="container" style="display: flex; flex-direction: column; gap: 32px; align-items: center;">
-      <h1 id="brxe-htitlx" data-bricks="heading" style="font-family: 'Syncopate', sans-serif; font-size: 82px; font-weight: 700; color: #ffffff; line-height: 0.9; margin: 0; text-transform: uppercase;">
-        Next Gen<br><span id="brxe-dsgntx">Design</span>
-      </h1>
-      <div id="brxe-glspnl" data-bricks="block" style="background: rgba(255,255,255,0.1); padding: 32px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2);">
-        <p data-bricks="text-basic" style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: #ffffff; margin: 0;">Glass morphism panel with blur effect</p>
-      </div>
-  </div>
-</section>
-
-EXAMPLE 4-GAME/ANIMATION SCENE (multiple animated elements — EACH gets its own style block):
-<style>@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');</style>
-
-<style data-style-id="brxe-gmwrld">
-  @keyframes worldScroll { from { background-position: 0 0; } to { background-position: -1000px 0; } }
-  #brxe-gmwrld { position: absolute; width: 200%; height: 100%; animation: worldScroll 10s linear infinite; }
-</style>
-
-<style data-style-id="brxe-grndlv">
-  #brxe-grndlv { position: absolute; bottom: 0; width: 100%; height: 60px; background: repeating-linear-gradient(90deg, #d4af37 0, #d4af37 40px, #b8941f 40px, #b8941f 80px); border-top: 4px solid #fff; }
-</style>
-
-<style data-style-id="brxe-mrioch">
-  @keyframes marioJump { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-120px); } }
-  #brxe-mrioch { position: absolute; bottom: 60px; left: 100px; width: 40px; height: 60px; background: #E63946; border: 3px solid #fff; animation: marioJump 3s infinite ease-in-out; z-index: 100; }
-  #brxe-mrioch::before { content: ""; position: absolute; top: 10px; right: 8px; width: 8px; height: 8px; background: white; }
-</style>
-
-<style data-style-id="brxe-coinsn">
-  @keyframes coinSpin { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0); } }
-  #brxe-coinsn { position: absolute; bottom: 280px; left: 310px; width: 30px; height: 30px; background: #FFD700; border-radius: 50%; border: 2px solid #fff; animation: coinSpin 1s infinite; }
-</style>
-
-<section data-bricks="section" style="background: #0a0a0a; padding-top: 80px; padding-bottom: 80px;">
-  <div data-bricks="container">
-    <div data-bricks="block" style="position: relative; height: 500px; background: #1a1a1a; border: 4px solid #333; border-radius: 24px; overflow: hidden;">
-      
-      <div id="brxe-gmwrld" data-bricks="block">
-        <div id="brxe-grndlv" data-bricks="block"></div>
-        <div id="brxe-coinsn" data-bricks="block"></div>
-        <div id="brxe-mrioch" data-bricks="block"></div>
-      </div>
-      
-      <p data-bricks="text-basic" style="position: absolute; top: 20px; left: 20px; font-family: 'Press Start 2P', cursive; color: #FFD700; font-size: 12px; z-index: 110; margin: 0;">SCORE: 004200</p>
-    </div>
-  </div>
-</section>
-
-CRITICAL REMINDERS:
-✓ ONLY inline styles — NO class-based styling frameworks
-✓ Every visual property explicitly defined in style=\"...\"
-✓ Sections as direct <body> children for independent compilation
-✓ Real content, real images, production-ready design quality
-✓ Semantic HTML structure with descriptive class names for structure only
-
-OUTPUT HTML ONLY. Do not output patch blocks — patching is handled by a separate agent state.`;
+- Real content, no Lorem Ipsum
+- Professional color palettes, strong typography hierarchy
+- Modern aesthetics: rounded corners, subtle shadows, generous whitespace
+- Production-ready design — not a wireframe
+
+OUTPUT THE HTML ONLY. No patch blocks, no JSON.`;
             }
 
 
             // ================================================================
-            // Focused Prompts — Patching & Answering states
+            // Focused Prompts " Patching & Answering states
             // ================================================================
 
             function buildPatchingPrompt() {
