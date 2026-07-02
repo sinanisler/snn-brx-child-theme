@@ -52,6 +52,7 @@ require_once SNN_PATH . 'includes/ai/ai-overlay.php';
 require_once SNN_PATH . 'includes/ai/ai-seo-generation.php';
 require_once SNN_PATH . 'includes/ai/ai-block-editor.php';
 require_once SNN_PATH . 'includes/ai/ai-agent-and-chat.php';
+require_once SNN_PATH . 'includes/ai/ai-mcp.php';
 
 require_once SNN_PATH . 'includes/ai/abilities/ability-categories.php';
 require_once SNN_PATH . 'includes/ai/abilities/create-posts.php';

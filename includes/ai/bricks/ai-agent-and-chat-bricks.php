@@ -100,6 +100,12 @@ class SNN_Bricks_Chat_Overlay {
                 'maxHistory'       => $main_chat->get_max_history(),
                 'enabledAbilities' => $main_chat->get_enabled_abilities(),
             ),
+            'mcp'              => array(
+                'tools'       => function_exists( 'snn_mcp_get_tools_for_chat' ) ? snn_mcp_get_tools_for_chat() : array(),
+                'connections' => function_exists( 'snn_mcp_get_connections_context' ) ? snn_mcp_get_connections_context() : array(),
+                'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+                'nonce'       => wp_create_nonce( 'snn_mcp_nonce' ),
+            ),
         ) );
 
         // Inline styles
@@ -1740,8 +1746,18 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
             // ================================================================
 
             async function loadAbilities() {
+                // Helper to merge MCP tools into ChatState.abilities
+                const mergeMCPTools = () => {
+                    const mcpTools = (snnBricksChatConfig.mcp && snnBricksChatConfig.mcp.tools) ? snnBricksChatConfig.mcp.tools : [];
+                    if (mcpTools.length > 0) {
+                        ChatState.abilities = ChatState.abilities.concat(mcpTools);
+                        debugLog('✓ Merged MCP tools:', mcpTools.length, '→ total:', ChatState.abilities.length);
+                    }
+                };
+
                 if (!ENABLED_ABILITIES.length) {
-                    debugLog('No abilities enabled in settings, skipping load.');
+                    debugLog('No abilities enabled in settings, checking MCP tools only.');
+                    mergeMCPTools();
                     return;
                 }
                 try {
@@ -1752,6 +1768,7 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
                         const data = await response.json();
                         const all = Array.isArray(data) ? data : [];
                         ChatState.abilities = all.filter(a => ENABLED_ABILITIES.includes(a.name));
+                        mergeMCPTools();
                         debugLog('✓ Abilities loaded:', ChatState.abilities.length, ChatState.abilities.map(a => a.name));
                     } else {
                         debugLog('Failed to load abilities, status:', response.status);
@@ -1765,6 +1782,31 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
                 const basePrompt = snnBricksChatConfig.ai.systemPrompt || 'You are a helpful Bricks Builder assistant.';
                 const postTitle  = snnBricksChatConfig.pageContext?.details?.post_title || 'Unknown';
                 const postId     = snnBricksChatConfig.pageContext?.details?.post_id || '';
+
+                // ── MCP Tools section ──────────────────────────────────────
+                let mcpToolsSection = '';
+                const mcpTools = snnBricksChatConfig.mcp?.tools || [];
+                if (mcpTools.length > 0) {
+                    const byConn = {};
+                    mcpTools.forEach(t => {
+                        const conn = t.meta?.mcp_connection || 'mcp';
+                        if (!byConn[conn]) byConn[conn] = [];
+                        byConn[conn].push(t);
+                    });
+                    mcpToolsSection = '\n\n=== MCP TOOLS (from connected services) ===\n\n';
+                    for (const [conn, tools] of Object.entries(byConn)) {
+                        const connInfo = (snnBricksChatConfig.mcp?.connections || []).find(c => c.slug === conn);
+                        mcpToolsSection += `**${connInfo?.name || conn}** (${tools.length} tools):\n`;
+                        tools.forEach(t => {
+                            const params = t.input_schema?.properties
+                                ? '\n    Parameters: ' + Object.entries(t.input_schema.properties).map(([k, v]) => `${k} (${v.type || 'string'}): ${v.description || ''}`).join(', ')
+                                : '';
+                            mcpToolsSection += `  • ${t.name} — ${t.description || 'No description'}${params}\n`;
+                        });
+                        mcpToolsSection += '\n';
+                    }
+                    mcpToolsSection += `Call MCP tools using the exact ability name listed above.\n`;
+                }
 
                 if (!ChatState.abilities.length) {
                     return basePrompt + '\n\nNote: No WordPress abilities are currently available.';
@@ -1791,7 +1833,7 @@ Be direct and practical — 2–4 sentences unless a detailed explanation is gen
                     return `**${a.name}** - ${a.description || a.label || 'No description'}\n  Category: ${a.category || 'uncategorized'}\n  Parameters:\n${params}`;
                 }).join('\n\n');
 
-                return `${basePrompt}
+                return `${basePrompt}${mcpToolsSection}
 
 You are a Bricks Builder AI assistant with access to WordPress Core Abilities.
 Currently editing: "${postTitle}"${postId ? ` (Post ID: ${postId})` : ''}
@@ -1839,6 +1881,11 @@ IMPORTANT RULES:
             }
 
             async function executeAbility(abilityName, input) {
+                // ── MCP Tools routing ────────────────────────────────────
+                if (abilityName.startsWith('mcp/')) {
+                    return await executeMCPAbility(abilityName, input);
+                }
+
                 try {
                     let actualName = abilityName;
                     let abilityInfo = ChatState.abilities.find(a => a.name === abilityName);
@@ -1890,6 +1937,49 @@ IMPORTANT RULES:
                     return { success: true, data: result };
                 } catch(e) {
                     return { success: false, error: e.message };
+                }
+            }
+
+            /**
+             * Execute an MCP tool via AJAX proxy.
+             * Ability name format: mcp/{connection_slug}/{tool_name}
+             */
+            async function executeMCPAbility(abilityName, input) {
+                debugLog('MCP call:', abilityName, input);
+                try {
+                    const mcpConfig = snnBricksChatConfig.mcp;
+                    if (!mcpConfig || !mcpConfig.ajaxUrl) {
+                        return { success: false, error: 'MCP not configured.' };
+                    }
+
+                    const formData = new FormData();
+                    formData.append('action', 'snn_mcp_call_tool');
+                    formData.append('nonce', mcpConfig.nonce || '');
+                    formData.append('ability', abilityName);
+                    formData.append('arguments', JSON.stringify(input || {}));
+
+                    const resp = await fetch(mcpConfig.ajaxUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await resp.json();
+
+                    if (result.success && result.data) {
+                        return {
+                            success: true,
+                            data: {
+                                tool: result.data.tool || abilityName,
+                                connection: result.data.connection || 'MCP',
+                                result: result.data.data || JSON.stringify(result.data)
+                            }
+                        };
+                    } else {
+                        return { success: false, error: result.data?.error || result.data?.message || 'MCP tool call failed' };
+                    }
+                } catch (error) {
+                    console.error('MCP execution error:', error);
+                    return { success: false, error: error.message };
                 }
             }
 
