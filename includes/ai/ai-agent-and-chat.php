@@ -1109,12 +1109,6 @@ class SNN_Chat_Overlay {
                 'maxHistory'        => $this->get_max_history(),
                 'settingsUrl'       => admin_url( 'admin.php?page=snn-ai-agent-settings' ),
             ),
-            'mcp'           => array(
-                'tools'       => function_exists( 'snn_mcp_get_tools_for_chat' ) ? snn_mcp_get_tools_for_chat() : array(),
-                'connections' => function_exists( 'snn_mcp_get_connections_context' ) ? snn_mcp_get_connections_context() : array(),
-                'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-                'nonce'       => wp_create_nonce( 'snn_mcp_nonce' ),
-            ),
         ) );
     }
 
@@ -1573,15 +1567,6 @@ class SNN_Chat_Overlay {
              * Load available abilities from API
              */
             async function loadAbilities() {
-                // Helper to merge MCP tools into ChatState.abilities
-                const mergeMCPTools = () => {
-                    const mcpTools = (snnChatConfig.mcp && snnChatConfig.mcp.tools) ? snnChatConfig.mcp.tools : [];
-                    if (mcpTools.length > 0) {
-                        ChatState.abilities = ChatState.abilities.concat(mcpTools);
-                        debugLog('✓ Merged MCP tools:', mcpTools.length, '→ total abilities:', ChatState.abilities.length);
-                    }
-                };
-
                 // Show immediate warning if no abilities are configured in settings
                 if (ENABLED_ABILITIES.length === 0) {
                     showAbilitiesWarning();
@@ -1601,7 +1586,7 @@ class SNN_Chat_Overlay {
                         // Filter by enabled abilities from settings
                         const allAbilities = Array.isArray(data) ? data : [];
                         ChatState.abilities = allAbilities.filter(a => ENABLED_ABILITIES.includes(a.name));
-
+                        
                         debugLog('✓ Loaded abilities:', ChatState.abilities.length);
                         if (ChatState.abilities.length > 0) {
                             debugLog('Abilities:', ChatState.abilities.map(a => a.name).join(', '));
@@ -1618,9 +1603,6 @@ class SNN_Chat_Overlay {
                     console.error('Failed to load abilities:', error);
                     console.error('Make sure WordPress 6.9+ is installed and Abilities API is available');
                 }
-
-                // Always merge MCP tools (they work independently of the REST API)
-                mergeMCPTools();
             }
 
             /**
@@ -2184,33 +2166,7 @@ class SNN_Chat_Overlay {
 ${params}`;
                 }).join('\n\n');
 
-                // ── MCP Tools section ──────────────────────────────────────
-                let mcpToolsSection = '';
-                const mcpTools = snnChatConfig.mcp?.tools || [];
-                if (mcpTools.length > 0) {
-                    // Group by connection
-                    const byConn = {};
-                    mcpTools.forEach(t => {
-                        const conn = t.meta?.mcp_connection || 'mcp';
-                        if (!byConn[conn]) byConn[conn] = [];
-                        byConn[conn].push(t);
-                    });
-                    mcpToolsSection = '\n\n=== MCP TOOLS (from connected services) ===\n\n';
-                    for (const [conn, tools] of Object.entries(byConn)) {
-                        const connInfo = (snnChatConfig.mcp?.connections || []).find(c => c.slug === conn);
-                        mcpToolsSection += `**${connInfo?.name || conn}** (${tools.length} tools):\n`;
-                        tools.forEach(t => {
-                            const params = t.input_schema?.properties
-                                ? '\n    Parameters: ' + Object.entries(t.input_schema.properties).map(([k, v]) => `${k} (${v.type || 'string'}): ${v.description || ''}`).join(', ')
-                                : '';
-                            mcpToolsSection += `  • ${t.name} — ${t.description || 'No description'}${params}\n`;
-                        });
-                        mcpToolsSection += '\n';
-                    }
-                    mcpToolsSection += `Call MCP tools using the exact ability name listed above. They work the same way as WordPress abilities.\n`;
-                }
-
-                return `${basePrompt}${pageContextInfo}${mcpToolsSection}
+                return `${basePrompt}${pageContextInfo}
 
 IMPORTANT: You are an AI assistant with the ability to execute WordPress actions through the WordPress Core Abilities API.
 
@@ -3457,11 +3413,6 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
              * Execute a single ability
              */
             async function executeAbility(abilityName, input) {
-                // ── MCP Tools routing ────────────────────────────────────
-                if (abilityName.startsWith('mcp/')) {
-                    return await executeMCPAbility(abilityName, input);
-                }
-
                 try {
                     // Try to find the correct ability name (AI might use wrong prefix)
                     let actualAbilityName = abilityName;
@@ -3570,49 +3521,6 @@ If you cannot fix the error, respond with "CANNOT_FIX" and explain why.`
                     };
                 } catch (error) {
                     console.error('Execution error:', error);
-                    return { success: false, error: error.message };
-                }
-            }
-
-            /**
-             * Execute an MCP tool via AJAX proxy.
-             * Ability name format: mcp/{connection_slug}/{tool_name}
-             */
-            async function executeMCPAbility(abilityName, input) {
-                debugLog('MCP call:', abilityName, input);
-                try {
-                    const mcpConfig = snnChatConfig.mcp;
-                    if (!mcpConfig || !mcpConfig.ajaxUrl) {
-                        return { success: false, error: 'MCP not configured.' };
-                    }
-
-                    const formData = new FormData();
-                    formData.append('action', 'snn_mcp_call_tool');
-                    formData.append('nonce', mcpConfig.nonce || '');
-                    formData.append('ability', abilityName);
-                    formData.append('arguments', JSON.stringify(input || {}));
-
-                    const resp = await fetch(mcpConfig.ajaxUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const result = await resp.json();
-
-                    if (result.success && result.data) {
-                        return {
-                            success: true,
-                            data: {
-                                tool: result.data.tool || abilityName,
-                                connection: result.data.connection || 'MCP',
-                                result: result.data.data || JSON.stringify(result.data)
-                            }
-                        };
-                    } else {
-                        return { success: false, error: result.data?.error || result.data?.message || 'MCP tool call failed' };
-                    }
-                } catch (error) {
-                    console.error('MCP execution error:', error);
                     return { success: false, error: error.message };
                 }
             }

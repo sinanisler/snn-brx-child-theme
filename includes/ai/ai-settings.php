@@ -340,7 +340,6 @@ function snn_render_ai_settings() {
         <div class="snn-tab-nav">
             <button type="button" class="snn-tab-btn active" data-tab="snn-tab-settings"><?php esc_html_e('AI Settings', 'snn'); ?></button>
             <button type="button" class="snn-tab-btn" data-tab="snn-tab-presets"><?php esc_html_e('Prompt Presets', 'snn'); ?></button>
-            <button type="button" class="snn-tab-btn" data-tab="snn-tab-mcp"><?php esc_html_e('🔌 MCP Connections', 'snn'); ?></button>
         </div>
 
         <form method="post" action="options.php">
@@ -865,8 +864,6 @@ function snn_render_ai_settings() {
             </div>
 
             </div><!-- /#snn-tab-presets -->
-
-            <?php if ( function_exists( 'snn_mcp_render_tab' ) ) { snn_mcp_render_tab(); } ?>
 
             <style>
             #snn-ai-action-presets-table {
