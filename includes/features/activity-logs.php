@@ -165,6 +165,9 @@ function snn_get_log_severity_info() {
         'db_optimization'         => array( 'level' => 'low', 'desc' => __( 'Low Priority: Routine maintenance activity', 'snn' ) ),
         'featured_image_changed'  => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track featured image updates', 'snn' ) ),
         'reusable_block_updated'  => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track reusable block changes', 'snn' ) ),
+        'custom_field_updated'    => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track post meta / custom field value changes (e.g. Bricks builder, ACF)', 'snn' ) ),
+        'custom_field_added'      => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track new post meta / custom field additions', 'snn' ) ),
+        'custom_field_deleted'    => array( 'level' => 'low', 'desc' => __( 'Low Priority: Track post meta / custom field deletions', 'snn' ) ),
         'option_updated'          => array( 'level' => 'important', 'desc' => __( 'Important: Track all WordPress options and settings changes', 'snn' ) ),
     );
 }
@@ -205,6 +208,9 @@ function snn_get_logging_options() {
             'attachment_updated'    => __( 'Media Updates', 'snn' ),
             'featured_image_changed'=> __( 'Featured Image Changes', 'snn' ),
             'reusable_block_updated'=> __( 'Reusable Block Changes', 'snn' ),
+            'custom_field_updated'  => __( 'Custom Field Updates', 'snn' ),
+            'custom_field_added'    => __( 'Custom Field Added', 'snn' ),
+            'custom_field_deleted'  => __( 'Custom Field Deleted', 'snn' ),
         ),
         'comment_activities' => array(
             'comment_posted'        => __( 'Comment Posted', 'snn' ),
@@ -569,35 +575,322 @@ add_filter( 'handle_bulk_actions-edit-page', function( $redirect_to, $action, $p
     return $redirect_to;
 }, 10, 3 );
 
-// Featured image changed
+// =============================================================================
+// Custom Field / Post Meta Tracking
+// Tracks all meta changes (updated, added, deleted) with smart deduplication.
+// Uses a BEFORE hook (update_post_meta) to snapshot the old value, then an
+// AFTER hook (updated_post_meta) to record the change.  All changes are buffered
+// in a static array and flushed on shutdown — so rapid-fire meta saves (e.g.
+// Bricks builder saving 20+ meta keys at once) produce ONE log entry per post.
+// =============================================================================
+
+/**
+ * Internal buffer for collecting meta changes during a single request.
+ * Structure: [ post_id => [ 'added' => [key => value], 'updated' => [key => [old,new]], 'deleted' => [key => old_value] ] ]
+ *
+ * @param string     $action     'get', 'reset', 'added', 'updated', 'deleted'.
+ * @param int|null   $post_id    Post ID.
+ * @param string     $meta_key   Meta key.
+ * @param mixed|null $old_value  Old meta value (for updated/deleted).
+ * @param mixed|null $new_value  New meta value (for added/updated).
+ * @return array|void
+ */
+function snn_meta_change_buffer( $action = 'get', $post_id = null, $meta_key = '', $old_value = null, $new_value = null ) {
+    static $buffer = array();
+
+    if ( $action === 'reset' ) {
+        $buffer = array();
+        return;
+    }
+
+    if ( $action === 'get' ) {
+        return $buffer;
+    }
+
+    if ( $post_id === null || $meta_key === '' ) {
+        return;
+    }
+
+    if ( ! isset( $buffer[ $post_id ] ) ) {
+        $buffer[ $post_id ] = array(
+            'added'   => array(),
+            'updated' => array(),
+            'deleted' => array(),
+        );
+    }
+
+    if ( $action === 'added' ) {
+        // If the same key was already "deleted" in this request, treat as update instead
+        if ( isset( $buffer[ $post_id ]['deleted'][ $meta_key ] ) ) {
+            $buffer[ $post_id ]['updated'][ $meta_key ] = array(
+                'old' => $buffer[ $post_id ]['deleted'][ $meta_key ],
+                'new' => $new_value,
+            );
+            unset( $buffer[ $post_id ]['deleted'][ $meta_key ] );
+        } else {
+            $buffer[ $post_id ]['added'][ $meta_key ] = $new_value;
+        }
+    } elseif ( $action === 'updated' ) {
+        // If the same key was already "added" in this request, update the added value instead
+        if ( isset( $buffer[ $post_id ]['added'][ $meta_key ] ) ) {
+            $buffer[ $post_id ]['added'][ $meta_key ] = $new_value;
+        } else {
+            $buffer[ $post_id ]['updated'][ $meta_key ] = array(
+                'old' => $old_value,
+                'new' => $new_value,
+            );
+        }
+    } elseif ( $action === 'deleted' ) {
+        // If the same key was "added" in this request, just remove it from added (net zero)
+        if ( isset( $buffer[ $post_id ]['added'][ $meta_key ] ) ) {
+            unset( $buffer[ $post_id ]['added'][ $meta_key ] );
+        } elseif ( isset( $buffer[ $post_id ]['updated'][ $meta_key ] ) ) {
+            // If it was updated, change to deleted (old value was the pre-update value)
+            $buffer[ $post_id ]['deleted'][ $meta_key ] = $buffer[ $post_id ]['updated'][ $meta_key ]['old'];
+            unset( $buffer[ $post_id ]['updated'][ $meta_key ] );
+        } else {
+            $buffer[ $post_id ]['deleted'][ $meta_key ] = $old_value;
+        }
+    }
+}
+
+/**
+ * Determine if a meta key should be skipped (internal WordPress bookkeeping).
+ *
+ * @param string $meta_key The meta key to check.
+ * @return bool True if the key should be skipped.
+ */
+function snn_should_skip_meta_key( $meta_key ) {
+    // Skip our own activity log meta
+    if ( $meta_key === 'log_type' ) {
+        return true;
+    }
+
+    // Skip WordPress internal bookkeeping / locking fields
+    $skip_prefixes = array(
+        '_edit_lock',
+        '_edit_last',
+        '_wp_old_slug',
+        '_wp_old_date',
+        '_encloseme',
+        '_pingme',
+        '_wp_trash_meta_status',
+        '_wp_trash_meta_time',
+        '_wp_desired_post_slug',
+    );
+
+    foreach ( $skip_prefixes as $prefix ) {
+        if ( strpos( $meta_key, $prefix ) === 0 ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Format a meta value for logging: truncate long values, serialize arrays.
+ *
+ * @param mixed $value The meta value.
+ * @return string Formatted value.
+ */
+function snn_format_meta_value( $value ) {
+    if ( is_null( $value ) ) {
+        return 'NULL';
+    }
+    if ( is_bool( $value ) ) {
+        return $value ? 'TRUE' : 'FALSE';
+    }
+    if ( is_array( $value ) || is_object( $value ) ) {
+        $serialized = serialize( $value );
+        if ( strlen( $serialized ) > 200 ) {
+            return substr( $serialized, 0, 200 ) . '...[truncated]';
+        }
+        return $serialized;
+    }
+    $str = (string) $value;
+    if ( strlen( $str ) > 200 ) {
+        return substr( $str, 0, 200 ) . '...[truncated]';
+    }
+    return $str;
+}
+
+/**
+ * Shared static store for old meta value snapshots.
+ * Snapshot old values BEFORE they are overwritten, retrieve them AFTER.
+ * Both setter and getter share the same static variable via this single function.
+ *
+ * @param string     $action    'set' to store old value, 'get' to retrieve and clear.
+ * @param int        $post_id   Post ID.
+ * @param string     $meta_key  Meta key.
+ * @param mixed|null $value     The value to store (only used with 'set').
+ * @return mixed|null The old value when action is 'get', or null.
+ */
+function snn_meta_old_value_snapshot( $action, $post_id = 0, $meta_key = '', $value = null ) {
+    static $snapshots = array();
+    $snapshot_key = $post_id . ':' . $meta_key;
+
+    if ( $action === 'set' ) {
+        $snapshots[ $snapshot_key ] = $value;
+        return null;
+    }
+
+    // 'get' — retrieve and clear
+    $old_value = isset( $snapshots[ $snapshot_key ] ) ? $snapshots[ $snapshot_key ] : null;
+    unset( $snapshots[ $snapshot_key ] );
+    return $old_value;
+}
+
+/**
+ * Flush the meta change buffer and write consolidated log entries.
+ * Called on WordPress shutdown (the latest possible hook).
+ */
+function snn_flush_meta_change_buffer() {
+    $buffer = snn_meta_change_buffer( 'get' );
+
+    if ( empty( $buffer ) ) {
+        return;
+    }
+
+    foreach ( $buffer as $post_id => $changes ) {
+        $post = get_post( $post_id );
+        if ( ! $post || $post->post_type === 'snn_activity_log' ) {
+            continue;
+        }
+
+        $post_type_obj = get_post_type_object( $post->post_type );
+        $post_label    = $post_type_obj ? $post_type_obj->labels->singular_name : 'Item';
+        $post_title    = $post->post_title ?: '(no title)';
+
+        $total_changes = count( $changes['added'] ) + count( $changes['updated'] ) + count( $changes['deleted'] );
+        if ( $total_changes === 0 ) {
+            continue;
+        }
+
+        // Build a detailed description
+        $details  = "Post: {$post_title} (ID: {$post_id})\n";
+        $details .= "Total fields changed: {$total_changes}\n";
+
+        // List added fields
+        if ( ! empty( $changes['added'] ) ) {
+            $details .= "\n--- Fields Added (" . count( $changes['added'] ) . ") ---\n";
+            foreach ( $changes['added'] as $key => $value ) {
+                $details .= "  + {$key}: " . snn_format_meta_value( $value ) . "\n";
+            }
+        }
+
+        // List updated fields
+        if ( ! empty( $changes['updated'] ) ) {
+            $details .= "\n--- Fields Updated (" . count( $changes['updated'] ) . ") ---\n";
+            foreach ( $changes['updated'] as $key => $vals ) {
+                $details .= "  ~ {$key}: [" . snn_format_meta_value( $vals['old'] ) . "] → [" . snn_format_meta_value( $vals['new'] ) . "]\n";
+            }
+        }
+
+        // List deleted fields
+        if ( ! empty( $changes['deleted'] ) ) {
+            $details .= "\n--- Fields Deleted (" . count( $changes['deleted'] ) . ") ---\n";
+            foreach ( $changes['deleted'] as $key => $old_val ) {
+                $details .= "  - {$key}: was [" . snn_format_meta_value( $old_val ) . "]\n";
+            }
+        }
+
+        // Determine the primary log type based on what changed most
+        $has_updates = ! empty( $changes['updated'] );
+        $has_adds    = ! empty( $changes['added'] );
+        $has_deletes = ! empty( $changes['deleted'] );
+
+        if ( $has_updates ) {
+            $action   = "{$post_label} Custom Fields Updated";
+            $log_type = 'custom_field_updated';
+        } elseif ( $has_adds ) {
+            $action   = "{$post_label} Custom Fields Added";
+            $log_type = 'custom_field_added';
+        } else {
+            $action   = "{$post_label} Custom Fields Deleted";
+            $log_type = 'custom_field_deleted';
+        }
+
+        // Only log if the relevant type is enabled
+        if ( snn_is_log_type_enabled( $log_type ) ) {
+            snn_log_user_activity( $action, $details, $post_id, $log_type );
+        }
+    }
+
+    // Reset buffer after flushing
+    snn_meta_change_buffer( 'reset' );
+}
+
+// Hook: Snapshot old value BEFORE meta is updated (while old value still in DB)
+add_action( 'update_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
+    if ( snn_should_skip_meta_key( $meta_key ) ) {
+        return;
+    }
+    // get_post_meta() still returns the old value at this point (before DB write)
+    snn_meta_old_value_snapshot( 'set', $post_id, $meta_key, get_post_meta( $post_id, $meta_key, true ) );
+}, 5, 4 );
+
+// Hook: Custom field updated (AFTER DB write)
 add_action( 'updated_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
+    if ( snn_should_skip_meta_key( $meta_key ) ) {
+        return;
+    }
+
+    // Retrieve the old value that was snapshotted by update_post_meta hook
+    $old_value = snn_meta_old_value_snapshot( 'get', $post_id, $meta_key );
+
+    // Skip if the value didn't actually change
+    if ( $old_value === $meta_value ) {
+        return;
+    }
+
+    // Preserve existing featured_image_changed logging (backward compatibility)
     if ( $meta_key === '_thumbnail_id' ) {
         $post = get_post( $post_id );
         if ( $post && $post->post_type !== 'snn_activity_log' ) {
             snn_log_user_activity( 'Featured Image Changed', $post->post_title, $post_id, 'featured_image_changed' );
         }
     }
+
+    snn_meta_change_buffer( 'updated', $post_id, $meta_key, $old_value, $meta_value );
 }, 10, 4 );
 
-// Featured image added
+// Hook: Custom field added
 add_action( 'added_post_meta', function( $meta_id, $post_id, $meta_key, $meta_value ) {
+    if ( snn_should_skip_meta_key( $meta_key ) ) {
+        return;
+    }
+
+    // Preserve existing featured image logging
     if ( $meta_key === '_thumbnail_id' ) {
         $post = get_post( $post_id );
         if ( $post && $post->post_type !== 'snn_activity_log' ) {
             snn_log_user_activity( 'Featured Image Added', $post->post_title, $post_id, 'featured_image_changed' );
         }
     }
+
+    snn_meta_change_buffer( 'added', $post_id, $meta_key, null, $meta_value );
 }, 10, 4 );
 
-// Featured image removed
+// Hook: Custom field deleted
 add_action( 'deleted_post_meta', function( $meta_ids, $post_id, $meta_key, $meta_value ) {
+    if ( snn_should_skip_meta_key( $meta_key ) ) {
+        return;
+    }
+
+    // Preserve existing featured image logging
     if ( $meta_key === '_thumbnail_id' ) {
         $post = get_post( $post_id );
         if ( $post && $post->post_type !== 'snn_activity_log' ) {
             snn_log_user_activity( 'Featured Image Removed', $post->post_title, $post_id, 'featured_image_changed' );
         }
     }
+
+    snn_meta_change_buffer( 'deleted', $post_id, $meta_key, $meta_value, null );
 }, 10, 4 );
+
+// Flush the meta change buffer on shutdown (after all meta operations in the request)
+add_action( 'shutdown', 'snn_flush_meta_change_buffer', 100 );
 
 // Reusable block (wp_block) created or updated
 add_action( 'save_post_wp_block', function( $post_id, $post, $update ) {
