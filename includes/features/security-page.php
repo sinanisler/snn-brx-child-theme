@@ -182,7 +182,7 @@ function snn_captcha_type_callback() {
     [type="number"]{
         width: 100px !important;
     }
-    .snn-turnstile-row { margin-top: 10px; }
+    .snn-turnstile-row {  }
     .snn-turnstile-row label { display: inline-block; min-width: 140px; font-weight: 600; }
     .snn-turnstile-row input[type="text"], .snn-turnstile-row input[type="password"] { width: 320px; }
     </style>
