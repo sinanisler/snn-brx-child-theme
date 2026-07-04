@@ -31,15 +31,28 @@ function snn_add_turnstile_captcha() {
         return;
     }
 
-    $site_key = $options['turnstile_site_key'];
-    $unique   = uniqid( 'ts_' );
+    $site_key      = $options['turnstile_site_key'];
+    $theme         = $options['turnstile_theme'] ?? 'auto';
+    $size          = $options['turnstile_size'] ?? 'normal';
+    $unique        = uniqid( 'ts_' );
     ?>
-    <div id="turnstile_container_<?php echo esc_attr( $unique ); ?>" class="snn-turnstile-wrapper" style="margin: 15px 0;">
+    <style>
+        .snn-turnstile-wrapper {
+            max-width: 100%;
+            overflow: hidden;
+            margin: 15px 0;
+            box-sizing: border-box;
+        }
+        .snn-turnstile-wrapper iframe {
+            max-width: 100% !important;
+        }
+    </style>
+    <div id="turnstile_container_<?php echo esc_attr( $unique ); ?>" class="snn-turnstile-wrapper">
         <div
             class="cf-turnstile"
             data-sitekey="<?php echo esc_attr( $site_key ); ?>"
-            data-theme="auto"
-            data-size="normal"
+            data-theme="<?php echo esc_attr( $theme ); ?>"
+            data-size="<?php echo esc_attr( $size ); ?>"
         ></div>
     </div>
     <?php

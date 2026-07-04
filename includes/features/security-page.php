@@ -121,6 +121,22 @@ function snn_security_settings_init() {
         'snn_security_main_section'
     );
 
+    add_settings_field(
+        'turnstile_theme',
+        __( 'Turnstile Theme', 'snn' ),
+        'snn_turnstile_theme_callback',
+        'snn-security',
+        'snn_security_main_section'
+    );
+
+    add_settings_field(
+        'turnstile_size',
+        __( 'Turnstile Widget Size', 'snn' ),
+        'snn_turnstile_size_callback',
+        'snn-security',
+        'snn_security_main_section'
+    );
+
     // Limit Login Attempts settings
     add_settings_field(
         'enable_limit_login',
@@ -197,6 +213,50 @@ function snn_turnstile_secret_key_callback() {
     <div class="snn-turnstile-row">
         <input type="password" name="snn_security_options[turnstile_secret_key]" value="<?php echo esc_attr($secret_key); ?>" placeholder="1x0000000000000000000000000000000">
         <p class="description"><?php esc_html_e( 'Your Turnstile secret key. Keep this private — it is used for server-side validation.', 'snn' ); ?></p>
+    </div>
+    <?php
+}
+
+function snn_turnstile_theme_callback() {
+    $options = get_option('snn_security_options');
+    $theme = $options['turnstile_theme'] ?? 'auto';
+    ?>
+    <div class="snn-turnstile-row">
+        <fieldset>
+            <label style="margin-right: 20px;">
+                <input type="radio" name="snn_security_options[turnstile_theme]" value="auto" <?php checked($theme, 'auto'); ?>>
+                <?php esc_html_e( 'Auto', 'snn' ); ?>
+            </label>
+            <label style="margin-right: 20px;">
+                <input type="radio" name="snn_security_options[turnstile_theme]" value="light" <?php checked($theme, 'light'); ?>>
+                <?php esc_html_e( 'Light', 'snn' ); ?>
+            </label>
+            <label>
+                <input type="radio" name="snn_security_options[turnstile_theme]" value="dark" <?php checked($theme, 'dark'); ?>>
+                <?php esc_html_e( 'Dark', 'snn' ); ?>
+            </label>
+        </fieldset>
+        <p class="description"><?php esc_html_e( 'Visual color theme for the Turnstile widget. Auto follows the user\'s system preference.', 'snn' ); ?></p>
+    </div>
+    <?php
+}
+
+function snn_turnstile_size_callback() {
+    $options = get_option('snn_security_options');
+    $size = $options['turnstile_size'] ?? 'normal';
+    ?>
+    <div class="snn-turnstile-row">
+        <fieldset>
+            <label style="margin-right: 20px;">
+                <input type="radio" name="snn_security_options[turnstile_size]" value="normal" <?php checked($size, 'normal'); ?>>
+                <?php esc_html_e( 'Normal (300px)', 'snn' ); ?>
+            </label>
+            <label>
+                <input type="radio" name="snn_security_options[turnstile_size]" value="compact" <?php checked($size, 'compact'); ?>>
+                <?php esc_html_e( 'Compact (130px)', 'snn' ); ?>
+            </label>
+        </fieldset>
+        <p class="description"><?php esc_html_e( 'Widget size. Use Compact if the widget overflows narrow form containers.', 'snn' ); ?></p>
     </div>
     <?php
 }

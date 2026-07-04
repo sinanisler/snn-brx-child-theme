@@ -30,7 +30,7 @@ function snn_add_math_captcha() {
         ?>
         <div id="captcha_container_<?php echo esc_attr( $unique ); ?>" class="snn-captcha-wrapper" style="display: none;">
             <style>
-                .snn-captcha-wrapper { margin: 15px 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+                .snn-captcha-wrapper { margin: 15px 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 100%; overflow: hidden; box-sizing: border-box; }
                 .snn-captcha-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #646970; margin-bottom: 8px; display: block; font-weight: 600; }
                 #captchaCanvas_<?php echo esc_attr( $unique ); ?> { background: #f9f9f9; border-radius: 4px; display: block; margin-bottom: 10px; width: 100%; height: auto; cursor: pointer; }
                 #math_captcha_<?php echo esc_attr( $unique ); ?> { font-size: 18px; width: 100%; padding: 8px; border: 1px solid #8c8f94; border-radius: 4px; box-sizing: border-box; text-align: center; transition: border-color 0.3s ease, background 0.3s ease; }
