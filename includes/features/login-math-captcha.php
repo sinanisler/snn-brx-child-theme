@@ -4,8 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function snn_add_math_captcha() {
-    $options     = get_option( 'snn_security_options' );
+    $options      = get_option( 'snn_security_options' );
     $captcha_type = $options['captcha_type'] ?? 'none';
+
+    // Dispatch to Turnstile if that type is selected.
+    if ( $captcha_type === 'turnstile' ) {
+        snn_add_turnstile_captcha();
+        return;
+    }
 
     if ( $captcha_type !== 'math' ) {
         return;
@@ -153,8 +159,13 @@ add_action( 'woocommerce_register_form', 'snn_add_math_captcha' );
 add_action( 'woocommerce_lostpassword_form', 'snn_add_math_captcha' );
 
 function snn_check_captcha() {
-    $options     = get_option( 'snn_security_options' );
+    $options      = get_option( 'snn_security_options' );
     $captcha_type = $options['captcha_type'] ?? 'none';
+
+    // Dispatch to Turnstile validation if that type is selected.
+    if ( $captcha_type === 'turnstile' ) {
+        return snn_check_turnstile();
+    }
 
     if ( $captcha_type !== 'math' ) {
         return true;
