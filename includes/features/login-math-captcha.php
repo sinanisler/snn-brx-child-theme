@@ -4,10 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function snn_add_math_captcha() {
-    $options = get_option( 'snn_security_options' );
+    $options     = get_option( 'snn_security_options' );
+    $captcha_type = $options['captcha_type'] ?? 'none';
 
-    if ( isset( $options['enable_math_captcha'] ) && $options['enable_math_captcha'] ) {
-        $number1 = rand( 1, 9 );
+    if ( $captcha_type !== 'math' ) {
+        return;
+    }
+
+    $number1 = rand( 1, 9 );
         $number2 = rand( 1, 9 );
         $sum     = $number1 + $number2;
 
@@ -21,41 +25,21 @@ function snn_add_math_captcha() {
         <div id="captcha_container_<?php echo esc_attr( $unique ); ?>" class="snn-captcha-wrapper" style="display: none;">
             <style>
                 .snn-captcha-wrapper { margin: 15px 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-                .verification-container { background: #fff;  border-radius: 8px;   position: relative; min-height: 160px;  }
-                .step-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #646970; margin-bottom: 10px; display: block; font-weight: 600; }
-                #math_step_<?php echo esc_attr( $unique ); ?> { transition: opacity 0.3s ease; }
-                #captchaCanvas_<?php echo esc_attr( $unique ); ?> { background: #f9f9f9; border-radius: 4px; display: block; margin-bottom: 10px;   width: 100%; height: auto;  }
-                #math_captcha_<?php echo esc_attr( $unique ); ?> { font-size: 18px; width: 100%; padding: 8px; border: 1px solid #8c8f94; border-radius: 4px; box-sizing: border-box; text-align: center; }
-                .drag-area { width: 100%; height: 80px; background: #f0f0f1; border: 2px dashed #c3c4c7; border-radius: 8px; position: relative; overflow: hidden; margin-top: 5px; }
-                .drop-target { position: absolute; right: 10px; top: 10px; width: 56px; height: 56px; border: 2px solid #dcdcde; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #8c8f94; text-align: center; }
-                .drag-item { position: absolute; left: 10px; top: 10px; width: 56px; height: 56px; background: #2271b1; border-radius: 50%; cursor: grab; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); z-index: 10; touch-action: none; }
-                .success-msg { color: #27ae60; font-size: 13px; font-weight: bold; margin-top: 10px; text-align: center; }
-                .step-label b{color:green}
+                .snn-captcha-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #646970; margin-bottom: 8px; display: block; font-weight: 600; }
+                #captchaCanvas_<?php echo esc_attr( $unique ); ?> { background: #f9f9f9; border-radius: 4px; display: block; margin-bottom: 10px; width: 100%; height: auto; cursor: pointer; }
+                #math_captcha_<?php echo esc_attr( $unique ); ?> { font-size: 18px; width: 100%; padding: 8px; border: 1px solid #8c8f94; border-radius: 4px; box-sizing: border-box; text-align: center; transition: border-color 0.3s ease, background 0.3s ease; }
+                #math_captcha_<?php echo esc_attr( $unique ); ?>.snn-correct { border-color: #27ae60; background: #e8f5e9; }
+                .snn-captcha-success { color: #27ae60; font-size: 13px; font-weight: bold; margin-top: 6px; text-align: center; display: none; }
+                .snn-captcha-hint { font-size: 11px; color: #787c82; text-align: center; margin-top: 4px; }
             </style>
 
-            <div class="verification-container">
-                <!-- STEP 1: MATH -->
-                <div id="math_step_<?php echo esc_attr( $unique ); ?>">
-                    <span class="step-label"><?php _e('Step 1: Solve Math Equation', 'snn'); ?></span>
-                    <canvas id="captchaCanvas_<?php echo esc_attr( $unique ); ?>" width="280" height="100"></canvas>
-                    <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" placeholder="?" autocomplete="off" class="input">
-                </div>
-
-                <!-- STEP 2: DRAG DROP -->
-                <div id="drag_step_<?php echo esc_attr( $unique ); ?>" style="display: none; flex-direction: column; align-items: center; justify-content: center;">
-                    <span class="step-label"><?php _e('Step 2: Verify Identity', 'snn'); ?></span>
-                    <div class="drag-area" id="dragArea_<?php echo esc_attr( $unique ); ?>">
-                        <div class="drop-target" id="dropTarget_<?php echo esc_attr( $unique ); ?>"><?php _e('Target', 'snn'); ?></div>
-                        <div class="drag-item" id="dragItem_<?php echo esc_attr( $unique ); ?>">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 19-3 3-3-3M19 15l3-3-3-3M5 9l-3 3 3 3M9 5l3-3 3 3M12 2v20M2 12h20"/></svg>
-                        </div>
-                    </div>
-                    <div class="success-msg" id="successMsg_<?php echo esc_attr( $unique ); ?>" style="display: none;"><?php _e('Identity Verified!', 'snn'); ?></div>
-                </div>
-            </div>
+            <span class="snn-captcha-label"><?php _e('Verify you are human:', 'snn'); ?></span>
+            <canvas id="captchaCanvas_<?php echo esc_attr( $unique ); ?>" width="280" height="100" title="<?php esc_attr_e('Click to refresh', 'snn'); ?>"></canvas>
+            <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" placeholder="?" autocomplete="off" class="input">
+            <div class="snn-captcha-success" id="captchaSuccess_<?php echo esc_attr( $unique ); ?>">&#10003; <?php _e('Verified!', 'snn'); ?></div>
+            <div class="snn-captcha-hint"><?php _e('Click the image for a new equation', 'snn'); ?></div>
 
             <input type="hidden" name="captcha_solution" id="captcha_solution_<?php echo esc_attr( $unique ); ?>" value="">
-            <input type="hidden" name="drag_verified" id="drag_verified_<?php echo esc_attr( $unique ); ?>" value="no">
             <input type="hidden" name="js_enabled" value="no" id="js_enabled_<?php echo esc_attr( $unique ); ?>">
         </div>
 
@@ -71,29 +55,8 @@ function snn_add_math_captcha() {
                 const canvas = document.getElementById('captchaCanvas_' + uniqueId);
                 const ctx = canvas.getContext('2d');
                 const mathInput = document.getElementById('math_captcha_' + uniqueId);
-                const mathStep = document.getElementById('math_step_' + uniqueId);
-                const dragStep = document.getElementById('drag_step_' + uniqueId);
-                const dragItem = document.getElementById('dragItem_' + uniqueId);
-                const dragArea = document.getElementById('dragArea_' + uniqueId);
-                const dropTarget = document.getElementById('dropTarget_' + uniqueId);
-                const successMsg = document.getElementById('successMsg_' + uniqueId);
-                const dragVerifiedInput = document.getElementById('drag_verified_' + uniqueId);
+                const successMsg = document.getElementById('captchaSuccess_' + uniqueId);
                 const solutionInput = document.getElementById('captcha_solution_' + uniqueId);
-
-                // Fix: Find and disable the submit button even if it's parsed after this script
-                let submitButton = null;
-                const setupSubmitButton = () => {
-                    const form = container.closest('form');
-                    if (form && !submitButton) {
-                        submitButton = form.querySelector('input[type="submit"], button[type="submit"]');
-                        if (submitButton && dragVerifiedInput.value !== 'yes') {
-                            submitButton.disabled = true;
-                        }
-                    }
-                };
-
-                setupSubmitButton();
-                document.addEventListener('DOMContentLoaded', setupSubmitButton);
 
                 const n1 = parseInt(window.atob("<?php echo esc_js( $encodedNumber1 ); ?>"), 10);
                 const n2 = parseInt(window.atob("<?php echo esc_js( $encodedNumber2 ); ?>"), 10);
@@ -153,69 +116,22 @@ function snn_add_math_captcha() {
                         ctx.fillText(item.text, 0, 0);
                         ctx.restore();
                     });
+
+                    // Reset state on canvas refresh
+                    mathInput.value = '';
+                    mathInput.classList.remove('snn-correct');
+                    successMsg.style.display = 'none';
                 }
 
                 mathInput.addEventListener('input', function() {
                     if (parseInt(this.value.trim(), 10) === correctSum) {
-                        mathStep.style.opacity = '0';
-                        setTimeout(() => {
-                            mathStep.style.display = 'none';
-                            dragStep.style.display = 'flex';
-                        }, 300);
+                        this.classList.add('snn-correct');
+                        successMsg.style.display = 'block';
+                    } else {
+                        this.classList.remove('snn-correct');
+                        successMsg.style.display = 'none';
                     }
                 });
-
-                // Drag Logic
-                let isDragging = false, startX, startY, initialX, initialY;
-                const startDrag = (e) => {
-                    isDragging = true;
-                    const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                    startX = clientX; startY = clientY;
-                    initialX = dragItem.offsetLeft; initialY = dragItem.offsetTop;
-                    dragItem.style.transition = 'none';
-                };
-
-                const moveDrag = (e) => {
-                    if (!isDragging) return;
-                    const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                    let nx = initialX + (clientX - startX), ny = initialY + (clientY - startY);
-                    nx = Math.max(0, Math.min(nx, dragArea.offsetWidth - dragItem.offsetWidth));
-                    ny = Math.max(0, Math.min(ny, dragArea.offsetHeight - dragItem.offsetHeight));
-                    dragItem.style.left = nx + 'px'; dragItem.style.top = ny + 'px';
-
-                    const tr = dropTarget.getBoundingClientRect(), ir = dragItem.getBoundingClientRect();
-                    const dist = Math.sqrt(((ir.left + ir.width/2) - (tr.left + tr.width/2))**2 + ((ir.top + ir.height/2) - (tr.top + tr.height/2))**2);
-                    dropTarget.style.background = dist < 20 ? '#e8f5e9' : '#fff';
-                };
-
-                const endDrag = () => {
-                    if (!isDragging) return;
-                    isDragging = false;
-                    const tr = dropTarget.getBoundingClientRect(), ir = dragItem.getBoundingClientRect();
-                    const dist = Math.sqrt(((ir.left + ir.width/2) - (tr.left + tr.width/2))**2 + ((ir.top + ir.height/2) - (tr.top + tr.height/2))**2);
-
-                    if (dist < 20) {
-                        dragItem.style.left = dropTarget.offsetLeft + 'px';
-                        dragItem.style.top = dropTarget.offsetTop + 'px';
-                        dragItem.style.background = '#27ae60';
-                        dropTarget.style.display = 'none';
-                        successMsg.style.display = 'block';
-                        dragVerifiedInput.value = 'yes';
-                        if (submitButton) submitButton.disabled = false;
-                    } else {
-                        dragItem.style.transition = 'all 0.3s ease';
-                        dragItem.style.left = '10px'; dragItem.style.top = '10px';
-                    }
-                };
-
-                dragItem.addEventListener('mousedown', startDrag);
-                window.addEventListener('mousemove', moveDrag);
-                window.addEventListener('mouseup', endDrag);
-                dragItem.addEventListener('touchstart', startDrag);
-                window.addEventListener('touchmove', moveDrag);
-                window.addEventListener('touchend', endDrag);
 
                 canvas.addEventListener('click', generateCaptcha);
                 
@@ -225,7 +141,6 @@ function snn_add_math_captcha() {
             })();
         </script>
         <?php
-    }
 }
 
 // Add captcha to various WP forms.
@@ -238,16 +153,16 @@ add_action( 'woocommerce_register_form', 'snn_add_math_captcha' );
 add_action( 'woocommerce_lostpassword_form', 'snn_add_math_captcha' );
 
 function snn_check_captcha() {
-    $options = get_option( 'snn_security_options' );
+    $options     = get_option( 'snn_security_options' );
+    $captcha_type = $options['captcha_type'] ?? 'none';
 
-    if ( empty( $options['enable_math_captcha'] ) ) {
+    if ( $captcha_type !== 'math' ) {
         return true;
     }
 
     $js_enabled = ( isset( $_POST['js_enabled'] ) && $_POST['js_enabled'] === 'yes' );
-    $drag_verified = ( isset( $_POST['drag_verified'] ) && $_POST['drag_verified'] === 'yes' );
 
-    if ( ! $js_enabled || ! $drag_verified ) {
+    if ( ! $js_enabled ) {
         return false;
     }
 
@@ -266,9 +181,10 @@ function snn_check_captcha() {
 }
 
 function snn_validate_math_captcha( $result, $username, $password ) {
-    $options = get_option( 'snn_security_options' );
+    $options     = get_option( 'snn_security_options' );
+    $captcha_type = $options['captcha_type'] ?? 'none';
 
-    if ( ! empty( $options['enable_math_captcha'] ) ) {
+    if ( $captcha_type === 'math' ) {
         // Only validate captcha during actual form submissions (POST requests)
         if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
             $current_action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
@@ -277,7 +193,7 @@ function snn_validate_math_captcha( $result, $username, $password ) {
                 if ( ! snn_check_captcha() ) {
                     $result = new WP_Error(
                         'captcha_error',
-                        __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math and drag the circle.", "snn"), "snn")
+                        __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math equation.", "snn"), "snn")
                     );
                 }
             }
@@ -288,13 +204,14 @@ function snn_validate_math_captcha( $result, $username, $password ) {
 add_filter( 'authenticate', 'snn_validate_math_captcha', 30, 3 );
 
 function snn_validate_registration_captcha( $errors, $sanitized_user_login, $user_email ) {
-    $options = get_option( 'snn_security_options' );
+    $options     = get_option( 'snn_security_options' );
+    $captcha_type = $options['captcha_type'] ?? 'none';
 
-    if ( ! empty( $options['enable_math_captcha'] ) ) {
+    if ( $captcha_type === 'math' ) {
         if ( ! snn_check_captcha() ) {
             $errors->add(
                 'captcha_error',
-                __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math and drag the circle.", "snn"), "snn")
+                __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math equation.", "snn"), "snn")
             );
         }
     }
@@ -303,13 +220,14 @@ function snn_validate_registration_captcha( $errors, $sanitized_user_login, $use
 add_filter( 'registration_errors', 'snn_validate_registration_captcha', 10, 3 );
 
 function snn_validate_lostpassword_captcha( $errors, $user_login ) {
-    $options = get_option( 'snn_security_options' );
+    $options     = get_option( 'snn_security_options' );
+    $captcha_type = $options['captcha_type'] ?? 'none';
 
-    if ( ! empty( $options['enable_math_captcha'] ) ) {
+    if ( $captcha_type === 'math' ) {
         if ( ! snn_check_captcha() ) {
             $errors->add(
                 'captcha_error',
-                __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math and drag the circle.", "snn"), "snn")
+                __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math equation.", "snn"), "snn")
             );
         }
     }
@@ -331,9 +249,11 @@ add_filter( 'comment_form_field_comment', 'snn_add_math_captcha_to_comment_texta
 function snn_validate_comment_captcha( $commentdata ) {
     $options = get_option( 'snn_security_options' );
 
-    if ( ! empty( $options['enable_math_captcha'] ) && ! is_user_logged_in() ) {
+    $captcha_type = $options['captcha_type'] ?? 'none';
+
+    if ( $captcha_type === 'math' && ! is_user_logged_in() ) {
         if ( ! snn_check_captcha() ) {
-            wp_die(__("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math and drag the circle.", "snn"), "snn"));
+            wp_die(__("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math equation.", "snn"), "snn"));
         }
     }
     return $commentdata;
