@@ -42,6 +42,7 @@ jobs:
         includes/features/role-manager.php
         includes/features/search-loggins.php
         includes/features/security-page.php
+        includes/features/turnstile-captcha.php
         includes/features/seo.php
         includes/features/smtp-settings.php
         includes/features/taxonomy-settings.php
