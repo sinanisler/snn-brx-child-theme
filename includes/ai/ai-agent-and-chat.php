@@ -61,8 +61,8 @@ class SNN_Chat_Overlay {
         add_action( 'wp_ajax_snn_get_chat_histories', array( $this, 'ajax_get_chat_histories' ) );
         add_action( 'wp_ajax_snn_delete_chat_history', array( $this, 'ajax_delete_chat_history' ) );
         
-        // Check if feature is enabled — overlay loads if either global AI or the agent toggle is on
-        if ( ! $this->is_enabled() && ! $this->is_ai_globally_enabled() ) {
+        // Check if feature is enabled — overlay loads only when the agent-specific toggle is on
+        if ( ! $this->is_enabled() ) {
             return;
         }
         
