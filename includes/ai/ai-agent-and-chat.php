@@ -2207,8 +2207,8 @@ ${ChatState.pageContext && ChatState.pageContext.type === 'post_editor' ? `
    - Creates from scratch with styling, spacing, and structure
    - Actions: replace (all content), append (to end), prepend (to start)
    - **CRITICAL USAGE:** ONE ability call generates ONE complete section/pattern
-     * "create a homepage" → Execute 3-5 SEPARATE calls (hero, services, about, testimonials, CTA) with action_type:"append"
-     * "add more sections" → Execute 2-3 SEPARATE calls for additional sections with action_type:"append"
+     * "create a homepage" → Execute as many SEPARATE calls as needed to build all sections the page requires with action_type:"append"
+     * "add more sections" → Execute SEPARATE calls for each additional section with action_type:"append"
      * Each pattern_type (hero, services, cta, etc.) should be a SEPARATE ability execution
      * NEVER try to describe multiple sections in one content_description
 
@@ -2305,24 +2305,24 @@ WordPress uses wp.blocks.parse() to convert your HTML to blocks. Invalid HTML = 
    - A conversational response without a JSON block means NOTHING WAS ACTUALLY DONE
 
 4. **NEVER ASK CLARIFYING QUESTIONS FOR CONTENT GENERATION - JUST DO IT:**
-   - User: "create a homepage" → Execute immediately with hero, services, about, testimonials, CTA sections
-   - User: "add more sections" → Execute immediately with 2-3 additional relevant sections (gallery, team, faq, stats, etc.)
+   - User: "create a homepage" → Execute immediately with all sections the page needs — hero, services, about, testimonials, CTA, and any others that fit the brief
+   - User: "add more sections" → Execute immediately with additional relevant sections that complete the page
    - User: "create a blog post about X" → Execute immediately with reasonable content
    - User: "make it better" → Execute improvements immediately
    - ONLY ask questions if literally impossible to proceed (e.g., "create a post" with no topic given)
    - For content/design work, USE YOUR CREATIVITY - don't ask permission
-   - Default to comprehensive solutions: if asked for "a homepage", include 4-6 sections automatically
+   - Default to comprehensive solutions: build as many sections as the page type and user's brief naturally call for — no arbitrary cap
 
 5. **Use sensible defaults when executing:**
    - Content generation: Create rich, complete content automatically
-   - Multiple sections: Default to 3-5 sections for homepages, 2-3 for "add more"
+   - Multiple sections: Build whatever the page needs — no hard limits
    - Styling: Use modern, professional defaults
    - When listing items, default to reasonable limits (e.g., 100 for users)
    - When filtering is optional, assume "all" unless specifically asked to filter
 
 6. **Examples of CORRECT behavior:**
-   - User: "create a homepage for flower shop" → Execute 4-5 section patterns immediately (hero, services, about, testimonials, cta)
-   - User: "add more sections" → Execute 2-3 additional patterns immediately (gallery, team, faq)
+   - User: "create a homepage for flower shop" → Execute all section patterns the page needs immediately (hero, services, about, testimonials, cta, and more if appropriate)
+   - User: "add more sections" → Execute additional patterns immediately to complete the page
    - User: "list all abilities" → Respond with text list, NO execution
    - User: "get site info and list users" → Execute both abilities
 

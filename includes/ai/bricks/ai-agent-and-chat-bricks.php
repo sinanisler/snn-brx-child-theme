@@ -840,7 +840,8 @@ Format EXACTLY like this:
 End with: "Starting design..."
 
 Rules:
-- 1–6 sections — if the user asks for a single section (e.g. "a hero", "add a pricing section"), plan EXACTLY 1 section. Do not pad to 2.
+- Plan as many sections as the user's design needs — no arbitrary limits.
+- If the user asks for a single section (e.g. "a hero", "add a pricing section"), plan EXACTLY 1 section. Do not pad.
 - Concise names: Hero, Features, Testimonials, Pricing, CTA, Footer etc.
 - One sentence per section — no HTML, no code
 - Respond with the plan only, nothing else`;
