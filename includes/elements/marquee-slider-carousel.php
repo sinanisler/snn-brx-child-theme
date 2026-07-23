@@ -96,6 +96,15 @@ class Snn_Marquee_Slider_Carousel extends Element {
             'inline'  => true,
         ];
 
+        $this->controls['enableDragScroll'] = [
+            'tab'     => 'content',
+            'label'   => esc_html__( 'Enable Drag Scroll', 'snn' ),
+            'type'    => 'checkbox',
+            'default' => false,
+            'inline'  => true,
+            'description' => esc_html__( 'Let users grab & drag the marquee, flick to slide faster. Momentum gradually slows back to normal speed — like phone scrolling.', 'snn' ),
+        ];
+
         $this->controls['verticalMaxHeight'] = [
             'tab'     => 'content',
             'label'   => esc_html__( 'Vertical Max Height', 'snn' ),
@@ -225,13 +234,15 @@ class Snn_Marquee_Slider_Carousel extends Element {
         $pause_on_hover = $settings['pauseOnHover'] ?? false;
         $image_effect   = $settings['imageEffect'] ?? 'none';
         $enable_fade    = $settings['enableFade'] ?? false;
+        $enable_drag    = $settings['enableDragScroll'] ?? false;
+        $duration       = $settings['duration'] ?? 30;
         $vertical_max_height = $settings['verticalMaxHeight'] ?? '500px'; 
 
         echo "<style>
             /* Marquee Container */
             .{$unique_id} {
                 --marquee-gap: {$gap};
-                --marquee-duration: " . ($settings['duration'] ?? 30) . "s;
+                --marquee-duration: {$duration}s;
                 --marquee-direction: forwards;
                 display: flex;
                 overflow: hidden;
@@ -263,6 +274,21 @@ class Snn_Marquee_Slider_Carousel extends Element {
             " : "") . "
 
             /* --- Directional Styles --- */
+            " . ($enable_drag ? "
+            /* Drag scroll enabled: cursor affordance & touch handling */
+            .{$unique_id}.snn-marquee--draggable {
+                cursor: grab;
+                touch-action: none;
+            }
+            .{$unique_id}.snn-marquee--draggable.is-dragging {
+                cursor: grabbing;
+            }
+            .{$unique_id}.snn-marquee--draggable .marquee__track {
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            " : "
+            /* CSS Animation (default mode) */
             /* Horizontal Animation */
             .{$unique_id}[data-direction=\"left\"] .marquee__track {
                 animation: marquee-horizontal var(--marquee-duration) linear infinite var(--marquee-direction);
@@ -270,8 +296,18 @@ class Snn_Marquee_Slider_Carousel extends Element {
             .{$unique_id}[data-direction=\"right\"] .marquee__track {
                 animation: marquee-horizontal var(--marquee-duration) linear infinite reverse;
             }
+            " . ($pause_on_hover ? "
+            .{$unique_id}:hover .marquee__track {
+                animation-play-state: paused;
+            }
+            " : "") . "
+            /* Pause when not in view (CSS-only mode) */
+            .{$unique_id}:not(.is-in-view) .marquee__track {
+                animation-play-state: paused;
+            }
+            ") . "
 
-            /* Vertical Container & Animation */
+            /* Vertical Container */
             .{$unique_id}[data-direction=\"up\"],
             .{$unique_id}[data-direction=\"down\"] {
                 max-height: {$vertical_max_height};
@@ -282,12 +318,14 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 min-width: auto;
                 min-height: 100%;
             }
+            " . (!$enable_drag ? "
             .{$unique_id}[data-direction=\"up\"] .marquee__track {
                 animation: marquee-vertical var(--marquee-duration) linear infinite var(--marquee-direction);
             }
             .{$unique_id}[data-direction=\"down\"] .marquee__track {
                 animation: marquee-vertical var(--marquee-duration) linear infinite reverse;
             }
+            " : "") . "
 
             /* --- Content Item Styles --- */
             .{$unique_id} .marquee__item {
@@ -295,13 +333,13 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
-                overflow:  ; /* Added to contain children */
+                overflow: hidden;
             }
             .{$unique_id} .marquee__item--text {
-                white-space: normal; /* Changed from nowrap to normal */
-                overflow: hidden; /* Added to hide overflow text */
-                text-overflow: ellipsis; /* Added to show ... for truncated text */
-                text-align: center; /* Added for better look on wrapped text */
+                white-space: normal;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-align: center;
             }
             .{$unique_id} .marquee__item img {
                 width: auto;
@@ -329,14 +367,7 @@ class Snn_Marquee_Slider_Carousel extends Element {
             }
             " : "") . "
 
-            /* --- FIX: Pause on Hover (Moved here to ensure it overrides animation) --- */
-            " . ($pause_on_hover ? "
-            .{$unique_id}:hover .marquee__track {
-                animation-play-state: paused;
-            }
-            " : "") . "
-
-            /* --- Keyframes & Accessibility --- */
+            /* --- Keyframes (always defined for reference / non-drag mode) --- */
             @keyframes marquee-horizontal {
                 from { transform: translateX(0); }
                 to { transform: translateX(calc(-50% - var(--marquee-gap) / 2)); }
@@ -351,11 +382,6 @@ class Snn_Marquee_Slider_Carousel extends Element {
                 .{$unique_id} .marquee__track {
                     animation-play-state: paused !important;
                 }
-            }
-
-            /* Performance - Pauses animation when element is not in view */
-            .{$unique_id}:not(.is-in-view) .marquee__track {
-                animation-play-state: paused;
             }
         </style>";
 
@@ -386,51 +412,237 @@ class Snn_Marquee_Slider_Carousel extends Element {
         }
         echo '</div>'; // .marquee__track
 
-        // --- Inline JavaScript for robust cloning and observation ---
+        // --- Inline JavaScript ---
         ?>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const marqueeEl = document.querySelector('.<?php echo esc_js( $unique_id ); ?>');
                 if (!marqueeEl) return;
 
-                const setupMarquee = () => {
-                    const track = marqueeEl.querySelector('.marquee__track');
-                    if (!track || track.children.length === 0) return;
+                const direction = marqueeEl.dataset.direction || 'left';
+                const isVertical = direction === 'up' || direction === 'down';
+                const enableDrag = <?php echo json_encode( $enable_drag ); ?>;
+                const pauseOnHover = <?php echo json_encode( $pause_on_hover ); ?>;
+                const durationSec = parseFloat(marqueeEl.dataset.duration) || 30;
 
-                    const direction = marqueeEl.dataset.direction || 'left';
-                    const isVertical = direction === 'up' || direction === 'down';
-                    
-                    // Store original items and remove any pre-existing clones
+                // --- Shared: Clone logic ---
+                const cloneItems = () => {
+                    const track = marqueeEl.querySelector('.marquee__track');
+                    if (!track || track.children.length === 0) return { originalItems: [], contentSize: 0, track: null };
+
                     const originalItems = Array.from(track.querySelectorAll('.marquee__item:not(.is-clone)'));
                     track.querySelectorAll('.is-clone').forEach(clone => clone.remove());
 
-                    if (originalItems.length === 0) return;
+                    if (originalItems.length === 0) return { originalItems: [], contentSize: 0, track: null };
 
-                    // Get initial sizes
                     const containerSize = isVertical ? marqueeEl.offsetHeight : marqueeEl.offsetWidth;
                     let trackSize = isVertical ? track.scrollHeight : track.scrollWidth;
-                    
-                    // If content is smaller than the container, cloning is not needed.
+
                     if (trackSize >= containerSize) {
-                        // **This is the core fix:** Clone items until the track is at least double the container size.
-                        // This guarantees there's always content to fill the space, preventing the "jump".
                         while (trackSize < containerSize * 2) {
                             originalItems.forEach(item => {
                                 const clone = item.cloneNode(true);
                                 clone.setAttribute('aria-hidden', 'true');
-                                clone.classList.add('is-clone'); // Add a class for easy identification
+                                clone.classList.add('is-clone');
                                 track.appendChild(clone);
                             });
                             trackSize = isVertical ? track.scrollHeight : track.scrollWidth;
                         }
                     }
+
+                    // Measure one set of original items (the loop distance)
+                    let originalSize = 0;
+                    originalItems.forEach(item => {
+                        originalSize += isVertical ? item.offsetHeight : item.offsetWidth;
+                    });
+                    const computedGap = parseFloat(getComputedStyle(track).gap) || 0;
+                    if (originalItems.length > 1 && !isNaN(computedGap)) {
+                        originalSize += computedGap * (originalItems.length - 1);
+                    }
+
+                    return { originalItems, contentSize: originalSize, track };
                 };
 
-                // Use ResizeObserver for robust handling of responsive changes.
+                <?php if ( $enable_drag ) : ?>
+                // ============================================================
+                // DRAG-SCROLL MODE: JS-driven animation with flick inertia
+                // ============================================================
+                marqueeEl.classList.add('snn-marquee--draggable');
+
+                let position = 0;
+                let velocity = 0;          // px/s
+                let isDragging = false;
+                let isHovering = false;
+                let isInView = true;
+                let animationId = null;
+                let lastTimestamp = 0;
+                let contentSize = 0;
+                let autoSpeed = 0;
+                const directionSign = (direction === 'left' || direction === 'up') ? -1 : 1;
+
+                // Velocity tracking for flick calculation
+                let pointerStartX = 0, pointerStartY = 0;
+                let positionAtDragStart = 0;
+                let velocitySamples = [];
+                const VELOCITY_SAMPLE_WINDOW = 100; // ms
+
+                // Physics — tuned for soft phone-like feel
+                const FRICTION = 0.97;           // per frame @ 60fps
+                const VELOCITY_THRESHOLD = 0.5;  // px/frame — resume auto below this
+                const MIN_VELOCITY = 0.1;        // snap to zero
+
+                const tick = (timestamp) => {
+                    if (!lastTimestamp) lastTimestamp = timestamp;
+                    let dt = (timestamp - lastTimestamp) / 1000;
+                    lastTimestamp = timestamp;
+                    if (dt > 0.15) dt = 0.016;   // clamp tab-switch jumps
+                    if (dt <= 0) dt = 0.016;
+
+                    if (!isDragging && isInView && contentSize > 0) {
+                        if (Math.abs(velocity) > VELOCITY_THRESHOLD) {
+                            // Flick decay — frame-rate-independent exponential friction
+                            velocity *= Math.pow(FRICTION, dt * 60);
+                            if (Math.abs(velocity) < MIN_VELOCITY) velocity = 0;
+                            position += velocity * dt;
+                        } else {
+                            // Resume normal auto-scroll
+                            velocity = 0;
+                            if (!isHovering || !pauseOnHover) {
+                                position += autoSpeed * directionSign * dt;
+                            }
+                        }
+                    }
+
+                    // Seamless infinite loop wrapping
+                    if (contentSize > 0) {
+                        while (position <= -contentSize) position += contentSize;
+                        while (position > 0) position -= contentSize;
+                    }
+
+                    const track = marqueeEl.querySelector('.marquee__track');
+                    if (track) {
+                        const prop = isVertical ? 'translateY' : 'translateX';
+                        track.style.transform = `${prop}(${position}px)`;
+                        track.style.willChange = 'transform';
+                    }
+
+                    animationId = requestAnimationFrame(tick);
+                };
+
+                // --- Pointer event handlers ---
+                const onPointerDown = (e) => {
+                    if (e.button !== undefined && e.button !== 0) return;
+                    isDragging = true;
+                    marqueeEl.classList.add('is-dragging');
+                    pointerStartX = e.clientX;
+                    pointerStartY = e.clientY;
+                    positionAtDragStart = position;
+                    velocitySamples = [{ time: performance.now(), pos: isVertical ? e.clientY : e.clientX }];
+                    marqueeEl.setPointerCapture(e.pointerId);
+                    e.preventDefault();
+                };
+
+                const onPointerMove = (e) => {
+                    if (!isDragging) return;
+                    const currentPos = isVertical ? e.clientY : e.clientX;
+                    const startPos = isVertical ? pointerStartY : pointerStartX;
+                    position = positionAtDragStart + (currentPos - startPos);
+
+                    const now = performance.now();
+                    velocitySamples.push({ time: now, pos: currentPos });
+                    while (velocitySamples.length > 1 && now - velocitySamples[0].time > VELOCITY_SAMPLE_WINDOW) {
+                        velocitySamples.shift();
+                    }
+                    e.preventDefault();
+                };
+
+                const onPointerUp = (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    marqueeEl.classList.remove('is-dragging');
+                    marqueeEl.releasePointerCapture(e.pointerId);
+
+                    // Calculate flick velocity (px/s) from recent samples
+                    if (velocitySamples.length >= 2) {
+                        const first = velocitySamples[0];
+                        const last = velocitySamples[velocitySamples.length - 1];
+                        const timeDelta = (last.time - first.time) / 1000;
+                        const posDelta = last.pos - first.pos;
+                        if (timeDelta > 0.01) {
+                            velocity = posDelta / timeDelta;
+                            // Invert: dragging right → positive delta → content should move right
+                            // But our position decreases for left direction, so keep as-is
+                        }
+                    }
+                    velocitySamples = [];
+                };
+
+                const onHoverEnter = () => { isHovering = true; };
+                const onHoverLeave = () => { isHovering = false; };
+
+                // --- Visibility observer ---
+                const visObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        isInView = entry.isIntersecting;
+                        if (isInView) {
+                            marqueeEl.classList.add('is-in-view');
+                        } else {
+                            marqueeEl.classList.remove('is-in-view');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                visObserver.observe(marqueeEl);
+
+                // --- Resize observer (re-clone + recalc on size change) ---
+                let resizeTimer = null;
+                const resizeObserver = new ResizeObserver(() => {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(() => {
+                        const result = cloneItems();
+                        if (result.contentSize > 0) {
+                            contentSize = result.contentSize;
+                            autoSpeed = contentSize / Math.max(durationSec, 1);
+                            // Re-wrap position into new bounds
+                            while (position <= -contentSize) position += contentSize;
+                            while (position > 0) position -= contentSize;
+                        }
+                    }, 200);
+                });
+                resizeObserver.observe(marqueeEl);
+
+                // --- Bind events ---
+                marqueeEl.addEventListener('pointerdown', onPointerDown);
+                marqueeEl.addEventListener('pointermove', onPointerMove);
+                marqueeEl.addEventListener('pointerup', onPointerUp);
+                marqueeEl.addEventListener('pointercancel', onPointerUp);
+                marqueeEl.addEventListener('pointerleave', onPointerUp);
+                marqueeEl.addEventListener('mouseenter', onHoverEnter);
+                marqueeEl.addEventListener('mouseleave', onHoverLeave);
+
+                // --- Init ---
+                setTimeout(() => {
+                    const result = cloneItems();
+                    if (result.contentSize > 0) {
+                        contentSize = result.contentSize;
+                        autoSpeed = contentSize / Math.max(durationSec, 1);
+                    }
+                    // Start the animation loop
+                    lastTimestamp = 0;
+                    if (animationId) cancelAnimationFrame(animationId);
+                    animationId = requestAnimationFrame(tick);
+                }, 100);
+
+                <?php else : ?>
+                // ============================================================
+                // CSS ANIMATION MODE (default): clone + observe only
+                // ============================================================
+                const setupMarquee = () => {
+                    cloneItems();
+                };
+
                 const resizeObserver = new ResizeObserver(() => setupMarquee());
                 resizeObserver.observe(marqueeEl);
-                
-                // IntersectionObserver for performance (pauses when off-screen).
+
                 const visibilityObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
@@ -440,11 +652,10 @@ class Snn_Marquee_Slider_Carousel extends Element {
                         }
                     });
                 }, { threshold: 0.1 });
-
                 visibilityObserver.observe(marqueeEl);
-                
-                // Initial setup. A small timeout can help ensure all assets are loaded and dimensions are correct.
+
                 setTimeout(setupMarquee, 100);
+                <?php endif; ?>
             });
         </script>
         <?php
