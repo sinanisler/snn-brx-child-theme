@@ -303,7 +303,7 @@ function snn_seo_settings_page_callback() {
             <!-- Master Enable/Disable -->
             <div class="snn-seo-section">
                 <label>
-                    <input type="checkbox" name="snn_seo_enabled" value="1" <?php checked($seo_enabled, 1); ?>>
+                    <input type="checkbox" id="snn_seo_enabled_checkbox" name="snn_seo_enabled" value="1" <?php checked($seo_enabled, 1); ?>>
                     <strong><?php _e('Enable all SEO features', 'snn'); ?></strong>
                 </label>
                 <p class="description">
@@ -322,8 +322,8 @@ function snn_seo_settings_page_callback() {
                 </p>
             </div>
 
-            <?php if ($seo_enabled): ?>
-            
+            <div id="snn-seo-conditional-sections" style="<?php echo $seo_enabled ? '' : 'display:none;'; ?>">
+
             <!-- Enable/Disable Grid for Post Types, Taxonomies, and Authors -->
             <div class="snn-seo-section">
                 <h2><?php _e('Content Types', 'snn'); ?></h2>
@@ -362,7 +362,7 @@ function snn_seo_settings_page_callback() {
                     <div>
                         <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;"><?php _e('Authors', 'snn'); ?></h3>
                         <label style="display: block; margin: 8px 0;">
-                            <input type="checkbox" name="snn_seo_authors_enabled" value="1" <?php checked($authors_enabled, 1); ?>>
+                            <input type="checkbox" id="snn_seo_authors_enabled_checkbox" name="snn_seo_authors_enabled" value="1" <?php checked($authors_enabled, 1); ?>>
                             <?php _e('Author Archives', 'snn'); ?>
                         </label>
                     </div>
@@ -489,7 +489,7 @@ function snn_seo_settings_page_callback() {
             </div>
 
             <!-- Author Templates -->
-            <?php if ($authors_enabled): ?>
+            <div id="snn-seo-authors-section" style="<?php echo $authors_enabled ? '' : 'display:none;'; ?>">
             <div class="snn-seo-section">
                 <h2><?php _e('Author Archive Templates', 'snn'); ?></h2>
                 
@@ -513,14 +513,14 @@ function snn_seo_settings_page_callback() {
                     </label>
                 </div>
             </div>
-            <?php endif; ?>
+            </div><!-- #snn-seo-authors-section -->
 
             <!-- Sitemap Settings -->
             <div class="snn-seo-section">
                 <h2><?php _e('XML Sitemap', 'snn'); ?></h2>
-                
+
                 <label style="display: block; margin: 15px 0;">
-                    <input type="checkbox" name="snn_seo_sitemap_enabled" value="1" <?php checked($sitemap_enabled, 1); ?>>
+                    <input type="checkbox" id="snn_seo_sitemap_enabled_checkbox" name="snn_seo_sitemap_enabled" value="1" <?php checked($sitemap_enabled, 1); ?>>
                     <strong><?php _e('Enable XML Sitemap', 'snn'); ?></strong>
                 </label>
                 <p class="description">
@@ -528,7 +528,7 @@ function snn_seo_settings_page_callback() {
                     <?php _e('Paginated with max 100 links per page. Each post type and taxonomy gets its own sitemap. After enabling sitemap.xml please re-save your permalink settings.', 'snn'); ?>
                 </p>
 
-                <?php if ($sitemap_enabled): ?>
+                <div id="snn-seo-sitemap-types-section" style="<?php echo $sitemap_enabled ? '' : 'display:none;'; ?>">
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
                     <div>
                         <h3 style="margin-top: 0; font-size: 14px; font-weight: 600;"><?php _e('Post Types', 'snn'); ?></h3>
@@ -556,21 +556,21 @@ function snn_seo_settings_page_callback() {
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <?php endif; ?>
+                </div><!-- #snn-seo-sitemap-types-section -->
             </div>
 
             <!-- Open Graph Settings -->
             <div class="snn-seo-section">
                 <h2><?php _e('Open Graph', 'snn'); ?></h2>
                 <label>
-                    <input type="checkbox" name="snn_seo_opengraph_enabled" value="1" <?php checked($opengraph_enabled, 1); ?>>
+                    <input type="checkbox" id="snn_seo_opengraph_enabled_checkbox" name="snn_seo_opengraph_enabled" value="1" <?php checked($opengraph_enabled, 1); ?>>
                     <strong><?php _e('Enable Open Graph meta tags', 'snn'); ?></strong>
                 </label>
                 <p class="description">
                     <?php _e('Adds Open Graph meta tags for better social media sharing (Facebook, Twitter, LinkedIn, etc.)', 'snn'); ?>
                 </p>
 
-                <?php if ($opengraph_enabled): ?>
+                <div id="snn-seo-opengraph-section" style="<?php echo $opengraph_enabled ? '' : 'display:none;'; ?>">
 
                 <!-- Default OG Image -->
                 <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
@@ -661,10 +661,10 @@ function snn_seo_settings_page_callback() {
                         </div>
                     </div>
                 </div>
-                <?php endif; ?>
+                </div><!-- #snn-seo-opengraph-section -->
             </div>
 
-            <?php endif; // End if SEO enabled ?>
+            </div><!-- #snn-seo-conditional-sections -->
 
             <!-- oEmbed Author Privacy -->
             <div class="snn-seo-section">
@@ -682,7 +682,7 @@ function snn_seo_settings_page_callback() {
             <div class="snn-seo-section">
                 <h2><?php _e('Robots.txt', 'snn'); ?></h2>
                 <label>
-                    <input type="checkbox" name="snn_seo_robots_txt_enabled" value="1" <?php checked($robots_txt_enabled, 1); ?>>
+                    <input type="checkbox" id="snn_seo_robots_txt_enabled_checkbox" name="snn_seo_robots_txt_enabled" value="1" <?php checked($robots_txt_enabled, 1); ?>>
                     <strong><?php _e('Enable Custom Robots.txt', 'snn'); ?></strong>
                 </label>
                 <p class="description">
@@ -690,8 +690,7 @@ function snn_seo_settings_page_callback() {
                     &nbsp;<a href="https://www.robotstxt.org/robotstxt.html" target="_blank" rel="noopener noreferrer"><?php _e('Learn about robots.txt', 'snn'); ?></a>
                 </p>
 
-                <?php if ($robots_txt_enabled): ?>
-                <div style="margin-top: 15px;">
+                <div id="snn-seo-robots-txt-section" style="<?php echo $robots_txt_enabled ? '' : 'display:none;'; ?> margin-top: 15px;">
                     <textarea name="snn_seo_robots_txt_content"
                               style="width: 100%; height: 140px; font-family: monospace; font-size: 13px;"
                               placeholder="<?php echo esc_attr($robots_txt_default); ?>"><?php echo esc_textarea($robots_txt_content); ?></textarea>
@@ -699,14 +698,13 @@ function snn_seo_settings_page_callback() {
                         <?php _e('Current robots.txt URL:', 'snn'); ?> <code><?php echo esc_html(home_url('/robots.txt')); ?></code>
                     </p>
                 </div>
-                <?php endif; ?>
             </div>
 
             <!-- llms.txt Settings -->
             <div class="snn-seo-section">
                 <h2><?php _e('llms.txt', 'snn'); ?></h2>
                 <label>
-                    <input type="checkbox" name="snn_seo_llms_txt_enabled" value="1" <?php checked($llms_txt_enabled, 1); ?>>
+                    <input type="checkbox" id="snn_seo_llms_txt_enabled_checkbox" name="snn_seo_llms_txt_enabled" value="1" <?php checked($llms_txt_enabled, 1); ?>>
                     <strong><?php _e('Enable llms.txt', 'snn'); ?></strong>
                 </label>
                 <p class="description">
@@ -714,12 +712,11 @@ function snn_seo_settings_page_callback() {
                     &nbsp;<a href="https://llmstxt.org/" target="_blank" rel="noopener noreferrer"><?php _e('Learn about llms.txt', 'snn'); ?></a>
                 </p>
 
-                <?php if ($llms_txt_enabled): ?>
                 <?php
                 // Show default content when textarea is empty so user can edit small parts
                 $llms_txt_display = !empty(trim($llms_txt_content)) ? $llms_txt_content : $llms_txt_default;
                 ?>
-                <div style="margin-top: 15px;">
+                <div id="snn-seo-llms-txt-section" style="<?php echo $llms_txt_enabled ? '' : 'display:none;'; ?> margin-top: 15px;">
                     <textarea id="snn-llms-txt-textarea" name="snn_seo_llms_txt_content"
                               style="width: 100%; height: 400px; font-family: monospace; font-size: 13px;"
                               placeholder=""><?php echo esc_textarea($llms_txt_display); ?></textarea>
@@ -735,7 +732,6 @@ function snn_seo_settings_page_callback() {
                         </button>
                     </p>
                 </div>
-                <?php endif; ?>
             </div>
 
             <?php submit_button(__('Save SEO Settings', 'snn')); ?>
@@ -790,6 +786,27 @@ function snn_seo_settings_page_callback() {
     
     <script>
     jQuery(document).ready(function($) {
+        // Show/hide the conditional sections live so they still get submitted
+        // on the very first save (fields must exist in the DOM to be POSTed).
+        $('#snn_seo_enabled_checkbox').on('change', function() {
+            $('#snn-seo-conditional-sections').toggle(this.checked);
+        });
+        $('#snn_seo_authors_enabled_checkbox').on('change', function() {
+            $('#snn-seo-authors-section').toggle(this.checked);
+        });
+        $('#snn_seo_sitemap_enabled_checkbox').on('change', function() {
+            $('#snn-seo-sitemap-types-section').toggle(this.checked);
+        });
+        $('#snn_seo_opengraph_enabled_checkbox').on('change', function() {
+            $('#snn-seo-opengraph-section').toggle(this.checked);
+        });
+        $('#snn_seo_robots_txt_enabled_checkbox').on('change', function() {
+            $('#snn-seo-robots-txt-section').toggle(this.checked);
+        });
+        $('#snn_seo_llms_txt_enabled_checkbox').on('change', function() {
+            $('#snn-seo-llms-txt-section').toggle(this.checked);
+        });
+
         // Accordion functionality
         $('.snn-accordion-header').on('click', function(e) {
             e.preventDefault();
