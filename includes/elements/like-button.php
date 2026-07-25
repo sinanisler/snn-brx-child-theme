@@ -184,17 +184,19 @@ if ( is_user_logged_in() ) {
         ]);
     } );
 
-    add_action('rest_authentication_errors', function ( $result ) {
-        if ( strpos( $_SERVER['REQUEST_URI'], 'snn/v1/' ) !== false ) {
-            return true;
-        }
-        return $result;
-    }, 99);
-
     /**
      * FRONTEND JS (IN FOOTER)
+     *
+     * Requests below send the standard WordPress REST nonce in the X-WP-Nonce header.
+     * That is what preserves the logged-in identity for cookie-authenticated fetches —
+     * without it, core's rest_cookie_check_errors() calls wp_set_current_user(0) and the
+     * request runs as a logged-out visitor, so snn_handle_like() would reject it.
+     *
+     * Do NOT "fix" that by short-circuiting the rest_authentication_errors filter: doing
+     * so disables nonce validation for every REST route on the site, not just these two,
+     * which turns the whole REST API into a CSRF target.
      */
-    add_action( 'wp_footer', function () { 
+    add_action( 'wp_footer', function () {
         // Redundant check, but good for safety. The parent check already handles this.
         if ( ! is_user_logged_in() ) {
             return;
@@ -204,7 +206,8 @@ if ( is_user_logged_in() ) {
         ?>
 
 <script>
-    var snn_token = "<?php echo $token; ?>";
+    var snn_token = "<?php echo esc_js( $token ); ?>";
+    var snn_rest_nonce = "<?php echo esc_js( wp_create_nonce( 'wp_rest' ) ); ?>";
     if (!localStorage.getItem('snn_token')) {
         localStorage.setItem('snn_token', snn_token);
     } else {
@@ -215,8 +218,11 @@ if ( is_user_logged_in() ) {
         document.querySelectorAll('.brxe-like-button').forEach(function(button) {
             const identifier = button.getAttribute('data-identifier');
             if (!identifier) return;
-            let url = "<?php echo rest_url('snn/v1/'); ?>" + snn_token + "/get-likes?identifier=" + encodeURIComponent(identifier) + "&loggedOnly=true";
-            fetch(url)
+            let url = "<?php echo esc_url( rest_url('snn/v1/') ); ?>" + snn_token + "/get-likes?identifier=" + encodeURIComponent(identifier) + "&loggedOnly=true";
+            fetch(url, {
+                headers: { 'X-WP-Nonce': snn_rest_nonce },
+                credentials: 'same-origin'
+            })
                 .then(response => response.json())
                 .then(data => {
                     button.querySelector('.default-icon').style.display = data.liked ? 'none' : 'inline';
@@ -239,9 +245,13 @@ if ( is_user_logged_in() ) {
     function snn_likeButton(el) {
         const identifier = el.getAttribute('data-identifier');
         el.classList.add('snn-loading');
-        fetch("<?php echo rest_url('snn/v1/'); ?>" + snn_token + "/like", {
+        fetch("<?php echo esc_url( rest_url('snn/v1/') ); ?>" + snn_token + "/like", {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': snn_rest_nonce
+            },
+            credentials: 'same-origin',
             body: JSON.stringify({ identifier: identifier, loggedOnly: 'true' })
         })
         .then(response => response.json())
