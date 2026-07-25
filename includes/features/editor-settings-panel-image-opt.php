@@ -1006,15 +1006,50 @@ function snn_save_optimized_image_handler() {
     }
 
     $uploaded_file = $_FILES['image'];
-    $filename = sanitize_file_name($_POST['filename']);
+    $filename = isset($_POST['filename']) ? sanitize_file_name(wp_unslash($_POST['filename'])) : '';
     $skip_metadata = isset($_POST['skip_metadata']) && $_POST['skip_metadata'] === 'true';
-    
-    // Validate file type
-    $allowed_types = ['image/jpeg', 'image/png', 'image/webp'];
-    $file_type = wp_check_filetype($filename);
-    
-    if (!in_array($uploaded_file['type'], $allowed_types)) {
-        wp_die(json_encode(['success' => false, 'error' => 'Invalid file type']));
+
+    if ($filename === '') {
+        wp_die(json_encode(['success' => false, 'error' => 'Missing filename']));
+    }
+
+    // Validate file type.
+    // This converter only ever outputs JPEG, PNG or WebP (see the format select in the
+    // panel above), so the allowlist is closed to exactly those three. It is declared
+    // locally rather than relying on get_allowed_mime_types(), so a site filter that
+    // widens the global upload allowlist cannot widen this endpoint.
+    $allowed_mimes = [
+        'jpg|jpeg|jpe' => 'image/jpeg',
+        'png'          => 'image/png',
+        'webp'         => 'image/webp',
+    ];
+
+    // Trust the extension we derive server-side, never $_FILES['image']['type'],
+    // which is a client-supplied header and can claim anything.
+    $file_type = wp_check_filetype($filename, $allowed_mimes);
+
+    if (empty($file_type['ext']) || empty($file_type['type'])) {
+        wp_die(json_encode(['success' => false, 'error' => 'Invalid file type. Only JPG, PNG and WebP are allowed.']));
+    }
+
+    // Confirm the bytes really are an image of the type the extension claims,
+    // so a renamed non-image cannot be stored under an image extension.
+    if (!is_uploaded_file($uploaded_file['tmp_name'])) {
+        wp_die(json_encode(['success' => false, 'error' => 'Invalid upload']));
+    }
+
+    $image_info = @getimagesize($uploaded_file['tmp_name']);
+    $type_by_content = [
+        IMAGETYPE_JPEG => 'image/jpeg',
+        IMAGETYPE_PNG  => 'image/png',
+    ];
+    if (defined('IMAGETYPE_WEBP')) {
+        $type_by_content[IMAGETYPE_WEBP] = 'image/webp';
+    }
+
+    if (empty($image_info[2]) || !isset($type_by_content[$image_info[2]])
+        || $type_by_content[$image_info[2]] !== $file_type['type']) {
+        wp_die(json_encode(['success' => false, 'error' => 'File content is not a valid JPG, PNG or WebP image.']));
     }
 
     // Create unique filename to avoid conflicts
@@ -1030,7 +1065,7 @@ function snn_save_optimized_image_handler() {
     // Prepare attachment data
     $attachment = array(
         'guid'           => $upload_dir['url'] . '/' . $unique_filename,
-        'post_mime_type' => $uploaded_file['type'],
+        'post_mime_type' => $file_type['type'],
         'post_title'     => preg_replace('/\.[^.]+$/', '', $unique_filename),
         'post_content'   => '',
         'post_status'    => 'inherit'
