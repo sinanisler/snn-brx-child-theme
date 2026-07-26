@@ -234,11 +234,20 @@ function snn_check_php_syntax( $code ) {
         return true;
     }
 
-    // eval( '?>' . $code ) starts in PHP mode then immediately drops to HTML.
-    // '<?php ?>' reproduces that for a file-context parse and adds no newline,
-    // so reported line numbers map 1:1 onto the user's code.
+    /*
+     * The executor evals a close-tag followed by the snippet, so the code starts
+     * in PHP mode and immediately drops to HTML. The open-tag/close-tag pair
+     * prefixed below reproduces that for a file-context parse and adds no
+     * newline, so reported line numbers map 1:1 onto the user's code.
+     *
+     * Note: this must be a block comment. A line comment containing a PHP close
+     * tag would end PHP mode right there - which is exactly the trap the
+     * "? >" spelling elsewhere in this file exists to avoid.
+     */
+    $prefix = '<' . '?php ?' . '>';
+
     try {
-        token_get_all( '<?php ?>' . $code, TOKEN_PARSE );
+        token_get_all( $prefix . $code, TOKEN_PARSE );
     } catch ( ParseError $e ) {
         return array(
             'message' => $e->getMessage(),
