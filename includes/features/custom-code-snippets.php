@@ -1958,10 +1958,29 @@ function snn_display_fatal_error_admin_notice() {
             </p>
             <p>
                 <?php
-                printf(
-                    wp_kses_post( __( 'Please review the <a href="%s">Error Logs tab</a> for more details, identify and fix the problematic snippet. Once fixed, you can re-enable "Global Snippet Execution" on the custom code settings page and save.', 'snn' ) ),
-                    esc_url( admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=error_logs' ) )
-                );
+                $logs_url = admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=error_logs' );
+
+                if ( ! empty( $fatal_error_details['slug'] ) ) {
+                    // Only this snippet was blocked, so point at its own tab and
+                    // say what actually re-enables it: saving a working version.
+                    $tab_key = array_search( $fatal_error_details['slug'], snn_snippet_slugs(), true );
+                    $tab_url = $tab_key
+                        ? admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=' . $tab_key )
+                        : $logs_url;
+
+                    printf(
+                        /* translators: 1: link to the affected snippet tab, 2: link to the error logs tab */
+                        wp_kses_post( __( 'Open <a href="%1$s">that snippet</a> and fix the code - saving a working version re-enables it automatically. Global snippet execution was NOT switched off, so your other snippets are still running. Full details are in the <a href="%2$s">Error Logs tab</a>.', 'snn' ) ),
+                        esc_url( $tab_url ),
+                        esc_url( $logs_url )
+                    );
+                } else {
+                    printf(
+                        /* translators: %s: link to the error logs tab */
+                        wp_kses_post( __( 'Please review the <a href="%s">Error Logs tab</a> for more details, identify and fix the problematic snippet. Once fixed, you can re-enable "Global Snippet Execution" on the custom code settings page and save.', 'snn' ) ),
+                        esc_url( $logs_url )
+                    );
+                }
                 ?>
             </p>
             <p>
