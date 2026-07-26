@@ -13,6 +13,248 @@ define('SNN_FATAL_ERROR_NOTICE_TRANSIENT', 'snn_fatal_error_admin_notice');
 define('SNN_ADVANCED_CODE_ENABLED_OPTION', 'snn_advanced_raw_code_enabled');
 define('SNN_ADVANCED_CODE_CONTENT_OPTION', 'snn_advanced_raw_code_content');
 
+// Runtime safety state: which snippets are verified-good, which are blocked by an
+// error, and which one (if any) was mid-execution when a request died.
+define('SNN_SNIPPET_STATE_OPTION', 'snn_snippet_state');
+// Per-snippet on/off switches. Absent key means enabled (back-compat).
+define('SNN_SNIPPET_ENABLED_OPTION', 'snn_snippet_enabled_map');
+// How long an "in flight" marker must sit untouched before we treat it as a crash
+// rather than as a request that is still running. Must exceed max_execution_time.
+define('SNN_SNIPPET_CRASH_GRACE', 60);
+
+/**
+ * Canonical snippet slug list, keyed by admin tab key.
+ * Single source of truth for the slug <-> tab mapping.
+ */
+function snn_snippet_slugs() {
+    return array(
+        'frontend'     => 'snn-snippet-frontend-head',
+        'footer'       => 'snn-snippet-footer',
+        'admin'        => 'snn-snippet-admin-head',
+        'functions'    => 'snn-snippet-functions-php',
+        'advanced_raw' => 'snn-snippet-advanced-raw',
+    );
+}
+
+/**
+ * Human readable snippet titles, keyed by slug.
+ */
+function snn_snippet_titles() {
+    return array(
+        'snn-snippet-frontend-head' => __( 'Frontend Head PHP/HTML', 'snn' ),
+        'snn-snippet-footer'        => __( 'Frontend Footer PHP/HTML', 'snn' ),
+        'snn-snippet-admin-head'    => __( 'Admin Head PHP/HTML', 'snn' ),
+        'snn-snippet-functions-php' => __( 'PHP (functions.php)', 'snn' ),
+        'snn-snippet-advanced-raw'  => __( 'Advanced Code (functions.php)', 'snn' ),
+    );
+}
+
+/**
+ * Title for a single snippet slug, falling back to the slug itself.
+ */
+function snn_snippet_title( $slug ) {
+    $titles = snn_snippet_titles();
+    return isset( $titles[ $slug ] ) ? $titles[ $slug ] : $slug;
+}
+
+/**
+ * Read the runtime safety state.
+ *
+ * Shape:
+ *   'verified'  => array( slug => md5(code) )  snippets that survived a full request
+ *   'errors'    => array( slug => array( type, message, line, time ) ) blocked snippets
+ *   'in_flight' => array( slug, hash, time )   set while unverified code is running
+ */
+function snn_get_snippet_state( $fresh = false ) {
+    static $cache = null;
+    if ( $fresh || null === $cache ) {
+        $state = get_option( SNN_SNIPPET_STATE_OPTION, array() );
+        if ( ! is_array( $state ) ) {
+            $state = array();
+        }
+        $state['verified'] = isset( $state['verified'] ) && is_array( $state['verified'] ) ? $state['verified'] : array();
+        $state['errors']   = isset( $state['errors'] )   && is_array( $state['errors'] )   ? $state['errors']   : array();
+        $cache = $state;
+    }
+    return $cache;
+}
+
+/**
+ * Persist the runtime safety state and refresh the in-process cache.
+ */
+function snn_update_snippet_state( $state ) {
+    update_option( SNN_SNIPPET_STATE_OPTION, $state, true );
+    snn_get_snippet_state( true );
+}
+
+/**
+ * Block a snippet from executing and record why.
+ * Also drops its "verified" marker so the next save re-arms the crash guard.
+ */
+function snn_snippet_record_error( $slug, $type, $message, $line = 0 ) {
+    $state = snn_get_snippet_state( true );
+
+    $state['errors'][ $slug ] = array(
+        'type'    => (string) $type,
+        'message' => (string) $message,
+        'line'    => absint( $line ),
+        'time'    => time(),
+    );
+    unset( $state['verified'][ $slug ] );
+
+    if ( isset( $state['in_flight']['slug'] ) && $state['in_flight']['slug'] === $slug ) {
+        unset( $state['in_flight'] );
+    }
+
+    snn_update_snippet_state( $state );
+}
+
+/**
+ * Unblock a snippet (called when valid code is saved, or manually from the UI).
+ */
+function snn_snippet_clear_error( $slug ) {
+    $state = snn_get_snippet_state( true );
+    if ( ! isset( $state['errors'][ $slug ] ) ) {
+        return false;
+    }
+    unset( $state['errors'][ $slug ], $state['verified'][ $slug ] );
+    snn_update_snippet_state( $state );
+    return true;
+}
+
+/**
+ * Recorded error for a snippet, or false.
+ */
+function snn_snippet_get_error( $slug ) {
+    $state = snn_get_snippet_state();
+    return isset( $state['errors'][ $slug ] ) ? $state['errors'][ $slug ] : false;
+}
+
+/**
+ * Per-snippet enable map. A missing key counts as enabled so that sites
+ * upgrading from an earlier version keep running exactly what they ran before.
+ */
+function snn_get_snippet_enabled_map() {
+    $map = get_option( SNN_SNIPPET_ENABLED_OPTION, array() );
+    return is_array( $map ) ? $map : array();
+}
+
+/**
+ * Whether a snippet is switched on by the user (ignores error state).
+ */
+function snn_snippet_is_enabled( $slug ) {
+    $map = snn_get_snippet_enabled_map();
+    return ! isset( $map[ $slug ] ) || (bool) $map[ $slug ];
+}
+
+/**
+ * Tracks which snippet is being eval'd right now, so the shutdown handler can
+ * attribute a fatal error to it with certainty. Static only, no DB writes.
+ * Pass a string to set (use '' to clear); returns the current value.
+ */
+function snn_snippet_active_slug( $slug = null ) {
+    static $active = '';
+    if ( null !== $slug ) {
+        $active = (string) $slug;
+    }
+    return $active;
+}
+
+/**
+ * Every slug eval'd during this request. Used as a fallback attribution when a
+ * fatal happens after eval() returned (e.g. inside a hook the snippet added).
+ */
+function snn_snippet_executed_slugs( $add = null ) {
+    static $slugs = array();
+    if ( null !== $add ) {
+        $slugs[ $add ] = true;
+    }
+    return array_keys( $slugs );
+}
+
+/**
+ * Snippets awaiting end-of-request verification, as slug => hash.
+ */
+function snn_snippet_pending_verification( $slug = null, $hash = '' ) {
+    static $pending = array();
+    if ( null !== $slug ) {
+        $pending[ $slug ] = $hash;
+    }
+    return $pending;
+}
+
+/**
+ * Should snippet execution be skipped entirely for this request?
+ *
+ * Safe mode exists so a snippet that kills the site can always be fixed:
+ * the snippets admin page never runs snippets, and an admin can add
+ * ?snn_safe_mode=1 to any URL.
+ */
+function snn_snippets_in_safe_mode() {
+    if ( defined( 'SNN_CODE_SAFE_MODE' ) && SNN_CODE_SAFE_MODE ) {
+        return true;
+    }
+
+    // Never execute snippets on the page used to edit them, so a broken snippet
+    // can always be repaired from the UI that it broke.
+    if ( is_admin() && isset( $_GET['page'] ) && 'snn-custom-codes-snippets' === $_GET['page'] ) {
+        return true;
+    }
+
+    if ( isset( $_GET['snn_safe_mode'] ) && '1' === $_GET['snn_safe_mode'] && current_user_can( 'manage_options' ) ) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Validate PHP syntax using PHP's own parser.
+ *
+ * TOKEN_PARSE makes token_get_all() run the real Zend parser and throw a genuine
+ * ParseError. It parses only - it never compiles, autoloads, includes or executes
+ * anything - so it is safe to run inside the save request. Intended to be called
+ * once at save time, never on the execution path.
+ *
+ * @return true|array True when the code parses, otherwise array( message, line ).
+ */
+function snn_check_php_syntax( $code ) {
+    if ( '' === trim( (string) $code ) ) {
+        return true;
+    }
+
+    // Older/limited PHP builds without the tokenizer: skip rather than guess.
+    if ( ! function_exists( 'token_get_all' ) || ! defined( 'TOKEN_PARSE' ) ) {
+        return true;
+    }
+
+    // Pathological input is a memory risk for any parser. Above this size we
+    // decline to check rather than risk taking down the save request.
+    if ( strlen( $code ) > 512000 ) {
+        return true;
+    }
+
+    // eval( '?>' . $code ) starts in PHP mode then immediately drops to HTML.
+    // '<?php ?>' reproduces that for a file-context parse and adds no newline,
+    // so reported line numbers map 1:1 onto the user's code.
+    try {
+        token_get_all( '<?php ?>' . $code, TOKEN_PARSE );
+    } catch ( ParseError $e ) {
+        return array(
+            'message' => $e->getMessage(),
+            'line'    => $e->getLine(),
+        );
+    } catch ( Throwable $e ) {
+        // CompileError and friends also surface here on newer PHP versions.
+        return array(
+            'message' => $e->getMessage(),
+            'line'    => method_exists( $e, 'getLine' ) ? $e->getLine() : 0,
+        );
+    }
+
+    return true;
+}
+
 /**
  * Register the Custom Post Type for Code Snippets.
  */
@@ -375,45 +617,23 @@ function snn_custom_codes_snippets_admin_styles() {
 add_action( 'admin_head', 'snn_custom_codes_snippets_admin_styles' );
 
 /**
- * Helper function to validate PHP syntax before execution.
- * Returns true if syntax is valid, or an associative array with error details if invalid.
+ * Back-compat wrapper around snn_check_php_syntax().
+ *
+ * The previous implementation called token_get_all() without TOKEN_PARSE, which
+ * only tokenizes and never reports syntax errors, then inspected
+ * error_get_last() - which returns the last error from anywhere earlier in the
+ * request, not from the call above it. It therefore reported phantom errors and
+ * missed real ones. Kept only so external callers do not fatal.
+ *
+ * @deprecated Use snn_check_php_syntax().
+ * @return true|array True when valid, otherwise array( message, line, code_context ).
  */
 function snn_validate_php_syntax( $code ) {
-    if ( empty( trim( $code ) ) ) {
-        return true;
+    $result = snn_check_php_syntax( $code );
+    if ( is_array( $result ) ) {
+        $result['code_context'] = snn_get_code_context( $code, $result['line'] );
     }
-
-    // Use token_get_all to check for basic syntax errors
-    // This catches many parse errors before eval() is attempted
-    $code_to_check = "<?php\n" . $code;
-    
-    // Suppress warnings during tokenization
-    $old_error_level = error_reporting( 0 );
-    $tokens = @token_get_all( $code_to_check );
-    error_reporting( $old_error_level );
-    
-    // Check for tokenization errors
-    $last_error = error_get_last();
-    if ( $last_error && ( $last_error['type'] === E_PARSE || $last_error['type'] === E_COMPILE_ERROR ) ) {
-        // Clear the error
-        @error_clear_last();
-        
-        // Try to extract line number from error message
-        $error_line = 0;
-        if ( preg_match( '/on line (\d+)/', $last_error['message'], $matches ) ) {
-            $error_line = max( 0, intval( $matches[1] ) - 1 ); // -1 because we added <?php
-        }
-        
-        return array(
-            'message' => $last_error['message'],
-            'line' => $error_line,
-            'code_context' => snn_get_code_context( $code, $error_line )
-        );
-    }
-    
-    // token_get_all() already validates PHP syntax properly.
-    
-    return true; // Syntax appears valid
+    return $result;
 }
 
 /**
@@ -580,89 +800,60 @@ function snn_get_raw_code_unsanitized() {
 
 /**
  * Executes a PHP code snippet with output buffering and error handling.
+ *
+ * Notices, warnings and deprecations are logged but do NOT discard the snippet's
+ * output - only a ParseError or Error does, because at that point the output is
+ * genuinely incomplete. Syntax is validated once at save time
+ * (snn_check_php_syntax), never here.
  */
 function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
     if ( empty( trim( $code_to_execute ) ) ) {
         return ''; // Do nothing if code is empty
     }
 
-    // CRITICAL: Validate syntax before execution to prevent fatal errors
-    // Even though this adds overhead, it's necessary to catch fatal errors that cannot be caught by try/catch
-    $validation_result = snn_validate_php_syntax( $code_to_execute );
-    if ( is_array( $validation_result ) ) {
-        // Validation failed - disable snippets and log error
-        update_option( 'snn_codes_snippets_enabled', 0 );
-        
-        snn_log_error_event(
-            'PHP Syntax Validation Error',
-            $validation_result['message'],
-            $snippet_location_slug,
-            'Pre-execution validation',
-            $validation_result['line'],
-            $validation_result['code_context'],
-            snn_get_function_context( $code_to_execute, $validation_result['line'] )
-        );
-        
-        $snippet_titles = array(
-            'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
-            'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
-            'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
-            'snn-snippet-functions-php' => 'PHP (functions.php)',
-            'snn-snippet-advanced-raw' => 'Advanced Code',
-        );
-        $snippet_title = isset( $snippet_titles[ $snippet_location_slug ] ) ? $snippet_titles[ $snippet_location_slug ] : $snippet_location_slug;
-        
-        $notice_data = [
-            'message' => $validation_result['message'],
-            'file'    => 'Tab: ' . $snippet_title . ' (Line ' . $validation_result['line'] . ')',
-            'line'    => $validation_result['line'],
-            'type'    => 'Syntax Validation Error'
-        ];
-        set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
-        
-        // Return empty string to prevent fatal error
-        return '';
-    }
-
-    $error_occurred = false;
+    $previous_slug = snn_snippet_active_slug();
+    snn_snippet_active_slug( $snippet_location_slug );
+    snn_snippet_executed_slugs( $snippet_location_slug );
 
     // Custom error handler for non-fatal errors (Warnings, Notices, etc.)
-    set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$error_occurred, $snippet_location_slug, $code_to_execute) {
-        if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
-            if ( $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED || $errno === E_STRICT ) {
-                return true; // Don't log or treat as an error unless WP_DEBUG is on
-            }
+    set_error_handler(function($errno, $errstr, $errfile, $errline) use ($snippet_location_slug, $code_to_execute) {
+        // Honour the @ operator and the active error_reporting level, so a
+        // snippet's own suppressed calls are not reported as its errors.
+        if ( 0 === ( error_reporting() & $errno ) ) {
+            return true;
         }
 
-        $error_occurred = true; // Mark that an error happened
         $error_type_str = 'PHP Error'; // Default type
         switch ($errno) { // Determine error type string
             case E_WARNING: case E_USER_WARNING: $error_type_str = 'PHP Warning'; break;
             case E_NOTICE: case E_USER_NOTICE: $error_type_str = 'PHP Notice'; break;
             case E_DEPRECATED: case E_USER_DEPRECATED: $error_type_str = 'PHP Deprecated'; break;
-            case E_STRICT: $error_type_str = 'PHP Strict'; break;
         }
 
         $code_context = snn_get_code_context( $code_to_execute, $errline );
         $function_context = snn_get_function_context( $code_to_execute, $errline );
-        
+
         snn_log_error_event($error_type_str, $errstr, $snippet_location_slug, 'eval()\'d code (runtime)', $errline, $code_context, $function_context);
         return true; // Prevent default PHP error handler from running
     });
 
+    $fatal_thrown = false;
+    $ob_level     = ob_get_level();
     ob_start(); // Start output buffering
 
     try {
         // The "? >" before $code_to_execute ensures that if the code doesn't start with <?php, it's treated as HTML.
-        @eval( "?>" . $code_to_execute );
-    } catch (ParseError $e) { // Specifically catch ParseError (syntax errors)
-        $error_occurred = true;
-        $error_line = $e->getLine();
-        $code_context = snn_get_code_context( $code_to_execute, $error_line );
+        // No @ here: it would neuter error_reporting() inside the handler above and
+        // silence every warning the snippet raises.
+        eval( "?>" . $code_to_execute );
+    } catch (Throwable $e) { // ParseError, Error, Exception
+        $error_line       = $e->getLine();
+        $code_context     = snn_get_code_context( $code_to_execute, $error_line );
         $function_context = snn_get_function_context( $code_to_execute, $error_line );
-        
+        $type             = ( $e instanceof ParseError ) ? 'PHP Parse Error' : get_class( $e );
+
         snn_log_error_event(
-            'PHP Parse Error',
+            $type,
             $e->getMessage(),
             $snippet_location_slug,
             'eval()\'d code',
@@ -670,76 +861,219 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
             $code_context,
             $function_context
         );
-        
-        // Auto-disable on parse errors
-        update_option( 'snn_codes_snippets_enabled', 0 );
-        
-        $snippet_titles = array(
-            'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
-            'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
-            'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
-            'snn-snippet-functions-php' => 'PHP (functions.php)',
-            'snn-snippet-advanced-raw' => 'Advanced Code',
-        );
-        $snippet_title = isset( $snippet_titles[ $snippet_location_slug ] ) ? $snippet_titles[ $snippet_location_slug ] : $snippet_location_slug;
-        
-        $notice_data = [
-            'message' => $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
-            'file'    => 'Tab: ' . $snippet_title,
-            'line'    => $error_line,
-            'type'    => 'Parse Error'
-        ];
-        set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
-        
-    } catch (Throwable $e) { // Catch other Throwables (like Error, Exception)
-        $error_occurred = true;
-        $error_line = $e->getLine();
-        $code_context = snn_get_code_context( $code_to_execute, $error_line );
-        $function_context = snn_get_function_context( $code_to_execute, $error_line );
-        
-        snn_log_error_event(
-            get_class($e),
-            $e->getMessage(),
-            $snippet_location_slug,
-            'eval()\'d code',
-            $e->getLine(),
-            $code_context,
-            $function_context
-        );
-        
-        // Auto-disable on fatal throwables
+
+        // An Error (which includes ParseError) means this snippet cannot run.
+        // Block just this snippet - the others are unaffected. A plain Exception
+        // is the snippet's own business and is only logged.
         if ( $e instanceof Error ) {
-            update_option( 'snn_codes_snippets_enabled', 0 );
-            
-            $snippet_titles = array(
-                'snn-snippet-frontend-head' => 'Frontend Head PHP/HTML',
-                'snn-snippet-footer' => 'Frontend Footer PHP/HTML',
-                'snn-snippet-admin-head' => 'Admin Head PHP/HTML',
-                'snn-snippet-functions-php' => 'PHP (functions.php)',
-                'snn-snippet-advanced-raw' => 'Advanced Code',
+            $fatal_thrown = true;
+
+            snn_snippet_record_error(
+                $snippet_location_slug,
+                $type,
+                $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
+                $error_line
             );
-            $snippet_title = isset( $snippet_titles[ $snippet_location_slug ] ) ? $snippet_titles[ $snippet_location_slug ] : $snippet_location_slug;
-            
-            $notice_data = [
+
+            set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, array(
                 'message' => $e->getMessage() . ( $function_context ? ' [' . $function_context . ']' : '' ),
-                'file'    => 'Tab: ' . $snippet_title,
+                'file'    => 'Tab: ' . snn_snippet_title( $snippet_location_slug ),
                 'line'    => $error_line,
-                'type'    => get_class($e)
-            ];
-            set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
+                'type'    => $type,
+                'slug'    => $snippet_location_slug,
+            ), DAY_IN_SECONDS );
         }
+    } finally {
+        // Unwind any buffers the snippet opened and forgot to close, then take
+        // ours. If the snippet closed ours too, take nothing.
+        while ( ob_get_level() > $ob_level + 1 ) {
+            ob_end_clean();
+        }
+        $output_from_snippet = ( ob_get_level() > $ob_level ) ? ob_get_clean() : '';
+
+        restore_error_handler(); // Restore previous error handler
+        snn_snippet_active_slug( $previous_slug );
     }
 
-    $output_from_snippet = ob_get_clean(); // Get buffered output
-    restore_error_handler(); // Restore previous error handler
-
-    if ( $error_occurred ) {
-        // For non-fatal errors caught here, we log them and return an empty string to avoid breaking layout.
-        // Fatal errors are handled by the shutdown handler.
-        return "\n\n";
+    // Partial output from a snippet that died mid-render is worse than none.
+    if ( $fatal_thrown ) {
+        return '';
     }
 
     return $output_from_snippet; // Return the output from the snippet
+}
+
+/**
+ * Runs a snippet behind the crash guard.
+ *
+ * Code that has already survived a complete request is "verified" and runs with
+ * zero extra database writes. Code that has not (i.e. was just saved) gets an
+ * in-flight marker written before it runs; if the request dies before the marker
+ * is cleared, the next request knows exactly which snippet killed it. That covers
+ * the fatals no parser can predict - undefined functions, redeclarations, memory
+ * exhaustion, execution timeouts - and costs one pair of writes, once.
+ */
+function snn_snippet_run( $code, $slug ) {
+    $state = snn_get_snippet_state();
+    $hash  = md5( $code );
+
+    $verified = isset( $state['verified'][ $slug ] ) && $state['verified'][ $slug ] === $hash;
+
+    if ( ! $verified ) {
+        $state['in_flight'] = array(
+            'slug' => $slug,
+            'hash' => $hash,
+            'time' => time(),
+        );
+        snn_update_snippet_state( $state );
+
+        if ( ! snn_snippet_pending_verification() ) {
+            // Registered after the fatal handler (init:1), so it sees any error
+            // that handler recorded and declines to mark the snippet good.
+            register_shutdown_function( 'snn_snippet_finalize_pending' );
+        }
+        snn_snippet_pending_verification( $slug, $hash );
+    }
+
+    return snn_execute_php_snippet( $code, $slug );
+}
+
+/**
+ * End of request: clear the in-flight marker and promote snippets that made it
+ * all the way through without a fatal. Runs after snn_fatal_error_shutdown_handler().
+ */
+function snn_snippet_finalize_pending() {
+    $pending = snn_snippet_pending_verification();
+    if ( empty( $pending ) ) {
+        return;
+    }
+
+    $error = error_get_last();
+    $fatal = $error && in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true );
+
+    $state   = snn_get_snippet_state( true );
+    $changed = false;
+
+    if ( isset( $state['in_flight'] ) ) {
+        unset( $state['in_flight'] );
+        $changed = true;
+    }
+
+    if ( ! $fatal ) {
+        foreach ( $pending as $slug => $hash ) {
+            if ( isset( $state['errors'][ $slug ] ) ) {
+                continue; // Something went wrong for this one; do not vouch for it.
+            }
+            if ( ! isset( $state['verified'][ $slug ] ) || $state['verified'][ $slug ] !== $hash ) {
+                $state['verified'][ $slug ] = $hash;
+                $changed = true;
+            }
+        }
+    }
+
+    if ( $changed ) {
+        snn_update_snippet_state( $state );
+    }
+}
+
+/**
+ * Start of request: if an in-flight marker survived from a previous request, that
+ * request died inside the named snippet. Block it and let the site come back up.
+ */
+function snn_snippet_recover_from_crash() {
+    $state = snn_get_snippet_state();
+
+    if ( empty( $state['in_flight']['slug'] ) ) {
+        return;
+    }
+
+    $in_flight = $state['in_flight'];
+
+    // A concurrent request may legitimately still be inside this snippet. Only
+    // call it a crash once no live request could plausibly still own the marker.
+    if ( isset( $in_flight['time'] ) && ( time() - (int) $in_flight['time'] ) < SNN_SNIPPET_CRASH_GRACE ) {
+        return;
+    }
+
+    $slug = $in_flight['slug'];
+
+    snn_log_error_event(
+        'PHP Fatal Error (crash guard)',
+        'A previous request stopped while this snippet was executing and never completed. Execution of this snippet has been blocked so the site can load.',
+        $slug,
+        'eval()\'d code',
+        0,
+        '',
+        ''
+    );
+
+    snn_snippet_record_error(
+        $slug,
+        'Fatal Error (crash guard)',
+        __( 'A previous request stopped while this snippet was executing. This is typically an undefined function, a redeclared function, exhausted memory or a script timeout. Fix the snippet and save to re-enable it.', 'snn' ),
+        0
+    );
+
+    set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, array(
+        'message' => __( 'A previous request stopped while this snippet was executing and never finished.', 'snn' ),
+        'file'    => 'Tab: ' . snn_snippet_title( $slug ),
+        'line'    => 0,
+        'type'    => 'Fatal Error (crash guard)',
+        'slug'    => $slug,
+    ), DAY_IN_SECONDS );
+}
+
+/**
+ * Applies a save-time syntax check result: block the snippet and explain why, or
+ * clear a previous block now that valid code has been saved.
+ *
+ * The code is already stored either way - a failed check never costs the user
+ * their work, it only stops the broken version from running.
+ *
+ * @param string     $slug   Snippet slug.
+ * @param string     $title  Human readable snippet title.
+ * @param true|array $syntax Result of snn_check_php_syntax().
+ * @param string     $code   The code that was checked, for error context.
+ */
+function snn_apply_syntax_check_result( $slug, $title, $syntax, $code ) {
+    if ( ! is_array( $syntax ) ) {
+        // Parses cleanly. Lift any previous block (parse error or past crash) and
+        // let the runtime crash guard re-arm itself against the new content.
+        if ( snn_snippet_clear_error( $slug ) ) {
+            add_settings_error(
+                'snn-custom-codes',
+                'snippet_unblocked_' . $slug,
+                sprintf( __( '"%s" parses cleanly and has been re-enabled.', 'snn' ), esc_html( $title ) ),
+                'updated'
+            );
+        }
+        return;
+    }
+
+    snn_log_error_event(
+        'PHP Parse Error (save-time check)',
+        $syntax['message'],
+        $slug,
+        'Save-time syntax check',
+        $syntax['line'],
+        snn_get_code_context( $code, $syntax['line'] ),
+        snn_get_function_context( $code, $syntax['line'] )
+    );
+
+    snn_snippet_record_error( $slug, 'Parse Error', $syntax['message'], $syntax['line'] );
+
+    add_settings_error(
+        'snn-custom-codes',
+        'syntax_error_' . $slug,
+        sprintf(
+            /* translators: 1: snippet title, 2: PHP error message, 3: line number */
+            __( '"%1$s" was saved but will NOT run: %2$s (line %3$d). Fix the error and save again to re-enable it.', 'snn' ),
+            esc_html( $title ),
+            esc_html( $syntax['message'] ),
+            absint( $syntax['line'] )
+        ),
+        'error'
+    );
 }
 
 /**
@@ -800,6 +1134,22 @@ function snn_custom_codes_snippets_page() {
             update_option( SNN_CUSTOM_CODES_LOG_OPTION, array() ); // Clear logs
             add_settings_error('snn-custom-codes', 'logs_cleared', __('All error logs have been cleared.', 'snn'), 'updated');
             $_GET['tab'] = 'error_logs'; // Stay on the logs tab
+        }
+        // Handle "re-enable this snippet" after a parse error or a crash block
+        elseif ( isset( $_POST['snn_clear_snippet_error_button'] ) ) {
+            $unblock_key = sanitize_key( wp_unslash( $_POST['snn_clear_snippet_error_button'] ) );
+            $all_slugs   = snn_snippet_slugs();
+            if ( isset( $all_slugs[ $unblock_key ] ) ) {
+                snn_snippet_clear_error( $all_slugs[ $unblock_key ] );
+                delete_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT );
+                add_settings_error(
+                    'snn-custom-codes',
+                    'snippet_unblocked',
+                    sprintf( __( '"%s" has been re-enabled. If it is still broken it will be blocked again automatically.', 'snn' ), esc_html( snn_snippet_title( $all_slugs[ $unblock_key ] ) ) ),
+                    'updated'
+                );
+                $_GET['tab'] = $unblock_key;
+            }
         }
         // Handle Clear Revisions Action for a specific snippet
         elseif ( isset( $_POST['snn_clear_revisions_button'] ) && ! empty( $_POST['snn_clear_revisions_button'] ) ) {
@@ -866,17 +1216,43 @@ function snn_custom_codes_snippets_page() {
                 delete_transient(SNN_FATAL_ERROR_NOTICE_TRANSIENT);
             }
 
-            // Save standard snippets
-            // NO SYNTAX VALIDATION - If it runs on the user's PHP version, let it run.
-            // Only actual runtime fatal errors will trigger the safety fallback.
+            // Per-snippet on/off switch. Only the tab currently on screen renders a
+            // checkbox, so a hidden marker tells us which key this submission owns -
+            // otherwise the four absent checkboxes would read as "disable everything".
+            if ( isset( $_POST['snn_snippet_toggle_present'] ) ) {
+                $toggle_key = sanitize_key( wp_unslash( $_POST['snn_snippet_toggle_present'] ) );
+                $all_slugs  = snn_snippet_slugs();
+                if ( isset( $all_slugs[ $toggle_key ] ) ) {
+                    $enabled_map = snn_get_snippet_enabled_map();
+                    $enabled_map[ $all_slugs[ $toggle_key ] ] = isset( $_POST['snn_snippet_enabled'] ) ? 1 : 0;
+                    update_option( SNN_SNIPPET_ENABLED_OPTION, $enabled_map, true );
+                }
+            }
+
+            // Save standard snippets.
+            // Syntax is validated here, once, using PHP's own parser - not on every
+            // page load. Code is always stored so the user never loses work; if it
+            // does not parse, the snippet is blocked from executing until a valid
+            // version is saved.
             $all_snippets_processed_successfully = true;
+            $any_syntax_error                    = false;
             foreach ( $snippet_defs as $key => $def ) {
                 if ( isset( $_POST[ $def['field_id'] ] ) ) {
                     $new_code_content = wp_unslash( $_POST[ $def['field_id'] ] );
+
+                    // Check before writing anything: if the parser were ever to take
+                    // down this request, nothing has been saved and the site keeps
+                    // running the previous, known-good code.
+                    $syntax = snn_check_php_syntax( $new_code_content );
+
                     $snippet_post_id = snn_get_code_snippet_id( $def['slug'] );
                     $post_data = array(
                         'post_title'   => $def['title'],
-                        'post_content' => $new_code_content,
+                        // wp_insert_post()/wp_update_post() expect slashed input and
+                        // unslash internally. Passing already-unslashed code here ate
+                        // one level of backslashes on every save, silently turning
+                        // \WP_Query into WP_Query and '/\d+/' into '/d+/'.
+                        'post_content' => wp_slash( $new_code_content ),
                         'post_status'  => 'private',
                         'post_type'    => 'snn_code_snippet',
                         'post_name'    => $def['slug'],
@@ -887,21 +1263,33 @@ function snn_custom_codes_snippets_page() {
                         if ( is_wp_error( $updated_id ) ) {
                             add_settings_error('snn-custom-codes', 'update_failed_' . $key, sprintf(__('Failed to update snippet: %s - %s', 'snn'), esc_html($def['title']), esc_html($updated_id->get_error_message())), 'error');
                             $all_snippets_processed_successfully = false;
+                            continue;
                         }
                     } else { // New snippet, insert it
                         $inserted_id = wp_insert_post( $post_data, true );
                         if ( is_wp_error( $inserted_id ) ) {
                             add_settings_error('snn-custom-codes', 'insert_failed_' . $key, sprintf(__('Failed to create snippet: %s - %s', 'snn'), esc_html($def['title']), esc_html($inserted_id->get_error_message())), 'error');
                             $all_snippets_processed_successfully = false;
+                            continue;
                         }
+                    }
+
+                    snn_apply_syntax_check_result( $def['slug'], $def['title'], $syntax, $new_code_content );
+                    if ( is_array( $syntax ) ) {
+                        $any_syntax_error = true;
                     }
                 }
             }
-            
+
             // Save advanced raw code snippet (if enabled)
             if ($is_advanced_enabled && isset($_POST[$advanced_snippet_def['field_id']])) {
                 $advanced_raw_code = wp_unslash($_POST[$advanced_snippet_def['field_id']]);
+                $advanced_syntax   = snn_check_php_syntax( $advanced_raw_code );
                 snn_save_raw_code_unsanitized($advanced_raw_code);
+                snn_apply_syntax_check_result( $advanced_snippet_def['slug'], $advanced_snippet_def['title'], $advanced_syntax, $advanced_raw_code );
+                if ( is_array( $advanced_syntax ) ) {
+                    $any_syntax_error = true;
+                }
             }
 
 
@@ -915,7 +1303,7 @@ function snn_custom_codes_snippets_page() {
                 }
             }
 
-            if ( $all_snippets_processed_successfully && !$has_specific_action_message && $settings_saved_message_type === 'updated' ) {
+            if ( $all_snippets_processed_successfully && !$any_syntax_error && !$has_specific_action_message && $settings_saved_message_type === 'updated' ) {
                 add_settings_error('snn-custom-codes', 'settings_saved', __('All snippets and settings saved.', 'snn'), 'updated');
             } elseif (!$all_snippets_processed_successfully && $settings_saved_message_type !== 'error') {
                 add_settings_error('snn-custom-codes', 'save_errors', __('Some snippets could not be saved. Please check messages above.', 'snn'), 'error');
@@ -1095,6 +1483,34 @@ function snn_custom_codes_snippets_page() {
                     <div class="notice notice-error inline snn-php-execution-warning">
                         <p><?php echo wp_kses_post( $advanced_snippet_def['description'] ); ?></p>
                     </div>
+
+                    <?php $advanced_error = snn_snippet_get_error( $advanced_snippet_def['slug'] ); ?>
+                    <?php if ( $advanced_error ) : ?>
+                        <div class="notice notice-error inline snn-php-execution-warning">
+                            <p>
+                                <strong><?php esc_html_e( 'This snippet is blocked and is not running.', 'snn' ); ?></strong><br>
+                                <code><?php echo esc_html( $advanced_error['type'] ); ?></code>
+                                <?php echo esc_html( $advanced_error['message'] ); ?>
+                                <?php if ( ! empty( $advanced_error['line'] ) ) : ?>
+                                    <?php printf( esc_html__( '(line %d)', 'snn' ), absint( $advanced_error['line'] ) ); ?>
+                                <?php endif; ?>
+                            </p>
+                            <p>
+                                <button type="submit" name="snn_clear_snippet_error_button" value="advanced_raw" class="button">
+                                    <?php esc_html_e( 'Re-enable this snippet', 'snn' ); ?>
+                                </button>
+                            </p>
+                        </div>
+                    <?php endif; ?>
+
+                    <p>
+                        <input type="hidden" name="snn_snippet_toggle_present" value="advanced_raw">
+                        <label for="snn_snippet_enabled">
+                            <input type="checkbox" id="snn_snippet_enabled" name="snn_snippet_enabled" value="1" <?php checked( true, snn_snippet_is_enabled( $advanced_snippet_def['slug'] ) ); ?>>
+                            <?php esc_html_e( 'Run this snippet', 'snn' ); ?>
+                        </label>
+                    </p>
+
                     <textarea id="<?php echo esc_attr( $advanced_snippet_def['field_id'] ); ?>"
                         name="<?php echo esc_attr( $advanced_snippet_def['field_id'] ); ?>"
                         class="large-text code"
@@ -1132,6 +1548,34 @@ function snn_custom_codes_snippets_page() {
                                     <p><strong><?php esc_html_e('Warning:', 'snn'); ?></strong> <?php esc_html_e('Code in this section runs like functions.php. Errors here can easily break your site. Test thoroughly!', 'snn'); ?></p>
                                 </div>
                             <?php endif; ?>
+
+                            <?php $snippet_error = snn_snippet_get_error( $active_snippet_def['slug'] ); ?>
+                            <?php if ( $snippet_error ) : ?>
+                                <div class="notice notice-error inline snn-php-execution-warning">
+                                    <p>
+                                        <strong><?php esc_html_e( 'This snippet is blocked and is not running.', 'snn' ); ?></strong><br>
+                                        <code><?php echo esc_html( $snippet_error['type'] ); ?></code>
+                                        <?php echo esc_html( $snippet_error['message'] ); ?>
+                                        <?php if ( ! empty( $snippet_error['line'] ) ) : ?>
+                                            <?php printf( esc_html__( '(line %d)', 'snn' ), absint( $snippet_error['line'] ) ); ?>
+                                        <?php endif; ?>
+                                    </p>
+                                    <p><?php esc_html_e( 'Fix the code and save to re-enable it automatically, or force it back on now:', 'snn' ); ?></p>
+                                    <p>
+                                        <button type="submit" name="snn_clear_snippet_error_button" value="<?php echo esc_attr( $current_tab_key ); ?>" class="button">
+                                            <?php esc_html_e( 'Re-enable this snippet', 'snn' ); ?>
+                                        </button>
+                                    </p>
+                                </div>
+                            <?php endif; ?>
+
+                            <p>
+                                <input type="hidden" name="snn_snippet_toggle_present" value="<?php echo esc_attr( $current_tab_key ); ?>">
+                                <label for="snn_snippet_enabled">
+                                    <input type="checkbox" id="snn_snippet_enabled" name="snn_snippet_enabled" value="1" <?php checked( true, snn_snippet_is_enabled( $active_snippet_def['slug'] ) ); ?>>
+                                    <?php esc_html_e( 'Run this snippet', 'snn' ); ?>
+                                </label>
+                            </p>
                             <textarea id="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>"
                                       name="<?php echo esc_attr( $active_snippet_def['field_id'] ); ?>"
                                       class="large-text code"
@@ -1236,54 +1680,79 @@ function snn_custom_codes_snippets_init_execution() {
         return;
     }
 
+    // Safe mode: the snippets admin page, ?snn_safe_mode=1, or SNN_CODE_SAFE_MODE.
+    if ( snn_snippets_in_safe_mode() ) {
+        return;
+    }
+
     // Only proceed if snippets are globally enabled
     if ( ! get_option( 'snn_codes_snippets_enabled', 0 ) ) {
         return;
     }
 
+    // Before anything runs: did the previous request die inside a snippet?
+    snn_snippet_recover_from_crash();
+
     // Execute "Direct PHP (functions.php style)" snippet
     $direct_code = snn_get_code_snippet_content( 'snn-snippet-functions-php' );
-    if ( ! empty( trim( $direct_code ) ) ) {
-        echo snn_execute_php_snippet( $direct_code, 'snn-snippet-functions-php' );
+    if ( snn_snippet_should_run( 'snn-snippet-functions-php', $direct_code ) ) {
+        echo snn_snippet_run( $direct_code, 'snn-snippet-functions-php' );
     }
-    
+
     // Execute Advanced Raw Code snippet (if enabled)
     $advanced_enabled = get_option(SNN_ADVANCED_CODE_ENABLED_OPTION, 0);
     if ($advanced_enabled) {
         $advanced_code = snn_get_raw_code_unsanitized();
-        if ( ! empty( trim( $advanced_code ) ) ) {
-            echo snn_execute_php_snippet( $advanced_code, 'snn-snippet-advanced-raw' );
+        if ( snn_snippet_should_run( 'snn-snippet-advanced-raw', $advanced_code ) ) {
+            echo snn_snippet_run( $advanced_code, 'snn-snippet-advanced-raw' );
         }
     }
 
 
     // Add hooks for other snippets only if they have content
-    if ( ! empty( trim( snn_get_code_snippet_content( 'snn-snippet-frontend-head' ) ) ) ) {
+    if ( snn_snippet_should_run( 'snn-snippet-frontend-head', snn_get_code_snippet_content( 'snn-snippet-frontend-head' ) ) ) {
         add_action( 'wp_head', 'snn_custom_codes_snippets_frontend_output', 1 );
     }
-    if ( ! empty( trim( snn_get_code_snippet_content( 'snn-snippet-footer' ) ) ) ) {
+    if ( snn_snippet_should_run( 'snn-snippet-footer', snn_get_code_snippet_content( 'snn-snippet-footer' ) ) ) {
         add_action( 'wp_footer', 'snn_custom_codes_snippets_footer_output', 9999 );
     }
-    if ( is_admin() && ! empty( trim( snn_get_code_snippet_content( 'snn-snippet-admin-head' ) ) ) ) {
+    if ( is_admin() && snn_snippet_should_run( 'snn-snippet-admin-head', snn_get_code_snippet_content( 'snn-snippet-admin-head' ) ) ) {
         add_action( 'admin_head', 'snn_custom_codes_snippets_admin_output', 1 );
     }
 }
 add_action( 'init', 'snn_custom_codes_snippets_init_execution', 10 );
 
+/**
+ * Whether a snippet has content, is switched on, and is not blocked by a
+ * recorded parse or fatal error.
+ */
+function snn_snippet_should_run( $slug, $code ) {
+    if ( '' === trim( (string) $code ) ) {
+        return false;
+    }
+    if ( ! snn_snippet_is_enabled( $slug ) ) {
+        return false;
+    }
+    if ( snn_snippet_get_error( $slug ) ) {
+        return false;
+    }
+    return true;
+}
+
 /** Output callback for frontend head snippet */
 function snn_custom_codes_snippets_frontend_output() {
     $code = snn_get_code_snippet_content( 'snn-snippet-frontend-head' );
-    echo snn_execute_php_snippet( $code, 'snn-snippet-frontend-head' );
+    echo snn_snippet_run( $code, 'snn-snippet-frontend-head' );
 }
 /** Output callback for frontend footer snippet */
 function snn_custom_codes_snippets_footer_output()    {
     $code = snn_get_code_snippet_content( 'snn-snippet-footer' );
-    echo snn_execute_php_snippet( $code, 'snn-snippet-footer' );
+    echo snn_snippet_run( $code, 'snn-snippet-footer' );
 }
 /** Output callback for admin head snippet */
 function snn_custom_codes_snippets_admin_output()     {
     $code = snn_get_code_snippet_content( 'snn-snippet-admin-head' );
-    echo snn_execute_php_snippet( $code, 'snn-snippet-admin-head' );
+    echo snn_snippet_run( $code, 'snn-snippet-admin-head' );
 }
 
 /**
@@ -1348,84 +1817,70 @@ add_action( 'init', 'snn_register_fatal_error_handler', 1 );
 function snn_fatal_error_shutdown_handler() {
     $error = error_get_last();
 
-    if ( $error && in_array( $error['type'], [ E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ] ) ) {
-
-        $error_source_is_snippet = false;
-        $current_file_path_normalized = wp_normalize_path(__FILE__);
-        $error_file_normalized = isset($error['file']) ? wp_normalize_path($error['file']) : '';
-
-        // Enhanced detection of snippet-originated errors
-        if (isset($error['message'])) {
-            $error_msg_lower = strtolower($error['message']);
-            
-            // Check for eval()'d code in various formats
-            if (strpos( $error['message'], "eval()'d code" ) !== false ||
-                strpos( $error['message'], "eval()ed code" ) !== false ||
-                preg_match( '/\beval\(\)/i', $error['message'] ) ) {
-                $error_source_is_snippet = true;
-            }
-            
-            // Check for our function names in the error
-            if (preg_match( '/snn_custom_codes_snippets_(frontend_output|footer_output|admin_output|init_execution)/i', $error['message'] )) {
-                $error_source_is_snippet = true;
-            }
-            
-            // Check for snn_execute_php_snippet in the trace
-            if (strpos( $error_msg_lower, 'snn_execute_php_snippet' ) !== false) {
-                $error_source_is_snippet = true;
-            }
-        }
-        
-        // Check if error file matches this file (where eval happens)
-        if ( !empty($error_file_normalized) && $error_file_normalized === $current_file_path_normalized ) {
-            // If it's from this file, it's likely from our eval
-            if ( isset($error['line']) && $error['line'] > 200 ) { // Our eval code is after line 200
-                $error_source_is_snippet = true;
-            }
-        }
-        
-        // Additional check for call_user_func_array with our functions
-        if (!$error_source_is_snippet && isset($error['message'])) {
-            if (preg_match('/call_user_func_array|snn_custom_codes/i', $error['message'])) {
-                $error_source_is_snippet = true;
-            }
-        }
-
-        if ( $error_source_is_snippet && get_option( 'snn_codes_snippets_enabled', 0 ) ) {
-
-            $snippet_slug_guess = 'unknown_or_direct_fatal';
-
-            $message_lower = strtolower($error['message']);
-            if (strpos($message_lower, 'snn_custom_codes_snippets_frontend_output') !== false) $snippet_slug_guess = 'snn-snippet-frontend-head';
-            elseif (strpos($message_lower, 'snn_custom_codes_snippets_footer_output') !== false) $snippet_slug_guess = 'snn-snippet-footer';
-            elseif (strpos($message_lower, 'snn_custom_codes_snippets_admin_output') !== false) $snippet_slug_guess = 'snn-snippet-admin-head';
-            elseif (strpos($message_lower, 'snn-snippet-advanced-raw') !== false) $snippet_slug_guess = 'snn-snippet-advanced-raw'; // Guess for advanced code
-            elseif (strpos($error_file_normalized, $current_file_path_normalized) !== false &&
-                     strpos($message_lower, 'eval') !== false &&
-                     !preg_match('/snn_custom_codes_snippets_(frontend|footer|admin)_output/', $message_lower)) {
-                $snippet_slug_guess = 'snn-snippet-functions-php';
-            }
-
-            snn_log_error_event(
-                'PHP Fatal Error (Shutdown Handler)',
-                $error['message'],
-                $snippet_slug_guess,
-                $error['file'],
-                $error['line'],
-                '' // Code context not available in shutdown handler
-            );
-
-            update_option( 'snn_codes_snippets_enabled', 0 );
-
-            $notice_data = [
-                'message' => $error['message'],
-                'file'    => $error['file'],
-                'line'    => $error['line'],
-                'type'    => snn_get_php_error_type_string($error['type'])
-            ];
-            set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, $notice_data, DAY_IN_SECONDS );
-        }
+    if ( ! $error || ! in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
+        return;
     }
+
+    if ( ! get_option( 'snn_codes_snippets_enabled', 0 ) ) {
+        return;
+    }
+
+    // Proof, not guesswork. For code running inside eval(), PHP reports the file
+    // as "/path/to/custom-code-snippets.php(657) : eval()'d code" - so the test is
+    // a prefix match plus the eval marker, never an equality check against
+    // __FILE__ (which can never match) and never a scan of the error message
+    // (which matches half the plugins on the internet).
+    $self       = wp_normalize_path( __FILE__ );
+    $error_file = isset( $error['file'] ) ? wp_normalize_path( (string) $error['file'] ) : '';
+
+    $from_snippet = ( '' !== $error_file )
+        && ( 0 === strpos( $error_file, $self ) )
+        && ( false !== strpos( $error_file, "eval()'d code" ) );
+
+    if ( ! $from_snippet ) {
+        return; // Someone else's fatal. Not our business.
+    }
+
+    // Attribution, best evidence first.
+    $slug     = snn_snippet_active_slug();
+    $executed = snn_snippet_executed_slugs();
+
+    if ( '' === $slug && 1 === count( $executed ) ) {
+        // The fatal happened after eval() returned - typically inside a hook the
+        // snippet registered. Only one snippet ran, so it is still unambiguous.
+        $slug = $executed[0];
+    }
+
+    snn_log_error_event(
+        'PHP Fatal Error (Shutdown Handler)',
+        $error['message'],
+        '' !== $slug ? $slug : 'unknown_or_direct_fatal',
+        $error['file'],
+        $error['line'],
+        '' // Code context not available in shutdown handler
+    );
+
+    if ( '' !== $slug ) {
+        // Block the guilty snippet only. Everything else keeps working.
+        snn_snippet_record_error(
+            $slug,
+            snn_get_php_error_type_string( $error['type'] ),
+            $error['message'],
+            $error['line']
+        );
+    } else {
+        // Certainly a snippet, but more than one ran and none was mid-eval.
+        // Fall back to the global switch rather than block the wrong snippet.
+        update_option( 'snn_codes_snippets_enabled', 0 );
+    }
+
+    set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, array(
+        'message' => $error['message'],
+        'file'    => '' !== $slug ? 'Tab: ' . snn_snippet_title( $slug ) : $error['file'],
+        'line'    => $error['line'],
+        'type'    => snn_get_php_error_type_string( $error['type'] ),
+        'slug'    => $slug,
+    ), DAY_IN_SECONDS );
 }
 
 /**
@@ -1466,9 +1921,19 @@ function snn_display_fatal_error_admin_notice() {
     if ( $fatal_error_details && is_array($fatal_error_details) ) {
         ?>
         <div class="notice notice-error is-dismissible snn-fatal-error-notice">
-            <p><strong><?php esc_html_e( 'CRITICAL: Custom Code Snippets Disabled!', 'snn' ); ?></strong></p>
+            <p><strong><?php esc_html_e( 'CRITICAL: A code snippet was blocked after a fatal error.', 'snn' ); ?></strong></p>
             <p>
-                <?php esc_html_e( 'The "SNN Custom Codes" feature automatically disabled all snippet executions due to a fatal PHP error. This is a safety measure to prevent your site from breaking further.', 'snn' ); ?>
+                <?php
+                if ( ! empty( $fatal_error_details['slug'] ) ) {
+                    printf(
+                        /* translators: %s: snippet title */
+                        esc_html__( 'The snippet "%s" caused a fatal PHP error and has been blocked so your site keeps loading. Other snippets are unaffected.', 'snn' ),
+                        esc_html( snn_snippet_title( $fatal_error_details['slug'] ) )
+                    );
+                } else {
+                    esc_html_e( 'A custom code snippet caused a fatal PHP error, so snippet execution was disabled. This is a safety measure to prevent your site from breaking further.', 'snn' );
+                }
+                ?>
             </p>
             <p><strong><?php esc_html_e( 'Error Details:', 'snn' ); ?></strong></p>
             <p>
@@ -1487,6 +1952,15 @@ function snn_display_fatal_error_admin_notice() {
                 printf(
                     wp_kses_post( __( 'Please review the <a href="%s">Error Logs tab</a> for more details, identify and fix the problematic snippet. Once fixed, you can re-enable "Global Snippet Execution" on the custom code settings page and save.', 'snn' ) ),
                     esc_url( admin_url( 'admin.php?page=snn-custom-codes-snippets&tab=error_logs' ) )
+                );
+                ?>
+            </p>
+            <p>
+                <?php
+                printf(
+                    /* translators: %s: safe mode URL */
+                    wp_kses_post( __( 'If the front end is still broken, add <code>?snn_safe_mode=1</code> to any URL to load the site with every snippet switched off, or set <code>define( \'SNN_CODE_SAFE_MODE\', true );</code> in <code>wp-config.php</code>. The snippets settings page never executes snippets, so it always loads: <a href="%s">open it now</a>.', 'snn' ) ),
+                    esc_url( admin_url( 'admin.php?page=snn-custom-codes-snippets' ) )
                 );
                 ?>
             </p>
