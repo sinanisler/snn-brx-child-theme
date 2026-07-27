@@ -18,9 +18,26 @@ define('SNN_ADVANCED_CODE_CONTENT_OPTION', 'snn_advanced_raw_code_content');
 define('SNN_SNIPPET_STATE_OPTION', 'snn_snippet_state');
 // Per-snippet on/off switches. Absent key means enabled (back-compat).
 define('SNN_SNIPPET_ENABLED_OPTION', 'snn_snippet_enabled_map');
-// How long an "in flight" marker must sit untouched before we treat it as a crash
-// rather than as a request that is still running. Must exceed max_execution_time.
+// How long an "in flight" marker may sit there before we treat it as a crash
+// rather than as a request that is still running. Measured from when the marker
+// was first armed, NOT from the last request that touched it - otherwise a site
+// with traffic resets its own timer on every crash and never recovers.
+// Must exceed max_execution_time.
 define('SNN_SNIPPET_CRASH_GRACE', 60);
+// How many times a snippet may be started without a single request ever reaching
+// the end before we call it a crash loop, regardless of elapsed time. Set above
+// the number of requests that plausibly overlap the very first run of freshly
+// saved code (page + admin-ajax + heartbeat), so concurrency alone cannot trip it.
+define('SNN_SNIPPET_CRASH_MAX_STARTS', 3);
+
+// Consecutive fatal requests that could NOT be pinned on a specific snippet but
+// happened while snippets were running. Fatals inside a hook a snippet
+// registered, inside a file it included, memory exhaustion and execution
+// timeouts all report a file that is not the eval'd code, so they are
+// unattributable - but they are still usually our fault. Counting them lets the
+// global switch trip as a last resort instead of leaving a permanent white screen.
+define('SNN_UNATTRIBUTED_FATAL_OPTION', 'snn_unattributed_fatal_streak');
+define('SNN_UNATTRIBUTED_FATAL_LIMIT', 3);
 
 /**
  * Canonical snippet slug list, keyed by admin tab key.
@@ -111,15 +128,39 @@ function snn_snippet_record_error( $slug, $type, $message, $line = 0 ) {
 
 /**
  * Unblock a snippet (called when valid code is saved, or manually from the UI).
+ *
+ * Also drops any in-flight marker for this slug. That matters in two cases the
+ * error list alone does not cover:
+ *
+ *  - A crash was detected but not yet acted on (the marker is flagged 'crashed'
+ *    and no request has run recovery yet) and the user saves a fix. Without this
+ *    the stale marker would block the brand new, working code on the next request.
+ *  - The user clicks "Re-enable this snippet" while such a marker stands. Without
+ *    this, recovery would immediately re-block it and the button would appear to
+ *    do nothing.
+ *
+ * @return bool Whether a recorded error was cleared (drives the admin notice).
  */
 function snn_snippet_clear_error( $slug ) {
-    $state = snn_get_snippet_state( true );
-    if ( ! isset( $state['errors'][ $slug ] ) ) {
-        return false;
+    $state   = snn_get_snippet_state( true );
+    $changed = false;
+
+    if ( isset( $state['in_flight']['slug'] ) && $state['in_flight']['slug'] === $slug ) {
+        unset( $state['in_flight'] );
+        $changed = true;
     }
-    unset( $state['errors'][ $slug ], $state['verified'][ $slug ] );
-    snn_update_snippet_state( $state );
-    return true;
+
+    $had_error = isset( $state['errors'][ $slug ] );
+    if ( $had_error ) {
+        unset( $state['errors'][ $slug ], $state['verified'][ $slug ] );
+        $changed = true;
+    }
+
+    if ( $changed ) {
+        snn_update_snippet_state( $state );
+    }
+
+    return $had_error;
 }
 
 /**
@@ -173,6 +214,20 @@ function snn_snippet_executed_slugs( $add = null ) {
 }
 
 /**
+ * Set by the fatal shutdown handler once it has pinned a fatal on a specific
+ * snippet and blocked it. Lets the verification pass that runs afterwards know
+ * the crash is already accounted for, so it does not additionally blame whatever
+ * unrelated snippet happened to hold the in-flight marker.
+ */
+function snn_snippet_fatal_attributed( $set = false ) {
+    static $attributed = false;
+    if ( $set ) {
+        $attributed = true;
+    }
+    return $attributed;
+}
+
+/**
  * Snippets awaiting end-of-request verification, as slug => hash.
  */
 function snn_snippet_pending_verification( $slug = null, $hash = '' ) {
@@ -184,14 +239,51 @@ function snn_snippet_pending_verification( $slug = null, $hash = '' ) {
 }
 
 /**
+ * Is this a request for the login/registration screen?
+ *
+ * wp-login.php is NOT is_admin(), so without this check user code executes on the
+ * login screen - and a fatal there locks the administrator out of the entire
+ * admin area, including the snippets page that exists to repair it. Worse,
+ * ?snn_safe_mode=1 cannot rescue that situation because it requires being logged
+ * in. Logging in must never depend on user code.
+ */
+function snn_is_login_request() {
+    // Set by wp-includes/vars.php during wp-settings.php, so it is reliable by init.
+    if ( ! empty( $GLOBALS['pagenow'] ) && in_array( $GLOBALS['pagenow'], array( 'wp-login.php', 'wp-register.php' ), true ) ) {
+        return true;
+    }
+
+    // Belt and braces for setups where $pagenow is not what we expect.
+    $script = '';
+    if ( isset( $_SERVER['SCRIPT_NAME'] ) ) {
+        $script = (string) $_SERVER['SCRIPT_NAME'];
+    } elseif ( isset( $_SERVER['PHP_SELF'] ) ) {
+        $script = (string) $_SERVER['PHP_SELF'];
+    }
+    if ( '' !== $script ) {
+        $path = parse_url( $script, PHP_URL_PATH );
+        if ( is_string( $path ) && in_array( basename( $path ), array( 'wp-login.php', 'wp-register.php' ), true ) ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Should snippet execution be skipped entirely for this request?
  *
  * Safe mode exists so a snippet that kills the site can always be fixed:
- * the snippets admin page never runs snippets, and an admin can add
- * ?snn_safe_mode=1 to any URL.
+ * the login screen and the snippets admin page never run snippets, and an admin
+ * can add ?snn_safe_mode=1 to any URL.
  */
 function snn_snippets_in_safe_mode() {
     if ( defined( 'SNN_CODE_SAFE_MODE' ) && SNN_CODE_SAFE_MODE ) {
+        return true;
+    }
+
+    // Getting logged in must always work, whatever the user's code does.
+    if ( snn_is_login_request() ) {
         return true;
     }
 
@@ -923,16 +1015,35 @@ function snn_execute_php_snippet( $code_to_execute, $snippet_location_slug ) {
  * exhaustion, execution timeouts - and costs one pair of writes, once.
  */
 function snn_snippet_run( $code, $slug ) {
-    $state = snn_get_snippet_state();
+    // Deliberately fresh: another request may have recorded an error for this
+    // snippet since our in-process cache was filled, and writing a stale copy of
+    // the whole state array back would silently un-block a snippet that is
+    // actively killing the site.
+    $state = snn_get_snippet_state( true );
     $hash  = md5( $code );
 
     $verified = isset( $state['verified'][ $slug ] ) && $state['verified'][ $slug ] === $hash;
 
     if ( ! $verified ) {
+        $existing = ( isset( $state['in_flight'] ) && is_array( $state['in_flight'] ) ) ? $state['in_flight'] : array();
+        $is_same  = isset( $existing['slug'], $existing['hash'] )
+            && $existing['slug'] === $slug
+            && $existing['hash'] === $hash;
+
         $state['in_flight'] = array(
             'slug' => $slug,
             'hash' => $hash,
-            'time' => time(),
+            // Armed-at time. Carried over when a marker for this exact code is
+            // already standing, so the grace period counts from the FIRST run.
+            // Rewriting it here was the bug that made the crash guard unable to
+            // ever fire on a site receiving requests more often than the grace
+            // period: every crashing request pushed its own deadline forward.
+            'time'    => ( $is_same && ! empty( $existing['time'] ) ) ? (int) $existing['time'] : time(),
+            'touched' => time(),
+            // Starts without a single request ever reaching the end.
+            'starts'  => $is_same ? ( (int) ( isset( $existing['starts'] ) ? $existing['starts'] : 0 ) + 1 ) : 1,
+            // Preserve a crash flag another request already proved.
+            'crashed' => ( $is_same && ! empty( $existing['crashed'] ) ) ? 1 : 0,
         );
         snn_update_snippet_state( $state );
 
@@ -963,12 +1074,34 @@ function snn_snippet_finalize_pending() {
     $state   = snn_get_snippet_state( true );
     $changed = false;
 
-    if ( isset( $state['in_flight'] ) ) {
-        unset( $state['in_flight'] );
-        $changed = true;
-    }
+    if ( $fatal ) {
+        /*
+         * The request died. Shutdown functions still run after a fatal, so the
+         * old code cleared the in-flight marker here - destroying the only
+         * evidence the next request had. Whenever the fatal could not be pinned
+         * on a snippet by file name (a hook the snippet registered, a file it
+         * included, memory exhaustion, a timeout), that left nothing at all
+         * behind and the site stayed down forever.
+         *
+         * Keep the marker and flag it instead: the next request blocks the
+         * snippet immediately rather than waiting out the grace period.
+         *
+         * Skipped when the fatal handler already pinned and blocked a snippet -
+         * that crash is accounted for, and the marker may belong to a different,
+         * innocent snippet.
+         */
+        if ( ! snn_snippet_fatal_attributed()
+            && isset( $state['in_flight'] ) && is_array( $state['in_flight'] )
+            && empty( $state['in_flight']['crashed'] ) ) {
+            $state['in_flight']['crashed'] = 1;
+            $changed = true;
+        }
+    } else {
+        if ( isset( $state['in_flight'] ) ) {
+            unset( $state['in_flight'] );
+            $changed = true;
+        }
 
-    if ( ! $fatal ) {
         foreach ( $pending as $slug => $hash ) {
             if ( isset( $state['errors'][ $slug ] ) ) {
                 continue; // Something went wrong for this one; do not vouch for it.
@@ -990,25 +1123,58 @@ function snn_snippet_finalize_pending() {
  * request died inside the named snippet. Block it and let the site come back up.
  */
 function snn_snippet_recover_from_crash() {
-    $state = snn_get_snippet_state();
+    // Fresh read: this is the path that brings a dead site back up, so it must
+    // never act on a state snapshot taken earlier in the request.
+    $state = snn_get_snippet_state( true );
 
     if ( empty( $state['in_flight']['slug'] ) ) {
         return;
     }
 
     $in_flight = $state['in_flight'];
+    $slug      = $in_flight['slug'];
 
-    // A concurrent request may legitimately still be inside this snippet. Only
-    // call it a crash once no live request could plausibly still own the marker.
-    if ( isset( $in_flight['time'] ) && ( time() - (int) $in_flight['time'] ) < SNN_SNIPPET_CRASH_GRACE ) {
+    /*
+     * Three independent triggers, so recovery does not depend on any single one
+     * of them working:
+     *
+     * 1. 'crashed' - the previous request ended in a fatal and the verification
+     *    pass flagged the marker on its way out. This is the common case and it
+     *    fires on the very next request, no waiting.
+     * 2. 'starts'  - the snippet has been started this many times and not one of
+     *    those requests ever reached the end. Catches hard kills (php-fpm
+     *    request_terminate_timeout, SIGKILL, OOM killer, segfault) where no
+     *    shutdown function ever ran, on a site with traffic.
+     * 3. age       - the marker has simply been standing too long. Catches the
+     *    same hard kills on a site with no traffic. Measured from when the
+     *    marker was armed, never from the last request that touched it.
+     */
+    $crashed = ! empty( $in_flight['crashed'] );
+    $starts  = isset( $in_flight['starts'] ) ? (int) $in_flight['starts'] : 1;
+    $armed   = isset( $in_flight['time'] ) ? (int) $in_flight['time'] : 0;
+    $age     = $armed > 0 ? ( time() - $armed ) : PHP_INT_MAX;
+
+    if ( ! $crashed && $starts < SNN_SNIPPET_CRASH_MAX_STARTS && $age < SNN_SNIPPET_CRASH_GRACE ) {
+        // A concurrent request may legitimately still be inside this snippet.
         return;
     }
 
-    $slug = $in_flight['slug'];
+    if ( $crashed ) {
+        $reason = __( 'A previous request ended in a fatal PHP error while this snippet was executing. The error could not be pinned to an exact line, which usually means it happened inside a hook this snippet registered, inside a file it included, or that the request ran out of memory or time. Fix the snippet and save to re-enable it.', 'snn' );
+        $short  = __( 'A previous request ended in a fatal error while this snippet was executing.', 'snn' );
+    } else {
+        $reason = __( 'A previous request stopped while this snippet was executing and never completed - the process was killed outright (execution timeout, memory limit or a crash). Fix the snippet and save to re-enable it.', 'snn' );
+        $short  = __( 'A previous request stopped while this snippet was executing and never finished.', 'snn' );
+    }
 
     snn_log_error_event(
         'PHP Fatal Error (crash guard)',
-        'A previous request stopped while this snippet was executing and never completed. Execution of this snippet has been blocked so the site can load.',
+        $reason . ' ' . sprintf(
+            /* translators: 1: number of starts, 2: seconds since the marker was armed */
+            __( '(started %1$d time(s) without completing, %2$d second(s) since first run)', 'snn' ),
+            $starts,
+            PHP_INT_MAX === $age ? 0 : $age
+        ),
         $slug,
         'eval()\'d code',
         0,
@@ -1016,15 +1182,10 @@ function snn_snippet_recover_from_crash() {
         ''
     );
 
-    snn_snippet_record_error(
-        $slug,
-        'Fatal Error (crash guard)',
-        __( 'A previous request stopped while this snippet was executing. This is typically an undefined function, a redeclared function, exhausted memory or a script timeout. Fix the snippet and save to re-enable it.', 'snn' ),
-        0
-    );
+    snn_snippet_record_error( $slug, 'Fatal Error (crash guard)', $reason, 0 );
 
     set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, array(
-        'message' => __( 'A previous request stopped while this snippet was executing and never finished.', 'snn' ),
+        'message' => $short,
         'file'    => 'Tab: ' . snn_snippet_title( $slug ),
         'line'    => 0,
         'type'    => 'Fatal Error (crash guard)',
@@ -1223,6 +1384,10 @@ function snn_custom_codes_snippets_page() {
 
             if ($is_enabled) {
                 delete_transient(SNN_FATAL_ERROR_NOTICE_TRANSIENT);
+                // The admin has deliberately switched execution back on. Start the
+                // unattributed-fatal streak from zero so a count left over from the
+                // previous breakage does not trip the kill switch prematurely.
+                update_option( SNN_UNATTRIBUTED_FATAL_OPTION, 0, true );
             }
 
             // Per-snippet on/off switch. Only the tab currently on screen renders a
@@ -1689,18 +1854,24 @@ function snn_custom_codes_snippets_init_execution() {
         return;
     }
 
-    // Safe mode: the snippets admin page, ?snn_safe_mode=1, or SNN_CODE_SAFE_MODE.
-    if ( snn_snippets_in_safe_mode() ) {
-        return;
-    }
-
     // Only proceed if snippets are globally enabled
     if ( ! get_option( 'snn_codes_snippets_enabled', 0 ) ) {
         return;
     }
 
     // Before anything runs: did the previous request die inside a snippet?
+    //
+    // This is bookkeeping only - it executes no user code - so it deliberately
+    // runs BEFORE the safe-mode check. The snippets admin page is permanently in
+    // safe mode, and skipping recovery there made it the one place that never
+    // told you which snippet had just killed your site.
     snn_snippet_recover_from_crash();
+
+    // Safe mode: the login screen, the snippets admin page, ?snn_safe_mode=1,
+    // or SNN_CODE_SAFE_MODE.
+    if ( snn_snippets_in_safe_mode() ) {
+        return;
+    }
 
     // Execute "Direct PHP (functions.php style)" snippet
     $direct_code = snn_get_code_snippet_content( 'snn-snippet-functions-php' );
@@ -1821,12 +1992,83 @@ function snn_register_fatal_error_handler() {
 add_action( 'init', 'snn_register_fatal_error_handler', 1 );
 
 /**
+ * A request that ran snippets finished without a fatal: the site is healthy, so
+ * drop any streak. Without this, unrelated fatals spread across weeks would
+ * eventually accumulate into a global shutdown for no reason.
+ *
+ * Costs nothing on requests where no snippet ran, and no write when already zero.
+ */
+function snn_reset_unattributed_fatal_streak() {
+    if ( ! snn_snippet_executed_slugs() ) {
+        return;
+    }
+    if ( 0 !== (int) get_option( SNN_UNATTRIBUTED_FATAL_OPTION, 0 ) ) {
+        update_option( SNN_UNATTRIBUTED_FATAL_OPTION, 0, true );
+    }
+}
+
+/**
+ * A request that ran snippets ended in a fatal we could NOT pin on any snippet.
+ *
+ * We refuse to block a specific snippet on this evidence - we would be guessing,
+ * and guessing wrong disables working code while the real culprit keeps running.
+ * So we count instead. Once requests keep dying, the global switch goes off:
+ * a site with its snippets disabled is recoverable, a site that white-screens
+ * every request is not.
+ */
+function snn_record_unattributed_fatal( $error ) {
+    // No snippet executed this request, so this fatal is somebody else's problem.
+    if ( ! snn_snippet_executed_slugs() ) {
+        return;
+    }
+
+    $streak = (int) get_option( SNN_UNATTRIBUTED_FATAL_OPTION, 0 ) + 1;
+
+    if ( $streak < SNN_UNATTRIBUTED_FATAL_LIMIT ) {
+        update_option( SNN_UNATTRIBUTED_FATAL_OPTION, $streak, true );
+        return;
+    }
+
+    update_option( SNN_UNATTRIBUTED_FATAL_OPTION, 0, true );
+    update_option( 'snn_codes_snippets_enabled', 0 );
+
+    snn_log_error_event(
+        'PHP Fatal Error (global kill switch)',
+        sprintf(
+            /* translators: 1: number of consecutive fatal requests, 2: the PHP error message */
+            __( '%1$d consecutive requests ended in a fatal error while snippets were running, and none could be attributed to a specific snippet. Global snippet execution has been switched off so the site can load. Last error: %2$s', 'snn' ),
+            SNN_UNATTRIBUTED_FATAL_LIMIT,
+            isset( $error['message'] ) ? $error['message'] : ''
+        ),
+        'unknown_or_direct_fatal',
+        isset( $error['file'] ) ? $error['file'] : '',
+        isset( $error['line'] ) ? $error['line'] : 0,
+        '',
+        ''
+    );
+
+    set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, array(
+        'message' => sprintf(
+            /* translators: %d: number of consecutive fatal requests */
+            __( '%d consecutive requests ended in a fatal error while snippets were running. The error could not be traced to one snippet, so global snippet execution was switched off.', 'snn' ),
+            SNN_UNATTRIBUTED_FATAL_LIMIT
+        ) . ' ' . ( isset( $error['message'] ) ? $error['message'] : '' ),
+        'file'    => isset( $error['file'] ) ? $error['file'] : '',
+        'line'    => isset( $error['line'] ) ? $error['line'] : 0,
+        'type'    => 'Fatal Error (global kill switch)',
+        'slug'    => '',
+    ), DAY_IN_SECONDS );
+}
+
+/**
  * Fatal error shutdown handler.
  */
 function snn_fatal_error_shutdown_handler() {
     $error = error_get_last();
 
     if ( ! $error || ! in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ), true ) ) {
+        // Request completed cleanly.
+        snn_reset_unattributed_fatal_streak();
         return;
     }
 
@@ -1847,8 +2089,21 @@ function snn_fatal_error_shutdown_handler() {
         && ( false !== strpos( $error_file, "eval()'d code" ) );
 
     if ( ! $from_snippet ) {
-        return; // Someone else's fatal. Not our business.
+        /*
+         * Not provably ours - but very possibly still our fault. A fatal inside a
+         * hook the snippet registered, inside a file it included, memory
+         * exhaustion or "Maximum execution time exceeded" all report a file that
+         * is not the eval'd code. Blaming a snippet on that would be a guess, so
+         * count it instead and let the streak trip the global switch. If the
+         * fatal really was another plugin's, the count resets as soon as one
+         * request completes.
+         */
+        snn_record_unattributed_fatal( $error );
+        return;
     }
+
+    // Provably ours, and about to be blocked precisely. Not an unattributed fatal.
+    snn_reset_unattributed_fatal_streak();
 
     // Attribution, best evidence first.
     $slug     = snn_snippet_active_slug();
@@ -1877,10 +2132,15 @@ function snn_fatal_error_shutdown_handler() {
             $error['message'],
             $error['line']
         );
+        // Tell the verification pass (which runs right after us) that this crash
+        // is handled, so it does not also flag whatever snippet happens to be
+        // holding the in-flight marker.
+        snn_snippet_fatal_attributed( true );
     } else {
         // Certainly a snippet, but more than one ran and none was mid-eval.
         // Fall back to the global switch rather than block the wrong snippet.
         update_option( 'snn_codes_snippets_enabled', 0 );
+        snn_snippet_fatal_attributed( true );
     }
 
     set_transient( SNN_FATAL_ERROR_NOTICE_TRANSIENT, array(
