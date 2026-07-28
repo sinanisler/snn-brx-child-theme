@@ -21,11 +21,24 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
             document.addEventListener("DOMContentLoaded", function() {
 
                 // Insert SNN button into the Bricks toolbar.
-                function insertSnnListItem(toolbar) {
-                    const ul = (toolbar.tagName.toLowerCase() === "ul") ? toolbar : toolbar.querySelector("ul");
-                    if (!ul) return;
-                    if (ul.querySelector(".snn-enhance-li")) return;
+                // Bricks toolbar markup has changed across versions:
+                // - Older Bricks: #bricks-toolbar > ul (single list with all icons).
+                // - Newer Bricks: #bricks-toolbar > ul.group-wrapper.start / .group-wrapper.end (split lists).
+                // We support both by picking the "start" group-wrapper when present, otherwise
+                // falling back to the first <ul> found, and anchoring on a stable class name
+                // (".settings" / ".elements") instead of a brittle child-index count.
+                function findSnnTargetUl(toolbar) {
+                    if (toolbar.tagName && toolbar.tagName.toLowerCase() === "ul") {
+                        return toolbar;
+                    }
 
+                    const startGroup = toolbar.querySelector("ul.group-wrapper.start");
+                    if (startGroup) return startGroup;
+
+                    return toolbar.querySelector("ul");
+                }
+
+                function makeSnnListItem() {
                     const li = document.createElement("li");
                     li.className = "snn-enhance-li";
                     li.tabIndex = 0;
@@ -37,54 +50,68 @@ function snn_panel_custom_inline_styles_and_scripts_improved() {
                         if (popup) {
                             popup.classList.add("active");
                             // Set initial tab class if not already set
-                            if (!popup.classList.contains("snn-tab-image-opt-active") && 
-                                !popup.classList.contains("snn-tab-clamp-active") && 
+                            if (!popup.classList.contains("snn-tab-image-opt-active") &&
+                                !popup.classList.contains("snn-tab-clamp-active") &&
                                 !popup.classList.contains("snn-tab-color-sync-active")) {
                                 popup.classList.add("snn-tab-image-opt-active");
                             }
                         }
                     });
-
-                    const waitForChildren = setInterval(() => {
-                        if (ul.children.length >= 6) {
-                            ul.insertBefore(li, ul.children[5]); // Between 5th and 6th
-                            clearInterval(waitForChildren);
-                        }
-                    }, 300);
+                    return li;
                 }
 
+                // Returns true if our button is present in the toolbar after this call
+                // (either it was already there, or we just (re)inserted it).
+                function insertSnnListItem(toolbar) {
+                    const ul = findSnnTargetUl(toolbar);
+                    if (!ul) return false;
+                    if (ul.querySelector(".snn-enhance-li")) return true;
+
+                    const li = makeSnnListItem();
+                    // Place it right after "Manage" (settings): ...pages, settings, [snn], command-palette, elements.
+                    const anchor = ul.querySelector(".command-palette") || ul.querySelector(".elements") || ul.querySelector(".settings");
+                    if (anchor) {
+                        // Bricks lays this list out with CSS flexbox and controls visual order via
+                        // an inline "order" style per <li>, independent of DOM position. Without
+                        // matching that, our item (default order 0) would render up near the start
+                        // regardless of where we inserted it in the DOM. Split the gap between the
+                        // anchor's order and its preceding sibling's order (captured before we
+                        // insert, since insertBefore would otherwise make that sibling be us).
+                        const anchorOrder = parseInt(anchor.style.order, 10);
+                        const prevOrder = anchor.previousElementSibling ? parseInt(anchor.previousElementSibling.style.order, 10) : NaN;
+
+                        ul.insertBefore(li, anchor);
+
+                        if (!isNaN(anchorOrder)) {
+                            li.style.order = !isNaN(prevOrder) ? (prevOrder + anchorOrder) / 2 : anchorOrder - 1;
+                        }
+                    } else {
+                        ul.appendChild(li);
+                    }
+                    return true;
+                }
+
+                // Toolbar container selector, matching both old and new Bricks markup:
+                // - Older Bricks: <div id="bricks-toolbar">
+                // - Newer Bricks: <div id="bricks-toolbar-top" class="bricks-toolbar toolbar-top">
+                var SNN_TOOLBAR_SELECTOR = "#bricks-toolbar, #bricks-toolbar-top, .bricks-toolbar";
+
                 function findAndInsertSnn() {
-                    var toolbar = document.querySelector("#bricks-toolbar");
+                    var toolbar = document.querySelector(SNN_TOOLBAR_SELECTOR);
                     if (toolbar) {
-                        insertSnnListItem(toolbar);
-                        return true;
+                        return insertSnnListItem(toolbar);
                     }
                     return false;
                 }
 
-                var intervalCheck = setInterval(function() {
-                    if (findAndInsertSnn()) {
-                        clearInterval(intervalCheck);
-                    }
-                }, 500);
+                // Bricks (Vue) can re-render the toolbar's <ul> (e.g. on panel/state changes)
+                // and wipe out DOM nodes it doesn't track, including our injected button.
+                // So instead of inserting once and stopping, keep re-asserting its presence
+                // for as long as the builder page is open.
+                setInterval(findAndInsertSnn, 500);
 
-                var observer = new MutationObserver(function(mutationsList) {
-                    mutationsList.forEach(function(mutation) {
-                        mutation.addedNodes.forEach(function(node) {
-                            if (node.nodeType === 1) {
-                                if (node.matches("#bricks-toolbar")) {
-                                    insertSnnListItem(node);
-                                    clearInterval(intervalCheck);
-                                } else {
-                                    var toolbarInside = node.querySelector("#bricks-toolbar");
-                                    if (toolbarInside) {
-                                        insertSnnListItem(toolbarInside);
-                                        clearInterval(intervalCheck);
-                                    }
-                                }
-                            }
-                        });
-                    });
+                var observer = new MutationObserver(function() {
+                    findAndInsertSnn();
                 });
                 observer.observe(document.body, { childList: true, subtree: true });
 
