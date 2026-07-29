@@ -43,7 +43,6 @@ function snn_add_math_captcha() {
             <canvas id="captchaCanvas_<?php echo esc_attr( $unique ); ?>" width="280" height="100" title="<?php esc_attr_e('Click to refresh', 'snn'); ?>"></canvas>
             <input type="text" name="math_captcha" id="math_captcha_<?php echo esc_attr( $unique ); ?>" placeholder="?" autocomplete="off" class="input">
             <div class="snn-captcha-success" id="captchaSuccess_<?php echo esc_attr( $unique ); ?>">&#10003; <?php _e('Verified!', 'snn'); ?></div>
-            <div class="snn-captcha-hint"><?php _e('Click the image for a new equation', 'snn'); ?></div>
 
             <input type="hidden" name="captcha_solution" id="captcha_solution_<?php echo esc_attr( $unique ); ?>" value="">
             <input type="hidden" name="js_enabled" value="no" id="js_enabled_<?php echo esc_attr( $unique ); ?>">
