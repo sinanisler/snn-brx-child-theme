@@ -2135,7 +2135,7 @@ msgstr "Website-Eingabe anzeigen"
 
 #: includes/elements/comment-form.php:53
 msgid "Hide “logged-in as” info"
-msgstr "Icon"
+msgstr "Informationen „Angemeldet als“ ausblenden"
 
 #: includes/elements/comment-form.php:61
 msgid "Reply title"
@@ -2558,7 +2558,7 @@ msgstr "Weiterleitungen importieren"
 #: includes/elements/custom-maps.php:82
 #: includes/elements/image-hotspot.php:151
 msgid "Icon Color"
-msgstr "Voreinstellungen importieren"
+msgstr "Symbolfarbe"
 
 #: includes/elements/custom-maps.php:95
 msgid "Map Center Latitude"
@@ -2582,11 +2582,11 @@ msgstr "Schriftgröße des Popups"
 
 #: includes/elements/custom-maps.php:158
 msgid "Map Style"
-msgstr "Medien"
+msgstr "Kartenstil"
 
 #: includes/elements/custom-maps.php:171
 msgid "Leaflet Pane Filters"
-msgstr "Lichtgeschwindigkeit rein links"
+msgstr "Leaflet-Panel-Filter"
 
 #: includes/elements/custom-maps.php:185
 msgid "Use Post Type for Markers"
@@ -3175,7 +3175,7 @@ msgstr "Staffelung (Stagger)"
 #: includes/elements/gsap-animations.php:243
 #: includes/elements/gsap-text-animations.php:339
 msgid "Markers"
-msgstr "Medienkategorien"
+msgstr "Marker"
 
 #: includes/elements/gsap-animations.php:256
 msgid "Scroll Start"
@@ -4334,7 +4334,7 @@ msgstr "Ende 0%+=4000px"
 #: includes/elements/gsap-multi-element-register.php:473
 #: includes/elements/gsap-text-animations.php:196
 msgid "Markers True"
-msgstr "Medien-Löschung"
+msgstr "Marker: Wahr"
 
 #: includes/elements/gsap-multi-element-register.php:474
 #: includes/elements/gsap-text-animations.php:197
@@ -4899,7 +4899,7 @@ msgstr "Punktrahmen"
 
 #: includes/elements/image-hotspot.php:72
 msgid "Hotspots"
-msgstr "ID %d (Nicht gefunden)"
+msgstr "Hotspots"
 
 #: includes/elements/image-hotspot.php:77
 msgid "Tooltip Content"
@@ -6025,7 +6025,7 @@ msgstr "Scroll-Linienbreite"
 
 #: includes/elements/scroll-line-vertical-indicator.php:45
 msgid "Line Color"
-msgstr "Login-Einstellungen"
+msgstr "Linienfarbe"
 
 #: includes/elements/scroll-line-vertical-indicator.php:61
 msgid "Dot Font Color"
@@ -6456,11 +6456,11 @@ msgstr "Keine Weiterleitungen gefunden."
 
 #: includes/features/301-redirect.php:500
 msgid "Max number of logs to keep"
-msgstr "Medien-Aktualisierungen"
+msgstr "Maximale Anzahl zu behaltender Protokolle"
 
 #: includes/features/301-redirect.php:506
 msgid "Max days to keep logs"
-msgstr "Medien-Einstellungen"
+msgstr "Maximale Anzahl Tage zum Aufbewahren der Protokolle"
 
 #: includes/features/301-redirect.php:519
 #: includes/features/404-logging.php:243
@@ -7573,7 +7573,7 @@ msgstr "Wenn diese Option aktiviert ist, ist dieser Dienst immer aktiv und kann 
 #: includes/features/cookie-banner.php:495
 #: includes/features/cookie-banner.php:575
 msgid "Mandatory Feature"
-msgstr "Max. Ansichten (global)"
+msgstr "Pflichtfunktion"
 
 #: includes/features/cookie-banner.php:436
 msgid "Services (Repeater)"
@@ -8399,7 +8399,7 @@ msgstr "Benutzerdefinierte Felder erfolgreich gespeichert."
 
 #: includes/features/custom-field-settings.php:90
 msgid "Manage Custom Fields"
-msgstr "Marker"
+msgstr "Benutzerdefinierte Felder verwalten"
 
 #: includes/features/custom-field-settings.php:95
 msgid "Define custom fields with group name, field name, field type, and assign to post type, taxonomy, author, or an options page:"
@@ -10819,7 +10819,7 @@ msgstr "Fehler beim Abrufen der neuen Kategorie."
 
 #: includes/features/media-settings.php:694
 msgid "Invalid term ID"
-msgstr "Leaflet-Fenster-Filter"
+msgstr "Ungültige Term-ID"
 
 #: includes/features/media-settings.php:717
 msgid "Invalid media ID or term ID"
@@ -11344,7 +11344,7 @@ msgstr "Administratorrolle kann nicht gelöscht werden."
 #: includes/features/role-manager.php:675
 #, php-format
 msgid "ID %d (Not Found)"
-msgstr "Anfängliche Berechtigungen (Initial Capabilities)"
+msgstr "ID %d (Nicht gefunden)"
 
 #: includes/features/role-manager.php:520
 #, php-format
@@ -11392,7 +11392,7 @@ msgstr "Der Name, der im WordPress-Adminbereich angezeigt wird (z. B. „Event M
 
 #: includes/features/role-manager.php:583
 msgid "Initial Capabilities"
-msgstr "Ungültige Term-ID"
+msgstr "Anfängliche Berechtigungen"
 
 #: includes/features/role-manager.php:586
 #: includes/features/role-manager.php:696
