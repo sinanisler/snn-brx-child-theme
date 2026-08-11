@@ -10,13 +10,13 @@ function snn_register_update_post_ability() {
     wp_register_ability(
         'snn/update-post',
         array(
-            'label'       => __( 'Update Post', 'wp-abilities' ),
+            'label'       => __( 'Update Post', 'snn' ),
             'description' => __( 'Updates an existing post by ID with new title, content (HTML supported), status (draft/publish/pending/private), or excerpt. All fields are optional - only provided fields will be updated. Automatically sanitizes input and preserves unchanged fields. Returns post ID, success status, updated permalink, and last modified timestamp. Use this to edit existing content, change post status, update excerpts, revise posts, or programmatically modify content. Requires post ID - use get-posts or search-content to find posts first if ID unknown.
 
 CRITICAL: When updating content, use valid HTML with ALL tags properly closed to prevent broken blocks:
 - Good: <h2>Updated Section</h2><p>New content here.</p><ul><li>Item 1</li><li>Item 2</li></ul>
 - Bad: <p>Unclosed tag <h2>Title (will cause block recovery errors)
-See includes/ai/docs/block-generation-rules.md for guidelines.', 'wp-abilities' ),
+See includes/ai/docs/block-generation-rules.md for guidelines.', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',

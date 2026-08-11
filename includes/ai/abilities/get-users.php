@@ -10,8 +10,8 @@ function snn_register_get_users_ability() {
     wp_register_ability(
         'snn/get-users',
         array(
-            'label'       => __( 'Get Users', 'wp-abilities' ),
-            'description' => __( 'Retrieves WordPress users with complete details including user ID, username (login), display name, email address, assigned roles (administrator/editor/author/contributor/subscriber), registration date/time, and total authored post count. Can filter by specific role and limit results (max 100 for performance). Use this when you need user lists, want to find users by role, need email addresses for notifications, analyze author activity, check user registrations, or export user data. Returns all public user information.', 'wp-abilities' ),
+            'label'       => __( 'Get Users', 'snn' ),
+            'description' => __( 'Retrieves WordPress users with complete details including user ID, username (login), display name, email address, assigned roles (administrator/editor/author/contributor/subscriber), registration date/time, and total authored post count. Can filter by specific role and limit results (max 100 for performance). Use this when you need user lists, want to find users by role, need email addresses for notifications, analyze author activity, check user registrations, or export user data. Returns all public user information.', 'snn' ),
             'category'    => 'users',
             'input_schema' => array(
                 'type'       => 'object',

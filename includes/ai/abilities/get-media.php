@@ -10,8 +10,8 @@ function snn_register_get_media_ability() {
     wp_register_ability(
         'snn/get-media',
         array(
-            'label'       => __( 'Get Media', 'wp-abilities' ),
-            'description' => __( 'Retrieves media library items (images, videos, documents, audio) with complete details including attachment ID, title, file URL, MIME type, file size in bytes, upload date, and alt text. Can filter by MIME type (e.g., "image/jpeg", "image/png", "application/pdf", "video/mp4") to get specific file types. Limited to 100 items per request for performance. Use this to audit media library, find unused images, check file sizes, locate specific media types, export media data, or analyze media usage patterns.', 'wp-abilities' ),
+            'label'       => __( 'Get Media', 'snn' ),
+            'description' => __( 'Retrieves media library items (images, videos, documents, audio) with complete details including attachment ID, title, file URL, MIME type, file size in bytes, upload date, and alt text. Can filter by MIME type (e.g., "image/jpeg", "image/png", "application/pdf", "video/mp4") to get specific file types. Limited to 100 items per request for performance. Use this to audit media library, find unused images, check file sizes, locate specific media types, export media data, or analyze media usage patterns.', 'snn' ),
             'category'    => 'media',
             'input_schema' => array(
                 'type'       => 'object',

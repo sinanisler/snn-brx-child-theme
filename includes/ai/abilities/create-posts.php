@@ -10,7 +10,7 @@ function snn_register_create_post_ability() {
     wp_register_ability(
         'snn/create-post',
         array(
-            'label'       => __( 'Create Post', 'wp-abilities' ),
+            'label'       => __( 'Create Post', 'snn' ),
             'description' => __( 'Creates a new WordPress post or page with specified title, content (HTML supported), excerpt, status (draft/publish/pending/private), categories, and tags. Automatically sanitizes input and sets the current user as author. Returns the new post ID, permalink, and edit URL. Use this when you need to programmatically create content, import posts, generate articles, or add new pages to the site. Always create as draft first unless explicitly instructed to publish immediately.
 
 CRITICAL: Content must be valid HTML with ALL tags properly closed to prevent broken blocks:
@@ -19,7 +19,7 @@ CRITICAL: Content must be valid HTML with ALL tags properly closed to prevent br
 - Lists must use: <ul><li>Item</li></ul> or <ol><li>Item</li></ol>
 - No empty blocks: <p></p> (remove these)
 
-See includes/ai/docs/block-generation-rules.md for complete guidelines.', 'wp-abilities' ),
+See includes/ai/docs/block-generation-rules.md for complete guidelines.', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',

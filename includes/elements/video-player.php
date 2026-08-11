@@ -64,7 +64,7 @@ class SNN_Video_Player_Element extends Element {
             'label'         => esc_html__( 'Subtitles / Captions', 'snn' ),
             'type'          => 'repeater',
             'titleProperty' => 'label',
-            'placeholder'   => esc_html__( 'Subtitle language', 'bricks' ),
+            'placeholder'   => esc_html__( 'Subtitle language', 'snn' ),
             'fields'        => [
                 'subtitle_file' => [
                     'label' => esc_html__( 'WebVTT File', 'snn' ),

@@ -301,7 +301,7 @@ class Snn_Gallery_And_Thumbnails extends Element {
             
             echo '</div>';
         } else {
-            echo '<p style="padding: 20px; text-align: center;">' . esc_html__( 'No image(s) selected.', 'bricks' ) . '</p>';
+            echo '<p style="padding: 20px; text-align: center;">' . esc_html__( 'No image(s) selected.', 'snn' ) . '</p>';
         }
 
         // JavaScript

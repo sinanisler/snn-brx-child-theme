@@ -203,7 +203,7 @@ function snn_validate_math_captcha( $result, $username, $password ) {
                 if ( ! snn_check_captcha() ) {
                     $result = new WP_Error(
                         'captcha_error',
-                        __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math equation.", "snn"), "snn")
+                        '<strong>' . esc_html__( 'ERROR', 'snn' ) . '</strong>: ' . esc_html__( 'Verification failed. Please solve the math equation.', 'snn' )
                     );
                 }
             }
@@ -221,7 +221,7 @@ function snn_validate_registration_captcha( $errors, $sanitized_user_login, $use
         if ( ! snn_check_captcha() ) {
             $errors->add(
                 'captcha_error',
-                __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math equation.", "snn"), "snn")
+                '<strong>' . esc_html__( 'ERROR', 'snn' ) . '</strong>: ' . esc_html__( 'Verification failed. Please solve the math equation.', 'snn' )
             );
         }
     }
@@ -237,7 +237,7 @@ function snn_validate_lostpassword_captcha( $errors, $user_login ) {
         if ( ! snn_check_captcha() ) {
             $errors->add(
                 'captcha_error',
-                __("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math equation.", "snn"), "snn")
+                '<strong>' . esc_html__( 'ERROR', 'snn' ) . '</strong>: ' . esc_html__( 'Verification failed. Please solve the math equation.', 'snn' )
             );
         }
     }
@@ -263,7 +263,7 @@ function snn_validate_comment_captcha( $commentdata ) {
 
     if ( $captcha_type === 'math' && ! is_user_logged_in() ) {
         if ( ! snn_check_captcha() ) {
-            wp_die(__("<strong>ERROR</strong>: " . __("Verification failed. Please solve the math equation.", "snn"), "snn"));
+            wp_die('<strong>' . esc_html__( 'ERROR', 'snn' ) . '</strong>: ' . esc_html__( 'Verification failed. Please solve the math equation.', 'snn' ));
         }
     }
     return $commentdata;

@@ -10,8 +10,8 @@ function snn_register_list_taxonomies_ability() {
     wp_register_ability(
         'snn/list-taxonomies',
         array(
-            'label'       => __( 'List Taxonomies', 'wp-abilities' ),
-            'description' => __( 'CRITICAL DISCOVERY TOOL: Lists all registered taxonomies on the site with slug (required for get-terms/create-terms), singular/plural names, hierarchical status (true for category-like, false for tag-like), public visibility, associated post types, and term count. Can filter by public taxonomies only or by post type association. ALWAYS call this FIRST when working with taxonomies if you don\'t know the exact taxonomy slugs - never guess taxonomy names. Built-in taxonomies are "category" and "post_tag", but sites often have custom ones like "product_cat", "course_category", "portfolio_tag". Returns sorted list by label.', 'wp-abilities' ),
+            'label'       => __( 'List Taxonomies', 'snn' ),
+            'description' => __( 'CRITICAL DISCOVERY TOOL: Lists all registered taxonomies on the site with slug (required for get-terms/create-terms), singular/plural names, hierarchical status (true for category-like, false for tag-like), public visibility, associated post types, and term count. Can filter by public taxonomies only or by post type association. ALWAYS call this FIRST when working with taxonomies if you don\'t know the exact taxonomy slugs - never guess taxonomy names. Built-in taxonomies are "category" and "post_tag", but sites often have custom ones like "product_cat", "course_category", "portfolio_tag". Returns sorted list by label.', 'snn' ),
             'category'    => 'taxonomy',
             'input_schema' => array(
                 'type'       => 'object',

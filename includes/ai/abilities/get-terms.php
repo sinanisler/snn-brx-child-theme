@@ -10,8 +10,8 @@ function snn_register_get_terms_ability() {
     wp_register_ability(
         'snn/get-terms',
         array(
-            'label'       => __( 'Get Terms', 'wp-abilities' ),
-            'description' => __( 'Retrieves terms from any taxonomy with advanced filtering options. Returns term ID, name, slug, taxonomy, post count, URL, parent ID, and description. Supports filtering by taxonomy (REQUIRED - call list-taxonomies first if unknown), show/hide empty terms, limit count (max 100), ordering (name/slug/count/ID), sort direction, parent ID (for hierarchical taxonomies), and search. CRITICAL: Must provide valid taxonomy slug - built-in ones are "category" and "post_tag", but custom taxonomies vary by site. Validates taxonomy and provides helpful errors. Use this for advanced term queries, building category trees, filtered term lists, or working with custom taxonomies.', 'wp-abilities' ),
+            'label'       => __( 'Get Terms', 'snn' ),
+            'description' => __( 'Retrieves terms from any taxonomy with advanced filtering options. Returns term ID, name, slug, taxonomy, post count, URL, parent ID, and description. Supports filtering by taxonomy (REQUIRED - call list-taxonomies first if unknown), show/hide empty terms, limit count (max 100), ordering (name/slug/count/ID), sort direction, parent ID (for hierarchical taxonomies), and search. CRITICAL: Must provide valid taxonomy slug - built-in ones are "category" and "post_tag", but custom taxonomies vary by site. Validates taxonomy and provides helpful errors. Use this for advanced term queries, building category trees, filtered term lists, or working with custom taxonomies.', 'snn' ),
             'category'    => 'taxonomy',
             'input_schema' => array(
                 'type'       => 'object',

@@ -10,8 +10,8 @@ function snn_register_get_posts_ability() {
     wp_register_ability(
         'snn/get-posts',
         array(
-            'label'       => __( 'Get Posts', 'wp-abilities' ),
-            'description' => __( 'Retrieves a list of posts with filtering and sorting options. By default includes both published and draft posts since users are in dashboard context. Returns post ID, title, permalink, excerpt (30 words), publication date, post status, and author display name. Supports filtering by post type (post/page/custom), post status, category slug, ordering (date/title/modified/random), sort direction (ASC/DESC), and limiting results (max 100 for performance). Returns summarized data - use get-post-by-id for full content. Use this to list recent posts, browse by category, get post overviews, create content listings, or analyze publication patterns.', 'wp-abilities' ),
+            'label'       => __( 'Get Posts', 'snn' ),
+            'description' => __( 'Retrieves a list of posts with filtering and sorting options. By default includes both published and draft posts since users are in dashboard context. Returns post ID, title, permalink, excerpt (30 words), publication date, post status, and author display name. Supports filtering by post type (post/page/custom), post status, category slug, ordering (date/title/modified/random), sort direction (ASC/DESC), and limiting results (max 100 for performance). Returns summarized data - use get-post-by-id for full content. Use this to list recent posts, browse by category, get post overviews, create content listings, or analyze publication patterns.', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',

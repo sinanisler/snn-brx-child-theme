@@ -10,8 +10,8 @@ function snn_register_get_post_by_id_ability() {
     wp_register_ability(
         'snn/get-post-by-id',
         array(
-            'label'       => __( 'Get Post By ID', 'wp-abilities' ),
-            'description' => __( 'Retrieves complete details for a specific post by ID including title, full content (unfiltered HTML), excerpt, status, post type, permalink, edit URL, author information (ID and display name), publication date, last modified date, assigned categories (with IDs, names, slugs), and tags (with IDs, names, slugs). Use this when you need full post data for a known post ID, to read specific content, analyze post details, check metadata, or prepare content for editing. More detailed than get-posts which returns summarized data.', 'wp-abilities' ),
+            'label'       => __( 'Get Post By ID', 'snn' ),
+            'description' => __( 'Retrieves complete details for a specific post by ID including title, full content (unfiltered HTML), excerpt, status, post type, permalink, edit URL, author information (ID and display name), publication date, last modified date, assigned categories (with IDs, names, slugs), and tags (with IDs, names, slugs). Use this when you need full post data for a known post ID, to read specific content, analyze post details, check metadata, or prepare content for editing. More detailed than get-posts which returns summarized data.', 'snn' ),
             'category'    => 'content',
             'input_schema' => array(
                 'type'       => 'object',
